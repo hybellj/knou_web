@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.seminar.dao.SeminarHstyDAO">
+
+	<sql id="selectQuery">
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY FRST_INQ_DTTM)	AS lineNo
+			, SEMINAR_HSTY_ID                       AS seminarHstyId
+			, SMNR_ID                            AS seminarId
+			, STD_ID                                AS stdNo
+			, ATND_SDTTM                             AS atndDttm
+			, CNTN_DVC_TYCD                        AS deviceTypeCd
+			, USER_ID                               AS userId
+			, RGTR_IP                                AS regIp
+			, RGTR_ID                                AS rgtrId
+			, FRST_INQ_DTTM                              AS regDttm
+		  FROM TB_LMS_SEMINAR_HSTY
+		 WHERE 1 = 1
+	</sql>
+	
+	<select id="select" parameterType="seminarHstyVO" resultType="seminarHstyVO">
+		/*
+             SQL ID : SeminarHstyDAO.select
+            	 설  명 : 세미나 참석 기록 정보 조회
+         */
+         <include refid="selectQuery" />
+         AND SEMINAR_HSTY_ID = #{seminarHstyId}
+	</select>
+	
+	<select id="list" parameterType="seminarHstyVO" resultType="seminarHstyVO">
+		/*
+             SQL ID : SeminarHstyDAO.list
+            	 설  명 : 세미나 참석 기록 목록 조회
+         */
+         <include refid="selectQuery" />
+         <if test="seminarId != null and seminarId != ''">
+         	AND SMNR_ID = #{seminarId}
+         </if>
+         <if test="stdNo != null and stdNo != ''">
+         	AND STD_ID = #{stdNo}
+         </if>
+         ORDER BY FRST_INQ_DTTM DESC
+	</select>
+	
+	<insert id="insert" parameterType="seminarHstyVO">
+		/*
+             SQL ID : SeminarHstyDAO.insert
+            	 설  명 : 세미나 참석 기록 등록
+         */
+         INSERT INTO TB_LMS_SEMINAR_HSTY (
+         	  SEMINAR_HSTY_ID
+			, SMNR_ID
+			, STD_ID
+			, ATND_SDTTM
+			, CNTN_DVC_TYCD
+			, USER_ID
+			, RGTR_IP
+			, RGTR_ID
+			, FRST_INQ_DTTM
+         ) VALUES (
+         	  #{seminarHstyId}
+         	, #{seminarId}
+         	, #{stdNo}
+         	, IFNULL(#{atndDttm}, FN_DTTM())
+         	, #{deviceTypeCd}
+         	, #{userId}
+         	, #{regIp}
+         	, #{rgtrId}
+         	, FN_DTTM()
+         )
+	</insert>
+
+</mapper>

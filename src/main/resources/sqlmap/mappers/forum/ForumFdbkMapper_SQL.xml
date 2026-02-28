@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.forum.dao.ForumFdbkDAO">
+
+	<select id="forumFdbkList" parameterType="forumFdbkVO" resultType="egovMap">
+		/*
+			피드백 조회
+			ForumFdbkDAO.forumFdbkList
+		*/
+		WITH RECURSIVE fdbk as 
+		(
+			SELECT a.DSCS_FDBK_ID
+				,  a.PAR_FORUM_FDBK_CD
+				,  a.STD_ID
+				,  a.TEAM_ID
+				,  a.DSCS_ID
+				,  a.FDBK_CTS
+				,  a.RGTR_ID
+				,  a.FRST_INQ_DTTM
+				,  a.MDFR_ID
+				,  a.MOD_DTTM
+				,  a.DELYN
+				, 1 AS LEVEL 
+				, CONVERT(a.DSCS_FDBK_ID, char(100)) AS PATH
+				, a.RGTR_ID AS TO_USER_ID
+			FROM TB_LMS_DSCS_FDBK a
+			WHERE a.PAR_FORUM_FDBK_CD IS NULL
+			AND a.DSCS_ID = #{forumCd} 
+			UNION ALL 
+			SELECT a.DSCS_FDBK_ID
+				,  a.PAR_FORUM_FDBK_CD
+				,  a.STD_ID
+				,  a.TEAM_ID
+				,  a.DSCS_ID
+				,  a.FDBK_CTS
+				,  a.RGTR_ID
+				,  a.FRST_INQ_DTTM
+				,  a.MDFR_ID
+				,  a.MOD_DTTM
+				,  a.DELYN
+				, 1+LEVEL AS LEVEL
+				, CONCAT(b.PATH, '-', a.DSCS_FDBK_ID) AS PATH
+				, b.RGTR_ID  AS TO_USER_ID
+			FROM TB_LMS_DSCS_FDBK a 
+			INNER JOIN fdbk b
+			ON a.PAR_FORUM_FDBK_CD = b.DSCS_FDBK_ID 
+			WHERE a.DSCS_ID = #{forumCd}
+		)
+		SELECT R.*
+		  FROM (SELECT DSCS_FDBK_ID
+					, PAR_FORUM_FDBK_CD
+					, STD_ID
+					, TEAM_ID
+					, DSCS_ID
+					, FDBK_CTS
+					, RGTR_ID
+					, FRST_INQ_DTTM
+					, MDFR_ID
+					, MOD_DTTM
+					, DELYN
+					, LEVEL
+					, PATH
+					, (
+						SELECT B.USER_ID
+						FROM TB_LMS_USER_ACNT AS B
+						WHERE B.USER_ID = A.RGTR_ID
+					) AS USER_ID
+					, (
+						SELECT 
+							CASE WHEN  A.RGTR_ID = '000000000000'
+							THEN
+								'관리자'
+							ELSE 
+								IFNULL(USERNM, 'UnKnown')
+							END
+						FROM TB_LMS_USR
+						WHERE USER_ID = A.RGTR_ID
+					) AS RGTRNM
+					, RIGHT(CASE WHEN level > 2 THEN (
+						SELECT 
+							CASE WHEN  RGTR_ID = '000000000000'
+							THEN
+								'관리자'
+							ELSE 
+								IFNULL(USERNM, 'UnKnown')
+							END
+						FROM TB_LMS_USR
+						WHERE USER_ID = RGTR_ID
+					) ELSE '' END, 2) AS USERNM
+					, CASE WHEN LEVEL > 2 THEN (
+						SELECT 
+							case when  TO_USER_ID = '000000000000'
+							then
+								'관리자'
+							ELSE 
+								IFNULL(USERNM, 'UnKnown')
+							END
+						FROM TB_LMS_USR
+						WHERE USER_ID = TO_USER_ID
+					) ELSE '' END AS TO_USER_NM
+					, (SELECT COUNT(*) FROM FDBK B WHERE B.DSCS_ID = A.DSCS_ID AND B.PATH LIKE CONCAT('%', A.DSCS_FDBK_ID, '%') AND B.DELYN = 'N' AND B.DSCS_FDBK_ID != A.DSCS_FDBK_ID) AS CMNT_CNT
+					, RIGHT(RGTR_ID,1) AS USER_ID_COLOR
+				FROM FDBK  A
+				WHERE DSCS_ID = #{forumCd}
+				<choose>
+					<when test='teamCd != null and teamCd != ""'>
+						AND TEAM_ID=#{teamCd}
+					</when>
+					<otherwise>
+						AND STD_ID = #{stdNo}
+					</otherwise>
+				</choose>
+			) R
+			WHERE (R.DELYN ='N' OR R.CMNT_CNT > 0)
+			ORDER BY PATH
+	</select>
+
+	<insert id="insertForumFdbk" parameterType="forumFdbkVO">
+		/*
+			토론 피드백 등록
+			ForumFdbkDAO.insertForumFdbk
+		*/
+		INSERT INTO TB_LMS_DSCS_FDBK (
+			DSCS_FDBK_ID
+			, DSCS_ID
+			, STD_ID
+			, PAR_FORUM_FDBK_CD
+			, TEAM_ID
+			, FDBK_CTS
+			, DELYN
+			, RGTRNM
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			#{forumFdbkCd}
+			, #{forumCd}
+			, #{stdNo}
+			, #{parForumFdbkCd}
+			, #{teamCd}
+			, #{fdbkCts}
+			, 'N'
+			, #{regNm}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		)
+	</insert>
+	
+	<update id="updateForumFdbk" parameterType="forumFdbkVO">
+		/*
+			토론 피드백 수정
+			ForumFdbkDAO.updateForumFdbk
+		*/
+		UPDATE TB_LMS_DSCS_FDBK SET
+			  MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+			<if test="parForumFdbkCd != null and parForumFdbkCd != ''">
+			, PAR_FORUM_FDBK_CD = #{parForumFdbkCd}
+			</if>
+			<if test="teamCd != null and teamCd != ''">
+			, TEAM_ID = #{teamCd}
+			</if>
+			<if test="fdbkCts != null and fdbkCts != ''">
+			, FDBK_CTS = #{fdbkCts}
+			</if>
+			<if test="delYn != null and delYn != ''">
+			, DELYN = #{delYn}
+			</if>
+		WHERE DSCS_FDBK_ID = #{forumFdbkCd}
+			AND DSCS_ID = #{forumCd}
+			<if test="stdNo != null and stdNo != ''">
+			AND STD_ID = #{stdNo}
+			</if>
+	</update>
+	
+	<update id="deleteForumFdbk" parameterType="forumFdbkVO">
+		/*
+			토론 피드백 삭제
+			ForumFdbkDAO.deleteForumFdbk
+		*/
+		UPDATE TB_LMS_DSCS_FDBK SET
+			  MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+			, DELYN = 'Y'
+		WHERE DSCS_FDBK_ID = #{forumFdbkCd}
+			AND DSCS_ID = #{forumCd}
+			<if test="stdNo != null and stdNo != ''">
+			AND STD_ID = #{stdNo}
+			</if>
+	</update>
+
+	<insert id="insertForumAllFdbk" parameterType="forumFdbkVO">
+		/*
+			일괄 피드백 등록
+			ForumFdbkDAO.insertForumAllFdbk
+		*/
+		INSERT INTO TB_LMS_DSCS_FDBK (
+			DSCS_FDBK_ID
+			, DSCS_ID
+			, STD_ID
+			, TEAM_ID
+			, FDBK_CTS
+			, DELYN
+			, RGTRNM
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		)
+		SELECT
+			FN_NEW_ID('FDBK')
+			, DSCS_ID
+			, STD_ID
+			, TEAM_ID
+			, #{fdbkCts}
+			, 'N'
+			, #{regNm}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		FROM TB_LMS_DSCS_PTCP
+		WHERE DSCS_ID = #{forumCd}
+	</insert>
+
+	<insert id="insertFdbk" parameterType="forumFdbkVO">
+		/*
+			패드백 등록
+			ForumFdbkDAO.insertFdbk
+		*/
+		INSERT INTO TB_LMS_DSCS_FDBK (
+			DSCS_FDBK_ID
+			, DSCS_ID
+			, STD_ID
+			, PAR_FORUM_FDBK_CD
+			, TEAM_ID
+			, FDBK_CTS
+			, DELYN
+			, RGTRNM
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		)
+		VALUES (
+			#{forumFdbkCd}
+			, #{forumCd}
+			, #{stdNo}
+			, #{parForumFdbkCd}
+			, #{teamCd}
+			, #{fdbkCts}
+			, 'N'
+			, FN_GET_USER_NM(#{userId})
+			, #{userId}
+			, FN_DTTM()
+			, #{userId}
+			, FN_DTTM()
+		)
+	</insert>
+
+	<select id="selectFdbk" parameterType="forumFdbkVO" resultType="forumFdbkVO">
+		/*
+			피드백 조회
+			ForumFdbkDAO.selectFdbk
+		*/
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY FRST_INQ_DTTM) AS LINE_NO
+			, COUNT(DSCS_FDBK_ID) OVER() AS TOTAL_CNT
+			, DSCS_FDBK_ID
+			, PAR_FORUM_FDBK_CD
+			, DSCS_ID
+			, STD_ID
+			, TEAM_ID
+			, FDBK_CTS
+			, DELYN
+			, RGTRNM
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		FROM TB_LMS_DSCS_FDBK
+		WHERE DSCS_ID = #{forumCd}
+			AND STD_ID = #{stdNo}
+			AND DELYN = 'N'
+		ORDER BY FRST_INQ_DTTM DESC
+	</select>
+
+	<update id="updateFdbk" parameterType="forumFdbkVO">
+		/*
+			 피드백 수정
+			ForumFdbkDAO.updateFdbk
+		*/
+		UPDATE TB_LMS_DSCS_FDBK
+		   SET MDFR_ID = #{userId}
+			   , MOD_DTTM = FN_DTTM()
+			   , FDBK_CTS = #{fdbkCts}
+		 WHERE DSCS_FDBK_ID = #{forumFdbkCd}
+	</update>
+
+	<update id="deleteFdbk" parameterType="forumFdbkVO">
+		/*
+			피드백 삭제
+			ForumFdbkDAO.deleteFdbk
+		*/
+		UPDATE TB_LMS_DSCS_FDBK
+		   SET MDFR_ID = #{userId}
+			   , MOD_DTTM = FN_DTTM()
+			   , DELYN = 'Y'
+		 WHERE DSCS_FDBK_ID = #{forumFdbkCd}
+	</update>
+
+	<select id="cntFdbk" resultType="int">
+		/*
+			피드백 갯수
+			ForumFdbkDAO.cntFdbk
+		*/
+		SELECT
+			COUNT(*) AS cntFdbk
+		FROM TB_LMS_DSCS_FDBK
+		WHERE DSCS_ID = #{forumCd}
+			AND STD_ID = #{stdNo}
+			AND DELYN = 'N'
+	</select>
+
+</mapper>

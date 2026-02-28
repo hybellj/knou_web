@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.mut.dao.MutEvalRsltDAO">
+
+	<select id="listMutEvalRslt" parameterType="mutEvalRsltVO" resultType="egovMap">
+		/*
+             SQL ID : MutEvalRsltDAO.listMutEvalRslt
+             	설  명 : 평가 결과 목록 조회
+        */
+		SELECT ROW_NUMBER() OVER(ORDER BY EVLTR_ID DESC)AS LINE_NO
+			, MTL_EVL_CD
+			, ASMT_MTL_EVL_RSLT_ID
+			, RLTN_TEAM_CD
+			, EVLTR_ID
+			, FN_GET_STD_USER_ID(EVLTR_ID) 				AS EVAL_USER_ID
+			, FN_GET_STD_USER_NM(EVLTR_ID) 				AS EVAL_USER_NM
+			, FN_GET_STD_DEPT_NM(EVLTR_ID) 				AS DEPTNM
+			, FN_GET_STD_EMAIL(EVLTR_ID) 				AS EMAIL
+			, FN_GET_STD_MOBILE_NO(EVLTR_ID) 			AS MOBILE
+			, EVLTEE_ID
+			, FN_GET_STD_USER_ID(EVLTEE_ID) 		AS EVAL_TRGT_USER_ID
+			, FN_GET_STD_USER_NM(EVLTEE_ID) 		AS EVAL_TRGT_USER_NM
+			, FN_GET_STD_DEPT_NM(EVLTEE_ID) 		AS EVAL_TRGT_DEPT_NM
+			, FN_GET_STD_EMAIL(EVLTEE_ID) 			AS EVAL_TRGT_EMAIL
+			, FN_GET_STD_MOBILE_NO(EVLTEE_ID) 		AS EVAL_TRGT_MOBILE
+			, EVL_DTTM
+			, QSTN_NOS
+			, EVL_SCRS
+			, EVL_TOT_SCR
+			, EVL_CTS
+			, EVL_STSCD
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+			, (SELECT COUNT(*) FROM MTL_EVL_RSLT B WHERE  B.ASMT_MTL_EVL_RSLT_ID = A.ASMT_MTL_EVL_RSLT_ID and B.EVLTEE_ID = A.EVLTEE_ID AND (B.EVL_STSCD = 'C' OR (QSTN_NOS IS NOT NULL AND LENGTH(QSTN_NOS) > 0))) AS EVAL_CNT
+			, (SELECT COUNT(*) FROM MTL_EVL_RSLT B WHERE  B.ASMT_MTL_EVL_RSLT_ID = A.ASMT_MTL_EVL_RSLT_ID and B.EVLTR_ID = #{evalUserId} ) AS MY_EVAL_CNT
+			, (SELECT COUNT(*) FROM MTL_EVL_RSLT B WHERE  B.ASMT_MTL_EVL_RSLT_ID = #{evalCd} and B.EVLTEE_ID = A.EVLTEE_ID AND B.EVLTR_ID = #{evalUserId}) AS MY_EVAL_STATUS
+			,FN_GET_STD_NO(EVLTR_ID, #{crsCreCd}) 		AS STD_ID
+			,FN_GET_STD_NO(EVLTEE_ID, #{crsCreCd}) 	AS TRGT_STD_NO
+		FROM MTL_EVL_RSLT A
+		WHERE ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+		<if test='evalUserId != null and evalUserId != ""'>
+		  AND EVLTR_ID = #{evalUserId}
+		</if>
+		<if test='evalTrgtUserId != null and evalTrgtUserId != ""'>
+		  AND EVLTEE_ID = #{evalTrgtUserId}
+		</if>
+		<if test='evalStatusCd != null and evalStatusCd != ""'>
+		  AND EVL_STSCD = #{evalStatusCd}
+		</if>
+	</select>
+
+	<delete id="delMutEvalRslt" parameterType="mutEvalRsltVO">
+		/*
+             SQL ID : MutEvalRsltDAO.delMutEvalRslt
+             	설  명 : 평가 결과 삭제
+        */
+        DELETE FROM MTL_EVL_RSLT
+         WHERE ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+	</delete>
+
+</mapper>

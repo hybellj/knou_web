@@ -1,0 +1,656 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.crs.crs.dao.CrsDAO">
+
+	<select id="selectList" parameterType="knou.lms.crs.crs.vo.CrsVO" resultType="knou.lms.crs.crs.vo.CrsVO">
+		/*
+			 SQL ID : CrsDAO.selectList
+			 설  명 : 과정 목록
+	 	*/
+	 	SELECT ROW_NUMBER() OVER(ORDER BY A.MOD_DTTM, A.CRSNM) AS LINE_NO
+	 	 , A.CRS_ID 
+             , A.CRS_CTGRCD 
+	         , A.CRSNM 
+	         , A.CRS_EXPLN 
+		     <!-- , (SELECT CDNM FROM TB_ORG_CODE WHERE CTGRCD = 'SBJCT_TYCD' AND CD = A.CRS_TYCD) AS CRS_TYPE_NM -->
+	         , A.CRS_OP_TYCD 
+	         <!-- , A.ENRL_CERT_MTHD --> 
+        , A.FNSH_PROC_TYCD 
+--	         <!-- , A.FNSH_SCR --> 	 
+	         , A.DPLM_ISSUYN  
+	         , A.CRS_TYCD 	
+	         , A.EDU_QUOTA	 	
+	         , A.QUOTA_LMTYN 	
+	         , A.USEYN 	
+	         , A.RGTR_ID 	
+	         , A.REG_DTTM 	
+	         , A.MDFR_ID 	
+	         , A.MOD_DTTM 	
+	         <!-- , (SELECT CRS_CTGRNM FROM TB_LMS_CRS_CTGR WHERE CRS_CTGRCD = A.CRS_CTGRCD ) AS CRS_CTGRNM -->
+	         , (SELECT COUNT(*) FROM TB_LMS_SBJCT B WHERE B.CRS_ID = A.CRS_ID AND B.SBJCT_ID = NVL(NULL, B.SBJCT_ID)) AS CRE_CRS_CNT
+   	  FROM TB_LMS_CRS A
+   	  WHERE 1 = 1
+   	  AND A.DELYN = 'N'
+   	  AND A.USEYN = 'Y'
+   	  <if test="crsTypeCd != null and crsTypeCd != ''">
+   	  AND A.SBJCT_TYCD = #{crsTypeCd}
+   	  </if>
+   	  <if test="crsCd != null and crsCd != ''">
+   	  AND A.CRS_ID = #{crsCd}
+   	  </if>
+   	  ORDER BY A.MOD_DTTM DESC, A.CRSNM
+	</select>
+	
+	<select id="selectCrs" parameterType="knou.lms.crs.crs.vo.CrsVO" resultType="knou.lms.crs.crs.vo.CrsVO">
+		/*
+			 SQL ID : CrsDAO.selectCrs
+			 설  명 : 과정 목록
+	 	*/	
+		SELECT
+			  A.CRS_ID
+			, A.CRS_CTGRCD
+			, A.THM_ID
+			, A.ORG_ID
+			, A.SBJCT_TYCD
+			, A.SBJCT_OP_TYCD
+			, A.CRSNM
+		    , A.CRS_EXPLN
+			, A.ENRL_CERT_MTHD
+			, A.QUOTA_LMTYN
+			, A.EDU_QUOTA
+			, A.FNSH_SCR
+			, A.FNSH_PROC_TYCD
+			, A.DPLM_ISSUYN
+			, A.USEYN
+			, A.DELYN
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_CRS A
+		WHERE A.DELYN = 'N'
+		  AND A.USEYN = 'Y'
+		  AND A.CRS_ID = #{crsCd}
+	</select>
+	
+	<select id="selectCrsView" parameterType="knou.lms.crs.crs.vo.CrsVO" resultType="knou.lms.crs.crs.vo.CrsVO">
+		/*
+			 SQL ID : CrsDAO.selectCrsView
+			 설  명 : 과정 view
+	 	*/
+	   	SELECT CRS_ID
+         , CRS_CTGRCD
+         , THM_ID
+	     , CRSNM
+	     , CRS_EXPLN
+	     , SBJCT_OP_TYCD
+	     , ENRL_CERT_MTHD
+	     , FNSH_PROC_TYCD
+	     , FNSH_SCR
+	     , DPLM_ISSUYN
+	     , SBJCT_TYCD
+	     , EDU_QUOTA
+	     , QUOTA_LMTYN
+	     , USEYN
+	     , (SELECT COUNT(*) FROM TB_LMS_SBJCT A WHERE A.CRS_ID = CRS_ID AND SBJCT_ID = NVL(#{crsYear}, A.SBJCT_ID)) AS CRE_CRS_CNT 
+		 , RGTR_ID
+	     , FRST_INQ_DTTM
+	     , MDFR_ID
+	     , MOD_DTTM
+   	  	FROM TB_LMS_CRS 
+   	  	WHERE CRS_ID = #{crsCd}
+   	  	<if test="orgId != null and orgId != ''">
+		AND ORG_ID = #{orgId}
+	   	</if>
+	</select>
+	
+	<select id="selectCrsByCrsCreCd" parameterType="creCrsVO" resultType="knou.lms.crs.crs.vo.CrsVO">
+		/*
+			 SQL ID : CrsDAO.selectCrsByCrsCreCd
+			 설  명 :
+		*/
+		SELECT DISTINCT B.CRS_ID , B.CRSNM
+		  FROM TB_LMS_SBJCT A
+		  JOIN TB_LMS_CRS B
+			ON A.CRS_ID = B.CRS_ID
+		   AND A.DELYN = 'N'
+		   AND B.DELYN = 'N'
+		 WHERE (A.SBJCT_ID, A.CRS_ID) = (SELECT SBJCT_ID, CRS_ID FROM TB_LMS_SBJCT WHERE SBJCT_ID = #{crsCreCd})
+		  AND A.DELYN = 'N'
+	</select>
+	
+	<select id="selectCrsByUserId" parameterType="creCrsVO" resultType="knou.lms.crs.crs.vo.CrsVO">
+		/*
+			 SQL ID : CrsDAO.selectCrsByUserId
+			 설  명 :
+		*/
+		SELECT DISTINCT B.CRS_ID , B.CRSNM
+		  FROM TB_LMS_SBJCT A
+		  JOIN TB_LMS_CRS B
+			ON A.CRS_ID = B.CRS_ID
+		   AND A.DELYN = 'N'
+		   AND B.DELYN = 'N'
+		 WHERE A.SBJCT_ID IN (SELECT SBJCT_ID FROM SBJCT_PROF WHERE USER_ID = #{userId} AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y')
+		   AND A.SBJCT_ID = #{creYear}
+		   AND A.CRS_ID = #{creTerm}
+	</select>
+	
+	<select id="selectCrsInfo" parameterType="knou.lms.crs.crs.vo.CrsVO" resultType="knou.lms.crs.crs.vo.CrsVO">
+		/*
+			 SQL ID : CrsDAO.selectCrsInfo
+			 설  명 :
+	 	*/
+		SELECT A.CRS_ID
+			, A.CRS_CTGRCD
+			, A.THM_ID
+			, A.ORG_ID
+			, A.SBJCT_TYCD
+			, A.SBJCT_OP_TYCD
+			, A.CRSNM
+		    , A.CRS_EXPLN
+			, A.ENRL_CERT_MTHD
+			, A.QUOTA_LMTYN
+			, A.EDU_QUOTA
+			, A.FNSH_SCR
+			, A.FNSH_PROC_TYCD
+			, A.DPLM_ISSUYN
+			, A.USEYN
+			, A.DELYN
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_CRS A
+		WHERE A.DELYN = 'N'
+		  AND A.CRS_ID = #{crsCd}
+	</select>
+	
+	<select id="selectCrsList" parameterType="knou.lms.crs.crs.vo.CrsVO" resultType="knou.lms.crs.crs.vo.CrsVO">
+		/*
+			 SQL ID : CrsDAO.selectCrsList
+			 설  명 : 과정 목록
+	 	*/
+	 	<include refid="CommonSQL.pagePrefix"/>
+	 	SELECT ROW_NUMBER() OVER(ORDER BY A.MOD_DTTM, A.CRSNM) AS LINE_NO
+	 	 , COUNT(1) OVER() AS TOTAL_CNT
+	   	 , A.CRS_ID
+         , A.CRS_CTGRCD
+	     , A.CRSNM
+	     , A.CRS_EXPLN
+	     , A.SBJCT_OP_TYCD
+	     , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'LEARNING_TYPE' AND CD = A.SBJCT_OP_TYCD) AS CRS_OPER_TYPE_NM
+	     , A.ENRL_CERT_MTHD
+	     , A.FNSH_PROC_TYCD
+	     , A.FNSH_SCR
+	     , A.DPLM_ISSUYN
+	     , A.SBJCT_TYCD
+	     , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'SBJCT_TYCD' AND CD = A.SBJCT_TYCD) AS CRS_TYPE_NM
+	     , A.EDU_QUOTA
+	     , A.QUOTA_LMTYN
+	     , A.USEYN
+	     , (SELECT CRS_CTGRNM FROM TB_LMS_CRS_CTGR WHERE CRS_CTGRCD = A.CRS_CTGRCD ) AS CRS_CTGRNM
+	     , (SELECT COUNT(*) FROM TB_LMS_SBJCT B WHERE B.CRS_ID = A.CRS_ID AND B.SBJCT_ID = IFNULL(#{crsYear}, B.SBJCT_ID)) AS CRE_CRS_CNT
+	     , A.RGTR_ID
+	     , A.FRST_INQ_DTTM
+	     , A.MDFR_ID
+	     , A.MOD_DTTM
+   	  FROM TB_LMS_CRS A
+   	  WHERE 1 = 1
+   	  AND A.DELYN = 'N'
+   	  AND A.SBJCT_TYCD IN 
+   	  <foreach collection="crsTypeCdes" item="crsTypeCdes" open="(" close=")" separator=",">
+	   	   #{crsTypeCdes}
+   	  </foreach>
+   	  <if test='searchValue != null and searchValue != ""'>
+   	  	AND LOWER(A.CRSNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+   	  </if>
+   	  ORDER BY LINE_NO DESC
+   	  <include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<update id="updateUseYn" parameterType="knou.lms.crs.crs.vo.CrsVO">
+		/*
+			 SQL ID : CrsDAO.updateUseYn
+			 설  명 : 과정 목록 > 사용여부 변경
+	 	*/
+		<![CDATA[
+		UPDATE TB_LMS_CRS
+	 	   SET USEYN  = #{useYn}
+		     , MDFR_ID  = #{userId}
+		     , MOD_DTTM  = FN_DTTM()
+		 WHERE CRS_ID = #{crsCd}
+		 ]]>
+	</update>
+	
+	<select id="selectCrsListExcelDown" parameterType="knou.lms.crs.crs.vo.CrsVO" resultType="knou.lms.crs.crs.vo.CrsVO">
+		/*
+			 SQL ID : CrsDAO.selectCrsListExcelDown
+			 설  명 : 과정 목록 엑셀
+	 	*/
+	 	SELECT ROW_NUMBER() OVER(ORDER BY A.MOD_DTTM, A.CRSNM) AS LINE_NO
+		 	 , COUNT(1) OVER() AS TOTAL_CNT
+		   	 , A.CRS_ID
+	         , A.CRS_CTGRCD
+		     , A.CRSNM
+		     , A.CRS_EXPLN
+		     , A.SBJCT_OP_TYCD
+		     , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'LEARNING_TYPE' AND CD = A.SBJCT_OP_TYCD) AS CRS_OPER_TYPE_NM
+		     , A.ENRL_CERT_MTHD
+		     , A.FNSH_PROC_TYCD
+		     , A.FNSH_SCR
+		     , A.DPLM_ISSUYN
+		     , A.SBJCT_TYCD
+		     , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'SBJCT_TYCD' AND CD = A.SBJCT_TYCD) AS CRS_TYPE_NM
+		     , A.EDU_QUOTA
+		     , A.QUOTA_LMTYN
+		     , A.USEYN
+		     , (SELECT CRS_CTGRNM FROM TB_LMS_CRS_CTGR WHERE CRS_CTGRCD = A.CRS_CTGRCD ) AS CRS_CTGRNM
+		     , (SELECT COUNT(*) FROM TB_LMS_SBJCT B WHERE B.CRS_ID = A.CRS_ID AND B.SBJCT_ID = IFNULL(#{crsYear}, B.SBJCT_ID)) AS creCrsCnt
+	   	  FROM TB_LMS_CRS A
+	   	  WHERE 1 = 1
+	   	  AND A.DELYN = 'N'
+	   	  AND A.SBJCT_TYCD IN 
+	   	  <foreach collection="crsTypeCdes" item="crsTypeCdes" open="(" close=")" separator=",">
+		   	   #{crsTypeCdes}
+	   	  </foreach>
+	   	  <if test='searchValue != null and searchValue != ""'>
+	   	  	AND LOWER(A.CRSNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	   	  </if>
+	   	  ORDER BY LINE_NO DESC
+	</select>
+	
+	<delete id="deleteCrs" parameterType="knou.lms.crs.crs.vo.CrsVO" >
+		/*
+			 SQL ID : CrsDAO.deleteCrs
+			 설  명 : 과정 삭제
+	 	*/
+	 	UPDATE TB_LMS_CRS SET DELYN = 'Y' WHERE CRS_ID = #{crsCd}
+	</delete>
+	
+	<select id="selectCrsNmCheck" parameterType="knou.lms.crs.crs.vo.CrsVO" resultType="int">
+		/*
+			 SQL ID : CrsDAO.selectCrsNmCheck
+			 설  명 : 과목명 중복 체크
+	 	*/
+	 	<![CDATA[
+	     SELECT COUNT(CRSNM) AS CNT
+	   	   FROM TB_LMS_CRS 
+	   	  WHERE LOWER(CRSNM) LIKE CONCAT('%',LOWER(#{crsNm}),'%') 
+		]]>
+	</select>
+	
+	<update id="multiCrs" parameterType="knou.lms.crs.crs.vo.CrsVO">
+		/*
+			 SQL ID : CrsDAO.multiCrs
+			 설  명 :
+	 	*/
+		INSERT INTO TB_LMS_CRS (
+			   CRS_ID
+			 , ORG_ID
+             , CRS_CTGRCD 
+             , THM_ID 
+		     , CRSNM 
+		     , CRS_EXPLN
+		     , SBJCT_OP_TYCD
+		     , ENRL_CERT_MTHD
+		     , FNSH_PROC_TYCD
+		     , FNSH_SCR
+		     , DPLM_ISSUYN
+		     , SBJCT_TYCD
+		     , EDU_QUOTA
+		     , QUOTA_LMTYN
+		     , USEYN
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+        ) VALUES (
+               #{crsCd}
+             , #{orgId}
+		     , #{crsCtgrCd}
+		     , #{creTmCtgrCd}
+		     , #{crsNm}
+		     , #{crsDesc}
+		     , #{crsOperTypeCd}
+		     , #{enrlCertMthd}
+		     , #{cpltHandlType}
+		     , #{cpltScore}
+		     , #{certIssueYn}
+		     , #{crsTypeCd}
+		     , #{eduNop}
+		     , #{nopLimitYn}
+		     , #{useYn}
+		     , #{userId}
+		     , FN_DTTM()
+		     , #{userId}
+		     , FN_DTTM()
+        ) 
+        ON DUPLICATE KEY UPDATE
+        	   CRS_CTGRCD = #{crsCtgrCd}
+	 	   	 , THM_ID = #{creTmCtgrCd}
+		     , CRSNM = #{crsNm}
+		     , CRS_EXPLN = #{crsDesc}
+		     , SBJCT_OP_TYCD = #{crsOperTypeCd}
+		     , ENRL_CERT_MTHD = #{enrlCertMthd}
+		     , FNSH_PROC_TYCD = #{cpltHandlType}
+		     , FNSH_SCR = #{cpltScore}
+		     , DPLM_ISSUYN = #{certIssueYn}
+		     , SBJCT_TYCD = #{crsTypeCd}
+		     , EDU_QUOTA = #{eduNop}
+		     , QUOTA_LMTYN = #{nopLimitYn}
+		     , USEYN = #{useYn}
+		     , MDFR_ID = #{userId}
+		     , MOD_DTTM = FN_DTTM()
+	</update>
+
+	<select id="crsListPageing" parameterType="crsVO" resultType="crsVO">
+		/*
+			 SQL ID : CrsDAO.crsListPageing
+			 설  명 : 과정 목록
+	 	*/
+	 	<include refid="CommonSQL.pagePrefix"/>
+		 	SELECT ROW_NUMBER() OVER(ORDER BY MOD_DTTM, CRSNM) AS LINE_NO
+	   	 		 , R.* 
+	   	 	  FROM (SELECT COUNT(1) OVER() AS TOTAL_CNT
+					   	 , TLC.CRS_ID 	 
+				         , TLC.CRS_CTGRCD 
+					     , TLC.CRSNM 	 
+					     , TLC.CRS_EXPLN 	 
+					     , TLC.SBJCT_OP_TYCD
+					     , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'LEARNING_TYPE' AND CD = TLC.SBJCT_OP_TYCD) AS CRS_OPER_TYPE_NM
+					     , TLC.ENRL_CERT_MTHD  
+					     , TLC.FNSH_PROC_TYCD 
+					     , TLC.FNSH_SCR 
+					     , TLC.DPLM_ISSUYN 	
+					     , TLC.SBJCT_TYCD 	
+					     , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = TLC.ORG_ID AND CTGRCD = 'SBJCT_TYCD' AND CD = TLC.SBJCT_TYCD) AS CRS_TYPE_NM
+					     , TLC.EDU_QUOTA 		
+					     , TLC.QUOTA_LMTYN 	
+					     , TLC.USEYN 	
+					     , TLC.RGTR_ID 	
+					     , TLC.FRST_INQ_DTTM 	
+					     , TLC.MDFR_ID 	
+					     , TLC.MOD_DTTM 
+					     , (SELECT CRS_CTGRNM FROM TB_LMS_CRS_CTGR WHERE CRS_CTGRCD = TLC.CRS_CTGRCD ) AS CRS_CTGRNM
+					     , (SELECT COUNT(*) FROM TB_LMS_SBJCT B WHERE B.CRS_ID = TLC.CRS_ID AND B.DELYN = 'N') AS CRE_CRS_CNT
+					  FROM TB_LMS_CRS TLC
+					 WHERE 1 = 1
+					   AND TLC.DELYN = 'N'
+					<if test="crsCd != null">
+						AND TLC.CRS_ID = #{crsCd}
+					</if>
+					<if test="crsCtgrCd != null and crsCtgrCd != ''">
+						AND TLC.CRS_CTGRCD = #{crsCtgrCd}
+					</if>
+					<if test="crsOperTypeCd != null and crsOperTypeCd != '' and crsOperTypeCd != 'ALL'">
+						AND TLC.SBJCT_OP_TYCD = #{crsOperTypeCd}
+					</if>
+					<if test="crsTypeCd != null and crsTypeCd != '' and crsTypeCd != 'ALL'">
+						AND TLC.SBJCT_TYCD = #{crsTypeCd}
+					</if>
+					<if test='orgId != null and orgId != "" '>
+				        AND TLC.ORG_ID = #{orgId}
+					</if>
+					<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+						AND TLC.SBJCT_TYCD IN
+						<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+				            #{item}
+				        </foreach>
+					</if>					
+					<if test='searchValue != null and searchValue != ""'>
+						AND LOWER(TLC.CRSNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					</if>
+					 ORDER BY TLC.CRSNM
+				   ) R
+			 ORDER BY LINE_NO DESC
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="list" parameterType="crsVO" resultType="crsVO">
+		/*
+			SQL ID : CrsDAO.list
+			설  명 : 과정 목록
+	 	*/
+		SELECT ROW_NUMBER() OVER(ORDER BY A.MOD_DTTM, A.CRSNM) AS LINE_NO
+	 	     , A.CRS_ID 
+             , A.CRS_CTGRCD 
+	         , A.CRSNM 
+	         , A.CRS_EXPLN 
+		     --<!-- , (SELECT CDNM FROM TB_ORG_CODE WHERE CTGRCD = 'SBJCT_TYCD' AND CD = A.CRS_TYCD) AS CRS_TYPE_NM -->
+	         , A.CRS_OP_TYCD 
+	         <!-- , A.ENRL_CERT_MTHD --> 
+	         , A.FNSH_PROC_TYCD 
+	         <!-- , A.FNSH_SCR -->
+	         , A.DPLM_ISSUYN  
+	         , A.CRS_TYCD 	
+	         , A.EDU_QUOTA	 	
+	         , A.QUOTA_LMTYN 	
+	         , A.USEYN 	
+	         , A.RGTR_ID 	
+	         , A.REG_DTTM 	
+	         , A.MDFR_ID 	
+	         , A.MOD_DTTM 	
+	         <!-- , (SELECT CRS_CTGRNM FROM TB_LMS_CRS_CTGR WHERE CRS_CTGRCD = A.CRS_CTGRCD ) AS CRS_CTGRNM -->
+	         , (SELECT COUNT(*) FROM TB_LMS_SBJCT B WHERE B.CRS_ID = A.CRS_ID AND B.SBJCT_ID = NVL(NULL, B.SBJCT_ID)) AS CRE_CRS_CNT
+   	      FROM TB_LMS_CRS A
+   	     WHERE 1 = 1
+   	       AND A.DELYN = 'N'
+   	       AND A.USEYN = 'Y'
+		<!-- <if test="crsTypeCd != null and crsTypeCd != ''">
+			AND A.SBJCT_TYCD = #{crsTypeCd}
+		</if> -->
+		<if test="crsCd != null and crsCd != ''">
+			AND A.CRS_ID = #{crsCd}
+		</if>
+		<if test='orgId != null and orgId != "" '>
+			AND A.ORG_ID = #{orgId}
+		</if>
+		<if test='searchValue != null and searchValue != ""'>
+			AND LOWER(A.CRSNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		</if>
+		 ORDER BY A.MOD_DTTM, A.CRSNM
+	</select>
+
+	<update id="editUseYn" parameterType="crsVO">
+		/*
+			SQL ID : CrsDAO.editUseYn
+			설  명 : 과정 목록 > 사용여부 변경
+	 	*/
+		<![CDATA[
+		UPDATE TB_LMS_CRS
+	 	   SET USEYN  = #{useYn}
+		     , MDFR_ID  = #{mdfrId}
+		     , MOD_DTTM  = FN_DTTM()
+		 WHERE CRS_ID = #{crsCd}
+		 ]]>
+	</update>
+
+	<insert id="insert" parameterType="crsVO" >
+		/*
+			SQL ID : CrsDAO.insert
+			설  명 : 과목 등록
+	 	*/
+		INSERT INTO TB_LMS_CRS (
+			 CRS_ID
+			 , ORG_ID
+             , CRS_CTGRCD 
+             , THM_ID 
+		     , CRSNM 
+		     , CRS_EXPLN
+		     , SBJCT_OP_TYCD
+		     , ENRL_CERT_MTHD
+		     , FNSH_PROC_TYCD
+		     , FNSH_SCR
+		     , DPLM_ISSUYN
+		     , SBJCT_TYCD
+		     , EDU_QUOTA
+		     , QUOTA_LMTYN
+		     , USEYN
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+        ) VALUES (
+             #{crsCd}
+             , #{orgId}
+		     , #{crsCtgrCd}
+		     , #{creTmCtgrCd}
+		     , #{crsNm}
+		     , #{crsDesc}
+		     , #{crsOperTypeCd}
+		     , #{enrlCertMthd}
+		     , #{cpltHandlType}
+		     , #{cpltScore}
+		     , #{certIssueYn}
+		     , #{crsTypeCd}
+		     , #{eduNop}
+		     , #{nopLimitYn}
+		     , #{useYn}
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+        )
+	</insert>
+	
+	<update id="update" parameterType="crsVO" >
+		/*
+			SQL ID : CrsDAO.update
+			설  명 : 과목 수정
+	 	*/
+	 	UPDATE TB_LMS_CRS
+	 	   SET CRS_CTGRCD = #{crsCtgrCd}
+	 	   	 , THM_ID = #{creTmCtgrCd}
+		     , CRSNM = #{crsNm}
+		     , CRS_EXPLN = #{crsDesc}
+		     , SBJCT_OP_TYCD = #{crsOperTypeCd}
+		     , ENRL_CERT_MTHD = #{enrlCertMthd}
+		     , FNSH_PROC_TYCD = #{cpltHandlType}
+		     , FNSH_SCR = #{cpltScore}
+		     , DPLM_ISSUYN = #{certIssueYn}
+		     , SBJCT_TYCD = #{crsTypeCd}
+		     , EDU_QUOTA = #{eduNop}
+		     , QUOTA_LMTYN = #{nopLimitYn}
+		     , USEYN = #{useYn}
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		 WHERE CRS_ID = #{crsCd} 
+	</update>	
+	
+	<delete id="delete" parameterType="crsVO" >
+		/*
+			SQL ID : CrsDAO.delete
+			설  명 : 과정 삭제
+	 	*/
+	 	<!-- <![CDATA[
+	 	DELETE FROM TB_LMS_CRS WHERE CRS_ID = #{crsCd}
+	 	]]> -->
+	 	UPDATE TB_LMS_CRS
+	 	   SET DELYN = 'Y'
+	 	 WHERE CRS_ID = #{crsCd}
+	</delete>
+	
+	<select id="listCrsPreview" parameterType="crsInfoCntsVO" resultType="crsInfoCntsVO">
+		/*
+			SQL ID : CrsDAO.listCrsPreview
+			설  명 :  과목 미리보기
+	 	*/
+   	    SELECT 
+				 TLCICT.CRS_ID 			
+               , TLCICT.CRS_CONTS_ID 	
+	           , TLCICT.CRS_CONTS_GBNCD 
+	           , TLCICT.CONTS_SEQ 
+	           , TLCICT.CONTS_FILE_POS_CD 	
+	           , TLCICT.CONTS_FILENM 		
+	           , TLCICT.CONTS_FILE_PATH 	
+	           , TLCICT.CONTS_URL 		
+	           , TLCICT.RGTR_ID 			
+	           , TLCICT.FRST_INQ_DTTM 			
+	           , CASE WHEN TLCICT.CRS_CONTS_GBNCD = 'CRS_INTRO' THEN 1
+	                  WHEN TLCICT.CRS_CONTS_GBNCD != 'CRS_INTRO' THEN 2 ELSE 2 
+			     END AS SORT_ORDER
+   	      FROM TB_LMS_CRS TLC
+   	      LEFT OUTER JOIN CRS_CONTS TLCICT
+   	      ON TLC.CRS_ID = TLCICT.CRS_ID
+		WHERE 1 = 1
+		<if test="crsCd != null and crsCd != ''">
+			AND TLC.CRS_ID = #{crsCd}
+		</if>
+		<if test="cntsFileLocCd != null and cntsFileLocCd != ''">
+			AND TLCICT.CONTS_FILE_POS_CD = #{cntsFileLocCd}
+		</if>
+		<if test="crsInfoCntsCd != null and crsInfoCntsCd != ''">
+			AND TLCICT.CRS_CONTS_ID = #{crsInfoCntsCd}
+		</if>
+		<if test='orgId != null and orgId != "" '>
+			AND TLC.ORG_ID = #{orgId}
+	    </if>
+		AND IFNULL(TLC.USEYN, 'Y') != 'N'
+   	    ORDER BY SORT_ORDER, TLCICT.CONTS_SEQ
+	</select>
+	
+	<insert id="mergeCrsInfoCnts" parameterType="crsVO" >
+		/*
+			SQL ID : CrsDAO.mergeCrsInfoCnts
+			설  명 : 과목 미리보기 등록
+	 	*/
+	 	INSERT INTO CRS_CONTS (
+		  	CRS_ID,
+		  	CRS_CONTS_ID,
+		  	CRS_CONTS_GBNCD,
+		  	CONTS_SEQ,
+		  	CONTS_FILE_POS_CD,
+		  	CONTS_FILENM,
+		  	CONTS_FILE_PATH,
+		  	CONTS_URL,
+		  	RGTR_ID,
+		  	FRST_INQ_DTTM
+		) VALUES (
+		  	#{crsCd}
+		  	, #{crsInfoCntsCd} 
+		  	, #{crsInfoCntsDivCd}
+		  	, #{cntsOrder}
+		  	, #{cntsFileLocCd}
+		  	, #{cntsFileNm}
+		  	, #{cntsFilePath}
+		  	, #{cntsUrl}
+		  	, #{rgtrId}
+		  	, FN_DTTM()
+		)
+		ON DUPLICATE KEY 
+		 	UPDATE
+			 CONTS_SEQ = #{cntsOrder} 
+			 , CONTS_FILE_POS_CD = #{cntsFileLocCd}
+		  	 , CONTS_FILENM = #{cntsFileNm}
+		   	 , CONTS_FILE_PATH = #{cntsFilePath}
+		  	 , CONTS_URL = #{cntsUrl}
+	</insert>
+	
+	<delete id="deleteCrsInfoCnts" parameterType="crsVO" >
+		/*
+			SQL ID : CrsDAO.deleteCrsInfoCnts
+			설  명 : 과목 미리보기 삭제
+	 	*/
+	 	DELETE FROM CRS_CONTS 
+		 WHERE CRS_ID = #{crsCd} 
+		   AND CRS_CONTS_ID NOT IN 
+	 	 <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+	 		 #{item}
+	 	 </foreach>
+	</delete>
+	
+	
+	<select id="selectNewCrsCd" parameterType="crsVO" resultType="String">
+		/*
+			 SQL ID : CrsDAO.selectNewCrsCd
+			 설  명 : 외부기관의 과정번호 생성
+	 	*/
+		SELECT IFNULL(CRS_ID, CONCAT(#{orgId}, 'CRS1')) CRS_ID 
+		FROM (
+			SELECT CONCAT(ORG_ID, 'CRS', COUNT(1) + 1) CRS_ID
+			FROM TB_LMS_CRS 
+			WHERE ORG_ID =  #{orgId}
+		) X
+	</select>
+</mapper>

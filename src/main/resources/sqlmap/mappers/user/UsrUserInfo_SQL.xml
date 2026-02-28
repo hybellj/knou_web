@@ -1,0 +1,1405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.user.dao.UsrUserInfoDAO">
+
+    <select id="selectForLogin" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.selectForLogin
+        설 명 : 사용자의 정보 조회
+        */
+        SELECT A.USER_ID
+	        , A.USER_RPRS_ID
+	        , A.USERNM
+	        , A.USER_ENNM
+	        , A.ORG_ID
+	        , A.USER_ID_STSCD
+	        , A.LGN_MTHD_GBNCD
+	        , A.USER_ID_ENCPSWD
+	        , B.TMP_PSWD
+	        , 'Y' AS PSWD_CHG_REQ_YN
+	        , 'Y' AS LOGIN_USE_YN
+	        , A.EXAM_SPRT_APLY_TYCD
+	        , A.DEPT_ID
+	        --, (SELECT aa.UNIV_ID FROM TB_LMS_USER_AC_RCD aa WHERE aa.USER_ID = A.USER_ID) AS UNIV_CD
+	        , (SELECT bb.CNTCT FROM TB_LMS_USER_CNTCT bb WHERE bb.USER_CNTCT_ID = A.USER_ID) AS MOBILE_NO
+	        , A.USER_ENV_STNG_CTS
+	        , A.USER_ID_STSCD
+            , A.PHOTO_FILE_ID
+        FROM TB_LMS_USER A
+        LEFT OUTER JOIN TB_LMS_USER_TMP_PSWD B
+        ON A.USER_ID = B.USER_ID
+        LEFT OUTER JOIN TB_LMS_USER_SNS_LGN C
+        ON A.USER_ID = C.USER_ID
+        WHERE A.USER_ID_STSCD = 'APRV_CMPTN'
+        AND (B.PSWD_CHG_CMPTNYN = 'N' OR B.PSWD_CHG_CMPTNYN IS NULL)
+        <if test="snsKey == null">
+            AND (A.USER_ID = #{userId} OR A.USER_RPRS_ID = #{userRprsId})
+            <if test="orgId != null">
+                AND A.ORG_ID = #{orgId}
+            </if>
+        </if>
+        <if test="snsKey != null">
+            <if test="orgId != null">
+                AND A.ORG_ID = #{orgId}
+            </if>
+            AND C.SNS_KEY = #{snsKey}
+            AND C.SNS_GBNCD = #{snsDiv}
+        </if>
+    </select>
+
+    <select id="selectForLoginCheck" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.selectForLoginCheck
+        설 명 : 사용자의 정보 조회
+        */
+        <![CDATA[
+		SELECT	A.USER_ID
+             	, A.USERNM
+             	, A.USER_ENNM
+            	, A.ORG_ID
+             	, B.USER_ID
+		     	, B.USER_ENCPSWD
+		     	, B.TMP_PASS
+		     	, B.ADMIN_LOGIN_ACPT_DIV_CD
+		     	, B.LOGIN_FAIL_DTTM
+		     	, B.LGN_CNTNU_FAIL_CNT
+		     	, B.LAST_LOGIN_DTTM
+		     	, B.LOGIN_CNT
+		     	, B.USER_ACNT_STSCD
+		     	, CASE 	WHEN SYSDATE >= TO_DATE(NVL(B.PSWD_CHG_REQ_DTTM, B.MOD_DTTM), 'YYYYMMDDHH24MISS')
+		                THEN 'Y'
+		                ELSE 'N'
+		       	  END AS PSWD_CHG_REQ_YN
+		     	, CASE WHEN B.LGN_CNTNU_FAIL_CNT >= (SELECT STNG_VL
+		                                             FROM TB_SYS_CFG
+		                                             WHERE STNG_CTGRCD = 'LOGIN' AND STNG_CD = 'FAILCNT')
+		               THEN 	CASE 	WHEN 	TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') 
+		               									- NVL(B.LOGIN_FAIL_DTTM, '19900101000001') < ( 	SELECT STNG_VL
+																			   							FROM TB_SYS_CFG
+											  															WHERE STNG_CTGRCD = 'LOGIN' AND STNG_CD = 'GAPTIME')
+		               			THEN 'N'
+		                        ELSE 'Y'
+		                        END
+						ELSE 'Y'
+		       	  END AS LOGIN_USE_YN
+		     	, A.DISABLILITY_YN
+		     	, A.EXAM_SPRT_APLY_TYCD
+		     	, A.PHT_FILE AS PHT_FILE_BYTE
+		     	, A.DEPT_CD
+		FROM 	TB_LMS_USR A
+		WHERE  	A.USER_ID = B.USER_ID
+           		AND B.USER_ACNT_STSCD = 'U'
+		]]>
+        <if test="snsKey == null">
+            AND (B.USER_ID = #{userId} or B.USER_ID = #{userId})
+            <if test="orgId != null">
+                AND A.ORG_ID = #{orgId}
+            </if>
+        </if>
+        <if test="snsKey != null">
+            <if test="orgId != null">
+                AND A.ORG_ID = #{orgId}
+            </if>
+            AND B.SNS_KEY = #{snsKey}
+            AND B.SNS_GBNCD = #{snsDiv}
+
+        </if>
+        <if test="userPass != null">
+            AND B.USER_ENCPSWD = #{userPass}
+        </if>
+    </select>
+
+    <update id="update" parameterType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.update
+        설 명 : 사용자의 정보 수정
+        */
+        UPDATE TB_LMS_USR
+        SET USERNM = #{userNm}
+        <if test='userNmEng != null and userNmEng != ""'>
+            , USER_ENNM = #{userNmEng}
+        </if>
+        <if test='photoFileSn != null and photoFileSn != ""'>
+            , PRFIL_PHOTO_FILE_ID = #{photoFileSn}
+        </if>
+        <if test='mobileNo != null and mobileNo != ""'>
+            , MOBILE_NO = #{mobileNo}
+        </if>
+        <if test='email != null and email != ""'>
+            , EMAIL = #{email}
+        </if>
+        <if test='deptCd != null and deptCd != ""'>
+            , DEPT_CD = #{deptCd}
+        </if>
+        <if test='deptNm != null and deptNm != ""'>
+            , DEPTNM = #{deptNm}
+        </if>
+        <if test='emailRecv != null and emailRecv != ""'>
+            , EMAIL_RECV = #{emailRecv}
+        </if>
+        <if test='smsRecv != null and smsRecv != ""'>
+            , SMS_RECV = #{smsRecv}
+        </if>
+        <if test='disablilityYn != null and disablilityYn != ""'>
+            , DISABLILITY_YN = #{disablilityYn}
+        </if>
+        <if test='disabilityLv != null and disabilityLv != ""'>
+            , MN_DSBL_GRDCD = #{disabilityLv}
+        </if>
+        <if test='disabilityCd != null and disabilityCd != ""'>
+            , MN_DSBL_CD = #{disabilityCd}
+        </if>
+        <if test="disablilityExamYn != null and disablilityExamYn != ''">
+            , EXAM_SPRT_APLY_TYCD = #{disablilityExamYn}
+        </if>
+        <if test='userGrade != null and userGrade != ""'>
+            , USER_GRADE = #{userGrade}
+        </if>
+        <if test="tcEmail != null and tcEmail != ''">
+            , TKN_EML = #{tcEmail}
+        </if>
+        <if test="tcId != null and tcId != ''">
+            , TC_ID = #{tcId}
+        </if>
+        <if test="tcRole != null and tcRole != ''">
+            , TC_ROLE = #{tcRole}
+        </if>
+        <if test="phtFileByte != null and phtFileByte != ''">
+            , PHT_FILE = #{phtFileByte}
+        </if>
+        <if test='phtFileDelYn != null and phtFileDelYn == "Y"'>
+            , PHT_FILE = NULL
+        </if>
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <sql id="listQuery">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY A.USERNM) AS LINE_NO
+        , A.USER_PRFIL_ID
+        , A.USERNM
+        , A.ORG_ID
+        -- , A.MOBILE_NO
+        -- , A.EMAIL
+        , A.DEPT_CD
+        -- , A.DEPTNM
+        -- , A.DISABLILITY_YN
+        -- , A.SCHREG_GBN
+        -- , A.OFCE_TELNO
+        , MSTYN
+        FROM TB_LMS_USER_PRFIL A
+        JOIN TB_LMS_USER_ACNT B
+        ON A.USER_PRFIL_ID = B.USER_ID
+        AND B.USER_ID_STSCD = 'U'
+        WHERE A.ORG_ID = #{orgId}
+        <if test='deptCd != null and deptCd != ""'>
+            AND A.DEPT_CD = #{deptCd}
+        </if>
+        <if test='authGrpCd != null and authGrpCd != ""'>
+            AND EXISTS (
+            SELECT 1 FROM TB_LMS_USER_AUTHRT
+            WHERE USER_AUTHRT_ID = #{authGrpCd}
+            AND USER_ID = A.USER_ID
+            )
+        </if>
+        <if test='menuType != null and menuType != ""'>
+            AND EXISTS (
+            SELECT 1 FROM TB_LMS_USER_AUTHRT
+            WHERE MENU_TYCD = #{menuType}
+            AND USER_ID = A.USER_ID
+            )
+        </if>
+        <if test='menuTypeList != null'>
+            AND EXISTS (
+            SELECT 1 FROM TB_LMS_USER_AUTHRT
+            WHERE MENU_TYCD IN
+            <foreach collection="menuTypeList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            AND USER_AUTHRT_ID = A.USER_PRFIL_ID
+            )
+        </if>
+        <if test='searchValue != null and searchValue != ""'>
+            AND (
+            LOWER(A.USER_PRFIL_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            OR LOWER((
+            SELECT CDNM
+            FROM TB_LMS_CMMN_CD
+            WHERE ORG_ID = #{orgId}
+            AND CD = A.DEPT_CD
+            AND USEYN = 'Y'
+            )) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <if test='schregGbnCd != null and schregGbnCd != ""'>
+            AND A.SCHREG_GBN_CD = #{schregGbnCd}
+            AND EXISTS (
+            SELECT 1 FROM TB_LMS_USER_AUTHRT
+            WHERE USER_AUTHRT_ID = 'USR'
+            AND USER_ID = A.USER_ID
+            )
+        </if>
+    </sql>
+
+    <sql id="listPagingQuery">
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY A.USERNM) AS LINE_NO
+        , A.USER_PRFIL_ID
+        , A.USERNM
+        , A.ORG_ID
+        -- , A.MOBILE_NO
+        -- , A.EMAIL
+        , A.DEPT_CD
+        -- , A.DEPTNM
+        -- , A.DISABLILITY_YN
+        -- , A.SCHREG_GBN
+        -- , A.OFCE_TELNO
+        , (SELECT USER_ID FROM TB_LMS_USER_ACNT WHERE USER_ID = A.USER_PRFIL_ID) AS USER_ID
+        -- , (SELECT MAX(SCYR) FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = A.USER_ID AND ATNDLC_STSCD = 'S') AS SCYR
+        , (SELECT LISTAGG(AA.USER_AUTHRT_ID, ',') WITHIN GROUP (ORDER BY USER_AUTHRT_ID)
+        FROM TB_LMS_USER_AUTHRT AA
+        JOIN TB_LMS_CMMN_CD BB
+        ON AA.USER_AUTHRT_ID = BB.CD
+        AND BB.UP_CD = 'USR_TYCD'
+        AND BB.ORG_ID = #{orgId}
+        WHERE AA.USER_AUTHRT_ID = A.USER_PRFIL_ID
+        ) AS USER_AUTHRT_ID
+        , (SELECT LISTAGG(BB.CDNM, ',') WITHIN GROUP (ORDER BY CDNM)
+        FROM TB_LMS_USER_AUTHRT AA
+        JOIN TB_LMS_CMMN_CD BB ON AA.USER_AUTHRT_ID = BB.CD
+        AND BB.UP_CD = 'USR_TYCD'
+        AND BB.ORG_ID = #{orgId}
+        WHERE AA.USER_AUTHRT_ID = A.USER_PRFIL_ID
+        ) AS AUTHRT_GRPNM
+        , (SELECT LISTAGG(BB.CDNM, ',') WITHIN GROUP (ORDER BY CDNM)
+        FROM TB_LMS_USER_AUTHRT AA
+        JOIN TB_LMS_CMMN_CD BB
+        ON AA.USER_AUTHRT_ID = BB.CD
+        AND BB.UP_CD = 'USR_TYCD'
+        AND BB.ORG_ID = #{orgId}
+        AND BB.CD = 'ADMIN'
+        WHERE AA.USER_AUTHRT_ID = A.USER_PRFIL_ID
+        ) AS ADMIN_AUTH_GRP_NM
+        , (SELECT LISTAGG(BB.CDNM, ',') WITHIN GROUP (ORDER BY CDNM)
+        FROM TB_LMS_USER_AUTHRT AA
+        JOIN TB_LMS_CMMN_CD BB
+        ON AA.USER_AUTHRT_ID = BB.CD
+        AND BB.UP_CD = 'USR_TYCD'
+        AND BB.ORG_ID = #{orgId}
+        WHERE AA.USER_AUTHRT_ID = A.USER_PRFIL_ID
+        AND NVL(BB.CD, '') != 'ADMIN'
+        ) AS WWW_AUTH_GRP_NM
+        , (SELECT LISTAGG(AA.MENU_TYCD, ',') WITHIN GROUP (ORDER BY MENU_TYCD)
+        FROM TB_LMS_USER_AUTHRT AA
+        WHERE AA.USER_AUTHRT_ID = A.USER_PRFIL_ID
+        ) AS MENU_TYCD
+        , MSTYN
+        FROM (
+        <include refid="listQuery"/>
+        ) A
+    </sql>
+
+    <select id="listPaging" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.listPaging
+        설 명 : 사용자의 페이징 목록
+        */
+        SELECT *
+        FROM(
+        <include refid="listPagingQuery"/>
+        )
+        WHERE LINE_NO BETWEEN #{firstIndex} AND #{listScale}
+    </select>
+
+    <select id="totalCount" parameterType="usrUserInfoVO" resultType="Integer">
+        /*
+        SQL ID : UsrUserInfoDAO.totalCount
+        설 명 : 사용자의 페이징 카운터
+        */
+        SELECT COUNT(1)
+        FROM (
+        <include refid="listQuery"/>
+        ) Z
+    </select>
+
+    <select id="select" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.select
+        설 명 : 사용자의 정보 조회
+        */
+        SELECT	A.*
+        		, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
+        		, (	SELECT 	MAX(AUTHRT_ID)
+        			FROM 	TB_LMS_USER_AUTHRT
+        			WHERE 	USER_ID = A.USER_ID) AS ADMIN_AUTH_GRP_CD        			
+        		, (	SELECT 	MAX(USER_AUTHRT_ID)
+        			FROM 	TB_LMS_USER_AUTHRT
+        			WHERE 	USER_ID = A.USER_ID) AS WWW_AUTH_GRP_CD        			
+        		, SUBSTR(A.USERNM, -2) AS USER_NAME 
+		FROM 	TB_LMS_USER A
+        WHERE 	1 = 1
+       			AND 	A.USER_ID = #{userId}
+        <!--	SELECT	*
+        		, NVL(A.PRFIL_PHOTO_FILE_ID, 0) AS PRFIL_PHOTO_FILE_ID		        
+		        , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM		        
+		        , CASE 	WHEN REGEXP_LIKE(A.USER_GRADE, '[^0-9]')
+        				THEN A.USER_GRADE
+        				ELSE '-'
+        		  END AS USER_GRADE		        
+        		, (	SELECT 	MAX(MENU_TYCD)
+        			FROM 	TB_LMS_USER_AUTHRT
+        			WHERE 	USER_ID = A.USER_ID) AS ADMIN_AUTH_GRP_CD        			
+        		, (	SELECT 	MAX(USER_AUTHRT_ID)
+        			FROM 	TB_LMS_USER_AUTHRT
+        			WHERE 	USER_ID = A.USER_ID) AS WWW_AUTH_GRP_CD        			
+        		, (	SELECT 	LISTAGG(BB.CDNM, ',') WITHIN GROUP (ORDER BY BB.CDNM)
+        			FROM 	TB_LMS_USER_AUTHRT AA
+        					JOIN TB_ORG_CODE BB ON BB.CD = AA.USER_AUTHRT_ID AND BB.CTGRCD = 'USER_TYPE'
+        			WHERE 	AA.USER_ID = A.USER_ID
+        					AND BB.ORG_ID = A.ORG_ID) AS USER_AUTHRT_ID
+        		, SUBSTR(A.USERNM, -2) AS USER_NAME
+        		, NVL(( SELECT 	CASE UNI_GBN WHEN 'U' THEN 'C' ELSE UNI_GBN END
+        				FROM 	TB_HOME_USER_DEPT_CD
+       					WHERE 	DEPT_CD = A.DEPT_CD 
+        						AND ORG_ID = A.ORG_ID
+        				), 'P') 	AS UNIT_CD
+        		, NVL(( SELECT 	SCYR
+        				FROM 	(	SELECT 	SCYR
+        							FROM 	TB_LMS_ATNDLC
+        							WHERE 	ATNDLC_STSCD = 'S'
+        									AND AUDITYN = 'N'
+        									AND USER_ID = #{userId}
+        							ORDER 	BY 	SBJCT_ID DESC)
+        				WHERE ROWNUM = 1
+        				), '-') 	AS SCYR
+		FROM 	TB_LMS_USR A
+        WHERE 	1 = 1
+        AND 	A.USER_ID = #{userId}
+        -->
+        <if test='orgId != null and orgId != ""'>
+            AND A.ORG_ID = #{orgId}
+        </if>
+    </select>
+
+    <select id="listExcelUploadAuthGrp" parameterType="orgAuthGrpVO" resultType="orgAuthGrpVO">
+        /*
+             SQL ID : UsrUserInfoDAO.listExcelUploadAuthGrp
+             	설  명 : 사용자 엑셀업로드 할떄 등록가능한 권한 목록
+        */
+        SELECT USER_AUTHRT_ID
+             , AUTHRT_GRPNM
+             , MENU_TYCD
+        FROM TB_LMS_AUTHRT_GRP
+        WHERE USEYN = 'Y'
+          AND MENU_TYCD IN ('STUDENT', 'PROFESSOR', 'ADMIN')
+          AND ORG_ID = #{orgId}
+        ORDER BY MENU_TYCD, AUTHRT_GRP_SEQ
+    </select>
+
+    <insert id="insert" parameterType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.insert
+        설 명 : 사용자 정보 등록
+        */
+        INSERT INTO TB_LMS_USR (
+        USER_ID
+        , DEPT_CD
+        , ORG_ID
+        , DEPTNM
+        , PRFIL_PHOTO_FILE_ID
+        , DUP_INFO
+        , USERNM
+        , USER_ENNM
+        , MOBILE_NO
+        , EMAIL
+        , DISABLILITY_YN
+        , MN_DSBL_GRDCD
+        , MN_DSBL_CD
+        , EXAM_SPRT_APLY_TYCD
+        , SMS_RECV
+        , EMAIL_RECV
+        , MSG_RECV
+        , USER_GRADE
+        , TKN_EML
+        , TC_PW
+        , TC_ID
+        , TC_ROLE
+        , SCHREG_GBN_CD
+        , SCHREG_GBN
+        , OFCE_TELNO
+        , USER_STNG
+        ) VALUES (
+        #{userId}
+        , CASE #{deptCd} WHEN '' THEN NULL ELSE #{deptCd} END
+        , #{orgId}
+        <if test='deptNm != null and deptNm != ""'>
+            , #{deptNm}
+        </if>
+        <if test='deptNm == null or deptNm == ""'>
+            , (SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE ORG_ID = #{orgId} AND DEPT_CD = #{deptCd})
+        </if>
+        , #{photoFileSn}
+        , #{dupInfo}
+        , #{userNm}
+        , CASE #{userNmEng} WHEN '' THEN NULL ELSE #{userNmEng} END
+        , CASE #{mobileNo} WHEN '' THEN NULL ELSE #{mobileNo} END
+        , CASE #{email} WHEN '' THEN NULL ELSE #{email} END
+        , NVL(#{disablilityYn}, 'N')
+        , CASE #{disabilityLv} WHEN '' THEN NULL ELSE #{disabilityLv} END
+        , CASE #{disabilityCd} WHEN '' THEN NULL ELSE #{disabilityCd} END
+        , NVL(#{disablilityExamYn}, 'N')
+        , #{smsRecv}
+        , #{emailRecv}
+        , #{msgRecv}
+        , #{userGrade}
+        , #{tcEmail}
+        , #{tcPw}
+        , #{tcId}
+        , #{tcRole}
+        , #{schregGbnCd}
+        , #{schregGbn}
+        , #{ofceTelno}
+        , #{userConf}
+        )
+    </insert>
+
+    <select id="selectForCompare" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+             SQL ID : UsrUserInfoDAO.selectForCompare
+             설  명 : 사용자의 정보 조회
+         */
+        SELECT A.USER_ID
+             , B.USER_ID
+             , A.USERNM
+             , A.USER_ENNM
+             , NVL(A.PRFIL_PHOTO_FILE_ID, 0) AS PRFIL_PHOTO_FILE_ID
+             , A.DUP_INFO
+             , A.MOBILE_NO
+             , A.EMAIL
+             , A.ORG_ID
+             , A.DEPT_CD
+             , A.DEPTNM
+             , A.EMAIL_RECV
+             , A.SMS_RECV
+             , A.DISABLILITY_YN
+             , A.USER_GRADE
+             , B.USER_ENCPSWD
+             , B.USER_ENCPSWD                AS USER_PASS_CONFIRM
+             , A.TC_ID
+             , A.TKN_EML
+             , NVL(A.TC_ROLE, 'Member')      AS TC_ROLE
+        FROM TB_LMS_USR A,
+             TB_LMS_USER_ACNT B
+        WHERE A.USER_ID = B.USER_ID
+          AND A.USER_ID = #{userId}
+    </select>
+
+    <select id="selectSearchId" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.selectSearchId
+        설 명 : 사용자의 이름과 이메일로 사용자 정보 검색
+        */
+        SELECT B.USER_ID
+        , A.USER_ID
+        , A.USERNM
+        , A.USER_ENNM
+        , A.EMAIL
+        , A.DEPT_CD
+        , B.FRST_INQ_DTTM
+        FROM TB_LMS_USR A, TB_LMS_USER_ACNT B
+        WHERE A.USER_ID = B.USER_ID
+        AND B.USER_ACNT_STSCD = 'U'
+        <if test="userNm != null">
+            AND A.USERNM = #{userNm}
+        </if>
+        <if test='userId != null and userId != ""'>
+            AND B.USER_ID = #{userId}
+        </if>
+        <if test="orgId != null">
+            AND A.ORG_ID = #{orgId}
+        </if>
+        <if test='email != null and email != ""'>
+            AND A.EMAIL = #{email}
+        </if>
+        <if test='mobileNo != null and mobileNo != ""'>
+            AND A.MOBILE_NO = #{mobileNo}
+        </if>
+        <if test='userId != null and userId != ""'>
+            AND A.USER_ID = #{userId}
+        </if>
+        LIMIT 0, 1
+    </select>
+
+    <select id="listSearchByStudent" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.listSearchByStudent
+        설 명 : 사용자 목록 검색 ( 학생 )
+        */
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY Z.USERNM) AS LINE_NO
+        , Z.*
+        FROM (
+        SELECT
+        (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM,
+        A.USER_ID,
+        A.USERNM,
+        A.USER_ENNM,
+        A.DEPTNM,
+        NVL((
+        SELECT SCYR
+        FROM (
+        SELECT SCYR
+        FROM TB_LMS_ATNDLC_SBJCT LS,
+        TB_LMS_USR HUI
+        WHERE LS.ATNDLC_STSCD = 'S'
+        AND LS.AUDITYN = 'N'
+        AND LS.USER_ID = HUI.USER_ID
+        ORDER BY LS.SBJCT_ID DESC
+        )
+        WHERE ROWNUM = 1
+        ), 'no') AS SCYR,
+        A.SCHREG_GBN,
+        A.ENTR_YY,
+        COUNT(*) OVER() AS TOTAL_CNT
+        -- 학생구분, 학적변동, 생년월일, 국적 추가 필요
+        FROM TB_LMS_USR A
+        JOIN TB_LMS_USER_ACNT B
+        ON A.USER_ID = B.USER_ID
+        AND B.USER_ACNT_STSCD = 'U'
+        WHERE A.USER_ID IN (
+        SELECT USER_ID
+        FROM TB_LMS_USER_AUTHRT
+        WHERE MENU_TYCD = 'STUDENT'
+        GROUP BY USER_ID
+        )
+        <if test='orgId != null and orgId != "" and orgId != "ALL"'>
+            AND A.ORG_ID = #{orgId}
+        </if>
+        <if test='deptCd != null and deptCd != "" and deptCd != "ALL"'>
+            AND A.DEPT_CD = #{deptCd}
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+            LOWER(A.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            OR LOWER(A.MOBILE_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <if test="searchType != null and searchType != '' and searchType == 'PROFESSOR'">
+            AND A.USER_ID IN (
+            SELECT
+            USER_ID
+            FROM TB_LMS_ATNDLC_SBJCT
+            WHERE ATNDLC_STSCD = 'S'
+            AND AUDITYN = 'N'
+            AND SBJCT_ID IN (SELECT SBJCT_ID FROM SBJCT_PROF WHERE USER_ID = #{userId})
+            )
+        </if>
+        ORDER BY A.USERNM
+        ) Z
+        WHERE 1 = 1
+        <if test='userGrade != null and userGrade != "" and userGrade != "ALL"'>
+            AND Z.SCYR = #{userGrade}
+        </if>
+    </select>
+
+    <select id="listSearchByProfessor" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.listSearchByProfessor
+        설 명 : 사용자 목록 검색 ( 교직원 )
+        */
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY A.USERNM) AS LINE_NO
+        , A.USER_ID
+        , A.USERNM
+        , A.DEPTNM
+        , COUNT(1) OVER() AS TOTAL_CNT
+        /* 교직원구분, 임용일자, 재직구분, 직급, 직급그룹 필요 */
+        FROM TB_LMS_USR A
+        JOIN TB_LMS_USER_ACNT B
+        ON A.USER_ID = B.USER_ID
+        AND B.USER_ACNT_STSCD = 'U'
+        WHERE A.USER_ID IN (
+        SELECT DISTINCT
+        USER_ID
+        FROM SBJCT_PROF
+        WHERE PROF_TYCD <![CDATA[ <> ]]> 'MONITORING'
+        )
+        AND A.ORG_ID = #{orgId}
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+            LOWER(A.DEPTNM) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+            OR LOWER(A.USER_ID) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+            OR LOWER(A.USERNM) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+            )
+        </if>
+    </select>
+
+    <update id="updateWithdrawal" parameterType="usrUserInfoVO">
+        /*
+             SQL ID : UsrUserInfoDAO.updateWithdrawal
+             설  명 : 사용자 탈퇴 ZOOM 값 제거
+         */
+        UPDATE TB_LMS_USR
+        SET TKN_EML = NULL
+          , TC_PW   = NULL
+          , TC_ID   = NULL
+          , TC_ROLE = NULL
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <update id="updateWithdrawalStd" parameterType="usrUserInfoVO">
+        /*
+             SQL ID : UsrUserInfoDAO.updateWithdrawalStd
+             설  명 : 학생 탈퇴 수정
+         */
+        UPDATE TB_LMS_USR
+        SET SCHREG_GBN    = '탈퇴'
+          , SCHREG_GBN_CD = '90'
+        WHERE USER_ID = #{userId}
+          AND ORG_ID != 'ORG0000001'
+		AND EXISTS (
+			SELECT 1
+			FROM TB_LMS_USER_AUTHRT
+			WHERE MENU_TYCD = 'STUDENT'
+			AND USER_ID = #{userId}
+            )
+    </update>
+
+    <select id="selectByTcId" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+             SQL ID : UsrUserInfoDAO.selectByTcId
+             설  명 : 특정 tcId 사용자 정보 조회
+         */
+        SELECT USER_ID
+             , USERNM
+             , TC_ID
+             , TKN_EML
+        FROM TB_LMS_USR
+        WHERE TC_ID = #{tcId} LIMIT 1
+    </select>
+
+    <update id="updateUserConf" parameterType="usrUserInfoVO">
+        /*
+             SQL ID : UsrUserInfoDAO.updateUserConf
+             설  명 : 사용자 환경설정 변경
+         */
+        UPDATE TB_LMS_USR
+        SET USER_STNG = #{userConf}
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <select id="selectUserByDisabilityCancelGbn" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.selectUserByDisabilityCancelGbn
+        설 명 : 장애인 시험지원 취소 신청 여부 조회
+        */
+        SELECT
+        USER_ID
+        , USERNM
+        FROM TB_LMS_USR
+        WHERE DISABLILITY_YN = 'Y'
+        AND EXAM_SPRT_APLY_TYCD = 'Y'
+        <if test='disabilityCancelGbn == "APPLICATE"'>
+            AND (DISABILITY_CANCEL_GBN != 'APPLICATE' OR DISABILITY_CANCEL_GBN IS NULL)
+        </if>
+        AND USER_ID = #{userId}
+    </select>
+
+    <update id="updateDisability" parameterType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.updateDisability
+        설 명 : 장애인 시험지원 수정
+        */
+        UPDATE TB_LMS_USR SET
+        USERNM = #{userNm}
+        <if test='searchKey != null and searchKey != ""'>
+            <choose>
+                <when test='searchKey == "NONCANCEL"'>
+                    , EXAM_SPRT_APLY_TYCD = 'Y'
+                    , DISABILITY_DTTM = FN_DTTM()
+                    , DISABILITY_CANCEL_GBN = NULL
+                </when>
+                <otherwise>
+                    <if test='disabilityCancelGbn != null and disabilityCancelGbn != ""'>
+                        , DISABILITY_CANCEL_GBN = #{disabilityCancelGbn}
+                        <if test='disabilityCancelGbn == "APPROVE"'>
+                            , EXAM_SPRT_APLY_TYCD = 'N'
+                            , DISABILITY_DTTM = NULL
+                        </if>
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <update id="editUseYn" parameterType="usrUserInfoVO">
+        /*
+            SQL ID : UsrUserInfoDAO.editUseYn
+            설  명 : 학과/부서 관리 목록 > 사용여부 변경
+         */
+		<![CDATA[
+        UPDATE TB_HOME_USER_DEPT_CD
+        SET USEYN    = #{useYn}
+          , MDFR_ID  = #{mdfrId}
+          , MOD_DTTM = FN_DTTM()
+        WHERE DEPT_CD = #{deptCd}
+        ]]>
+    </update>
+
+    <select id="listAvailableUser" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.listAvailableUser
+        설 명 : 사용가능한 사용자 조회
+        */
+        SELECT A.USER_ID
+        FROM TB_LMS_USR A
+        JOIN TB_LMS_USER_ACNT B
+        ON A.USER_ID = B.USER_ID
+        AND B.USER_ACNT_STSCD = 'U'
+        WHERE A.ORG_ID = #{orgId}
+        AND A.USER_ID IN
+        <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="listStudentByUniCd" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+            SQL ID : UsrUserInfoDAO.listStudentByUniCd
+            설  명 : 재학생 중 대학생 or 학부생 조회
+         */
+        SELECT A.USER_ID
+             , A.USERNM
+             , A.ORG_ID
+             , A.MOBILE_NO
+             , A.EMAIL
+             , A.DEPT_CD
+             , A.DEPTNM
+             , A.DISABLILITY_YN
+             , A.SCHREG_GBN
+        FROM TB_LMS_USR A USE INDEX(tb_home_user_info_USER_NM_IDX)
+		JOIN TB_LMS_USER_ACNT B
+        ON A.USER_ID = B.USER_ID
+            AND B.USER_ACNT_STSCD = 'U'
+        WHERE A.ORG_ID = #{orgId}
+          AND A.UNIV_CD = #{uniCd}
+          AND A.SCHREG_GBN_CD = '01'
+          AND IFNULL(A.STD_GBN
+            , '') != '30' -- 시간제 제외
+          AND EXISTS (
+            SELECT 1
+            FROM TB_LMS_USER_AUTHRT
+            WHERE MENU_TYCD = 'STUDENT'
+          AND USER_ID = A.USER_ID
+            )
+    </select>
+
+    <select id="selectUserRecvInfo" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+            SQL ID : UsrUserInfoDAO.selectUserRecvInfo
+            설  명 : 사용자 수신정보 조회
+         */
+        SELECT A.USER_ID
+             , A.USERNM
+             , A.EMAIL
+             , A.MOBILE_NO
+        FROM TB_LMS_USR A
+                 JOIN TB_LMS_USER_ACNT B
+                      ON A.USER_ID = B.USER_ID
+                          AND B.USER_ACNT_STSCD = 'U'
+        WHERE A.ORG_ID = #{orgId}
+          AND A.USER_ID = #{userId}
+    </select>
+
+    <select id="listUserRecvInfo" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.listUserRecvInfo
+        설 명 : 사용자 수신정보 조회
+        */
+        SELECT
+        A.USER_ID
+        , A.USERNM
+        , A.EMAIL
+        , A.MOBILE_NO
+        FROM TB_LMS_USR A
+        JOIN TB_LMS_USER_ACNT B
+        ON A.USER_ID = B.USER_ID
+        AND B.USER_ACNT_STSCD = 'U'
+        WHERE A.ORG_ID = #{orgId}
+        AND A.USER_ID IN
+        <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <insert id="insertTmpUser" parameterType="usrUserInfoVO">
+        /*
+            SQL ID : UsrUserInfoDAO.insertTmpUser
+            설  명 : 임시 사용자(학생) 등록
+         */
+ 	<![CDATA[
+        BEGIN
+        INSERT INTO TB_LMS_USR ( USER_ID
+                               , DEPT_CD
+                               , ORG_ID
+                               , DEPTNM
+                               , USERNM
+                               , USER_ENNM
+                               , MOBILE_NO
+                               , EMAIL
+                               , DISABLILITY_YN
+                               , EXAM_SPRT_APLY_TYCD)
+        SELECT #{userId}
+             , '10000'
+             , #{orgId}
+             , 'TMP'
+             , 'tmpuser'
+             , 'tmpuser'
+             , '010-1234-1234'
+             , 'tmpuser@hycu.ac.kr'
+             , 'N'
+             , 'N'
+        FROM DUAL
+        WHERE NOT EXISTS (SELECT 1 FROM TB_LMS_USR WHERE USER_ID = #{userId})
+        ;
+        INSERT INTO TB_LMS_USER_ACNT ( USER_ID
+                                     , USER_ID
+                                     , USER_ENCPSWD
+                                     , ADMIN_LOGIN_ACPT_DIV_CD
+                                     , LOGIN_CNT
+                                     , USER_ACNT_STSCD
+                                     , RGTR_ID
+                                     , FRST_INQ_DTTM
+                                     , MDFR_ID
+                                     , MOD_DTTM
+                                     , OTP_USEYN
+                                     , DUP_LGN_PRMYN)
+        SELECT #{userId}
+             , #{userId}
+             , 'ACNT'
+             , 0
+             , 0
+             , 'U'
+             , 'system'
+             , FN_DTTM()
+             , 'system'
+             , FN_DTTM()
+             , 'N'
+             , 'N'
+        FROM DUAL
+        WHERE NOT EXISTS (SELECT 1 FROM TB_LMS_USER_ACNT WHERE USER_ID = #{userId})
+        ;
+        INSERT INTO TB_LMS_USER_AUTHRT ( MENU_TYCD
+                                       , USER_AUTHRT_ID
+                                       , USER_ID
+                                       , ATFL_MAXSZ
+                                       , RGTR_ID
+                                       , FRST_INQ_DTTM
+                                       , MDFR_ID
+                                       , MOD_DTTM)
+        SELECT 'STUDENT'
+             , 'USR'
+             , #{userId}
+             , 1024
+             , 'system'
+             , FN_DTTM()
+             , 'system'
+             , FN_DTTM()
+        FROM DUAL
+        WHERE NOT EXISTS (SELECT 1
+                          FROM TB_LMS_USER_AUTHRT
+                          WHERE MENU_TYCD = 'STUDENT' AND USER_AUTHRT_ID = 'USR' AND USER_ID = #{userId})
+          AND EXISTS (SELECT 1 FROM TB_LMS_USER_ACNT WHERE USER_ID = #{userId})
+        ;
+        END;
+        ]]>
+    </insert>
+
+    <sql id="listUserByMenuTypeQuery">
+        <!-- SELECT
+              A.USER_ID
+            , MAX(
+                CASE WHEN A.MENU_TYCD = 'ADMIN' THEN 0
+                     WHEN A.MENU_TYCD = 'PROFESSOR' THEN 1
+                     WHEN A.MENU_TYCD = 'STUDENT' THEN 2
+                END
+            ) AS USER_ORDER
+        FROM (
+        <if test='schregGbnCd == null or schregGbnCd == ""'>
+            SELECT
+                  A.USER_ID
+                , B.MENU_TYCD
+            FROM TB_LMS_USR A
+            JOIN TB_LMS_USER_AUTHRT B
+            ON A.USER_ID = B.USER_ID
+            AND B.MENU_TYCD = 'ADMIN'
+            <if test='orgId != null and orgId != ""'>
+            AND A.ORG_ID = #{orgId}
+            </if>
+            <if test='authGrpCd != null and authGrpCd != ""'>
+            AND B.USER_AUTHRT_ID = #{authGrpCd}
+            </if>
+            <if test='menuType != null and menuType != ""'>
+            AND B.MENU_TYCD = #{menuType}
+            </if>
+            WHERE IFNULL(A.STSCD, '') != 'N'
+            <if test='searchValue != null and searchValue != ""'>
+            AND (
+                   LOWER(A.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+            </if>
+            UNION ALL
+            SELECT
+                  A.USER_ID
+                , B.MENU_TYCD
+            FROM TB_LMS_USR A
+            JOIN TB_LMS_USER_AUTHRT B
+            ON A.USER_ID = B.USER_ID
+            AND B.MENU_TYCD = 'PROFESSOR'
+            <if test='orgId != null and orgId != ""'>
+            AND A.ORG_ID = #{orgId}
+            </if>
+            <if test='authGrpCd != null and authGrpCd != ""'>
+            AND B.USER_AUTHRT_ID = #{authGrpCd}
+            </if>
+            <if test='menuType != null and menuType != ""'>
+            AND B.MENU_TYCD = #{menuType}
+            </if>
+            WHERE IFNULL(A.STSCD, '') != 'N'
+            <if test='searchValue != null and searchValue != ""'>
+            AND (
+                   LOWER(A.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+            </if>
+            UNION ALL
+        </if>
+            SELECT
+                  A.USER_ID
+                , B.MENU_TYCD
+            FROM TB_LMS_USR A
+            JOIN TB_LMS_USER_AUTHRT B
+            ON A.USER_ID = B.USER_ID
+            AND B.MENU_TYCD = 'STUDENT'
+            <if test='orgId != null and orgId != ""'>
+            AND A.ORG_ID = #{orgId}
+            </if>
+            <if test='authGrpCd != null and authGrpCd != ""'>
+            AND B.USER_AUTHRT_ID = #{authGrpCd}
+            </if>
+            <if test='menuType != null and menuType != ""'>
+            AND B.MENU_TYCD = #{menuType}
+            </if>
+            WHERE 1=1
+            <if test='schregGbnCd != null and schregGbnCd != ""'>
+            AND A.SCHREG_GBN_CD = #{schregGbnCd}
+            </if>
+            <if test='searchValue != null and searchValue != ""'>
+            AND (
+                   LOWER(A.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+            </if>
+        ) A
+        GROUP BY A.USER_ID -->
+
+        SELECT
+        A.USER_ID
+        , A.ORG_ID
+        , MAX(
+        CASE WHEN A.MENU_TYCD = 'ADMIN' THEN 0
+        WHEN A.MENU_TYCD = 'PROFESSOR' THEN 1
+        WHEN A.MENU_TYCD = 'STUDENT' THEN 2
+        END
+        ) AS USER_ORDER
+        FROM (
+        <if test='schregGbnCd == null or schregGbnCd == ""'>
+            SELECT
+            A.USER_ID
+            , A.ORG_ID
+            , B.MENU_TYCD
+            FROM TB_LMS_USR A
+            JOIN TB_LMS_USER_AUTHRT B
+            ON A.USER_ID = B.USER_AUTHRT_ID
+            AND B.MENU_TYCD = 'ADMIN'
+            <if test='orgId != null and orgId != ""'>
+                AND A.ORG_ID = #{orgId}
+            </if>
+            <if test='authGrpCd != null and authGrpCd != ""'>
+                AND B.USER_AUTHRT_ID = #{authGrpCd}
+            </if>
+            <if test='menuType != null and menuType != ""'>
+                AND B.MENU_TYCD = #{menuType}
+            </if>
+            WHERE (A.STSCD IS NULL OR A.STSCD != 'N')
+            <if test='searchValue != null and searchValue != ""'>
+                AND (
+                LOWER(A.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                )
+            </if>
+            UNION ALL
+            SELECT
+            A.USER_ID
+            , A.ORG_ID
+            , B.MENU_TYCD
+            FROM TB_LMS_USR A
+            JOIN TB_LMS_USER_AUTHRT B
+            ON A.USER_ID = B.USER_AUTHRT_ID
+            AND B.MENU_TYCD = 'PROFESSOR'
+            <if test='orgId != null and orgId != ""'>
+                AND A.ORG_ID = #{orgId}
+            </if>
+            <if test='authGrpCd != null and authGrpCd != ""'>
+                AND B.USER_AUTHRT_ID = #{authGrpCd}
+            </if>
+            <if test='menuType != null and menuType != ""'>
+                AND B.MENU_TYCD = #{menuType}
+            </if>
+            WHERE (A.STSCD IS NULL OR A.STSCD != 'N')
+            <if test='searchValue != null and searchValue != ""'>
+                AND (
+                LOWER(A.USER_ID)LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                )
+            </if>
+            UNION ALL
+        </if>
+        SELECT
+        A.USER_ID
+        , A.ORG_ID
+        , B.MENU_TYCD
+        FROM TB_LMS_USR A
+        JOIN TB_LMS_USER_AUTHRT B
+        ON A.USER_ID = B.USER_AUTHRT_ID
+        AND B.MENU_TYCD = 'STUDENT'
+        <if test='orgId != null and orgId != ""'>
+            AND A.ORG_ID = #{orgId}
+        </if>
+        <if test='authGrpCd != null and authGrpCd != ""'>
+            AND B.USER_AUTHRT_ID = #{authGrpCd}
+        </if>
+        <if test='menuType != null and menuType != ""'>
+            AND B.MENU_TYCD = #{menuType}
+        </if>
+        WHERE 1=1
+        <if test='schregGbnCd != null and schregGbnCd != ""'>
+            AND A.SCHREG_GBN_CD = #{schregGbnCd}
+        </if>
+        <if test='searchValue != null and searchValue != ""'>
+            AND (
+            LOWER(A.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            OR LOWER(A.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        ) A
+        GROUP BY A.USER_ID, A.ORG_ID
+    </sql>
+
+    <select id="countUserByMenuType" parameterType="usrUserInfoVO" resultType="int">
+        /*
+        SQL ID : UsrUserInfoDAO.countUserByMenuType
+        설 명 : 메뉴 구분별 사용자 목록
+        */
+        SELECT COUNT(1)
+        FROM (
+        <include refid="listUserByMenuTypeQuery"/>
+        ) A
+    </select>
+
+    <select id="listUserByMenuType" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.listUserByMenuType
+        설 명 : 메뉴 구분별 사용자 목록
+        */
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY A.USER_ORDER, B.USERNM) AS LINE_NO
+        , A.USER_ID
+        , B.USERNM
+        , B.DEPTNM
+        , B.MOBILE_NO
+        , B.EMAIL
+        , B.SCHREG_GBN
+        , (SELECT MAX(SCYR) FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = A.USER_ID AND ATNDLC_STSCD = 'S') AS SCYR
+        , (
+        SELECT LISTAGG(BB.CD, ',') WITHIN GROUP (ORDER BY BB.CD)
+        FROM TB_LMS_USER_AUTHRT AA
+        JOIN TB_ORG_CODE BB
+        ON AA.USER_AUTHRT_ID = BB.CD
+        AND BB.CTGRCD = 'USER_TYPE'
+        WHERE AA.USER_ID = A.USER_ID
+        AND BB.ORG_ID = B.ORG_ID
+        ) AS USER_AUTHRT_ID
+        , (
+        SELECT LISTAGG(BB.CDNM, ',') WITHIN GROUP (ORDER BY BB.CD)
+        FROM TB_LMS_USER_AUTHRT AA
+        JOIN TB_ORG_CODE BB
+        ON AA.USER_AUTHRT_ID = BB.CD
+        AND BB.CTGRCD = 'USER_TYPE'
+        AND BB.CD_OPTN = 'ADMIN'
+        WHERE AA.USER_ID = A.USER_ID
+        AND BB.ORG_ID = B.ORG_ID
+        ) AS ADMIN_AUTH_GRP_NM
+        , (
+        SELECT LISTAGG(BB.CDNM, ',') WITHIN GROUP (ORDER BY BB.CD)
+        FROM TB_LMS_USER_AUTHRT AA
+        JOIN TB_ORG_CODE BB
+        ON AA.USER_AUTHRT_ID = BB.CD
+        AND BB.CTGRCD = 'USER_TYPE'
+        WHERE AA.USER_ID = A.USER_ID
+        AND BB.ORG_ID = B.ORG_ID
+        AND NVL(BB.CD_OPTN, '') != 'ADMIN'
+        ) AS WWW_AUTH_GRP_NM
+        FROM (
+        <include refid="listUserByMenuTypeQuery"/>
+        ) A
+        JOIN TB_LMS_USR B
+        ON A.USER_ID = B.USER_ID
+    </select>
+
+    <select id="listPagingUserByMenuType" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.listPagingUserByMenuType
+        설 명 : 메뉴 구분별 사용자 목록 페이징
+        */
+        <!-- SELECT
+              ROW_NUMBER() OVER() + #{firstIndex} AS LINE_NO
+            , A.*
+            , (SELECT MAX(SCYR) FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = A.USER_ID AND ATNDLC_STSCD = 'S') AS SCYR
+           , (SELECT GROUP_CONCAT(BB.CD)
+                FROM TB_LMS_USER_AUTHRT AA
+                JOIN TB_ORG_CODE BB
+                ON AA.USER_AUTHRT_ID = BB.CD
+                AND BB.CTGRCD = 'USER_TYPE'
+                AND BB.ORG_ID = A.ORG_ID
+                WHERE AA.USER_ID = A.USER_ID
+            ) AS USER_AUTHRT_ID
+           , (SELECT GROUP_CONCAT(BB.CDNM)
+                FROM TB_LMS_USER_AUTHRT AA
+                JOIN TB_ORG_CODE BB
+                ON AA.USER_AUTHRT_ID = BB.CD
+                AND BB.CTGRCD = 'USER_TYPE'
+                AND BB.ORG_ID = A.ORG_ID
+                AND BB.CD_OPTN = 'ADMIN'
+                WHERE AA.USER_ID = A.USER_ID
+            ) AS ADMIN_AUTH_GRP_NM
+            , (SELECT GROUP_CONCAT(BB.CDNM)
+                FROM TB_LMS_USER_AUTHRT AA
+                JOIN TB_ORG_CODE BB
+                ON AA.USER_AUTHRT_ID = BB.CD
+                AND BB.CTGRCD = 'USER_TYPE'
+                AND BB.ORG_ID = A.ORG_ID
+                WHERE AA.USER_ID = A.USER_ID
+                AND IFNULL(BB.CD_OPTN, '') != 'ADMIN'
+            ) AS WWW_AUTH_GRP_NM
+           , IF(EXISTS(SELECT 1 FROM TB_HOME_USER_MGNT_DEPT WHERE USER_ID = A.USER_ID AND MSTYN = 'Y'), 'Y', 'N') AS MSTYN
+           <if test='orgKnouRltn != null and orgKnouRltn == "Y"'>
+               , (SELECT KNOU_USER_ID FROM TB_HOME_USER_ORG_RLTN WHERE USER_ID = A.USER_ID) AS KNOU_USER_ID
+               , (SELECT BB.USERNM FROM TB_HOME_USER_ORG_RLTN AA, TB_LMS_USR BB WHERE AA.KNOU_USER_ID = BB.USER_ID AND AA.USER_ID = A.USER_ID) AS KNOU_USER_NM
+           </if>
+        FROM (
+           SELECT
+                 A.USER_ID
+               , B.ORG_ID
+               , B.USERNM
+               , B.DEPTNM
+               , B.MOBILE_NO
+               , B.EMAIL
+               , B.SCHREG_GBN
+           FROM (
+               <include refid="listUserByMenuTypeQuery" />
+           ) A
+           JOIN TB_LMS_USR B
+           ON A.USER_ID = B.USER_ID
+           ORDER BY A.USER_ORDER, B.USERNM
+           <if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
+           LIMIT #{firstIndex}, #{listScale}
+           </if>
+       ) A -->
+        <include refid="CommonSQL.pagePrefix"/>
+        SELECT
+        A.*
+        , (SELECT MAX(SCYR) FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = A.USER_ID AND ATNDLC_STSCD = 'S') AS SCYR
+        , (SELECT LISTAGG(BB.CD, ',') WITHIN GROUP (ORDER BY BB.CD) FROM TB_LMS_USER_AUTHRT AA JOIN TB_ORG_CODE BB ON
+        AA.USER_AUTHRT_ID = BB.CD AND BB.CTGRCD = 'USER_TYPE' AND BB.ORG_ID = ORG_ID WHERE AA.USER_ID = A.USER_ID ) AS
+        USER_AUTHRT_ID
+        , (SELECT LISTAGG(BB.CDNM, ',') WITHIN GROUP (ORDER BY BB.CDNM) FROM TB_LMS_USER_AUTHRT AA JOIN TB_ORG_CODE BB
+        ON AA.USER_AUTHRT_ID = BB.CD AND BB.CTGRCD = 'USER_TYPE' AND BB.ORG_ID = ORG_ID AND BB.CD_OPTN = 'ADMIN' WHERE
+        AA.USER_ID = A.USER_ID ) AS ADMIN_AUTH_GRP_NM
+        , (SELECT LISTAGG(BB.CDNM, ',') WITHIN GROUP (ORDER BY BB.CDNM) FROM TB_LMS_USER_AUTHRT AA JOIN TB_ORG_CODE BB
+        ON AA.USER_AUTHRT_ID = BB.CD AND BB.CTGRCD = 'USER_TYPE' AND BB.ORG_ID = ORG_ID WHERE AA.USER_ID = A.USER_ID AND
+        NVL(BB.CD_OPTN, '') != 'ADMIN' ) AS WWW_AUTH_GRP_NM
+        , CASE WHEN EXISTS(SELECT 1 FROM TB_HOME_USER_MGNT_DEPT WHERE USER_ID = A.USER_ID AND MSTYN = 'Y') THEN 'Y' ELSE
+        'N' END AS MSTYN
+        <if test='orgKnouRltn != null and orgKnouRltn == "Y"'>
+            , (SELECT KNOU_USER_ID FROM TB_HOME_USER_ORG_RLTN WHERE USER_ID = A.USER_ID) AS KNOU_USER_ID
+            , (SELECT BB.USERNM FROM TB_HOME_USER_ORG_RLTN AA, TB_LMS_USR BB WHERE AA.KNOU_USER_ID = BB.USER_ID AND
+            AA.USER_ID = A.USER_ID) AS KNOU_USER_NM
+        </if>
+        FROM (
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY A.USER_ORDER, B.USERNM) AS LINE_NO
+        , A.USER_ID
+        , B.ORG_ID
+        , B.USERNM
+        , B.DEPTNM
+        , B.MOBILE_NO
+        , B.EMAIL
+        , B.SCHREG_GBN
+        FROM (
+        <include refid="listUserByMenuTypeQuery"/>
+        ) A
+        JOIN TB_LMS_USR B
+        ON A.USER_ID = B.USER_ID
+        ORDER BY A.USER_ORDER, B.USERNM
+        ) A
+        <include refid="CommonSQL.pageSubfix"/>
+    </select>
+
+    <select id="listSearchByKnouUser" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+        SQL ID : UsrUserInfoDAO.listSearchByKnouUser
+        설 명 : 한사대 사용자 목록 검색(운영자,교수)
+        */
+        SELECT
+        A.USER_ID
+        , A.USERNM
+        , A.DEPTNM
+        , C.USER_AUTHRT_ID
+        , (SELECT GROUP_CONCAT(BB.CDNM)
+        FROM TB_LMS_USER_AUTHRT AA
+        JOIN TB_ORG_CODE BB
+        ON AA.USER_AUTHRT_ID = BB.CD
+        AND BB.CTGRCD = 'USER_TYPE'
+        AND BB.ORG_ID = A.ORG_ID
+        WHERE AA.USER_ID = A.USER_ID
+        AND IFNULL(BB.CD_OPTN, '') != 'ADMIN'
+        ) AS WWW_AUTH_GRP_NM
+        FROM TB_LMS_USR AS A
+        JOIN TB_LMS_USER_ACNT AS B
+        ON A.USER_ID = B.USER_ID
+        AND B.USER_ACNT_STSCD = 'U'
+        JOIN TB_LMS_USER_AUTHRT AS C
+        ON A.USER_ID = C.USER_ID
+        AND C.MENU_TYCD IN ('PROFESSOR', 'ADMIN')
+        WHERE 1=1
+        AND A.ORG_ID = #{orgId}
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+            LOWER(A.USER_ID) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+            OR LOWER(A.USERNM) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+            )
+        </if>
+        ORDER BY A.USERNM
+    </select>
+
+    <select id="selectUserOrgRltn" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+             SQL ID : UsrUserInfoDAO.selectUserOrgRltn
+             설  명 : 기관사용자 한사대 사용자 연결 조회
+         */
+        SELECT A.USER_ID
+             , A.ORG_ID
+             , A.KNOU_USER_ID
+             , B.USERNM AS KNOU_USER_NM
+        FROM TB_HOME_USER_ORG_RLTN A,
+             TB_LMS_USR B
+        WHERE 1 = 1
+          AND A.KNOU_USER_ID = B.USER_ID
+          AND A.USER_ID = #{userId}
+    </select>
+
+    <insert id="insertUserOrgRltn" parameterType="usrUserInfoVO">
+        /*
+             SQL ID : UsrUserInfoDAO.insertUserOrgRltn
+             설  명 : 기관사용자 한사대 사용자 연결 저장
+         */
+        INSERT INTO TB_HOME_USER_ORG_RLTN ( USER_ID
+                                          , ORG_ID
+                                          , KNOU_USER_ID
+                                          , RGTR_ID
+                                          , FRST_INQ_DTTM
+                                          , MDFR_ID
+                                          , MOD_DTTM)
+        VALUES ( #{userId}
+               , #{orgId}
+               , #{knouUserId}
+               , #{rgtrId}
+               , FN_DTTM()
+               , #{rgtrId}
+               , FN_DTTM())
+    </insert>
+
+    <update id="updateUserOrgRltn" parameterType="usrUserInfoVO">
+        /*
+             SQL ID : UsrUserInfoDAO.updateUserOrgRltn
+             설  명 : 기관사용자 한사대 사용자 연결 수정
+         */
+        UPDATE TB_HOME_USER_ORG_RLTN
+        SET KNOU_USER_ID = #{knouUserId}
+          , MDFR_ID      = #{mdfrId}
+          , MOD_DTTM     = FN_DTTM()
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </update>
+
+    <select id="selectUserOrgRltnByKnouUser" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
+        /*
+             SQL ID : UsrUserInfoDAO.selectUserOrgRltnByKnouUser
+             설  명 : 기관사용자 한사대 사용자 연결 조회 (by 한사대계정)
+         */
+        SELECT A.USER_ID
+             , B.USERNM
+             , A.KNOU_USER_ID
+             , A.ORG_ID
+             , C.ORGNM
+             , (SELECT CONCAT('|', GROUP_CONCAT(GA.MENU_TYCD SEPARATOR '|')) MENU_TYCD
+                FROM TB_LMS_USER_AUTHRT GA,
+                     TB_LMS_AUTHRT_GRP GB,
+                     TB_LMS_USR GC
+                WHERE GA.MENU_TYCD = GB.MENU_TYCD
+                  AND GA.USER_AUTHRT_ID = GB.USER_AUTHRT_ID
+                  AND GA.USER_ID = GC.USER_ID
+                  AND GB.ORG_ID = GC.ORG_ID
+                  AND GB.ORG_ID = A.ORG_ID
+                  AND GA.USER_ID = A.USER_ID)                                                                   MENU_TYCD
+             , (SELECT USER_AUTHRT_ID FROM TB_LMS_USER_AUTHRT WHERE USER_ID = A.USER_ID ORDER BY MENU_TYCD DESC LIMIT 1) AS WWW_AUTH_GRP_CD
+        FROM TB_HOME_USER_ORG_RLTN A, TB_LMS_USR B, TB_LMS_ORG C
+        WHERE 1=1
+          AND A.USER_ID = B.USER_ID
+          AND A.ORG_ID = C.ORG_ID
+          AND A.KNOU_USER_ID = #{userId}
+        UNION
+        SELECT B.USER_ID
+             , B.USERNM
+             , B.USER_ID
+             , B.ORG_ID
+             , C.ORGNM
+             , (SELECT CONCAT('|', GROUP_CONCAT(GA.MENU_TYCD SEPARATOR '|')) MENU_TYCD
+                FROM TB_LMS_USER_AUTHRT GA,
+                     TB_LMS_AUTHRT_GRP GB,
+                     TB_LMS_USR GC
+                WHERE GA.MENU_TYCD = GB.MENU_TYCD
+                  AND GA.USER_AUTHRT_ID = GB.USER_AUTHRT_ID
+                  AND GA.USER_ID = GC.USER_ID
+                  AND GB.ORG_ID = GC.ORG_ID
+                  AND GB.ORG_ID = B.ORG_ID
+                  AND GA.USER_ID = B.USER_ID)                                                                   MENU_TYCD
+             , (SELECT USER_AUTHRT_ID FROM TB_LMS_USER_AUTHRT WHERE USER_ID = B.USER_ID ORDER BY MENU_TYCD DESC LIMIT 1) AS WWW_AUTH_GRP_CD
+        FROM TB_LMS_USR B, TB_LMS_ORG C
+        WHERE 1=1
+          AND B.ORG_ID = C.ORG_ID
+          AND B.USER_ID = #{userId}
+    </select>
+</mapper>

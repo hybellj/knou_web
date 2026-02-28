@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.common.dao.OrgCfgCtgrDAO">
+
+	<sql id="selectQuery">
+		SELECT STNG_CTGRCD 
+             , CTGRNM
+             , CTGR_EXPLN
+             , USEYN
+             , RGTR_ID
+             , '' AS RGTRNM
+             , FRST_INQ_DTTM
+             , MDFR_ID
+             , '' AS MOD_NM
+             , MOD_DTTM
+          FROM TB_ORG_CFG_CTGR
+         WHERE ORG_ID = #{orgId}
+	</sql>
+	
+	<sql id="listQuery">
+		<include refid="selectQuery"/>
+		<if test="searchValue != null and searchValue != ''">
+            AND (
+                LOWER(STNG_CTGRCD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(CTGRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <if test="cfgCtgrCd != null and cfgCtgrCd != ''">
+            AND STNG_CTGRCD = #{cfgCtgrCd}
+        </if>
+        <if test="useYn != null and useYn != ''">
+           AND USEYN = #{useYn}
+        </if>
+	</sql>		
+
+	<select id="list" parameterType="orgCfgCtgrVO" resultType="orgCfgCtgrVO">
+		/*
+			SQL ID : OrgCfgCtgrDAO.list
+			설  명 : 기관 관리 전체 목록
+        */
+        <include refid="listQuery"/>
+        ORDER BY CTGRNM
+	</select>
+
+	<select id="listConfig" parameterType="orgCfgCtgrVO" resultType="orgCfgCtgrVO">
+		/*
+			SQL ID : TbOrgCfgDAO.listConfig
+			설  명 : 기관 관리 전체 목록
+        */
+        <include refid="listQuery"/>
+	</select>
+
+	<select id="listPageing" parameterType="orgCfgCtgrVO" resultType="orgCfgCtgrVO">
+		/*
+			SQL ID : OrgCfgCtgrDAO.listPageing
+			설  명 : 기관 관리 페이징 목록
+        */
+	 	<include refid="CommonSQL.pagePrefix"/>
+	 	<include refid="listQuery"/>
+	 	<include refid="CommonSQL.pageSubfix"/>	 	
+	</select>
+	
+	<select id="count" parameterType="orgCfgCtgrVO" resultType="Integer">
+		/*
+			SQL ID : OrgCfgCtgrDAO.count
+			설  명 : 기관 관리 전체 카운트
+        */
+	 	SELECT COUNT(*) FROM (
+	 	<include refid="listQuery"/>
+	 	) T
+	</select>	
+	
+	<select id="select" parameterType="orgCfgCtgrVO" resultType="orgCfgCtgrVO">
+		/*
+			SQL ID : OrgCfgCtgrDAO.select
+			설  명 : 기관 관리 정보 조회
+        */
+	 	<include refid="selectQuery"/>
+           AND STNG_CTGRCD = #{cfgCtgrCd}
+           AND ORG_ID = #{orgId}	 	
+	</select>	
+	
+	<insert id="insert" parameterType="orgCfgCtgrVO" >
+		/*
+			SQL ID : OrgCfgCtgrDAO.insert
+			설  명 : 기관 관리 정보 등록
+        */
+		INSERT INTO TB_ORG_CFG_CTGR (
+		       ORG_ID
+		     , STNG_CTGRCD
+		     , CTGRNM
+		     , CTGR_EXPLN
+		     , USEYN
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		) VALUES (
+		       #{orgId}
+		     , #{cfgCtgrCd}
+		     , #{ctgrNm}
+		     , #{ctgrDesc}
+		     , #{useYn}
+			 , #{rgtrId}
+			 , FN_DTTM()
+			 , #{mdfrId}
+			 , FN_DTTM()
+		)
+	</insert>
+	
+	<update id="update" parameterType="orgCfgCtgrVO" >
+		/*
+            SQL ID : OrgCfgCtgrDAO.update
+            설  명 : 기관 관리 정보 수정
+        */
+        UPDATE TB_ORG_CFG_CTGR
+           SET 
+           <if test='ctgrNm != null and ctgrNm != "" '>
+                CTGRNM     = #{ctgrNm}
+           </if>
+           <if test='ctgrDesc != null and ctgrDesc != "" '>
+             , CTGR_EXPLN = #{ctgrDesc}
+           </if>
+           <if test='useYn != null and useYn != "" '>
+             , USEYN = #{useYn}
+           </if>
+             , MOD_DTTM = FN_DTTM()
+           <if test='mdfrId != null and mdfrId != "" '>
+             , MDFR_ID = #{mdfrId}
+           </if>
+         WHERE STNG_CTGRCD = #{cfgCtgrCd}
+           AND ORG_ID = #{orgId}
+	</update>	
+
+	<delete id="delete" parameterType="orgCfgCtgrVO" >
+		/*
+            SQL ID : OrgCfgCtgrDAO.delete
+			설  명 : 기관 관리 정보 삭제
+        */
+		DELETE FROM TB_ORG_CFG_CTGR
+		 WHERE STNG_CTGRCD = #{cfgCtgrCd}
+		   AND ORG_ID = #{orgId}
+	</delete>
+	 
+</mapper>

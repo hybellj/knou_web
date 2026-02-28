@@ -1,0 +1,8 @@
+-- FN_DT
+CREATE FUNCTION FN_DT ()
+	RETURNS varchar(8)
+	READS SQL DATA
+	COMMENT '현재날짜 문자열 가져오기(년월일)'
+BEGIN
+	RETURN DATE_FORMAT(NOW(), '%Y%m%d');
+END

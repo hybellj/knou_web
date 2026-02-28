@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.forum.dao.ForumCmntDAO">
+
+	<insert id="insertCmnt" parameterType="forumCmntVO">
+		/*
+			 토론 댓글 등록
+			 ForumCmntDAO.insertCmnt
+		*/
+		INSERT INTO TB_LMS_DSCS_CMNT (
+			DSCS_CMNT_ID
+			, DSCS_ID
+			, ATCL_ID
+			, RSPNS_REQYN
+			, UP_CMNT_ID
+			, ATCL_CMNT_CTS
+			, EMTICN_NO
+			, STD_ID
+			, RGTRNM
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+			, DELYN
+			, CMNT_CTS_LEN
+		) VALUES (
+			#{cmntSn}
+			, #{forumCd}
+			, #{atclSn}
+			, #{ansReqYn}
+			, #{parCmntSn}
+			, #{cmntCts}
+			, #{emoticonNo}
+			, #{stdNo} 
+			, #{regNm}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+			, 'N'
+			, #{cmntCtsLen}
+		)
+	</insert>
+
+	<update id="updateCmnt" parameterType="forumCmntVO">
+		/*
+			 토론방 댓글 수정
+			 ForumCmntDAO.updateCmnt
+		*/
+		UPDATE TB_LMS_DSCS_CMNT
+		SET ATCL_CMNT_CTS = #{cmntCts}
+			, CMNT_CTS_LEN = #{cmntCtsLen}
+			, RSPNS_REQYN = #{ansReqYn}
+			, MOD_DTTM = FN_DTTM()
+		WHERE DSCS_CMNT_ID = #{cmntSn}
+	</update>
+
+	<update id="deleteCmnt" parameterType="forumCmntVO">
+		/*
+			 토론방 댓글 삭제
+			 ForumCmntDAO.deleteCmnt
+		*/
+		UPDATE TB_LMS_DSCS_CMNT
+		SET DELYN = 'Y'
+			, MOD_DTTM = FN_DTTM()
+		WHERE DSCS_CMNT_ID = #{cmntSn}
+	</update>
+
+	<select id="cmntList" parameterType="forumCmntVO" resultType="egovMap">
+		/*
+			 토론 댓글 목록
+			 ForumCmntDAO.cmntList
+		*/
+		WITH OPNN (
+		  RN, DSCS_CMNT_ID, DSCS_ID, ATCL_ID, UP_CMNT_ID, ATCL_CMNT_CTS, CMNT_CTS_LEN,
+		  EMTICN_NO, RGTRNM, RGTR_ID, FRST_INQ_DTTM, MDFR_ID, MOD_DTTM, DELYN,
+		  RSPNS_REQYN, STD_ID, CHILD_YN, LVL, PATH
+		) AS (
+		  SELECT
+		      ROW_NUMBER() OVER (ORDER BY A.FRST_INQ_DTTM DESC) AS RN
+		    , A.DSCS_CMNT_ID
+		    , A.DSCS_ID
+		    , A.ATCL_ID
+		    , A.UP_CMNT_ID
+		    , A.ATCL_CMNT_CTS
+		    , A.CMNT_CTS_LEN
+		    , A.EMTICN_NO
+		    , A.RGTRNM
+		    , A.RGTR_ID
+		    , A.FRST_INQ_DTTM
+		    , A.MDFR_ID
+		    , A.MOD_DTTM
+		    , A.DELYN
+		    , A.RSPNS_REQYN
+		    , A.STD_ID
+		    , CASE WHEN EXISTS (
+		        SELECT 1 FROM TB_LMS_DSCS_CMNT
+		        WHERE UP_CMNT_ID = A.DSCS_CMNT_ID AND DELYN = 'N'
+		      ) THEN 'Y' ELSE 'N' END AS CHILD_YN
+		    , 1 AS LVL
+		    , TO_CHAR(A.DSCS_CMNT_ID) AS PATH
+		  FROM TB_LMS_DSCS_CMNT A
+		  WHERE A.UP_CMNT_ID IS NULL
+		    AND A.DSCS_ID = #{forumCd}
+			AND A.ATCL_ID = #{atclSn}
+		  UNION ALL
+		  SELECT
+		      B.RN
+		    , A.DSCS_CMNT_ID
+		    , A.DSCS_ID
+		    , A.ATCL_ID
+		    , A.UP_CMNT_ID
+		    , A.ATCL_CMNT_CTS
+		    , A.CMNT_CTS_LEN
+		    , A.EMTICN_NO
+		    , A.RGTRNM
+		    , A.RGTR_ID
+		    , A.FRST_INQ_DTTM
+		    , A.MDFR_ID
+		    , A.MOD_DTTM
+		    , A.DELYN
+		    , A.RSPNS_REQYN
+		    , A.STD_ID
+		    , CASE WHEN EXISTS (
+		        SELECT 1 FROM TB_LMS_DSCS_CMNT
+		        WHERE UP_CMNT_ID = A.DSCS_CMNT_ID AND DELYN = 'N'
+		      ) THEN 'Y' ELSE 'N' END AS CHILD_YN
+		    , B.LVL + 1 AS LVL
+		    , B.PATH || '-' || TO_CHAR(A.DSCS_CMNT_ID) AS PATH
+		  FROM TB_LMS_DSCS_CMNT A
+		  JOIN OPNN B
+		    ON A.UP_CMNT_ID = B.DSCS_CMNT_ID
+		  WHERE A.DSCS_ID = #{forumCd}
+			AND A.ATCL_ID = #{atclSn}
+		)
+		SELECT 
+		      A.DSCS_CMNT_ID
+		    , A.DSCS_ID
+		    , A.ATCL_ID
+		    , A.UP_CMNT_ID
+		    , (SELECT RGTRNM FROM TB_LMS_DSCS_CMNT WHERE DSCS_CMNT_ID = A.UP_CMNT_ID) AS PAR_REG_NM
+		    , A.ATCL_CMNT_CTS
+		    , A.CMNT_CTS_LEN
+		    , A.EMTICN_NO
+		    , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS RGTRNM
+		    , A.RGTR_ID
+		    , A.FRST_INQ_DTTM
+		    , A.MDFR_ID
+		    , A.MOD_DTTM
+		    , A.DELYN
+		    , A.RSPNS_REQYN
+		    , A.STD_ID
+		    , A.LVL
+		    , A.PATH
+		    , (SELECT PHT_FILE FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS PHT_FILE_PATH
+		FROM OPNN A
+		JOIN (
+		  SELECT RN, MAX(CASE WHEN CHILD_YN = 'N' THEN LVL ELSE 0 END) AS MAX_LVL
+		  FROM OPNN
+		  GROUP BY RN
+		) B 
+		ON A.RN = B.RN
+		WHERE A.LVL <![CDATA[ <= ]]> B.MAX_LVL
+		AND (A.DELYN = 'N' OR A.CHILD_YN = 'Y')
+				ORDER BY A.RN, A.PATH
+	</select>
+	
+	<select id="forumCmntSelect" parameterType="forumCmntVO" resultType="forumCmntVO">
+		/*
+			 토론 댓글 조회
+			 ForumCmntDAO.forumCmntSelect
+		*/
+		SELECT
+			  DSCS_CMNT_ID
+			, DSCS_ID
+			, ATCL_ID
+			, UP_CMNT_ID
+			, ATCL_CMNT_CTS
+			, EMTICN_NO
+			, STD_ID
+			, DELYN
+			, RSPNS_REQYN
+			, CMNT_CTS_LEN
+		  FROM TB_LMS_DSCS_CMNT
+		 WHERE DSCS_CMNT_ID = #{cmntSn}
+	</select>
+
+</mapper>

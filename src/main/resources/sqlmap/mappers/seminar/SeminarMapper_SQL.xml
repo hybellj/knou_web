@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.seminar.dao.SeminarDAO">
+
+	<sql id="selectQuery">
+		<!-- SELECT
+			  A.SMNR_ID
+			, A.SBJCT_ID
+			, A.LCTR_SCHDL_ID
+			, (SELECT LCTR_SCHDL_SEQ FROM TB_LMS_SBJCT_LCTR_SCHDL WHERE LCTR_SCHDL_ID = A.LCTR_SCHDL_ID) AS lessonScheduleOrder
+			, A.SBJCT_LCTR_CLASTM_ID
+			, (SELECT LCTR_CLASTM_SEQ FROM TB_LMS_SBJCT_LCTR_CLASTM WHERE SBJCT_LCTR_CLASTM_ID = A.SBJCT_LCTR_CLASTM_ID) AS lessonTimeOrder
+			, A.SEMINAR_NM
+			, A.SMNR_CTS
+			, A.SMNR_CTGRCD
+			, CASE WHEN A.SMNR_CTGRCD = 'online' THEN '온라인' WHEN A.SMNR_CTGRCD = 'offline' THEN '오프라인' ELSE '자유세미나' END AS seminarCtgrNm
+			, A.SMNR_SDTTM
+			, A.SMNR_EDTTM
+			, A.SMNR_MNTS
+			, A.PROF_ONLY_URL
+			, A.PTCP_URL
+			, A.ZOOM_ID
+			, A.ZOOM_PSWD
+			, <![CDATA[ CASE WHEN (TO_DATE(SMNR_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 > 0 THEN '대기'
+ 			   	    		 WHEN (TO_DATE(SMNR_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 < 0 AND (TO_DATE(SMNR_EDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 > 0 THEN '진행'
+ 			  	    		 WHEN (TO_DATE(SMNR_EDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 < 0 THEN '완료' END AS seminarStatus ]]>
+ 			, A.ATNDC_PROCYN
+ 			, A.AUTO_RCDYN
+			, A.DELYN
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, (SELECT COUNT(AA.STD_ID) FROM TB_LMS_SMNR_ATND AA JOIN TB_LMS_ATNDLC_SBJCT BB ON AA.STD_ID = BB.STD_ID WHERE BB.SBJCT_ID = A.SBJCT_ID AND BB.ATNDLC_STSCD = 'S' AND AA.SMNR_ID = A.SMNR_ID AND AA.ATND_STSCD IN ('ATTEND', 'LATE') AND BB.AUDITYN = 'N') AS seminarJoinStdCnt
+			, (SELECT COUNT(*) FROM TB_LMS_ATNDLC_SBJCT AA WHERE AA.SBJCT_ID = A.SBJCT_ID AND AA.ATNDLC_STSCD = 'S' AND AA.AUDITYN = 'N') AS seminarTotalStdCnt
+			, (SELECT COUNT(AA.STD_ID) FROM TB_LMS_SMNR_ATND AA JOIN TB_LMS_ATNDLC_SBJCT BB ON AA.STD_ID = BB.STD_ID WHERE BB.SBJCT_ID = A.SBJCT_ID AND BB.ATNDLC_STSCD = 'S' AND AA.SMNR_ID = A.SMNR_ID AND AA.ATND_STSCD = 'ATTEND' AND BB.AUDITYN = 'N') AS seminarAttendUserCnt
+			, (SELECT COUNT(AA.STD_ID) FROM TB_LMS_SMNR_ATND AA JOIN TB_LMS_ATNDLC_SBJCT BB ON AA.STD_ID = BB.STD_ID WHERE BB.SBJCT_ID = A.SBJCT_ID AND BB.ATNDLC_STSCD = 'S' AND AA.SMNR_ID = A.SMNR_ID AND AA.ATND_STSCD = 'LATE' AND BB.AUDITYN = 'N') AS seminarLateUserCnt
+			, (SELECT COUNT(AA.STD_ID) FROM TB_LMS_ATNDLC_SBJCT AA LEFT JOIN TB_LMS_SMNR_ATND BB ON AA.STD_ID = BB.STD_ID AND BB.SMNR_ID = A.SMNR_ID WHERE AA.SBJCT_ID = A.SBJCT_ID AND AA.ATNDLC_STSCD = 'S' AND AA.AUDITYN = 'N' AND (BB.ATND_STSCD = 'ABSENT' OR BB.ATND_STSCD IS NULL)) AS seminarAbsentUserCnt
+			<if test="stdNo != null and stdNo != ''">
+			, #{stdNo}									AS stdNo
+			, (SELECT AA.ATND_STSCD FROM TB_LMS_SMNR_ATND AA WHERE AA.SMNR_ID = A.SMNR_ID AND AA.STD_ID = #{stdNo}) AS stdAttendStatus
+			</if>
+			, CASE WHEN (TO_DATE(SMNR_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 <![CDATA[ <= ]]> 600 THEN 'Y' ELSE 'N' END AS seminarStartYn
+			, CASE WHEN TRUNC(TO_DATE(SMNR_EDTTM, 'YYYYMMDDHH24MISS') + 1) - TRUNC(SYSDATE) <![CDATA[ <= ]]> 0 THEN 'Y' ELSE 'N' END AS seminarEndYn
+			, (SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = A.SBJCT_ID AND RPRSYN = 'Y') AS profNo
+			, NVL((SELECT 'Y' FROM SBJCT_PROF WHERE RPRSYN = 'Y' AND PROF_TYCD = 'PROFESSOR' AND SBJCT_ID = A.SBJCT_ID AND USER_ID = #{userId}), 'N') AS hostYn
+			, COUNT(1) OVER()			  				AS totalCnt
+			, NVL((SELECT ATND_SCNDS FROM TB_LMS_SMNR_ATND WHERE SMNR_ID = A.SMNR_ID AND USER_ID = (SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = A.SBJCT_ID AND RPRSYN = 'Y')), 0) AS tchAtndTime
+		  FROM TB_LMS_SMNR A
+		 WHERE A.DELYN = 'N'
+		 <if test="seminarId != null and seminarId != ''">
+		   AND A.SMNR_ID = #{seminarId}
+		 </if>
+		 <if test="crsCreCd != null and crsCreCd != ''">
+		   AND A.SBJCT_ID = #{crsCreCd}
+		 </if>
+		 <if test="searchValue != null and searchValue != ''">
+		   AND (
+		   		LOWER(A.SEMINAR_NM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		   )
+		 </if>
+		 <if test="termCd != null and termCd != ''">
+		   AND A.SBJCT_ID IN (
+		   		SELECT AA.SBJCT_ID FROM TB_LMS_SBJCT AA JOIN TB_LMS_TERM_CRE_CRS_RLTN BB ON AA.SBJCT_ID = BB.SBJCT_ID WHERE AA.DELYN = 'N' AND BB.CRS_SMSTR_ID = #{termCd}
+		   )
+		 </if>
+		 <if test="(creYear != null and creYear != '') or (creTerm != null and creTerm != '')">
+		   AND A.SBJCT_ID IN (
+		   		SELECT
+		   			AA.SBJCT_ID
+		   		  FROM TB_LMS_SBJCT AA
+		   		  JOIN TB_LMS_TERM_CRE_CRS_RLTN BB
+		   		    ON AA.SBJCT_ID = BB.SBJCT_ID
+		   		 WHERE AA.DELYN = 'N'
+		   		 <if test="creYear != null and creYear != ''">
+		   		   AND AA.SBJCT_ID = #{creYear}
+		   		 </if>
+		   		 <if test="creTerm != null and creTerm != ''">
+		   		   AND AA.CRS_ID = #{creTerm}
+		   		 </if>
+		   )
+		 </if> -->
+		 WITH BASE_SEMINAR AS (
+		    SELECT *
+		    FROM TB_LMS_SMNR
+		    WHERE DELYN = 'N'
+		    <if test="seminarId != null and seminarId != ''">
+			   AND SMNR_ID = #{seminarId}
+			</if>
+			<if test="crsCreCd != null and crsCreCd != ''">
+			   AND SBJCT_ID = #{crsCreCd}
+			 </if>
+			 <if test="searchValue != null and searchValue != ''">
+			   AND (
+			   		LOWER(SEMINAR_NM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			   )
+			 </if>
+			 <if test="termCd != null and termCd != ''">
+			   AND A.SBJCT_ID IN (
+			   		SELECT AA.SBJCT_ID FROM TB_LMS_SBJCT AA JOIN TB_LMS_TERM_CRE_CRS_RLTN BB ON AA.SBJCT_ID = BB.SBJCT_ID WHERE AA.DELYN = 'N' AND BB.CRS_SMSTR_ID = #{termCd}
+			   )
+			 </if>
+			 <if test="(creYear != null and creYear != '') or (creTerm != null and creTerm != '')">
+			   AND A.SBJCT_ID IN (
+			   		SELECT
+			   			AA.SBJCT_ID
+			   		  FROM TB_LMS_SBJCT AA
+			   		  JOIN TB_LMS_TERM_CRE_CRS_RLTN BB
+			   		    ON AA.SBJCT_ID = BB.SBJCT_ID
+			   		 WHERE AA.DELYN = 'N'
+			   		 <if test="creYear != null and creYear != ''">
+			   		   AND AA.SBJCT_ID = #{creYear}
+			   		 </if>
+			   		 <if test="creTerm != null and creTerm != ''">
+			   		   AND AA.CRS_ID = #{creTerm}
+			   		 </if>
+			   )
+			 </if>
+		),
+		SEMINAR_ABSENT_CNT AS (
+		    SELECT A.SMNR_ID, COUNT(AA.STD_ID) AS seminarAbsentUserCnt
+		    FROM TB_LMS_SMNR A
+		    JOIN TB_LMS_ATNDLC_SBJCT AA ON A.SBJCT_ID = AA.SBJCT_ID
+		    LEFT JOIN TB_LMS_SMNR_ATND BB
+		      ON AA.STD_ID = BB.STD_ID AND BB.SMNR_ID = A.SMNR_ID
+		    WHERE A.DELYN = 'N'
+		      AND AA.ATNDLC_STSCD = 'S'
+		      AND AA.AUDITYN = 'N'
+		      AND (BB.ATND_STSCD = 'ABSENT' OR BB.ATND_STSCD IS NULL)
+		    GROUP BY A.SMNR_ID
+		)
+		SELECT
+		    ROW_NUMBER() OVER (ORDER BY A.SMNR_SDTTM, A.FRST_INQ_DTTM) AS lineNo,
+		    A.*,
+		
+		    -- 세미나 상태
+		    CASE
+		        WHEN (TO_DATE(A.SMNR_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 <![CDATA[ > ]]> 0 THEN '대기'
+		        WHEN (TO_DATE(A.SMNR_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 <![CDATA[ < ]]> 0
+		          AND (TO_DATE(A.SMNR_EDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 <![CDATA[ > ]]> 0 THEN '진행'
+		        WHEN (TO_DATE(A.SMNR_EDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 <![CDATA[ < ]]> 0 THEN '완료'
+		    END AS seminarStatus,
+		
+		    -- 시작 여부
+		    CASE
+		        WHEN (TO_DATE(A.SMNR_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 <![CDATA[ <= ]]> 600 THEN 'Y'
+		        ELSE 'N'
+		    END AS seminarStartYn,
+		
+		    -- 종료 여부
+		    CASE
+		        WHEN TRUNC(TO_DATE(A.SMNR_EDTTM, 'YYYYMMDDHH24MISS') + 1) - TRUNC(SYSDATE) <![CDATA[ <= ]]> 0 THEN 'Y'
+		        ELSE 'N'
+		    END AS seminarEndYn,
+		
+		    -- 결석자 수 (WITH 절에서 가져옴)
+		    NVL(SAC.seminarAbsentUserCnt, 0) AS seminarAbsentUserCnt
+		
+		FROM BASE_SEMINAR A
+		LEFT JOIN SEMINAR_ABSENT_CNT SAC ON A.SMNR_ID = SAC.SMNR_ID
+		ORDER BY A.SMNR_SDTTM DESC, A.FRST_INQ_DTTM DESC
+	</sql>
+	
+	<select id="select" parameterType="seminarVO" resultType="seminarVO">
+		/*
+             SQL ID : SeminarDAO.select
+            	 설  명 : 세미나 정보 조회
+         */
+         <include refid="selectQuery" />
+	</select>
+
+	<select id="list" parameterType="seminarVO" resultType="seminarVO">
+		/*
+             SQL ID : SeminarDAO.list
+            	 설  명 : 세미나 리스트 조회
+         */
+         SELECT
+         	  ROW_NUMBER() OVER(ORDER BY A.SMNR_SDTTM, A.FRST_INQ_DTTM) AS lineNo
+			, A.*
+         FROM (
+         	<include refid="selectQuery" />
+         ) A
+         ORDER BY A.SMNR_SDTTM DESC, A.FRST_INQ_DTTM DESC
+	</select>
+	
+	<select id="listPaging" parameterType="seminarVO" resultType="seminarVO">
+		/*
+             SQL ID : SeminarDAO.listPaging
+            	 설  명 : 세미나 리스트 조회 페이징
+         */
+		SELECT
+         	  ROW_NUMBER() OVER(ORDER BY A.SMNR_SDTTM, A.FRST_INQ_DTTM) AS lineNo
+			, A.*
+		FROM (
+         	<include refid="selectQuery" />
+		) A
+		ORDER BY A.SMNR_SDTTM DESC, A.FRST_INQ_DTTM DESC
+		LIMIT #{firstIndex}, #{listScale}
+	</select>
+	
+	<insert id="insert" parameterType="seminarVO">
+		/*
+             SQL ID : SeminarDAO.insert
+            	 설  명 : 세미나 등록
+         */
+         INSERT INTO TB_LMS_SMNR (
+         	  SMNR_ID
+			, SBJCT_ID
+			, LCTR_SCHDL_ID
+			, SBJCT_LCTR_CLASTM_ID
+			, SEMINAR_NM
+			, SMNR_CTS
+			, SMNR_CTGRCD
+			, SMNR_SDTTM
+			, SMNR_EDTTM
+			, SMNR_MNTS
+			, PROF_ONLY_URL
+			, PTCP_URL
+			, ZOOM_ID
+			, ZOOM_PSWD
+			, ATNDC_PROCYN
+			, AUTO_RCDYN
+			, DELYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+         ) VALUES (
+         	  #{seminarId}
+         	, #{crsCreCd}
+         	, #{lessonScheduleId}
+         	, #{lessonTimeId}
+         	, #{seminarNm}
+         	, #{seminarCts}
+         	, #{seminarCtgrCd}
+         	, #{seminarStartDttm}
+         	, #{seminarEndDttm}
+         	, #{seminarTime}
+         	, #{hostUrl}
+         	, #{joinUrl}
+         	, #{zoomId}
+         	, #{zoomPw}
+         	, NVL(#{attProcYn}, 'N')
+         	, #{autoRecordYn}
+         	, NVL(#{delYn}, 'N')
+         	, #{rgtrId}
+         	, FN_DTTM()
+         	, #{mdfrId}
+         	, FN_DTTM()
+         )
+	</insert>
+	
+	<update id="update" parameterType="seminarVO">
+		/*
+             SQL ID : SeminarDAO.update
+            	 설  명 : 세미나 수정
+         */
+         UPDATE TB_LMS_SMNR SET
+         	  MDFR_ID = #{mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, LCTR_SCHDL_ID = #{lessonScheduleId}
+         	, SBJCT_LCTR_CLASTM_ID = #{lessonTimeId}
+         	, PROF_ONLY_URL = #{hostUrl}
+         	, PTCP_URL = #{joinUrl}
+         	, ZOOM_ID = #{zoomId}
+         	, ZOOM_PSWD = #{zoomPw}
+         	<if test="seminarNm != null and seminarNm != ''">
+         	, SEMINAR_NM = #{seminarNm}
+         	</if>
+         	<if test="seminarCts != null and seminarCts != ''">
+         	, SMNR_CTS = #{seminarCts}
+         	</if>
+         	<if test="seminarCtgrCd != null and seminarCtgrCd != ''">
+         	, SMNR_CTGRCD = #{seminarCtgrCd}
+         	</if>
+         	<if test="seminarStartDttm != null and seminarStartDttm != ''">
+         	, SMNR_SDTTM = #{seminarStartDttm}
+         	</if>
+         	<if test="seminarEndDttm != null and seminarEndDttm != ''">
+         	, SMNR_EDTTM = #{seminarEndDttm}
+         	</if>
+         	<if test="seminarTime != null and seminarTime != ''">
+         	, SMNR_MNTS = #{seminarTime}
+         	</if>
+         	<if test="attProcYn != null and attProcYn != ''">
+         	, ATNDC_PROCYN = #{attProcYn}
+         	</if>
+         	<if test="autoRecordYn != null and autoRecordYn != ''">
+         	, AUTO_RCDYN = #{autoRecordYn}
+         	</if>
+          WHERE SMNR_ID = #{seminarId}
+	</update>
+	
+	<update id="delete" parameterType="seminarVO">
+		/*
+             SQL ID : SeminarDAO.delete
+            	 설  명 : 세미나 삭제
+         */
+         UPDATE TB_LMS_SMNR SET
+         	  DELYN = 'Y'
+         	, PROF_ONLY_URL = NULL
+         	, PTCP_URL = NULL
+         	, ZOOM_ID = NULL
+         	, ZOOM_PSWD = NULL
+          WHERE SMNR_ID = #{seminarId}
+	</update>
+	
+	<update id="updateSeminarAttProc" parameterType="seminarVO">
+		/*
+             SQL ID : SeminarDAO.updateSeminarAttProc
+            	 설  명 : 세미나 출결여부 수정
+         */
+         UPDATE TB_LMS_SMNR SET
+         	  MDFR_ID = #{mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, ATNDC_PROCYN = 'Y'
+          WHERE SMNR_ID = #{seminarId}
+	</update>
+	
+	<select id="listSeminarByZoom" parameterType="seminarVO" resultType="seminarVO">
+		/*
+             SQL ID : SeminarDAO.listSeminarByZoom
+            	 설  명 : 세미나 Zoom 분반 목록
+         */
+         SELECT
+         	SMNR_ID
+           FROM TB_LMS_SMNR
+          WHERE SMNR_CTGRCD = 'online'
+            AND DELYN = 'N'
+            AND ZOOM_ID = (
+            	SELECT
+            		ZOOM_ID
+            	  FROM TB_LMS_SMNR
+            	 WHERE SMNR_ID = #{seminarId}
+            )
+	</select>
+	
+	<select id="countBySchedule" parameterType="seminarVO" resultType="Integer">
+		/*
+             SQL ID : SeminarDAO.countBySchedule
+            	 설  명 : 특정 주차 세미나 개설 여부
+         */
+         SELECT 
+			COUNT(*)
+		  FROM TB_LMS_SMNR
+		 WHERE SBJCT_ID = #{crsCreCd}
+		   AND DELYN = 'N'
+		   AND LCTR_SCHDL_ID = #{lessonScheduleId}
+		   <if test="seminarId != null and seminarId != ''">
+		   AND SMNR_ID != #{seminarId}
+		   </if>
+		   AND SMNR_CTGRCD != 'free'
+	</select>
+
+</mapper>

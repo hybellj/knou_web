@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.user.dao.TmpLoginDAO">
+
+	<select id="selectTmpLoginList" parameterType="tmpLoginVO" resultType="tmpLoginVO">
+	    SELECT DISTINCT
+	           A.ORG_ID
+		 	 , A.ORGNM 
+		 	 , B.DEPT_CD
+		 	 , B.DEPTNM
+		 	 , D.USER_ID
+		 	 , C.USER_ID
+		 	 , F.USER_AUTHRT_ID  AS USER_TYPE
+		 	 , F.AUTHRT_GRPNM  AS USER_TYPE_NM
+		 	 , C.USERNM
+		 	 , '' AS ADM_TYPE
+		 	 , '' AS MNG_TYPE
+		   FROM TB_LMS_ORG A
+		  INNER JOIN TB_HOME_USER_DEPT_CD B ON (A.ORG_ID = B.ORG_ID AND B.USEYN = 'Y') 
+		  INNER JOIN TB_LMS_USR C ON (A.ORG_ID = C.ORG_ID AND B.DEPT_CD = C.DEPT_CD)
+		  INNER JOIN TB_LMS_USER_ACNT D ON (C.USER_ID = D.USER_ID)
+		  INNER JOIN TB_LMS_USER_AUTHRT E ON (C.USER_ID = E.USER_ID)
+		  INNER JOIN TB_SYS_AUTH_GRP F ON (E.USER_AUTHRT_ID = F.USER_AUTHRT_ID)
+		  WHERE D.ADMIN_LOGIN_ACPT_DIV_CD = 'ACNT' 
+		    AND (D.ACNT_LEAVE_DTTM IS NULL OR D.ACNT_LEAVE_DTTM = '')
+	</select>
+	
+	<select id="selectTmpLoginUserInfo" parameterType="tmpLoginVO" resultType="tmpLoginVO">
+	    SELECT DISTINCT
+	           A.ORG_ID
+		 	 , A.ORGNM 
+		 	 , B.DEPT_CD
+		 	 , B.DEPTNM
+		 	 , D.USER_ID
+		 	 , C.USER_ID
+		 	 , F.USER_AUTHRT_ID  AS USER_TYPE
+		 	 , F.AUTHRT_GRPNM  AS USER_TYPE_NM
+		 	 , C.USERNM
+		 	 , '' AS ADM_TYPE
+		 	 , '' AS MNG_TYPE
+		   FROM TB_LMS_ORG A
+		  INNER JOIN TB_HOME_USER_DEPT_CD B ON (A.ORG_ID = B.ORG_ID AND B.USEYN = 'Y') 
+		  INNER JOIN TB_LMS_USR C ON (A.ORG_ID = C.ORG_ID AND B.DEPT_CD = C.DEPT_CD)
+		  INNER JOIN TB_LMS_USER_ACNT D ON (C.USER_ID = D.USER_ID)
+		  INNER JOIN TB_LMS_USER_AUTHRT E ON (C.USER_ID = E.USER_ID)
+		  INNER JOIN TB_SYS_AUTH_GRP F ON (E.USER_AUTHRT_ID = F.USER_AUTHRT_ID)
+		  WHERE D.ADMIN_LOGIN_ACPT_DIV_CD = 'ACNT' 
+		    AND (D.ACNT_LEAVE_DTTM IS NULL OR D.ACNT_LEAVE_DTTM = '')
+		    AND A.ORG_ID = #{orgId}
+		    AND B.DEPT_CD = #{deptCd}
+		    AND C.USER_ID = #{userId}
+		    AND F.USER_AUTHRT_ID = #{userType}
+	</select>
+</mapper>
+
+

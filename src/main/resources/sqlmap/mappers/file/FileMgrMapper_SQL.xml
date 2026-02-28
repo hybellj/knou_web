@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.file.dao.FileMgrDAO">
+
+	<select id="listAuthGrpSizeLimit" parameterType="fileSizeMgrVO" resultType="fileSizeMgrVO">
+		<![CDATA[
+		/*
+			 SQL ID : FileMgrDAO.listAuthGrpSizeLimit
+			 설  명 : 권한 그룹별 용량제한 리스트 조회
+		 */
+		SELECT GROUP_CONCAT(A.USER_AUTHRT_ID SEPARATOR ',') AS USER_AUTHRT_ID
+			   , B.AUTHRT_GRPNM
+			   , A.ATFL_MAXSZ AS FILE_SIZE
+		  FROM TB_LMS_AUTHRT_GRP A
+		  JOIN TB_ORG_AUTH_GRP_LANG B
+			ON A.USER_AUTHRT_ID = B.USER_AUTHRT_ID
+		   AND A.MENU_TYCD = B.MENU_TYCD
+		   AND A.ORG_ID = B.ORG_ID
+		   AND B.LANG_CD = #{langCd}
+		 WHERE A.USEYN = 'Y'
+		   AND A.USER_AUTHRT_ID IN ('PROFESSOR', 'PFS', 'ASSISTANT', 'TUT', 'LEARNER', 'USR')
+		   AND A.MENU_TYCD = 'HOME'
+		   AND A.ORG_ID = #{orgId}
+		 GROUP BY A.USER_AUTHRT_ID
+		 ORDER BY A.AUTHRT_GRP_SEQ
+		]]>
+	</select>
+
+    <sql id="userSizeLimitListInnerSql">
+        SELECT ROW_NUMBER() OVER (ORDER BY A.USER_ID DESC) AS ROW_NUM
+             , A.USER_ID
+             , A.USER_ID
+             , A.ACNT_STSCD
+             , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'ACNT_STSCD' AND CD = A.ACNT_STSCD) AS USER_STS_NM
+             , B.ORG_ID 
+             , B.USERNM 
+             , B.EMAIL 
+             , B.DEPT_CD 
+             , (SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE DEPT_CD = B.DEPT_CD) AS DEPTNM
+             , C.USER_AUTHRT_ID 
+             , CASE WHEN C.USER_AUTHRT_ID IN ( 'PROFESSOR', 'PFS') THEN '교수'
+                    WHEN C.USER_AUTHRT_ID IN ( 'ASSISTANT', 'TUT') THEN '조교'
+                    WHEN C.USER_AUTHRT_ID IN ( 'LEARNER', 'USR')   THEN '학습자'
+                    ELSE ''
+               END AS AUTHRT_GRPNM 
+             , IFNULL(C.ATFL_MAXSZ, D.ATFL_MAXSZ) AS FILE_SIZE
+          FROM TB_LMS_USER_ACNT A
+          JOIN TB_LMS_USR B
+            ON A.USER_ID = B.USER_ID
+          JOIN TB_LMS_USER_AUTHRT C
+            ON A.USER_ID = C.USER_ID
+       	<choose>
+            <when test="authGrpCd == 'PROFESSOR'"> 
+             AND C.USER_AUTHRT_ID IN ('PROFESSOR', 'PFS')
+            </when>
+            <when test="authGrpCd == 'ASSISTANT'"> 
+             AND C.USER_AUTHRT_ID IN ('ASSISTANT', 'TUT')
+            </when>
+            <when test="authGrpCd == 'LEARNER'"> 
+             AND C.USER_AUTHRT_ID IN ('LEARNER', 'USR')
+            </when>
+            <otherwise>
+            </otherwise>
+       </choose>
+          JOIN TB_LMS_AUTHRT_GRP D
+            ON C.USER_AUTHRT_ID = D.USER_AUTHRT_ID
+           AND C.MENU_TYCD = D.MENU_TYCD 
+           AND D.USEYN = 'Y' 
+           AND D.ORG_ID = #{orgId}
+         WHERE 1 = 1
+        <if test="searchType != null and searchType != '' and searchType != 'ALL_SEARCH'">
+           AND A.ACNT_STSCD = #{searchType}
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+           AND (
+           		A.USER_ID LIKE CONCAT('%', #{searchValue}, '%') COLLATE utf8mb4_general_ci
+             	OR  B.USERNM LIKE CONCAT('%', #{searchValue}, '%')  COLLATE utf8mb4_general_ci
+             )
+        </if>
+    </sql>
+
+    <select id="selectUserSizeLimitCount" parameterType="fileSizeMgrVO" resultType="Integer">
+        /*
+             SQL ID : FileMgrDAO.selectUserSizeLimitCount
+             설  명 : 사용자별 용량관리 리스트의 카운트
+         */
+		SELECT COUNT(A.USER_ID)
+		  FROM TB_LMS_USER_ACNT A
+		  JOIN TB_LMS_USR B
+			ON A.USER_ID = B.USER_ID
+		  JOIN TB_LMS_USER_AUTHRT C
+			ON A.USER_ID = C.USER_ID
+		<choose>
+			<when test="authGrpCd == 'PROFESSOR'"> 
+				AND C.USER_AUTHRT_ID IN ('PROFESSOR', 'PFS')
+			</when>
+			<when test="authGrpCd == 'ASSISTANT'"> 
+				AND C.USER_AUTHRT_ID IN ('ASSISTANT', 'TUT')
+			</when>
+			<when test="authGrpCd == 'LEARNER'"> 
+				AND C.USER_AUTHRT_ID IN ('LEARNER', 'USR')
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+		  JOIN TB_LMS_AUTHRT_GRP D
+			ON C.USER_AUTHRT_ID = D.USER_AUTHRT_ID
+		   AND C.MENU_TYCD = D.MENU_TYCD 
+		   AND D.USEYN = 'Y' 
+		   AND D.ORG_ID = #{orgId}
+		 WHERE 1 = 1
+		<if test="searchType != null and searchType != '' and searchType != 'ALL_SEARCH'">
+			AND A.ACNT_STSCD = #{searchType}
+		</if>
+		<if test="searchValue != null and searchValue != ''">
+			AND (
+				A.USER_ID LIKE CONCAT('%', #{searchValue}, '%') COLLATE utf8mb4_general_ci
+				OR  B.USERNM LIKE CONCAT('%', #{searchValue}, '%')  COLLATE utf8mb4_general_ci
+			)
+		</if>
+    </select>
+
+    <select id="listUserSizeLimitPageing" parameterType="fileSizeMgrVO" resultType="fileSizeMgrVO">
+        /*
+             SQL ID : FileMgrDAO.listUserSizeLimitPageing
+             설  명 : 사용자별 용량제한 리스트 조회
+         */
+         <include refid="CommonSQL.pagePrefix"/>
+         <include refid="userSizeLimitListInnerSql"/>
+          ORDER BY A.USER_ID
+         <include refid="CommonSQL.pageSubfix"/>
+    </select>
+
+    <update id="updateAuthGrpSizeLimit" parameterType="fileSizeMgrVO">
+        /*
+             SQL ID : FileMgrDAO.updateAuthGrpSizeLimit
+             설  명 : 권한 그룹의 용량 변경
+         */
+        UPDATE TB_LMS_AUTHRT_GRP
+           SET ATFL_MAXSZ = #{fileSize, javaType=int, jdbcType=INTEGER}
+             , MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+         WHERE USER_AUTHRT_ID = #{selectedAthGrpCd}
+           AND ORG_ID = #{userOrgId}
+    </update>
+
+    <update id="updateUserSizeLimit" parameterType="fileSizeMgrVO">
+        /*
+             SQL ID : FileMgrDAO.updateUserSizeLimit
+             설  명 : 사용자의 용량 변경
+         */
+        UPDATE TB_LMS_USER_AUTHRT
+           SET ATFL_MAXSZ = #{fileSize, javaType=int, jdbcType=INTEGER}
+             , MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+         WHERE MENU_TYCD = 'HOME'
+           AND USER_AUTHRT_ID = #{selectedAthGrpCd}
+           AND USER_ID = #{selectedUserId} 
+    </update>
+
+    <select id="listLmsTerm" parameterType="lmsTermVO" resultType="lmsTermVO">
+        <![CDATA[
+        /*
+             SQL ID : FileMgrDAO.listLmsTerm
+             설  명 : 학기 목록를 조회한다.
+         */
+        SELECT CRS_SMSTR_ID
+             , SMSTRNM
+          FROM CRS_SMSTR
+         WHERE ORG_ID = #{userOrgId}
+           AND SMSTR_STSCD = 'SERVICE'
+           AND SMSTR_TYCD = #{searchType}
+        ]]>
+    </select>
+
+    <sql id="crsSizeLimitListInnerSql">
+        SELECT ROW_NUMBER() OVER (ORDER BY B.SBJCTNM DESC) AS ROW_NUM
+             , A.CRS_ID 
+             , B.SBJCT_ID 
+             , B.SBJCTNM 
+             , B.DVCLAS_NO      
+             , B.SBJCT_OP_TYCD AS LEARNING_TYPE
+             , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'LEARNING_TYPE' AND CD = B.SBJCT_OP_TYCD) AS LEARNING_TYPE_NM
+             , B.CMCRS_GBNCD AS COURSE_TYPE
+             , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'CMCRS_GBNCD' AND CD = B.CMCRS_GBNCD) AS COURSE_TYPE_NM
+             , IFNULL(E.BBS_ATFL_MAXSZ, F.BBS_ATFL_MAXSZ) AS BBS_FILE_SIZE
+             , IFNULL(E.DSCS_ATFL_MAXSZ, F.DSCS_ATFL_MAXSZ) AS FORUM_FILE_SIZE
+             , IFNULL(E.ASMT_ATFL_MAXSZ, F.ASMT_ATFL_MAXSZ) AS ASMT_FILE_SIZE
+             , IFNULL(E.EXAM_ATFL_MAXSZ, F.EXAM_ATFL_MAXSZ) AS EXAM_FILE_SIZE
+             , IFNULL(E.TEAM_ACTV_ATFL_MAXSZ, F.TEAM_ACTV_ATFL_MAXSZ) AS TEAM_FILE_SIZE
+             , IFNULL(E.LCTR_ATFL_MAXSZ, F.LCTR_ATFL_MAXSZ) AS LECTURE_FILE_SIZE
+             , C.USER_ID AS PROFESSOR_NO
+             , D.USERNM AS PROFESSOR_NM
+          FROM TB_LMS_CRS A
+          JOIN TB_LMS_SBJCT B
+            ON A.CRS_ID = B.CRS_ID
+          LEFT JOIN SBJCT_PROF C
+            ON B.SBJCT_ID = C.SBJCT_ID
+           AND C.RPRSYN = 'Y'
+          LEFT JOIN TB_LMS_USR D
+            ON C.USER_ID = D.USER_ID
+          LEFT JOIN TB_LMS_SBJCT_ATFL_MAXSZ E
+            ON B.SBJCT_ID = E.SBJCT_ID
+         CROSS JOIN (
+                    SELECT MAX(IF(MAXSZ_DTL_TYCD = 'LECT_BBS', MAXSZ, 0)) AS BBS_ATFL_MAXSZ 
+                         , MAX(IF(MAXSZ_DTL_TYCD = 'FORUM', MAXSZ, 0)) AS DSCS_ATFL_MAXSZ
+                         , MAX(IF(MAXSZ_DTL_TYCD = 'ASMNT', MAXSZ, 0)) AS ASMT_ATFL_MAXSZ
+                         , MAX(IF(MAXSZ_DTL_TYCD = 'EXAM_ID', MAXSZ, 0)) AS EXAM_ATFL_MAXSZ
+                         , MAX(IF(MAXSZ_DTL_TYCD = 'PROJECT', MAXSZ, 0)) AS TEAM_ACTV_ATFL_MAXSZ
+                         , MAX(IF(MAXSZ_DTL_TYCD = 'LECTURE', MAXSZ, 0)) AS LCTR_ATFL_MAXSZ
+                      FROM ATFL_MAXSZ
+                     WHERE MAXSZ_TYCD = 'CLASS'
+               ) F
+         WHERE A.ORG_ID = #{userOrgId}
+           AND A.USEYN = 'Y'
+           AND B.USEYN = 'Y'
+           AND B.DELYN = 'N'
+        <if test="searchType != null and searchType != '' and searchType != 'ALL_SEARCH'">
+           AND EXISTS (
+                  SELECT 1
+                    FROM TB_LMS_TERM_CRE_CRS_RLTN AA
+                    JOIN CRS_SMSTR BB
+                      ON AA.CRS_SMSTR_ID = BB.CRS_SMSTR_ID
+                   WHERE AA.SBJCT_ID = B.SBJCT_ID
+                     AND BB.SMSTR_TYCD = #{searchType}
+                     AND BB.SMSTR_STSCD = 'SERVICE'
+                <if test="searchCreTerm != null and searchCreTerm != '' and searchCreTerm != 'ALL_SEARCH'">
+                     AND AA.CRS_SMSTR_ID = #{searchCreTerm}
+                </if>
+               )
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+           AND (
+           		B.SBJCTNM LIKE CONCAT('%', #{searchValue}, '%') COLLATE utf8mb4_general_ci
+            	OR  D.USERNM LIKE CONCAT('%', #{searchValue}, '%')  COLLATE utf8mb4_general_ci
+            ) 
+        </if>
+        <if test="crsTypeCd != null and crsTypeCd != ''">
+           AND A.SBJCT_TYCD = #{crsTypeCd}
+        </if>
+        <if test="creYear != null and creYear != ''">
+           AND B.SBJCT_ID  = #{creYear}
+        </if>
+    </sql>
+
+    <select id="selectCrsSizeLimitCount" parameterType="crsSizeMgrVO" resultType="Integer">
+        /*
+             SQL ID : FileMgrDAO.selectCrsSizeLimitCount
+             설  명 : 과목별 용량관리 리스트의 카운트
+         */
+        SELECT COUNT(1)
+          FROM TB_LMS_CRS A
+          JOIN TB_LMS_SBJCT B
+            ON A.CRS_ID = B.CRS_ID
+          LEFT JOIN SBJCT_PROF C
+            ON B.SBJCT_ID = C.SBJCT_ID
+           AND C.RPRSYN = 'Y'
+          LEFT JOIN TB_LMS_USR D
+            ON C.USER_ID = D.USER_ID
+          LEFT JOIN TB_LMS_SBJCT_ATFL_MAXSZ E
+            ON B.SBJCT_ID = E.SBJCT_ID
+         CROSS JOIN (
+                    SELECT MAX(IF(MAXSZ_DTL_TYCD = 'LECT_BBS', MAXSZ, 0)) AS BBS_ATFL_MAXSZ 
+                         , MAX(IF(MAXSZ_DTL_TYCD = 'FORUM', MAXSZ, 0)) AS DSCS_ATFL_MAXSZ
+                         , MAX(IF(MAXSZ_DTL_TYCD = 'ASMNT', MAXSZ, 0)) AS ASMT_ATFL_MAXSZ
+                         , MAX(IF(MAXSZ_DTL_TYCD = 'EXAM_ID', MAXSZ, 0)) AS EXAM_ATFL_MAXSZ
+                         , MAX(IF(MAXSZ_DTL_TYCD = 'PROJECT', MAXSZ, 0)) AS TEAM_ACTV_ATFL_MAXSZ
+                         , MAX(IF(MAXSZ_DTL_TYCD = 'LECTURE', MAXSZ, 0)) AS LCTR_ATFL_MAXSZ
+                      FROM ATFL_MAXSZ
+                     WHERE MAXSZ_TYCD = 'CLASS'
+               ) F
+         WHERE A.ORG_ID = #{userOrgId}
+           AND A.USEYN = 'Y'
+           AND B.USEYN = 'Y'
+           AND B.DELYN = 'N'
+        <if test="searchType != null and searchType != '' and searchType != 'ALL_SEARCH'">
+           AND EXISTS (
+                  SELECT 1
+                    FROM TB_LMS_TERM_CRE_CRS_RLTN AA
+                    JOIN CRS_SMSTR BB
+                      ON AA.CRS_SMSTR_ID = BB.CRS_SMSTR_ID
+                   WHERE AA.SBJCT_ID = B.SBJCT_ID
+                     AND BB.SMSTR_TYCD = #{searchType}
+                     AND BB.SMSTR_STSCD = 'SERVICE'
+                <if test="searchCreTerm != null and searchCreTerm != '' and searchCreTerm != 'ALL_SEARCH'">
+                     AND AA.CRS_SMSTR_ID = #{searchCreTerm}
+                </if>
+               )
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+           AND (
+           		B.SBJCTNM LIKE CONCAT('%', #{searchValue}, '%') COLLATE utf8mb4_general_ci
+            	OR  D.USERNM LIKE CONCAT('%', #{searchValue}, '%')  COLLATE utf8mb4_general_ci
+            ) 
+        </if>
+        <if test="crsTypeCd != null and crsTypeCd != ''">
+           AND A.SBJCT_TYCD = #{crsTypeCd}
+        </if>
+        <if test="creYear != null and creYear != ''">
+           AND B.SBJCT_ID  = #{creYear}
+        </if>
+    </select>
+
+    <select id="listCrsSizeLimitPageing" parameterType="crsSizeMgrVO" resultType="crsSizeMgrVO">
+        /*
+             SQL ID : FileMgrDAO.listCrsSizeLimitPageing
+             설  명 : 과목별 용량제한 리스트 조회
+         */
+         <include refid="CommonSQL.pagePrefix"/>
+         <include refid="crsSizeLimitListInnerSql"/>
+          ORDER BY B.SBJCTNM
+         <include refid="CommonSQL.pageSubfix"/>
+    </select>
+
+    <update id="updateCrsSizeLimit" parameterType="crsSizeMgrVO">
+        /*
+             SQL ID : FileMgrDAO.updateCrsSizeLimit
+             설  명 : 과목의 용량 변경
+         */
+        INSERT INTO TB_LMS_SBJCT_ATFL_MAXSZ (
+               SBJCT_ID
+             , BBS_ATFL_MAXSZ
+             , ASMT_ATFL_MAXSZ
+             , EXAM_ATFL_MAXSZ
+             , DSCS_ATFL_MAXSZ
+             , TEAM_ACTV_ATFL_MAXSZ
+             , LCTR_ATFL_MAXSZ
+             , RGTR_ID
+             , FRST_INQ_DTTM
+             , MDFR_ID
+             , MOD_DTTM
+        ) VALUES (
+               #{selectedCrsCreCd}
+             , IF(#{limitTypeDetlCd} = 'LECT_BBS', #{limitFileSize, javaType=int, jdbcType=INTEGER}, NULL)
+             , IF(#{limitTypeDetlCd} = 'ASMNT', #{limitFileSize, javaType=int, jdbcType=INTEGER}, NULL)
+             , IF(#{limitTypeDetlCd} = 'EXAM_ID', #{limitFileSize, javaType=int, jdbcType=INTEGER}, NULL)
+             , IF(#{limitTypeDetlCd} = 'FORUM', #{limitFileSize, javaType=int, jdbcType=INTEGER}, NULL)
+             , IF(#{limitTypeDetlCd} = 'PROJECT', #{limitFileSize, javaType=int, jdbcType=INTEGER}, NULL)
+             , IF(#{limitTypeDetlCd} = 'LECTURE', #{limitFileSize, javaType=int, jdbcType=INTEGER}, NULL)
+             , #{mdfrId}
+             , FN_DTTM()
+             , #{mdfrId}
+             , FN_DTTM()
+        )
+        ON DUPLICATE KEY
+        UPDATE
+               MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+        <if test="limitTypeDetlCd ==  'LECT_BBS'">
+             , BBS_ATFL_MAXSZ = #{limitFileSize, javaType=int, jdbcType=INTEGER} 
+        </if>
+        <if test="limitTypeDetlCd ==  'FORUM'">
+             , DSCS_ATFL_MAXSZ = #{limitFileSize, javaType=int, jdbcType=INTEGER} 
+        </if>
+        <if test="limitTypeDetlCd ==  'ASMNT'">
+             , ASMT_ATFL_MAXSZ = #{limitFileSize, javaType=int, jdbcType=INTEGER} 
+        </if>
+        <if test="limitTypeDetlCd ==  'EXAM_ID'">
+             , EXAM_ATFL_MAXSZ = #{limitFileSize, javaType=int, jdbcType=INTEGER} 
+        </if>
+        <if test="limitTypeDetlCd ==  'PROJECT'">
+             , TEAM_ACTV_ATFL_MAXSZ = #{limitFileSize, javaType=int, jdbcType=INTEGER} 
+        </if>
+        <if test="limitTypeDetlCd ==  'LECTURE'">
+             , LCTR_ATFL_MAXSZ = #{limitFileSize, javaType=int, jdbcType=INTEGER} 
+        </if>
+    </update>
+
+    <select id="listDefaultCrsSizeLimit" parameterType="crsSizeMgrVO" resultType="crsSizeMgrVO">
+        /*
+             SQL ID : FileMgrDAO.listDefaultCrsSizeLimit
+             설  명 : 과목별 용량제한 초기 설정 리스트 조회
+         */
+        SELECT ATFL_MAXSZ_ID 
+             , MAXSZ_TYCD 
+             , MAXSZ_DTL_TYCD             
+             , (SELECT CDNM 
+             		FROM TB_ORG_CODE
+             	  WHERE ORG_ID = #{userOrgId} 
+             		   AND CTGRCD = IF(MAXSZ_TYCD = 'PORTAL', 'BBS_ID', 'MAXSZ_DTL_TYCD')
+             		   AND CD = MAXSZ_DTL_TYCD) AS LIMIT_TYPE_DETL_NM
+             , MAXSZ AS LIMIT_FILE_SIZE
+             , ROW_NUMBER() OVER (ORDER BY ATFL_MAXSZ_ID DESC) AS ROW_NUM
+          FROM ATFL_MAXSZ
+         WHERE MAXSZ_TYCD = #{limitTypeCd} 
+         ORDER BY ATFL_MAXSZ_ID 
+    </select>
+
+    <update id="updateDefaultCrsSizeLimit" parameterType="crsSizeMgrVO">
+        /*
+             SQL ID : FileMgrDAO.updateDefaultCrsSizeLimit
+             설  명 : 과목별 초기 용량 설정 변경
+         */
+        UPDATE ATFL_MAXSZ
+           SET MAXSZ = #{limitFileSize}
+             , MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+         WHERE ATFL_MAXSZ_ID = #{fileSizeLimitId}
+    </update>
+
+</mapper>

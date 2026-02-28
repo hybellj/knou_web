@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.exam.dao.ExampprDAO">
+
+	<select id="tkexamExampprAnswShtList" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : ExampprDAO.tkexamExampprAnswShtList
+             설  명  : 시험응시시험지답안목록조회
+         */
+		SELECT
+			  EXAMPPR.EXAMPPR_ID
+			, EXAMPPR.QSTN_VWITM_DSPLY_SEQNO
+			, QSTN.QSTN_ID
+			, QSTN.EXAM_DTL_ID
+			, QSTN.QSTN_TTL
+			, DBMS_LOB.SUBSTR(QSTN_CTS, 4000, 1) AS QSTN_CTS
+			, QSTN.QSTN_RSPNS_TYCD
+			, QSTN.CRANS_TYCD
+			, NVL(ANSW_SHT.SCR,0) AS SCR
+			, ANSW_SHT.TKEXAM_ANSW_SHT_ID
+			, ANSW_SHT.ANSW_SHT_CTS
+			, (SELECT LISTAGG(QSTN_VWITM_CTS, '@#') WITHIN GROUP (ORDER BY QSTN_VWITM_SEQNO) FROM TB_LMS_QSTN_VWITM WHERE QSTN_ID = QSTN.QSTN_ID AND CRANS_YN = 'Y') AS CRANS_CTS
+			, (SELECT LISTAGG(QSTN_VWITM_SEQNO, '@#') WITHIN GROUP (ORDER BY QSTN_VWITM_SEQNO) FROM TB_LMS_QSTN_VWITM WHERE QSTN_ID = QSTN.QSTN_ID AND CRANS_YN = 'Y') AS CRANS_NO
+		  FROM TB_LMS_EXAMPPR EXAMPPR
+		  JOIN TB_LMS_QSTN QSTN
+		    ON EXAMPPR.QSTN_ID = QSTN.QSTN_ID
+		   AND QSTN.DELYN = 'N'
+		  LEFT JOIN TB_LMS_TKEXAM_ANSW_SHT ANSW_SHT
+		    ON EXAMPPR.EXAMPPR_ID = ANSW_SHT.EXAMPPR_ID
+		   AND EXAMPPR.USER_ID = ANSW_SHT.USER_ID
+		   AND EXAMPPR.QSTN_ID = ANSW_SHT.QSTN_ID
+		 WHERE EXAMPPR.TKEXAM_ID = #{tkexamId}
+		   AND EXAMPPR.USER_ID = #{userId}
+		 ORDER BY EXAMPPR.QSTN_DSPLY_SEQNO
+	</select>
+
+	<delete id="userListExampprDelete" parameterType="java.util.List">
+		/*
+             SQL ID : ExampprDAO.userListExampprDelete
+             설  명  : 사용자목록시험지삭제
+         */
+		<foreach item="item" collection="list" separator=";" open="BEGIN" close="; END;">
+			DELETE FROM TB_LMS_EXAMPPR
+			 WHERE USER_ID = #{item.userId}
+			   AND TKEXAM_ID = (
+			   					SELECT
+			   						TKEXAM_ID
+			   					  FROM TB_LMS_TKEXAM
+			   					 WHERE EXAM_DTL_ID = #{item.examDtlId}
+			   					   AND USER_ID = #{item.userId}
+			   					   AND DELYN = 'N'
+			   					)
+         </foreach>
+	</delete>
+
+	<insert id="userListExampprRegist" parameterType="java.util.List">
+		/*
+             SQL ID : ExampprDAO.userListExampprRegist
+             설  명  : 사용자목록시험지등록
+         */
+        BEGIN
+	    <foreach item="item" collection="list" separator=" ">
+	        INSERT INTO TB_LMS_EXAMPPR (
+	        	  EXAMPPR_ID
+				, TKEXAM_ID
+				, QSTN_ID
+				, USER_ID
+				, QSTN_DSPLY_SEQNO
+				, QSTN_VWITM_DSPLY_SEQNO
+				, RGTR_ID
+				, REG_DTTM
+	        )
+	        SELECT
+				  'EXPPR'
+			      || TO_CHAR(SYSDATE, 'YYMMDDHH24MISS')
+			      || LPAD(MOD(EXTRACT(SECOND FROM SYSTIMESTAMP) * 1000, 1000), 3, '0')
+			      || LOWER(SUBSTR(RAWTOHEX(SYS_GUID()), 1, 7))
+			      || LPAD(ROW_NUMBER() OVER(ORDER BY NULL), 3, '0') AS EXAMPPR_ID
+			    , A.TKEXAM_ID
+				, A.QSTN_ID
+				, #{item.userId} AS USER_ID
+				, ROW_NUMBER() OVER(ORDER BY CASE WHEN A.QSTN_RNDMYN = 'N' THEN A.QSTN_SEQNO ELSE DBMS_RANDOM.VALUE END) AS QSTN_DSPLY_SEQNO
+				, (SELECT LISTAGG(QSTN_VWITM_SEQNO,',') WITHIN GROUP (ORDER BY CASE WHEN A.QSTN_VWITM_RNDMYN = 'N' THEN QSTN_VWITM_SEQNO ELSE DBMS_RANDOM.VALUE END) FROM TB_LMS_QSTN_VWITM WHERE QSTN_ID = A.QSTN_ID GROUP BY QSTN_ID) AS QSTN_VWITM_DSPLY_SEQNO
+				, #{item.rgtrId} AS RGTR_ID
+				, FN_DTTM()
+			  FROM (
+			  	SELECT
+			  		  TKEXAM.TKEXAM_ID
+					, QSTN.QSTN_ID
+					, QSTN.QSTN_SEQNO
+					, QSTN.QSTN_CNDDT_SEQNO
+					, EXAM_BSC.QSTN_RNDMYN
+					, EXAM_BSC.QSTN_VWITM_RNDMYN
+					, EXAM_BSC.QSTN_CNDDT_USEYN
+					, ROW_NUMBER() OVER(PARTITION BY QSTN.QSTN_SEQNO ORDER BY CASE WHEN EXAM_BSC.QSTN_CNDDT_USEYN = 'N' THEN QSTN.QSTN_CNDDT_SEQNO ELSE DBMS_RANDOM.VALUE END) AS RNUM
+				  FROM TB_LMS_EXAM_BSC EXAM_BSC
+				  JOIN TB_LMS_EXAM_DTL EXAM_DTL
+				    ON EXAM_BSC.EXAM_BSC_ID = EXAM_DTL.EXAM_BSC_ID
+				  JOIN TB_LMS_QSTN QSTN
+				    ON QSTN.EXAM_DTL_ID = EXAM_DTL.EXAM_DTL_ID
+				  JOIN TB_LMS_TKEXAM TKEXAM
+					ON EXAM_DTL.EXAM_DTL_ID = TKEXAM.EXAM_DTL_ID
+				   AND TKEXAM.USER_ID = #{item.userId}
+				 WHERE EXAM_BSC.EXAM_BSC_ID = #{item.examBscId}
+				   AND EXAM_DTL.EXAM_DTL_ID = #{item.examDtlId}
+				   AND EXAM_DTL.DELYN = 'N'
+				   AND EXAM_DTL.USEYN = 'Y'
+				   AND EXAM_BSC.DELYN = 'N'
+				   AND EXAM_BSC.USEYN = 'Y'
+				   AND QSTN.DELYN = 'N'
+			  ) A
+			 WHERE A.RNUM = 1;
+	    </foreach>
+	    END;
+	</insert>
+
+	<delete id="userExampprDelete" parameterType="map">
+		/*
+             SQL ID : ExampprDAO.userExampprDelete
+             설  명  : 사용자시험지삭제
+         */
+		DELETE FROM TB_LMS_EXAMPPR
+		 WHERE USER_ID = #{userId}
+		   AND TKEXAM_ID = #{tkexamId}
+	</delete>
+
+	<insert id="userExampprRegist" parameterType="map">
+		/*
+             SQL ID : ExampprDAO.userExampprRegist
+             설  명  : 사용자시험지등록
+         */
+		INSERT INTO TB_LMS_EXAMPPR (
+		   	  EXAMPPR_ID
+			, TKEXAM_ID
+			, QSTN_ID
+			, USER_ID
+			, QSTN_DSPLY_SEQNO
+			, QSTN_VWITM_DSPLY_SEQNO
+			, RGTR_ID
+			, REG_DTTM
+		)
+		SELECT
+			  'EXPPR'
+				  || TO_CHAR(SYSDATE, 'YYMMDDHH24MISS')
+				  || LPAD(MOD(EXTRACT(SECOND FROM SYSTIMESTAMP) * 1000, 1000), 3, '0')
+				  || LOWER(SUBSTR(RAWTOHEX(SYS_GUID()), 1, 7))
+				  || LPAD(ROW_NUMBER() OVER(ORDER BY NULL), 3, '0') AS EXAMPPR_ID
+				, A.TKEXAM_ID
+			, A.QSTN_ID
+			, #{userId} AS USER_ID
+			, ROW_NUMBER() OVER(ORDER BY CASE WHEN A.QSTN_RNDMYN = 'N' THEN A.QSTN_SEQNO ELSE DBMS_RANDOM.VALUE END) AS QSTN_DSPLY_SEQNO
+			, (SELECT LISTAGG(QSTN_VWITM_SEQNO,',') WITHIN GROUP (ORDER BY CASE WHEN A.QSTN_VWITM_RNDMYN = 'N' THEN QSTN_VWITM_SEQNO ELSE DBMS_RANDOM.VALUE END) FROM TB_LMS_QSTN_VWITM WHERE QSTN_ID = A.QSTN_ID GROUP BY QSTN_ID) AS QSTN_VWITM_DSPLY_SEQNO
+			, #{rgtrId} AS RGTR_ID
+			, FN_DTTM()
+		  FROM (
+		  	SELECT
+		  		  TKEXAM.TKEXAM_ID
+				, QSTN.QSTN_ID
+				, QSTN.QSTN_SEQNO
+				, QSTN.QSTN_CNDDT_SEQNO
+				, EXAM_BSC.QSTN_RNDMYN
+				, EXAM_BSC.QSTN_VWITM_RNDMYN
+				, EXAM_BSC.QSTN_CNDDT_USEYN
+				, ROW_NUMBER() OVER(PARTITION BY QSTN.QSTN_SEQNO ORDER BY CASE WHEN EXAM_BSC.QSTN_CNDDT_USEYN = 'N' THEN QSTN.QSTN_CNDDT_SEQNO ELSE DBMS_RANDOM.VALUE END) AS RNUM
+			  FROM TB_LMS_EXAM_BSC EXAM_BSC
+			  JOIN TB_LMS_EXAM_DTL EXAM_DTL
+			    ON EXAM_BSC.EXAM_BSC_ID = EXAM_DTL.EXAM_BSC_ID
+			  JOIN TB_LMS_QSTN QSTN
+			    ON QSTN.EXAM_DTL_ID = EXAM_DTL.EXAM_DTL_ID
+			  JOIN TB_LMS_TKEXAM TKEXAM
+				ON EXAM_DTL.EXAM_DTL_ID = TKEXAM.EXAM_DTL_ID
+			   AND TKEXAM.USER_ID = #{userId}
+			 WHERE EXAM_BSC.EXAM_BSC_ID = #{examBscId}
+			   AND EXAM_DTL.EXAM_DTL_ID = #{examDtlId}
+			   AND EXAM_DTL.DELYN = 'N'
+			   AND EXAM_DTL.USEYN = 'Y'
+			   AND EXAM_BSC.DELYN = 'N'
+			   AND EXAM_BSC.USEYN = 'Y'
+			   AND QSTN.DELYN = 'N'
+		  ) A
+		 WHERE A.RNUM = 1
+	</insert>
+
+</mapper>

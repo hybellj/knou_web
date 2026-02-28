@@ -1,0 +1,39 @@
+-- FN_SCOR_CINT
+CREATE FUNCTION FN_SCOR_CINT (
+		IN_SCR DOUBLE
+	) RETURNS float(7,2)
+	DETERMINISTIC
+	COMMENT '성적 인원 계산'
+BEGIN
+	DECLARE V_RESULT FLOAT(7,2) DEFAULT 0;
+	DECLARE V_TEMP_SCR FLOAT(7,2) DEFAULT 0;
+    DECLARE V_ORI_CUT_SCR  FLOAT(7,2) DEFAULT 0;
+    DECLARE V_UP_CUT_SCR FLOAT(7,2) DEFAULT 0;
+    DECLARE V_TYPE VARCHAR(8);
+
+    SET V_TYPE = 'CINT';
+
+    IF V_TYPE = 'CINT' THEN
+        SET V_ORI_CUT_SCR  := FLOOR(IN_SCR);
+        SET V_TEMP_SCR     := ABS(FLOOR(IN_SCR) - IN_SCR) * 10;
+        SET V_UP_CUT_SCR  := FLOOR(V_TEMP_SCR);
+
+        IF V_UP_CUT_SCR = 5 THEN
+            IF V_UP_CUT_SCR = V_TEMP_SCR THEN
+                IF MOD(V_ORI_CUT_SCR,2) = 0 THEN
+                    SET V_RESULT := V_ORI_CUT_SCR;
+                ELSE
+                    SET V_RESULT := V_ORI_CUT_SCR + 1;
+                END IF;
+            ELSE
+                SET V_RESULT := ROUND(IN_SCR);
+            END IF; 
+        ELSE 
+            SET V_RESULT := ROUND(IN_SCR);
+        END IF;
+    ELSE
+        SET V_RESULT := ROUND(IN_SCR);
+    END IF;        
+
+	RETURN V_RESULT;
+END

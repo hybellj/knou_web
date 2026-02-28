@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.common.dao.OrgAuthGrpMenuDAO">
+
+	<insert id="merge" parameterType="orgAuthGrpMenuVO" >
+		/*
+			 SQL ID : OrgAuthGrpMenuDAO.merge
+			 설  명 : 기관 권한 그룹 메뉴의 정보 등록
+		*/
+		INSERT INTO TB_LMS_AUTHRT (
+			ORG_ID
+			, MENU_TYCD
+			, MENU_ID
+			, USER_AUTHRT_ID
+			, VIEW_AUTH
+			, REG_AUTHRTYN
+			, MOD_AUTHRTYN
+			, DEL_AUTH
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			#{orgId}
+			, #{menuType}
+			, #{menuCd}
+			, #{authGrpCd}
+			, #{viewAuth}
+			, #{creAuth}
+			, #{modAuth}
+			, #{delAuth}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		)
+		ON DUPLICATE KEY 
+		UPDATE ORG_ID		= #{orgId}
+			, MENU_TYCD		= #{menuType}
+			, MENU_ID		= #{menuCd}
+			, USER_AUTHRT_ID	= #{authGrpCd}
+			, VIEW_AUTH		= #{viewAuth}
+			, REG_AUTHRTYN		= #{creAuth}
+			, MOD_AUTHRTYN		= #{modAuth}
+			, DEL_AUTH		= #{delAuth}
+			, RGTR_ID		= #{rgtrId}
+			, FRST_INQ_DTTM		= FN_DTTM()
+			, MDFR_ID		= #{mdfrId}
+			, MOD_DTTM		= FN_DTTM()
+	</insert>
+
+	<delete id="delete" parameterType="orgAuthGrpMenuVO">
+		/*
+			 SQL ID : OrgAuthGrpMenuDAO.delete
+			 설  명 : 기관 권한 그룹 메뉴의 정보 삭제
+		*/
+		DELETE FROM TB_LMS_AUTHRT
+		 WHERE ORG_ID = #{orgId}
+		   AND MENU_TYCD = #{menuType}
+		<if test="authGrpCd != null">
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+		</if>
+		<if test="menuCd != null">
+		   AND MENU_ID = #{menuCd}
+		</if>
+	</delete>
+
+	<insert id="insertInit" parameterType="orgAuthGrpMenuVO" >
+		/*
+			 SQL ID : OrgAuthGrpMenuDAO.insertInit
+			 설  명 : 기관 권한 그룹 메뉴의 초기화 등록
+		*/
+		INSERT INTO TB_LMS_AUTHRT (
+		       ORG_ID
+		     , MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , MENU_ID
+		     , VIEW_AUTH
+		     , REG_AUTHRTYN
+		     , MOD_AUTHRTYN
+		     , DEL_AUTH
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		)
+		SELECT #{orgId}
+		     , MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , MENU_ID
+		     , VIEW_AUTH
+		     , REG_AUTHRTYN
+		     , MOD_AUTHRTYN
+		     , DEL_AUTH
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		  FROM TB_SYS_AUTH_GRP_MENU
+		 WHERE MENU_TYCD = #{menuType}
+	</insert>
+
+	<delete id="deleteInit" parameterType="orgAuthGrpMenuVO" >
+		/*
+			 SQL ID : OrgAuthGrpMenuDAO.deleteInit
+			 설  명 : 기관 권한 그룹 메뉴의 초기화 삭제
+		*/
+		DELETE FROM TB_LMS_AUTHRT
+		 WHERE ORG_ID = #{orgId}
+		   AND MENU_TYCD = #{menuType}	
+	</delete>
+
+	<select id="selectCrsCreAuth" parameterType="String" resultType="orgAuthGrpMenuVO">
+		/*
+			 SQL ID : OrgAuthGrpMenuDAO.selectCrsCreAuth
+			 설  명 : 사용자의 개설과목 MENU_TYCD 및 권한 정보
+		*/
+		<choose>
+			<when test="crsCreCd == 'LEB'">
+				SELECT '${crsCreCd}' 	AS SBJCT_ID,
+					   'LECT' 					AS MENU_TYCD,
+					   'PROFESSOR' 		AS CLASS_OWNER_TYPE
+			</when>
+			<otherwise>
+				SELECT tlcc.SBJCT_ID, 
+					   tlc.SBJCT_TYCD,
+					   IF(tlc.SBJCT_TYCD = 'OPEN', 'OPEN', 'LECT') AS MENU_TYCD,
+				       (SELECT PROF_TYCD 
+				          FROM SBJCT_PROF tlcctr
+				         WHERE tlcctr.SBJCT_ID = tlcc.SBJCT_ID 
+				           AND tlcctr.USER_ID = #{userId}) AS CLASS_OWNER_TYPE,
+					   IF((SELECT COUNT(*) 
+					         FROM TB_LMS_ATNDLC_SBJCT tls 
+					        WHERE tls.SBJCT_ID = tlcc.SBJCT_ID 
+					          AND tls.USER_ID = #{userId} 
+					          AND tls.ATNDLC_STSCD = 'S') > 0 , 'LEARNER', '') AS CLASS_LEARNER_TYPE
+				  FROM TB_LMS_SBJCT tlcc, TB_LMS_CRS tlc  
+				 WHERE tlc.ORG_ID = #{orgId}
+				   AND tlcc.CRS_ID = tlc.CRS_ID
+				   AND tlcc.SBJCT_ID = #{crsCreCd}
+			</otherwise>
+		</choose>	
+	</select>
+
+</mapper>

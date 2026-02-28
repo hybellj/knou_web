@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.forum.dao.ForumMutDAO">
+
+	<select id="selectMutResult" parameterType="forumMutVO" resultType="forumMutVO">
+		/*
+			나의 상호평가 결과
+			ForumMutDAO.selectMutResult
+		*/
+		SELECT
+			COUNT(*) AS mutCnt
+			, NVL(ROUND(AVG(SCR)), 0) AS mutAvg
+		FROM TB_LMS_DSCS_MTL_EVL
+		WHERE STD_ID = (
+				SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID= #{crsCreCd} AND USER_ID = #{userId} AND ATNDLC_STSCD = 'S'
+			)
+			AND DSCS_ID = #{forumCd}
+	</select>
+
+	<insert id="forumMutInsert" parameterType="forumMutVO">
+		/*
+			 상호평가 등록
+			 ForumMutDAO.forumMutInsert
+		*/
+		INSERT INTO TB_LMS_DSCS_MTL_EVL (
+			STD_ID
+			, DSCS_ID
+			, MTL_EVL_ID
+			, SCR
+			, OPNN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			#{stdNo}
+			, #{forumCd}
+			, #{mutSn}
+			, #{SCR}
+			, #{OPNN}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		)
+	</insert>
+
+	<update id="forumMutUpdate" parameterType="forumMutVO">
+		/*
+			상호평가 수정
+			ForumMutDAO.forumMutUpdate
+		*/
+		UPDATE TB_LMS_DSCS_MTL_EVL
+		SET MDFR_ID = #{mdfrId}
+			, MOD_DTTM	= FN_DTTM()
+			, SCR = #{SCR}
+			, OPNN = #{OPNN}
+		WHERE MTL_EVL_ID = #{mutSn}
+	</update>
+
+	<select id="selectMut" parameterType="forumMutVO" resultType="forumMutVO">
+		/*
+			상호평가 조회
+			ForumMutDAO.selectMut
+		*/
+		SELECT
+			SCR
+			, OPNN
+			, DSCS_ID
+			, STD_ID
+		FROM TB_LMS_DSCS_MTL_EVL
+		WHERE MTL_EVL_ID = #{mutSn}
+	</select>
+
+	<select id="selectForumMutResultList" parameterType="forumMutVO" resultType="forumMutVO">
+		/*
+			상호평가 목록 조회
+			ForumMutDAO.selectForumMutResultList
+		*/
+		SELECT
+			  A.STD_ID
+			, A.DSCS_ID
+			, A.MTL_EVL_ID
+			, A.SCR
+			, A.OPNN
+			, A.RGTR_ID
+			, (SELECT USERNM FROM TB_LMS_USR WHERE ORG_ID = B.ORG_ID AND USER_ID = A.RGTR_ID) AS RGTRNM
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, (SELECT PHT_FILE FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS PHT_FILE_BYTE
+		FROM TB_LMS_DSCS_MTL_EVL A
+		JOIN TB_LMS_ATNDLC_SBJCT B
+		ON A.STD_ID = B.STD_ID
+		AND B.SBJCT_ID = #{crsCreCd}
+		AND B.ATNDLC_STSCD = 'S'
+		AND B.AUDITYN = 'N'
+		AND B.ORG_ID = #{orgId}
+		WHERE A.DSCS_ID = #{forumCd}
+		AND A.STD_ID = #{stdNo}
+		ORDER BY A.FRST_INQ_DTTM DESC
+	</select>
+</mapper>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.mut.dao.MutEvalRltnDAO">
+	
+	<select id="selectMutEvalRltn" parameterType="mutEvalRltnVO" resultType="mutEvalRltnVO">
+		/*
+             SQL ID : MutEvalRltnDAO.selectMutEvalRltn
+             	설  명 : 평가 연결 조회
+        */
+		SELECT
+			  A.ASMT_MTL_EVL_RSLT_ID				AS evalCd
+			, A.EVAL_DIV_CD			AS evalDivCd
+			, A.LINK_CD				AS rltnCd
+			, A.SBJCT_ID			AS crsCreCd
+		FROM TB_LMS_MUT_EVAL_RLTN AS A
+		WHERE 1 = 1
+		<if test="evalDivCd != null and evalDivCd != ''">
+		  AND A.EVAL_DIV_CD = #{evalDivCd}
+		</if>
+		<if test="rltnCd != null and rltnCd != ''">
+		  AND A.LINK_CD = #{rltnCd}
+		</if>
+		<if test="crsCreCd != null and crsCreCd != ''">
+		  AND A.SBJCT_ID = #{crsCreCd}
+		</if>
+	</select>
+	
+	<insert id="insertMutEvalRltn" parameterType="mutEvalRltnVO">
+		/*
+             SQL ID : MutEvalRltnDAO.insertMutEvalRltn
+             	설  명 : 평가 연결 등록
+        */
+        INSERT INTO TB_LMS_MUT_EVAL_RLTN (
+        	  ASMT_MTL_EVL_RSLT_ID
+			, EVAL_DIV_CD
+			, LINK_CD
+			, SBJCT_ID
+        ) VALUES (
+        	  #{evalCd}
+        	, #{evalDivCd}
+        	, #{rltnCd}
+        	, #{crsCreCd}
+        )
+	</insert>
+	
+	<delete id="delMutEvalRltn" parameterType="mutEvalRltnVO">
+		/*
+             SQL ID : MutEvalRltnDAO.delMutEvalRltn
+             	설  명 : 평가 연결 삭제
+        */
+        DELETE FROM TB_LMS_MUT_EVAL_RLTN
+         WHERE ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+	</delete>
+	
+	<delete id="delMutEvalRltnByRltnCd" parameterType="mutEvalRltnVO">
+		/*
+             SQL ID : MutEvalRltnDAO.delMutEvalRltnByRltnCd
+             	설  명 : 평가 연결 삭제
+        */
+        DELETE FROM TB_LMS_MUT_EVAL_RLTN
+         WHERE LINK_CD = #{rltnCd}
+	</delete>
+	
+</mapper>

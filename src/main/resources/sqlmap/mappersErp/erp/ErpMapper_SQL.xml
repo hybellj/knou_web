@@ -1,0 +1,1474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.erp.daoErp.ErpDAO">
+
+	<select id="selectCourseEnrollment" parameterType="erpEnrollmentVo" resultType="erpEnrollmentVo">
+		/*
+			 SQL ID : ErpDAO.selectCourseEnrollment
+			 설  명 : 과목 수강 정보 조회
+		*/
+		SELECT 
+			  STUDENT_ID
+			, YEAR
+			, SEMESTER
+			, COURSE_CODE
+			, SECTION
+			, ATNDLC_APLYYN
+			, AUDITYN
+			, REATNDLCYN
+			/*
+			, MID_LTSATSF_CLS_YN
+			, LCTR_DGSTFN_PTCPYN
+			, MID_OATH_YN
+			, FIN_OATH_YN
+			*/
+			, REG_DTTM
+			, MOD_DTTM
+		FROM UNI.LMS_ENROLLMENT_2023
+		WHERE 1 = 1
+		AND YEAR = #{year}
+		AND SEMESTER = #{semester}
+		AND COURSE_CODE = #{courseCode}
+		AND SECTION = #{section}
+		AND STUDENT_ID = #{studentId}
+	</select>
+
+	<select id="listUserEnrollment" parameterType="erpEnrollmentVo" resultType="erpEnrollmentVo">
+		/*
+			 SQL ID : ErpDAO.listUserEnrollment
+			 설  명 : 사용자의 과목 수강 목록 조회
+		*/
+		SELECT 
+			  STUDENT_ID
+			, YEAR
+			, SEMESTER
+			, COURSE_CODE
+			, SECTION
+			, ATNDLC_APLYYN
+			, AUDITYN
+			, REATNDLCYN
+			/*
+			, MID_LTSATSF_CLS_YN
+			, LCTR_DGSTFN_PTCPYN
+			, MID_OATH_YN
+			, FIN_OATH_YN
+			*/
+			, REG_DTTM
+			, MOD_DTTM
+		FROM UNI.LMS_ENROLLMENT_2023
+		WHERE 1 = 1
+		AND YEAR = #{year}
+		AND SEMESTER = #{semester}
+		AND STUDENT_ID = #{studentId}
+	</select>
+
+	<update id="insertMessageMsgList" parameterType="java.util.List"> 
+		/*
+			 SQL ID : ErpDAO.insertMessageMsgList
+			 설  명 : 통합메시지 쪽지 목록 저장
+		*/
+		INSERT ALL 
+		<foreach collection="list" item="item" separator=" ">
+			INTO TB_MESSAGE_MSG (
+				  MSG_NO
+				, MSG_SEQ
+				, VWER_ID
+				, USERNM
+				, SYS_CD
+				, ORG_ID
+				, BUSS_GBN
+				, SEND_RCV_GBN
+				, SUBJECT
+				, CTNT
+				, SEND_DTTM
+				, SNDR_PERS_NO
+				, SNDR_DEPT_CD
+				, SNDR_NM
+				, FILE_NO
+				, RGTR_ID
+				, FRST_INQ_DTTM
+				, RGTR_IP
+				, MDFR_ID
+				, MOD_DTTM
+				, MOD_IP
+				, COURSE_CD
+			) VALUES (
+				  #{item.msgNo}
+				, #{item.msgSeq}
+				, #{item.userId}
+				, #{item.userNm}
+				, #{item.sysCd}
+				, #{item.orgId}
+				, #{item.bussGbn}
+				, #{item.sendRcvGbn}
+				, NULL
+				, #{item.ctnt}
+				, SYSDATE
+				, #{item.sndrPersNo}
+				, #{item.sndrDeptCd}
+				, #{item.sndrNm}
+				, NULL
+				, #{item.rgtrId}
+				, SYSDATE
+				, #{item.regIp}
+				, #{item.rgtrId}
+				, SYSDATE
+				, #{item.regIp}
+				, #{item.courseCd, jdbcType=VARCHAR}
+			)
+		</foreach>
+		SELECT * FROM SYS.DUAL
+	</update>
+
+	<insert id="insertMessageMsgLog" parameterType="erpMessageMsgVo">
+		/*
+			SQL ID : ErpDAO.insertMessageMsgLog
+			설  명 : 통합메시지 쪽지 LOG 저장
+		*/
+		INSERT INTO TB_MESSAGE_MSG_LOG (
+			  MSG_LOG_NO
+			, MSG_NO
+			, LOG_GBN
+			, VWER_ID
+			, USERNM
+			, SYS_CD
+			, ORG_ID
+			, BUSS_GBN
+			, SUBJECT
+			, CTNT
+			, SEND_DTTM
+			, SNDR_PERS_NO
+			, SNDR_DEPT_CD
+			, SNDR_NM
+			, FILE_NO
+			, RCV_NUM
+			, LOG_DESC
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, RGTR_IP
+		) VALUES (
+			  #{msgLogNo}
+			, #{msgNo}
+			, 'S'
+			, #{userId}
+			, #{userNm}
+			, #{sysCd}
+			, #{orgId}
+			, #{bussGbn}
+			, NULL
+			, #{ctnt}
+			, SYSDATE
+			, #{sndrPersNo}
+			, #{sndrDeptCd}
+			, #{sndrNm}
+			, NULL
+			, #{rcvNum}
+			, #{logDesc}
+			, #{rgtrId}
+			, SYSDATE
+			, #{regIp}
+		)
+	</insert>
+
+	<select id="selectContentsInfo" parameterType="erpLcdmsPageVo" resultType="erpLcdmsPageVo">
+		/*
+			 SQL ID : ErpDAO.selectContentsInfo
+			 설  명 : 콘텐츠 정보 조회
+		*/
+		<!-- SELECT 
+			  YEAR
+			, SEMESTER
+			, GUBUN
+			, COURSE_CODE
+			, CONT_CD
+			, WEEK
+			, ULD_GBNCD
+			, PAGE_SEQNO
+			, PAGENM
+			, URL
+			, LCTR_TOC_LRN_SCNDS
+			, INI_UPLOAD_DT
+			, FL_UPLOAD_DT
+			, REG_DTTM
+			, MOD_DTTM
+		FROM UNI.LMS_LCDMS_PAGE_2023 
+		WHERE 1 = 1
+		AND CONT_CD = #{contCd}
+		AND WEEK = #{week}
+		AND PAGE_SEQNO = #{pageCnt}
+		AND URL IS NOT NULL
+		AND ROWNUM = 1
+		ORDER BY FL_UPLOAD_DT DESC, MOD_DTTM DESC -->
+		
+		SELECT * FROM (
+			SELECT 
+				  YEAR
+				, SEMESTER
+				, GUBUN
+				, COURSE_CODE
+				, CONT_CD
+				, WEEK
+				, ULD_GBNCD
+				, PAGE_SEQNO
+				, PAGENM
+				, URL
+				, LCTR_TOC_LRN_SCNDS
+				, INI_UPLOAD_DT
+				, FL_UPLOAD_DT
+				, REG_DTTM
+				, MOD_DTTM
+			FROM UNI.LMS_LCDMS_PAGE_2023 
+			WHERE 1 = 1
+			AND CONT_CD = #{contCd}
+			AND WEEK = #{week}
+			AND PAGE_SEQNO = #{pageCnt}
+			AND URL IS NOT NULL
+			ORDER BY FL_UPLOAD_DT DESC, MOD_DTTM DESC
+		) A
+		WHERE ROWNUM = 1
+	</select>
+
+	<select id="selectContentsPreviewInfo" parameterType="erpLcdmsPageVo" resultType="erpLcdmsPageVo">
+		/*
+			 SQL ID : ErpDAO.selectContentsPreviewInfo
+			 설  명 : 미리보기 콘텐츠 정보 조회
+		*/
+		<!-- SELECT 
+			  YEAR
+			, SEMESTER
+			, GUBUN
+			, CONT_CD
+			, SBJCT_ID AS COURSE_CODE
+			, SBJCTNM
+			, WEEK
+			, ULD_GBNCD
+			, PAGE_SEQNO
+			, PAGENM
+			, URL
+			, LCTR_TOC_LRN_SCNDS
+			, LMS_OPEN_YN
+			, LMS_ATTEND_YN
+			, REG_DTTM
+			, MOD_DTTM
+		FROM UNI.LMS_LCDMS_PAGE_PREVIEW_2023 
+		WHERE 1 = 1
+		AND CONT_CD = #{contCd}
+		AND WEEK = #{week}
+		AND PAGE_SEQNO = #{pageCnt}
+		AND URL IS NOT NULL
+		AND ROWNUM = 1
+		ORDER BY MOD_DTTM DESC -->
+		
+		SELECT * FROM (
+			SELECT 
+				  YEAR
+				, SEMESTER
+				, GUBUN
+				, CONT_CD
+				, SBJCT_ID AS COURSE_CODE
+				, SBJCTNM
+				, WEEK
+				, ULD_GBNCD
+				, PAGE_SEQNO
+				, PAGENM
+				, URL
+				, LCTR_TOC_LRN_SCNDS
+				, LMS_OPEN_YN
+				, LMS_ATTEND_YN
+				, REG_DTTM
+				, MOD_DTTM
+			FROM UNI.LMS_LCDMS_PAGE_PREVIEW_2023 
+			WHERE 1 = 1
+			AND CONT_CD = #{contCd}
+			AND WEEK = #{week}
+			AND PAGE_SEQNO = #{pageCnt}
+			AND URL IS NOT NULL
+			ORDER BY MOD_DTTM DESC
+		) A
+		WHERE ROWNUM = 1
+	</select>
+
+	<select id="selectCourseEnrollmentAll" parameterType="erpEnrollmentVo" resultType="erpEnrollmentVo" fetchSize="2000">
+		/*
+			 SQL ID : ErpDAO.selectCourseEnrollmentAll
+			 설  명 : 과목 수강 정보 전체 조회
+		*/
+		SELECT 
+			  STUDENT_ID
+			, YEAR
+			, SEMESTER
+			, COURSE_CODE
+			, SECTION
+			, ATNDLC_APLYYN
+			, AUDITYN
+	        , REG_DTTM
+            , MOD_DTTM
+		FROM UNI.LMS_ENROLLMENT_2023
+		WHERE 1 = 1
+		<if test="year != null and year != ''">
+			AND YEAR = #{year}
+		</if>
+		<if test="semester != null and semester != ''">
+			AND SEMESTER = #{semester}
+		</if>
+		 <if test="searchValue != null and searchValue != ''">
+		   AND ( COURSE_CODE || STUDENT_ID ) LIKE '%'||#{searchValue}||'%'
+         </if>
+		<!-- 
+		<if test="courseCode != null and courseCode != ''">
+			AND COURSE_CODE = #{courseCode}
+		</if>
+		<if test="studentId != null and studentId != ''">
+			AND STUDENT_ID = #{studentId}
+		</if> 
+		-->
+	</select>
+	
+	<insert id="insertMessageSms" parameterType="knou.lms.erp.vo.ErpMessageSmsVO"> 
+        /*
+            SQL ID : ErpDAO.insertMessageSms
+                        설  명 : SMS 저장
+        */    
+		INSERT INTO TB_MESSAGE_SMS (
+		    SMS_NO              /* SMS 번호 */
+		    , SMS_SEQ           /* SMS 순번 */
+		    , VWER_ID           /* 사용자 번호 */
+		    , USERNM           /* 사용자 이름 */
+		    , SYS_CD            /* 시스템 코드 */
+		    , ORG_ID            /* 기관 코드 */
+		    , BUSS_GBN          /* 업무구분 */
+		    , SEND_RCV_GBN      /* 수신 발신 구분 */
+		    , SUBJECT           /* 제목 */
+		    , CTNT              /* 내용 */
+		    , SEND_DTTM         /* 발송 일시 */
+		    , SNDR_PERS_NO      /* 발송자 개인번호 */
+		    , SNDR_DEPT_CD      /* 발송자 부서 코드 */
+		    , SNDR_NM           /* 발송자명 */
+		    , SNDR_PHONE_NO     /* 발송자 전화번호 */
+		    , RCV_PHONE_NO      /* 수신자 전화번호 */
+		    , COURSE_CD         /* LMS과목코드 */
+		    , RGTR_ID            /* 등록자 번호 */
+		    , FRST_INQ_DTTM          /* 등록 일시 */
+		    , RGTR_IP            /* 등록 IP */
+		    , MDFR_ID            /* 수정자 번호 */
+		    , MOD_DTTM          /* 수정 일시 */
+		    , MOD_IP            /* 수정 IP */
+		) VALUES (
+		    #{smsNo}            /* SMS 번호 */
+		    , #{smsSeq}         /* SMS 순번 */
+		    , #{userId}         /* 사용자 번호 */
+		    , #{userNm}         /* 사용자 이름 */
+		    , #{sysCd}          /* 시스템 코드 */
+		    , #{orgId}          /* 기관 코드 */
+		    , #{bussGbn}        /* 업무구분 */
+		    , #{sendRcvGbn}     /* 수신 발신 구분 */
+		    , #{subject}        /* 제목 */
+		    , #{ctnt}           /* 내용 */
+	    <if test='sendDttm != null and sendDttm != ""'>          
+		    , TO_DATE(#{sendDttm}, 'YYYY-MM-DD HH24:MI')       /* 발송 일시 */
+        </if>
+        <if test='sendDttm == null or sendDttm == ""'>          
+            , SYSDATE
+        </if>            
+		    , #{sndrPersNo}                     /* 발송자 개인번호 */
+		    , #{sndrDeptCd}                     /* 발송자 부서 코드 */
+		    , #{sndrNm}                         /* 발송자명 */
+		    , #{sndrPhoneNo}                    /* 발송자 전화번호 */
+		    , #{rcvPhoneNo, jdbcType=VARCHAR}   /* 수신자 전화번호 */
+		    , #{courseCd, jdbcType=VARCHAR}     /* LMS 과목코드 */
+		    , #{rgtrId}                          /* 등록자 번호 */
+		    , SYSDATE                           /* 등록 일시 */
+		    , #{regIp}                          /* 등록 IP */
+		    , #{mdfrId}                          /* 수정자 번호 */
+		    , SYSDATE                           /* 수정 일시 */
+		    , #{modIp}                          /* 수정 IP */
+		)        
+    </insert>
+    
+    <insert id="insertMessageSmsTwo" parameterType="knou.lms.erp.vo.ErpMessageSmsVO"> 
+        /*
+            SQL ID : ErpDAO.insertMessageSmsTwo
+                        설  명 : SMS 저장
+        */    
+        INSERT INTO TB_MESSAGE_SMS (
+            SMS_NO              /* SMS 번호 */
+            , SMS_SEQ           /* SMS 순번 */
+            , VWER_ID           /* 사용자 번호 */
+            , USERNM           /* 사용자 이름 */
+            , SYS_CD            /* 시스템 코드 */
+            , ORG_ID            /* 기관 코드 */
+            , BUSS_GBN          /* 업무구분 */
+            , SEND_RCV_GBN      /* 수신 발신 구분 */
+            , SUBJECT           /* 제목 */
+            , CTNT              /* 내용 */
+            , SEND_DTTM         /* 발송 일시 */
+            , SNDR_PERS_NO      /* 발송자 개인번호 */
+            , SNDR_DEPT_CD      /* 발송자 부서 코드 */
+            , SNDR_NM           /* 발송자명 */
+            , SNDR_PHONE_NO     /* 발송자 전화번호 */
+            , RCV_PHONE_NO      /* 수신자 전화번호 */
+            , COURSE_CD         /* LMS과목코드 */
+            , RGTR_ID            /* 등록자 번호 */
+            , FRST_INQ_DTTM          /* 등록 일시 */
+            , RGTR_IP            /* 등록 IP */
+            , MDFR_ID            /* 수정자 번호 */
+            , MOD_DTTM          /* 수정 일시 */
+            , MOD_IP            /* 수정 IP */
+        ) VALUES (
+            #{smsNo}            /* SMS 번호 */
+            , #{smsSeq}         /* SMS 순번 */
+            , #{userId}         /* 사용자 번호 */
+            , #{userNm}         /* 사용자 이름 */
+            , #{sysCd}          /* 시스템 코드 */
+            , #{orgId}          /* 기관 코드 */
+            , #{bussGbn}        /* 업무구분 */
+            , #{sendRcvGbn}     /* 수신 발신 구분 */
+            , #{subject}        /* 제목 */
+            , #{ctnt}           /* 내용 */
+        <if test='sendDttm != null and sendDttm != ""'>          
+            , TO_DATE(#{sendDttm}, 'YYYY-MM-DD HH24:MI')       /* 발송 일시 */
+        </if>
+        <if test='sendDttm == null or sendDttm == ""'>          
+            , SYSDATE
+        </if>            
+            , #{sndrPersNo}                     /* 발송자 개인번호 */
+            , #{sndrDeptCd}                     /* 발송자 부서 코드 */
+            , #{sndrNm}                         /* 발송자명 */
+           <choose>
+            <when test='sndrPhoneNo != null and sndrPhoneNo != ""'>
+                , #{sndrPhoneNo}                /* 발송자 전화번호 */
+            </when>
+            <otherwise>
+                , (SELECT NVL(A.DEPT_TELNO, '02-2290-0114') AS DEPT_TELNO FROM COM.V_USER_01 A WHERE PERS_NO = #{rcvNo})  /* 발송자 전화번호 */
+            </otherwise>
+           </choose>
+            , #{rcvPhoneNo, jdbcType=VARCHAR}   /* 수신자 전화번호 */
+            , #{courseCd, jdbcType=VARCHAR}     /* LMS 과목코드 */
+            , #{rgtrId}                          /* 등록자 번호 */
+            , SYSDATE                           /* 등록 일시 */
+            , #{regIp}                          /* 등록 IP */
+            , #{mdfrId}                          /* 수정자 번호 */
+            , SYSDATE                           /* 수정 일시 */
+            , #{modIp}                          /* 수정 IP */
+        )        
+    </insert>
+    
+    <insert id="insertMessageSmsLog" parameterType="knou.lms.erp.vo.ErpMessageSmsLogVO">
+        /*
+            SQL ID : ErpDAO.insertMessageSmsLog
+                        설  명 : SMS LOG 저장
+        */    
+		INSERT INTO TB_MESSAGE_SMS_LOG (
+		    SMS_LOG_NO          /* SMS 로그 번호 */
+		    , SMS_NO            /* SMS 번호 */
+		    , LOG_GBN           /* 로그 구분 */
+		    , VWER_ID           /* 사용자 번호 */
+		    , USERNM           /* 사용자 이름 */
+		    , SYS_CD            /* 시스템 코드 */
+		    , ORG_ID            /* 기관 코드 */
+		    , BUSS_GBN          /* 업무구분 */
+		    , SUBJECT           /* 제목 */
+		    , CTNT              /* 내용 */
+		    , SEND_DTTM         /* 발송 일시 */
+		    , SNDR_PERS_NO      /* 발송자 개인번호 */
+		    , SNDR_DEPT_CD      /* 발송자 부서 코드 */
+		    , SNDR_NM           /* 발송자명 */
+		    , SNDR_PHONE_NO     /* 발송자 전화번호 */
+		    , RCV_NUM           /* 대상자 수 */
+		    , LOG_DESC          /* 로그설명 */
+		    , RGTR_ID            /* 등록자 번호 */
+		    , FRST_INQ_DTTM          /* 등록 일시 */
+		    , RGTR_IP            /* 등록 IP */
+		) VALUES (
+		    #{smsLogNo}         /* SMS 로그 번호 */
+		    , #{smsNo}          /* SMS 순번 */
+		    , #{logGbn}         /* 로그 구분 */
+		    , #{userId}         /* 사용자 번호 */
+		    , #{userNm}         /* 사용자 이름 */
+		    , #{sysCd}          /* 시스템 코드 */
+		    , #{orgId}          /* 기관 코드 */
+		    , #{bussGbn}        /* 업무구분 */
+		    , #{subject}        /* 제목 */
+		    , #{ctnt}           /* 내용 */
+        <if test='sendDttm != null and sendDttm != ""'>          
+            , TO_DATE(#{sendDttm}, 'YYYY-MM-DD HH24:MI')       /* 발송 일시 */
+        </if>
+        <if test='sendDttm == null or sendDttm == ""'>          
+            , SYSDATE
+        </if> 
+		    , #{sndrPersNo}     /* 발송자 개인번호 */
+		    , #{sndrDeptCd}     /* 발송자 부서 코드 */
+		    , #{sndrNm}         /* 발송자명 */
+           <choose>
+            <when test='sndrPhoneNo != null and sndrPhoneNo != ""'>
+                , #{sndrPhoneNo}    /* 발송자 전화번호 */
+            </when>
+            <otherwise>
+                , (SELECT NVL(A.DEPT_TELNO, '02-2290-0114') AS DEPT_TELNO FROM COM.V_USER_01 A WHERE PERS_NO = #{rcvNo})  /* 발송자 전화번호 */
+            </otherwise>
+           </choose>
+		    , #{rcvNum}         /* 대상자 수 */
+		    , #{logDesc}        /* 로그설명 */
+		    , #{rgtrId}          /* 등록자 번호 */
+		    , SYSDATE           /* 등록 일시 */
+		    , #{regIp}          /* 등록 IP */
+		)        
+    </insert>
+    
+    <insert id="insertBsns110" parameterType="knou.lms.erp.vo.ErpBsns110VO"> 
+        /*
+            SQL ID : ErpDAO.insertBsns110 
+                        설  명 : 학사 연계 SMS, PUSH 보내는 정보 저장
+        */    
+        INSERT INTO BSNS110 (           
+			SEND_NO                 /* 발송번호 */
+			, SEND_DTTM             /* 발송일시 */
+			, BUSS_GBN              /* 업무구분 */
+			, PUSH_CATEG_GBN        /* PUSH카테고리구분 */
+			, SNDR_PERS_NO          /* 발송자개인번호 */
+			, SNDR_DEPT_CD          /* 발송자부서코드 */
+			, SNDR_NM               /* 발송자명 */
+			, SNDR_HANDP_NO         /* 발송자휴대전화번호 */
+			, SUBJECT               /* 제목 */
+			, PUSH_CTNT             /* PUSH내용 */
+			, SMS_CTNT              /* SMS내용 */
+			, SEND_GBN              /* 발송구분 */
+			, SEND_YN               /* 발송여부 */
+			, ATTACH_NO             /* 첨부파일번호 */
+			, USER_DATA_VAL1        /* 사용자데이터값1 */
+			, USER_DATA_VAL2        /* 사용자데이터값2 */
+			, USER_DATA_VAL3        /* 사용자데이터값3 */
+			, INPT_ID               /* 입력ID */
+			, INPT_DTTM             /* 입력일시 */
+			, INPT_IP               /* 입력IP */
+			, INPT_MENU_ID          /* 입력메뉴ID */
+			, MOD_ID                /* 수정ID */
+			, MOD_DTTM              /* 수정일시 */
+			, MOD_IP                /* 수정IP */
+			, MOD_MENU_ID           /* 수정메뉴ID */
+        ) VALUES (
+			#{sendNo}               /* 발송번호 */
+        <if test='sendDttm != null and sendDttm != ""'>          
+            , TO_DATE(#{sendDttm}, 'YYYY-MM-DD HH24:MI')       /* 발송 일시 */
+        </if>
+        <if test='sendDttm == null or sendDttm == ""'>          
+            , SYSDATE + (INTERVAL '5' SECOND)
+        </if>   			
+			, #{bussGbn}            /* 업무구분 */
+			, #{pushCategGbn}       /* push카테고리구분 */
+			, #{sndrPersNo}         /* 발송자개인번호 */
+			, #{sndrDeptCd}         /* 발송자부서코드 */
+			, #{sndrNm}             /* 발송자명 */
+			, #{sndrHandpNo}        /* 발송자휴대전화번호 */
+			, #{subject}            /* 제목 */
+			, #{pushCtnt}           /* push내용 */
+			, #{smsCtnt}            /* sms내용 */
+			, #{sendGbn}            /* 발송구분 */
+			, #{sendYn}             /* 발송여부 */
+			, #{attachNo}           /* 첨부파일번호 */
+			, #{userDataVal1}       /* 사용자데이터값1 */
+			, #{userDataVal2}       /* 사용자데이터값2 */
+			, #{userDataVal3}       /* 사용자데이터값3 */
+			, #{inptId}             /* 입력id */
+			, SYSTIMESTAMP          /* 입력일시 */
+			, #{inptIp}             /* 입력ip */
+			, #{inptMenuId}         /* 입력메뉴id */
+			, #{modId}              /* 수정id */
+			, SYSTIMESTAMP          /* 수정일시 */
+			, #{modIp}              /* 수정ip */
+			, #{modMenuId}          /* 수정메뉴id */
+        )   
+    </insert>    
+    
+    <insert id="insertBsns111" parameterType="knou.lms.erp.vo.ErpBsns111VO"> 
+        /*
+            SQL ID : ErpDAO.insertBsns111 
+                        설  명 : 학사 연계 SMS, PUSH 받는 정보 저장
+        */    
+        INSERT INTO BSNS111 (       
+			SEND_NO                 /* 발송번호 */
+			, SEND_SEQ              /* 발송순번 */
+			, RECPR_PERS_NO         /* 수신자개인번호 */
+			, RECPR_NM              /* 수신자명 */
+			, RECPR_HANDP_NO        /* 수신자휴대전화번호 */
+			, SEND_DTTM             /* 발송일시 */
+			, SMS_SEND_RSLT_CTNT    /* SMS발송결과내용 */
+			, PUSH_SEND_RSLT_CTNT   /* PUSH발송결과내용 */
+			, SMS_CTNT              /* SMS내용 */
+			, PUSH_CTNT             /* PUSH내용 */
+			, INPT_ID               /* 입력ID */
+			, INPT_DTTM             /* 입력일시 */
+			, INPT_IP               /* 입력IP */
+			, INPT_MENU_ID          /* 입력메뉴ID */
+			, MOD_ID                /* 수정ID */
+			, MOD_DTTM              /* 수정일시 */
+			, MOD_IP                /* 수정IP */
+			, MOD_MENU_ID           /* 수정메뉴ID */
+			, REF_MSG_IF_ID         /* 참조메세지ID */
+			, CFM_YN                /* 확인여부 */
+        ) VALUES (
+			#{sendNo}               /* 발송번호 */
+			, #{sendSeq}            /* 발송순번 */
+			, #{recprPersNo}        /* 수신자개인번호 */
+			, #{recprNm}            /* 수신자명 */
+			, #{recprHandpNo}       /* 수신자휴대전화번호 */
+        <if test='sendDttm != null and sendDttm != ""'>          
+            , TO_DATE(#{sendDttm}, 'YYYY-MM-DD HH24:MI')       /* 발송 일시 */
+        </if>
+        <if test='sendDttm == null or sendDttm == ""'>          
+            , SYSDATE + (INTERVAL '5' SECOND)
+        </if>   			
+			, #{smsSendRsltCtnt}    /* sms발송결과내용 */
+			, #{pushSendRsltCtnt}   /* push발송결과내용 */
+			, #{smsCtnt}            /* sms내용 */
+			, #{pushCtnt}           /* push내용 */
+			, #{inptId}             /* 입력id */
+			, SYSTIMESTAMP          /* 입력일시 */
+			, #{inptIp}             /* 입력ip */
+			, #{inptMenuId}         /* 입력메뉴id */
+			, #{modId}              /* 수정id */
+			, SYSTIMESTAMP          /* 수정일시 */
+			, #{modIp}              /* 수정ip */
+			, #{modMenuId}          /* 수정메뉴id */
+			, #{refMsgIfId}         /* 참조메세지id */
+			, #{cfmYn}              /* 확인여부 */
+        )   
+    </insert>
+    
+    <insert id="insertBsns111List" parameterType="knou.lms.erp.vo.ErpBsns111VO"> 
+        /*
+            SQL ID : ErpDAO.insertBsns111 
+                        설  명 : 학사 연계 SMS, PUSH 받는 정보 저장
+        */    
+        INSERT ALL
+        <foreach collection="list" item="item" separator=" ">
+	        INTO BSNS111 (       
+				  SEND_NO               /* 발송번호 */
+				, SEND_SEQ              /* 발송순번 */
+				, RECPR_PERS_NO         /* 수신자개인번호 */
+				, RECPR_NM              /* 수신자명 */
+				, RECPR_HANDP_NO        /* 수신자휴대전화번호 */
+				, SEND_DTTM             /* 발송일시 */
+				, SMS_SEND_RSLT_CTNT    /* SMS발송결과내용 */
+				, PUSH_SEND_RSLT_CTNT   /* PUSH발송결과내용 */
+				, SMS_CTNT              /* SMS내용 */
+				, PUSH_CTNT             /* PUSH내용 */
+				, INPT_ID               /* 입력ID */
+				, INPT_DTTM             /* 입력일시 */
+				, INPT_IP               /* 입력IP */
+				, INPT_MENU_ID          /* 입력메뉴ID */
+				, MOD_ID                /* 수정ID */
+				, MOD_DTTM              /* 수정일시 */
+				, MOD_IP                /* 수정IP */
+				, MOD_MENU_ID           /* 수정메뉴ID */
+				, REF_MSG_IF_ID         /* 참조메세지ID */
+				, CFM_YN                /* 확인여부 */
+	        ) VALUES (
+				  #{item.sendNo}        /* 발송번호 */
+				, #{item.sendSeq}		/* 발송순번 */
+				, #{item.recprPersNo}	/* 수신자개인번호 */
+				, #{item.recprNm}		/* 수신자명 */
+				, #{item.recprHandpNo}	/* 수신자휴대전화번호 */
+	        <if test='item.sendDttm != null and item.sendDttm != ""'>          
+	            , TO_DATE(#{item.sendDttm}, 'YYYY-MM-DD HH24:MI')       /* 발송 일시 */
+	        </if>
+	        <if test='item.sendDttm == null or item.sendDttm == ""'>          
+	            , SYSDATE + (INTERVAL '5' SECOND)
+	        </if>   			
+				, #{item.smsSendRsltCtnt}	/* sms발송결과내용 */
+				, #{item.pushSendRsltCtnt}	/* push발송결과내용 */
+				, #{item.smsCtnt}			/* sms내용 */
+				, #{item.pushCtnt}			/* push내용 */
+				, #{item.inptId}			/* 입력id */
+				, SYSTIMESTAMP				/* 입력일시 */
+				, #{item.inptIp}			/* 입력ip */
+				, #{item.inptMenuId}		/* 입력메뉴id */
+				, #{item.modId}				/* 수정id */
+				, SYSTIMESTAMP				/* 수정일시 */
+				, #{item.modIp}				/* 수정ip */
+				, #{item.modMenuId}			/* 수정메뉴id */
+				, #{item.refMsgIfId}		/* 참조메세지id */
+				, #{item.cfmYn}				/* 확인여부 */
+	        )
+        </foreach>
+        SELECT * FROM SYS.DUAL
+    </insert>
+    
+    <select id="selectLcdmsCntsPreview" parameterType="knou.lms.api.vo.CntsPreviewVO" resultType="knou.lms.api.vo.CntsPreviewVO">
+		/*
+			 SQL ID : ErpDAO.selectLcdmsCntsPreview
+			 설  명 : LCDMS 콘텐츠 미리보기 조회
+		*/
+		<!-- SELECT 
+			  YEAR
+			, SEMESTER
+			, GUBUN
+			, CONT_CD
+			, SBJCT_ID
+			, SBJCTNM
+			, SEQ_NAME
+			, WEEK
+			, LCTR_TOC_LRN_SCNDS
+		FROM UNI.LMS_LCDMS_CNTS_PREVIEW_2023
+		WHERE 1 = 1
+			AND YEAR = #{year}
+			AND SEMESTER = #{semester}
+			<if test='contCd != null and contCd != ""'>          
+				AND CONT_CD = #{contCd}
+	        </if>
+	        <if test='scCd != null and scCd != ""'>          
+				AND SBJCT_ID = #{scCd}
+	        </if>
+	        <if test='week != null and week != ""'>          
+				AND WEEK = #{week}
+	        </if>
+	    	AND ROWNUM = 1 -->
+	    	
+		SELECT * FROM (
+			SELECT 
+				  YEAR
+				, SEMESTER
+				, GUBUN
+				, CONT_CD
+				, SBJCT_ID
+				, SBJCTNM
+				, SEQ_NAME
+				, WEEK
+				, LCTR_TOC_LRN_SCNDS
+			FROM UNI.LMS_LCDMS_CNTS_PREVIEW_2023
+			WHERE 1 = 1
+				AND YEAR = #{year}
+				AND SEMESTER = #{semester}
+				<if test='contCd != null and contCd != ""'>          
+					AND CONT_CD = #{contCd}
+		        </if>
+		        <if test='scCd != null and scCd != ""'>          
+					AND SBJCT_ID = #{scCd}
+		        </if>
+		        <if test='week != null and week != ""'>          
+					AND WEEK = #{week}
+		        </if>
+	    ) A
+	    WHERE ROWNUM = 1
+	</select>
+	
+    <select id="listLcdmsPagePreview" parameterType="knou.lms.api.vo.PagePreviewVO" resultType="knou.lms.api.vo.PagePreviewVO">
+		/*
+			 SQL ID : ErpDAO.listLcdmsPagePreview
+			 설  명 : LCDMS 콘텐츠 페이지 미리보기 목록 조회
+		*/
+		SELECT 
+			  YEAR
+			, SEMESTER
+			, GUBUN
+			, CONT_CD
+			, SBJCT_ID
+			, SBJCTNM
+			, WEEK
+			, ULD_GBNCD
+			, PAGE_SEQNO
+			, NVL(PAGENM,'강의') PAGENM
+			, URL
+			, LCTR_TOC_LRN_SCNDS
+			, LMS_OPEN_YN
+			, LMS_ATTEND_YN
+		FROM UNI.LMS_LCDMS_PAGE_PREVIEW_2023
+		WHERE 1 = 1
+			AND YEAR = #{year}
+			AND SEMESTER = #{semester}
+			<if test='contCd != null and contCd != ""'>          
+				AND CONT_CD = #{contCd}
+	        </if>
+	        <if test='scCd != null and scCd != ""'>          
+				AND SBJCT_ID = #{scCd}
+	        </if>
+	        <if test='week != null and week != ""'>          
+				AND WEEK = #{week}
+	        </if>
+	    ORDER BY WEEK, TO_NUMBER(PAGE_SEQNO)
+	</select>
+    
+    <insert id="insertMessagePushList" parameterType="knou.lms.erp.vo.ErpMessagePushVO"> 
+        /*
+            SQL ID : ErpDAO.insertMessagePushList
+                        설  명 : PUSH 저장
+        */    
+        INSERT ALL
+		<foreach collection="list" item="item" separator=" ">
+			INTO TB_MESSAGE_PUSH (
+	              PUSH_NO           /* PUSH 번호 */
+	            , PUSH_SEQ          /* PUSH 순번 */
+	            , VWER_ID           /* 사용자 번호 */
+	            , USERNM           /* 사용자 이름 */
+	            , SYS_CD            /* 시스템 코드 */
+	            , ORG_ID            /* 기관 코드 */
+	            , BUSS_GBN          /* 업무구분 */
+	            , SEND_RCV_GBN      /* 수신 발신 구분 */
+	            , SUBJECT           /* 제목 */
+	            , CTNT              /* 내용 */
+	            , SEND_DTTM         /* 발송 일시 */
+	            , SNDR_PERS_NO      /* 발송자 개인번호 */
+	            , SNDR_DEPT_CD      /* 발송자 부서 코드 */
+	            , SNDR_NM           /* 발송자명 */
+	            , SNDR_PHONE_NO     /* 발송자 전화번호 */
+	            , RCV_PHONE_NO      /* 수신자 전화번호 */
+	            , COURSE_CD         /* LMS과목코드 */
+	            , RGTR_ID            /* 등록자 번호 */
+	            , FRST_INQ_DTTM          /* 등록 일시 */
+	            , RGTR_IP            /* 등록 IP */
+	            , MDFR_ID            /* 수정자 번호 */
+	            , MOD_DTTM          /* 수정 일시 */
+	            , MOD_IP            /* 수정 IP */
+	        ) VALUES (
+	              #{item.pushNo}         	/* PUSH 번호 */
+	            , #{item.pushSeq}        	/* PUSH 순번 */
+	            , #{item.userId}         	/* 사용자 번호 */
+	            , #{item.userNm}         	/* 사용자 이름 */
+	            , #{item.sysCd}          	/* 시스템 코드 */
+	            , #{item.orgId}          	/* 기관 코드 */
+	            , #{item.bussGbn}        	/* 업무구분 */
+	            , #{item.sendRcvGbn}     	/* 수신 발신 구분 */
+	            , #{item.subject}        	/* 제목 */
+	            , #{item.ctnt}           	/* 내용 */
+	        <if test='item.sendDttm != null and item.sendDttm != ""'>          
+	            , TO_DATE(#{item.sendDttm}, 'YYYY-MM-DD HH24:MI')       /* 발송 일시 */
+	        </if>
+	        <if test='item.sendDttm == null or item.sendDttm == ""'>          
+	            , SYSDATE
+	        </if>            
+	            , #{item.sndrPersNo}		/* 발송자 개인번호 */
+	            , #{item.sndrDeptCd}		/* 발송자 부서 코드 */
+	            , #{item.sndrNm}			/* 발송자명 */
+	           <choose>
+	            <when test='item.sndrPhoneNo != null and item.sndrPhoneNo != ""'>
+	                , #{item.sndrPhoneNo}	/* 발송자 전화번호 */
+	            </when>
+	            <otherwise>
+	                , '02-2290-0114'		/* 대표 전화번호 */
+	            </otherwise>
+	           </choose>
+	            , #{item.rcvPhoneNo, jdbcType=VARCHAR}	/* 수신자 전화번호 */
+	            , #{item.courseCd, jdbcType=VARCHAR}	/* LMS 과목코드 */
+	            , #{item.rgtrId}							/* 등록자 번호 */
+	            , SYSDATE                           	/* 등록 일시 */
+	            , #{item.regIp}							/* 등록 IP */
+	            , #{item.mdfrId}							/* 수정자 번호 */
+	            , SYSDATE                           	/* 수정 일시 */
+	            , #{item.modIp}							/* 수정 IP */
+	        )
+        </foreach>
+        SELECT * FROM SYS.DUAL
+    </insert>
+    
+    <insert id="insertMessagePushLog" parameterType="knou.lms.erp.vo.ErpMessagePushVO">
+        /*
+            SQL ID : ErpDAO.insertMessagePushLog
+                        설  명 : PUSH LOG 저장
+        */    
+        INSERT INTO TB_MESSAGE_PUSH_LOG (
+              PUSH_LOG_NO       /* PUSH 로그 번호 */
+            , PUSH_NO           /* PUSH 번호 */
+            , LOG_GBN           /* 로그 구분 */
+            , VWER_ID           /* 사용자 번호 */
+            , USERNM           /* 사용자 이름 */
+            , SYS_CD            /* 시스템 코드 */
+            , ORG_ID            /* 기관 코드 */
+            , BUSS_GBN          /* 업무구분 */
+            , SUBJECT           /* 제목 */
+            , CTNT              /* 내용 */
+            , SEND_DTTM         /* 발송 일시 */
+            , SNDR_PERS_NO      /* 발송자 개인번호 */
+            , SNDR_DEPT_CD      /* 발송자 부서 코드 */
+            , SNDR_NM           /* 발송자명 */
+            , SNDR_PHONE_NO     /* 발송자 전화번호 */
+            , RCV_NUM           /* 대상자 수 */
+            , LOG_DESC          /* 로그설명 */
+            , RGTR_ID            /* 등록자 번호 */
+            , FRST_INQ_DTTM          /* 등록 일시 */
+            , RGTR_IP            /* 등록 IP */
+        ) VALUES (
+              #{pushLogNo}      /* PUSH 로그 번호 */
+            , #{pushNo}         /* PUSH 순번 */
+            , #{logGbn}         /* 로그 구분 */
+            , #{userId}         /* 사용자 번호 */
+            , #{userNm}         /* 사용자 이름 */
+            , #{sysCd}          /* 시스템 코드 */
+            , #{orgId}          /* 기관 코드 */
+            , #{bussGbn}        /* 업무구분 */
+            , #{subject}        /* 제목 */
+            , #{ctnt}           /* 내용 */
+        <if test='sendDttm != null and sendDttm != ""'>          
+            , TO_DATE(#{sendDttm}, 'YYYY-MM-DD HH24:MI')       /* 발송 일시 */
+        </if>
+        <if test='sendDttm == null or sendDttm == ""'>          
+            , SYSDATE
+        </if> 
+            , #{sndrPersNo}     /* 발송자 개인번호 */
+            , #{sndrDeptCd}     /* 발송자 부서 코드 */
+            , #{sndrNm}         /* 발송자명 */
+           <choose>
+            <when test='sndrPhoneNo != null and sndrPhoneNo != ""'>
+                , #{sndrPhoneNo}    /* 발송자 전화번호 */
+            </when>
+            <otherwise>
+                , '02-2290-0114'	/* 대표 전화번호 */
+            </otherwise>
+           </choose> 
+            , #{rcvNum}         /* 대상자 수 */
+            , #{logDesc}        /* 로그설명 */
+            , #{rgtrId}          /* 등록자 번호 */
+            , SYSDATE           /* 등록 일시 */
+            , #{regIp}          /* 등록 IP */
+        )        
+    </insert>
+    
+    <insert id="insertTestScore" parameterType="java.util.List"> 
+        /*
+            SQL ID : ErpDAO.insertTestScore 
+                        설  명 : 테스트 성적 저장
+        */
+        INSERT ALL
+        <foreach collection="list" item="item" separator=" ">
+	        INTO LMS_STD_SCORE (    
+				  YR
+				, SMSTR_GBNCD
+				, SBJCT_ID
+				, DVCLAS_NO
+				, CRDTS_EXCH_UNVSTD_ID
+				, INI_SCR1
+				, INI_SCR2
+				, INI_SCR3
+				, INI_SCR4
+				, INI_SCR5
+				, INI_SCR6
+				, INI_SCR7
+				, INI_SCR8
+				, INI_SCR9
+				, INI_SCR10
+				, INI_SCR11
+				, INI_SCR12
+				, INI_SCR13
+				, INI_SCR14
+				, INI_TOT_SCR
+				, CAL_SCR1
+				, CAL_SCR2
+				, CAL_SCR3
+				, CAL_SCR4
+				, CAL_SCR5
+				, CAL_SCR6
+				, CAL_SCR7
+				, CAL_SCR8
+				, CAL_SCR9
+				, CAL_SCR10
+				, CAL_SCR11
+				, CAL_SCR12
+				, CAL_SCR13
+				, CAL_SCR14
+				, CAL_TOT_SCR
+				, EXCH_SCR1
+				, EXCH_SCR2
+				, EXCH_SCR3
+				, EXCH_SCR4
+				, EXCH_SCR5
+				, EXCH_SCR6
+				, EXCH_SCR7
+				, EXCH_SCR8
+				, EXCH_SCR9
+				, EXCH_SCR10
+				, EXCH_SCR11
+				, EXCH_SCR12
+				, EXCH_SCR13
+				, EXCH_SCR14
+				, EXCH_TOT_SCR
+				, CORR_SCR
+				, FL_EXCH_SCR
+				, MRKS_GRD_GBN
+				, DRVTN_GRDCD
+				, MRKS_GRD_GV_GBN
+				, EXCH_YN
+				, EXCH_GAP_SCR
+				, RANK
+				, RNK_QUOTA
+				, RNK_TRGTYN
+				, CAL_DTTM
+				, EXCH_DTTM
+				, INPT_ID
+				, INPT_DTTM
+				, INPT_IP
+				, INPT_MENU_ID
+				, MOD_ID
+				, MOD_DTTM
+				, MOD_IP
+				, MOD_MENU_ID
+	        ) VALUES (
+				  #{item.yr}
+				, #{item.tmGbn}
+				, #{item.scCd}
+				, #{item.ltNo}
+				, #{item.CRDTS_EXCH_UNVSTD_ID}
+				, #{item.iniScr1}
+				, #{item.iniScr2}
+				, #{item.iniScr3}
+				, #{item.iniScr4}
+				, #{item.iniScr5}
+				, #{item.iniScr6}
+				, #{item.iniScr7}
+				, #{item.iniScr8}
+				, #{item.iniScr9}
+				, #{item.iniScr10}
+				, #{item.iniScr11}
+				, #{item.iniScr12}
+				, #{item.iniScr13}
+				, #{item.iniScr14}
+				, #{item.iniTotScr}
+				, #{item.calScr1}
+				, #{item.calScr2}
+				, #{item.calScr3}
+				, #{item.calScr4}
+				, #{item.calScr5}
+				, #{item.calScr6}
+				, #{item.calScr7}
+				, #{item.calScr8}
+				, #{item.calScr9}
+				, #{item.calScr10}
+				, #{item.calScr11}
+				, #{item.calScr12}
+				, #{item.calScr13}
+				, #{item.calScr14}
+				, #{item.calTotScr, jdbcType=FLOAT}
+				, #{item.exchScr1, jdbcType=FLOAT}
+				, #{item.exchScr2, jdbcType=FLOAT}
+				, #{item.exchScr3, jdbcType=FLOAT}
+				, #{item.exchScr4, jdbcType=FLOAT}
+				, #{item.exchScr5, jdbcType=FLOAT}
+				, #{item.exchScr6, jdbcType=FLOAT}
+				, #{item.exchScr7, jdbcType=FLOAT}
+				, #{item.exchScr8, jdbcType=FLOAT}
+				, #{item.exchScr9, jdbcType=FLOAT}
+				, #{item.exchScr10, jdbcType=FLOAT}
+				, #{item.exchScr11, jdbcType=FLOAT}
+				, #{item.exchScr12, jdbcType=FLOAT}
+				, #{item.exchScr13, jdbcType=FLOAT}
+				, #{item.exchScr14, jdbcType=FLOAT}
+				, #{item.exchTotScr, jdbcType=FLOAT}
+				, #{item.corrScr, jdbcType=FLOAT}
+				, #{item.flExchScr, jdbcType=FLOAT}
+				, #{item.mrksGrdGbn, jdbcType=VARCHAR}
+				, #{item.DRVTN_GRDCD, jdbcType=FLOAT}
+				, #{item.mrksGrdGvGbn}
+				, #{item.exchYn}
+				, #{item.exchGapScr, jdbcType=FLOAT}
+				, #{item.rank, jdbcType=INTEGER}
+				, #{item.rankRcnt, jdbcType=INTEGER}
+				, #{item.rankObjYn, jdbcType=INTEGER}
+				, SYSDATE
+				, SYSDATE
+				, #{item.inptId}
+				, SYSTIMESTAMP
+				, #{item.inptIp}
+				, #{item.inptMenuId}
+				, #{item.modId}
+				, SYSTIMESTAMP
+				, #{item.modIp}
+				, #{item.modMenuId}
+	        )
+        </foreach>
+        SELECT * FROM SYS.DUAL
+    </insert>
+    
+    <delete id="deleteTestScore" parameterType="erpScoreTestVO">
+    	/*
+            SQL ID : ErpDAO.deleteTestScore 
+                        설  명 : 테스트 성적 삭제
+        */
+        DELETE FROM LMS_STD_SCORE
+        WHERE YR = #{yr}
+        AND SMSTR_GBNCD = #{tmGbn}
+        <if test='scCd != null and scCd != ""'>
+        AND SBJCT_ID = #{scCd}
+        AND DVCLAS_NO = #{ltNo}
+        </if>
+    </delete>
+    
+    <select id="callSpScorLmsMrksGet" statementType="CALLABLE" parameterType="map">
+        /*
+            SQL ID : ErpDAO.callSpScorLmsMrksGet 
+                        설  명 : ERP 성적 메인 테이블로 이관하는 프로시저
+        */
+        {call UNI.SP_SCOR_LMS_MRKS_GET (
+              #{univGbn, 	mode=IN, jdbcType=VARCHAR}
+            , #{yr, 		mode=IN, jdbcType=VARCHAR}
+            , #{tmGbn, 		mode=IN, jdbcType=VARCHAR}
+            , #{CRDTS_EXCH_UNVSTD_ID, 		mode=IN, jdbcType=VARCHAR}
+            , #{inptId, 	mode=IN, jdbcType=VARCHAR}
+            , #{inptIp, 	mode=IN, jdbcType=VARCHAR}
+            , #{inptMenuId, mode=IN, jdbcType=VARCHAR}
+            , #{outNum, 	mode=OUT, jdbcType=DECIMAL, javaType=Integer}
+            , #{outMsg, 	mode=OUT, jdbcType=VARCHAR, javaType=java.lang.String}
+        )}
+    </select>
+    
+    <select id="listJobSchedule" parameterType="knou.lms.erp.vo.ErpJobScheduleVO" resultType="knou.lms.erp.vo.ErpJobScheduleVO">
+    	/*
+            SQL ID : ErpDAO.listJobSchedule 
+                        설  명 : ERP 업무일정 목록 조회
+        */
+        SELECT 
+	           GUBUN
+	         , SCHE_CD
+	         , SCHE_CD_NM
+	         , NVL(NOTI_CTNT, SCHE_CD_NM) AS NOTI_CTNT
+	         , TO_CHAR(FR_DTTM,'YYYYMMDDHH24MISS') AS FR_DTTM
+	         , TO_CHAR(TO_DTTM,'YYYYMMDDHH24MISS') AS TO_DTTM
+	         , REG_DTTM
+	         , MOD_DTTM
+        FROM UNI.LMS_JOB_SCHEDULE_2023
+    </select>
+    
+    <select id="listLcdmsYear" resultType="knou.lms.erp.vo.ErpLcdmsCntsVO">
+		/*
+			 SQL ID : ErpDAO.listLcdmsYear
+			 설  명 : LCDMS 년도 목록 조회
+		*/
+		SELECT 
+			YEAR
+		FROM UNI.LMS_LCDMS_CNTS_2023
+		WHERE YEAR &gt;= '2020'
+		GROUP BY YEAR
+		ORDER BY YEAR DESC
+	</select>
+	
+	<select id="selectLcdmsCnts" parameterType="knou.lms.erp.vo.ErpLcdmsCntsVO" resultType="knou.lms.erp.vo.ErpLcdmsCntsVO">
+		/*
+			 SQL ID : ErpDAO.selectLcdmsCnts
+			 설  명 : LCDMS 콘텐츠 조회
+		*/
+		SELECT 
+			  YEAR
+			, SEMESTER
+			, GUBUN
+			, COURSE_CODE
+			, CONT_CD
+			, DVCLAS_NO
+			, WEEK
+			, SEQ
+			, NVL(SEQ_NAME,'-') SEQ_NAME
+			, NVL(LCTR_TOC_LRN_SCNDS,0) LCTR_TOC_LRN_SCNDS
+			, OYN
+			, LCTR_NOTE
+			, LCTR_WKNO_GBNCD
+			, WEK_CLSF_GBN_NM
+			, LCTR_NOTE_PVSNYN
+			, REG_DTTM
+			, MOD_DTTM
+		FROM UNI.LMS_LCDMS_CNTS_2023
+		WHERE 1=1
+			AND YEAR = #{year}
+			AND SEMESTER = #{semester}
+			AND COURSE_CODE = #{courseCode}
+			AND DVCLAS_NO = '01'
+			AND WEEK = #{week}
+		ORDER BY WEEK 
+	</select>
+	
+    <select id="listLcdmsCnts" parameterType="knou.lms.erp.vo.ErpLcdmsCntsVO" resultType="knou.lms.erp.vo.ErpLcdmsCntsVO">
+		/*
+			 SQL ID : ErpDAO.listLcdmsCnts
+			 설  명 : LCDMS 콘텐츠 목록 조회
+		*/
+		SELECT 
+			  YEAR
+			, SEMESTER
+			, GUBUN
+			, COURSE_CODE
+			, CONT_CD
+			, DVCLAS_NO
+			, WEEK
+			, SEQ
+			, NVL(SEQ_NAME,'-') SEQ_NAME
+			, NVL(LCTR_TOC_LRN_SCNDS,0) LCTR_TOC_LRN_SCNDS
+			, OYN
+			, LCTR_NOTE
+			, LCTR_WKNO_GBNCD
+			, WEK_CLSF_GBN_NM
+			, LCTR_NOTE_PVSNYN
+			, REG_DTTM
+			, MOD_DTTM
+		FROM UNI.LMS_LCDMS_CNTS_2023
+		WHERE 1=1
+			AND YEAR = #{year}
+			AND SEMESTER = #{semester}
+			AND COURSE_CODE = #{courseCode}
+			AND DVCLAS_NO = '01'
+		ORDER BY WEEK 
+	</select>
+	
+	<select id="listLcdmsPage" parameterType="knou.lms.erp.vo.ErpLcdmsPageVO" resultType="knou.lms.erp.vo.ErpLcdmsPageVO">
+		/*
+			 SQL ID : ErpDAO.listLcdmsPage
+			 설  명 : LCDMS 콘텐츠 페이지 목록 조회
+		*/
+		SELECT 
+			  YEAR
+			, SEMESTER
+			, GUBUN
+			, COURSE_CODE
+			, CONT_CD
+			, WEEK
+			, ULD_GBNCD
+			, PAGE_SEQNO
+			, PAGENM
+			, URL
+			, LCTR_TOC_LRN_SCNDS
+			, INI_UPLOAD_DT
+			, FL_UPLOAD_DT
+			, LMS_OPEN_YN
+			, LMS_ATTEND_YN
+			, REG_DTTM
+			, MOD_DTTM
+		FROM UNI.LMS_LCDMS_PAGE_2023 
+		WHERE 1 = 1
+			AND YEAR = #{year}
+			AND SEMESTER = #{semester}
+			AND COURSE_CODE = #{courseCode}
+			AND WEEK = #{week}
+			AND DVCLAS_NO = '01'
+		ORDER BY PAGE_SEQNO
+	</select>
+	
+	
+	
+	
+    <insert id="insertSmsList" parameterType="java.util.List"> 
+        /*
+            SQL ID : insertSmsList
+            설  명 : SMS 목록 저장
+        */    
+		INSERT INTO TB_MESSAGE_SMS (
+		    SMS_NO              /* SMS 번호 */
+		    , SMS_SEQ           /* SMS 순번 */
+		    , VWER_ID           /* 사용자 번호 */
+		    , USERNM           /* 사용자 이름 */
+		    , SYS_CD            /* 시스템 코드 */
+		    , ORG_ID            /* 기관 코드 */
+		    , BUSS_GBN          /* 업무구분 */
+		    , SEND_RCV_GBN      /* 수신 발신 구분 */
+		    , SUBJECT           /* 제목 */
+		    , CTNT              /* 내용 */
+		    , SEND_DTTM         /* 발송 일시 */
+		    , SNDR_PERS_NO      /* 발송자 개인번호 */
+		    , SNDR_DEPT_CD      /* 발송자 부서 코드 */
+		    , SNDR_NM           /* 발송자명 */
+		    , SNDR_PHONE_NO     /* 발송자 전화번호 */
+		    , RCV_PHONE_NO      /* 수신자 전화번호 */
+		    , COURSE_CD         /* LMS과목코드 */
+		    , RGTR_ID            /* 등록자 번호 */
+		    , FRST_INQ_DTTM          /* 등록 일시 */
+		    , RGTR_IP            /* 등록 IP */
+		    , MDFR_ID            /* 수정자 번호 */
+		    , MOD_DTTM          /* 수정 일시 */
+		    , MOD_IP            /* 수정 IP */
+		)
+		<foreach collection="list" item="item" open="" close="" separator="UNION ALL">
+			SELECT
+			    #{item.smsNo}
+			    , #{item.smsSeq}
+			    , #{item.userId}
+			    , #{item.userNm}
+			    , #{item.sysCd}
+			    , #{item.orgId}
+			    , #{item.bussGbn}
+			    , #{item.sendRcvGbn}
+			    , #{item.subject, jdbcType=VARCHAR}
+			    , #{item.ctnt}
+	            , SYSDATE
+			    , #{item.sndrPersNo}
+			    , #{item.sndrDeptCd}
+			    , #{item.sndrNm}
+			    , #{item.sndrPhoneNo}
+			    , #{item.rcvPhoneNo, jdbcType=VARCHAR}
+			    , #{item.courseCd, jdbcType=VARCHAR}
+			    , #{item.rgtrId}
+			    , SYSDATE
+			    , #{item.regIp}
+			    , #{item.mdfrId}
+			    , SYSDATE
+			    , #{item.modIp}
+			FROM DUAL
+		</foreach>
+    </insert>
+    
+    <insert id="insertAlarmSmsLog" parameterType="knou.lms.erp.vo.AlarmSmsLogVO">
+        /*
+            SQL ID : insertAlarmSmsLog
+                        설  명 : SMS LOG 저장
+        */    
+		INSERT INTO TB_MESSAGE_SMS_LOG (
+		    SMS_LOG_NO          /* SMS 로그 번호 */
+		    , SMS_NO            /* SMS 번호 */
+		    , LOG_GBN           /* 로그 구분 */
+		    , VWER_ID           /* 사용자 번호 */
+		    , USERNM           /* 사용자 이름 */
+		    , SYS_CD            /* 시스템 코드 */
+		    , ORG_ID            /* 기관 코드 */
+		    , BUSS_GBN          /* 업무구분 */
+		    , SUBJECT           /* 제목 */
+		    , CTNT              /* 내용 */
+		    , SEND_DTTM         /* 발송 일시 */
+		    , SNDR_PERS_NO      /* 발송자 개인번호 */
+		    , SNDR_DEPT_CD      /* 발송자 부서 코드 */
+		    , SNDR_NM           /* 발송자명 */
+		    , SNDR_PHONE_NO     /* 발송자 전화번호 */
+		    , RCV_NUM           /* 대상자 수 */
+		    , LOG_DESC          /* 로그설명 */
+		    , RGTR_ID            /* 등록자 번호 */
+		    , FRST_INQ_DTTM          /* 등록 일시 */
+		    , RGTR_IP            /* 등록 IP */
+		) VALUES (
+		    #{smsLogNo}         /* SMS 로그 번호 */
+		    , #{smsNo}          /* SMS 순번 */
+		    , #{logGbn}         /* 로그 구분 */
+		    , #{userId}         /* 사용자 번호 */
+		    , #{userNm}         /* 사용자 이름 */
+		    , #{sysCd}          /* 시스템 코드 */
+		    , #{orgId}          /* 기관 코드 */
+		    , #{bussGbn}        /* 업무구분 */
+		    , #{subject}        /* 제목 */
+		    , #{ctnt}           /* 내용 */       
+            , SYSDATE
+		    , #{sndrPersNo}     /* 발송자 개인번호 */
+		    , #{sndrDeptCd}     /* 발송자 부서 코드 */
+		    , #{sndrNm}         /* 발송자명 */
+            , #{sndrPhoneNo}    /* 발송자 전화번호 */
+		    , #{rcvNum}         /* 대상자 수 */
+		    , #{logDesc}        /* 로그설명 */
+		    , #{rgtrId}          /* 등록자 번호 */
+		    , SYSDATE           /* 등록 일시 */
+		    , #{regIp}          /* 등록 IP */
+		)        
+    </insert>
+
+    <insert id="insertAcademicSmsPushSend" parameterType="knou.lms.erp.vo.ErpBsns110VO"> 
+        /*
+            SQL ID : insertAcademicSmsPushSend 
+            설  명 : ERP SMS, PUSH 보내는 정보 저장
+        */    
+        INSERT INTO BSNS110 (           
+            SEND_NO                 /* 발송번호 */
+            , SEND_DTTM             /* 발송일시 */
+            , BUSS_GBN              /* 업무구분 */
+            , PUSH_CATEG_GBN        /* PUSH카테고리구분 */
+            , SNDR_PERS_NO          /* 발송자개인번호 */
+            , SNDR_DEPT_CD          /* 발송자부서코드 */
+            , SNDR_NM               /* 발송자명 */
+            , SNDR_HANDP_NO         /* 발송자휴대전화번호 */
+            , SUBJECT               /* 제목 */
+            , PUSH_CTNT             /* PUSH내용 */
+            , SMS_CTNT              /* SMS내용 */
+            , SEND_GBN              /* 발송구분 */
+            , SEND_YN               /* 발송여부 */
+            , ATTACH_NO             /* 첨부파일번호 */
+            , USER_DATA_VAL1        /* 사용자데이터값1 */
+            , USER_DATA_VAL2        /* 사용자데이터값2 */
+            , USER_DATA_VAL3        /* 사용자데이터값3 */
+            , INPT_ID               /* 입력ID */
+            , INPT_DTTM             /* 입력일시 */
+            , INPT_IP               /* 입력IP */
+            , INPT_MENU_ID          /* 입력메뉴ID */
+            , MOD_ID                /* 수정ID */
+            , MOD_DTTM              /* 수정일시 */
+            , MOD_IP                /* 수정IP */
+            , MOD_MENU_ID           /* 수정메뉴ID */
+        ) VALUES (
+            #{sendNo}               /* 발송번호 */
+        <if test='sendDttm != null and sendDttm != ""'>          
+            , TO_DATE(#{sendDttm}, 'YYYY-MM-DD HH24:MI')       /* 발송 일시 */
+        </if>
+        <if test='sendDttm == null or sendDttm == ""'>
+            , SYSDATE + (INTERVAL '5' SECOND)
+        </if>
+            , #{bussGbn}            /* 업무구분 */
+            , #{pushCategGbn}       /* push카테고리구분 */
+            , #{sndrPersNo}         /* 발송자개인번호 */
+            , #{sndrDeptCd}         /* 발송자부서코드 */
+            , #{sndrNm}             /* 발송자명 */
+            , #{sndrHandpNo}        /* 발송자휴대전화번호 */
+            , #{subject}            /* 제목 */
+            , #{pushCtnt}           /* push내용 */
+            , #{smsCtnt}            /* sms내용 */
+            , #{sendGbn}            /* 발송구분 */
+            , #{sendYn}             /* 발송여부 */
+            , #{attachNo}           /* 첨부파일번호 */
+            , #{userDataVal1}       /* 사용자데이터값1 */
+            , #{userDataVal2}       /* 사용자데이터값2 */
+            , #{userDataVal3}       /* 사용자데이터값3 */
+            , #{inptId}             /* 입력id */
+            , SYSTIMESTAMP          /* 입력일시 */
+            , #{inptIp}             /* 입력ip */
+            , #{inptMenuId}         /* 입력메뉴id */
+            , #{modId}              /* 수정id */
+            , SYSTIMESTAMP          /* 수정일시 */
+            , #{modIp}              /* 수정ip */
+            , #{modMenuId}          /* 수정메뉴id */
+        )   
+    </insert>
+    
+    <insert id="insertAcademicSmsPushReceive" parameterType="java.util.List"> 
+        /*
+            SQL ID : insertAcademicSmsPushReceive 
+            설  명 : ERP SMS, PUSH 받는 정보 저장
+        */    
+        INSERT INTO BSNS111 (       
+            SEND_NO                 /* 발송번호 */
+            , SEND_SEQ              /* 발송순번 */
+            , RECPR_PERS_NO         /* 수신자개인번호 */
+            , RECPR_NM              /* 수신자명 */
+            , RECPR_HANDP_NO        /* 수신자휴대전화번호 */
+            , SEND_DTTM             /* 발송일시 */
+            , SMS_SEND_RSLT_CTNT    /* SMS발송결과내용 */
+            , PUSH_SEND_RSLT_CTNT   /* PUSH발송결과내용 */
+            , SMS_CTNT              /* SMS내용 */
+            , PUSH_CTNT             /* PUSH내용 */
+            , INPT_ID               /* 입력ID */
+            , INPT_DTTM             /* 입력일시 */
+            , INPT_IP               /* 입력IP */
+            , INPT_MENU_ID          /* 입력메뉴ID */
+            , MOD_ID                /* 수정ID */
+            , MOD_DTTM              /* 수정일시 */
+            , MOD_IP                /* 수정IP */
+            , MOD_MENU_ID           /* 수정메뉴ID */
+            , REF_MSG_IF_ID         /* 참조메세지ID */
+            , CFM_YN                /* 확인여부 */
+        )
+        <foreach collection="list" item="item" open="" close="" separator="UNION ALL">
+        	SELECT
+	            #{item.sendNo}
+	            , #{item.sendSeq}
+	            , #{item.recprPersNo}
+	            , #{item.recprNm}
+	            , #{item.recprHandpNo}
+	        <if test='item.sendDttm != null and item.sendDttm != ""'>          
+	            , TO_DATE(#{item.sendDttm}, 'YYYY-MM-DD HH24:MI')
+	        </if>
+	        <if test='item.sendDttm == null or item.sendDttm == ""'>          
+	            , SYSDATE + (INTERVAL '5' SECOND)
+	        </if>               
+	            , #{item.smsSendRsltCtnt}
+	            , #{item.pushSendRsltCtnt}
+	            , #{item.smsCtnt}
+	            , #{item.pushCtnt}
+	            , #{item.inptId}
+	            , SYSTIMESTAMP
+	            , #{item.inptIp}
+	            , #{item.inptMenuId}
+	            , #{item.modId}
+	            , SYSTIMESTAMP
+	            , #{item.modIp}
+	            , #{item.modMenuId}
+	            , #{item.refMsgIfId}
+	            , #{item.cfmYn}
+        	FROM DUAL
+        </foreach>
+    </insert>
+</mapper>

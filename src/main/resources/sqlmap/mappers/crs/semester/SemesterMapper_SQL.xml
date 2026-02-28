@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.crs.semester.dao.SemesterDAO">
+	
+	<sql id="selectQuery">
+		SELECT
+			  A.SMSTR_CHRT_ID
+			, A.ORG_ID
+			, A.DGRS_YR
+			, A.DGRS_SMSTR_CHRT
+			, A.SMSTR_CHRT_GBNCD
+			, A.SMSTR_CHRT_TYCD
+			, A.SMSTR_CHRT_STSCD
+			, A.SMSTR_CHRT_DATA_LNKGYN
+			, A.SMSTR_CHRTNM
+			, A.SMSTR_CHRT_OP_SDTTM
+			, A.SMSTR_CHRT_OP_EDTTM
+			, A.OFLN_LRN_MNGYN
+			, A.ATNDLC_APLY_SDTTM
+			, A.ATNDLC_APLY_EDTTM
+			, A.ATNDLC_MOD_SDTTM
+			, A.ATNDLC_MOD_EDTTM
+			, A.ATNDLC_SDTTM
+			, A.ATNDLC_EDTTM
+			, A.MRK_EVL_SDTTM
+			, A.MRK_EVL_EDTTM
+			, A.MRK_OPEN_SDTTM
+			, A.MRK_OPEN_EDTTM
+			, A.MBL_ATNDC_USEYN
+			, A.NOW_SMSTRYN
+			, A.RVW_EDTTM
+			, A.PROF_ACCSS_PBL_SDTTM
+			, A.RGTR_ID
+			, A.REG_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_SMSTR_CHRT A
+	</sql>
+	
+	<select id="selectCurrentSemester" parameterType="smstrChrtVO" resultType="smstrChrtVO">
+		/*
+			 SQL ID : SemesterDAO.selectCurrentSemester
+			 설  명 : 현재 학기기수 조회
+		*/
+		SELECT * FROM (
+	    	<include refid="selectQuery"/>
+			WHERE A.NOW_SMSTRYN = 'Y'
+				AND A.ORG_ID = #{orgId}
+			ORDER BY A.DGRS_YR DESC, A.DGRS_SMSTR_CHRT DESC
+		) A
+		WHERE ROWNUM &lt;= 1
+	</select>	
+	
+	<select id="smstrChrtSelect" parameterType="map" resultType="smstrChrtVO">
+		/*	설	명 : 학기기수조회 	*/
+		
+		SELECT	*
+		FROM 	TB_LMS_SMSTR_CHRT A
+				JOIN TB_LMS_SBJCT_OFRNG B ON A.SMSTR_CHRT_ID = B.SMSTR_CHRT_ID AND B.SBJCT_OFRNG_ID = #{sbjctOfrngId}
+		WHERE 	NOW_SMSTRYN = 'Y'
+		ORDER BY DGRS_YR DESC, DGRS_SMSTR_CHRT DESC
+	</select>
+	
+	<select id="listSmstrChrtByDgrsYr" parameterType="smstrChrtVO" resultType="smstrChrtVO">
+		/*
+			SQL ID : SemesterDAO.listSmstrChrtByDgrsYr
+			설  명 : 개설된 학기기수 목록 조회(학위연도 기준)
+		*/
+		
+			<include refid="selectQuery"/>
+			WHERE 1=1
+				AND A.ORG_ID = #{orgId}
+				AND A.DGRS_YR = #{dgrsYr}
+	</select>
+
+</mapper>

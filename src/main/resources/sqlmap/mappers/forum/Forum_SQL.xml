@@ -1,0 +1,1119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.forum.dao.ForumDAO">
+	
+	<sql id="selectQuery">
+	    SELECT COUNT(*) OVER() AS totalCnt,
+	           A.DSCS_ID AS forumCd,
+	           A.SBJCT_ID AS crsCreCd,
+	           A.DSCS_TYCD AS forumCtgrCd,
+	
+	    <choose>
+	        <when test="searchKeyNm == 'STUDENT' or searchKeyNm == '' or searchKeyNm == null">
+	            CASE
+	                WHEN A.DSCS_TYCD = 'SUBS' AND EXISTS (
+	                    SELECT 1
+	                    FROM TB_LMS_EXAM_STARE
+	                    WHERE REEXAMYN = 'Y'
+	                      AND STD_ID = (
+	                          SELECT STD_ID
+	                          FROM TB_LMS_ATNDLC_SBJCT
+	                          WHERE SBJCT_ID = #{crsCreCd}
+	                            AND USER_ID = #{userId}
+	                            AND ATNDLC_STSCD = 'S'
+	                      )
+	                      AND EXAM_ID = (
+	                          SELECT MAX(EXAM_ID)
+	                          FROM TB_LMS_EXAM_BSC
+	                          WHERE EXAM_SBST_REF_ID = A.DSCS_ID
+	                      )
+	                ) THEN 'Y'
+	                ELSE 'Y'
+	            END AS absent
+	        </when>
+	        <otherwise>
+	            'Y' AS absent
+	        </otherwise>
+	    </choose>
+	
+	    , CASE
+	        WHEN A.DSCS_TYCD IN ('SUBS', 'EXAM') THEN (
+	            SELECT MAX(TKEXAM_TYCD)
+	            FROM TB_LMS_EXAM_BSC B
+	            WHERE B.EXAM_SBST_REF_ID = A.DSCS_ID
+	        )
+	        ELSE 'S'
+	      END AS stareType
+	
+	    , A.DSCS_TTL AS forumTitle
+	    , A.DSCS_CTS AS forumArtl
+	    , A.DSCS_SDTTM AS forumStartDttm
+	    , A.DSCS_EDTTM AS forumEndDttm
+	    , A.MRK_RFLTYN AS scoreAplyYn
+	    , A.MRK_OYN AS scoreOpenYn
+	    , A.PRD_AFTR_WRTYN AS periodAfterWriteYn
+	    , A.DSCS_OYN AS forumOpenYn
+	    , A.TEAM_DSCS_STNGYN AS teamForumCfgYn
+	    , A.TEAM_TYCD AS teamCtgrCd
+	    , A.TEAM_DSCS_ATCL_OYN AS teamAtclOpenYn
+	    , A.PROS_CONS_FORUM_CFG AS prosConsForumCfg
+	    , A.OKNOKRT_OYN AS prosConsRateOpenYn
+	    , A.OKNOK_MODYN AS prosConsModYn
+	    , A.REG_OPEN_YN AS regOpenYn
+	    , A.MLT_OPNN_REGYN AS multiAtclYn
+	    , A.EVL_RSLT_OYN AS evalRsltOpenYn
+	    , A.EVL_CRTR_USEYN AS evalCritUseYn
+	    , A.MTL_EVLYN AS mutEvalYn
+	    , A.MRK_OPEN_SDTTM AS scoreOpenDttm
+	    , NVL(A.MRK_RFLTRT, 0) AS scoreRatio
+	    , A.AVG_MRK_OYN AS avgScoreOpenYn
+	    , A.DVCLAS_REGYN AS declsRegYn
+	    , A.PUSH_NOTIYN AS pushNoticeYn
+	    , A.OTEAM_DSCS_INQYN AS otherTeamViewYn
+	    , A.OTEAM_CMNT_WRT_PSBLYN AS otherTeamAplyYn
+	    , A.DELYN AS delYn
+	    , A.FRST_INQ_DTTM AS regDttm
+	
+	    , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumAtclCnt
+	    , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumCmntCnt
+	
+	    , CASE
+	        WHEN A.DSCS_TYCD = 'SUBS' THEN (
+	            SELECT COUNT(*)
+	            FROM TB_LMS_ATNDLC_SBJCT S
+	            JOIN TB_LMS_USER_ACNT L ON S.USER_ID = L.USER_ID
+	            WHERE S.SBJCT_ID = A.SBJCT_ID
+	              AND S.ATNDLC_STSCD = 'S'
+	              AND L.ACNT_STSCD = 'U'
+	              AND S.AUDITYN = 'N'
+	              AND S.STD_ID IN (
+	                  SELECT STD_ID
+	                  FROM TB_LMS_EXAM_STARE
+	                  WHERE REEXAMYN = 'Y'
+	                    AND EXAM_ID = NVL((
+	                        SELECT MAX(EXAM_ID)
+	                        FROM TB_LMS_EXAM_BSC
+	                        WHERE EXAM_SBST_REF_ID = A.DSCS_ID
+	                          AND EXAM_CTGRCD = 'EXAM'
+	                          AND DELYN = 'N'
+	                    ), '')
+	              )
+	        )
+	        ELSE (
+	            SELECT COUNT(*)
+	            FROM TB_LMS_ATNDLC_SBJCT S
+	            JOIN TB_LMS_USER_ACNT L ON S.USER_ID = L.USER_ID
+	            WHERE S.SBJCT_ID = A.SBJCT_ID
+	              AND S.ATNDLC_STSCD = 'S'
+	              AND L.ACNT_STSCD = 'U'
+	              AND S.AUDITYN = 'N'
+	        )
+	      END AS forumUserTotalCnt
+	
+	    , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND RGTR_ID = #{userId}) AS forumMyAtclCnt
+	    , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND RGTR_ID = #{userId}) AS forumMyCmntCnt
+	
+	    , CASE
+	        WHEN A.DSCS_TYCD = 'SUBS' THEN (
+	            SELECT COUNT(1)
+	            FROM TB_LMS_ATNDLC_SBJCT AA
+	            WHERE AA.SBJCT_ID = #{crsCreCd}
+	              AND AA.ATNDLC_STSCD = 'S'
+	              AND AA.AUDITYN = 'N'
+	              AND AA.STD_ID IN (
+	                  SELECT STD_ID
+	                  FROM TB_LMS_EXAM_STARE
+	                  WHERE REEXAMYN = 'Y'
+	                    AND EXAM_ID = (
+	                        SELECT MAX(EXAM_ID)
+	                        FROM TB_LMS_EXAM_BSC
+	                        WHERE EXAM_SBST_REF_ID = A.DSCS_ID
+	                          AND EXAM_CTGRCD = 'EXAM'
+	                          AND DELYN = 'N'
+	                    )
+	              )
+	              AND (
+	                  EXISTS (SELECT 1 FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+	                  OR EXISTS (SELECT 1 FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+	              )
+	        )
+	        ELSE (
+	            SELECT COUNT(1)
+	            FROM TB_LMS_ATNDLC_SBJCT AA
+	            WHERE AA.SBJCT_ID = #{crsCreCd}
+	              AND AA.ATNDLC_STSCD = 'S'
+	              AND AA.AUDITYN = 'N'
+	              AND (
+	                  EXISTS (SELECT 1 FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+	                  OR EXISTS (SELECT 1 FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+	              )
+	        )
+	      END AS forumJoinUserCnt
+	
+	    , (SELECT SCR
+	       FROM TB_LMS_DSCS_PTCP B
+	       WHERE B.DSCS_ID = A.DSCS_ID
+	         AND B.DELYN = 'N'
+	         AND B.STD_ID = (
+	             SELECT STD_ID
+	             FROM TB_LMS_ATNDLC_SBJCT
+	             WHERE SBJCT_ID = #{crsCreCd}
+	               AND USER_ID = #{userId}
+	               AND ATNDLC_STSCD = 'S'
+	       )
+	    ) AS forumMyScore
+	
+	    , CASE
+	        WHEN EXISTS (
+	            SELECT 1
+	            FROM TB_LMS_DSCS_FDBK B
+	            WHERE B.DSCS_ID = A.DSCS_ID
+	              AND B.STD_ID = (
+	                  SELECT STD_ID
+	                  FROM TB_LMS_ATNDLC_SBJCT
+	                  WHERE SBJCT_ID = #{crsCreCd}
+	                    AND USER_ID = #{userId}
+	                    AND ATNDLC_STSCD = 'S'                )
+	        ) THEN 1
+	        ELSE 0
+	    END AS forumMyFdbk
+	
+	FROM TB_LMS_DSCS A
+	WHERE A.DELYN = 'N'
+	
+	<if test="crsCreCd != null and crsCreCd != ''">
+	    AND A.SBJCT_ID = #{crsCreCd}
+	</if>
+	
+	<if test="searchValue != null and searchValue != ''">
+	    AND (
+	        LOWER(DSCS_TYCD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	        OR LOWER(DSCS_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	    )
+	</if>
+	
+	<if test="stdNo != null and stdNo != ''">
+	    AND A.DSCS_OYN = 'Y'
+	</if>
+	
+	<if test="forumStartDttm != null and forumStartDttm != '' and forumEndDttm != null and forumEndDttm != ''">
+	    <![CDATA[
+	        AND TO_DATE(A.DSCS_SDTTM, 'YYYYMMDDHH24MISS') 
+	        BETWEEN TO_DATE(#{forumStartDttm}, 'YYYYMMDDHH24MISS') 
+	        AND TO_DATE(#{forumEndDttm}, 'YYYYMMDDHH24MISS')
+	    ]]>
+	</if>
+	
+	</sql>
+	<!-- <sql id="selectQuery">
+		SELECT COUNT(*) OVER()			AS totalCnt
+			, A.DSCS_ID				AS forumCd
+			, A.SBJCT_ID				AS crsCreCd
+			, A.DSCS_TYCD			AS forumCtgrCd
+			<choose>
+				<when test="searchKeyNm == 'STUDENT' or searchKeyNm =='' or searchKeyNm == null">
+			, CASE 
+			    WHEN A.DSCS_TYCD = 'SUBS' THEN (
+			        SELECT 'Y'
+			        FROM TB_LMS_EXAM_STARE
+			        WHERE REEXAMYN = 'Y'
+			          AND STD_ID = (
+			              SELECT STD_ID 
+			              FROM TB_LMS_ATNDLC_SBJCT 
+			              WHERE SBJCT_ID = #{crsCreCd}
+			                AND USER_ID = #{userId}
+			                AND ATNDLC_STSCD = 'S'
+			          )
+			          AND EXAM_ID = (
+			              SELECT MAX(EXAM_ID) 
+			              FROM TB_LMS_EXAM_BSC 
+			              WHERE EXAM_SBST_REF_ID = A.DSCS_ID
+			          )
+			        GROUP BY STD_ID
+			    )
+			    ELSE 'Y'
+			  END AS absent
+				</when>
+				<otherwise>
+			, 'Y' AS absent
+				</otherwise>
+			</choose>
+			, CASE
+	            WHEN A.DSCS_TYCD IN ('SUBS', 'EXAM') THEN (
+	                SELECT MAX(TKEXAM_TYCD)
+	                FROM TB_LMS_EXAM_BSC B
+	                WHERE B.EXAM_SBST_REF_ID = A.DSCS_ID
+	            )
+	            ELSE 'S'
+	        END AS stareType
+			, A.DSCS_TTL				AS forumTitle
+			, A.DSCS_CTS				AS forumArtl
+			, A.DSCS_SDTTM 		AS forumStartDttm
+ 			, A.DSCS_EDTTM			AS forumEndDttm
+			, A.MRK_RFLTYN			AS scoreAplyYn
+			, A.MRK_OYN			AS scoreOpenYn
+			, A.PRD_AFTR_WRTYN	AS periodAfterWriteYn
+			, A.DSCS_OYN			AS forumOpenYn
+			, A.TEAM_DSCS_STNGYN		AS teamForumCfgYn
+			, A.TEAM_TYCD			AS teamCtgrCd
+			, A.TEAM_DSCS_ATCL_OYN		AS teamAtclOpenYn
+			, A.PROS_CONS_FORUM_CFG		AS prosConsForumCfg
+			, A.OKNOKRT_OYN	AS prosConsRateOpenYn
+			, A.OKNOK_MODYN		AS prosConsModYn
+			, A.REG_OPEN_YN				AS regOpenYn
+			, A.MLT_OPNN_REGYN			AS multiAtclYn
+			, A.EVL_RSLT_OYN		AS evalRsltOpenYn
+			, A.EVL_CRTR_USEYN		AS evalCritUseYn
+			, A.MTL_EVLYN				AS mutEvalYn
+			, A.MRK_OPEN_SDTTM			AS scoreOpenDttm
+			, NVL(A.MRK_RFLTRT, 0)		AS scoreRatio
+			, A.AVG_MRK_OYN		AS avgScoreOpenYn
+			, A.DVCLAS_REGYN			AS declsRegYn
+			, A.PUSH_NOTIYN			AS pushNoticeYn
+			, A.OTEAM_DSCS_INQYN		AS otherTeamViewYn
+			, A.OTEAM_CMNT_WRT_PSBLYN		AS otherTeamAplyYn
+			, A.DELYN					AS delYn
+			, A.FRST_INQ_DTTM				AS regDttm
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumAtclCnt
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumCmntCnt
+			
+			, CASE
+	            WHEN A.DSCS_TYCD = 'SUBS' THEN (
+	                SELECT COUNT(*)
+	                FROM TB_LMS_ATNDLC_SBJCT S
+	                JOIN TB_LMS_USER_ACNT L ON S.USER_ID = L.USER_ID
+	                WHERE S.SBJCT_ID = A.SBJCT_ID
+	                  AND S.ATNDLC_STSCD = 'S'
+	                  AND L.ACNT_STSCD = 'U'
+	                  AND S.AUDITYN = 'N'
+	                  AND S.STD_ID IN (
+	                      SELECT STD_ID
+	                      FROM TB_LMS_EXAM_STARE
+	                      WHERE REEXAMYN = 'Y'
+	                        AND EXAM_ID = NVL((
+	                            SELECT MAX(EXAM_ID)
+	                            FROM TB_LMS_EXAM_BSC
+	                            WHERE EXAM_SBST_REF_ID = A.DSCS_ID
+	                              AND EXAM_CTGRCD = 'EXAM'
+	                              AND DELYN = 'N'
+	                        ), '')
+	                  )
+	            )
+	            ELSE (
+	                SELECT COUNT(*)
+	                FROM TB_LMS_ATNDLC_SBJCT S
+	                JOIN TB_LMS_USER_ACNT L ON S.USER_ID = L.USER_ID
+	                WHERE S.SBJCT_ID = A.SBJCT_ID
+	                  AND S.ATNDLC_STSCD = 'S'
+	                  AND L.ACNT_STSCD = 'U'
+	                  AND S.AUDITYN = 'N'
+	            )
+	        END AS forumUserTotalCnt,
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND RGTR_ID IS NULL) AS forumMyAtclCnt
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND RGTR_ID IS NULL) AS forumMyCmntCnt,
+			, CASE WHEN A.DSCS_TYCD = 'SUBS'
+				   THEN (
+				   		SELECT COUNT(1)
+				   		FROM TB_LMS_ATNDLC_SBJCT AA
+				   		WHERE AA.SBJCT_ID = #{crsCreCd}
+				   		AND AA.ATNDLC_STSCD = 'S'
+				   		AND AA.AUDITYN = 'N'
+				   		AND AA.STD_ID IN (
+				   			SELECT STD_ID
+				   			FROM TB_LMS_EXAM_STARE
+				   			WHERE REEXAMYN = 'Y'
+				   			AND EXAM_ID = (SELECT EXAM_ID FROM TB_LMS_EXAM_BSC WHERE EXAM_SBST_REF_ID = A.DSCS_ID AND EXAM_CTGRCD = 'EXAM' AND DELYN = 'N')
+				   		)
+				   		AND (
+				   			   EXISTS(SELECT 1 FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+				   			OR EXISTS(SELECT 1 FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+				   		)
+			   	   )
+				   ELSE (
+				   		SELECT COUNT(1)
+				   		FROM TB_LMS_ATNDLC_SBJCT AA
+				   		WHERE AA.SBJCT_ID = #{crsCreCd}
+				   		AND AA.ATNDLC_STSCD = 'S'
+				   		AND AA.AUDITYN = 'N'
+				   		AND (
+				   			   EXISTS(SELECT 1 FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+				   			OR EXISTS(SELECT 1 FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+				   		)
+				   )
+				   END AS forumJoinUserCnt
+			, (SELECT SCR
+		         FROM TB_LMS_DSCS_PTCP B
+		         WHERE B.DSCS_ID = A.DSCS_ID
+		           AND B.DELYN = 'N'
+		           AND B.STD_ID = (
+		               SELECT STD_ID
+		               FROM TB_LMS_ATNDLC_SBJCT
+		               WHERE SBJCT_ID = '202510CME00001'
+		                 AND USER_ID IS NULL
+		                 AND ATNDLC_STSCD = 'S'
+		         )
+		        ) AS forumMyScore,
+			, CASE WHEN A.DSCS_TYCD = 'SUBS'
+			 	   THEN (
+				   		SELECT COUNT(1)
+				   		FROM TB_LMS_ATNDLC_SBJCT AA
+				   		JOIN TB_LMS_DSCS_PTCP BB
+				   		ON AA.STD_ID = BB.STD_ID
+				   		AND BB.DSCS_ID = A.DSCS_ID
+				   		AND BB.DELYN = 'N'
+				   		AND BB.EVLYN = 'Y'
+				   		AND BB.SCR IS NOT NULL
+				   		WHERE AA.SBJCT_ID = #{crsCreCd}
+				   		AND AA.ATNDLC_STSCD = 'S'
+				   		AND AA.AUDITYN = 'N'
+				   		AND AA.STD_ID IN (
+				   			SELECT STD_ID
+				   			FROM TB_LMS_EXAM_STARE
+				   			WHERE REEXAMYN = 'Y'
+				   			AND EXAM_ID = (SELECT EXAM_ID FROM TB_LMS_EXAM_BSC WHERE EXAM_SBST_REF_ID = A.DSCS_ID AND EXAM_CTGRCD = 'EXAM' AND DELYN = 'N')
+				   		)
+				   		AND (
+				   			   EXISTS(SELECT 1 FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+				   			OR EXISTS(SELECT 1 FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+				   		)
+			   	   )
+			 	   ELSE (
+				   		SELECT COUNT(1)
+				   		FROM TB_LMS_ATNDLC_SBJCT AA
+				   		JOIN TB_LMS_DSCS_PTCP BB
+				   		ON AA.STD_ID = BB.STD_ID
+				   		AND BB.DSCS_ID = A.DSCS_ID
+				   		AND BB.DELYN = 'N'
+				   		AND BB.EVLYN = 'Y'
+				   		AND BB.SCR IS NOT NULL
+				   		WHERE AA.SBJCT_ID = #{crsCreCd}
+				   		AND AA.ATNDLC_STSCD = 'S'
+				   		AND AA.AUDITYN = 'N'
+				   		AND (
+				   			   EXISTS(SELECT 1 FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+				   			OR EXISTS(SELECT 1 FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = A.DSCS_ID AND STD_ID = AA.STD_ID AND DELYN = 'N')
+				   		)
+			   	   )
+			 	   END AS forumEvalCnt
+			, <![CDATA[ 
+			CASE WHEN (TO_DATE(A.DSCS_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 > 0 THEN '대기'
+ 				 WHEN (TO_DATE(A.DSCS_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 < 0 and (TO_DATE(A.DSCS_EDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 > 0 THEN '진행중'
+ 				 WHEN (TO_DATE(A.DSCS_EDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 <0 THEN '마감' end as forumStatus ]]>
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_FDBK B WHERE B.DSCS_ID = A.DSCS_ID AND B.STD_ID = (
+				SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID= #{crsCreCd} AND  USER_ID = #{userId} AND ATNDLC_STSCD = 'S'
+			)) AS forumMyFdbk
+		FROM TB_LMS_DSCS A
+		WHERE 1 = 1
+			AND A.DELYN ='N'
+		<if test="crsCreCd != null and crsCreCd != ''">
+			AND A.SBJCT_ID = #{crsCreCd}
+		</if>
+		<if test='searchValue != null and searchValue != ""'>
+			 AND (
+			 	LOWER(DSCS_TYCD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			 	OR LOWER(DSCS_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			 )
+		</if>
+		<if test='stdNo != null and stdNo != ""'>
+			AND A.DSCS_OYN = 'Y'
+		</if>
+		<if test='forumStartDttm != null and forumStartDttm != "" and forumEndDttm != null and forumEndDttm != ""'>
+			<![CDATA[
+				AND TO_DATE(A.DSCS_SDTTM, 'YYYYMMDDHH24MISS') BETWEEN TO_DATE(#{forumStartDttm}, 'YYYYMMDDHH24MISS') AND TO_DATE(#{forumEndDttm}, 'YYYYMMDDHH24MISS')
+			]]>
+		</if>
+	</sql> -->
+	
+	<select id="count" parameterType="forumVO" resultType="int">
+		/*
+			토론 개수 조회
+			ForumDAO.count
+		*/
+		SELECT COUNT(*) FROM (
+			<include refid="selectQuery" />
+		) Z
+		WHERE Z.absent = 'Y'
+	</select>
+
+	<select id="list" parameterType="forumVO" resultType="forumVO">
+		/*
+			토론 리스트 조회
+			ForumDAO.list
+		*/
+		<if test="listScale != 9999">
+			<include refid="CommonSQL.pagePrefix" />
+		</if>
+		SELECT ROW_NUMBER() OVER(ORDER BY forumStartDttm, regDttm) AS LINE_NO
+			, totalCnt
+			, forumCd
+			, crsCreCd
+			, forumCtgrCd
+			, forumTitle
+			, forumArtl
+			, forumStartDttm
+			, forumEndDttm
+			, scoreAplyYn
+			, scoreOpenYn
+			, periodAfterWriteYn
+			, forumOpenYn
+			, teamForumCfgYn
+			, teamCtgrCd
+			, teamAtclOpenYn
+			, prosConsForumCfg
+			, prosConsRateOpenYn
+			, prosConsModYn
+			, regOpenYn
+			, multiAtclYn
+			, evalRsltOpenYn
+			, evalCritUseYn
+			, mutEvalYn
+			, scoreOpenDttm
+			, scoreRatio
+			, stareType
+			, avgScoreOpenYn
+			, declsRegYn
+			, pushNoticeYn
+			, otherTeamViewYn
+			, otherTeamAplyYn
+			, delYn
+			, forumAtclCnt
+			, forumCmntCnt
+			, forumUserTotalCnt
+			, forumMyAtclCnt
+			, forumMyCmntCnt
+			, forumJoinUserCnt
+			, forumMyScore
+			-- , forumEvalCnt
+			-- , forumStatus
+			, forumMyFdbk
+		FROM (
+		<include refid="selectQuery" />
+		) TT
+		WHERE TT.absent = 'Y'
+		ORDER BY forumStartDttm DESC, regDttm DESC
+		<if test="listScale != 9999">
+			<include refid="CommonSQL.pageSubfix" />
+		</if>
+	</select>
+
+	<select id="selectForum" parameterType="forumVO" resultType="forumVO">
+		/*
+			토론 리스트
+			ForumDAO.selectForum
+		*/
+		SELECT A.DSCS_ID 				AS forumCd
+			, A.SBJCT_ID				AS crsCreCd
+			, A.TEAM_DSCS_STNGYN		AS teamForumCfgYn
+			, A.TEAM_TYCD			AS teamCtgrCd
+			, (SELECT TEAM_CTGRNM FROM TB_LMS_TEAM_CTGR WHERE TEAM_TYCD = A.TEAM_TYCD) AS teamCtgrNm
+			, A.DSCS_SDTTM		AS forumStartDttm
+ 			, A.DSCS_EDTTM			AS forumEndDttm
+			, A.DSCS_OYN			AS forumOpenYn
+			, A.MRK_RFLTYN			AS scoreAplyYn
+			, A.MRK_OYN			AS scoreOpenYn
+			, A.MRK_OPEN_SDTTM			AS scoreOpenDttm
+			, A.RGTR_ID					AS rgtrId
+			, A.FRST_INQ_DTTM				AS regDttm
+			, A.MOD_DTTM				AS modDttm
+			, A.PRD_AFTR_WRTYN	AS periodAfterWriteYn
+			, A.EXTD_EDTTM			AS extEndDttm
+			, A.DSCS_TYCD	 		AS forumCtgrCd
+			, A.DSCS_TTL			 	AS forumTitle
+			, A.DSCS_CTS			 	AS forumArtl
+			, A.TEAM_DSCS_ATCL_OYN		AS teamAtclOpenYn
+			, NVL(A.PROS_CONS_FORUM_CFG, 'N') AS prosConsForumCfg
+			, A.OKNOKRT_OYN	AS prosConsRateOpenYn
+			, A.REG_OPEN_YN				AS regOpenYn
+			, A.MLT_OPNN_REGYN			AS multiAtclYn
+			, A.OKNOK_MODYN		AS prosConsModYn
+			, A.EVL_RSLT_OYN		AS evalRsltOpenYn
+			, A.EVL_CRTR_USEYN		AS evalCritUseYn
+			, A.EVL_CTGRCD				AS evalCtgr
+			, A.MTL_EVLYN				AS mutEvalYn
+			, A.MRK_RFLTRT				AS scoreRatio
+			, A.AVG_MRK_OYN		AS avgScoreOpenYn
+			, A.DVCLAS_REGYN			AS declsRegYn
+			, A.PUSH_NOTIYN			AS pushNoticeYn
+			, A.APLY_CMNT_RSPNSYN				AS aplyAsnYn
+			, A.DELYN					AS delYn
+			, A.EVL_RSLT_OYN		AS evalRsltOpenYn
+			, A.EVL_SDTTM			AS evalStartDttm
+			, A.EVL_EDTTM			AS evalEndDttm
+			, A.OTHER_VIEW_YN			AS otherViewYn
+			, A.OTEAM_DSCS_INQYN		AS otherTeamViewYn
+			, A.OTEAM_CMNT_WRT_PSBLYN		AS otherTeamAplyYn
+			, A.LCTR_SCHDL_ID		AS lessonScheduleId
+			, (SELECT LCTR_SCHDLNM FROM TB_LMS_SBJCT_LCTR_SCHDL WHERE LCTR_SCHDL_ID = A.LCTR_SCHDL_ID) AS lessonScheduleNm
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumAtclCnt
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumCmntCnt
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_TYCD = 'P' AND B.ATCL_LV = 0) AS forumAtclPorsCnt 
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_TYCD = 'C' AND B.ATCL_LV = 0) AS forumAtclConsCnt 
+			, (SELECT COUNT(*) FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID = #{crsCreCd} AND ATNDLC_STSCD = 'S') AS forumUserTotalCnt
+			, (SELECT SBJCTNM || ' ' || DVCLAS_NO FROM TB_LMS_SBJCT WHERE SBJCT_ID = #{crsCreCd}) AS crsCreNm
+			, (
+				SELECT COUNT(*) FROM (
+					SELECT DISTINCT S.STD_ID, B.DSCS_ID AS DSCS_ID
+					FROM TB_LMS_ATNDLC_SBJCT S
+						JOIN TB_LMS_DSCS_ATCL B
+							ON S.STD_ID = B.STD_ID 
+						LEFT OUTER JOIN TB_LMS_DSCS_CMNT C
+							ON S.STD_ID = C.STD_ID 
+					WHERE S.SBJCT_ID = #{crsCreCd}
+						AND ATNDLC_STSCD = 'S'
+						AND (B.DELYN ='N'OR C.DELYN ='N')
+				) T
+				WHERE T.DSCS_ID = A.DSCS_ID
+			) AS forumJoinUserCnt
+			, (
+				SELECT
+					T.ASMT_MTL_EVL_RSLT_ID
+				FROM MTL_EVL T
+					LEFT JOIN TB_LMS_MUT_EVAL_RLTN B
+					ON T.ASMT_MTL_EVL_RSLT_ID = B.ASMT_MTL_EVL_RSLT_ID
+				WHERE T.DELYN = 'N' 
+				  AND B.LINK_CD = A.DSCS_ID
+			) AS evalCd
+			, (
+				SELECT
+					T.MTL_EVL_TTL
+				FROM MTL_EVL T
+					LEFT JOIN TB_LMS_MUT_EVAL_RLTN B
+					ON T.ASMT_MTL_EVL_RSLT_ID = B.ASMT_MTL_EVL_RSLT_ID
+				WHERE T.DELYN = 'N' AND B.LINK_CD = A.DSCS_ID
+			) AS evalTitle 
+			, CASE WHEN ((TO_DATE(A.DSCS_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 <![CDATA[ < ]]> 0 AND ROUND((TO_DATE(A.DSCS_EDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400) <![CDATA[ > ]]> 0) OR A.PRD_AFTR_WRTYN = 'Y' 
+    			   THEN CASE WHEN NVL((SELECT AUDITYN FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID = #{crsCreCd} AND USER_ID = #{userId} AND ATNDLC_STSCD = 'S'), 'Y') = 'Y' THEN 'N' ELSE 'Y' END ELSE 'N' END AS writeAuth
+			, NVL((SELECT EXAM_ID FROM TB_LMS_EXAM_BSC WHERE EXAM_SBST_REF_ID = A.DSCS_ID AND DELYN = 'N'), '') AS parExamCd
+			, NVL((SELECT TKEXAM_TYCD FROM TB_LMS_EXAM_BSC WHERE EXAM_SBST_REF_ID = A.DSCS_ID AND DELYN = 'N'), '') AS examStareTypeCd
+			, NVL((SELECT EXAM_EDTTM FROM TB_LMS_EXAM_BSC WHERE EXAM_SBST_REF_ID = A.DSCS_ID AND DELYN = 'N'), '') AS parExamEndDttm
+			FROM TB_LMS_DSCS A
+			WHERE A.DSCS_ID = #{forumCd}
+	</select>
+
+	<update id="updateForum" parameterType="forumVO">
+		/*
+			토론 정보 수정
+			ForumDAO.updateForum
+		*/
+		UPDATE TB_LMS_DSCS
+		SET MOD_DTTM				= FN_DTTM()
+		<if test='crsCreCd != null and crsCreCd != ""'>
+		, SBJCT_ID				= #{crsCreCd}
+		</if>
+		<if test='forumStartDttm != null and forumStartDttm != ""'>
+		, DSCS_SDTTM			= #{forumStartDttm}
+		</if>
+		<if test='forumEndDttm != null and forumEndDttm != ""'>
+		, DSCS_EDTTM			= #{forumEndDttm}
+		</if>
+		<if test='scoreAplyYn != null and scoreAplyYn != ""'>
+		, MRK_RFLTYN				= #{scoreAplyYn}
+		</if>
+		<if test='scoreOpenYn != null and scoreOpenYn != ""'>
+		, MRK_OYN				= #{scoreOpenYn}
+		</if>
+		<if test='evalCtgr != null and evalCtgr != ""'>
+		, EVL_CTGRCD					= #{evalCtgr}
+		</if>
+		<if test='periodAfterWriteYn != null and periodAfterWriteYn != ""'>
+		, PRD_AFTR_WRTYN		= #{periodAfterWriteYn}
+		</if>
+		<if test='extEndDttm != null'>
+		, EXTD_EDTTM				= CASE WHEN #{extEndDttm} = '' THEN NULL ELSE #{extEndDttm} END
+		</if>
+		<if test='forumCtgrCd != null and forumCtgrCd != ""'>
+		, DSCS_TYCD				= #{forumCtgrCd}
+		</if>
+		<if test='forumTitle != null and forumTitle != ""'>
+		, DSCS_TTL				= #{forumTitle}
+		</if>
+		<if test='forumArtl != null and forumArtl != ""'>
+		, DSCS_CTS				= #{forumArtl}
+		</if>
+		<if test='forumOpenYn != null and forumOpenYn != ""'>
+		, DSCS_OYN				= #{forumOpenYn}
+		</if>
+		<if test='scoreOpenDttm != null and scoreOpenDttm != ""'>
+		, MRK_OPEN_SDTTM			= #{scoreOpenDttm}
+		</if>
+		<if test='teamAtclOpenYn != null and teamAtclOpenYn != ""'>
+		, TEAM_DSCS_ATCL_OYN			= #{teamAtclOpenYn}
+		</if>
+		<if test='prosConsForumCfg != null and prosConsForumCfg != ""'>
+		, PROS_CONS_FORUM_CFG		= #{prosConsForumCfg}
+		</if>
+		<if test='prosConsRateOpenYn != null and prosConsRateOpenYn != ""'>
+		, OKNOKRT_OYN	= #{prosConsRateOpenYn}
+		</if>
+		<if test='regOpenYn != null and regOpenYn != ""'>
+		, REG_OPEN_YN				= #{regOpenYn}
+		</if>
+		<if test='multiAtclYn != null and multiAtclYn != ""'>
+		, MLT_OPNN_REGYN				= #{multiAtclYn}
+		</if>
+		<if test='prosConsModYn != null and prosConsModYn != ""'>
+		, OKNOK_MODYN			= #{prosConsModYn}
+		</if>
+		<if test='teamCtgrCd != null and teamCtgrCd != ""'>
+		, TEAM_TYCD				= #{teamCtgrCd}
+		</if>
+		<if test='evalRsltOpenYn != null and evalRsltOpenYn != ""'>
+		, EVL_RSLT_OYN			= #{evalRsltOpenYn}
+		</if>
+		<if test='evalCritUseYn != null and evalCritUseYn != "" '>
+		, EVL_CRTR_USEYN			= #{evalCritUseYn}
+		</if>
+		<if test='evalStartDttm != null'>
+		, EVL_SDTTM			= CASE WHEN #{evalStartDttm} = '' THEN NULL ELSE #{evalStartDttm} END
+		</if>
+		<if test='evalEndDttm != null'>
+		, EVL_EDTTM				= CASE WHEN #{evalEndDttm} = '' THEN NULL ELSE #{evalEndDttm} END
+		</if>
+		<if test='scoreRatio != null and scoreRatio != ""'>
+		, MRK_RFLTRT				= #{scoreRatio}
+		</if>
+		<if test='avgScoreOpenYn != null and avgScoreOpenYn != ""'>
+		, AVG_MRK_OYN			= #{avgScoreOpenYn}
+		</if>
+		<if test='declsRegYn != null and declsRegYn != ""'>
+		, DVCLAS_REGYN				= #{declsRegYn}
+		</if>
+		<if test='mutEvalYn != null and mutEvalYn != ""'>
+		, MTL_EVLYN				= #{mutEvalYn}
+		</if>
+		<if test='otherViewYn != null and otherViewYn != ""'>
+		, OTHER_VIEW_YN				= #{otherViewYn}
+		</if>
+		<if test='aplyAsnYn != null and aplyAsnYn != ""'>
+		, APLY_CMNT_RSPNSYN				= #{aplyAsnYn}
+		</if>
+		<if test='otherTeamViewYn != null and otherTeamViewYn != ""'>
+		, OTEAM_DSCS_INQYN 		= #{otherTeamViewYn}
+		</if>
+		<if test='otherTeamAplyYn != null and otherTeamAplyYn != ""'>
+		, OTEAM_CMNT_WRT_PSBLYN		= #{otherTeamAplyYn}
+		</if>
+		<if test='lessonScheduleId != null and lessonScheduleId != "" '>
+		<choose>
+			<when test="lessonScheduleId == 'DEFALUT'">
+				, LCTR_SCHDL_ID = NULL
+			</when>
+			<otherwise>
+				, LCTR_SCHDL_ID = #{lessonScheduleId}
+			</otherwise>
+		</choose>
+		</if>
+		WHERE DSCS_ID= #{forumCd}
+	</update>
+
+	<insert id="insertForum" parameterType="forumVO">
+		/*
+			토론정보 등록
+			ForumDAO.insertForum
+		*/
+		INSERT INTO TB_LMS_DSCS (
+			DSCS_ID
+			, SBJCT_ID
+			, DSCS_SDTTM
+			, DSCS_EDTTM
+			, EXTD_EDTTM
+			, MRK_RFLTYN
+			, MRK_OYN	
+			, PRD_AFTR_WRTYN
+			, DSCS_TYCD
+			, DSCS_TTL
+			, DSCS_CTS
+			, DSCS_OYN
+			, TEAM_DSCS_STNGYN
+			, TEAM_TYCD
+			, MRK_OPEN_SDTTM
+			, TEAM_DSCS_ATCL_OYN
+			, PROS_CONS_FORUM_CFG
+			, OKNOKRT_OYN
+			, REG_OPEN_YN
+			, MLT_OPNN_REGYN
+			, OKNOK_MODYN
+			, EVL_RSLT_OYN
+			, EVL_CRTR_USEYN
+			, EVL_CTGRCD
+			, EVL_SDTTM
+			, EVL_EDTTM
+			, MTL_EVLYN
+			, MRK_RFLTRT
+			, AVG_MRK_OYN
+			, DVCLAS_REGYN
+			, PUSH_NOTIYN
+			, APLY_CMNT_RSPNSYN
+			, OTEAM_DSCS_INQYN
+			, OTEAM_CMNT_WRT_PSBLYN
+			, LCTR_SCHDL_ID
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, DELYN
+			)
+		VALUES(
+			  #{forumCd}
+			, #{crsCreCd}
+			, #{forumStartDttm}
+			, #{forumEndDttm}
+			, #{extEndDttm}
+			, NVL(#{scoreAplyYn},'N')
+			, NVL(#{scoreOpenYn},'N')
+			, NVL(#{periodAfterWriteYn},'N')
+			, #{forumCtgrCd}
+			, #{forumTitle}
+			, #{forumArtl}
+			, NVL(#{forumOpenYn},'Y')
+			, NVL(#{teamForumCfgYn}, 'Y')
+			, #{teamCtgrCd}
+			, #{scoreOpenDttm}
+			, NVL(#{teamAtclOpenYn},'N')
+			, NVL(#{prosConsForumCfg},'N')
+			, NVL(#{prosConsRateOpenYn},'N')
+			, NVL(#{regOpenYn},'N')
+			, NVL(#{multiAtclYn},'N')
+			, NVL(#{prosConsModYn},'N')
+			, NVL(#{evalRsltOpenYn},'N')
+			, NVL(#{evalCritUseYn},'N')
+			, NVL(#{evalCtgr},'1')
+			, #{evalStartDttm}
+			, #{evalEndDttm}
+			, NVL(#{mutEvalYn},'N')
+			, #{scoreRatio}
+			, NVL(#{avgScoreOpenYn},'N')
+			, NVL(#{declsRegYn},'N')
+			, NVL(#{pushNoticeYn},'N')
+			, NVL(#{aplyAsnYn},'N')
+			, NVL(#{otherTeamViewYn}, 'N')
+			, NVL(#{otherTeamAplyYn}, 'N')
+			<choose>
+				<when test="lessonScheduleId == 'DEFALUT'">
+					, NULL
+				</when>
+				<otherwise>
+					, #{lessonScheduleId}
+				</otherwise>
+			</choose>
+			, #{rgtrId}
+			, FN_DTTM()
+			, 'N'
+			)
+	</insert>
+	
+	<insert id="copyForum" parameterType="forumVO">
+		/*
+			토론정보 복사
+			ForumDAO.copyForum
+		*/
+		INSERT INTO TB_LMS_DSCS (
+			  DSCS_ID
+			, SBJCT_ID
+			, DSCS_SDTTM
+			, DSCS_EDTTM
+			, MRK_RFLTYN
+			, MRK_OYN	
+			, PRD_AFTR_WRTYN
+			, DSCS_TYCD
+			, DSCS_TTL
+			, DSCS_CTS
+			, DSCS_OYN
+			, TEAM_DSCS_STNGYN
+			<!-- , TEAM_TYCD -->
+			, MRK_OPEN_SDTTM
+			, TEAM_DSCS_ATCL_OYN
+			, PROS_CONS_FORUM_CFG
+			, OKNOKRT_OYN
+			, REG_OPEN_YN
+			, MLT_OPNN_REGYN
+			, OKNOK_MODYN
+			, EVL_RSLT_OYN
+			, EVL_CRTR_USEYN
+			, EVL_CTGRCD
+			, MTL_EVLYN
+			, MRK_RFLTRT
+			, AVG_MRK_OYN
+			, DVCLAS_REGYN
+			, PUSH_NOTIYN
+			, APLY_CMNT_RSPNSYN
+			, OTEAM_DSCS_INQYN
+			, OTEAM_CMNT_WRT_PSBLYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, DELYN
+		)
+		SELECT
+			  #{forumCd}
+			, #{crsCreCd}
+			, DSCS_SDTTM
+			, DSCS_EDTTM
+			, MRK_RFLTYN
+			, MRK_OYN	
+			, PRD_AFTR_WRTYN
+			, DSCS_TYCD
+			, DSCS_TTL
+			, DSCS_CTS
+			, DSCS_OYN
+			, TEAM_DSCS_STNGYN
+			<!-- , TEAM_TYCD -->
+			, MRK_OPEN_SDTTM
+			, TEAM_DSCS_ATCL_OYN
+			, PROS_CONS_FORUM_CFG
+			, OKNOKRT_OYN
+			, REG_OPEN_YN
+			, MLT_OPNN_REGYN
+			, OKNOK_MODYN
+			, EVL_RSLT_OYN
+			, EVL_CRTR_USEYN
+			, EVL_CTGRCD
+			, MTL_EVLYN
+			, MRK_RFLTRT
+			, AVG_MRK_OYN
+			, DVCLAS_REGYN
+			, PUSH_NOTIYN
+			, APLY_CMNT_RSPNSYN
+			, OTEAM_DSCS_INQYN
+			, OTEAM_CMNT_WRT_PSBLYN
+			, #{rgtrId}
+			<choose>
+				<when test='lineNo != null and lineNo != ""'>
+					, FN_DTTM_ADD_SEC(#{lineNo})
+				</when>
+				<otherwise>
+					, FN_DTTM()
+				</otherwise>
+			</choose>
+			, DELYN
+		FROM TB_LMS_DSCS
+		WHERE DSCS_ID = #{copyForumCd}
+	</insert>
+
+	<select id="selectTeamRltn" parameterType="forumVO" resultType="forumVO">
+		/*
+			팀 분류명 조회
+			ForumDAO.selectTeamRltn
+		*/
+	 	SELECT MAX(A.TEAM_TYCD) AS teamCtgrCd
+	 		, A.DSCS_ID AS forumCd
+			, (
+				SELECT B.TEAM_CTGRNM
+				FROM TB_LMS_TEAM_CTGR AS B
+				WHERE B.TEAM_TYCD = A.TEAM_TYCD
+			) AS teamCtgrNm
+		FROM TB_LMS_DSCS AS A
+		WHERE 1=1
+			AND A.DSCS_ID = #{forumCd}
+		GROUP BY A.DSCS_ID, A.TEAM_TYCD
+	</select>
+
+	<select id="listMyCreCrsForum" parameterType="forumVO" resultType="forumVO">
+		/*
+			내 강의에 등록된 토론 리스트
+			ForumDAO.listMyCreCrsForum
+		*/
+		SELECT ROW_NUMBER() OVER(ORDER BY A.SBJCTNM, B.FRST_INQ_DTTM DESC) AS lineNo
+			, B.DSCS_ID
+			, B.DSCS_TTL
+			, B.DSCS_TYCD
+			, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'DSCS_TYCD' AND CD = B.DSCS_TYCD LIMIT 1) AS FORUM_CTGR_NM
+			, A.SBJCT_ID
+			, A.CRS_ID
+			, A.SBJCTNM
+			, A.DVCLAS_NO
+			, COUNT(1) OVER() AS totalCnt
+		FROM (
+			SELECT 
+				  A.SBJCT_ID
+				, A.SBJCT_ID
+				, A.CRS_ID
+				, A.SBJCTNM
+				, A.DVCLAS_NO
+			FROM TB_LMS_SBJCT A
+			JOIN SBJCT_PROF B
+			ON A.SBJCT_ID = B.SBJCT_ID
+			AND B.PROF_TYCD = 'PROFESSOR'
+			AND B.RPRSYN = 'Y'
+			AND B.USER_ID = #{rgtrId}
+			JOIN TB_LMS_TERM_CRE_CRS_RLTN C
+			ON A.SBJCT_ID = C.SBJCT_ID
+			AND C.CRS_SMSTR_ID = #{termCd}
+			WHERE A.DELYN = 'N'
+			AND A.SBJCT_TYCD = 'UNI'
+			<if test="creYear != null and creYear != ''">
+			AND A.SBJCT_ID = #{creYear}
+			</if>
+			<if test="creTerm != null and creTerm != ''">
+			AND A.CRS_ID = #{creTerm}
+			</if>
+			<if test="crsCreCd != null and crsCreCd != ''">
+			AND A.SBJCT_ID = #{crsCreCd}
+			</if>
+		) A
+		JOIN TB_LMS_DSCS B
+		ON A.SBJCT_ID = B.SBJCT_ID
+		AND B.DELYN = 'N'
+		WHERE 1 = 1
+		<if test="searchValue != null and searchValue != ''">
+		AND LOWER(B.DSCS_TTL) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+		</if>
+		LIMIT #{firstIndex}, #{listScale}
+	</select>
+
+	<select id="select" parameterType="forumVO" resultType="forumVO">
+		/*
+			토론 정보 가져오기 ajax
+			ForumDAO.select
+		*/
+		SELECT
+			  A.SBJCT_ID
+			, A.DSCS_ID
+			, A.DSCS_TTL
+			, A.DSCS_CTS
+			, A.DVCLAS_REGYN
+			, A.DSCS_SDTTM
+			, A.DSCS_EDTTM
+			, A.MRK_RFLTYN
+			, A.EVL_CTGRCD
+			, A.TEAM_DSCS_STNGYN
+			, A.TEAM_TYCD
+			, A.MRK_OYN
+			, A.APLY_CMNT_RSPNSYN
+			, A.PROS_CONS_FORUM_CFG
+			, A.OKNOKRT_OYN
+			, A.REG_OPEN_YN
+			, A.MLT_OPNN_REGYN
+			, A.OKNOK_MODYN
+			, A.EVL_RSLT_OYN
+			, A.EVL_CRTR_USEYN
+			, A.EVL_CTGRCD
+			, A.EVL_SDTTM
+			, A.EVL_EDTTM
+			, A.MTL_EVLYN
+			, A.OTHER_VIEW_YN
+		FROM TB_LMS_DSCS A
+		WHERE DSCS_ID = #{forumCd}
+	</select>
+
+	<update id="deleteForumCreCrsRltn" parameterType="forumVO">
+		/*
+			개설과정토론 연결 삭제
+			ForumDAO.deleteForumCreCrsRltn
+		*/
+		UPDATE TB_LMS_FORUM_CRE_CRS_RLTN
+			SET DELYN='Y'
+		WHERE DSCS_ID = #{forumCd}
+	</update>
+
+	<update id="deleteForum" parameterType="forumVO">
+		/*
+			토론 삭제
+			ForumDAO.deleteForum
+		*/
+		UPDATE TB_LMS_DSCS
+			SET DELYN='Y'
+			, MOD_DTTM = FN_DTTM()
+		WHERE DSCS_ID= #{forumCd}
+	</update>
+
+	<insert id="insertForumJoinUser" parameterType="forumVO">
+		/*
+			토론 참여자 테이블에 수강생 등록
+			ForumDAO.insertForumJoinUser
+		*/
+		INSERT INTO TB_LMS_DSCS_PTCP (STD_ID, DSCS_ID, TEAM_ID, SCR, RGTR_ID, FRST_INQ_DTTM)
+		SELECT
+			STD_ID
+			, #{forumCd}
+			, TEAM_ID
+			, 0
+			, #{rgtrId}
+			, FN_DTTM() as FRST_INQ_DTTM
+		FROM TB_LMS_TEAM_MBR
+		WHERE TEAM_ID IN (
+			SELECT
+				TEAM_ID
+			FROM TB_LMS_TEAM A
+				LEFT JOIN TB_LMS_TEAM_CTGR B
+				ON A.TEAM_TYCD = B.TEAM_TYCD
+			WHERE 1 = 1
+				AND B.TEAM_TYCD = #{teamCtgrCd}
+		)
+	</insert>
+
+
+	<select id="selectScoreChart" parameterType="forumVO" resultType="egovMap">
+		/*
+			토론 성적 분포 현황
+			ForumDAO.selectScoreChart
+		*/
+		SELECT
+			MIN(SCR) AS minScore
+			, MAX(SCR) AS maxScore
+			, ROUND(AVG(SCR)) AS avgScore
+		FROM TB_LMS_DSCS_PTCP
+		WHERE DSCS_ID = #{forumCd}
+		GROUP BY DSCS_ID
+	</select>
+
+	<select id="viewForum" parameterType="forumVO" resultType="forumVO">
+		/*
+			토론정보 조회
+			ForumDAO.viewForum
+		*/
+		SELECT
+			DSCS_ID
+			, DSCS_TTL
+		FROM TB_LMS_DSCS
+		WHERE DSCS_ID = #{forumCd}
+	</select>
+
+	<select id="getScoreRatio" parameterType="forumVO" resultType="forumVO">
+		/*
+			성적반영비율 토론 리스트
+			ForumDAO.getScoreRatio
+		*/
+		SELECT
+			DSCS_ID AS forumCd
+		FROM TB_LMS_DSCS
+		WHERE 1 = 1
+			AND DELYN = 'N'
+			AND MRK_RFLTYN = 'Y'
+			AND SBJCT_ID = #{crsCreCd}
+	</select>
+
+	<update id="setScoreRatio" parameterType="forumVO">
+		/*
+			성적반영비율 초기화
+			ForumDAO.setScoreRatio
+		*/
+		UPDATE TB_LMS_DSCS
+			SET MRK_RFLTRT = #{scoreRatio}
+		WHERE DSCS_ID = #{forumCd}
+		
+	</update>
+
+	<select id="selectStdNo" parameterType="forumVO" resultType="String">
+		/*
+			stdNo 조회
+			ForumDAO.getStdNo
+		*/
+		SELECT
+			STD_ID
+		FROM TB_LMS_ATNDLC_SBJCT
+		WHERE USER_ID = #{userId}
+			AND ATNDLC_STSCD = 'S'
+			AND SBJCT_ID = #{crsCreCd}
+	</select>
+	
+	<select id="listForumByTeamCtgrCd" parameterType="forumVO" resultType="forumVO">
+		/*
+			팀 분류코드와 연결된 토론 목록 조회
+			ForumDAO.listForumByTeamCtgrCd
+		*/
+		SELECT
+			DSCS_ID
+	 	  FROM TB_LMS_DSCS
+	 	 WHERE DELYN = 'N'
+	 	   AND TEAM_TYCD = #{teamCtgrCd}
+	</select>
+
+</mapper>

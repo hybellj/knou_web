@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.bbs.dao.BbsRltnDAO">
+	
+	<select id="listBbsRltn" parameterType="bbsRltnVO" resultType="bbsRltnVO">
+		/*
+             SQL ID : BbsRltnDAO.listBbsRltn
+             설  명 : 게시판 정보 연결 목록
+         */
+		SELECT 
+			  BBS_ID
+			, RLTN_REF_CD
+			, CONTS_TYCD
+		FROM TB_HOME_BBS_RLTN A
+		<where>
+			<if test="bbsId != null and bbsId != ''">
+				AND A.BBS_ID = #{bbsId}
+			</if>
+			<if test="rltnRefCd != null and rltnRefCd != ''">
+				AND A.RLTN_REF_CD = #{rltnRefCd}
+			</if>
+			<if test="rltnType != null and rltnType != ''">
+				AND A.CONTS_TYCD = #{rltnType}
+			</if>
+		</where>
+	</select>
+	
+	<insert id="insertBbsRltn" parameterType="bbsRltnVO">
+		/*
+             SQL ID : BbsRltnDAO.insertBbsRltn
+             설  명 : 게시판 정보 연결 등록
+         */
+		INSERT INTO TB_HOME_BBS_RLTN (
+			  BBS_ID
+			, RLTN_REF_CD
+			, CONTS_TYCD
+		) VALUES (
+			  #{bbsId}
+			, #{rltnRefCd}
+			, #{rltnType}
+		)
+	</insert>
+
+	<delete id="deleteBbsRltn" parameterType="bbsRltnVO">
+		/*
+             SQL ID : BbsRltnDAO.deleteBbsRltn
+             설  명 : 게시판 정보 연결 삭제
+         */
+		DELETE FROM TB_HOME_BBS_RLTN
+		WHERE BBS_ID = #{bbsId}
+		AND RLTN_REF_CD = #{rltnRefCd}
+	</delete>
+	
+	<delete id="deleteBbsRltnAll" parameterType="bbsRltnVO">
+		/*
+             SQL ID : BbsRltnDAO.deleteBbsRltnAll
+             설  명 : 게시판 정보 연결 전체 삭제
+         */
+		DELETE FROM TB_HOME_BBS_RLTN
+		WHERE BBS_ID = #{bbsId}
+	</delete>
+	
+</mapper>

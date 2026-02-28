@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.org.dao.OrgCodeCtgrDAO">
+
+    <sql id="selectQuery">
+        SELECT
+			  ROW_NUMBER() OVER(ORDER BY CODE_CTGR_ODR DESC) AS LINE_NO
+			, ORG_ID
+			, CTGRCD
+			, CODE_CTGR_NM
+			, CODE_CTGR_ODR
+			, CODE_CTGR_DESC
+			, USEYN
+			, (SELECT COUNT(*)
+			     FROM TB_ORG_CODE
+			    WHERE TB_ORG_CODE_CTGR.ORG_ID = ORG_ID
+			      AND TB_ORG_CODE_CTGR.CTGRCD = CTGRCD) AS SUB_CNT
+			, RGTR_ID
+			, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS RGTRNM
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS MOD_NM
+			, MOD_DTTM
+          FROM TB_ORG_CODE_CTGR
+         WHERE ORG_ID = #{orgId}
+    </sql>
+
+    <sql id="listQuery">
+        <include refid="selectQuery"/>
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+                LOWER(CTGRCD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(CODE_CTGR_NM)	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <if test="codeCtgrCd != null and codeCtgrCd != ''">
+           AND CTGRCD = #{codeCtgrCd}
+        </if>
+    </sql>
+
+    <select id="list" parameterType="orgCodeCtgrVO" resultType="orgCodeCtgrVO">
+        /*
+            SQL ID : OrgCodeCtgrDAO.list
+            설  명 : 코드 분류의 전체 목록
+        */
+        <include refid="listQuery"/>
+    </select>
+
+    <select id="listPageing" parameterType="orgCodeCtgrVO" resultType="orgCodeCtgrVO">
+        /*
+            SQL ID : OrgCodeCtgrDAO.listPageing
+            설  명 : 코드 분류의 페이징 목록
+        */
+        <!-- <include refid="CommonSQL.pagePrefix"/>
+        <include refid="listQuery"/>
+        <include refid="CommonSQL.pageSubfix"/> -->
+        
+        <include refid="CommonSQL.pagePrefix"/>
+        <include refid="listQuery"/>
+        <include refid="CommonSQL.pageSubfix"/>
+    </select>
+
+    <select id="count" parameterType="orgCodeCtgrVO" resultType="Integer">
+        /*
+            SQL ID : OrgCodeCtgrDAO.count
+            설  명 : 코드 분류의 전체 카운트
+        */
+        SELECT COUNT(*) 
+          FROM (
+                <include refid="listQuery"/>
+          ) T
+    </select>
+
+    <select id="select" parameterType="orgCodeCtgrVO" resultType="orgCodeCtgrVO">
+        /*
+            SQL ID : OrgCodeCtgrDAO.select
+            설  명 : 코드 분류의 정보 조회
+        */
+        <include refid="selectQuery"/>
+        AND CTGRCD = #{codeCtgrCd}
+    </select>
+
+    <insert id="insert" parameterType="orgCodeCtgrVO" >
+
+        <selectKey order="BEFORE" keyProperty="codeCtgrOdr" resultType="Integer">
+            SELECT NVL(MAX(CODE_CTGR_ODR),0)+1 FROM TB_ORG_CODE_CTGR
+        </selectKey>
+
+        /*
+             SQL ID : OrgCodeCtgrDAO.insert
+             설  명 : 코드 분류의 정보 등록
+        */
+        INSERT INTO TB_ORG_CODE_CTGR (
+               ORG_ID
+             , CTGRCD
+             , CODE_CTGR_NM
+             , CODE_CTGR_ODR
+             , CODE_CTGR_DESC
+             , USEYN
+             , RGTR_ID 
+             , FRST_INQ_DTTM
+             , MDFR_ID
+             , MOD_DTTM
+        ) VALUES (
+               #{orgId}
+             , #{codeCtgrCd}
+             , #{codeCtgrNm}
+             , #{codeCtgrOdr}
+             , #{codeCtgrDesc}
+             , #{useYn}
+             , #{rgtrId}
+             , FN_DTTM()
+             , #{mdfrId}
+             , FN_DTTM()
+        )
+    </insert>
+
+    <update id="update" parameterType="orgCodeCtgrVO" >
+        /*
+             SQL ID : OrgCodeCtgrDAO.update
+             설  명 : 코드 분류의 정보 수정
+        */
+        UPDATE TB_ORG_CODE_CTGR
+           SET 
+            <if test='orgId != null and orgId != "" '>
+               ORG_ID = #{orgId}
+            </if>
+            <if test='codeCtgrNm != null and codeCtgrNm != "" '>
+             , CODE_CTGR_NM = #{codeCtgrNm}
+            </if>
+            <if test='codeCtgrDesc != null and codeCtgrDesc != "" '>
+             , CODE_CTGR_DESC = #{codeCtgrDesc}
+            </if>
+            <if test='codeCtgrOdr != null and codeCtgrOdr != "" '>
+             , CODE_CTGR_ODR = #{codeCtgrOdr}
+            </if>
+            <if test='useYn != null and useYn != "" '>
+             , USEYN = #{useYn}
+            </if>
+             , MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+         WHERE ORG_ID = #{orgId}
+           AND CTGRCD = #{codeCtgrCd} 
+    </update>
+
+    <delete id="delete" parameterType="orgCodeCtgrVO" >
+        /*
+             SQL ID : OrgCodeCtgrDAO.delete
+             설  명 : 코드 분류의 정보 삭제
+        */
+        DELETE FROM TB_ORG_CODE_CTGR
+         WHERE ORG_ID = #{orgId}
+           AND CTGRCD = #{codeCtgrCd}
+    </delete>
+
+    <select id="listOrgId" parameterType="orgCodeCtgrVO" resultType="orgCodeCtgrVO">
+        /*
+            SQL ID : OrgCodeCtgrDAO.listOrgId
+            설  명 : 기관 코드 전체 목록
+        */
+        SELECT ORG_ID AS CTGRCD
+              , ORGNM AS CODE_CTGR_NM
+          FROM TB_LMS_ORG
+         WHERE ORG_ID = #{orgId}
+    </select>
+    
+</mapper>

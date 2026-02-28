@@ -1,0 +1,10 @@
+-- FN_DEC
+CREATE FUNCTION FN_DEC (
+		inEncKey varchar(256), 
+		inEncText varchar(2000)
+	) RETURNS text
+	DETERMINISTIC
+	COMMENT '데이터 복호화'
+BEGIN
+	RETURN CONVERT(AES_DECRYPT(UNHEX(inEncText), SHA2(inEncKey,256)) using UTF8MB4);
+END

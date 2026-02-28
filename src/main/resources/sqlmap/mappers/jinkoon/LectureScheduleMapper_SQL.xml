@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.lecture2.dao.LectureScheduleDAO">
+
+
+	<select id="lectureScheduleList" parameterType="string" resultType="eGovMap">
+		/*	설	명	: 강의(주차)일정목록조회, 강의일정목록조회, 강의주차일정목록조회	*/		
+		SELECT 	*
+		FROM	TB_LMS_LCTR_WKNO_SCHDL
+		WHERE 	SBJCT_ID = #{subjectId}
+		
+	</select>	
+	
+	<select id="thisWeekLectureSelect" parameterType="string" resultType="eGovMap">
+		/*	설  명	: 금주강의조회		*/
+	 	SELECT	  MIN(LCTR_WKNO) AS LESSON_SCHEDULE_ORDER_MIN
+				, MAX(LCTR_WKNO) AS LESSON_SCHEDULE_ORDER_MAX
+				, MIN(LCTR_WKNO_SYMD) AS LESSON_START_DT_MIN
+				, MAX(LCTR_WKNO_EYMD) AS LESSON_END_DT_MAX
+		FROM 	TB_LMS_LCTR_WKNO_SCHDL
+		WHERE 	TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN LCTR_WKNO_SYMD AND LCTR_WKNO_EYMD
+				AND SBJCT_ID = #{subjectId}
+		GROUP 	BY 	SBJCT_ID
+	</select>	
+	
+	<select	id="profLectureScheduleList" parameterType="map" resultType="eGovMap">
+		/*	설  명	: 교수강의일정목록조회		*/
+		SELECT	*
+		FROM	TB_LMS_LCTR_WKNO_SCHDL
+		WHERE 	SBJCT_ID = #{subjectId}
+	</select>
+	
+	<select	id="byWeeknoLectureSchdlList" parameterType="map" resultType="eGovMap">
+		/*	설  명	: 주차별강의일정목록조회	- with 학습활동포함	*/
+		
+		SELECT	'주차' ACTV_TYCD, 'TB_LMS_LCTR_WKNO_SCHDL' SRC_TBL, A.LCTR_WKNO_SCHDL_ID ID
+				, A.LCTR_WKNO_SEQNO SEQNO, A.LCTR_WKNONM NM, A.LCTR_WKNO_SCHDL_ID, 0 FIRST_ORD, 0 SCND_RORD
+		FROM 	TB_LMS_LCTR_WKNO_SCHDL A
+		WHERE 	#{subjectId} = A.SBJCT_ID
+		UNION ALL			
+		SELECT	'강의' ACTV_TYCD, 'TB_LMS_LCTR' SRC_TBL, A.LCTR_ID ID, A.LCTR_SEQNO SEQNO, A.LCTRNM NM, A.LCTR_WKNO_SCHDL_ID, 1 FIRST_ORD, 1 SCND_RORD
+		FROM 	TB_LMS_LCTR A
+				JOIN TB_LMS_LCTR_WKNO_SCHDL LWS ON A.LCTR_WKNO_SCHDL_ID = LWS.LCTR_WKNO_SCHDL_ID
+												AND 'SBJCT20260001' = LWS.SBJCT_ID			
+		UNION ALL			
+		SELECT	'과제' ACTV_TYCD, 'TB_LMS_ASMT' SRC_TBL, A.ASMT_ID ID, 0 SEQNO, A.ASMT_TTL NM, A.LCTR_WKNO_SCHDL_ID, 1 FIRST_ORD, 2 SCND_RORD
+		FROM 	TB_LMS_ASMT A
+				JOIN TB_LMS_LCTR_WKNO_SCHDL LWS ON A.LCTR_WKNO_SCHDL_ID = LWS.LCTR_WKNO_SCHDL_ID
+												AND 'SBJCT20260001' = LWS.SBJCT_ID
+		WHERE 	'SBJCT20260001' = A.SBJCT_ID
+		UNION ALL			
+		SELECT	'토론' ACTV_TYCD, 'TB_LMS_DSCS' SRC_TBL, A.DSCS_ID ID, 0 SEQNO, A.DSCS_TTL NM, A.LCTR_WKNO_SCHDL_ID, 1 FIRST_ORD, 3 SCND_RORD
+		FROM 	TB_LMS_DSCS A
+				JOIN TB_LMS_LCTR_WKNO_SCHDL LWS ON A.LCTR_WKNO_SCHDL_ID = LWS.LCTR_WKNO_SCHDL_ID
+												AND 'SBJCT20260001' = LWS.SBJCT_ID
+		WHERE 	'SBJCT20260001' = A.SBJCT_ID			
+		UNION ALL			
+		SELECT	'설문' ACTV_TYCD, 'TB_LMS_SRVY' SRC_TBL, A.SRVY_ID ID, 0 SEQNO, A.SRVY_TTL NM, A.LCTR_WKNO_SCHDL_ID, 1 FIRST_ORD, 4 SCND_RORD
+		FROM 	TB_LMS_SRVY A
+				JOIN TB_LMS_LCTR_WKNO_SCHDL LWS ON A.LCTR_WKNO_SCHDL_ID = LWS.LCTR_WKNO_SCHDL_ID
+												AND 'SBJCT20260001' = LWS.SBJCT_ID			
+		WHERE 	'SBJCT20260001' = A.SBJCT_ID
+		UNION ALL			
+		SELECT	'세미나' ACTV_TYCD, 'TB_LMS_SMNR' SRC_TBL, A.SMNR_ID ID, 0 SEQNO, A.SMNRNM NM, A.LCTR_WKNO_SCHDL_ID, 1 FIRST_ORD, 5 SCND_RORD
+		FROM 	TB_LMS_SMNR A
+				JOIN TB_LMS_LCTR_WKNO_SCHDL LWS ON A.LCTR_WKNO_SCHDL_ID = LWS.LCTR_WKNO_SCHDL_ID
+												AND 'SBJCT20260001' = LWS.SBJCT_ID			
+		WHERE 	'SBJCT20260001' = A.SBJCT_ID
+		UNION ALL			
+		SELECT	'자료' ACTV_TYCD, 'TB_LMS_BBS' SRC_TBL, '자료_ID' ID, 0 SEQNO, '자료이름' NM, 'WKNO001' LCTR_WKNO_SCHDL_ID, 1 FIRST_ORD, 6 SCND_RORD
+		FROM 	DUAL A
+		ORDER	BY	LCTR_WKNO_SCHDL_ID,
+		  			FIRST_ORD,
+		  			SCND_RORD,
+		  			SEQNO
+	</select>
+
+	<update id="wknoSchdlForPlandocModify" parameterType="lectureScheduleVO">
+		/*
+			 SQL ID : LectureScheduleDAO.wknoSchdlForPlandocModify
+			 설  명  : 주차별강의일정 수정 - 강의계획서용
+		*/
+		UPDATE TB_LMS_LCTR_WKNO_SCHDL
+		SET
+		    LCTR_TYCD = #{lctrTycd}
+			, LCTR_TTL  = #{lctrTtl}
+			, LCTR_CTS  = #{lctrCts}
+			, MDFR_ID   = #{mdfrId}
+			, MOD_DTTM  = FN_DTTM()
+		WHERE LCTR_WKNO_SCHDL_ID = #{lctrWknoSchdlId}
+	</update>
+</mapper>

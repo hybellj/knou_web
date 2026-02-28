@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.forum2.dao.Forum2DAO">
+
+    <sql id="listQuery">
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY REG_DTTM DESC, DSCS_ID DESC) LINE_NO
+          , COUNT(*) OVER() TOTAL_CNT
+          , DSCS_ID
+          , DSCS_GRP_ID
+          , DSCS_GBNCD
+          , DSCS_UNIT_TYCD
+          , EVL_SCR_TYCD
+          , DSCS_TTL
+          , DSCS_CTS
+          , DSCS_SDTTM
+          , DSCS_EDTTM
+          , DVCLS_ID
+          , LRN_GRP_ID
+          , DELYN
+          , OATCL_INQYN
+          , OKNOK_CFGYN
+          , OKNOKRT_OYN
+          , OKNOK_MODYN
+          , MLT_OPNN_REGYN
+          , OKNOK_RGTR_OYN
+          , CMNT_RSPNS_REQYN
+          , MRK_RFLTYN
+          , MRK_OYN
+          , RGTR_ID
+          , REG_DTTM
+          , MDFR_ID
+          , MOD_DTTM
+          , SBJCT_ID
+        FROM TB_LMS_DSCS
+        WHERE 1 = 1
+          AND DELYN = 'N'
+        <if test="sbjctId != null and sbjctId != ''">
+          AND SBJCT_ID = #{sbjctId}
+        </if>
+        <if test="dscsGbncd != null and dscsGbncd != ''">
+          AND DSCS_GBNCD = #{dscsGbncd}
+        </if>
+        <if test="dscsUnitTycd != null and dscsUnitTycd != ''">
+          AND DSCS_UNIT_TYCD = #{dscsUnitTycd}
+        </if>
+        <if test="evlScrTycd != null and evlScrTycd != ''">
+            AND EVL_SCR_TYCD = #{evlScrTycd}
+        </if>
+        <if test="dscsTtl != null and dscsTtl != ''">
+          AND DSCS_TTL LIKE FN_LIKE_VAL(#{dscsTtl})
+        </if>
+        <if test="dscsSdttm != null and dscsSdttm != '' and dscsEdttm != null and dscsEdttm != ''">
+          <![CDATA[
+          AND TO_DATE(DSCS_SDTTM, 'YYYYMMDDHH24MISS')
+              BETWEEN TO_DATE(#{dscsSdttm}, 'YYYYMMDDHH24MISS')
+                  AND TO_DATE(#{dscsEdttm}, 'YYYYMMDDHH24MISS')
+          ]]>
+        </if>
+        ORDER BY REG_DTTM DESC, DSCS_ID DESC
+    </sql>
+
+    <!-- 토론목록조회(페이징) -->
+    <select id="selectForumList" parameterType="Forum2ListVO" resultType="Forum2ListVO">
+        /*
+            SQL ID : ForumDAO.selectForumList
+            설명 : 토론목록조회(페이징)
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQuery" />
+        <include refid="CommonSQL.pageSubfix" />
+    </select>
+
+    <!-- 토론정보조회(1건) -->
+    <select id="selectForum" parameterType="forum2VO" resultType="forum2VO">
+        /*
+            SQL ID : ForumDAO.selectForum
+            설명 : 토론정보조회(1건)
+        */
+        SELECT
+            DSCS_ID
+          , DSCS_GRP_ID
+          , DSCS_GBNCD
+          , DSCS_UNIT_TYCD
+          , EVL_SCR_TYCD
+          , DSCS_TTL
+          , DSCS_CTS
+          , DSCS_SDTTM
+          , DSCS_EDTTM
+          , DVCLS_ID
+          , LRN_GRP_ID
+          , DELYN
+          , OATCL_INQYN
+          , OKNOK_CFGYN
+          , OKNOKRT_OYN
+          , OKNOK_MODYN
+          , MLT_OPNN_REGYN
+          , OKNOK_RGTR_OYN
+          , CMNT_RSPNS_REQYN
+          , MRK_RFLTYN
+          , MRK_OYN
+          , RGTR_ID
+          , REG_DTTM
+          , MDFR_ID
+          , MOD_DTTM
+          , SBJCT_ID
+        FROM TB_LMS_DSCS
+        WHERE DSCS_ID = #{dscsId}
+          AND DELYN = 'N'
+    </select>
+
+    <!-- 토론등록 -->
+    <insert id="insertForum" parameterType="forum2VO">
+        /*
+            SQL ID : ForumDAO.insertForum
+            설명 : 토론등록
+        */
+        INSERT INTO TB_LMS_DSCS (
+            DSCS_ID
+          , DSCS_GRP_ID
+          , DSCS_GBNCD
+          , DSCS_UNIT_TYCD
+          , EVL_SCR_TYCD
+          , DSCS_TTL
+          , DSCS_CTS
+          , DSCS_SDTTM
+          , DSCS_EDTTM
+          , DVCLS_ID
+          , LRN_GRP_ID
+          , DELYN
+          , OATCL_INQYN
+          , OKNOK_CFGYN
+          , OKNOKRT_OYN
+          , OKNOK_MODYN
+          , MLT_OPNN_REGYN
+          , OKNOK_RGTR_OYN
+          , CMNT_RSPNS_REQYN
+          , MRK_RFLTYN
+          , MRK_OYN
+          , RGTR_ID
+          , REG_DTTM
+          , MDFR_ID
+          , MOD_DTTM
+          , SBJCT_ID
+        ) VALUES (
+            #{dscsId}
+          , #{dscsGrpId}
+          , ''
+          , #{dscsUnitTycd}
+          , #{evlScrTycd}
+          , #{dscsTtl}
+          , #{dscsCts}
+          , #{dscsSdttm}
+          , #{dscsEdttm}
+          , #{dvclsId}
+          , #{lrnGrpId}
+          , NVL(#{delyn}, 'N')
+          , NVL(#{oatclInqyn}, 'N')
+          , NVL(#{oknokCfgyn}, 'N')
+          , NVL(#{oknokrtOyn}, 'N')
+          , NVL(#{oknokModyn}, 'N')
+          , NVL(#{mltOpnnRegyn}, 'N')
+          , NVL(#{oknokRgtrOyn}, 'N')
+          , NVL(#{cmntRspnsReqyn}, 'N')
+          , NVL(#{mrkRfltyn}, 'N')
+          , NVL(#{mrkOyn}, 'N')
+          , #{rgtrId}
+          , FN_DTTM()
+          , NVL(#{mdfrId}, #{rgtrId})
+          , FN_DTTM()
+          , #{sbjctId}
+        )
+    </insert>
+
+    <!-- 토론수정 -->
+    <update id="updateForum" parameterType="forum2VO">
+        /*
+            SQL ID : ForumDAO.updateForum
+            설명 : 토론수정
+        */
+        UPDATE TB_LMS_DSCS
+        SET MDFR_ID = NVL(#{mdfrId}, #{rgtrId})
+          , MOD_DTTM = FN_DTTM()
+        <if test="dscsGrpId != null and dscsGrpId != ''">
+          , DSCS_GRP_ID = #{dscsGrpId}
+        </if>
+        <if test="dscsGbncd != null and dscsGbncd != ''">
+          , DSCS_GBNCD = #{dscsGbncd}
+        </if>
+        <if test="dscsUnitTycd != null and dscsUnitTycd != ''">
+          , DSCS_UNIT_TYCD = #{dscsUnitTycd}
+        </if>
+        <if test="evlScrTycd != null and evlScrTycd != ''">
+          , EVL_SCR_TYCD = #{evlScrTycd}
+        </if>
+        <if test="dscsTtl != null and dscsTtl != ''">
+          , DSCS_TTL = #{dscsTtl}
+        </if>
+        <if test="dscsCts != null and dscsCts != ''">
+          , DSCS_CTS = #{dscsCts}
+        </if>
+        <if test="dscsSdttm != null and dscsSdttm != ''">
+          , DSCS_SDTTM = #{dscsSdttm}
+        </if>
+        <if test="dscsEdttm != null and dscsEdttm != ''">
+          , DSCS_EDTTM = #{dscsEdttm}
+        </if>
+        <if test="dvclsId != null and dvclsId != ''">
+          , DVCLS_ID = #{dvclsId}
+        </if>
+        <if test="lrnGrpId != null and lrnGrpId != ''">
+          , LRN_GRP_ID = #{lrnGrpId}
+        </if>
+        <if test="delyn != null and delyn != ''">
+          , DELYN = #{delyn}
+        </if>
+        <if test="oatclInqyn != null and oatclInqyn != ''">
+          , OATCL_INQYN = #{oatclInqyn}
+        </if>
+        <if test="oknokCfgyn != null and oknokCfgyn != ''">
+          , OKNOK_CFGYN = #{oknokCfgyn}
+        </if>
+        <if test="oknokrtOyn != null and oknokrtOyn != ''">
+          , OKNOKRT_OYN = #{oknokrtOyn}
+        </if>
+        <if test="oknokModyn != null and oknokModyn != ''">
+          , OKNOK_MODYN = #{oknokModyn}
+        </if>
+        <if test="mltOpnnRegyn != null and mltOpnnRegyn != ''">
+          , MLT_OPNN_REGYN = #{mltOpnnRegyn}
+        </if>
+        <if test="oknokRgtrOyn != null and oknokRgtrOyn != ''">
+          , OKNOK_RGTR_OYN = #{oknokRgtrOyn}
+        </if>
+        <if test="cmntRspnsReqyn != null and cmntRspnsReqyn != ''">
+          , CMNT_RSPNS_REQYN = #{cmntRspnsReqyn}
+        </if>
+        <if test="mrkRfltyn != null and mrkRfltyn != ''">
+          , MRK_RFLTYN = #{mrkRfltyn}
+        </if>
+        <if test="mrkOyn != null and mrkOyn != ''">
+          , MRK_OYN = #{mrkOyn}
+        </if>
+        <if test="sbjctId != null and sbjctId != ''">
+          , SBJCT_ID = #{sbjctId}
+        </if>
+        WHERE DSCS_ID = #{dscsId}
+    </update>
+
+    <!-- 토론복사(Insert-Select) -->
+    <insert id="copyForum" parameterType="forum2VO">
+        /*
+            SQL ID : ForumDAO.copyForum
+            설명 : 기존토론을 신규 토론으로 복사
+        */
+        INSERT INTO TB_LMS_DSCS (
+            DSCS_ID
+          , DSCS_GRP_ID
+          , DSCS_GBNCD
+          , DSCS_UNIT_TYCD
+          , EVL_SCR_TYCD
+          , DSCS_TTL
+          , DSCS_CTS
+          , DSCS_SDTTM
+          , DSCS_EDTTM
+          , DVCLS_ID
+          , LRN_GRP_ID
+          , DELYN
+          , OATCL_INQYN
+          , OKNOKRT_OYN
+          , OKNOK_MODYN
+          , MLT_OPNN_REGYN
+          , OKNOK_RGTR_OYN
+          , CMNT_RSPNS_REQYN
+          , MRK_RFLTYN
+          , MRK_OYN
+          , RGTR_ID
+          , REG_DTTM
+          , MDFR_ID
+          , MOD_DTTM
+          , SBJCT_ID
+        )
+        SELECT
+            #{dscsId}
+          , DSCS_GRP_ID
+          , DSCS_GBNCD
+          , DSCS_UNIT_TYCD
+          , EVL_SCR_TYCD
+          , DSCS_TTL
+          , DSCS_CTS
+          , DSCS_SDTTM
+          , DSCS_EDTTM
+          , DVCLS_ID
+          , LRN_GRP_ID
+          , 'N'
+          , OATCL_INQYN
+          , OKNOKRT_OYN
+          , OKNOK_MODYN
+          , MLT_OPNN_REGYN
+          , OKNOK_RGTR_OYN
+          , CMNT_RSPNS_REQYN
+          , MRK_RFLTYN
+          , MRK_OYN
+          , #{rgtrId}
+          , FN_DTTM()
+          , NVL(#{mdfrId}, #{rgtrId})
+          , FN_DTTM()
+          , #{sbjctId}
+        FROM TB_LMS_DSCS
+        WHERE DSCS_ID = #{copydscsId}
+    </insert>
+
+    <!-- 토론 삭제(논리삭제) -->
+    <update id="deleteForum" parameterType="forum2VO">
+        /*
+            SQL ID : ForumDAO.deleteForum
+            설명 : 토론 삭제(논리삭제)
+        */
+        UPDATE TB_LMS_DSCS
+        SET DELYN = 'Y'
+          , MDFR_ID = NVL(#{mdfrId}, #{rgtrId})
+          , MOD_DTTM = FN_DTTM()
+        WHERE DSCS_ID = #{dscsId}
+    </update>
+
+</mapper>

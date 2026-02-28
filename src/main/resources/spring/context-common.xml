@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd 
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+    <context:component-scan base-package="knou">
+       <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+    </context:component-scan>
+
+
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>classpath:/config/server</value>
+				
+				<value>classpath:/message/message-asmnt</value>
+				<value>classpath:/message/message-bbs</value>
+				<value>classpath:/message/message-button</value>
+				<value>classpath:/message/message-common</value>
+				<value>classpath:/message/message-contents</value>
+				<value>classpath:/message/message-crs</value>
+				<value>classpath:/message/message-exam</value>
+				<value>classpath:/message/message-file</value>
+				<value>classpath:/message/message-forum</value>
+				<value>classpath:/message/message-resh</value>
+				<value>classpath:/message/message-team</value>
+				<value>classpath:/message/message-dashboard</value>
+				<value>classpath:/message/message-user</value>
+				<value>classpath:/message/message-lesson</value>
+				<value>classpath:/message/message-main</value>
+				<value>classpath:/message/message-std</value>
+				<value>classpath:/message/message-sys</value>
+				<value>classpath:/message/message-sch</value>
+				<value>classpath:/message/message-score</value>
+				<value>classpath:/message/message-seminar</value>
+				<value>classpath:/message/message-msg</value>
+
+			</list>
+		</property>
+		<property name="cacheSeconds" value="60"/>
+	</bean>
+	
+	<!-- ============================================================= FileDownload through customView-->
+	<bean id="fileDownloadView" class="knou.lms.common.web.view.FileDownloadView" />	
+	
+	<!-- ============================================================= Mimetype file through customView -->
+	<bean id="fileMimetypeView" class="knou.lms.common.web.view.FileMimeView" />
+		    	
+	<bean id="leaveaTrace" class="org.egovframe.rte.fdl.cmmn.trace.LeaveaTrace">
+		<property name="traceHandlerServices">
+			<list>
+				<ref bean="traceHandlerService" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="traceHandlerService" class="org.egovframe.rte.fdl.cmmn.trace.manager.DefaultTraceHandleManager">
+		<property name="reqExpMatcher" ref="antPathMater"/>
+		<property name="patterns">
+			<list>
+				<value>*</value>
+			</list>
+		</property>
+		<property name="handlers">
+			<list>
+				<ref bean="defaultTraceHandler" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="antPathMater" class="org.springframework.util.AntPathMatcher" />
+	<bean id="defaultTraceHandler" class="org.egovframe.rte.fdl.cmmn.trace.handler.DefaultTraceHandler" />
+		
+</beans>

@@ -1,0 +1,777 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.dashboard.dao.SchDAO">
+
+	<select id="listCalendar" parameterType="schVO" resultType="schVO">
+		/*
+			 SQL ID : SchDAO.listCalendar
+			 설  명 : 캘런더 정보 조회
+		*/
+		WITH COLORS AS (
+			SELECT 1 AS ROWNUM , '#D0DBF2' AS BG_COLOR UNION ALL
+			SELECT 2 AS ROWNUM , '#D4BFF5' AS BG_COLOR UNION ALL
+			SELECT 3 AS ROWNUM , '#FAC5D4' AS BG_COLOR UNION ALL
+			SELECT 4 AS ROWNUM , '#CEF5EE' AS BG_COLOR UNION ALL
+			SELECT 5 AS ROWNUM , '#F0F7C8' AS BG_COLOR UNION ALL
+			SELECT 6 AS ROWNUM , '#B3E0E8' AS BG_COLOR UNION ALL
+			SELECT 7 AS ROWNUM , '#F5DDB0' AS BG_COLOR UNION ALL
+			SELECT 8 AS ROWNUM , '#C9ADAD' AS BG_COLOR UNION ALL
+			SELECT 9 AS ROWNUM , '#D2D9C1' AS BG_COLOR UNION ALL
+			SELECT 10 AS ROWNUM , '#E0DECC' AS BG_COLOR UNION ALL
+			SELECT 11 AS ROWNUM , '#F2EAA2' AS BG_COLOR UNION ALL
+			SELECT 12 AS ROWNUM , '#BAE2F7' AS BG_COLOR UNION ALL
+			SELECT 13 AS ROWNUM , '#B8B59A' AS BG_COLOR UNION ALL
+			SELECT 14 AS ROWNUM , '#C1D9BF' AS BG_COLOR UNION ALL
+			SELECT 15 AS ROWNUM , '#D9D3A5' AS BG_COLOR UNION ALL
+			SELECT 16 AS ROWNUM , '#C7EDED' AS BG_COLOR UNION ALL
+			SELECT 17 AS ROWNUM , '#B2D9B0' AS BG_COLOR UNION ALL
+			SELECT 18 AS ROWNUM , '#D2D6B8' AS BG_COLOR UNION ALL
+			SELECT 19 AS ROWNUM , '#FFCBCB' AS BG_COLOR UNION ALL
+			SELECT 20 AS ROWNUM , '#E0C5D4' AS BG_COLOR    
+		)
+		, CALENDAR_INFO AS (
+			SELECT ROW_NUMBER() OVER(ORDER BY ODR, NAME) AS ROWNUM
+					, CALENDAR_ID
+					, NAME
+					, DVCLAS_NO
+			FROM VW_CALENDAR_INFO
+			WHERE ( USER_TYPES = 'ALL'
+					<foreach collection="userTypes" item="item" index="index" separator="OR" open="OR" close="">
+						USER_TYPES LIKE FN_LIKE_VAL(#{item})
+					</foreach>
+				)
+			AND ( USER_ID = #{userId} OR CALENDAR_ID IN ('course', 'personal') )
+		)
+		SELECT A.CALENDAR_ID
+			 , A.NAME
+		     , IFNULL(B.BG_COLOR,CONCAT('#', HEX(FLOOR(16 + RAND() * (255 - 16))), HEX(FLOOR(16 + RAND() * (255 - 16))), HEX(FLOOR(16 + RAND() * (255 - 16)))) ) AS BG_COLOR
+		     , A.DVCLAS_NO
+		FROM CALENDAR_INFO A
+		LEFT JOIN COLORS B
+		ON A.ROWNUM = B.ROWNUM
+	</select>
+
+	<select id="listSchedule" parameterType="schVO" resultType="schVO">
+		/*
+		 SQL ID : SchDAO.listSchedule
+		 설  명 : 일정 조회
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		WITH M2 AS (
+			<!-- 
+			/* 학사일정*/
+			SELECT SYSJOB_SCHDL_TYCD										AS CALENDAR_ID
+					, ACAD_SCH_SN										AS SCHEDULE_ID
+					, CALENDAR_REF_CD									AS SCHEDULE_GUBUN
+					, CONCAT('[',(CASE WHEN SYSJOB_SCHDL_TYCD = 'course' THEN '과목' ELSE '개인' END),']') AS PREFIX
+					, ACAD_SCH_NM										AS TTL
+					, SYSJOB_SCHDL_SYMD										AS SYMD
+					, SYSJOB_SCHDL_EYMD										AS EYMD
+			FROM TB_HOME_ACAD_SCH
+			WHERE ORG_ID = #{orgId}
+			AND USEYN = 'Y'
+			UNION ALL
+			-->
+			/* 온라인 강의 관리 */
+			SELECT B.SBJCT_ID											AS CALENDAR_ID
+					, CONCAT(B.SBJCT_LCTR_CONTS_ID,'|',A.LCTR_SCHDL_ID) AS SCHEDULE_ID
+					, 'ONLINE'											AS SCHEDULE_GUBUN 
+					, (CASE WHEN B.LESSON_TYPE_CD = 'ONLINE' THEN '[온라인 강의]'
+							WHEN B.LESSON_TYPE_CD = 'OFFLINE' THEN '[오프라인 강의]'
+							WHEN B.LESSON_TYPE_CD = 'VIRTUAL' THEN '[화상강의]'
+							ELSE '[온라인 강의]'
+						END)											AS PREFIX
+					, B.LCTR_CONTSNM									AS TTL
+					, A.LCTR_SYMD									AS SYMD
+					, A.LCTR_EYMD									AS EYMD
+			FROM TB_LMS_SBJCT_LCTR_SCHDL A
+			RIGHT OUTER JOIN TB_LMS_SBJCT_LCTR_CONTS B USE INDEX (tb_lms_lesson_cnts_LESSON_SCHEDULE_ID_IDX)
+			ON A.LCTR_SCHDL_ID = B.LCTR_SCHDL_ID
+			AND A.SBJCT_ID = B.SBJCT_ID
+			WHERE A.DELYN  = 'N'
+			AND B.DELYN = 'N'
+			<if test="classUserTypeGubun != 'PROFESSOR'">
+				AND B.INQYN = 'Y' 
+			</if>
+			<if test="sqlForeach != null and sqlForeach != ''">
+				AND B.SBJCT_ID IN
+				   <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+				   </foreach>
+			</if>
+			<if test="startDt != null and endDt != ''">
+				AND ( SUBSTR(LCTR_SYMD,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(LCTR_SYMD,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(LCTR_EYMD,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(LCTR_EYMD,1,8) <![CDATA[ < ]]> #{endDt}
+			 	)
+			</if>
+			/* 과제관리 */
+			UNION ALL
+			SELECT A.SBJCT_ID											AS CALENDAR_ID
+					, A.ASMT_ID	    								AS SCHEDULE_ID
+					, 'ASMNT'        									AS SCHEDULE_GUBUN
+					, CONCAT('[', (CASE WHEN B.ASMT_CTGRCD = 'TEAM' THEN '팀' ELSE '' END)  ,'과제] ') AS PREFIX
+					, B.ASMT_TTL 									AS TTL
+					, B.SEND_START_DTTM 								AS SYMD
+					, B.SEND_END_DTTM 									AS EYMD
+			FROM TB_LMS_ASMNT_CRE_CRS_RLTN A, TB_LMS_ASMT B
+			WHERE A.DELYN = 'N'
+			AND A.ASMT_ID = B.ASMT_ID
+			AND B.DELYN ='N'
+			<if test="sqlForeach != null and sqlForeach != ''">
+				AND A.SBJCT_ID IN
+				   <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				   </foreach>
+			</if>
+			<if test="startDt != null and endDt != ''">
+				AND ( SUBSTR(SEND_START_DTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(SEND_START_DTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(SEND_END_DTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(SEND_END_DTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 	)
+		 	</if>
+			/* 토론관리 */
+			UNION ALL
+			SELECT A.SBJCT_ID											AS CALENDAR_ID
+					, A.DSCS_ID										AS SCHEDULE_ID
+					, 'FORUM'											AS SCHEDULE_GUBUN
+					, CONCAT('[', (CASE WHEN B.DSCS_TYCD = 'TEAM' THEN '팀' ELSE '' END)  ,'토론] ') AS PREFIX
+					, B.DSCS_TTL										AS TTL
+					, B.DSCS_SDTTM								AS SYMD
+					, B.DSCS_EDTTM									AS EYMD
+			FROM TB_LMS_FORUM_CRE_CRS_RLTN A, TB_LMS_DSCS B
+			WHERE A.DELYN = 'N'
+			AND A.DSCS_ID = B.DSCS_ID
+			AND B.DELYN ='N'
+			AND B.DSCS_OYN = 'Y'
+			<if test="sqlForeach != null and sqlForeach != ''">
+				AND A.SBJCT_ID IN
+				   <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				   </foreach>
+			</if>
+			<if test="startDt != null and endDt != ''">
+				AND ( SUBSTR(DSCS_SDTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(DSCS_SDTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(DSCS_EDTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(DSCS_EDTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 	)
+			</if>
+			/* 시험 관리 */
+			UNION ALL
+			SELECT A.SBJCT_ID											AS CALENDAR_ID
+					, B.EXAM_ID											AS SCHEDULE_ID
+					, B.EXAM_CTGRCD									AS SCHEDULE_GUBUN
+					, CONCAT('[', (CASE WHEN B.EXAM_CTGRCD = 'EXAM' THEN '시험' ELSE '퀴즈' END)  ,'] ') AS PREFIX
+					, B.EXAM_TTL										AS TTL
+					, B.EXAM_SDTTM									AS SYMD
+					, B.EXAM_EDTTM									AS EYMD
+			FROM TB_LMS_EXAM_CRE_CRS_RLTN A, TB_LMS_EXAM_BSC B
+			WHERE B.ORG_ID = #{orgId} 
+			AND A.DELYN = 'N'
+			AND B.DELYN = 'N'
+			AND A.EXAM_ID = B.EXAM_ID
+			<if test="sqlForeach != null and sqlForeach != ''">
+				AND A.SBJCT_ID IN
+				   <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				   </foreach>
+			</if>
+			<if test="startDt != null and endDt != ''">
+				AND ( SUBSTR(EXAM_SDTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(EXAM_SDTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(EXAM_EDTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(EXAM_EDTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 	)
+			</if>
+			/* 설문 관리 */
+			UNION ALL
+			SELECT C.SBJCT_ID											AS CALENDAR_ID
+					, A.SRVY_ID										AS SCHEDULE_ID
+					, 'RESCH'											AS SCHEDULE_GUBUN
+					, '[설문]'											AS PREFIX
+					, A.SRVY_TTL										AS TTL
+					, A.SRVY_SDTTM								AS SYMD
+					, A.RESCH_END_DTTM									AS EYMD
+			FROM TB_LMS_SRVY A
+			LEFT JOIN TB_LMS_RESCH_CTGR B
+			ON A.SRVY_CTGRCD = B.SRVY_CTGRCD
+			JOIN TB_LMS_RESCH_CRE_CRS_RLTN C
+			ON C.SRVY_ID = A.SRVY_ID
+			AND C.DELYN = 'N'
+			<if test="sqlForeach != null and sqlForeach != ''">
+				AND C.SBJCT_ID IN
+				   <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				   </foreach>
+			</if>
+			<if test="startDt != null and endDt != ''">
+				AND ( SUBSTR(SRVY_SDTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(SRVY_SDTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(RESCH_END_DTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(RESCH_END_DTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 	)
+		 	</if>
+			<if test="searchMenu != 'STUDENT'">
+				JOIN SBJCT_PROF D
+				ON D.SBJCT_ID = C.SBJCT_ID
+			</if>
+			WHERE A.SRVY_TYCD = 'LECT'
+			AND A.SRVY_TMPLTYN = 'N'
+			AND A.ORG_ID = #{orgId}
+			AND A.DELYN = 'N'
+			<if test="searchMenu == 'STUDENT'">
+				AND A.USEYN = 'Y'
+				AND EXISTS (SELECT 1
+							FROM TB_LMS_ATNDLC_SBJCT AA
+							WHERE AA.SBJCT_ID = C.SBJCT_ID
+							AND AA.USER_ID = #{userId})
+			</if>
+			<if test="searchMenu != 'STUDENT'">
+				AND D.USER_ID = #{userId}
+			</if>
+		)
+		, SCHEDULE_INFO AS ( 
+			SELECT CASE WHEN IFNULL((SELECT 'Y' FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = #{userId} LIMIT 1), 'N') = 'Y' THEN 'STUDENT' 
+									ELSE 'PROFESSOR' 
+						END AS USER_TYPES
+					, #{userId} AS USER_ID
+					, M2.CALENDAR_ID
+					, M2.SCHEDULE_ID
+					, M2.SCHEDULE_GUBUN
+					, M2.PREFIX
+					, M2.TTL
+					, M2.SYMD
+					, M2.EYMD
+					, CASE (SELECT SBJCT_TYCD FROM TB_LMS_CRS WHERE CRS_ID = (SELECT CRS_ID FROM TB_LMS_SBJCT WHERE SBJCT_ID = M2.CALENDAR_ID)) 
+							WHEN 'UNI' THEN '1'
+							WHEN 'CO' THEN '2'
+							ELSE '3'
+					  END AS ODR
+					, (SELECT SBJCTNM FROM TB_LMS_SBJCT WHERE SBJCT_ID = M2.CALENDAR_ID) AS NAME
+					, (SELECT DVCLAS_NO FROM TB_LMS_SBJCT WHERE SBJCT_ID = M2.CALENDAR_ID) AS DVCLAS_NO
+			FROM M2
+			WHERE (
+				<choose>
+					<when test="searchMenu == 'STUDENT'">
+						M2.CALENDAR_ID IN (SELECT SBJCT_ID FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = #{userId} AND ATNDLC_STSCD = 'S')
+					</when>
+					<otherwise>
+						M2.CALENDAR_ID IN (SELECT SBJCT_ID FROM SBJCT_PROF WHERE USER_ID = #{userId})
+					</otherwise>
+				</choose>
+			)
+		)
+		SELECT CALENDAR_ID
+				, TTL
+				, SYMD
+				, EYMD
+				, (SELECT CONCAT(SBJCTNM,'  ',DVCLAS_NO) FROM TB_LMS_SBJCT WHERE SBJCT_ID = CALENDAR_ID) AS NAME
+		FROM SCHEDULE_INFO
+		WHERE ( USER_ID = #{userId} OR CALENDAR_ID = 'ACAD' )
+		<if test="startDt != null and endDt != ''">
+			AND ( SUBSTR(SYMD,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(SYMD,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(EYMD,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(EYMD,1,8) <![CDATA[ < ]]> #{endDt}
+			 		)
+		 </if>
+		ORDER BY SYMD, EYMD
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="stuListSchedule" parameterType="schVO" resultType="schVO">
+		/*
+		 SQL ID : SchDAO.stuListSchedule
+		 설  명 : 일정 조회
+		*/
+		<!-- <include refid="CommonSQL.pagePrefix"/> -->
+		WITH M2 AS (
+			-- 과제
+			SELECT 
+				  B.SBJCT_ID										AS CALENDAR_ID
+				, A.ASMT_ID	    								AS SCHEDULE_ID
+				, 'ASMNT'        									AS SCHEDULE_GUBUN
+				, '[' || (CASE WHEN A.ASMT_CTGRCD = 'TEAM' THEN '팀' ELSE '' END) || '과제] ' AS PREFIX
+				, A.ASMT_TTL 									AS TTL
+				, A.SEND_START_DTTM 								AS SYMD
+				, A.SEND_END_DTTM 									AS EYMD
+			FROM TB_LMS_ASMT A
+			JOIN TB_LMS_ASMNT_CRE_CRS_RLTN B
+			ON A.ASMT_ID = B.ASMT_ID
+			AND B.SBJCT_ID IN
+			<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+			AND B.DELYN ='N'
+			WHERE A.DELYN = 'N'
+			AND A.ASMNT_OPEN_YN = 'Y'
+			AND (
+				   A.IND_YN = 'N' 
+				OR (
+						A.IND_YN = 'Y' 
+					AND EXISTS(
+						SELECT 1
+						FROM TB_LMS_ASMT_SBMSN
+						WHERE ASMT_ID = A.ASMT_ID
+						AND STD_ID = (SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID = B.SBJCT_ID AND USER_ID = #{userId} AND ATNDLC_STSCD = 'S')
+						AND DELYN = 'N'
+					)
+				)
+			)
+			AND NOT EXISTS (
+				SELECT 1
+				FROM TB_LMS_EXAM_BSC
+				WHERE EXAM_SBST_REF_ID = A.ASMT_ID
+			)
+			<!-- AND LEFT(#{startDt}, 6) BETWEEN LEFT(A.SEND_START_DTTM, 6) AND LEFT(A.SEND_END_DTTM, 6) -->
+			AND SUBSTR(#{startDt}, 1, 6) BETWEEN SUBSTR(A.SEND_START_DTTM, 1, 6) AND SUBSTR(A.SEND_END_DTTM, 1, 6)
+		 	-- 토론
+			UNION ALL
+			SELECT 
+				  B.SBJCT_ID										AS CALENDAR_ID
+				, A.DSCS_ID										AS SCHEDULE_ID
+				, 'FORUM'											AS SCHEDULE_GUBUN
+				, '[' || (CASE WHEN A.DSCS_TYCD = 'TEAM' THEN '팀' ELSE '' END) || '토론] ' AS PREFIX
+				, A.DSCS_TTL										AS TTL
+				, A.DSCS_SDTTM								AS SYMD
+				, A.DSCS_EDTTM									AS EYMD
+			FROM TB_LMS_DSCS A
+			JOIN TB_LMS_FORUM_CRE_CRS_RLTN B
+			ON A.DSCS_ID = B.DSCS_ID
+			AND B.DELYN ='N'
+			AND B.SBJCT_ID IN
+			<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+			WHERE A.DELYN = 'N'
+			AND A.DSCS_ID = B.DSCS_ID
+			AND NOT EXISTS (
+				SELECT 1
+				FROM TB_LMS_EXAM_BSC
+				WHERE EXAM_SBST_REF_ID = A.DSCS_ID
+			)
+			<!-- AND LEFT(#{startDt}, 6) BETWEEN LEFT(A.DSCS_SDTTM, 6) AND LEFT(A.DSCS_EDTTM, 6) -->
+			AND SUBSTR(#{startDt}, 1, 6) BETWEEN SUBSTR(A.DSCS_SDTTM, 1, 6) AND SUBSTR(A.DSCS_EDTTM, 1, 6)
+			-- 퀴즈
+			UNION ALL
+			SELECT
+				  B.SBJCT_ID										AS CALENDAR_ID
+				, A.EXAM_ID											AS SCHEDULE_ID
+				, 'QUIZ'											AS SCHEDULE_GUBUN
+				, '[퀴즈]' 											AS PREFIX
+				, A.EXAM_TTL										AS TTL
+				, A.EXAM_SDTTM									AS SYMD
+				, A.EXAM_EDTTM									AS EYMD
+			FROM TB_LMS_EXAM_BSC A
+			JOIN TB_LMS_EXAM_CRE_CRS_RLTN B
+			ON A.EXAM_ID = B.EXAM_ID
+			AND B.DELYN = 'N'
+			AND B.SBJCT_ID IN
+			<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+			WHERE A.DELYN = 'N'
+			AND A.USEYN = 'Y'
+			AND A.EXAM_CTGRCD = 'QUIZ'
+			AND A.TKEXAM_TYCD = 'A'
+			AND A.EXAM_QSTNS_CMPTNYN IN('Y', 'M')
+			<!-- AND LEFT(#{startDt}, 6) BETWEEN LEFT(A.EXAM_SDTTM, 6) AND LEFT(A.EXAM_EDTTM, 6) -->
+			AND SUBSTR(#{startDt}, 1, 6) BETWEEN SUBSTR(A.EXAM_SDTTM, 1, 6) AND SUBSTR(A.EXAM_EDTTM, 1, 6)
+			-- 설문
+			UNION ALL
+			SELECT 
+				  B.SBJCT_ID										AS CALENDAR_ID
+				, A.SRVY_ID										AS SCHEDULE_ID
+				, 'RESCH'											AS SCHEDULE_GUBUN
+				, '[설문]'											AS PREFIX
+				, A.SRVY_TTL										AS TTL
+				, A.SRVY_SDTTM								AS SYMD
+				, A.RESCH_END_DTTM									AS EYMD
+			FROM TB_LMS_SRVY A
+			JOIN TB_LMS_RESCH_CRE_CRS_RLTN B
+			ON A.SRVY_ID = B.SRVY_ID
+			AND B.DELYN = 'N'
+			AND B.SBJCT_ID IN
+			<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+			WHERE A.SRVY_TMPLTYN = 'N'
+			AND A.ORG_ID = #{orgId}
+			AND A.DELYN = 'N'
+			AND A.USEYN = 'Y'
+			<!-- AND LEFT(#{startDt}, 6) BETWEEN LEFT(A.SRVY_SDTTM, 6) AND LEFT(A.RESCH_END_DTTM, 6) -->
+			AND SUBSTR(#{startDt}, 1, 6) BETWEEN SUBSTR(A.SRVY_SDTTM, 1, 6) AND SUBSTR(A.RESCH_END_DTTM, 1, 6)
+			-- 세미나
+			UNION ALL
+			SELECT
+				  A.SBJCT_ID										AS CALENDAR_ID
+				, A.SMNR_ID										AS SCHEDULE_ID
+				, 'SEMINAR'											AS SCHEDULE_GUBUN
+				, '[세미나]'											AS PREFIX
+				, A.SEMINAR_NM										AS TTL
+				, A.SMNR_SDTTM								AS SYMD
+				, A.SMNR_EDTTM								AS EYMD
+			FROM TB_LMS_SMNR A
+			WHERE A.DELYN = 'N'
+			AND A.SBJCT_ID IN
+			<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+			<!-- AND LEFT(#{startDt}, 6) BETWEEN LEFT(A.SMNR_SDTTM, 6) AND LEFT(A.SMNR_EDTTM, 6) -->
+			AND SUBSTR(#{startDt}, 1, 6) BETWEEN SUBSTR(A.SMNR_SDTTM, 1, 6) AND SUBSTR(A.SMNR_EDTTM, 1, 6)
+			-- 수시평가
+			UNION ALL
+			SELECT
+				  B.SBJCT_ID										AS CALENDAR_ID
+				, A.EXAM_ID											AS SCHEDULE_ID
+				, 'EXAM'											AS SCHEDULE_GUBUN
+				, '[수시평가]' 										AS PREFIX
+				, A.EXAM_TTL										AS TTL
+				, A.EXAM_SDTTM									AS SYMD
+				, A.EXAM_EDTTM									AS EYMD
+			FROM TB_LMS_EXAM_BSC A
+			JOIN TB_LMS_EXAM_CRE_CRS_RLTN B
+			ON A.EXAM_ID = B.EXAM_ID
+			AND B.DELYN = 'N'
+			AND B.SBJCT_ID IN
+			<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+			WHERE A.DELYN = 'N'
+			AND A.USEYN = 'Y'
+			AND A.EXAM_CTGRCD = 'EXAM'
+			AND A.TKEXAM_TYCD = 'A'
+			AND A.EXAM_QSTNS_CMPTNYN = 'Y'
+			<!-- AND LEFT(#{startDt}, 6) BETWEEN LEFT(A.EXAM_SDTTM, 6) AND LEFT(A.EXAM_EDTTM, 6) -->
+			AND SUBSTR(#{startDt}, 1, 6) BETWEEN SUBSTR(A.EXAM_SDTTM, 1, 6) AND SUBSTR(A.EXAM_EDTTM, 1, 6)
+			-- 실시간 시험
+			UNION ALL
+			SELECT
+				  B.SBJCT_ID										AS CALENDAR_ID
+				, A.EXAM_ID											AS SCHEDULE_ID
+				, 'EXAM'											AS SCHEDULE_GUBUN
+				, '[실시간시험]' 										AS PREFIX
+				, A.EXAM_TTL										AS TTL
+				, A.EXAM_SDTTM									AS SYMD
+				, A.EXAM_EDTTM									AS EYMD
+			FROM TB_LMS_EXAM_BSC A
+			JOIN TB_LMS_EXAM_CRE_CRS_RLTN B
+			ON A.EXAM_ID = B.EXAM_ID
+			AND B.DELYN = 'N'
+			AND B.SBJCT_ID IN
+			<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+			WHERE A.DELYN = 'N'
+			AND A.USEYN = 'Y'
+			AND A.EXAM_CTGRCD = 'EXAM'
+			AND A.EXAM_TYCD = 'EXAM'
+			AND A.TKEXAM_TYCD IN ('M', 'L')
+			AND A.EXAM_QSTNS_CMPTNYN = 'Y'
+			<!-- AND LEFT(#{startDt}, 6) BETWEEN LEFT(A.EXAM_SDTTM, 6) AND LEFT(A.EXAM_EDTTM, 6) -->
+			AND SUBSTR(#{startDt}, 1, 6) BETWEEN SUBSTR(A.EXAM_SDTTM, 1, 6) AND SUBSTR(A.EXAM_EDTTM, 1, 6)
+			-- 대체 시험
+			UNION ALL
+			SELECT
+				  B.SBJCT_ID										AS CALENDAR_ID
+				, A.EXAM_ID											AS SCHEDULE_ID
+				, 'EXAM'											AS SCHEDULE_GUBUN
+				, CASE WHEN A.EXAM_TYCD = 'ASMNT'
+					   THEN '[시험과제]'
+					   WHEN A.EXAM_TYCD = 'FORUM'
+					   THEN '[시험토론]'
+					   WHEN A.EXAM_TYCD = 'QUIZ'
+					   THEN '[시험퀴즈]'
+				  END AS PREFIX
+				, A.EXAM_TTL										AS TTL
+				, A.EXAM_SDTTM									AS SYMD
+				, A.EXAM_EDTTM									AS EYMD
+			FROM TB_LMS_EXAM_BSC A
+			JOIN TB_LMS_EXAM_CRE_CRS_RLTN B
+			ON A.EXAM_ID = B.EXAM_ID
+			AND B.DELYN = 'N'
+			AND B.SBJCT_ID IN
+			<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+			WHERE A.DELYN = 'N'
+			AND A.USEYN = 'Y'
+			AND A.EXAM_CTGRCD = 'EXAM'
+			AND A.EXAM_TYCD != 'EXAM'
+			AND A.TKEXAM_TYCD IN ('M', 'L')
+			AND A.EXAM_QSTNS_CMPTNYN IN ('Y', 'M')
+			<!-- AND LEFT(#{startDt}, 6) BETWEEN LEFT(A.EXAM_SDTTM, 6) AND LEFT(A.EXAM_EDTTM, 6) -->
+			AND SUBSTR(#{startDt}, 1, 6) BETWEEN SUBSTR(A.EXAM_SDTTM, 1, 6) AND SUBSTR(A.EXAM_EDTTM, 1, 6)
+		)
+		SELECT
+			  CALENDAR_ID
+			, SCHEDULE_GUBUN
+			, PREFIX
+			, TTL
+			, SYMD
+			, EYMD
+			, (SELECT SBJCTNM || '  ' || DVCLAS_NO FROM TB_LMS_SBJCT WHERE SBJCT_ID = CALENDAR_ID) AS NAME
+		FROM M2
+		ORDER BY EYMD, SYMD
+		<!-- <include refid="CommonSQL.pageSubfix"/> -->
+	</select>
+
+	<select id="profListSchedule" parameterType="schVO" resultType="schVO">
+		/*
+			 SQL ID : SchDAO.profListSchedule
+			 설  명 : 일정 조회
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		WITH M2 AS (
+			<!-- 
+			/* 학사일정*/
+			SELECT SYSJOB_SCHDL_TYCD										AS CALENDAR_ID
+					, ACAD_SCH_SN										AS SCHEDULE_ID
+					, CALENDAR_REF_CD									AS SCHEDULE_GUBUN
+					, CONCAT('[',(CASE WHEN SYSJOB_SCHDL_TYCD = 'course' THEN '과목' ELSE '개인' END),']') AS PREFIX
+					, ACAD_SCH_NM										AS TTL
+					, SYSJOB_SCHDL_SYMD										AS SYMD
+					, SYSJOB_SCHDL_EYMD										AS EYMD
+			FROM TB_HOME_ACAD_SCH
+			WHERE ORG_ID = #{orgId}
+			AND USEYN = 'Y'
+			UNION ALL
+			-->
+			/* 온라인 강의 관리 */
+			SELECT B.SBJCT_ID											AS CALENDAR_ID
+					, CONCAT(B.SBJCT_LCTR_CONTS_ID,'|',A.LCTR_SCHDL_ID) AS SCHEDULE_ID
+					, 'ONLINE'											AS SCHEDULE_GUBUN 
+					, (CASE WHEN B.LESSON_TYPE_CD = 'ONLINE' THEN '[온라인 강의]'
+							WHEN B.LESSON_TYPE_CD = 'OFFLINE' THEN '[오프라인 강의]'
+							WHEN B.LESSON_TYPE_CD = 'VIRTUAL' THEN '[화상강의]'
+							ELSE '[온라인 강의]'
+						END)											AS PREFIX
+					, B.LCTR_CONTSNM									AS TTL
+					, A.LCTR_SYMD									AS SYMD
+					, A.LCTR_EYMD									AS EYMD
+			FROM TB_LMS_SBJCT_LCTR_SCHDL A
+			RIGHT OUTER JOIN TB_LMS_SBJCT_LCTR_CONTS B USE INDEX (tb_lms_lesson_cnts_LESSON_SCHEDULE_ID_IDX)
+			ON A.LCTR_SCHDL_ID = B.LCTR_SCHDL_ID
+			AND A.SBJCT_ID = B.SBJCT_ID
+			WHERE A.DELYN  = 'N'
+			AND B.DELYN = 'N'
+			<if test="classUserTypeGubun != 'PROFESSOR'">
+				AND B.INQYN = 'Y' 
+			</if>
+			<if test="sqlForeach != null and sqlForeach != ''">
+				AND B.SBJCT_ID IN
+				   <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+				   </foreach>
+			</if>
+			<if test="startDt != null and endDt != ''">
+				AND ( SUBSTR(LCTR_SYMD,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(LCTR_SYMD,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(LCTR_EYMD,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(LCTR_EYMD,1,8) <![CDATA[ < ]]> #{endDt}
+			 	)
+			</if>
+			/* 과제관리 */
+			UNION ALL
+			SELECT A.SBJCT_ID											AS CALENDAR_ID
+					, A.ASMT_ID	    								AS SCHEDULE_ID
+					, 'ASMNT'        									AS SCHEDULE_GUBUN
+					, CONCAT('[', (CASE WHEN B.ASMT_CTGRCD = 'TEAM' THEN '팀' ELSE '' END)  ,'과제] ') AS PREFIX
+					, B.ASMT_TTL 									AS TTL
+					, B.SEND_START_DTTM 								AS SYMD
+					, B.SEND_END_DTTM 									AS EYMD
+			FROM TB_LMS_ASMNT_CRE_CRS_RLTN A, TB_LMS_ASMT B
+			WHERE A.DELYN = 'N'
+			AND A.ASMT_ID = B.ASMT_ID
+			AND B.DELYN ='N'
+			<if test="sqlForeach != null and sqlForeach != ''">
+				AND A.SBJCT_ID IN
+				   <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				   </foreach>
+			</if>
+			<if test="startDt != null and endDt != ''">
+				AND ( SUBSTR(SEND_START_DTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(SEND_START_DTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(SEND_END_DTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(SEND_END_DTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 	)
+		 	</if>
+			/* 토론관리 */
+			UNION ALL
+			SELECT A.SBJCT_ID											AS CALENDAR_ID
+					, A.DSCS_ID										AS SCHEDULE_ID
+					, 'FORUM'											AS SCHEDULE_GUBUN
+					, CONCAT('[', (CASE WHEN B.DSCS_TYCD = 'TEAM' THEN '팀' ELSE '' END)  ,'토론] ') AS PREFIX
+					, B.DSCS_TTL										AS TTL
+					, B.DSCS_SDTTM								AS SYMD
+					, B.DSCS_EDTTM									AS EYMD
+			FROM TB_LMS_FORUM_CRE_CRS_RLTN A, TB_LMS_DSCS B
+			WHERE A.DELYN = 'N'
+			AND A.DSCS_ID = B.DSCS_ID
+			AND B.DELYN ='N'
+			AND B.DSCS_OYN = 'Y'
+			<if test="sqlForeach != null and sqlForeach != ''">
+				AND A.SBJCT_ID IN
+				   <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				   </foreach>
+			</if>
+			<if test="startDt != null and endDt != ''">
+				AND ( SUBSTR(DSCS_SDTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(DSCS_SDTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(DSCS_EDTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(DSCS_EDTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 	)
+			</if>
+			/* 시험 관리 */
+			UNION ALL
+			SELECT A.SBJCT_ID											AS CALENDAR_ID
+					, B.EXAM_ID											AS SCHEDULE_ID
+					, B.EXAM_CTGRCD									AS SCHEDULE_GUBUN
+					, CONCAT('[', (CASE WHEN B.EXAM_CTGRCD = 'EXAM' THEN '시험' ELSE '퀴즈' END)  ,'] ') AS PREFIX
+					, B.EXAM_TTL										AS TTL
+					, B.EXAM_SDTTM									AS SYMD
+					, B.EXAM_EDTTM									AS EYMD
+			FROM TB_LMS_EXAM_CRE_CRS_RLTN A, TB_LMS_EXAM_BSC B
+			WHERE B.ORG_ID = #{orgId} 
+			AND A.DELYN = 'N'
+			AND B.DELYN = 'N'
+			AND A.EXAM_ID = B.EXAM_ID
+			<if test="sqlForeach != null and sqlForeach != ''">
+				AND A.SBJCT_ID IN
+				   <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				   </foreach>
+			</if>
+			<if test="startDt != null and endDt != ''">
+				AND ( SUBSTR(EXAM_SDTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(EXAM_SDTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(EXAM_EDTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(EXAM_EDTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 	)
+			</if>
+			/* 설문 관리 */
+			UNION ALL
+			SELECT C.SBJCT_ID											AS CALENDAR_ID
+					, A.SRVY_ID										AS SCHEDULE_ID
+					, 'RESCH'											AS SCHEDULE_GUBUN
+					, '[설문]'											AS PREFIX
+					, A.SRVY_TTL										AS TTL
+					, A.SRVY_SDTTM								AS SYMD
+					, A.RESCH_END_DTTM									AS EYMD
+			FROM TB_LMS_SRVY A
+			LEFT JOIN TB_LMS_RESCH_CTGR B
+			ON A.SRVY_CTGRCD = B.SRVY_CTGRCD
+			JOIN TB_LMS_RESCH_CRE_CRS_RLTN C
+			ON C.SRVY_ID = A.SRVY_ID
+			AND C.DELYN = 'N'
+			<if test="sqlForeach != null and sqlForeach != ''">
+				AND C.SBJCT_ID IN
+				   <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				   </foreach>
+			</if>
+			<if test="startDt != null and endDt != ''">
+				AND ( SUBSTR(SRVY_SDTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(SRVY_SDTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(RESCH_END_DTTM,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(RESCH_END_DTTM,1,8) <![CDATA[ < ]]> #{endDt}
+			 	)
+		 	</if>
+			<if test="searchMenu != 'STUDENT'">
+				JOIN SBJCT_PROF D
+				ON D.SBJCT_ID = C.SBJCT_ID
+			</if>
+			WHERE A.SRVY_TYCD = 'LECT'
+			AND A.SRVY_TMPLTYN = 'N'
+			AND A.ORG_ID = #{orgId}
+			AND A.DELYN = 'N'
+			<if test="searchMenu == 'STUDENT'">
+				AND A.USEYN = 'Y'
+				AND EXISTS (SELECT 1
+							FROM TB_LMS_ATNDLC_SBJCT AA
+							WHERE AA.SBJCT_ID = C.SBJCT_ID
+							AND AA.USER_ID = #{userId})
+			</if>
+			<if test="searchMenu != 'STUDENT'">
+				AND D.USER_ID = #{userId}
+			</if>
+		)
+		, SCHEDULE_INFO AS ( 
+			SELECT CASE WHEN IFNULL((SELECT 'Y' FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = #{userId} LIMIT 1), 'N') = 'Y' THEN 'STUDENT' 
+									ELSE 'PROFESSOR' 
+						END AS USER_TYPES
+					, #{userId} AS USER_ID
+					, M2.CALENDAR_ID
+					, M2.SCHEDULE_ID
+					, M2.SCHEDULE_GUBUN
+					, M2.PREFIX
+					, M2.TTL
+					, M2.SYMD
+					, M2.EYMD
+					, CASE (SELECT SBJCT_TYCD FROM TB_LMS_CRS WHERE CRS_ID = (SELECT CRS_ID FROM TB_LMS_SBJCT WHERE SBJCT_ID = M2.CALENDAR_ID)) 
+							WHEN 'UNI' THEN '1'
+							WHEN 'CO' THEN '2'
+							ELSE '3'
+					  END AS ODR
+					, (SELECT SBJCTNM FROM TB_LMS_SBJCT WHERE SBJCT_ID = M2.CALENDAR_ID) AS NAME
+					, (SELECT DVCLAS_NO FROM TB_LMS_SBJCT WHERE SBJCT_ID = M2.CALENDAR_ID) AS DVCLAS_NO
+			FROM M2
+			WHERE (
+				<choose>
+					<when test="searchMenu == 'STUDENT'">
+						M2.CALENDAR_ID IN (SELECT SBJCT_ID FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = #{userId} AND ATNDLC_STSCD = 'S')
+					</when>
+					<otherwise>
+						M2.CALENDAR_ID IN (SELECT SBJCT_ID FROM SBJCT_PROF WHERE USER_ID = #{userId})
+					</otherwise>
+				</choose>
+			)
+		)
+		SELECT CALENDAR_ID
+				, TTL
+				, SYMD
+				, EYMD
+				, (SELECT CONCAT(SBJCTNM,'  ',DVCLAS_NO) FROM TB_LMS_SBJCT WHERE SBJCT_ID = CALENDAR_ID) AS NAME
+		FROM SCHEDULE_INFO
+		WHERE ( USER_ID = #{userId} OR CALENDAR_ID = 'ACAD' )
+		<if test="startDt != null and endDt != ''">
+			AND ( SUBSTR(SYMD,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(SYMD,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(EYMD,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(EYMD,1,8) <![CDATA[ < ]]> #{endDt}
+			 		)
+		 </if>
+		ORDER BY SYMD, EYMD
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="listAcadSch" parameterType="schVO" resultType="schVO">
+		/*
+			 SQL ID : SchDAO.listAcadSch
+			 설  명 : 학사일정 조회
+		*/
+		<!-- SELECT * FROM (
+			SELECT
+				  TLOSC.ORG_ID
+				, TLOSC.SMSTR_COHORT_TYCD										AS CALENDAR_ID
+				, '[' || (CASE WHEN SMSTR_COHORT_TYCD = 'course' THEN '과목' ELSE '개인' END) || ']' AS PREFIX
+				, TLOSC.SMSTR_COHORTNM AS TTL
+				, TLSCS.SYMD
+				, TLSCS.EYMD
+			  FROM TB_LMS_ORG_SMSTR_COHORT TLOSC, TB_LMS_SMSTR_COHORT_SCHDL TLSCS
+			 WHERE TLOSC.ORG_SMSTR_COHORT_ID = TLSCS.ORG_SMSTR_COHORT_ID
+			   AND TLOSC.ORG_ID = TLSCS.ORG_ID
+		) A
+	       WHERE ORG_ID = #{orgId}
+		   AND (
+				   (SYSJOB_SCHDL_TYCD = 'personal' and CALENDAR_REF_CD = #{userId})
+				OR SYSJOB_SCHDL_TYCD = 'course'
+			)
+			AND ( SUBSTR(SYMD,1,8) <![CDATA[ >= ]]>  #{startDt} AND SUBSTR(SYMD,1,8) <![CDATA[ < ]]> #{endDt}
+			 			OR SUBSTR(EYMD,1,8) <![CDATA[ >= ]]> #{startDt} AND SUBSTR(EYMD,1,8)  <![CDATA[ < ]]> #{endDt}
+			 	)
+	       <if test="uniCd != null and uniCd != ''">
+	       AND (UNIV_CD = #{uniCd} OR UNIV_CD = 'A' OR UNIV_CD IS NULL)
+	       </if>
+		ORDER BY SYMD, EYMD -->
+		
+		SELECT 
+			TLCM.ORG_ID 
+			-- , TLOSC.SMSTR_COHORT_TYCD
+			-- , '[' || (CASE WHEN SMSTR_COHORT_TYCD = 'course' THEN '과목' ELSE '개인' END) || ']' AS PREFIX
+			, TLSO.ATNDLC_SDTTM
+			, TLSO.ATNDLC_EDTTM
+		  FROM TB_LMS_SBJCT_OFRNG TLSO
+		     , TB_LMS_CRS_MSTR TLCM
+		 WHERE TLSO.CRS_MSTR_ID = TLCM.CRS_MSTR_ID
+			AND ( SUBSTR(TLSO.ATNDLC_SDTTM,1,8)   <![CDATA[ >= ]]>   '20260101' AND SUBSTR(TLSO.ATNDLC_SDTTM,1,8)    <![CDATA[ < ]]>   '20260131'
+			   OR SUBSTR(TLSO.ATNDLC_EDTTM,1,8)   <![CDATA[ >= ]]>   '20260101' AND SUBSTR(TLSO.ATNDLC_EDTTM,1,8)    <![CDATA[ < ]]>   '20260131'
+			)
+			<if test="uniCd != null and uniCd != ''">
+	       		AND (UNIV_CD = #{uniCd} OR UNIV_CD = 'A' OR UNIV_CD IS NULL)
+	        </if>
+		ORDER BY TLSO.ATNDLC_SDTTM, TLSO.ATNDLC_EDTTM
+	</select>
+	
+</mapper>

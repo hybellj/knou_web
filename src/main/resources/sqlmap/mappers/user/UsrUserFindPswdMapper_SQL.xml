@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.user.dao.UsrUserFindPswdDAO">
+	
+	<sql id="selectQuery">
+        SELECT ROW_NUMBER() OVER(ORDER BY A.FRST_INQ_DTTM DESC) as rowNum
+             , USER_FIND_PSWD_SN     as userFindPswdSn
+			 , FIND_PSWD_TYPE_CD     as findPswdTypeCd
+			 , SENDER_NM             as senderNm
+			 , SENDER_EMAIL          as senderEmail
+			 , TTL                 as TTL
+			 , SND_CTS                   as SND_CTS
+			 , RGTR_ID                as rgtrId
+			 , FRST_INQ_DTTM              as regDttm
+			 , MDFR_ID                as mdfrId
+			 , MOD_DTTM              as modDttm
+          FROM TB_HOME_USER_FIND_PSWD A
+         WHERE 1=1
+         <if test="findPswdTypeCd != null and findPswdTypeCd != ''">
+             AND A.FIND_PSWD_TYPE_CD = #{findPswdTypeCd}
+         </if>
+    </sql>
+    
+    <select id="select" parameterType="usrUserFindPswdVO" resultType="usrUserFindPswdVO">
+        /*
+             SQL ID : select
+             	설  명 : 비밀번호 찾기 EMAIL/SMS 템플릿 정보 조회
+        */
+        <include refid="selectQuery"/>
+    </select>
+    
+    <insert id="insert" parameterType="usrUserFindPswdVO">
+        /*
+             SQL ID : insert
+             	설  명 : 비밀번호 찾기 EMAIL/SMS 템플릿 정보 등록
+        */
+        INSERT INTO TB_HOME_USER_FIND_PSWD (
+        	  USER_FIND_PSWD_SN
+            , FIND_PSWD_TYPE_CD
+			, SENDER_NM
+			, SENDER_EMAIL
+			, TTL
+			, SND_CTS
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+        ) VALUES (
+        	  #{userFindPswdSn}
+            , #{findPswdTypeCd}
+            , #{senderNm}
+            , #{senderEmail}
+            , #{TTL}
+            , #{SND_CTS}
+            , #{rgtrId}
+            , FN_DTTM()
+            , #{mdfrId}
+            , FN_DTTM()
+        )
+    </insert>
+    
+    <update id="update" parameterType="usrUserFindPswdVO">
+        /*
+             SQL ID : update
+             	설  명 : 비밀번호 찾기 EMAIL/SMS 템플릿 정보 수정
+        */
+        UPDATE TB_HOME_USER_FIND_PSWD
+           SET
+              MDFR_ID = #{mdfrId}
+            , MOD_DTTM = FN_DTTM()
+            <if test='findPswdTypeCd != null and findPswdTypeCd != "" '>
+            , FIND_PSWD_TYPE_CD = #{findPswdTypeCd}
+            </if>
+            <if test='senderNm != null and senderNm != "" '>
+            , SENDER_NM = #{senderNm}
+            </if>
+            <if test='senderEmail != null and senderEmail != "" '>
+            , SENDER_EMAIL = #{senderEmail}
+            </if>
+            <if test='TTL != null and TTL != "" '>
+            , TTL = #{TTL}
+            </if>
+            <if test='SND_CTS != null and SND_CTS != "" '>
+            , SND_CTS = #{SND_CTS}
+            </if>
+         WHERE USER_FIND_PSWD_SN = #{userFindPswdSn}
+    </update>
+    
+    <delete id="delete" parameterType="usrUserFindPswdVO">
+        /*
+             SQL ID : delete
+             	설  명 : 비밀번호 찾기 EMAIL/SMS 템플릿 정보 삭제
+        */
+        DELETE FROM TB_HOME_USER_FIND_PSWD
+         WHERE USER_FIND_PSWD_SN = #{userFindPswdSn}
+    </delete>
+    
+    <select id="count" parameterType="usrUserFindPswdVO" resultType="Integer">
+        /*
+             SQL ID : select
+             	설  명 : 비밀번호 찾기 EMAIL/SMS 템플릿 정보 카운트
+        */
+        SELECT COUNT(*) FROM (
+        <include refid="selectQuery"/>
+        ) T
+    </select>
+	
+</mapper>

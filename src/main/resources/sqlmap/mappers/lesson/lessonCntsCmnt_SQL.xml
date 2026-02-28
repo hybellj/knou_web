@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.lesson.dao.LessonCntsCmntDAO">
+	
+	<delete id="delete" parameterType="lessonCntsCmntVO">
+		/*
+             SQL ID : LessonCntsCmntDAO.delete
+             설  명 : 학습콘텐츠 댓글 삭제
+         */
+		DELETE FROM TB_LMS_LESSON_CNTS_CMNT
+		WHERE SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+		<if test="lessonCntsCmntId != null and lessonCntsCmntId != ''">
+			AND A.LESSON_CNTS_CMNT_ID = #{lessonCntsCmntId}
+		</if>
+	</delete>
+
+</mapper>

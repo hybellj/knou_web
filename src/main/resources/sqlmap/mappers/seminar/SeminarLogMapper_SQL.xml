@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.seminar.dao.SeminarLogDAO">
+
+	<sql id="selectQuery">
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY FRST_INQ_DTTM) 	AS lineNo
+			, SEMINAR_LOG_ID						AS seminarLogId
+			, SMNR_ID                            AS seminarId
+			, STD_ID                                AS stdNo
+			, SDTTM                            AS startDttm
+			, EDTTM                              AS endDttm
+			, CNTN_DVC_TYCD                        AS deviceTypeCd
+			, ATND_SCNDS                             AS atndTime
+			, ATND_STSCD                               AS atndCd
+			, USER_ID                               AS userId
+			, RGTR_IP                                AS regIp
+			, RGTR_ID                                AS rgtrId
+			, FRST_INQ_DTTM                              AS regDttm
+			, COUNT(1) OVER()						AS totalCnt
+		  FROM TB_LMS_SEMINAR_LOG
+		 WHERE 1 = 1
+	</sql>
+	
+	<select id="select" parameterType="seminarLogVO" resultType="seminarLogVO">
+		/*
+             SQL ID : SeminarLogDAO.select
+            	 설  명 : 세미나 로그 정보 조회
+         */
+         <include refid="selectQuery" />
+         AND SEMINAR_LOG_ID = #{seminarLogId}
+	</select>
+	
+	<select id="list" parameterType="seminarLogVO" resultType="seminarLogVO">
+		/*
+             SQL ID : SeminarLogDAO.list
+            	 설  명 : 세미나 로그 목록 조회
+         */
+         <include refid="selectQuery" />
+         <if test="seminarId != null and seminarId != ''">
+         	AND SMNR_ID = #{seminarId}
+         </if>
+         <if test="stdNo != null and stdNo != ''">
+         	AND STD_ID = #{stdNo}
+         </if>
+         ORDER BY FRST_INQ_DTTM DESC
+	</select>
+	
+	<insert id="insert" parameterType="seminarLogVO">
+		/*
+             SQL ID : SeminarLogDAO.insert
+            	 설  명 : 세미나 로그 등록
+         */
+         INSERT INTO TB_LMS_SEMINAR_LOG (
+         	  SEMINAR_LOG_ID
+			, SMNR_ID
+			, STD_ID
+			, SDTTM
+			, EDTTM
+			, CNTN_DVC_TYCD
+			, ATND_SCNDS
+			, ATND_STSCD
+			, USER_ID
+			, RGTR_IP
+			, RGTR_ID
+			, FRST_INQ_DTTM
+         ) VALUES (
+         	  #{seminarLogId}
+         	, #{seminarId}
+         	, #{stdNo}
+         	, #{startDttm}
+         	, #{endDttm}
+         	, IFNULL(#{deviceTypeCd}, '-')
+         	, #{atndTime}
+         	, #{atndCd}
+         	, #{userId}
+         	, IFNULL(#{regIp}, '-')
+         	, #{rgtrId}
+         	, FN_DTTM()
+         )
+	</insert>
+
+</mapper>

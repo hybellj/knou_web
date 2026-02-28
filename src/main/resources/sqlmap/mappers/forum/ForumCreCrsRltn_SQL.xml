@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.forum.dao.ForumCreCrsRltnDAO">
+
+	<insert id="insertCreCrsForumRltn" parameterType="forumCreCrsRltnVO">
+		/*
+			개설 과정 토론 연결
+			ForumCreCrsRltnDAO.insertCreCrsForumRltn
+		*/
+		INSERT INTO TB_LMS_FORUM_CRE_CRS_RLTN(
+			SBJCT_ID
+			, DSCS_ID
+			, GRPCD
+			, DELYN
+			)
+		VALUES(
+			#{crsCreCd} 
+			, #{forumCd} 
+			, #{grpCd} 
+			, 'N'
+			)
+	</insert>
+
+	<select id="selectGrpCd" parameterType="forumCreCrsRltnVO" resultType="forumCreCrsRltnVO">
+		/*
+			개설 과정 토론 조회
+			ForumCreCrsRltnDAO.selectGrpCd
+		*/
+		SELECT A.SBJCT_ID	AS crsCreCd
+			,  A.DSCS_ID	AS forumCd
+			,  A.GRPCD		AS grpCd
+			,  A.DELYN		AS delYn
+		FROM TB_LMS_FORUM_CRE_CRS_RLTN AS A
+		WHERE A.DSCS_ID = #{forumCd}
+		AND A.DELYN = 'N'
+	</select>
+
+</mapper>

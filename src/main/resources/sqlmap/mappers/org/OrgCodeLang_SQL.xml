@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.org.dao.OrgCodeLangDAO">
+
+	<sql id="selectQuery">
+		<!-- SELECT ORG_ID
+		     , CTGRCD
+		     , CD
+		     , CDNM
+		     , CD_EXPLN
+		 	 , LANG_CD
+		  FROM TB_ORG_CODE_LANG
+		WHERE 1 = 1
+			 AND CTGRCD = #{codeCtgrCd}
+			<if test="codeCd != null and codeCd != ''"> 
+				AND CD = #{codeCd}
+			</if> -->
+			
+		SELECT
+			  ORG_ID
+			, CMMN_CD_ID
+			, LANG_CD
+			, UP_CD
+			, CD
+			, CD_SEQ
+			, CDNM
+			, CD_EXPLN
+		FROM TB_LMS_CMMN_CD 
+		WHERE 1=1 
+			<if test="cd != null and cd != ''"> 
+			AND CD = #{cd}
+			</if>
+			<if test="upCd != null and upCd != ''"> 
+			AND UP_CD = #{upCd}
+			</if>
+	</sql>
+
+	<sql id="listQuery">
+		<include refid="selectQuery"/>
+		<if test="langCd != null and langCd != ''">  
+		   AND LANG_CD = #{langCd}
+		 </if>
+		 ORDER BY LANG_CD
+	</sql>	
+
+	<select id="list" parameterType="orgCodeLangVO" resultType="orgCodeLangVO">
+		/*
+			 SQL ID : OrgCodeLangDAO.list
+			 설  명 : 코드 언어의 전체 목록
+	 	*/
+		<include refid="listQuery"/>
+	</select>
+
+	<select id="select" parameterType="orgCodeLangVO" resultType="orgCodeLangVO">
+		/*
+			 SQL ID : OrgCodeLangDAO.select
+			 설  명 : 코드 언어의 정보 조회
+	 	*/
+	 	<include refid="selectQuery"/>
+           AND LANG_CD = #{langCd}	 	
+	</select>
+	
+	<insert id="insert" parameterType="orgCodeLangVO" >
+		/*
+			 SQL ID : OrgCodeLangDAO.insert
+			 설  명 : 코드 언어의 정보 등록
+		*/
+		INSERT INTO TB_ORG_CODE_LANG (
+		       LANG_CD
+		     , CTGRCD
+		     , CD
+		     , CDNM
+		     , CD_EXPLN
+		     , ORG_ID
+		) VALUES (
+		       #langCd}
+		     , #{codeCtgrCd}
+		     , #{codeCd}
+		     , #{codeNm}
+		     , #{codeDesc}
+		     , #{orgId}
+		)
+	</insert>
+
+	<update id="update" parameterType="orgCodeLangVO" >
+		/*
+			 SQL ID : OrgCodeLangDAO.update
+			 설  명 : 코드 언어의 정보 수정
+		*/
+		UPDATE TB_ORG_CODE_LANG
+		   SET CDNM = #{codeNm}
+		     , CD_EXPLN = #{codeDesc}
+		 WHERE ORG_ID = #{orgId}
+		   AND CTGRCD = #{codeCtgrCd}
+		   AND CD = #{codeCd}
+		   AND LANG_CD = #{langCd}
+	</update>
+	
+	<delete id="delete" parameterType="orgCodeLangVO" >
+		/*
+			 SQL ID : OrgCodeLangDAO.delete
+			 설  명 : 코드 언어의 정보 삭제
+	 	*/
+		DELETE FROM TB_ORG_CODE_LANG
+		 WHERE ORG_ID = #{orgId}
+		   AND CTGRCD = #{codeCtgrCd}
+		   AND CD = #{codeCd}
+		   AND LANG_CD = #{langCd}
+	</delete>	
+	
+	<delete id="deleteAll" parameterType="orgCodeLangVO" >
+		/*
+			 SQL ID : OrgCodeLangDAO.deleteAll
+			 설  명 : 코드 정보 하위의 코드 언어를 삭제
+		*/
+		DELETE FROM TB_ORG_CODE_LANG
+		 WHERE ORG_ID = #{orgId}
+		   AND CTGRCD = #{codeCtgrCd}
+		   AND CD = #{codeCd}
+	</delete>
+
+	<delete id="deleteAllByCtgr" parameterType="orgCodeLangVO" >
+		/*
+			 SQL ID : OrgCodeLangDAO.deleteAllByCtgr
+			 설  명 : 코드 분류 하위의 코드 언어를 삭제
+	 	*/
+		DELETE FROM TB_ORG_CODE_LANG
+		 WHERE ORG_ID = #{orgId}
+		   AND CTGRCD = #{codeCtgrCd}
+	</delete>
+
+</mapper>

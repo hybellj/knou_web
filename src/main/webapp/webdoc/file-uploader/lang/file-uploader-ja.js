@@ -1,0 +1,25 @@
+var UiFileUploader_language = "jp";
+var UiFileUploader_lang = {
+	dragDropStr:			"ここでファイルをドラッグしてください。",
+	uploadStr:				"ファイルを選択",
+	//extErrorStr:			"拡張子が〔{0}〕のファイルはアップロードできません。",
+	extErrorStr:			"アップロードできないファイル形式です。",
+	allowTypeStr:			"拡張子が〔{0}〕のファイルのみアップロード可能です。",
+	notAllowTypeStr:		"米許可ファイル形式",
+	sizeErrorStr:			"ファイルが制限サイズ{0}を超えました。",
+	allowSizeStr:			"許可サイズ",
+	maxFileCountErrorStr:	"添付できる最大ファイル数は{0}個です。",
+	allowFileCountStr:		"許可ファイル数",
+	flashVersion:			"フラッシュバージョンを確認してください。\nFlashバージョン8以上から利用可能です。",
+	networkError:			"ネットワークエラーが発生しました。\nしばらくしてから、もう一度やり直してください。",
+	ioError:				"ファイル入出力エラーが発生しました。",
+	oneLimitError:			"ファイル一つの制限サイズ{0}を超えました。",
+	selectFileStr:			"ファイルを選択してください。",
+	totalStr:				"合計",
+	countStr:				"個",
+	uploadCountStr:			"転送",
+	completeStr:			"完了",
+	uploadErrorStr:			"ファイルのアップロード中にエラーが発生しました。",
+	fileBox:				"ファイルボックス",
+	addFromFileBox:			"ファイルボックスから"
+};

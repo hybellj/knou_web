@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.seminar.dao.SeminarTokenDAO">
+
+	<select id="selectAccessToken" parameterType="seminarTokenVO" resultType="seminarTokenVO">
+		/*
+             SQL ID : SeminarTokenDAO.selectAccessToken
+            	 설  명 : 세미나 OAuth 토큰 정보 조회
+         */
+         SELECT
+		    TKN_ID                                AS tokenId,
+		    TKN_EML                                AS tcEmail,
+		    CNTN_PRM_TKN                             AS accesToken,
+		    TKN_EXPYMD                               AS expireIn,
+		    (TRUNC((TO_DATE(TKN_EXPYMD, 'YYYY-MM-DD HH24:MI:SS') - SYSDATE) * 24 * 60) - 5) AS expireMin,
+		    UPDT_TKN                           AS refreshToken,
+		    UPDT_TKN_EXPYMD                       AS refreshExpireIn,
+		    (TRUNC((TO_DATE(UPDT_TKN_EXPYMD, 'YYYY-MM-DD HH24:MI:SS') - SYSDATE) * 24 * 60) - 5) AS reExpireMin,
+		    RGTR_ID                                  AS rgtrId,
+		    FRST_INQ_DTTM                                AS regDttm
+		FROM TB_LMS_SMNR_ZOOM_TKN
+		WHERE TKN_EML = #{tcEmail}
+	</select>
+	
+	<insert id="insertAccessToken" parameterType="seminarTokenVO">
+		/*
+             SQL ID : SeminarTokenDAO.insertAccessToken
+            	 설  명 : 세미나 OAuth 토큰 등록
+         */
+         INSERT INTO TB_LMS_SMNR_ZOOM_TKN (
+         	  TKN_ID
+			, TKN_EML
+			, CNTN_PRM_TKN
+			, TKN_EXPYMD
+			, UPDT_TKN
+			, UPDT_TKN_EXPYMD
+			, RGTR_ID
+			, FRST_INQ_DTTM
+         ) VALUES (
+         	  #{tokenId}
+         	, #{tcEmail}
+         	, #{accesToken}
+         	, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL #{expireIn} SECOND), '%Y%m%d%H%i%s')
+         	, #{refreshToken}
+         	, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL #{refreshExpireIn} SECOND), '%Y%m%d%H%i%s')
+         	, #{rgtrId}
+         	, FN_DTTM()
+         )
+	</insert>
+	
+	<update id="updateAccessToken" parameterType="seminarTokenVO">
+		/*
+             SQL ID : SeminarTokenDAO.updateAccessToken
+            	 설  명 : 세미나 OAuth 토큰 수정
+         */
+         UPDATE TB_LMS_SMNR_ZOOM_TKN SET
+         	  CNTN_PRM_TKN = #{accesToken}
+         	, TKN_EXPYMD = DATE_FORMAT(DATE_ADD(NOW(), INTERVAL #{expireIn} SECOND), '%Y%m%d%H%i%s')
+         	, UPDT_TKN = #{refreshToken}
+         	, UPDT_TKN_EXPYMD = DATE_FORMAT(DATE_ADD(NOW(), INTERVAL #{refreshExpireIn} SECOND), '%Y%m%d%H%i%s')
+          WHERE TKN_ID = #{tokenId}
+            AND TKN_EML = #{tcEmail}
+	</update>
+	
+	<delete id="deleteAccessToken" parameterType="seminarTokenVO">
+		/*
+             SQL ID : SeminarTokenDAO.deleteAccessToken
+            	 설  명 : 세미나 OAuth 토큰 삭제
+         */
+         DELETE FROM TB_LMS_SMNR_ZOOM_TKN
+          WHERE TKN_EML = #{tcEmail}
+	</delete>
+	
+	<select id="countByCreCrs" parameterType="seminarVO" resultType="int">
+		/*
+             SQL ID : SeminarTokenDAO.countByCreCrs
+            	 설  명 : 세미나 OAuth 토큰 여부 조회
+         */
+         SELECT
+			COUNT(A.USER_ID)
+		  FROM SBJCT_PROF A
+		  JOIN TB_LMS_USR B
+		    ON A.USER_ID = B.USER_ID
+		   AND A.RPRSYN = 'Y'
+		  JOIN TB_LMS_USER_ACNT AS C
+		    ON B.USER_ID = C.USER_ID
+		   AND C.ACNT_STSCD = 'U'
+		  JOIN TB_LMS_SMNR_ZOOM_TKN AS D
+		    ON (
+		    	   B.EMAIL = D.TKN_EML
+		     	OR B.TKN_EML = D.TKN_EML
+		     )
+		 WHERE A.SBJCT_ID = #{crsCreCd}
+	</select>
+
+</mapper>

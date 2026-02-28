@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Math Editor</title>
+
+	<link rel="stylesheet" type="text/css" href="math.css" />
+	<script type="text/javascript" src="/webdoc/assets/jquery/jquery-3.7.1.min.js"></script>
+	<script id="MathJax-script" async src="tex-mml-chtml.js">
+	<script type="text/x-mathjax-config">
+		MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]} });
+	</script>
+	<script type="text/javascript">
+		var inputBox	= null;
+		var previewBox	= null;
+		var previewMath	= null;
+		var equQueue 	= null;
+
+		$(document).ready(function(){
+			inputBox = document.getElementById("eqInputBox");
+			previewBox = document.getElementById("eqPreviewBox");
+			inputBox.focus();
+
+			$(".eqIcon a").click(function(e) {
+				var latex = $(this).attr("title");
+				insertEqationText(" "+latex+" ");
+
+				e.preventDefault();
+				changeEquationValue();
+			});
+
+			$(".eqtab li a").click(function(e) {
+				var tab = $(this).attr("href");
+
+				if (tab.indexOf("#tab") == -1) {
+					return;
+				}
+
+				$(".eqtab li").removeClass("on");
+				$(".eqtab-content").hide();
+				$(this).parent().addClass("on");
+				$(tab).show();
+			});
+
+			$("#eqInputBox").keyup(function(e) {
+				changeEquationValue();
+		    });
+		});
+
+
+		// 키 입력시 이벤트 처리
+		function changeEquationValue(event) {
+			if (event) {
+				var key = event.keyCode;
+
+				if (key == 13 || key == 25 || key == 32 || event.keyCode == 220
+						|| (key >= 16 && key <= 21)
+						|| (key >= 33 && key <= 40)) {
+					return;
+				}
+			}
+
+			var value = inputBox.value.trim();
+			previewBox.innerHTML = "";
+
+			MathJax.texReset();
+			var options = MathJax.getMetricsFor(previewBox);
+			MathJax.tex2chtmlPromise(value, options).then(function (node) {
+				previewBox.appendChild(node);
+				MathJax.startup.document.clear();
+				MathJax.startup.document.updateDocument();
+			});
+		}
+
+
+		// 수식삽입
+		function insertEqationText(txtValue) {
+			var me = inputBox;
+			if (document.selection) {
+				me.focus();
+				sel = document.selection.createRange();
+				sel.text = txtValue;
+				me.focus();
+			} else if (me.selectionStart || me.selectionStart == '0') {
+				var startPos = me.selectionStart, endPos = me.selectionEnd, scrollTop = me.scrollTop;
+				me.value = me.value.substring(0, startPos) + txtValue + me.value.substring(endPos, me.value.length);
+				me.focus();
+				me.selectionStart = startPos + txtValue.length;
+				me.selectionEnd = startPos + txtValue.length;
+				me.scrollTop = scrollTop;
+			} else {
+				me.value += txtValue;
+				me.focus();
+			}
+		}
+
+
+		// 편집 종료
+		function finishEquationEdit() {
+			$("#insertBtn").attr('disabled', true);
+			$("#loading").show();
+
+			$.ajax({
+	    		async : false,
+	    		type: 'POST',
+	    		url: "/math/mathToImage.do",
+	    		data : {data : $("#eqInputBox").val()},
+	    		dataType:"json",
+	    		success : function(data) {
+	    			if (data.imgSrc != "") {
+	    				parent.postMessage("mathInput:"+data.imgSrc, "*");
+	    			}
+	    			else {
+	    				$("#insertBtn").attr('disabled', false);
+	    				$("#loading").hide();
+	    				alert("Equation transformation error.");
+	    			}
+	    		},
+	    		error : function() {
+	    			$("#insertBtn").attr('disabled', false);
+	    			$("#loading").hide();
+	    			alert("Equation transformation error.222");
+	    		}
+	    	});
+		}
+
+		// 수식편집창 닫기
+		function closeEditor() {
+			parent.postMessage("closeMath", "*");
+		}
+	</script>
+</head>
+<body>
+
+	<div class="eq-container">
+		<div>
+			<ul class="eqtab">
+				<li class="on"><a href="#tab1" onclick="return false">Math</a></li>
+				<li><a href="#tab2" title="Greek" onclick="return false">Greek</a></li>
+				<li><a href="#tab3" title="Relations" onclick="return false">Relations</a></li>
+				<li><a href="#tab4" title="Logic" onclick="return false">Logic</a></li>
+				<li><a href="#tab5" title="Symbols" onclick="return false">Symbols</a></li>
+				<li><a href="#tab6" title="Arrows" onclick="return false">Arrows</a></li>
+				<li class="help"><a href="http://en.wikipedia.org/wiki/Help:Formula" title="Help:Displaying a formula" target="_blank" title="Help:Displaying a formula">Help</a></li>
+			</ul>
+		</div>
+
+
+		<div class="eqtab-container">
+			<div id="tab1" class="eqtab-content" style="display: block;">
+				<div>
+					<div class="eqIcon big"><a href="#_" title="\widetilde{ab}"><img src="./images/widetilde.png" title="\widetilde{ab}" alt="\widetilde{ab}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\widehat{ab}"><img src="./images/widehat.png" title="\widehat{ab}" alt="\widehat{ab}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\overleftarrow{ba}"><img src="./images/overleftarrow.png" title="\overleftarrow{ba}" alt="\overleftarrow{ba}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\overrightarrow{ab}"><img src="./images/overrightarrow.png" title="\overrightarrow{ab}" alt="\overrightarrow{ab}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\overline{ab}"><img src="./images/overline.png" title="\overline{ab}" alt="\overline{ab}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\underline{ab}"><img src="./images/underline.png" title="\underline{ab}" alt="\underline{ab}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\overbrace{ab}"><img src="./images/overbrace.png" title="\overbrace{ab}" alt="\overbrace{ab}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\underbrace{ab}"><img src="./images/underbrace.png" title="\underbrace{ab}" alt="\underbrace{ab}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\sqrt{ab}"><img src="./images/sqrt.png" title="\sqrt{ab}" alt="\sqrt{ab}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\sqrt[n]{ab}"><img src="./images/sqrtn.png" title="\sqrt[n]{ab}" alt="\sqrt[n]{ab}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="f&#39;"><img src="./images/fdash.png" title="f&#39;" alt="f&#39;"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\frac{a}{b}"><img src="./images/frac.png" title="\frac{a}{b}" alt="\frac{a}{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="x^{k}"><img src="./images/xpk.png" title="x^{k}" alt="x^{k}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="x_{k}"><img src="./images/xuk.png" title="x_{k}" alt="x_{k}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\lim_{a \rightarrow b}"><img src="./images/limit.png" title="\lim_{a \rightarrow b}" alt="\lim_{a \rightarrow b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\frac{\partial^nf}{\partial x^n}"><img src="./images/partial.png" title="\frac{\partial^nf}{\partial x^n}" alt="\frac{\partial^nf}{\partial x^n}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\begin{bmatrix}a &amp; b \\c &amp; d \end{bmatrix}"><img src="./images/matrix.png" title="\begin{bmatrix}a &amp; b \\c &amp; d \end{bmatrix}" alt="\begin{bmatrix}a &amp; b \\c &amp; d \end{bmatrix}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="x =\begin{cases}a &amp; x = 0\\b &amp; x &gt; 0\end{cases}"><img src="./images/select.png" title="x =\begin{cases}a &amp; x = 0\\b &amp; x &gt; 0\end{cases}" alt="x =\begin{cases}a &amp; x = 0\\b &amp; x &gt; 0\end{cases}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\big( a \big)"><img src="./images/para.png" title="\big( a \big)" alt="\big( a \big)"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\big\{ a \big\}"><img src="./images/curly.png" title="\big\{ a \big\}" alt="\big\{ a \big\}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\int_{a}^{b}"><img src="./images/int.png" title="\int_{a}^{b}" alt="\int_{a}^{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\oint_{a}^{b}"><img src="./images/oint.png" title="\oint_{a}^{b}" alt="\oint_{a}^{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\sum_{a}^{b}"><img src="./images/sum.png" title="\sum_{a}^{b}" alt="\sum_{a}^{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\bigsqcup_{a}^{b}"><img src="./images/bigsqcup.png" title="\bigsqcup_{a}^{b}" alt="\bigsqcup_{a}^{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\prod_{a}^{b}"><img src="./images/prod.png" title="\prod_{a}^{b}" alt="\prod_{a}^{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\coprod_{a}^{b}"><img src="./images/coprod.png" title="\coprod_{a}^{b}" alt="\coprod_{a}^{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\bigcap_{a}^{b}"><img src="./images/bigcap.png" title="\bigcap_{a}^{b}" alt="\bigcap_{a}^{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\bigcup_{a}^{b}"><img src="./images/bigcup.png" title="\bigcup_{a}^{b}" alt="\bigcup_{a}^{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\bigvee_{a}^{b}"><img src="./images/bigvee.png" title="\bigvee_{a}^{b}" alt="\bigvee_{a}^{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\bigwedge_{a}^{b}"><img src="./images/bigwedge.png" title="\bigwedge_{a}^{b}" alt="\bigwedge_{a}^{b}"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\bigotimes"><img src="./images/bigotimes.png" title="\bigotimes" alt="\bigotimes"></a>
+					</div><div class="eqIcon big"><a href="#_" title="\bigoplus"><img src="./images/bigoplus.png" title="\bigoplus" alt="\bigoplus"></a></div>
+				</div>
+			</div>
+
+			<div id="tab2" class="eqtab-content" style="display: none;">
+				<div>
+					<div class="eqIcon"><a href="#_" title="\alpha"><img src="./images/alpha.png" title="\alpha" alt="\alpha"></a>
+					</div><div class="eqIcon"><a href="#_" title="\beta"><img src="./images/beta.png" title="\beta" alt="\beta"></a>
+					</div><div class="eqIcon"><a href="#_" title="\gamma"><img src="./images/gamma.png" title="\gamma" alt="\gamma"></a>
+					</div><div class="eqIcon"><a href="#_" title="\delta"><img src="./images/delta.png" title="\delta" alt="\delta"></a>
+					</div><div class="eqIcon"><a href="#_" title="\epsilon"><img src="./images/epsilon.png" title="\epsilon" alt="\epsilon"></a>
+					</div><div class="eqIcon"><a href="#_" title="\varepsilon"><img src="./images/varepsilon.png" title="\varepsilon" alt="\varepsilon"></a>
+					</div><div class="eqIcon"><a href="#_" title="\zeta"><img src="./images/zeta.png" title="\zeta" alt="\zeta"></a>
+					</div><div class="eqIcon"><a href="#_" title="\eta"><img src="./images/eta.png" title="\eta" alt="\eta"></a>
+					</div><div class="eqIcon"><a href="#_" title="\theta"><img src="./images/theta.png" title="\theta" alt="\theta"></a>
+					</div><div class="eqIcon"><a href="#_" title="\vartheta"><img src="./images/vartheta.png" title="\vartheta" alt="\vartheta"></a>
+					</div><div class="eqIcon"><a href="#_" title="\gamma"><img src="./images/gamma.png" title="\gamma" alt="\gamma"></a>
+					</div><div class="eqIcon"><a href="#_" title="\kappa"><img src="./images/kappa.png" title="\kappa" alt="\kappa"></a>
+					</div><div class="eqIcon"><a href="#_" title="\lambda"><img src="./images/lambda.png" title="\lambda" alt="\lambda"></a>
+					</div><div class="eqIcon"><a href="#_" title="\mu"><img src="./images/mu.png" title="\mu" alt="\mu"></a>
+					</div><div class="eqIcon"><a href="#_" title="\nu"><img src="./images/nu.png" title="\nu" alt="\nu"></a>
+					</div><div class="eqIcon"><a href="#_" title="\xi"><img src="./images/xi.png" title="\xi" alt="\xi"></a>
+					</div><div class="eqIcon"><a href="#_" title="o"><img src="./images/o.png" title="o" alt="o"></a>
+					</div><div class="eqIcon"><a href="#_" title="\pi"><img src="./images/pi.png" title="\pi" alt="\pi"></a>
+					</div><div class="eqIcon"><a href="#_" title="\varpi"><img src="./images/varpi.png" title="\varpi" alt="\varpi"></a>
+					</div><div class="eqIcon"><a href="#_" title="\rho"><img src="./images/rho.png" title="\rho" alt="\rho"></a>
+					</div><div class="eqIcon"><a href="#_" title="\varrho"><img src="./images/varrho.png" title="\varrho" alt="\varrho"></a>
+					</div><div class="eqIcon"><a href="#_" title="\sigma"><img src="./images/sigma.png" title="\sigma" alt="\sigma"></a>
+					</div><div class="eqIcon"><a href="#_" title="\varsigma"><img src="./images/varsigma.png" title="\varsigma" alt="\varsigma"></a>
+					</div><div class="eqIcon"><a href="#_" title="\tau"><img src="./images/tau.png" title="\tau" alt="\tau"></a>
+					</div><div class="eqIcon"><a href="#_" title="\upsilon"><img src="./images/upsilon.png" title="\upsilon" alt="\upsilon"></a>
+					</div><div class="eqIcon"><a href="#_" title="\phi"><img src="./images/phi.png" title="\phi" alt="\phi"></a>
+					</div><div class="eqIcon"><a href="#_" title="\varphi"><img src="./images/varphi.png" title="\varphi" alt="\varphi"></a>
+					</div><div class="eqIcon"><a href="#_" title="\chi"><img src="./images/chi.png" title="\chi" alt="\chi"></a>
+					</div><div class="eqIcon"><a href="#_" title="\psi"><img src="./images/psi.png" title="\psi" alt="\psi"></a>
+					</div><div class="eqIcon"><a href="#_" title="\omega"><img src="./images/omega.png" title="\omega" alt="\omega"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Gamma"><img src="./images/gamma(1).png" title="\Gamma" alt="\Gamma"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Delta"><img src="./images/delta(1).png" title="\Delta" alt="\Delta"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Theta"><img src="./images/theta(1).png" title="\Theta" alt="\Theta"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Lambda"><img src="./images/lambda(1).png" title="\Lambda" alt="\Lambda"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Xi"><img src="./images/xi(1).png" title="\Xi" alt="\Xi"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Pi"><img src="./images/pi(1).png" title="\Pi" alt="\Pi"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Sigma"><img src="./images/sigma(1).png" title="\Sigma" alt="\Sigma"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Upsilon"><img src="./images/upsilon(1).png" title="\Upsilon" alt="\Upsilon"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Phi"><img src="./images/phi(1).png" title="\Phi" alt="\Phi"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Psi"><img src="./images/psi(1).png" title="\Psi" alt="\Psi"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Omega"><img src="./images/omega(1).png" title="\Omega" alt="\Omega"></a>
+					</div><div class="eqIcon"><a href="#_" title="\$"><img src="./images/$.png" title="\$" alt="\$"></a></div>
+				</div>
+			</div>
+
+			<div id="tab3" class="eqtab-content" style="display: none;">
+				<div>
+					<div class="eqIcon"><a href="#_" title="\leq"><img src="./images/leq.png" title="\leq" alt="\leq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\geq"><img src="./images/geq.png" title="\geq" alt="\geq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\prec"><img src="./images/prec.png" title="\prec" alt="\prec"></a>
+					</div><div class="eqIcon"><a href="#_" title="\succ"><img src="./images/succ.png" title="\succ" alt="\succ"></a>
+					</div><div class="eqIcon"><a href="#_" title="\preceq"><img src="./images/preceq.png" title="\preceq" alt="\preceq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\succeq"><img src="./images/succeq.png" title="\succeq" alt="\succeq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\ll"><img src="./images/ll.png" title="\ll" alt="\ll"></a>
+					</div><div class="eqIcon"><a href="#_" title="\gg"><img src="./images/gg.png" title="\gg" alt="\gg"></a>
+					</div><div class="eqIcon"><a href="#_" title="\subset"><img src="./images/subset.png" title="\subset" alt="\subset"></a>
+					</div><div class="eqIcon"><a href="#_" title="\supset"><img src="./images/supset.png" title="\supset" alt="\supset"></a>
+					</div><div class="eqIcon"><a href="#_" title="\subseteq"><img src="./images/subseteq.png" title="\subseteq" alt="\subseteq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\supseteq"><img src="./images/supseteq.png" title="\supseteq" alt="\supseteq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\sqsubset"><img src="./images/sqsubset.png" title="\sqsubset" alt="\sqsubset"></a>
+					</div><div class="eqIcon"><a href="#_" title="\sqsupset"><img src="./images/sqsupset.png" title="\sqsupset" alt="\sqsupset"></a>
+					</div><div class="eqIcon"><a href="#_" title="\sqsubseteq"><img src="./images/sqsubseteq.png" title="\sqsubseteq" alt="\sqsubseteq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\sqsupseteq"><img src="./images/sqsupseteq.png" title="\sqsupseteq" alt="\sqsupseteq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\in"><img src="./images/in.png" title="\in" alt="\in"></a>
+					</div><div class="eqIcon"><a href="#_" title="\ni"><img src="./images/ni.png" title="\ni" alt="\ni"></a>
+					</div><div class="eqIcon"><a href="#_" title="\vdash"><img src="./images/vdash.png" title="\vdash" alt="\vdash"></a>
+					</div><div class="eqIcon"><a href="#_" title="\dashv"><img src="./images/dashv.png" title="\dashv" alt="\dashv"></a>
+					</div><div class="eqIcon"><a href="#_" title="&gt;"><img src="./images/gt.png" title="&gt;" alt="&gt;"></a>
+					</div><div class="eqIcon"><a href="#_" title="&lt;"><img src="./images/lt.png" title="&lt;" alt="&lt;"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Join"><img src="./images/Join.png" title="\Join" alt="\Join"></a>
+					</div><div class="eqIcon"><a href="#_" title="\bowtie"><img src="./images/bowtie.png" title="\bowtie" alt="\bowtie"></a>
+					</div><div class="eqIcon"><a href="#_" title="\smile"><img src="./images/smile.png" title="\smile" alt="\smile"></a>
+					</div><div class="eqIcon"><a href="#_" title="\frown"><img src="./images/frown.png" title="\frown" alt="\frown"></a>
+					</div><div class="eqIcon"><a href="#_" title="\sim"><img src="./images/sim.png" title="\sim" alt="\sim"></a>
+					</div><div class="eqIcon"><a href="#_" title="\simeq"><img src="./images/simeq.png" title="\simeq" alt="\simeq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\asymp"><img src="./images/asymp.png" title="\asymp" alt="\asymp"></a>
+					</div><div class="eqIcon"><a href="#_" title="\approx"><img src="./images/approx.png" title="\approx" alt="\approx"></a>
+					</div><div class="eqIcon"><a href="#_" title="\equiv"><img src="./images/equiv.png" title="\equiv" alt="\equiv"></a>
+					</div><div class="eqIcon"><a href="#_" title="\cong"><img src="./images/cong.png" title="\cong" alt="\cong"></a>
+					</div><div class="eqIcon"><a href="#_" title="\mid"><img src="./images/mid.png" title="\mid" alt="\mid"></a>
+					</div><div class="eqIcon"><a href="#_" title="\parallel"><img src="./images/parallel.png" title="\parallel" alt="\parallel"></a>
+					</div><div class="eqIcon"><a href="#_" title="\neq"><img src="./images/neq.png" title="\neq" alt="\neq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\doteq"><img src="./images/doteq.png" title="\doteq" alt="\doteq"></a>
+					</div><div class="eqIcon"><a href="#_" title="\perp"><img src="./images/perp.png" title="\perp" alt="\perp"></a>
+					</div><div class="eqIcon"><a href="#_" title="\models"><img src="./images/models.png" title="\models" alt="\models"></a>
+					</div><div class="eqIcon"><a href="#_" title=":"><img src="./images/colon.png" title=":" alt=":"></a>
+					</div><div class="eqIcon"><a href="#_" title="\propto"><img src="./images/propto.png" title="\propto" alt="\propto"></a>
+					</div><div class="eqIcon"><a href="#_" title="\rhd"><img src="./images/rhd.png" title="\rhd" alt="\rhd"></a>
+					</div><div class="eqIcon"><a href="#_" title="\lhd"><img src="./images/lhd.png" title="\lhd" alt="\lhd"></a>
+					</div><div class="eqIcon"><a href="#_" title="\unrhd"><img src="./images/unrhd.png" title="\unrhd" alt="\unrhd"></a>
+					</div><div class="eqIcon"><a href="#_" title="\unlhd"><img src="./images/unlhd.png" title="\unlhd" alt="\unlhd"></a></div>
+				</div>
+			</div>
+
+			<div id="tab4" class="eqtab-content" style="display: none;">
+				<div>
+					<div class="eqIcon"><a href="#_" title="\hat{a}"><img src="./images/hat.png" title="\hat{a}" alt="\hat{a}"></a>
+					</div><div class="eqIcon"><a href="#_" title="\acute{a}"><img src="./images/acute.png" title="\acute{a}" alt="\acute{a}"></a>
+					</div><div class="eqIcon"><a href="#_" title="\bar{a}"><img src="./images/bar.png" title="\bar{a}" alt="\bar{a}"></a>
+					</div><div class="eqIcon"><a href="#_" title="\dot{a}"><img src="./images/dot.png" title="\dot{a}" alt="\dot{a}"></a>
+					</div><div class="eqIcon"><a href="#_" title="\breve{a}"><img src="./images/breve.png" title="\breve{a}" alt="\breve{a}"></a>
+					</div><div class="eqIcon"><a href="#_" title="\check{a}"><img src="./images/check.png" title="\check{a}" alt="\check{a}"></a>
+					</div><div class="eqIcon"><a href="#_" title="\grave{a}"><img src="./images/grave.png" title="\grave{a}" alt="\grave{a}"></a>
+					</div><div class="eqIcon"><a href="#_" title="\vec{a}"><img src="./images/vec.png" title="\vec{a}" alt="\vec{a}"></a>
+					</div><div class="eqIcon"><a href="#_" title="\ddot{a}"><img src="./images/ddot.png" title="\ddot{a}" alt="\ddot{a}"></a>
+					</div><div class="eqIcon"><a href="#_" title="\tilde{a}"><img src="./images/tilde.png" title="\tilde{a}" alt="\tilde{a}"></a>
+					</div><div class="eqIcon"><a href="#_" title="+"><img src="./images/plus.png" title="+" alt="+"></a>
+					</div><div class="eqIcon"><a href="#_" title="-"><img src="./images/minus.png" title="-" alt="-"></a>
+					</div><div class="eqIcon"><a href="#_" title="\times"><img src="./images/times.png" title="\times" alt="\times"></a>
+					</div><div class="eqIcon"><a href="#_" title="\div"><img src="./images/div.png" title="\div" alt="\div"></a>
+					</div><div class="eqIcon"><a href="#_" title="\cap"><img src="./images/cap.png" title="\cap" alt="\cap"></a>
+					</div><div class="eqIcon"><a href="#_" title="\cup"><img src="./images/cup.png" title="\cup" alt="\cup"></a>
+					</div><div class="eqIcon"><a href="#_" title="\sqcup"><img src="./images/sqcup.png" title="\sqcup" alt="\sqcup"></a>
+					</div><div class="eqIcon"><a href="#_" title="\sqcap"><img src="./images/sqcap.png" title="\sqcap" alt="\sqcap"></a>
+					</div><div class="eqIcon"><a href="#_" title="\vee"><img src="./images/vee.png" title="\vee" alt="\vee"></a>
+					</div><div class="eqIcon"><a href="#_" title="\wedge"><img src="./images/wedge.png" title="\wedge" alt="\wedge"></a>
+					</div><div class="eqIcon"><a href="#_" title="\setminus"><img src="./images/setminus.png" title="\setminus" alt="\setminus"></a>
+					</div><div class="eqIcon"><a href="#_" title="\wr"><img src="./images/wr.png" title="\wr" alt="\wr"></a>
+					</div><div class="eqIcon"><a href="#_" title="\bigtriangleup"><img src="./images/bigtriangleup.png" title="\bigtriangleup" alt="\bigtriangleup"></a>
+					</div><div class="eqIcon"><a href="#_" title="\bigtriangledown"><img src="./images/bigtriangledown.png" title="\bigtriangledown" alt="\bigtriangledown"></a>
+					</div><div class="eqIcon"><a href="#_" title="\triangleright"><img src="./images/triangleright.png" title="\triangleright" alt="\triangleright"></a>
+					</div><div class="eqIcon"><a href="#_" title="\triangleleft"><img src="./images/triangleleft.png" title="\triangleleft" alt="\triangleleft"></a>
+					</div><div class="eqIcon"><a href="#_" title="\rhd"><img src="./images/rhd(1).png" title="\rhd" alt="\rhd"></a>
+					</div><div class="eqIcon"><a href="#_" title="\lhd"><img src="./images/lhd(1).png" title="\lhd" alt="\lhd"></a>
+					</div><div class="eqIcon"><a href="#_" title="\unrhd"><img src="./images/unrhd(1).png" title="\unrhd" alt="\unrhd"></a>
+					</div><div class="eqIcon"><a href="#_" title="\unlhd"><img src="./images/unlhd(1).png" title="\unlhd" alt="\unlhd"></a>
+					</div><div class="eqIcon"><a href="#_" title="\oplus"><img src="./images/oplus.png" title="\oplus" alt="\oplus"></a>
+					</div><div class="eqIcon"><a href="#_" title="\ominus"><img src="./images/ominus.png" title="\ominus" alt="\ominus"></a>
+					</div><div class="eqIcon"><a href="#_" title="\otimes"><img src="./images/otimes.png" title="\otimes" alt="\otimes"></a>
+					</div><div class="eqIcon"><a href="#_" title="\oslash"><img src="./images/oslash.png" title="\oslash" alt="\oslash"></a>
+					</div><div class="eqIcon"><a href="#_" title="\odot"><img src="./images/odot.png" title="\odot" alt="\odot"></a>
+					</div><div class="eqIcon"><a href="#_" title="\bigcirc"><img src="./images/bigcirc.png" title="\bigcirc" alt="\bigcirc"></a>
+					</div><div class="eqIcon"><a href="#_" title="\uplus"><img src="./images/uplus.png" title="\uplus" alt="\uplus"></a>
+					</div><div class="eqIcon"><a href="#_" title="\amalg"><img src="./images/amalg.png" title="\amalg" alt="\amalg"></a>
+					</div><div class="eqIcon"><a href="#_" title="\ast"><img src="./images/ast.png" title="\ast" alt="\ast"></a>
+					</div><div class="eqIcon"><a href="#_" title="\star"><img src="./images/star.png" title="\star" alt="\star"></a>
+					</div><div class="eqIcon"><a href="#_" title="\circ"><img src="./images/circ.png" title="\circ" alt="\circ"></a>
+					</div><div class="eqIcon"><a href="#_" title="\bullet"><img src="./images/bullet.png" title="\bullet" alt="\bullet"></a></div>
+				</div>
+			</div>
+
+			<div id="tab5" class="eqtab-content" style="display: none;">
+				<div>
+					<div class="eqIcon"><a href="#_" title="\ldots"><img src="./images/ldots.png" title="\ldots" alt="\ldots"></a>
+					</div><div class="eqIcon"><a href="#_" title="\cdots"><img src="./images/cdots.png" title="\cdots" alt="\cdots"></a>
+					</div><div class="eqIcon"><a href="#_" title="\vdots"><img src="./images/vdots.png" title="\vdots" alt="\vdots"></a>
+					</div><div class="eqIcon"><a href="#_" title="\ddots"><img src="./images/ddots.png" title="\ddots" alt="\ddots"></a>
+					</div><div class="eqIcon"><a href="#_" title="\mp"><img src="./images/mp.png" title="\mp" alt="\mp"></a>
+					</div><div class="eqIcon"><a href="#_" title="\pm"><img src="./images/pm.png" title="\pm" alt="\pm"></a>
+					</div><div class="eqIcon"><a href="#_" title="\times"><img src="./images/times(1).png" title="\times" alt="\times"></a>
+					</div><div class="eqIcon"><a href="#_" title="\div"><img src="./images/div(1).png" title="\div" alt="\div"></a>
+					</div><div class="eqIcon"><a href="#_" title="/"><img src="./images/slash.png" title="/" alt="/"></a>
+					</div><div class="eqIcon"><a href="#_" title="\backslash"><img src="./images/backslash.png" title="\backslash" alt="\backslash"></a>
+					</div><div class="eqIcon"><a href="#_" title="|"><img src="./images/or.png" title="|" alt="|"></a>
+					</div><div class="eqIcon"><a href="#_" title="\|"><img src="./images/parallel(1).png" title="\|" alt="\|"></a>
+					</div><div class="eqIcon"><a href="#_" title="\imath"><img src="./images/imath.png" title="\imath" alt="\imath"></a>
+					</div><div class="eqIcon"><a href="#_" title="\jmath"><img src="./images/jmath.png" title="\jmath" alt="\jmath"></a>
+					</div><div class="eqIcon"><a href="#_" title="\nabla"><img src="./images/nabla.png" title="\nabla" alt="\nabla"></a>
+					</div><div class="eqIcon"><a href="#_" title="\triangle"><img src="./images/triangle.png" title="\triangle" alt="\triangle"></a>
+					</div><div class="eqIcon"><a href="#_" title="\top"><img src="./images/top.png" title="\top" alt="\top"></a>
+					</div><div class="eqIcon"><a href="#_" title="\bot"><img src="./images/bot.png" title="\bot" alt="\bot"></a>
+					</div><div class="eqIcon"><a href="#_" title="\forall"><img src="./images/forall.png" title="\forall" alt="\forall"></a>
+					</div><div class="eqIcon"><a href="#_" title="\exists"><img src="./images/exists.png" title="\exists" alt="\exists"></a>
+					</div><div class="eqIcon"><a href="#_" title="\neg"><img src="./images/neg.png" title="\neg" alt="\neg"></a>
+					</div><div class="eqIcon"><a href="#_" title="\flat"><img src="./images/flat.png" title="\flat" alt="\flat"></a>
+					</div><div class="eqIcon"><a href="#_" title="\partial"><img src="./images/partial(1).png" title="\partial" alt="\partial"></a>
+					</div><div class="eqIcon"><a href="#_" title="\infty"><img src="./images/infty.png" title="\infty" alt="\infty"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Re"><img src="./images/Re.png" title="\Re" alt="\Re"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Im"><img src="./images/Im.png" title="\Im" alt="\Im"></a>
+					</div><div class="eqIcon"><a href="#_" title="\aleph"><img src="./images/aleph.png" title="\aleph" alt="\aleph"></a>
+					</div><div class="eqIcon"><a href="#_" title="\hbar"><img src="./images/hbar.png" title="\hbar" alt="\hbar"></a>
+					</div><div class="eqIcon"><a href="#_" title="\ell"><img src="./images/ell.png" title="\ell" alt="\ell"></a>
+					</div><div class="eqIcon"><a href="#_" title="\mho"><img src="./images/mho.png" title="\mho" alt="\mho"></a>
+					</div><div class="eqIcon"><a href="#_" title="\wp"><img src="./images/wp.png" title="\wp" alt="\wp"></a>
+					</div><div class="eqIcon"><a href="#_" title="\emptyset"><img src="./images/emptyset.png" title="\emptyset" alt="\emptyset"></a>
+					</div><div class="eqIcon"><a href="#_" title="\prime"><img src="./images/prime.png" title="\prime" alt="\prime"></a>
+					</div><div class="eqIcon"><a href="#_" title="."><img src="./images/dot(1).png" title="." alt="."></a>
+					</div><div class="eqIcon"><a href="#_" title="\surd"><img src="./images/surd.png" title="\surd" alt="\surd"></a>
+					</div><div class="eqIcon"><a href="#_" title="\angle"><img src="./images/angle.png" title="\angle" alt="\angle"></a>
+					</div><div class="eqIcon"><a href="#_" title="\natural"><img src="./images/natural.png" title="\natural" alt="\natural"></a>
+					</div><div class="eqIcon"><a href="#_" title="\sharp"><img src="./images/sharp.png" title="\sharp" alt="\sharp"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Box"><img src="./images/Box.png" title="\Box" alt="\Box"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Diamond"><img src="./images/Diamond.png" title="\Diamond" alt="\Diamond"></a>
+					</div><div class="eqIcon"><a href="#_" title="\clubsuit"><img src="./images/clubsuit.png" title="\clubsuit" alt="\clubsuit"></a>
+					</div><div class="eqIcon"><a href="#_" title="\spadesuit"><img src="./images/spadesuit.png" title="\spadesuit" alt="\spadesuit"></a>
+					</div><div class="eqIcon"><a href="#_" title="\heartsuit"><img src="./images/heartsuit.png" title="\heartsuit" alt="\heartsuit"></a>
+					</div><div class="eqIcon"><a href="#_" title="\diamondsuit"><img src="./images/diamondsuit.png" title="\diamondsuit" alt="\diamondsuit"></a></div>
+				</div>
+			</div>
+
+			<div id="tab6" class="eqtab-content" style="display: none;">
+				<div>
+					<div class="eqIcon"><a href="#_" title="\leftarrow"><img src="./images/leftarrow.png" title="\leftarrow" alt="\leftarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\rightarrow"><img src="./images/rightarrow.png" title="\rightarrow" alt="\rightarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Leftarrow"><img src="./images/cLeftarrow.png" title="\Leftarrow" alt="\Leftarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Rightarrow"><img src="./images/cRightarrow.png" title="\Rightarrow" alt="\Rightarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\leftrightarrow"><img src="./images/leftrightarrow.png" title="\leftrightarrow" alt="\leftrightarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Leftrightarrow"><img src="./images/cLeftrightarrow.png" title="\Leftrightarrow" alt="\Leftrightarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\mapsto"><img src="./images/mapsto.png" title="\mapsto" alt="\mapsto"></a>
+					</div><div class="eqIcon"><a href="#_" title="\longmapsto"><img src="./images/longmapsto.png" title="\longmapsto" alt="\longmapsto"></a>
+					</div><div class="eqIcon"><a href="#_" title="\leftharpoonup"><img src="./images/leftharpoonup.png" title="\leftharpoonup" alt="\leftharpoonup"></a>
+					</div><div class="eqIcon"><a href="#_" title="\leftharpoondown"><img src="./images/leftharpoondown.png" title="\leftharpoondown" alt="\leftharpoondown"></a>
+					</div><div class="eqIcon"><a href="#_" title="\rightharpoonup"><img src="./images/rightharpoonup.png" title="\rightharpoonup" alt="\rightharpoonup"></a>
+					</div><div class="eqIcon"><a href="#_" title="\rightharpoondown"><img src="./images/rightharpoondown.png" title="\rightharpoondown" alt="\rightharpoondown"></a>
+					</div><div class="eqIcon"><a href="#_" title="\longleftarrow"><img src="./images/longleftarrow.png" title="\longleftarrow" alt="\longleftarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\longrightarrow"><img src="./images/longrightarrow.png" title="\longrightarrow" alt="\longrightarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Longleftarrow"><img src="./images/cLongleftarrow.png" title="\Longleftarrow" alt="\Longleftarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Longrightarrow"><img src="./images/cLongrightarrow.png" title="\Longrightarrow" alt="\Longrightarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\longleftrightarrow"><img src="./images/longleftrightarrow.png" title="\longleftrightarrow" alt="\longleftrightarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Longleftrightarrow"><img src="./images/cLongleftrightarrow.png" title="\Longleftrightarrow" alt="\Longleftrightarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\uparrow"><img src="./images/uparrow.png" title="\uparrow" alt="\uparrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Uparrow"><img src="./images/cUparrow.png" title="\Uparrow" alt="\Uparrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\downarrow"><img src="./images/downarrow.png" title="\downarrow" alt="\downarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Downarrow"><img src="./images/cDownarrow.png" title="\Downarrow" alt="\Downarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\updownarrow"><img src="./images/updownarrow.png" title="\updownarrow" alt="\updownarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\Updownarrow"><img src="./images/cUpdownarrow.png" title="\Updownarrow" alt="\Updownarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\hookleftarrow"><img src="./images/hookleftarrow.png" title="\hookleftarrow" alt="\hookleftarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\hookrightarrow"><img src="./images/hookrightarrow.png" title="\hookrightarrow" alt="\hookrightarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\rightleftharpoons"><img src="./images/rightleftharpoons.png" title="\rightleftharpoons" alt="\rightleftharpoons"></a>
+					</div><div class="eqIcon"><a href="#_" title="\leadsto"><img src="./images/leadsto.png" title="\leadsto" alt="\leadsto"></a>
+					</div><div class="eqIcon"><a href="#_" title="\nearrow"><img src="./images/nearrow.png" title="\nearrow" alt="\nearrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\nwarrow"><img src="./images/nwarrow.png" title="\nwarrow" alt="\nwarrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\searrow"><img src="./images/searrow.png" title="\searrow" alt="\searrow"></a>
+					</div><div class="eqIcon"><a href="#_" title="\swarrow"><img src="./images/swarrow.png" title="\swarrow" alt="\swarrow"></a></div>
+				</div>
+			</div>
+
+			<div>
+				<textarea name="eqInputBox" id="eqInputBox" cols="60" rows="8" class="eqInputBox"></textarea>
+			</div>
+
+			<div id="eqPreviewBox" class="eqPreviewBox"></div>
+		</div>
+
+		<div class="buttonBox">
+			<button id="cancelBtn" class="btn" onclick="closeEditor();">Cancel</button>
+			<button id="insertBtn" class="btn" onclick="finishEquationEdit();">Insert</button>
+		</div>
+
+	</div>
+
+	<div id="loading"></div>
+</body>
+</html>

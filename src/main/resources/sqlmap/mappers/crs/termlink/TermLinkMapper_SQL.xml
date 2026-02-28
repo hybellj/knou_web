@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.crs.termlink.dao.TermLinkDAO">
+
+	<select id="linkDepartmentProc" parameterType="knou.lms.crs.termlink.vo.TermLinkVO" statementType="CALLABLE">
+		
+	</select>
+	
+	<select id="linkUserProc" parameterType="knou.lms.crs.termlink.vo.TermLinkVO" statementType="CALLABLE">
+		
+	</select>
+	
+	<select id="linkCourseProc" parameterType="knou.lms.crs.termlink.vo.TermLinkVO" statementType="CALLABLE">
+		
+	</select>
+	
+	<select id="linkCourseProfessorProc" parameterType="knou.lms.crs.termlink.vo.TermLinkVO" statementType="CALLABLE">
+		
+	</select>
+	
+	<select id="linklearnerProc" parameterType="knou.lms.crs.termlink.vo.TermLinkVO" statementType="CALLABLE">
+		
+	</select>
+	
+	<select id="linkLessonPlanProc" parameterType="knou.lms.crs.termlink.vo.TermLinkVO" statementType="CALLABLE">
+		
+	</select>
+	
+	<select id="linkCourseScoreProc" parameterType="knou.lms.crs.termlink.vo.TermLinkVO" statementType="CALLABLE">
+		
+	</select>
+	
+	<select id="linkLessonScheduleProc" parameterType="knou.lms.crs.termlink.vo.TermLinkVO" statementType="CALLABLE">
+		
+	</select>
+
+</mapper>

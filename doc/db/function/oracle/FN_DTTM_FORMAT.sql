@@ -1,0 +1,9 @@
+CREATE OR REPLACE FUNCTION FN_DTTM_FORMAT (dateStr IN VARCHAR)
+    RETURN DATE
+IS
+BEGIN
+    /**
+     * 날짜형식의 문자열을 DTTM 형식으로 변환 
+     */
+    RETURN TO_DATE(dateStr, 'YYYYMMDDHH24MISS');
+END;

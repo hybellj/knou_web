@@ -1,0 +1,663 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.grade.dao.GradeDAO">
+	<select id="selectTermList" parameterType="gradeVO" resultType="gradeVO">
+		SELECT CRS_SMSTR_ID
+		     , SMSTRNM
+		  FROM CRS_SMSTR
+		 WHERE ORG_ID = #{orgId}
+		   AND DGRS_YR = #{curYear}
+		   AND SMSTR_STSCD = #{termStatus}
+	</select>
+
+	<select id="selectDeptList" parameterType="gradeVO" resultType="gradeVO">
+		SELECT DEPT_CD
+		     , DEPTNM
+		  FROM TB_HOME_USER_DEPT_CD
+		 WHERE 1=1
+		   AND ORG_ID = #{orgId}
+		   <if test="uniGbn != 'all'.toString()">
+		   AND UNI_GBN = #{uniGbn}
+		   </if>
+		   AND USEYN = 'Y'
+		 ORDER BY DEPT_CD_ODR
+	</select>
+
+	<select id="selectEvlList" parameterType="gradeVO" resultType="gradeVO">
+	/*
+		성적평가구분조회 메뉴 클릭시 출력
+		설   명 : 성적평가 > 성적평가구분조회
+	*/
+		SELECT ROW_NUMBER() OVER(ORDER BY XX.DEPT_CD_ODR, XX.DEPTNM, XX.SBJCT_ID, XX.DVCLAS_NO ASC) AS lineNo
+		     , XX.*
+		  FROM (
+			SELECT D.UNI_GBN
+			     , (CASE WHEN D.UNI_GBN = 'U' THEN '학부'
+			             WHEN D.UNI_GBN = 'G' THEN '대학원'
+			             ELSE ''
+			         END) AS UNI_GBN_NM
+			     , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'UNIV_GBNCD' AND CD = A.UNIV_GBNCD) AS UNIV_GBN_NM
+			     , D.DEPT_CD
+			     , D.DEPTNM
+			     , D.DEPT_CD_ODR
+			     , A.CRS_ID
+			     , A.SBJCT_ID
+			     , A.DVCLAS_NO
+			     , A.SBJCTNM
+			     , A.CMCRS_GBNCD
+			     , FN_GET_ORG_CODE_NM(#{orgId}, 'CMCRS_GBNCD',  A.CMCRS_GBNCD) AS COMP_DV_NM
+			     , A.CRDTS AS CRDTS
+			     --, FN_GET_USER_NM((SELECT X.USER_ID FROM SBJCT_PROF X WHERE X.SBJCT_ID = A.SBJCT_ID AND X.RPRSYN = 'Y')) AS TCH_NM --TODO jinkoon multi row가 결과로 출력되어 주석처리
+			     , F.USER_ID AS TCH_NO
+			     , E.MRK_EVL_TYCD AS SCORE_EVAL_GBN
+			     , E.MRK_GRD_TYCD AS SCORE_GRANT_GBN
+			     , (SELECT COUNT(STD_ID) FROM TB_LMS_ATNDLC_SBJCT WHERE ATNDLC_STSCD = 'S' AND AUDITYN = 'N' AND SBJCT_ID = A.SBJCT_ID) AS ATNDLC_QUOTA
+			  FROM TB_LMS_SBJCT A
+			  JOIN TB_LMS_TERM_CRE_CRS_RLTN B ON (B.SBJCT_ID = A.SBJCT_ID)
+			  JOIN CRS_SMSTR C ON (C.CRS_SMSTR_ID = B.CRS_SMSTR_ID AND C.ORG_ID = #{orgId} )
+			  JOIN TB_HOME_USER_DEPT_CD D ON (D.DEPT_CD = A.DEPT_CD AND D.ORG_ID = #{orgId})
+			  LEFT OUTER JOIN TB_LMS_CRE_CRS_EVAL E ON (E.SBJCT_ID = A.SBJCT_ID)
+			  LEFT OUTER JOIN SBJCT_PROF F ON (A.SBJCT_ID = F.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y')
+			 WHERE 1=1
+			   AND A.CRS_ID IN (
+			   		SELECT X.CRS_ID
+					  FROM TB_LMS_CRS X
+					 WHERE X.ORG_ID = #{orgId}
+					   AND X.SBJCT_TYCD IN
+					   <foreach collection="crsTypeCds" item="crsTypeCds" separator="," open="(" close=")">
+					   		#{crsTypeCds}
+					   </foreach>
+			   )
+			   AND A.DELYN = 'N'
+			   AND A.USEYN = 'Y'
+			   AND A.CRS_ID NOT LIKE '%JLPT%'
+			   AND C.DGRS_YR = #{curYear}
+			   <if test="curTerm != null and curTerm != ''">
+			   AND C.DGRS_SMSTR = #{curTerm}
+			   </if>
+			   <if test="termCd != 'all'.toString() and termCd != '' and termCd != null">
+			   AND C.CRS_SMSTR_ID = #{termCd}
+			   </if>
+			   <if test="crsCreCd != null and crsCreCd != ''">
+			   AND A.SBJCT_ID = #{crsCreCd}
+			   </if>
+			   <if test="uniCd != null and uniCd != ''">
+			   AND A.UNIV_CD = #{uniCd}
+			   </if>
+			   <if test="univGbn != null and univGbn != ''">
+			   AND A.UNIV_GBNCD = #{univGbn}
+			   </if>
+			   <if test="uniGbn != 'all'.toString() and uniGbn != null and uniGbn != ''">
+			   AND D.UNI_GBN = #{uniGbn}
+			   </if>
+			   <if test="deptCd != 'all'.toString() and deptCd != null and deptCd != ''">
+			   AND D.DEPT_CD = #{deptCd}
+			   </if>
+			   <if test="mrksGrdGvGbn != 'all'.toString()">
+			   AND REPLACE(E.MRK_EVL_TYCD, 'PF', 'ABSOLUTE') = #{mrksGrdGvGbn}
+			   </if>
+			   <if test="searchText != null and searchText != ''">
+			   	AND CASE WHEN E.MRK_EVL_TYCD != 'PF' THEN 'GRADE' ELSE E.MRK_EVL_TYCD END = #{searchText}
+			   </if>
+			   <if test="searchValue != null and searchValue != ''">
+			   AND (
+			   		LOWER(A.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	           	 	OR LOWER(A.SBJCT_ID)  LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	           	 	OR LOWER((SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = F.USER_ID))  LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	           	 	)
+	           </if>
+	           <if test="declsNo != null and declsNo != ''">
+			   AND A.DVCLAS_NO = #{declsNo}
+			   </if>
+		  ) XX
+	</select>
+
+	<update id="multiEvlList" parameterType="gradeVO" >
+		INSERT INTO TB_LMS_CRE_CRS_EVAL
+		(
+			SBJCT_ID
+		  , MRK_EVL_TYCD
+		)
+		VALUES
+		<foreach collection="list" item="list" separator=",">
+		(
+			#{list.crsCreCd}
+		  , #{list.scoreEvalGbn}
+		)
+		</foreach>
+		ON DUPLICATE KEY
+		UPDATE
+			MRK_EVL_TYCD = VALUES(MRK_EVL_TYCD)
+	</update>
+
+	<sql id="evlStandardQuery">
+		SELECT ROW_NUMBER() OVER(ORDER BY XX.DEPT_CD_ODR, XX.DEPTNM, XX.DEPT_CD, XX.CRS_ID, XX.DVCLAS_NO ASC) AS lineNo
+		     , XX.*
+		  FROM (
+			SELECT D.UNI_GBN
+				 , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'UNIV_GBNCD' AND CD = A.UNIV_GBNCD) AS UNI_GBN_NM
+			     , D.DEPT_CD
+			     , D.DEPTNM
+			     , D.DEPT_CD_ODR
+			     , A.CRS_ID
+			     , A.SBJCT_ID
+			     , A.DVCLAS_NO
+			     , A.SBJCTNM
+			     , A.CMCRS_GBNCD
+			     , FN_GET_ORG_CODE_NM(#{orgId}, 'CMCRS_GBNCD',  A.CMCRS_GBNCD) AS COMP_DV_NM
+			     , A.CRDTS AS CRDTS
+			     , FN_GET_USER_NM((SELECT X.USER_ID FROM SBJCT_PROF X WHERE X.SBJCT_ID = A.SBJCT_ID AND X.RPRSYN = 'Y')) AS TCH_NM
+			     , (SELECT X.USER_ID FROM SBJCT_PROF X WHERE X.SBJCT_ID = A.SBJCT_ID AND X.RPRSYN = 'Y') AS TCH_NO
+			     , FN_GET_USER_NM((SELECT MAX(X.USER_ID) FROM SBJCT_PROF X WHERE X.SBJCT_ID = A.SBJCT_ID AND X.PROF_TYCD = 'ASSISTANT')) AS TUT_NM
+			     , (SELECT MAX(X.USER_ID) FROM SBJCT_PROF X WHERE X.SBJCT_ID = A.SBJCT_ID AND X.PROF_TYCD = 'ASSISTANT') AS TUT_NO
+			     , A.ATNDLC_QUOTA
+			     , NVL((SELECT CASE WHEN MAX(MRK_RFLTRT) = 0 THEN '-' ELSE TO_CHAR(MAX(MRK_RFLTRT)) || '%' END FROM TB_LMS_STD_SCORE_ITEM_CONF WHERE SBJCT_ID = A.SBJCT_ID AND MRK_ITM_SEQ = '1'), '-') AS LESSON_SCORE_RATIO
+			     , NVL((SELECT CASE WHEN MAX(MRK_RFLTRT) = 0 THEN '-' ELSE TO_CHAR(MAX(MRK_RFLTRT)) || '%' END FROM TB_LMS_STD_SCORE_ITEM_CONF WHERE SBJCT_ID = A.SBJCT_ID AND MRK_ITM_SEQ = '2'), '-') AS MIDDLE_TEST_SCORE_RATIO
+			     , NVL((SELECT CASE WHEN MAX(MRK_RFLTRT) = 0 THEN '-' ELSE TO_CHAR(MAX(MRK_RFLTRT)) || '%' END FROM TB_LMS_STD_SCORE_ITEM_CONF WHERE SBJCT_ID = A.SBJCT_ID AND MRK_ITM_SEQ = '3'), '-') AS LAST_TEST_SCORE_RATIO
+			     , NVL((SELECT CASE WHEN MAX(MRK_RFLTRT) = 0 THEN '-' ELSE TO_CHAR(MAX(MRK_RFLTRT)) || '%' END FROM TB_LMS_STD_SCORE_ITEM_CONF WHERE SBJCT_ID = A.SBJCT_ID AND MRK_ITM_SEQ = '4'), '-') AS TEST_SCORE_RATIO
+			     , NVL((SELECT CASE WHEN MAX(MRK_RFLTRT) = 0 THEN '-' ELSE TO_CHAR(MAX(MRK_RFLTRT)) || '%' END FROM TB_LMS_STD_SCORE_ITEM_CONF WHERE SBJCT_ID = A.SBJCT_ID AND MRK_ITM_SEQ = '5'), '-') AS ASSIGNMENT_SCORE_RATIO
+			     , NVL((SELECT CASE WHEN MAX(MRK_RFLTRT) = 0 THEN '-' ELSE TO_CHAR(MAX(MRK_RFLTRT)) || '%' END FROM TB_LMS_STD_SCORE_ITEM_CONF WHERE SBJCT_ID = A.SBJCT_ID AND MRK_ITM_SEQ = '6'), '-') AS FORUM_SCORE_RATIO
+			     , NVL((SELECT CASE WHEN MAX(MRK_RFLTRT) = 0 THEN '-' ELSE TO_CHAR(MAX(MRK_RFLTRT)) || '%' END FROM TB_LMS_STD_SCORE_ITEM_CONF WHERE SBJCT_ID = A.SBJCT_ID AND MRK_ITM_SEQ = '7'), '-') AS QUIZ_SCORE_RATIO
+			     , NVL((SELECT CASE WHEN MAX(MRK_RFLTRT) = 0 THEN '-' ELSE TO_CHAR(MAX(MRK_RFLTRT)) || '%' END FROM TB_LMS_STD_SCORE_ITEM_CONF WHERE SBJCT_ID = A.SBJCT_ID AND MRK_ITM_SEQ = '8'), '-') AS RESH_SCORE_RATIO
+			     <if test="searchType != null and searchType != '' and searchType == 'PLAN'">
+			     , NVL((SELECT
+				       CASE WHEN AA.EXAM_TYCD = 'EXAM'
+					 	    THEN CASE WHEN NVL((SELECT COUNT(STD_ID) FROM TB_LMS_EXAM_STARE WHERE EXAM_ID = AA.EXAM_ID AND STARE_CNT <![CDATA[ > ]]> 0 AND STD_ID IN (SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE ATNDLC_STSCD = 'S' AND AUDITYN = 'N' AND SBJCT_ID = BB.SBJCT_ID)), 0) <![CDATA[ > ]]> 0
+					 	    		  THEN CASE WHEN AA.EXAM_SBST_REF_ID IS NOT NULL AND AA.EXAM_SBST_REF_ID <![CDATA[ <> ]]> ''
+					 	    		  		    THEN CASE WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'EXAM'
+							  	 	  	      		      THEN CASE WHEN NVL((SELECT COUNT(STD_ID) FROM TB_LMS_EXAM_STARE WHERE EXAM_ID = AA.EXAM_SBST_REF_ID AND STARE_CNT <![CDATA[ > ]]> 0 AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 2 ELSE 1 END
+							  	 	  	      		      WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'ASMNT'
+							  	 	  	      		      THEN CASE WHEN NVL((SELECT COUNT(STD_ID) FROM TB_LMS_ASMT_SBMSN WHERE ASMT_ID = AA.EXAM_SBST_REF_ID AND DELYN = 'N' AND SBMSN_STSCD IN ('SUBMIT', 'LATE', 'RE') AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 2 ELSE 1 END
+							  	 	  	      		      WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'FORUM'
+							  	 	  	      		      THEN CASE WHEN NVL((SELECT COUNT(ATCL_ID) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = AA.EXAM_SBST_REF_ID AND DELYN = 'N' AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 2 ELSE 1 END
+							  	 	  	      		      END
+					 	    		  		    ELSE 1
+					 	    		  		    END
+					 	    		  ELSE CASE WHEN AA.EXAM_SBST_REF_ID IS NOT NULL AND AA.EXAM_SBST_REF_ID <![CDATA[ <> ]]> ''
+							   	  		  	    THEN CASE WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'EXAM'
+							   	  		  	    		  THEN CASE WHEN NVL((SELECT COUNT(STD_ID) FROM TB_LMS_EXAM_STARE WHERE EXAM_ID = AA.EXAM_SBST_REF_ID AND STARE_CNT <![CDATA[ > ]]> 0 AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+							   	  		  	    		  WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'ASMNT'
+							   	  		  	    		  THEN CASE WHEN NVL((SELECT COUNT(STD_ID) FROM TB_LMS_ASMT_SBMSN WHERE ASMT_ID = AA.EXAM_SBST_REF_ID AND DELYN = 'N' AND SBMSN_STSCD IN ('SUBMIT', 'LATE', 'RE') AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+							   	  		  	    		  WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'FORUM'
+							   	  		  	    		  THEN CASE WHEN NVL((SELECT COUNT(ATCL_ID) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = AA.EXAM_SBST_REF_ID AND DELYN = 'N' AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+							   	  		  	    		  END
+							   	  		  	    ELSE 0
+							   	  		  	    END
+					 	    		  END
+					 	    WHEN AA.EXAM_TYCD = 'QUIZ'
+					 	    THEN CASE WHEN NVL((SELECT COUNT(CC.STD_ID) FROM TB_LMS_EXAM_STARE CC JOIN TB_LMS_ATNDLC_SBJCT DD ON CC.STD_ID = DD.STD_ID AND DD.ATNDLC_STSCD = 'S' AND DD.AUDITYN = 'N' WHERE CC.EXAM_ID = AA.EXAM_SBST_REF_ID AND DD.SBJCT_ID = BB.SBJCT_ID AND CC.STARE_CNT <![CDATA[ > ]]> 0), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+					 	    WHEN AA.EXAM_TYCD = 'ASMNT'
+					 	    THEN CASE WHEN NVL((SELECT COUNT(CC.STD_ID) FROM TB_LMS_ASMT_SBMSN CC JOIN TB_LMS_ATNDLC_SBJCT DD ON CC.STD_ID = DD.STD_ID AND DD.ATNDLC_STSCD = 'S' AND DD.AUDITYN = 'N' WHERE CC.ASMT_ID = AA.EXAM_SBST_REF_ID AND DD.SBJCT_ID = BB.SBJCT_ID AND CC.DELYN = 'N' AND CC.SBMSN_STSCD IN ('SUBMIT', 'LATE', 'RE')), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+					 	    WHEN AA.EXAM_TYCD = 'FORUM'
+					 	    THEN CASE WHEN NVL((SELECT COUNT(CC.ATCL_ID) FROM TB_LMS_DSCS_ATCL CC JOIN TB_LMS_ATNDLC_SBJCT DD ON CC.STD_ID = DD.STD_ID AND DD.ATNDLC_STSCD = 'S' AND DD.AUDITYN = 'N' WHERE CC.DSCS_ID = AA.EXAM_SBST_REF_ID AND DD.SBJCT_ID = BB.SBJCT_ID AND CC.DELYN = 'N'), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+					 	    ELSE 0
+					 	    END
+			     		FROM TB_LMS_EXAM_BSC  AA
+					    JOIN TB_LMS_EXAM_CRE_CRS_RLTN  BB
+					      ON AA.EXAM_ID = BB.EXAM_ID
+					     AND AA.DELYN = 'N'
+					     AND BB.DELYN = 'N'
+					   WHERE AA.EXAM_CTGRCD = 'EXAM'
+					     AND AA.TKEXAM_TYCD = 'M'
+					     AND BB.SBJCT_ID = A.SBJCT_ID
+			       ), 0) AS MID_TEST_CNT
+			     , NVL((SELECT
+				       CASE WHEN AA.EXAM_TYCD = 'EXAM'
+					 	    THEN CASE WHEN NVL((SELECT COUNT(STD_ID) FROM TB_LMS_EXAM_STARE WHERE EXAM_ID = AA.EXAM_ID AND STARE_CNT <![CDATA[ > ]]> 0 AND STD_ID IN (SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE ATNDLC_STSCD = 'S' AND AUDITYN = 'N' AND SBJCT_ID = BB.SBJCT_ID)), 0) <![CDATA[ > ]]> 0
+					 	    		  THEN CASE WHEN AA.EXAM_SBST_REF_ID IS NOT NULL AND AA.EXAM_SBST_REF_ID <![CDATA[ <> ]]> ''
+					 	    		  		    THEN CASE WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'EXAM'
+							  	 	  	      		      THEN CASE WHEN NVL((SELECT COUNT(STD_ID) FROM TB_LMS_EXAM_STARE WHERE EXAM_ID = AA.EXAM_SBST_REF_ID AND STARE_CNT <![CDATA[ > ]]> 0 AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 2 ELSE 1 END
+							  	 	  	      		      WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'ASMNT'
+							  	 	  	      		      THEN CASE WHEN NVL((SELECT COUNT(STD_ID) FROM TB_LMS_ASMT_SBMSN WHERE ASMT_ID = AA.EXAM_SBST_REF_ID AND DELYN = 'N' AND SBMSN_STSCD IN ('SUBMIT', 'LATE', 'RE') AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 2 ELSE 1 END
+							  	 	  	      		      WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'FORUM'
+							  	 	  	      		      THEN CASE WHEN NVL((SELECT COUNT(ATCL_ID) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = AA.EXAM_SBST_REF_ID AND DELYN = 'N' AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 2 ELSE 1 END
+							  	 	  	      		      END
+					 	    		  		    ELSE 1
+					 	    		  		    END
+					 	    		  ELSE CASE WHEN AA.EXAM_SBST_REF_ID IS NOT NULL AND AA.EXAM_SBST_REF_ID <![CDATA[ <> ]]> ''
+							   	  		  	    THEN CASE WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'EXAM'
+							   	  		  	    		  THEN CASE WHEN NVL((SELECT COUNT(STD_ID) FROM TB_LMS_EXAM_STARE WHERE EXAM_ID = AA.EXAM_SBST_REF_ID AND STARE_CNT <![CDATA[ > ]]> 0 AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+							   	  		  	    		  WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'ASMNT'
+							   	  		  	    		  THEN CASE WHEN NVL((SELECT COUNT(STD_ID) FROM TB_LMS_ASMT_SBMSN WHERE ASMT_ID = AA.EXAM_SBST_REF_ID AND DELYN = 'N' AND SBMSN_STSCD IN ('SUBMIT', 'LATE', 'RE') AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+							   	  		  	    		  WHEN REGEXP_SUBSTR(AA.EXAM_SBST_REF_ID, '^[^_]+') = 'FORUM'
+							   	  		  	    		  THEN CASE WHEN NVL((SELECT COUNT(ATCL_ID) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = AA.EXAM_SBST_REF_ID AND DELYN = 'N' AND STD_ID IN (SELECT CC.STD_ID FROM TB_LMS_ATNDLC_SBJCT CC JOIN TB_LMS_EXAM_STARE DD ON CC.STD_ID = DD.STD_ID AND CC.ATNDLC_STSCD = 'S' AND CC.AUDITYN = 'N' AND DD.REEXAMYN = 'Y' WHERE CC.SBJCT_ID = BB.SBJCT_ID AND DD.EXAM_ID = AA.EXAM_SBST_REF_ID)), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+							   	  		  	    		  END
+							   	  		  	    ELSE 0
+							   	  		  	    END
+					 	    		  END
+					 	    WHEN AA.EXAM_TYCD = 'QUIZ'
+					 	    THEN CASE WHEN NVL((SELECT COUNT(CC.STD_ID) FROM TB_LMS_EXAM_STARE CC JOIN TB_LMS_ATNDLC_SBJCT DD ON CC.STD_ID = DD.STD_ID AND DD.ATNDLC_STSCD = 'S' AND DD.AUDITYN = 'N' WHERE CC.EXAM_ID = AA.EXAM_SBST_REF_ID AND DD.SBJCT_ID = BB.SBJCT_ID AND CC.STARE_CNT <![CDATA[ > ]]> 0), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+					 	    WHEN AA.EXAM_TYCD = 'ASMNT'
+					 	    THEN CASE WHEN NVL((SELECT COUNT(CC.STD_ID) FROM TB_LMS_ASMT_SBMSN CC JOIN TB_LMS_ATNDLC_SBJCT DD ON CC.STD_ID = DD.STD_ID AND DD.ATNDLC_STSCD = 'S' AND DD.AUDITYN = 'N' WHERE CC.ASMT_ID = AA.EXAM_SBST_REF_ID AND DD.SBJCT_ID = BB.SBJCT_ID AND CC.DELYN = 'N' AND CC.SBMSN_STSCD IN ('SUBMIT', 'LATE', 'RE')), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+					 	    WHEN AA.EXAM_TYCD = 'FORUM'
+					 	    THEN CASE WHEN NVL((SELECT COUNT(CC.ATCL_ID) FROM TB_LMS_DSCS_ATCL CC JOIN TB_LMS_ATNDLC_SBJCT DD ON CC.STD_ID = DD.STD_ID AND DD.ATNDLC_STSCD = 'S' AND DD.AUDITYN = 'N' WHERE CC.DSCS_ID = AA.EXAM_SBST_REF_ID AND DD.SBJCT_ID = BB.SBJCT_ID AND CC.DELYN = 'N'), 0) <![CDATA[ > ]]> 0 THEN 1 ELSE 0 END
+					 	    ELSE 0
+					 	    END
+			     		FROM TB_LMS_EXAM_BSC AA
+					    JOIN TB_LMS_EXAM_CRE_CRS_RLTN BB
+					      ON AA.EXAM_ID = BB.EXAM_ID
+					     AND AA.DELYN = 'N'
+					     AND BB.DELYN = 'N'
+					   WHERE AA.EXAM_CTGRCD = 'EXAM'
+					     AND AA.TKEXAM_TYCD = 'L'
+					     AND BB.SBJCT_ID = A.SBJCT_ID
+			       ), 0) AS LAST_TEST_CNT
+			     , NVL((SELECT AA.CNT FROM (SELECT SBJCT_ID, COUNT(*) AS CNT FROM TB_LMS_ASMT WHERE ASMT_CTGRCD NOT IN ('EXAM','SUBS') AND MRK_RFLTYN = 'Y' AND IND_YN = 'N' AND DELYN = 'N' GROUP BY SBJCT_ID) AA WHERE AA.SBJCT_ID = A.SBJCT_ID), 0) AS ASMNT_CNT
+			     , NVL((SELECT AA.CNT FROM (SELECT SBJCT_ID, COUNT(*) AS CNT FROM TB_LMS_DSCS WHERE DSCS_TYCD NOT IN ('EXAM','SUBS') AND MRK_RFLTYN = 'Y' AND DELYN = 'N' GROUP BY SBJCT_ID) AA WHERE AA.SBJCT_ID = A.SBJCT_ID), 0) AS FORUM_CNT
+			     , NVL((SELECT COUNT(AA.EXAM_ID) FROM TB_LMS_EXAM_BSC AA JOIN TB_LMS_EXAM_CRE_CRS_RLTN BB ON AA.EXAM_ID = BB.EXAM_ID AND AA.DELYN = 'N' AND BB.DELYN = 'N' WHERE AA.EXAM_CTGRCD = 'QUIZ' AND AA.EXAM_TYCD = 'QUIZ' AND AA.MRK_RFLTYN = 'Y' AND BB.SBJCT_ID = A.SBJCT_ID), 0) AS QUIZ_CNT
+			     , NVL((SELECT COUNT(AA.SRVY_ID) FROM TB_LMS_SRVY AA JOIN TB_LMS_RESCH_CRE_CRS_RLTN BB ON AA.SRVY_ID = BB.SRVY_ID AND AA.DELYN = 'N' AND BB.DELYN = 'N' WHERE BB.SBJCT_ID = A.SBJCT_ID AND AA.MRK_RFLTYN = 'Y'), 0) AS RESCH_CNT
+			     , NVL((SELECT COUNT(AA.EXAM_ID) FROM TB_LMS_EXAM_BSC AA JOIN TB_LMS_EXAM_CRE_CRS_RLTN BB ON AA.EXAM_ID = BB.EXAM_ID AND AA.DELYN = 'N' AND BB.DELYN = 'N' WHERE AA.EXAM_CTGRCD = 'EXAM' AND AA.MRK_RFLTYN = 'Y' AND AA.TKEXAM_TYCD = 'A' AND BB.SBJCT_ID = A.SBJCT_ID), 0) AS TEST_CNT
+			     </if>
+			  FROM TB_LMS_SBJCT A
+			  JOIN TB_LMS_TERM_CRE_CRS_RLTN B ON (B.SBJCT_ID = A.SBJCT_ID)
+			  JOIN CRS_SMSTR C ON (C.CRS_SMSTR_ID = B.CRS_SMSTR_ID AND C.ORG_ID = #{orgId})
+			  JOIN TB_HOME_USER_DEPT_CD D ON (D.DEPT_CD = A.MNGT_DEPT_CD AND D.ORG_ID = #{orgId})
+			 WHERE 1=1
+			   AND A.CRS_ID IN (
+			   		SELECT X.CRS_ID
+					  FROM TB_LMS_CRS X
+					 WHERE X.ORG_ID = #{orgId}
+					   AND X.SBJCT_TYCD IN
+					   <foreach collection="crsTypeCds" item="crsTypeCds" separator="," open="(" close=")">
+					   		#{crsTypeCds}
+					   </foreach>
+			   )
+			   AND A.DELYN = 'N'
+			   AND A.USEYN = 'Y'
+			   AND C.DGRS_YR = #{curYear}
+			   AND C.DGRS_SMSTR = #{curTerm}
+			   <if test="uniGbn != 'all'.toString() and uniGbn != null and uniGbn != ''">
+			   AND D.UNI_GBN = #{uniGbn}
+			   </if>
+			   <if test="deptCd != 'all'.toString() and deptCd != null and deptCd != ''">
+			   AND D.DEPT_CD = #{deptCd}
+			   </if>
+			   <if test="crsCreCd != null and crsCreCd != ''">
+			   AND A.SBJCT_ID = #{crsCreCd}
+			   </if>
+			   <if test="curYear != null and curYear != ''">
+			   AND A.SBJCT_ID = #{curYear}
+			   </if>
+			   <if test="curTerm != null and curTerm != ''">
+			   AND A.CRS_ID = #{curTerm}
+			   </if>
+			   <if test="uniCd != null and uniCd != ''">
+			   AND A.UNIV_CD = #{uniCd}
+			   </if>
+			   <if test="univGbn != null and univGbn != ''">
+			   AND A.UNIV_GBNCD = #{univGbn}
+			   </if>
+		  ) XX
+		  WHERE 1=1
+		  <if test="searchValue != null and searchValue != ''">
+			AND (
+				LOWER(XX.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	          	OR LOWER(XX.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	          	OR LOWER(XX.TCH_NM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	          )
+	      </if>
+	</sql>
+
+	<select id="selectEvlStandardList" parameterType="gradeVO" resultType="gradeVO">
+		<include refid="evlStandardQuery" />
+	</select>
+	
+	<select id="selectEvlStandardListByEgov" parameterType="gradeVO" resultType="egovMap">
+		<include refid="evlStandardQuery" />
+	</select>
+
+	<select id="selectStdScoreItemConfInfo" parameterType="gradeVO" resultType="gradeVO">
+		SELECT MAX(CASE WHEN MRK_ITM_SEQ = 1 THEN MRK_RFLTRT ELSE 0 END ) AS LESSON_SCORE_RATIO
+			 , MAX(CASE WHEN MRK_ITM_SEQ = 2 THEN MRK_RFLTRT ELSE 0 END ) AS MIDDLE_TEST_SCORE_RATIO
+			 , MAX(CASE WHEN MRK_ITM_SEQ = 3 THEN MRK_RFLTRT ELSE 0 END ) AS LAST_TEST_SCORE_RATIO
+			 , MAX(CASE WHEN MRK_ITM_SEQ = 4 THEN MRK_RFLTRT ELSE 0 END ) AS TEST_SCORE_RATIO
+			 , MAX(CASE WHEN MRK_ITM_SEQ = 5 THEN MRK_RFLTRT ELSE 0 END ) AS ASSIGNMENT_SCORE_RATIO
+			 , MAX(CASE WHEN MRK_ITM_SEQ = 6 THEN MRK_RFLTRT ELSE 0 END ) AS FORUM_SCORE_RATIO
+			 , MAX(CASE WHEN MRK_ITM_SEQ = 7 THEN MRK_RFLTRT ELSE 0 END ) AS QUIZ_SCORE_RATIO
+			 , MAX(CASE WHEN MRK_ITM_SEQ = 8 THEN MRK_RFLTRT ELSE 0 END ) AS RESH_SCORE_RATIO
+		     , SUM(MRK_RFLTRT) AS TOTAL_SCORE_RATIO
+		  FROM TB_LMS_STD_SCORE_ITEM_CONF
+		 WHERE SBJCT_ID = #{crsCreCd}
+	</select>
+
+	<select id="selectScoreItemConfCnt" parameterType="gradeVO" resultType="int">
+		SELECT COUNT(1) AS totCnt
+		  FROM TB_LMS_STD_SCORE_ITEM_CONF
+		 WHERE SBJCT_ID = #{crsCreCd}
+	</select>
+
+	<select id="selectCrsTypeCdToCrsCreCd" parameterType="gradeVO" resultType="String">
+		SELECT SBJCT_TYCD AS crsTypeCd
+		  FROM TB_LMS_CRS WHERE CRS_ID = ( SELECT X.CRS_ID
+		  									 FROM TB_LMS_SBJCT X
+		  									WHERE X.SBJCT_ID = #{crsCreCd} )
+	</select>
+
+	<select id="selectStdScoreItemConfList" parameterType="gradeVO" resultType="gradeStdScoreItemVO">
+		SELECT SCR_ITM_ID
+		     , SBJCT_ID
+		     , MRK_ITM_SEQ
+		     , MRK_TYCD
+		     , MRK_ITMNM
+		     , MRK_RFLTRT
+		  FROM TB_LMS_STD_SCORE_ITEM_CONF
+		 WHERE SBJCT_ID = #{crsCreCd}
+		 ORDER BY MRK_ITM_SEQ
+	</select>
+
+	<select id="selectStdOrgScoreItemConfInitList" parameterType="gradeVO" resultType="gradeStdScoreItemVO">
+		 SELECT '' AS SCR_ITM_ID
+		      , '' AS SBJCT_ID
+		      , MRK_ITM_SEQ
+		      , MRK_TYCD
+		      , MRK_ITMNM
+		      , MRK_RFLTRT
+		   FROM MRK_ITM_STNG
+		  WHERE ORG_ID = #{orgId}
+		    AND SBJCT_TYCD = #{crsTypeCd}
+		  ORDER BY MRK_ITM_SEQ
+	</select>
+	<insert id="insertStdScoreItemConf" parameterType="gradeStdScoreItemVO" >
+		INSERT INTO TB_LMS_STD_SCORE_ITEM_CONF(
+			  SCR_ITM_ID
+			, SBJCT_ID
+			, MRK_ITM_SEQ
+			, MRK_TYCD
+			, MRK_ITMNM
+			, MRK_ITM_EXPLN
+			, MRK_RFLTRT
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		)
+		SELECT CONCAT('SCIT_', #{crsCreCd},SUBSTR(MRK_ITM_STNG_ID, -2))
+			, #{crsCreCd} AS SBJCT_ID
+			, MRK_ITM_SEQ
+			, MRK_TYCD
+			, MRK_ITMNM
+			, MRK_ITM_EXPLN
+			, #{scoreRatio} AS MRK_RFLTRT
+			, #{rgtrId} AS RGTR_ID
+			, FN_DTTM() AS FRST_INQ_DTTM
+			, #{mdfrId} AS MDFR_ID
+			, FN_DTTM() AS MOD_DTTM
+		FROM MRK_ITM_STNG
+		WHERE ORG_ID = #{orgId}
+		AND SBJCT_TYCD = #{crsTypeCd}
+		AND MRK_ITM_SEQ = #{scoreItemOrder}
+	</insert>
+
+	<update id="multiStdScoreItemConf" parameterType="gradeStdScoreItemVO">
+		INSERT INTO TB_LMS_STD_SCORE_ITEM_CONF
+		 (
+		 	SCR_ITM_ID
+		  , SBJCT_ID
+		  , MRK_RFLTRT
+		  , RGTR_ID
+		  , FRST_INQ_DTTM
+		  , MDFR_ID
+		  , MOD_DTTM
+		 )
+		 VALUES
+		 (
+		 	#{scoreItemId}
+		  , #{crsCreCd}
+		  , #{scoreRatio}
+		  , #{rgtrId}
+		  , FN_DTTM()
+		  , #{mdfrId}
+		  , FN_DTTM()
+		 )
+		 ON DUPLICATE KEY
+		 UPDATE
+		MRK_RFLTRT = #{scoreRatio}
+		, MDFR_ID = #{mdfrId}
+		, MOD_DTTM = FN_DTTM()
+	</update>
+
+	<select id="selectCreCrsList" parameterType="gradeVO" resultType="gradeVO">
+		SELECT SA.CRS_SMSTR_ID
+			   , SA.SMSTRNM
+			   , SC.SBJCT_ID
+			   , CONCAT(SC.SBJCTNM, '(', SC.DVCLAS_NO, ')' ) AS SBJCTNM
+		  FROM CRS_SMSTR SA
+		  JOIN TB_LMS_TERM_CRE_CRS_RLTN SB ON SB.CRS_SMSTR_ID = SA.CRS_SMSTR_ID
+		  JOIN TB_LMS_SBJCT SC ON SC.SBJCT_ID = SB.SBJCT_ID
+		 WHERE 1=1
+		   <if test="termCd != 'all'.toString()">
+           AND SA.CRS_SMSTR_ID = #{termCd}
+           </if>
+         ORDER BY SBJCTNM
+	</select>
+	
+	<select id="listCreCrsGradeStatus" parameterType="gradeVO" resultType="gradeVO">
+		/*
+             SQL ID : GradeDAO.listCreCrsGradeStatus
+            	 설  명 : 성적입력현황 > 과목 목록
+         */
+         SELECT
+         	ROW_NUMBER() OVER(ORDER BY Z.DEPT_CD_ODR, Z.DEPTNM, Z.CRS_ID, Z.DVCLAS_NO, Z.SBJCTNM) AS LINE_NO
+         	, Z.*
+           FROM (
+	         SELECT
+				  A.UNIV_CD
+				, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'UNIV_GBNCD' AND CD = A.UNIV_GBNCD) AS UNIV_GBN_NM
+				, (SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE ORG_ID = C.ORG_ID AND DEPT_CD = A.MNGT_DEPT_CD) AS DEPTNM
+				, (SELECT DEPT_CD_ODR FROM TB_HOME_USER_DEPT_CD WHERE ORG_ID = C.ORG_ID AND DEPT_CD = A.DEPT_CD) AS DEPT_CD_ODR
+				, A.CRS_ID
+				, A.DVCLAS_NO
+				, A.SBJCT_ID
+				, A.SBJCTNM
+				, ( SELECT CDNM 
+				 		   FROM TB_ORG_CODE 
+				 		   WHERE ORG_ID = C.ORG_ID 
+				 		   AND CTGRCD = 'CMCRS_GBNCD' 
+				 		   AND CD = A.CMCRS_GBNCD AND ROWNUM = 1) AS COMP_DV_NM
+				, A.CRDTS
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = D.USER_ID) AS tchNm
+				, D.USER_ID AS tchNo
+				, (SELECT MOBILE_NO FROM TB_LMS_USR WHERE USER_ID = D.USER_ID) AS tchMobileNo
+				, (SELECT EMAIL FROM TB_LMS_USR WHERE USER_ID = D.USER_ID) AS tchEmail
+				, (SELECT COUNT(STD_ID) FROM TB_LMS_ATNDLC_SBJCT WHERE ATNDLC_STSCD = 'S' AND SBJCT_ID = A.SBJCT_ID AND AUDITYN = 'N') AS STD_CNT
+				, (SELECT COUNT(STD_ID) FROM TB_LMS_MRK_SBJCT WHERE STD_ID IN (SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE ATNDLC_STSCD = 'S' AND SBJCT_ID = A.SBJCT_ID AND AUDITYN = 'N')) AS SCORE_STD_CNT
+				, (SELECT COUNT(STD_ID) FROM TB_LMS_MRK_SBJCT WHERE SCR_STSCD = 3 AND STD_ID IN (SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE ATNDLC_STSCD = 'S' AND SBJCT_ID = A.SBJCT_ID AND AUDITYN = 'N')) AS SCORE_CONVERSION_CNT
+				, (SELECT COUNT(STD_ID) FROM TB_LMS_MRK_SBJCT WHERE STD_ID IN (SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE ATNDLC_STSCD = 'S' AND SBJCT_ID = A.SBJCT_ID AND AUDITYN = 'N') AND SCR_GRDCD IS NOT NULL) AS GRADE_STD_CNT
+				, CASE NVL((SELECT MRK_EVL_TYCD FROM TB_LMS_CRE_CRS_EVAL WHERE SBJCT_ID = A.SBJCT_ID), 'ABSOLUTE') WHEN 'ABSOLUTE' THEN '절대평가' WHEN 'RELATIVE' THEN '상대평가' WHEN 'PF' THEN 'P/F' END AS SCORE_EVAL_TYPE_NM
+			  FROM TB_LMS_SBJCT A
+			  JOIN TB_LMS_TERM_CRE_CRS_RLTN B
+			  ON A.SBJCT_ID = B.SBJCT_ID
+			  JOIN CRS_SMSTR C
+			  ON B.CRS_SMSTR_ID = C.CRS_SMSTR_ID
+			  AND C.ORG_ID = #{orgId}
+			  LEFT JOIN SBJCT_PROF D
+			  ON (A.SBJCT_ID = D.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y')
+			 WHERE A.DELYN = 'N'
+			   AND A.CRS_ID NOT LIKE 'TEST%'
+			   AND A.CRS_ID NOT LIKE '%JLPT%'
+			 <if test="creYear != null and creYear != ''">
+			   AND A.SBJCT_ID = #{creYear}
+			 </if>
+			 <if test="creTerm != null and creTerm != ''">
+			   AND A.CRS_ID = #{creTerm}
+			 </if>
+			 <if test="uniCd != null and uniCd != '' and uniCd != 'ALL'">
+			   AND (A.UNIV_CD = 'P' OR A.UNIV_CD = #{uniCd})
+			 </if>
+			 <if test="univGbn != null and univGbn != '' and univGbn != 'ALL'">
+			   AND A.UNIV_GBNCD = #{univGbn}
+			 </if>
+			 <if test="crsCreCd != null and crsCreCd != ''">
+			   AND A.SBJCT_ID = #{crsCreCd}
+			 </if>
+			 <if test="crsTypeCds != null">
+				AND A.SBJCT_TYCD IN
+				<foreach collection="crsTypeCds" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="mngtDeptCd != null and mngtDeptCd != '' and mngtDeptCd != 'ALL'">
+			  AND A.MNGT_DEPT_CD = #{mngtDeptCd}
+			</if>
+			<if test="userId != null and userId != ''">
+			  AND EXISTS (SELECT 1 FROM SBJCT_PROF WHERE SBJCT_ID = A.SBJCT_ID AND USER_ID = #{userId})
+			</if>
+			<if test="searchKey != null and searchKey != ''">
+			  AND A.DVCLAS_NO = #{searchKey}
+			</if>
+			<if test="searchValue != null and searchValue != ''">
+			  AND (
+			  	   LOWER(A.SBJCTNM) LIKE '%' || LOWER(#{searchValue}) || '%'
+			  	OR LOWER(A.CRS_ID) LIKE  '%' || LOWER(#{searchValue}) || '%'
+			  	OR LOWER((SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = D.USER_ID)) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			  )
+			</if>
+           ) Z
+           WHERE Z.STD_CNT <![CDATA[ > ]]> 0
+           <if test="calculationYn != null and calculationYn != ''">
+           		<choose>
+           			<when test='calculationYn == "Y"'>
+           				AND Z.STD_CNT = Z.SCORE_STD_CNT
+           			</when>
+           			<otherwise>
+           				AND Z.SCORE_STD_CNT = 0
+           			</otherwise>
+           		</choose>
+           </if>
+           <if test="converstionYn != null and converstionYn != ''">
+           		<choose>
+           			<when test='converstionYn == "Y"'>
+           				AND Z.STD_CNT = Z.SCORE_CONVERSION_CNT
+           			</when>
+           			<otherwise>
+           				AND Z.SCORE_CONVERSION_CNT = 0
+           			</otherwise>
+           		</choose>
+           </if>
+           <if test="grantYn != null and grantYn != ''">
+           		<choose>
+           			<when test='grantYn == "Y"'>
+           				AND Z.GRADE_STD_CNT <![CDATA[ > ]]> 0
+           			</when>
+           			<otherwise>
+           				AND Z.GRADE_STD_CNT = 0
+           			</otherwise>
+           		</choose>
+           </if>
+	</select>
+	
+	<select id="listStdGradeStatus" parameterType="gradeVO" resultType="gradeVO">
+		/*
+             SQL ID : GradeDAO.listStdGradeStatus
+            	 설  명 : 성적입력현황 > 성적처리현황 팝업 > 수강생 목록
+         */
+         SELECT 
+         	  ROW_NUMBER() OVER(ORDER BY B.USERNM) AS LINE_NO
+         	, A.SBJCT_ID
+         	, A.STD_ID
+			, B.USER_ID
+			, B.USERNM
+			, A.SCYR
+			, B.DEPTNM
+			, B.SCHREG_GBN
+			, NVL(D.EXCH_TOT_SCR, 0)     AS EXCH_TOT_SCR
+			, NVL(D.LST_SCR, 0) 		AS LST_SCR
+			, NVL(D.SCR_GRDCD, '-') 	AS SCR_GRDCD
+			, NVL(D.RNK, 0) 		AS RNK
+		  FROM TB_LMS_ATNDLC_SBJCT A
+		  JOIN TB_LMS_USR B
+		    ON A.USER_ID = B.USER_ID 
+		   AND A.ATNDLC_STSCD = 'S'
+		   AND A.AUDITYN = 'N'
+		  JOIN TB_LMS_USER_ACNT C
+		    ON B.USER_ID = C.USER_ID 
+		   AND C.ACNT_STSCD = 'U'
+		  LEFT JOIN TB_LMS_MRK_SBJCT D
+		    ON A.STD_ID = D.STD_ID
+		 WHERE A.SBJCT_ID = #{crsCreCd}
+	</select>
+	
+	<select id="listGradeInputExc" parameterType="gradeVO" resultType="egovMap">
+		/*
+             SQL ID : GradeDAO.listGradeInputExc
+            	 설  명 : 성적입력기간 예외처리 > 개설과목 목록
+            	 TODO: jinkoon 20250707 데이터 화면 출력 undefined 처리 필요
+            	 TODO: 엑셀 다운로드도 에러 발생
+         */
+         <if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
+          SELECT T.LINE_NO, T.TOTAL_CNT TOTAL_COUNT, T.* FROM
+          (    
+          </if>      
+          
+          SELECT
+         	  ROW_NUMBER() OVER(ORDER BY Z.DEPT_CD_ODR, Z.DEPTNM, Z.CRS_ID, Z.DVCLAS_NO, Z.SBJCTNM) AS LINE_NO
+         	, COUNT(Z.SBJCT_ID) OVER() AS TOTAL_CNT
+         	, Z.*
+           FROM (
+	         SELECT
+				  A.UNIV_CD
+				, CASE WHEN A.UNIV_CD = 'C' THEN '대학' ELSE '대학원' END AS UNI_NM
+				, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'UNIV_GBNCD' AND CD = A.UNIV_GBNCD) AS UNIV_GBN_NM
+				, NVL((SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE ORG_ID = C.ORG_ID AND DEPT_CD = A.MNGT_DEPT_CD), '-') AS DEPTNM
+				, (SELECT DEPT_CD_ODR FROM TB_HOME_USER_DEPT_CD WHERE ORG_ID = C.ORG_ID AND DEPT_CD = A.DEPT_CD) AS DEPT_CD_ODR
+				, A.CRS_ID
+				, A.DVCLAS_NO
+				, A.SBJCT_ID
+				, A.SBJCTNM
+				, NVL((SELECT USER_ID FROM SBJCT_PROF WHERE RPRSYN = 'Y' AND PROF_TYCD = 'PROFESSOR' AND SBJCT_ID = A.SBJCT_ID), '-') AS TCH_NO -- TODO jinkoon MULTI ROW 20250707 차후 처리를 위한 주석 처리
+				, NVL((SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = (SELECT USER_ID FROM SBJCT_PROF WHERE RPRSYN = 'Y' AND PROF_TYCD = 'PROFESSOR' AND SBJCT_ID = A.SBJCT_ID)), '-') AS TCH_NM -- TODO jinkoon MULTI ROW 20250707 차후 처리를 위한 주석 처리
+				, D.SYSJOB_SCHDL_SYMD
+				, D.SYSJOB_SCHDL_EYMD
+				, D.SYSJOB_SCHDL_EXCP_PROC_RSN
+				, D.MOD_DTTM
+				, D.SYSJOB_SCHDL_EXCP_ID
+			  FROM TB_LMS_SBJCT A
+			  
+			  JOIN TB_LMS_TERM_CRE_CRS_RLTN B
+			  ON A.SBJCT_ID = B.SBJCT_ID
+			  
+			  JOIN CRS_SMSTR C
+			  ON B.CRS_SMSTR_ID = C.CRS_SMSTR_ID
+			  AND C.ORG_ID = #{orgId}
+			  
+			  LEFT JOIN TB_LMS_SYSJOB_SCHDL_EXCP D
+			    ON A.SBJCT_ID = D.SBJCT_ID
+			    
+			 WHERE A.SBJCT_ID = #{creYear}
+			   AND A.CRS_ID = #{creTerm}
+			   AND A.DELYN = 'N'
+			   AND A.CRS_ID NOT LIKE 'TEST%'
+			   AND A.CRS_ID NOT LIKE '%JLPT%'
+			 <if test="mngtDeptCd != null and mngtDeptCd != '' and mngtDeptCd != 'ALL'">
+			   AND A.MNGT_DEPT_CD = #{mngtDeptCd}
+			 </if>
+			 <if test="uniCd != null and uniCd != '' and uniCd != 'ALL'">
+			   AND A.UNIV_CD = #{uniCd}
+			 </if>
+			 <if test="univGbn != null and univGbn != '' and univGbn != 'ALL'">
+			   AND A.UNIV_GBNCD = #{univGbn}
+			 </if>
+			 <if test='searchKey != null and searchKey != "" and searchKey == "Y"'>
+			   AND D.SYSJOB_SCHDL_EXCP_ID IS NOT NULL
+			 </if>
+			   AND A.SBJCT_TYCD IN
+			   	<foreach collection="crsTypeCds" item="crsTypeCds" separator="," open="(" close=")">
+					#{crsTypeCds}
+				</foreach>
+			 ORDER BY A.SBJCTNM
+           ) Z
+        WHERE 1 = 1
+		<if test="searchValue != null and searchValue != ''">
+		  AND (
+		  		LOWER(Z.SBJCTNM) FN_LIKE_VAL(LOWER(#{searchValue}))
+		  	 OR LOWER(Z.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		  	 OR LOWER(Z.TCH_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		  	 OR LOWER(Z.TCH_NM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		  ) 
+		</if>
+		<if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
+			) T WHERE LINE_NO &gt;= #{firstIndex} AND LINE_NO &lt;= #{listScale} -- TODO jinkoon LIMIT 20250707 한번에 처리 하기 위해 주석 처리
+		</if>
+	</select>
+</mapper>

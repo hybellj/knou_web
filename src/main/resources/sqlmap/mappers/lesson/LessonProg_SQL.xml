@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.lesson.dao.LessonProgDAO">
+
+	<select id="lrnPrgrtStatusSelect" parameterType="lessonProgVO" resultType="egovMap">
+		/*
+			 SQL ID : LessonDAO.lrnPrgrtStatusSelect
+			 설  명 : 학습진도관리 전체/운영과목 현황
+	 	*/
+		WITH SBJ_LIST AS (
+			SELECT *
+			FROM (
+				SELECT
+					  A.SBJCT_YR
+					, A.SBJCT_SMSTR
+					, A.SMSTR_CHRT_ID AS SMSTR_CHRT_REF_ID
+					, SMSTR.ORG_ID
+					, A.DEPT_ID
+					, A.SBJCT_ID
+					, A.SBJCTNM
+					, A.PROF_ID
+					, A.DVCLAS_NO
+					, A.DELYN
+				FROM TB_LMS_SBJCT_OFRNG A
+				JOIN TB_LMS_SMSTR_CHRT SMSTR
+					ON A.SBJCT_REF_TYCD = 'SMSTR_CHRT'
+					AND A.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+				UNION ALL
+				SELECT
+					  A.SBJCT_YR
+					, A.SBJCT_SMSTR
+					, A.CRS_MSTR_ID AS SMSTR_CHRT_REF_ID
+					, CRS.ORG_ID
+					, A.DEPT_ID
+					, A.SBJCT_ID
+					, A.SBJCTNM
+					, A.PROF_ID
+					, A.DVCLAS_NO
+					, A.DELYN
+				FROM TB_LMS_SBJCT A
+				JOIN TB_LMS_CRS_MSTR CRS
+					ON A.SBJCT_REF_TYCD = 'CRS_MSTR'
+					AND A.CRS_MSTR_ID = CRS.CRS_MSTR_ID
+			)
+			WHERE 1=1
+				AND DELYN = 'N'
+			<if test="sbjctYr != null and sbjctYr != ''">
+				AND SBJCT_YR = #{sbjctYr}
+			</if>
+			<if test="smstrChrtId != null and smstrChrtId != ''">
+				AND SMSTR_CHRT_REF_ID = #{smstrChrtId}
+			</if>
+			<if test="orgId != null and orgId != ''">
+				AND ORG_ID = #{orgId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				AND DEPT_ID = #{deptId}
+			</if>
+			<if test="sbjctOfrngId != null and sbjctOfrngId != ''">
+				AND SBJCT_ID = #{sbjctOfrngId}
+			</if>
+		),
+		WHOLE_STATUS AS (
+			SELECT
+				COUNT(A.USER_ID) AS STD_CNT
+				,SUM(A.PRGRT) AS SUM_PRGRT
+			FROM TB_LMS_LRN_PRGRT A
+			JOIN SBJ_LIST B
+				ON A.SBJCT_ID = B.SBJCT_ID
+		),
+		MY_SBJCT_STATUS AS (
+			SELECT
+				COUNT(A.USER_ID) AS STD_CNT
+				,SUM(A.PRGRT) AS SUM_PRGRT
+			FROM TB_LMS_LRN_PRGRT A
+			JOIN SBJ_LIST B
+				ON A.SBJCT_ID = B.SBJCT_ID
+				AND B.PROF_ID = #{userId}
+		)
+		SELECT
+			  A.STD_CNT AS WHOLE_STD_CNT
+			, NVL( ROUND(A.SUM_PRGRT / A.STD_CNT, 2),0) AS WHOLE_AVG_LRN_PRGRT
+			, B.STD_CNT AS MY_STD_CNT
+			, NVL( ROUND(B.SUM_PRGRT / B.STD_CNT, 2),0) AS MY_AVG_LRN_PRGRT
+		FROM WHOLE_STATUS A, MY_SBJCT_STATUS B
+	</select>
+	
+	
+	<select id="listLrnPrgrtStatusByDept" parameterType="lessonProgVO" resultType="egovMap">
+		/*
+			 SQL ID : LessonProgDAO.listLrnPrgrtStatusByDept
+			  설       명 : 학습진도관리 > 학과별 전체 통계 
+		*/
+		WITH DEPT_LIST AS (
+			SELECT *
+			FROM (
+				SELECT
+					SMSTR.ORG_ID
+					, ORG.ORGNM
+					, PRGRT.SBJCT_ID
+					, SBJ.DEPT_ID
+					, DEPT.DEPTNM
+					, SBJ.SBJCT_YR
+					, SBJ.SBJCT_SMSTR
+					, SMSTR.SMSTR_CHRT_ID AS SMSTR_CHRT_REF_ID
+					, SBJ.DELYN
+					, PRGRT.PRGRT
+					, PRGRT.USER_ID
+				FROM TB_LMS_LRN_PRGRT PRGRT
+				JOIN TB_LMS_SBJCT SBJ
+					ON SBJ.SBJCT_REF_TYCD = 'SMSTR_CHRT'
+					AND PRGRT.SBJCT_ID = SBJ.SBJCT_ID
+				LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR
+					ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+				LEFT JOIN TB_LMS_ORG ORG
+					ON SMSTR.ORG_ID = ORG.ORG_ID
+				LEFT JOIN TB_LMS_DEPT DEPT
+					ON SBJ.DEPT_ID = DEPT.DEPT_ID
+				UNION ALL
+				SELECT
+					CRS.ORG_ID
+					, ORG.ORGNM
+					, PRGRT.SBJCT_ID
+					, '-' AS DEPT_ID
+					, '-' AS DEPTNM
+					, SBJ.SBJCT_YR
+					, SBJ.SBJCT_SMSTR
+					, CRS.CRS_MSTR_ID AS SMSTR_CHRT_REF_ID
+					, SBJ.DELYN
+					, PRGRT.PRGRT
+					, PRGRT.USER_ID
+				FROM TB_LMS_LRN_PRGRT PRGRT
+				JOIN TB_LMS_SBJCT SBJ
+					ON SBJ.SBJCT_REF_TYCD = 'CRS_MSTR'
+					AND PRGRT.SBJCT_ID = SBJ.SBJCT_ID
+				LEFT JOIN TB_LMS_CRS_MSTR CRS
+					ON SBJ.CRS_MSTR_ID = CRS.CRS_MSTR_ID
+				LEFT JOIN TB_LMS_ORG ORG
+					ON CRS.ORG_ID = ORG.ORG_ID
+			)
+			WHERE 1=1
+				AND DELYN = 'N'
+			<if test="sbjctYr != null and sbjctYr != ''">
+				AND SBJCT_YR = #{sbjctYr}
+			</if>
+			<if test="smstrChrtId != null and smstrChrtId != ''">
+				AND SMSTR_CHRT_REF_ID = #{smstrChrtId}
+			</if>
+			<if test="orgId != null and orgId != ''">
+				AND ORG_ID = #{orgId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				AND DEPT_ID = #{deptId}
+			</if>
+			<if test="sbjctOfrngId != null and sbjctOfrngId != ''">
+				AND SBJCT_ID = #{sbjctOfrngId}
+			</if>
+		)
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.SBJCT_YR, A.SBJCT_SMSTR, A.DEPTNM) AS LINE_NO
+			, A.*
+		FROM (
+			SELECT
+				ORG_ID
+				, ORGNM
+				, DEPT_ID
+				, DEPTNM
+				, SBJCT_YR
+				, SBJCT_SMSTR
+				, COUNT(USER_ID) AS ALL_USER_CNT	<!-- 학과별 전체 학생 수 -->
+				, AVG(PRGRT) AS AVG_PRGRT_BY_DEPT	<!-- 학과별 평균 학습 진도율 -->
+			FROM DEPT_LIST
+			GROUP BY ORG_ID, ORGNM, DEPT_ID, DEPTNM, SBJCT_YR , SBJCT_SMSTR
+		)A	
+	</select>
+	
+	
+
+	<select id="selectCrsCreList" parameterType="lessonProgVO" resultType="lessonProgVO">
+		/*
+			 SQL ID : LessonProgDAO.selectCrsCreList
+			  설       명 : 과목 목록  
+		*/
+		SELECT 
+            TLCC.SBJCT_ID
+            , TLCC.SBJCTNM  
+        FROM 
+            TB_LMS_SBJCT TLCC 
+            INNER JOIN 
+                TB_LMS_TERM_CRE_CRS_RLTN TLTCCR 
+            ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID 
+		WHERE 1 = 1 
+		
+			<if test="termCd != null and termCd != ''">
+			AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+			</if>
+			<if test="deptCd != null and deptCd != ''">
+			AND TLCC.DEPT_CD = #{deptCd}
+			</if>       
+			<if test="uniCd != null and uniCd != ''">
+			AND TLCC.UNIV_CD = #{uniCd}
+			</if>
+			<if test="initYn == 'Y'">
+			CRS_SMSTR_ID IN (SELECT CRS_SMSTR_ID FROM CRS_SMSTR TLT WHERE NOW_SMSTRYN = 'Y')
+			</if>
+	</select>
+	
+
+	
+</mapper>

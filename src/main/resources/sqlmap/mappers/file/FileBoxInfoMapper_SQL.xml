@@ -1,0 +1,582 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.file.dao.FileBoxInfoDAO">
+    
+    <select id="listFileBoxTree" parameterType="fileBoxInfoVO" resultType="fileBoxInfoVO">
+    	/*
+             SQL ID : FileBoxInfoDAO.listFileBoxTree
+             설  명 : 파일함 트리 조회
+         */
+         <!-- WITH RECURSIVE FOLDER_TREE AS 
+        (
+          SELECT 1 AS LEVEL
+               , ATFL_BOX_ID
+               , UP_ATFL_BOX_ID
+               , ATFL_BOXNM
+               , CONVERT(ATFL_BOX_ID, CHAR(1000)) AS PATH
+            FROM TB_LMS_ATFL_BOX
+           WHERE ATFL_BOX_TYCD = 'FOLDER'
+             AND UP_ATFL_BOX_ID IS NULL
+             AND RGTR_ID = #{rgtrId}
+           UNION ALL
+          SELECT C.LEVEL + 1 AS LEVEL
+               , B.ATFL_BOX_ID
+               , B.UP_ATFL_BOX_ID
+               , B.ATFL_BOXNM
+               , CONCAT(C.PATH, '_', CONVERT(B.ATFL_BOX_ID, CHAR(1000))) AS PATH
+            FROM TB_LMS_ATFL_BOX B
+            JOIN FOLDER_TREE C
+              ON B.UP_ATFL_BOX_ID = C.ATFL_BOX_ID
+             AND B.ATFL_BOX_TYCD = 'FOLDER'
+        )
+        SELECT LEVEL AS depth
+             , A.ATFL_BOX_ID AS fileBoxCd
+             , A.UP_ATFL_BOX_ID AS parFileBoxCd
+             , A.ATFL_BOXNM AS folderNm
+             , A.PATH AS path
+             , (
+                 SELECT COUNT(1)
+                   FROM TB_LMS_ATFL_BOX AA
+                  WHERE AA.UP_ATFL_BOX_ID = A.ATFL_BOX_ID
+                ) AS childrenCnt
+              , ROW_NUMBER() OVER(PARTITION BY A.UP_ATFL_BOX_ID ORDER BY A.ATFL_BOX_ID) AS firstChild
+              , ROW_NUMBER() OVER(PARTITION BY A.UP_ATFL_BOX_ID ORDER BY A.ATFL_BOX_ID DESC) AS lastChild 
+           FROM FOLDER_TREE A
+          ORDER BY A.PATH -->
+          
+          SELECT
+			    LEVEL AS depth,
+			    ATFL_BOX_ID AS fileBoxCd,
+			    UP_ATFL_BOX_ID AS parFileBoxCd,
+			    ATFL_BOXNM AS folderNm,
+			    SYS_CONNECT_BY_PATH(REPLACE(TO_CHAR(ATFL_BOX_ID), '_', ''), '_') AS path,
+			    (
+			        SELECT COUNT(1)
+			        FROM TB_LMS_ATFL_BOX AA
+			        WHERE AA.UP_ATFL_BOX_ID = A.ATFL_BOX_ID
+			    ) AS childrenCnt,
+			    ROW_NUMBER() OVER(PARTITION BY A.UP_ATFL_BOX_ID ORDER BY A.ATFL_BOX_ID) AS firstChild,
+			    ROW_NUMBER() OVER(PARTITION BY A.UP_ATFL_BOX_ID ORDER BY A.ATFL_BOX_ID DESC) AS lastChild
+			FROM TB_LMS_ATFL_BOX A
+			WHERE ATFL_BOX_TYCD = 'FOLDER'
+			  AND RGTR_ID = #{rgtrId}
+			START WITH UP_ATFL_BOX_ID IS NULL
+			CONNECT BY PRIOR ATFL_BOX_ID = UP_ATFL_BOX_ID
+			ORDER BY SYS_CONNECT_BY_PATH(REPLACE(TO_CHAR(ATFL_BOX_ID), '_', ''), '_')
+    </select>
+    
+    <select id="listFileBox" parameterType="fileBoxInfoVO" resultType="fileBoxInfoVO">
+    	/*
+             SQL ID : FileBoxInfoDAO.listFileBox
+             설  명 : 파일함의 한 폴더내 파일 목록 조회
+         */
+    	<!-- WITH RECURSIVE FOLDER_TREE AS 
+        (
+          SELECT 1 AS LEVEL
+               , ATFL_BOX_ID
+               , UP_ATFL_BOX_ID
+               , ATFL_BOXNM
+               , FRST_INQ_DTTM
+               , ATFL_BOX_TYCD
+               , FILE_ID
+               , CONVERT(ATFL_BOX_ID, CHAR(1000)) AS PATH
+               , CONVERT(ATFL_BOXNM, CHAR(4000)) AS FOLDER_PATH
+            FROM TB_LMS_ATFL_BOX
+           WHERE UP_ATFL_BOX_ID IS NULL
+             AND RGTR_ID = #{rgtrId}
+           UNION ALL
+          SELECT C.LEVEL + 1 AS LEVEL
+               , B.ATFL_BOX_ID
+               , B.UP_ATFL_BOX_ID
+               , B.ATFL_BOXNM
+               , B.FRST_INQ_DTTM
+               , B.ATFL_BOX_TYCD
+               , B.FILE_ID
+               , CONCAT(C.PATH, '_', CONVERT(B.ATFL_BOX_ID, CHAR(1000))) AS PATH
+               , CONCAT(C.FOLDER_PATH, ' > ', CONVERT(B.ATFL_BOXNM, CHAR(4000))) AS FOLDER_PATH
+            FROM TB_LMS_ATFL_BOX B
+            JOIN FOLDER_TREE C
+              ON B.UP_ATFL_BOX_ID = C.ATFL_BOX_ID
+        )
+        SELECT LEVEL AS depth
+             , A.ATFL_BOX_ID AS fileBoxCd
+             , A.UP_ATFL_BOX_ID AS parFileBoxCd
+             , A.FILE_ID AS fileSn
+             , A.ATFL_BOX_TYCD AS fileBoxTypeCd
+             , (SELECT CDNM FROM TB_ORG_CODE WHERE CTGRCD = 'ATFL_BOX_TYCD' AND CD = A.ATFL_BOX_TYCD AND ORG_ID = #{orgId}) AS fileBoxTypeNm
+             , A.ATFL_BOXNM AS fileBoxNm
+             , IF(A.ATFL_BOX_TYCD = 'FOLDER', A.ATFL_BOXNM, CONCAT(A.ATFL_BOXNM, '.', B.FILE_EXTNM)) AS fileBoxFullNm
+             , LOWER(B.FILE_EXTNM) AS fileExt
+             , DATE_FORMAT(STR_TO_DATE(A.FRST_INQ_DTTM, '%Y%m%d%H%i%s'), '%Y.%m.%d (%H:%i)') AS regDt
+             , B.FILE_SIZE AS fileSize
+             , A.PATH AS path 
+             , A.FOLDER_PATH AS folderPath
+             , B.ATFL_REPO_PATH AS fileType
+             , IF(A.ATFL_BOX_TYCD != 'FOLDER', CONCAT(B.FILE_PATH, '/', B.FILE_SAVENM, '|', B.FILENM), NULL) AS downloadUrl
+             , IF(A.ATFL_BOX_TYCD = 'MOV', CONCAT(B.FILE_PATH, '/', B.FILE_SAVENM), NULL) AS contentUrl
+             , A.FRST_INQ_DTTM
+          FROM FOLDER_TREE A
+          LEFT JOIN TB_LMS_ATFL B
+            ON A.FILE_ID = B.FILE_ID
+         WHERE 1 = 1 -->
+         
+         SELECT * FROM (
+         SELECT 
+         	   -- LEVEL AS depth,
+		       A.ATFL_BOX_ID AS fileBoxCd,
+		       A.UP_ATFL_BOX_ID AS parFileBoxCd,
+		       A.ATFL_BOX_ID AS fileSn,
+		       A.ATFL_BOX_TYCD AS fileBoxTypeCd,
+		       -- (SELECT CDNM 
+		       -- FROM TB_ORG_CODE 
+		       -- WHERE CTGRCD = 'ATFL_BOX_TYCD' 
+		       --   AND CD = A.ATFL_BOX_TYCD 
+		       --   AND ORG_ID = '') AS fileBoxTypeNm,
+		       A.ATFL_BOXNM AS fileBoxNm,
+		       CASE 
+		           WHEN A.ATFL_BOX_TYCD = 'FOLDER' THEN A.ATFL_BOXNM
+		           ELSE A.ATFL_BOXNM || '.' || B.FILE_EXTNM 
+		       END AS fileBoxFullNm,
+		       LOWER(B.FILE_EXTNM) AS fileExt,
+		       TO_CHAR(TO_DATE(A.REG_DTTM, 'YYYYMMDDHH24MISS'), 'YYYY.MM.DD (HH24:MI)') AS regDt,
+		       B.FILE_SIZE AS fileSize,
+		       SYS_CONNECT_BY_PATH(REPLACE(TO_CHAR(A.ATFL_BOX_ID), '_', ''), '_') AS path, 
+		       SYS_CONNECT_BY_PATH(REPLACE(TO_CHAR(A.ATFL_BOXNM), '>', ''), '>') AS folderPath, 
+		       C.ATFL_REPO_PATH AS fileType,
+		       CASE 
+		           WHEN A.ATFL_BOX_TYCD != 'FOLDER' THEN B.FILE_PATH || '/' || B.FILE_SAVENM || '|' || B.FILENM
+		           ELSE NULL 
+		       END AS downloadUrl,
+		       CASE 
+		           WHEN A.ATFL_BOX_TYCD = 'MOV' THEN B.FILE_PATH || '/' || B.FILE_SAVENM
+		           ELSE NULL 
+		       END AS contentUrl,
+		       A.REG_DTTM
+		   FROM TB_LMS_ATFL_BOX A
+		LEFT JOIN TB_LMS_ATFL B 
+		ON A.ATFL_BOX_ID = B.ATFL_BOX_ID
+		LEFT JOIN TB_LMS_ATFL_REPO C 
+		ON B.ATFL_REPO_ID = C.ATFL_REPO_ID
+		WHERE 1 = 1
+		<if test="searchValue != null and searchValue != ''">
+           AND A.ATFL_BOXNM LIKE '%' || #{searchValue} || '%'
+        </if>
+        <if test="selectedFileBoxCd != null and selectedFileBoxCd != 'ROOT'">
+           AND A.UP_ATFL_BOX_ID = #{selectedFileBoxCd}
+        </if>
+        <if test="selectedFileBoxCd != null and selectedFileBoxCd == 'ROOT'">
+           AND A.UP_ATFL_BOX_ID IS NULL
+        </if>
+        <if test="searchKey != null and searchKey != ''">
+        	<if test="searchKey == 'MOV'">
+        		AND LOWER(B.FILE_EXTNM) = 'mp4'
+        	</if>
+        	<if test="searchKey == 'PDF'">
+        		AND LOWER(B.FILE_EXTNM) = 'pdf'
+        	</if>
+        	<if test="searchKey == 'IMG'">
+        		AND A.ATFL_BOX_TYCD = 'IMG'
+        	</if>
+        	<if test="searchKey == 'FILE'">
+        		AND (
+        			    LOWER(B.FILE_EXTNM) NOT IN('mp4', 'pdf')
+        			AND A.ATFL_BOX_TYCD != 'IMG'
+       			)
+        	</if>
+        </if>
+		START WITH A.UP_ATFL_BOX_ID IS NULL
+		CONNECT BY PRIOR A.ATFL_BOX_ID = A.UP_ATFL_BOX_ID
+		) A
+        ORDER BY CASE WHEN A.fileBoxTypeCd = 'FOLDER' THEN 1 ELSE 2 END, A.PATH
+    </select>
+    
+    <select id="selectFileBoxUseRate" parameterType="fileBoxInfoVO" resultType="fileBoxInfoVO">
+    	/*
+             SQL ID : FileBoxInfoDAO.selectFileBoxUseRate
+             설  명 : 자신의 파일함 사용률 조회
+         */
+		<!-- SELECT 
+			  fileLimitSize
+			, fileUseSize
+			, IF(fileUseRate <![CDATA[ > ]]> 100, 100, fileUseRate) AS fileUseRate
+		FROM (
+			SELECT
+				  IFNULL(A.ATFL_MAXSZ, 0) AS fileLimitSize
+				, IFNULL(A.FILE_USE_SIZE, 0) AS fileUseSize
+				, IFNULL(FLOOR(A.FILE_USE_SIZE / A.ATFL_MAXSZ * 100), 0) AS fileUseRate
+			FROM (
+				SELECT
+				      A.USER_ID
+					, IFNULL(ATFL_MAXSZ, IF(AUTH_ODR = 1, 1024, 3072)) * 1024 * 1024 AS ATFL_MAXSZ
+					, (
+						SELECT SUM(BB.FILE_SIZE)
+						FROM TB_LMS_ATFL_BOX AA
+						JOIN TB_LMS_ATFL BB
+						ON AA.FILE_ID = BB.FILE_ID
+						AND BB.ATFL_REPO_PATH != 'TRANSFER'
+						WHERE AA.RGTR_ID = A.USER_ID
+					) AS FILE_USE_SIZE
+				FROM (
+					SELECT
+						 A.USER_ID
+					   , MAX(IFNULL(A.ATFL_MAXSZ, B.ATFL_MAXSZ)) AS ATFL_MAXSZ
+					   , MAX(
+					   		CASE WHEN A.MENU_TYCD IN ('ADMIN', 'PROFESSOR')
+					   			 THEN 2
+					   			 WHEN A.MENU_TYCD IN ('STUDENT')
+					   			 THEN 1
+					   		END
+					   ) AS AUTH_ODR
+					FROM TB_LMS_USER_AUTHRT A
+					JOIN TB_LMS_AUTHRT_GRP B
+					ON A.MENU_TYCD = B.MENU_TYCD
+					AND A.USER_AUTHRT_ID = B.USER_AUTHRT_ID
+					AND B.USEYN = 'Y'
+					WHERE A.USER_ID = #{rgtrId}
+					AND B.ORG_ID = #{orgId}
+					GROUP BY A.USER_ID
+				) A
+			) A
+		) A -->
+		
+		SELECT 
+			  fileLimitSize
+			, fileUseSize
+			, NVL(CASE WHEN fileUseRate <![CDATA[ > ]]> 100 THEN 100 ELSE fileUseRate END, 0) AS fileUseRate
+		FROM (
+			SELECT
+				  NVL(A.ATFL_MAXSZ, 0) AS fileLimitSize
+				, NVL(A.FILE_USE_SIZE, 0) AS fileUseSize
+				, NVL(FLOOR(A.FILE_USE_SIZE / A.ATFL_MAXSZ * 100), 0) AS fileUseRate
+			FROM (
+				SELECT
+				      A.USER_AUTHRT_ID
+					, NVL(ATFL_MAXSZ, CASE WHEN AUTH_ODR = 1 THEN 1024 ELSE 3072 END) * 1024 * 1024 AS ATFL_MAXSZ
+					, (
+						SELECT SUM(BB.FILE_SIZE)
+						FROM TB_LMS_ATFL_BOX AA
+						JOIN TB_LMS_ATFL BB
+						ON AA.ATFL_BOX_ID = BB.ATFL_BOX_ID
+						JOIN TB_LMS_ATFL_REPO CC
+						ON BB.ATFL_REPO_ID = CC.ATFL_REPO_ID
+						AND CC.ATFL_REPO_PATH != 'TRANSFER'
+						WHERE AA.RGTR_ID = A.USER_AUTHRT_ID
+					) AS FILE_USE_SIZE
+				FROM (
+					SELECT
+						 A.USER_AUTHRT_ID
+					   , MAX(NVL(A.ATFL_MAXSZ, B.ATFL_MAXSZ)) AS ATFL_MAXSZ
+					   , MAX(
+					   		CASE WHEN A.MENU_TYCD IN ('ADMIN', 'PROFESSOR')
+					   			 THEN 2
+					   			 WHEN A.MENU_TYCD IN ('STUDENT')
+					   			 THEN 1
+					   		END
+					   ) AS AUTH_ODR
+					FROM TB_LMS_USER_AUTHRT A
+					JOIN TB_LMS_AUTHRT_GRP B
+					ON A.MENU_TYCD = B.MENU_TYCD
+					AND A.AUTHRT_GRP_ID = B.AUTHRT_GRPCD
+					AND B.USEYN = 'Y'
+					WHERE A.USER_AUTHRT_ID = #{userId}
+					AND B.ORG_ID = #{orgId}
+					GROUP BY A.USER_AUTHRT_ID
+				) A
+			) A
+		) A
+    </select>
+    
+    <insert id="insertFileBox" parameterType="fileBoxInfoVO" >
+        /*
+             SQL ID : FileBoxInfoDAO.insertFileBox
+             설  명 : 파일함 폴더(파일) 등록
+        */
+        INSERT INTO TB_LMS_ATFL_BOX (
+               ATFL_BOX_ID
+             , UP_ATFL_BOX_ID
+             , ATFL_BOX_TYCD
+             , FILE_ID
+             , ATFL_BOXNM
+             , RGTR_ID
+             , REG_DTTM
+             , MDFR_ID
+             , MOD_DTTM
+        ) VALUES (
+               #{fileBoxCd}
+             , #{parFileBoxCd, javaType=String}
+             , #{fileBoxTypeCd}
+             , #{fileSn, javaType=String}
+             , #{fileBoxNm}
+             , #{rgtrId}
+             , FN_DTTM()
+             , #{rgtrId}
+             , FN_DTTM()
+        )
+    </insert>
+    
+    <delete id="deleteFileBox" parameterType="fileBoxInfoVO">
+        /*
+             SQL ID : FileBoxInfoDAO.deleteFileBox
+             설  명 : 파일함  삭제
+         */
+        DELETE FROM TB_LMS_ATFL_BOX
+         WHERE ATFL_BOX_ID IN 
+               (
+               <foreach collection="fileBoxCds" item="item" index="index" separator="," open="" close="">
+                    #{item}
+               </foreach>
+               )
+    </delete>
+    
+    <select id="listDeleteFileBox" parameterType="fileBoxInfoVO" resultType="fileBoxInfoVO">
+        /*
+             SQL ID : FileBoxInfoDAO.listDeleteFileBox
+             설  명 : 삭제할 파일박스 목록 조회
+         */
+        <!-- WITH RECURSIVE FOLDER_TREE AS 
+        (
+          SELECT 1 AS LEVEL
+               , ATFL_BOX_ID
+               , UP_ATFL_BOX_ID
+            FROM TB_LMS_ATFL_BOX
+           WHERE ATFL_BOX_ID = #{fileBoxCd}
+             AND RGTR_ID = #{mdfrId}
+           UNION ALL
+          SELECT C.LEVEL + 1 AS LEVEL
+               , B.ATFL_BOX_ID
+               , B.UP_ATFL_BOX_ID
+            FROM TB_LMS_ATFL_BOX B
+            JOIN FOLDER_TREE C
+              ON B.UP_ATFL_BOX_ID = C.ATFL_BOX_ID
+        )
+        SELECT A.ATFL_BOX_ID
+          FROM FOLDER_TREE A
+         -->
+         
+        SELECT ATFL_BOX_ID
+		FROM TB_LMS_ATFL_BOX
+		WHERE RGTR_ID = #{mdfrId}
+		START WITH ATFL_BOX_ID = #{fileBoxCd}
+		CONNECT BY PRIOR ATFL_BOX_ID = UP_ATFL_BOX_ID
+    </select>
+    
+    <select id="listDeleteFile" parameterType="filePathInfoVO" resultType="filePathInfoVO">
+        /*
+             SQL ID : FileBoxInfoDAO.listDeleteFile
+             설  명 : 삭제할 파일목록 조회
+         */
+        <!-- WITH RECURSIVE FOLDER_TREE AS 
+        (
+          SELECT 1 AS LEVEL
+               , ATFL_BOX_ID
+               , UP_ATFL_BOX_ID
+               , FILE_ID
+            FROM TB_LMS_ATFL_BOX
+           WHERE ATFL_BOX_ID = #{fileBoxCd}
+             AND RGTR_ID = #{mdfrId}
+           UNION ALL
+          SELECT C.LEVEL + 1 AS LEVEL
+               , B.ATFL_BOX_ID
+               , B.UP_ATFL_BOX_ID
+               , B.FILE_ID
+            FROM TB_LMS_ATFL_BOX B
+            JOIN FOLDER_TREE C
+              ON B.UP_ATFL_BOX_ID = C.ATFL_BOX_ID
+        )
+        SELECT A.FILE_ID AS fileSn
+             , B.ATFL_REPO_PATH AS repoPath
+             , B.FILE_PATH AS filePath
+             , B.FILE_SAVENM AS fileSaveNm
+          FROM FOLDER_TREE A
+          JOIN TB_LMS_ATFL B
+            ON A.FILE_ID = B.FILE_ID -->
+            
+       SELECT 
+		    A.FILE_ID AS fileSn,
+		    B.ATFL_REPO_PATH AS repoPath,
+		    B.FILE_PATH AS filePath,
+		    B.FILE_SAVENM AS fileSaveNm
+		FROM (
+		    SELECT 
+		        ATFL_BOX_ID,
+		        UP_ATFL_BOX_ID,
+		        FILE_ID,
+		        LEVEL AS LVL
+		    FROM TB_LMS_ATFL_BOX
+		    WHERE RGTR_ID = #{mdfrId}
+		    START WITH ATFL_BOX_ID = #{fileBoxCd}
+		    CONNECT BY PRIOR ATFL_BOX_ID = UP_ATFL_BOX_ID
+		) A
+		JOIN TB_LMS_ATFL B
+		  ON A.FILE_ID = B.FILE_ID
+    </select>
+    
+    <select id="selectFileBoxDetailInfo" parameterType="fileBoxInfoVO" resultType="fileBoxInfoVO">
+        /*
+             SQL ID : FileBoxInfoDAO.selectFileBoxDetailInfo
+             설  명 : 파일 또는 폴더 상세정보 조회
+         */
+        SELECT A.ATFL_BOX_ID AS fileBoxCd
+             , A.ATFL_BOXNM AS fileBoxNm
+             , CASE WHEN A.ATFL_BOX_TYCD = 'FOLDER' THEN A.ATFL_BOXNM ELSE A.ATFL_BOXNM || '.' || B.FILE_EXTNM END AS fileBoxFullNm
+             , (SELECT MAX(CDNM) FROM TB_ORG_CODE WHERE CTGRCD = 'ATFL_BOX_TYCD' AND CD = A.ATFL_BOX_TYCD) AS fileBoxTypeNm
+             , LOWER(B.FILE_EXTNM) AS fileExt
+             , A.FRST_INQ_DTTM AS regDt
+             , A.FILE_ID AS fileSn
+             , B.FILE_SIZE AS fileSize
+             , B.FILE_PATH AS folderPath
+             , B.ATFL_REPO_PATH AS fileType
+             , CASE WHEN A.ATFL_BOX_TYCD = 'FOLDER' OR A.FILE_ID IS NULL THEN NULL ELSE B.FILE_PATH || '/' || B.FILE_SAVENM || '|' || B.FILENM END AS downloadUrl
+          FROM TB_LMS_ATFL_BOX A
+          LEFT JOIN TB_LMS_ATFL B
+            ON A.FILE_ID = B.FILE_ID
+         WHERE A.ATFL_BOX_ID = #{selectedFileBoxCd}
+           AND A.RGTR_ID = #{rgtrId}
+    </select>
+    
+    <select id="listFullFolderPath" parameterType="fileBoxInfoVO" resultType="String">
+        /*
+             SQL ID : FileBoxInfoDAO.listFullFolderPath
+             설  명 : 선택한 폴더의 full 경로 조회
+         */
+        <!-- WITH RECURSIVE FOLDER_TREE AS 
+        (
+          SELECT 1 AS LEVEL
+               , ATFL_BOX_ID
+               , UP_ATFL_BOX_ID
+               , ATFL_BOXNM
+            FROM TB_LMS_ATFL_BOX
+           WHERE ATFL_BOX_ID = #{selectedFileBoxCd}
+             AND RGTR_ID = #{rgtrId}
+           UNION ALL
+          SELECT C.LEVEL + 1 AS LEVEL
+               , B.ATFL_BOX_ID
+               , B.UP_ATFL_BOX_ID
+               , B.ATFL_BOXNM
+            FROM TB_LMS_ATFL_BOX B
+            JOIN FOLDER_TREE C
+              ON B.ATFL_BOX_ID = C.UP_ATFL_BOX_ID
+        )
+        SELECT A.ATFL_BOXNM AS folderPath
+          FROM FOLDER_TREE A
+         ORDER BY A.LEVEL DESC -->
+        SELECT 
+		    LEVEL AS depth,
+		    ATFL_BOX_ID,
+		    UP_ATFL_BOX_ID,
+		    ATFL_BOXNM AS folderPath
+		FROM TB_LMS_ATFL_BOX
+		WHERE RGTR_ID = #{rgtrId}
+		  AND ATFL_BOX_ID = #{selectedFileBoxCd}
+		START WITH ATFL_BOX_ID = #{selectedFileBoxCd}
+		CONNECT BY PRIOR UP_ATFL_BOX_ID = ATFL_BOX_ID
+		ORDER BY LEVEL DESC
+    </select>
+    
+    <update id="updateFileBoxNm" parameterType="fileBoxInfoVO">
+        /*
+             SQL ID : FileBoxInfoDAO.updateFileBoxNm
+             설  명 : 파일함의 폴더명 변경
+         */
+        UPDATE TB_LMS_ATFL_BOX
+           SET ATFL_BOXNM = #{fileBoxNm}
+             , MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+         WHERE ATFL_BOX_ID = #{fileBoxCd}
+           AND RGTR_ID = #{mdfrId} 
+    </update>
+    
+    <select id="selectFileBoxSimpleInfo" parameterType="fileBoxInfoVO" resultType="fileBoxInfoVO">
+        /*
+             SQL ID : FileBoxInfoDAO.selectFileBoxSimpleInfo
+             설  명 : 파일함의 간단 정보 조회
+         */
+        SELECT ATFL_BOX_ID AS fileBoxCd
+             , FILE_ID AS fileSn
+             , ATFL_BOX_TYCD AS fileBoxTypeCd
+             , ATFL_BOXNM AS fileBoxNm
+          FROM TB_LMS_ATFL_BOX
+         WHERE ATFL_BOX_ID = #{fileBoxCd}
+    </select>
+    
+    <update id="updateSysFileNm" parameterType="fileBoxInfoVO">
+        /*
+             SQL ID : FileBoxInfoDAO.updateSysFileNm
+             설  명 : 시스템 파일함의 파일명 변경
+         */
+        UPDATE TB_LMS_ATFL
+           SET FILENM = #{fileBoxNm} || '.' || FILE_EXTNM
+         WHERE FILE_ID = #{fileSn}
+    </update>
+    
+    
+    <select id="countUserFileBoxCd" parameterType="fileBoxInfoVO" resultType="Integer">
+        /*
+             SQL ID : FileBoxInfoDAO.countUserFileBoxCd
+             설  명 : 자신의 파일함 여부 카운트
+         */
+        SELECT COUNT(1) AS CNT
+          FROM TB_LMS_ATFL_BOX
+         WHERE ATFL_BOX_ID = #{fileBoxCd}
+           AND RGTR_ID = #{rgtrId}
+         <if test="fileBoxTypeCd != null and fileBoxTypeCd != ''">
+           AND ATFL_BOX_TYCD = #{fileBoxTypeCd}
+         </if>
+    </select>
+    
+    <select id="listFileBoxFileInfo" parameterType="fileBoxInfoVO" resultType="fileVO">
+    	/*
+             SQL ID : FileBoxInfoDAO.listFileBoxFileInfo
+             설  명 : 자신의 파일함 파일정보 목록
+         */
+		SELECT
+		 	  A.FILENM
+			, A.FILE_SAVENM
+			, A.FILE_SIZE
+			, A.FILE_PATH
+			, A.FILE_ID
+			, A.ATFL_REPO_PATH
+		FROM TB_LMS_ATFL A
+		JOIN TB_LMS_ATFL_BOX B
+		ON A.FILE_ID = B.FILE_ID
+		AND B.RGTR_ID = #{rgtrId}
+		AND B.ATFL_BOX_ID IN (
+        <foreach collection="fileBoxCds" item="item" index="index" separator="," open="" close="">
+        	#{item}
+        </foreach>
+        )
+		WHERE A.ATFL_REPO_ID = 'FILE_BOX'
+		AND A.ORG_ID = #{orgId}
+    </select>
+    
+    <select id="selectFileBox" parameterType="fileBoxInfoVO" resultType="fileBoxInfoVO">
+    	/*
+             SQL ID : FileBoxInfoDAO.selectFileBox
+             설  명 : 파일박스 정보 가져오기
+         */
+		SELECT
+		 	  A.ATFL_BOX_ID
+			, A.UP_ATFL_BOX_ID
+			, A.FILE_ID
+			, A.ATFL_BOX_TYCD
+			, A.ATFL_BOXNM
+			, A.RGTR_ID
+			, A.REG_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_ATFL_BOX A
+		WHERE A.RGTR_ID = #{rgtrId}
+		<if test="parFileBoxCd != null and parFileBoxCd != ''">
+			AND A.UP_ATFL_BOX_ID = #{parFileBoxCd}
+		</if>
+		<if test="fileBoxTypeCd != null and fileBoxTypeCd != ''">
+			AND A.ATFL_BOX_TYCD = #{fileBoxTypeCd}
+		</if>
+		<if test="fileBoxCd != null and fileBoxCd != ''">
+			AND A.ATFL_BOX_ID = #{fileBoxCd}
+		</if>
+		<if test="fileBoxNm != null and fileBoxNm != ''">
+			AND A.ATFL_BOXNM = #{fileBoxNm}
+		</if>
+    </select>
+</mapper>

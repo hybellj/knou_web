@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	version="1.1"
+	id="UIC-DEXTUPLOADX5-PROGRESSIVE"
+	onload="onLoadHandler(evt)" width="100%" height="100%">
+    <script type="application/ecmascript" xlink:href="../module/dextuploadx5-common.js"/>
+    <script type="application/ecmascript" xlink:href="./dextuploadx5-dn-1-app.js"/>
+    <style type="text/css">
+        * { box-sizing: border-box; }
+        * { font-family: 'Malgun Gothic', AppleGothic, Arial, 'sans-serif'; }
+        .css-txt-range { font-size: 10px; fill: #346787; }
+        .css-txt-speed { font-size: 18pt; fill: #224357; font-weight: bold; }
+        .css-txt-unit { font-size: 10px; fill: #b7b7b7; }
+        .css-txt-filename { font-size: 12px; fill: #ffffff; }
+        .css-txt-title { font-size: 12px; font-weight: bold; fill: #ffffff; }
+        .css-txt-title-sub { font-size: 10px; fill: #F6C187; }
+        .css-txt-value { font-size: 10px; fill: #96a2a9; }
+        .css-txt-progressive { font-size: 12px; fill: #fff; }
+        .css-btn { cursor: pointer; }
+        .css-btn .btn-text { font-size: 12px; font-weight: bold; fill: #506470; }
+        .css-btn:hover .btn-back { fill: #03A9F4; }
+    </style>
+    <svg id="UIC-MAIN-AREA" x="0" y="0" width="100%" height="100%">
+        <svg x="0" y="0" height="100%" width="50%">
+            <rect x="0" y="0" width="100%" height="100%" fill="#f7f7f7"/>
+            <rect x="42" y="208" width="10" height="4" fill="#ff9b2f "/>
+            <text class="css-txt-range" x="59" y="214">Current File</text>
+            <rect x="142" y="208" width="10" height="4" fill="#1fb3ff "/>
+            <text class="css-txt-range" x="159" y="214">Total Files</text>
+            <path id="UIC-PROGRESSIVE-TOT-SIZE" stroke="#1fb3ff" stroke-width="21" stroke-linecap="butt" fill="none" d=""/>
+            <path fill="#ffffff" d="M125,166 a62,62 0 0,1 -0,-124 a62,62 0 0,1 0,124 v10"/>
+            <path id="UIC-PROGRESSIVE-CUR-SIZE" stroke="#ff9b2f" stroke-width="13" stroke-linecap="butt" fill="none" d=""/>
+            <text class="css-txt-speed" x="125" y="110" text-anchor="middle">
+                <tspan id="UIC-PROGRESSIVE-SPEED-VALUE">0.0</tspan>
+            </text>
+            <text class="css-txt-unit" x="125" y="130" text-anchor="middle">
+                <tspan id="UIC-PROGRESSIVE-SPEED-UNIT">MB/S</tspan>
+            </text>
+        </svg>
+        <svg id="UIC-RIGHT" x="50%" y="0" width="50%" height="100%">
+            <rect x="0" y="0" width="100%" height="100%" fill="#506470"/>
+            <svg x="20" y="0" height="56" layout-dx5="width:100%-40px;">
+                <title id="UIC-AT-FILENAME"></title>
+                <text id="UIC-TXT-FILENAME" class="css-txt-filename" x="0" y="50%">File Name</text>
+            </svg>
+            <text id="UIC-TITLE-SIZE" class="css-txt-title" x="20" y="57">SIZE</text>
+            <text class="css-txt-value" x="20" y="74">
+                <tspan class="css-txt-title-sub">CURRENT</tspan>
+                <tspan class="css-txt-value" id="UIC-TXT-CURRENT-SIZE">0 / 0</tspan>
+            </text>
+            <text class="css-txt-value" x="20" y="89">
+                <tspan class="css-txt-title-sub">TOTAL</tspan>
+                <tspan class="css-txt-value" id="UIC-TXT-TOTAL-SIZE">0 / 0</tspan>
+            </text>
+            <text id="UIC-TITLE-TIME" x="20" y="111" class="css-txt-title">LAPSE-TIME</text>
+            <text x="20" y="128">
+                <tspan class="css-txt-title-sub">CURRENT</tspan>
+                <tspan class="css-txt-value" id="UIC-TXT-CURRENT-TIME-VALUE">00:00:00 / 00:00:40</tspan>
+            </text>
+            <text x="20" y="143">
+                <tspan class="css-txt-title-sub">TOTAL</tspan>
+                <tspan class="css-txt-value" id="UIC-TXT-TOTAL-TIME-VALUE">00:00:00 / 00:00:00</tspan>
+            </text>
+            <text id="UIC-TITLE-COUNT" x="20" y="165" class="css-txt-title">FILES COUNT</text>
+            <text class="css-txt-value" x="20" y="180">
+                <tspan id="UIC-TXT-COUNT-VALUE">0 / 0</tspan>
+            </text>
+            <svg id="UIC-BTN-ABORT" viewBox="0 0 64 24" class="css-btn" y="189" width="64" height="24" layout-dx5="x:100%-158px" style="visibility:visible">
+                <rect class="btn-back" x="0" y="0" rx="3" ry="3" width="100%" height="100%" fill="#f7f7f7"/>
+                <text class="btn-text" x="50%" y="17" text-anchor="middle" font-size="12px" style="user-select:none;">Abort</text>
+            </svg>
+            <svg id="UIC-BTN-RETRY" viewBox="0 0 64 24" class="css-btn" y="189" width="64" height="24" layout-dx5="x:100%-158px">
+                <rect class="btn-back" x="0" y="0" rx="3" ry="3" width="100%" height="100%" fill="#f7f7f7"/>
+                <text class="btn-text" x="50%" y="17" text-anchor="middle" font-size="12px" style="user-select:none;">RETRY</text>
+            </svg>
+            <svg id="UIC-BTN-CANCEL" viewBox="0 0 64 24" class="css-btn" y="189" width="64" height="24" layout-dx5="x:100%-84px">
+                <rect class="btn-back" x="0" y="0" rx="3" ry="3" width="100%" height="100%" fill="#f7f7f7"/>
+                <text class="btn-text" x="50%" y="17" text-anchor="middle" font-size="12px" style="user-select:none;">Cancel</text>
+            </svg>
+        </svg>
+        <svg id="UIC-WAIT-INFO" x="0" width="100%" height="34" style="display:none;" layout-dx5="y:50%-17px;">
+            <rect x="0" y="0" width="100%" height="100%" stroke="none" fill="#4CAF50"/>
+            <text id="UIC-TXT-WAIT" x="50%" y="23" text-anchor="middle" class="css-txt-progressive">Waiting server response...</text>
+        </svg>
+    </svg>
+</svg>

@@ -1,0 +1,25 @@
+var UiFileUploader_language = "ko";
+var UiFileUploader_lang = {
+	dragDropStr:			"여기에 파일을 드래그하세요.",
+	uploadStr:				"파일선택",
+	//extErrorStr:			"확장자가 [{0}]인 파일은 업로드 할 수 없습니다.",
+	extErrorStr:			"업로드 할 수 없는 파일형식입니다.",
+	allowTypeStr:			"확장자가 [{0}]인 파일만 업로드 가능합니다.",
+	notAllowTypeStr:		"미허용 파일형식",
+	sizeErrorStr:			"파일 제한 크기 {0}를 초과했습니다.",
+	allowSizeStr:			"허용 사이즈",
+	maxFileCountErrorStr:	"첨부 할 수있는 최대 파일 수는 {0} 개입니다.",
+	allowFileCountStr:		"허용 파일수",
+	flashVersion:			"플래시 버전을 확인하여 주십시오.\n버전 8 이상만 가능합니다.",
+	networkError:			"네트워크 에러가 발생하였습니다.\n잠시후 다시 시도하여 주십시오.",
+	ioError:				"파일 입출력 에러가 발생하였습니다.",
+	oneLimitError:			"파일 한개의 제한 크기 {0}를 초과했습니다.",
+	selectFileStr:			"파일을 선택하세요.",
+	totalStr:				"총",
+	countStr:				"개",
+	uploadCountStr:			"전송",
+	completeStr:			"완료",
+	uploadErrorStr:			"파일 업로드 중 오류가 발생하였습니다.",
+	fileBox:				"파일함",
+	addFromFileBox:			"파일함에서 가져오기"
+};

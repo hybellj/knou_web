@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.common.dao.OrgAuthGrpDAO">
+	
+<!-- 	<select id="list" parameterType="orgAuthGrpVO" resultType="orgAuthGrpVO">
+		/*
+			 SQL ID : OrgAuthGrpLangDAO.list
+			 설  명 : 기관 권한 언어의 전체 목록
+	 	*/
+	 	SELECT MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , LANG_CD
+		     , AUTHRT_GRPNM
+		     , AUTHRT_GRP_EXPLN
+		  FROM TB_ORG_AUTH_GRP_LANG
+	   WHERE 1 = 1 
+	         AND ORG_ID = #{orgId}
+		 	 <if test="menuType != null">
+			 AND MENU_TYCD = #{menuType}
+			 </if>
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+		 ORDER BY LANG_CD
+	</select> -->
+
+<!-- 	<select id="listFile" parameterType="orgAuthGrpVO" resultType="orgAuthGrpVO">
+		/*
+			 SQL ID : OrgAuthGrpLangDAO.listFile
+			 설  명 : 기관 권한 언어의 전체 목록
+	 	*/
+	 	SELECT MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , LANG_CD
+		     , AUTHRT_GRPNM
+		     , AUTHRT_GRP_EXPLN
+		  FROM TB_ORG_AUTH_GRP_LANG
+	   WHERE 1 = 1 
+	         AND ORG_ID = #{orgId}
+			 AND MENU_TYCD = 'HOME'
+		     AND USER_AUTHRT_ID IN ('PROFESSOR', 'ASSISTANT', 'LEARNER')
+		     AND LANG_CD = #{langCd}
+		 ORDER BY LANG_CD
+	</select> -->
+
+<!-- 	<select id="select" parameterType="orgAuthGrpVO" resultType="orgAuthGrpVO">
+		/*
+			 SQL ID : OrgAuthGrpLangDAO.select
+			 설  명 : 기관 권한 언어의 정보 조회
+	 	*/
+	 	SELECT MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , LANG_CD
+		     , AUTHRT_GRPNM
+		     , AUTHRT_GRP_EXPLN
+		  FROM TB_ORG_AUTH_GRP_LANG
+	   WHERE 1 = 1 
+			<if test="orgId != null">
+	  		AND ORG_ID = #{orgId}
+	  		</if>
+		 	<if test="menuType != null">
+			AND MENU_TYCD = #{menuType}
+			</if>
+		   	AND USER_AUTHRT_ID = #{authGrpCd}
+		   	AND LANG_CD = #{langCd}	 	
+	</select>	 -->
+	
+	<!-- <insert id="insert" parameterType="orgAuthGrpVO" >
+		/*
+			 SQL ID : OrgAuthGrpLangDAO.insert
+			 설  명 : 기관 권한 언어의 정보 등록
+	 	*/
+		INSERT INTO TB_ORG_AUTH_GRP_LANG (
+		       MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , LANG_CD
+		     , AUTHRT_GRPNM
+		<if test="authGrpDesc != null">
+		     , AUTHRT_GRP_EXPLN
+		</if>     
+		) VALUES (
+		       #{menuType}
+		     , #{authGrpCd}
+		     , #{langCd}
+		     , #{authGrpNm}
+		<if test="authGrpDesc != null">
+		     , #{authGrpDesc}
+		</if>
+		)	 	
+	</insert> -->
+	
+<!-- 	<update id="update" parameterType="orgAuthGrpVO" >
+		/*
+			 SQL ID : OrgAuthGrpLangDAO.update
+			 설  명 : 기관 권한 언어의 정보 수정
+	 	*/
+		UPDATE TB_ORG_AUTH_GRP_LANG
+		   SET AUTHRT_GRPNM = #{authGrpNm}
+   		<if test="authGrpDesc != null">
+		     , AUTHRT_GRP_EXPLN = #{authGrpDesc}
+		</if>
+	   WHERE 1 = 1 
+		 	 <if test="menuType != null">
+			 AND MENU_TYCD = #{menuType}
+			 </if>
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+		   AND LANG_CD = #{langCd}	 	
+	</update> -->	
+
+<!-- 	<delete id="delete" parameterType="orgAuthGrpVO" >
+		/*
+			 SQL ID : OrgAuthGrpLangDAO.delete
+			 설  명 : 기관 권한 언어의 정보 삭제
+	 	*/
+		DELETE FROM TB_ORG_AUTH_GRP_LANG
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+		   AND LANG_CD = #{langCd}
+	</delete> -->
+
+	<delete id="deleteAll" parameterType="orgAuthGrpVO" >
+		/*
+			 SQL ID : OrgAuthGrpLangDAO.deleteAll
+			 설  명 : 기관 권한 언어의 전체 정보 삭제
+	 	*/
+		DELETE FROM TB_ORG_AUTH_GRP_LANG
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+	</delete>	
+	
+	<insert id="merge" parameterType="orgAuthGrpVO" >
+		/*
+			 SQL ID : OrgAuthGrpLangDAO.merge
+			 설  명 : 기관 권한 언어의 정보 등록
+		*/
+		INSERT INTO TB_ORG_AUTH_GRP_LANG (
+			MENU_TYCD
+			, USER_AUTHRT_ID
+			, LANG_CD
+			, AUTHRT_GRPNM
+			, ORG_ID
+		<if test="authGrpDesc != null">
+			, AUTHRT_GRP_EXPLN 
+		</if>
+		) VALUES (
+			#{menuType}
+			, #{authGrpCd}
+			, #{langCd}
+			, #{authGrpNm}
+			, #{orgId}
+		<if test="authGrpDesc != null">
+			, #{authGrpDesc}
+		</if>	
+		) 
+		ON DUPLICATE KEY 
+			UPDATE  AUTHRT_GRPNM = #{authGrpNm}
+					<if test="authGrpDesc != null">
+		    			, AUTHRT_GRP_EXPLN = #{authGrpDesc}
+		    		</if>		
+	</insert>
+
+    <select id="listOrgAuthGrpLangByMenuType" parameterType="orgAuthGrpVO" resultType="orgAuthGrpVO">
+        /*
+             SQL ID : OrgAuthGrpLangDAO.listOrgAuthGrpLangByMenuType
+                 설  명 : 기관 권한 언어의 메뉴별 목록
+         */
+        SELECT B.USER_AUTHRT_ID AS authGrpCd
+             , B.AUTHRT_GRPNM AS authGrpNm
+          FROM TB_LMS_AUTHRT_GRP A
+          JOIN TB_ORG_AUTH_GRP_LANG B
+            ON A.USER_AUTHRT_ID = B.USER_AUTHRT_ID
+           AND A.MENU_TYCD = B.MENU_TYCD
+           AND B.LANG_CD = #{langCd} 
+	   WHERE 1 = 1 
+		 	 <if test="menuType != null">
+			 AND MENU_TYCD = #{menuType}
+			 </if>
+           AND A.ORG_ID = #{orgId}
+           AND A.USEYN = 'Y'
+        <if test="searchTo != null and searchTo == 'RESH'">
+           AND A.USER_AUTHRT_ID IN ('ASSISTANT', 'LEARNER', 'MANAGER', 'PROFESSOR')
+        </if>
+         ORDER BY A.AUTHRT_GRP_SEQ 
+    </select>
+</mapper>

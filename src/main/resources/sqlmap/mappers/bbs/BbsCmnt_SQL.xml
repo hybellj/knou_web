@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.bbs.dao.BbsCmntDAO">
+
+	<select id="selectBbsCmnt" parameterType="bbsCmntVO" resultType="bbsCmntVO">
+		/*
+             SQL ID : BbsCmntDAO.selectBbsCmnt
+             설  명 : 댓글 정보 조회
+         */
+		SELECT
+			  A.ATCL_CMNT_ID
+			, A.ATCL_ID
+			, A.UP_ATCL_CMNT_ID
+			, A.ATCL_CMNT_CTS
+			, A.EMTICN_NO
+			, A.DELYN
+			, A.RGTR_ID
+			, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS RGTRNM
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_BBS_ATCL_CMNT A
+		WHERE A.ATCL_CMNT_ID = #{cmntId}
+		AND A.ATCL_ID = #{atclId}
+		AND A.DELYN = 'N'
+	</select>
+	
+	<sql id="listQuery">
+	<choose>
+		<when test='noDeleteViewModeYn != null and noDeleteViewModeYn == "Y"'>
+			WITH OPNN (
+			    RN, ATCL_CMNT_ID, ATCL_ID, UP_ATCL_CMNT_ID, ATCL_CMNT_CTS, EMTICN_NO, DELYN,
+			    RGTR_ID, FRST_INQ_DTTM, MDFR_ID, MOD_DTTM, TO_USER_ID, CHILD_YN, LVL, PATH
+			) AS (
+				SELECT
+					  ROW_NUMBER() OVER(ORDER BY A.FRST_INQ_DTTM DESC) AS RN
+					, A.ATCL_CMNT_ID
+					, A.ATCL_ID
+					, A.UP_ATCL_CMNT_ID
+					, A.ATCL_CMNT_CTS
+					, A.EMTICN_NO
+					, A.DELYN
+					, A.RGTR_ID
+					, A.FRST_INQ_DTTM
+					, A.MDFR_ID
+					, A.MOD_DTTM
+					, RGTR_ID AS TO_USER_ID
+					, CASE WHEN EXISTS (SELECT 1 FROM TB_LMS_BBS_ATCL_CMNT WHERE UP_ATCL_CMNT_ID = A.ATCL_CMNT_ID AND DELYN = 'N')
+						   THEN 'Y'
+						   ELSE 'N'
+					  END CHILD_YN
+					, 1 AS LVL
+					, TO_CHAR(A.ATCL_CMNT_ID) AS PATH
+				FROM TB_LMS_BBS_ATCL_CMNT A
+				WHERE A.UP_ATCL_CMNT_ID IS NULL
+				AND A.ATCL_ID = #{atclId}
+				UNION ALL
+				SELECT
+					  B.RN
+					, A.ATCL_CMNT_ID
+					, A.ATCL_ID
+					, A.UP_ATCL_CMNT_ID
+					, A.ATCL_CMNT_CTS
+					, A.EMTICN_NO
+					, A.DELYN
+					, A.RGTR_ID
+					, A.FRST_INQ_DTTM
+					, A.MDFR_ID
+					, A.MOD_DTTM
+					, B.RGTR_ID AS TO_USER_ID
+					, CASE WHEN EXISTS (SELECT 1 FROM TB_LMS_BBS_ATCL_CMNT WHERE UP_ATCL_CMNT_ID = A.ATCL_CMNT_ID AND DELYN = 'N')
+						   THEN 'Y'
+						   ELSE 'N'
+					  END CHILD_YN
+					, B.LVL + 1 AS LVL
+					, B.PATH || '>' || TO_CHAR(A.FRST_INQ_DTTM) AS PATH
+				FROM TB_LMS_BBS_ATCL_CMNT A
+				INNER JOIN OPNN B
+				ON A.UP_ATCL_CMNT_ID = B.ATCL_CMNT_ID
+				AND A.ATCL_ID = B.ATCL_ID
+			)
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY A.RN, A.PATH) AS LINE_NO
+				,  A.ATCL_CMNT_ID
+				, A.ATCL_ID
+				, A.UP_ATCL_CMNT_ID
+				, CASE WHEN A.DELYN = 'Y' THEN 'DELETED' ELSE DBMS_LOB.SUBSTR(A.ATCL_CMNT_CTS, 4000) END AS ATCL_CMNT_CTS
+				, A.EMTICN_NO
+				, A.DELYN
+				, A.RGTR_ID
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS RGTRNM
+				, A.FRST_INQ_DTTM
+				, A.MDFR_ID
+				, A.MOD_DTTM
+				, A.LVL
+				, CASE WHEN A.LVL <![CDATA[ > ]]> 1 THEN (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.TO_USER_ID) ELSE '' END AS toUserNm
+				, (SELECT PHT_FILE FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS PHT_FILE_BYTE
+			FROM OPNN A
+			JOIN (
+				SELECT
+					  A.RN
+					, MAX(CASE WHEN CHILD_YN = 'N' THEN LVL ELSE 0 END) AS LVL
+				FROM OPNN A
+				GROUP BY A.RN
+			) B
+			ON A.RN = B.RN
+			WHERE A.LVL <![CDATA[ <= ]]> B.LVL
+			AND (A.DELYN = 'N' OR A.CHILD_YN = 'Y')
+			ORDER BY A.RN, A.PATH
+		</when>
+		<otherwise>
+			WITH OPNN (
+			    RN, ATCL_CMNT_ID, ATCL_ID, UP_ATCL_CMNT_ID, ATCL_CMNT_CTS, EMTICN_NO, DELYN,
+			    RGTR_ID, FRST_INQ_DTTM, MDFR_ID, MOD_DTTM, TO_USER_ID, LVL, PATH
+			) AS (
+				SELECT
+					  ROW_NUMBER() OVER(ORDER BY A.FRST_INQ_DTTM DESC) AS RN
+					, A.ATCL_CMNT_ID
+					, A.ATCL_ID
+					, A.UP_ATCL_CMNT_ID
+					, A.ATCL_CMNT_CTS
+					, A.EMTICN_NO
+					, A.DELYN
+					, A.RGTR_ID
+					, A.FRST_INQ_DTTM
+					, A.MDFR_ID
+					, A.MOD_DTTM
+					, RGTR_ID AS TO_USER_ID
+					, 1 AS LVL
+					, TO_CHAR(A.ATCL_CMNT_ID) AS PATH
+				FROM TB_LMS_BBS_ATCL_CMNT A
+				WHERE A.UP_ATCL_CMNT_ID IS NULL
+				AND A.ATCL_ID = #{atclId}
+				UNION ALL
+				SELECT
+					  B.RN
+					, A.ATCL_CMNT_ID
+					, A.ATCL_ID
+					, A.UP_ATCL_CMNT_ID
+					, A.ATCL_CMNT_CTS
+					, A.EMTICN_NO
+					, A.DELYN
+					, A.RGTR_ID
+					, A.FRST_INQ_DTTM
+					, A.MDFR_ID
+					, A.MOD_DTTM
+					, B.RGTR_ID AS TO_USER_ID
+					, B.LVL + 1 AS LVL
+					, B.PATH || '>' || TO_CHAR(A.FRST_INQ_DTTM) AS PATH
+				FROM TB_LMS_BBS_ATCL_CMNT A
+				INNER JOIN OPNN B
+				ON A.UP_ATCL_CMNT_ID = B.ATCL_CMNT_ID
+				AND A.ATCL_ID = B.ATCL_ID
+			)
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY A.RN, A.PATH) AS LINE_NO
+				,  A.ATCL_CMNT_ID
+				, A.ATCL_ID
+				, A.UP_ATCL_CMNT_ID
+				, A.ATCL_CMNT_CTS
+				, A.EMTICN_NO
+				, A.DELYN
+				, A.RGTR_ID
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS RGTRNM
+				, A.FRST_INQ_DTTM
+				, A.MDFR_ID
+				, A.MOD_DTTM
+				, A.LVL
+				, CASE WHEN A.LVL <![CDATA[ > ]]> 1 THEN (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.TO_USER_ID) ELSE '' END AS toUserNm
+				, (SELECT PHT_FILE FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS PHT_FILE_BYTE
+			FROM OPNN A
+			ORDER BY A.RN, A.PATH
+		</otherwise>
+	</choose>
+	</sql>
+
+	<select id="countBbsCmnt" parameterType="bbsCmntVO" resultType="Integer">
+		/*
+             SQL ID : BbsCmntDAO.countBbsCmnt
+             설  명 : 댓글 목록 수
+         */
+		SELECT COUNT(1) FROM (
+			<include refid="listQuery" />
+		) Z
+	</select>
+	
+	<select id="countBbsCmntDelN" parameterType="bbsCmntVO" resultType="Integer">
+		/*
+             SQL ID : BbsCmntDAO.countBbsCmntDelN
+             설  명 : 미삭제 댓글 목록 수
+         */
+		SELECT COUNT(1) FROM (
+			<include refid="listQuery" />
+		) Z
+		WHERE Z.DELYN = 'N'
+	</select>
+	
+	<select id="listBbsCmnt" parameterType="bbsCmntVO" resultType="bbsCmntVO">
+		/*
+             SQL ID : BbsCmntDAO.listBbsCmnt
+             설  명 : 댓글 목록
+         */
+		<include refid="listQuery" />
+	</select>
+	
+	<select id="listBbsCmntPaging" parameterType="bbsCmntVO" resultType="bbsCmntVO">
+		/*
+             SQL ID : BbsCmntDAO.listBbsCmntPaging
+             설  명 : 댓글 목록 페이징
+         */
+        <include refid="CommonSQL.pagePrefix" />
+		<include refid="listQuery" />
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
+	
+	<insert id="insertBbsCmnt" parameterType="bbsCmntVO">
+		/*
+             SQL ID : BbsCmntDAO.insertBbsCmnt
+             설  명 : 댓글 저장
+         */
+		INSERT INTO TB_LMS_BBS_ATCL_CMNT (
+			  ATCL_CMNT_ID
+			, ATCL_ID
+			, UP_ATCL_CMNT_ID
+			, ATCL_CMNT_CTS
+			, EMTICN_NO
+			, DELYN
+			, RGTR_ID
+			, RGTRNM
+			, FRST_INQ_DTTM
+		) VALUES (
+			  #{cmntId}
+			, #{atclId}
+			, #{parCmntId}
+			, #{cmntCts}
+			, #{emoticonNo}
+			, 'N'
+			, #{rgtrId}
+			, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = #{rgtrId})
+			, FN_DTTM()
+		)
+	</insert>
+	
+	<update id="updateBbsCmnt" parameterType="bbsCmntVO" >
+		/*
+             SQL ID : BbsCmntDAO.updateBbsCmnt
+             설  명 : 댓글 수정
+         */
+		UPDATE TB_LMS_BBS_ATCL_CMNT
+		SET
+			  ATCL_CMNT_CTS    = #{cmntCts}
+			, MDFR_ID      = #{mdfrId}
+			, MOD_DTTM    = FN_DTTM()
+		WHERE ATCL_CMNT_ID = #{cmntId}
+		AND ATCL_ID = #{atclId}
+	</update>
+
+	<update id="updateBbsCmntDelY" parameterType="bbsCmntVO">
+		/*
+             SQL ID : BbsCmntDAO.updateBbsCmntDelY
+             설  명 : 댓글 삭제 수정
+         */
+		UPDATE TB_LMS_BBS_ATCL_CMNT
+		SET
+			  DELYN	  = 'Y'
+			, MDFR_ID      = #{mdfrId}
+			, MOD_DTTM    = FN_DTTM()
+		WHERE ATCL_CMNT_ID = #{cmntId}
+		AND ATCL_ID = #{atclId}
+	</update>
+
+	<delete id="deleteBbsCmnt" parameterType="bbsCmntVO">
+		/*
+             SQL ID : BbsCmntDAO.deleteBbsCmnt
+             설  명 : 댓글 삭제
+         */
+		DELETE FROM TB_LMS_BBS_ATCL_CMNT
+		WHERE ATCL_CMNT_ID = #{cmntId}
+		AND ATCL_ID = #{atclId} 
+	</delete>
+	
+	<delete id="deleteBbsCmntAll" parameterType="bbsCmntVO">
+		/*
+             SQL ID : BbsCmntDAO.deleteBbsCmntAll
+             설  명 : 댓글 전체 삭제
+         */
+		DELETE FROM TB_LMS_BBS_ATCL_CMNT
+		WHERE ATCL_ID = #{atclId} 
+	</delete>
+</mapper>

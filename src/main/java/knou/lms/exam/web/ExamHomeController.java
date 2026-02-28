@@ -1,0 +1,2662 @@
+package knou.lms.exam.web;
+
+import knou.framework.common.CommConst;
+import knou.framework.common.ControllerBase;
+import knou.framework.common.SessionInfo;
+import knou.framework.exception.AccessDeniedException;
+import knou.framework.exception.BadRequestUrlException;
+import knou.framework.exception.MediopiaDefineException;
+import knou.framework.util.*;
+import knou.lms.asmt.service.AsmtProService;
+import knou.lms.asmt.vo.AsmtVO;
+import knou.lms.common.vo.DefaultVO;
+import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.crs.crecrs.service.CrecrsService;
+import knou.lms.crs.crecrs.vo.CreCrsVO;
+import knou.lms.crs.term.service.TermService;
+import knou.lms.crs.term.vo.TermVO;
+import knou.lms.erp.service.ErpService;
+import knou.lms.erp.vo.ErpEnrollmentVO;
+import knou.lms.exam.service.*;
+import knou.lms.exam.vo.*;
+import knou.lms.forum.service.ForumJoinUserService;
+import knou.lms.forum.service.ForumService;
+import knou.lms.forum.vo.ForumVO;
+import knou.lms.lesson.service.LessonScheduleService;
+import knou.lms.log.lesson.service.LogLessonActnHstyService;
+import knou.lms.log.lesson.vo.LogLessonActnHstyVO;
+import knou.lms.log.userconn.service.LogUserConnService;
+import knou.lms.org.service.OrgCodeService;
+import knou.lms.std.service.StdService;
+import knou.lms.std.vo.StdVO;
+import knou.lms.sys.service.SysJobSchService;
+import knou.lms.sys.vo.SysJobSchVO;
+import knou.lms.user.service.UsrUserInfoService;
+import knou.lms.user.vo.UsrUserInfoVO;
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+@Controller
+@RequestMapping(value="/exam")
+public class ExamHomeController extends ControllerBase {
+
+    @Resource(name="examService")
+    private ExamService examService;
+
+    @Resource(name="crecrsService")
+    private CrecrsService crecrsService;
+
+    @Resource(name="examStareService")
+    private ExamStareService examStareService;
+
+    @Resource(name="examQstnService")
+    private ExamQstnService examQstnService;
+
+    @Resource(name="termService")
+    private TermService termService;
+
+    @Resource(name="examAbsentService")
+    private ExamAbsentService examAbsentService;
+
+    @Resource(name="examDsblReqService")
+    private ExamDsblReqService examDsblReqService;
+
+    @Resource(name="stdService")
+    private StdService stdService;
+
+    @Resource(name="examOathService")
+    private ExamOathService examOathService;
+
+    @Resource(name="orgCodeService")
+    private OrgCodeService orgCodeService;
+
+    @Resource(name="messageSource")
+    private MessageSource messageSource;
+
+    @Resource(name="forumService")
+    private ForumService forumService;
+
+    @Resource(name="forumJoinUserService")
+    private ForumJoinUserService forumJoinUserService;
+
+    @Resource(name="asmtProService")
+    private AsmtProService asmntService;
+
+    @Resource(name="usrUserInfoService")
+    private UsrUserInfoService usrUserInfoService;
+
+    @Resource(name="sysJobSchService")
+    private SysJobSchService sysJobSchService;
+
+    @Resource(name="logUserConnService")
+    private LogUserConnService logUserConnService;
+
+    @Resource(name="erpService")
+    private ErpService erpService;
+
+    @Resource(name="logLessonActnHstyService")
+    private LogLessonActnHstyService logLessonActnHstyService;
+
+    @Resource(name="lessonScheduleService")
+    private LessonScheduleService lessonScheduleService;
+
+    /*****************************************************
+     * 시험 목록 페이지 (교수)
+     * @param vo
+     * @param model
+     * @param request
+     * @return "exam/exam_list"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/Form/examList.do")
+    public String examListForm(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String crsCreCd = vo.getCrsCreCd();
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage()); // 페이지 접근 권한이 없습니다.
+        }
+
+        vo.setCrsCreCd(crsCreCd);
+        model.addAttribute("vo", vo);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        model.addAttribute("creCrsVO", creCrsVO);
+
+        TermVO termVO = new TermVO();
+        termVO.setCrsCreCd(crsCreCd);
+        termVO = termService.selectTermByCrsCreCd(termVO);
+        model.addAttribute("termVO", termVO);
+
+        LocalDateTime today = LocalDateTime.now();
+        model.addAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+
+        return "exam/exam_list";
+    }
+
+    /*****************************************************
+     * 시험 목록  가져오기 ajax (교수)
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examList.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> examList(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+
+        try {
+            resultVO = examService.list(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 중간/기말 대체 과제 목록 (교수)
+     * @param ExamVO
+     * @return ProcessResultVO<EgovMap>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examListByInsRef.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> examListByInsRef(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+            vo.setUserId(userId);
+            List<EgovMap> examList = examService.listExamByInsRef(vo);
+            resultVO.setReturnList(examList);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 중간/기말 수시, 외국어 시험 목록 (교수)
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examListByEtc.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> examListByEtc(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+
+        try {
+            List<ExamVO> examList = examService.listExamByEtc(vo);
+            resultVO.setReturnList(examList);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 장애인 시험지원 엑셀 다운로드 (교수)
+     * @param ExamDsblReqVO
+     * @return "excelView"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examDsblReqExcelDown.do")
+    public String examDsblReqExcelDown(ExamDsblReqVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String orgId = SessionInfo.getOrgId(request);
+
+        vo.setOrgId(orgId);
+        vo.setPagingYn("N");
+
+        String title = getMessage("exam.label.dsbl.req.list"); // 장애인시험지원목록
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title", title);       // 장애인시험지원목록
+        map.put("sheetName", title);   // 장애인시험지원목록
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list", examDsblReqService.list(vo).getReturnList());
+
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", title);    // 장애인시험지원목록
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /*****************************************************
+     * 결시원 엑셀 다운로드 (교수)
+     * @param ExamAbsentVO
+     * @return "excelView"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examAbsentExcelDown.do")
+    public String examAbsentExcelDown(ExamAbsentVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String title = getMessage("exam.label.exam.absent.list"); // 결시원목록
+
+        Locale locale = LocaleUtil.getLocale(request);
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("title", title);        // 결시원목록
+        map.put("sheetName", title);    // 결시원목록
+        map.put("excelGrid", vo.getExcelGrid());
+
+        vo.setPagingYn("N");
+        map.put("list", examAbsentService.listPaging(vo).getReturnList());
+
+        HashMap<String, Object> modelMap = new HashMap<String, Object>();
+        modelMap.put("outFileName", title); // 결시원목록
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /*****************************************************
+     * 결시원 목록 가져오기 ajax (공통)
+     * @param ExamAbsentVO
+     * @return ProcessResultVO<ExamAbsentVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examAbsentList.do")
+    @ResponseBody
+    public ProcessResultVO<ExamAbsentVO> examAbsentList(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamAbsentVO> resultVO = new ProcessResultVO<ExamAbsentVO>();
+
+        try {
+            List<ExamAbsentVO> absentList = examAbsentService.list(vo);
+            resultVO.setReturnList(absentList);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 결시원 목록 가져오기 ajax (공통) 페이징
+     * @param ExamAbsentVO
+     * @return ProcessResultVO<ExamAbsentVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examAbsentListPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamAbsentVO> examAbsentListPaging(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ExamAbsentVO> resultVO = new ProcessResultVO<ExamAbsentVO>();
+
+        try {
+            resultVO = examAbsentService.listPaging(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 서약서 제출 목록 팝업 (교수)
+     * @param ExamVO
+     * @return "exam/popup/exam_oath_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examOathPop.do")
+    public String examOathPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        ExamVO examVO = examService.select(vo);
+        request.setAttribute("vo", examVO);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+
+        TermVO termVO = new TermVO();
+        termVO.setTermCd(creCrsVO.getTermCd());
+        termVO = termService.select(termVO);
+        request.setAttribute("termVO", termVO);
+        request.setAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
+
+        return "exam/popup/exam_oath_pop";
+    }
+
+    /*****************************************************
+     * 시험 서약서 목록 가져오기 ajax (교수)
+     * @param ExamOathVO
+     * @return ProcessResultVO<ExamOathVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/oathListPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamOathVO> oathListPaging(ExamOathVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ExamOathVO> resultVO = new ProcessResultVO<ExamOathVO>();
+
+        try {
+            resultVO = examOathService.listOathByCreCrsPaging(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /***************************************************** 
+     * 시험 서약서 엑셀 다운로드
+     * @param ExamOathVO
+     * @return "excelView"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/oathExcelDown.do")
+    public String oathExcelDown(ExamOathVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+        vo.setPagingYn("N");
+
+        String title = getMessage("exam.label.oath.submit.list"); // 서약서 제출 목록
+
+        Locale locale = LocaleUtil.getLocale(request);
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("title", title);     // 서약서 제출 목록
+        map.put("sheetName", title); // 서약서 제출 목록
+        map.put("excelGrid", vo.getExcelGrid());
+
+        map.put("list", examOathService.listOathByCreCrsPaging(vo).getReturnList());
+
+        HashMap<String, Object> modelMap = new HashMap<String, Object>();
+        modelMap.put("outFileName", title);  // 서약서 제출 목록
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /*****************************************************
+     * 시험 서약서 양식 팝업 (공통)
+     * @param ExamOathVO
+     * @return "exam/popup/exam_oath_view_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examOathViewPop.do")
+    public String examOathViewPop(ExamOathVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        request.setAttribute("vo", vo);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+
+        TermVO termVO = new TermVO();
+        termVO.setTermCd(creCrsVO.getTermCd());
+        termVO = termService.select(termVO);
+        request.setAttribute("termVO", termVO);
+
+        if(!"".equals(StringUtil.nvl(vo.getStdId()))) {
+            StdVO stdVO = new StdVO();
+            stdVO.setStdId(vo.getStdId());
+            stdVO = stdService.select(stdVO);
+            request.setAttribute("stdVO", stdVO);
+        }
+        request.setAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
+
+        return "exam/popup/exam_oath_view_pop";
+    }
+
+    /*****************************************************
+     * 시험 서약서 제출 정보 ajax (학생)
+     * @param ExamOathVO
+     * @return ProcessResultVO<ExamOathVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/viewOath.do")
+    @ResponseBody
+    public ProcessResultVO<ExamOathVO> viewOath(ExamOathVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<ExamOathVO> resultVO = new ProcessResultVO<ExamOathVO>();
+
+        try {
+            vo.setOrgId(orgId);
+            vo.setUserId(userId);
+            CreCrsVO creCrsVO = new CreCrsVO();
+            creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+            creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+
+            ErpEnrollmentVO enrollmentVO = new ErpEnrollmentVO();
+            enrollmentVO.setYear(creCrsVO.getCreYear());
+            enrollmentVO.setSemester(creCrsVO.getCreTerm());
+            enrollmentVO.setCourseCode(creCrsVO.getCrsCd());
+            enrollmentVO.setSection(creCrsVO.getDeclsNo());
+            enrollmentVO.setStudentId(SessionInfo.getUserId(request));
+
+            enrollmentVO = erpService.selectCourseEnrollment(enrollmentVO);
+            resultVO.setReturnVO(enrollmentVO);
+            resultVO.setResult(1);
+
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.info"));/* 정보 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 서약서 제출 ajax (학생)
+     * @param ExamOathVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/submitOath.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> submitOath(ExamOathVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        Locale locale = LocaleUtil.getLocale(request);
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        try {
+            vo.setOrgId(orgId);
+            vo.setRgtrId(vo.getUserId());
+            vo.setMdfrId(vo.getUserId());
+            examOathService.insert(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.oath.submit"));/* 서약서 제출 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 중간/기말 참여현황 페이지 (교수)
+     * @param ExamVO
+     * @return "exam/exam_stare_join_list"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/Form/examStareJoinList.do")
+    public String examStareJoinListForm(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("vo", vo);
+        request.setAttribute("creCrsVO", creCrsVO);
+        request.setAttribute("waitVO", examService.selectExamWait(vo));
+        request.setAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        request.setAttribute("orgId", orgId);
+        request.setAttribute("authGrpCd", authGrpCd);
+        request.setAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        request.setAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+
+        return "exam/exam_stare_join_list";
+    }
+
+    /*****************************************************
+     * 중간/기말 참여현황 엑셀 다운로드 (교수)
+     * @param ExamVO
+     * @return "excelView"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examStareExcelDown.do")
+    public String examStareExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        Locale locale = LocaleUtil.getLocale(request);
+        String title = "";
+        if("ADMISSION".equals(StringUtil.nvl(vo.getExamType()))) {
+            title = getMessage("exam.label.admission.std.list");/* 수시평가학습자목록 */
+        } else {
+            title = getMessage("exam.label.mid.end.exam.std.list");/* 중간기말학습자목록 */
+        }
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("title", title);
+        map.put("sheetName", title);
+        map.put("excelGrid", vo.getExcelGrid());
+
+        map.put("list", examStareService.listExamStareStatus(vo));
+
+        HashMap<String, Object> modelMap = new HashMap<String, Object>();
+        modelMap.put("outFileName", title);
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /*****************************************************
+     * 중간/기말 성적 가로바차트 ajax (교수)
+     * @param ForumStareVO
+     * @return ProcessResultVO<ExamStareVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/viewExamScoreHorizontalBarChart.do")
+    @ResponseBody
+    public ProcessResultVO<ExamStareVO> viewExamScoreHorizontalBarChart(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamStareVO> resultVO = new ProcessResultVO<ExamStareVO>();
+
+        try {
+            List<ExamStareVO> statusList = examStareService.listStuExamScoreStatus(vo);
+            resultVO.setReturnList(statusList);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 중간/기말 성적 세로바차트 ajax (교수)
+     * @param ForumStareVO
+     * @return ProcessResultVO<EgovMap>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/viewExamScoreBarChart.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> viewExamScoreBarChart(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+
+        try {
+            EgovMap statusMap = examStareService.selectExamScoreStatus(vo);
+            resultVO.setReturnVO(statusMap);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.info"));/* 정보 조회 중 에러가 발생하였습니다. */
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 중간/기말 참여현황 목록 ajax (교수)
+     * @param ExamVO
+     * @return ProcessResultVO<EgovMap>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examStareJoinList.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> examStareJoinList(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        Locale locale = LocaleUtil.getLocale(request);
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+
+        try {
+            List<EgovMap> joinStatus = examStareService.listExamStareStatus(vo);
+            resultVO.setReturnList(joinStatus);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 등록 페이지 (교수)
+     * @param ExamVO
+     * @return "exam/exam_write"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/Form/examWrite.do")
+    public String examWrtieForm(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.select(creCrsVO);
+
+        // 성적처리 일정
+        SysJobSchVO sysJobSchVO = new SysJobSchVO();
+        sysJobSchVO.setOrgId(SessionInfo.getOrgId(request));
+        sysJobSchVO.setHaksaYear(creCrsVO.getCreYear());
+        sysJobSchVO.setHaksaTerm(creCrsVO.getCreTerm());
+        sysJobSchVO.setCalendarCtgr("00210206");
+        sysJobSchVO = sysJobSchService.select(sysJobSchVO);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        model.addAttribute("sysJobSchVO", sysJobSchVO);
+
+        return "exam/exam_write";
+    }
+
+    /*****************************************************
+     * 시험 등록 (교수)
+     * @param ExamVO
+     * @return "redirect:/exam/Form/examList.do"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/writeExam.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> writeExam(ExamVO vo, AsmtVO asmtVO, ForumVO forumVO, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+        Locale locale = LocaleUtil.getLocale(request);
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+
+        try {
+            vo.setRgtrId(userId);
+            vo.setMdfrId(userId);
+            vo.setOrgId(orgId);
+            vo.setExamCtgrCd("EXAM");
+            vo.setUseYn("Y");
+            vo.setRegYn("Y");
+            resultVO.setReturnVO(examService.insertExam(vo));
+            examService.examInsRefManage(vo, asmtVO, forumVO, request);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.insert.ins.ref"));/* 대체평가 등록 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 수정 페이지 (교수)
+     * @param ExamVO
+     * @return "exam/exam_write"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/Form/examEdit.do")
+    public String examEditForm(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        ExamVO examVO = examService.select(vo);
+        model.addAttribute("vo", examVO);
+
+        if("".equals(StringUtil.nvl(vo.getExamCd()))) {
+            throw new BadRequestUrlException(getMessage("exam.error.not.exist.exam"));/* 시험 정보가 존재하지 않습니다. */
+        }
+
+        if(!"".equals(StringUtil.nvl(examVO.getInsRefCd()))) {
+            // 퀴즈
+            String insRefType = StringUtil.nvl(examVO.getInsRefCd()).split("_")[0];
+            if("EXAM".equals(insRefType)) {
+                ExamVO quizVO = new ExamVO();
+                quizVO.setExamCd(examVO.getInsRefCd());
+                quizVO = examService.select(quizVO);
+                model.addAttribute("quizVO", quizVO);
+                // 과제
+            } else if("ASMNT".equals(insRefType)) {
+                AsmtVO asmtVO = new AsmtVO();
+                asmtVO.setAsmtId(examVO.getInsRefCd());
+                asmtVO.setUserId(userId);
+                asmtVO.setCrsCreCd(examVO.getCrsCreCd());
+                asmtVO = (AsmtVO) asmntService.selectObject(asmtVO).getReturnVO();
+                model.addAttribute("asmntVO", asmtVO);
+                // 토론
+            } else if("FORUM".equals(insRefType)) {
+                ForumVO forumVO = new ForumVO();
+                forumVO.setForumCd(examVO.getInsRefCd());
+                forumVO = forumService.selectForum(forumVO);
+                model.addAttribute("forumVO", forumVO);
+            }
+        }
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.select(creCrsVO);
+
+        // 성적처리 일정
+        SysJobSchVO sysJobSchVO = new SysJobSchVO();
+        sysJobSchVO.setOrgId(SessionInfo.getOrgId(request));
+        sysJobSchVO.setHaksaYear(creCrsVO.getCreYear());
+        sysJobSchVO.setHaksaTerm(creCrsVO.getCreTerm());
+        sysJobSchVO.setCalendarCtgr("00210206");
+        sysJobSchVO = sysJobSchService.select(sysJobSchVO);
+
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        model.addAttribute("sysJobSchVO", sysJobSchVO);
+
+        LocalDateTime today = LocalDateTime.now();
+        model.addAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        return "exam/exam_write";
+    }
+
+    /*****************************************************
+     * 시험 수정 (교수)
+     * @param ExamVO
+     * @return "redirect:/exam/Form/examList.do"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/editExam.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> editExam(ExamVO vo, AsmtVO asmtVO, ForumVO forumVO, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        vo.setRgtrId(userId);
+        vo.setMdfrId(userId);
+        vo.setOrgId(orgId);
+
+        try {
+            examService.examInsRefManage(vo, asmtVO, forumVO, request);
+            resultVO.setReturnVO(examService.updateExam(vo));
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.insert.ins.ref"));/* 대체평가 등록 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 응시 유형별 카운트
+     * @param ExamVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/selectStareTypeCount.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> selectStareTypeCount(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        try {
+            int cnt = examService.selectStareTypeCount(vo);
+            resultVO.setResult(cnt);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.info"));/* 정보 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 성적공개 수정 ajax (교수)
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/editExamScoreOpen.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> editExamScoreOpen(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+
+        try {
+            vo.setMdfrId(userId);
+            examService.updateExamScoreOpen(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.update"));/* 수정 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 삭제 ajax (교수)
+     * @param ExamVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/delExam.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> delExam(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+        vo.setMdfrId(userId);
+
+        try {
+            ExamVO examVO = examService.select(vo);
+            String examTypeCd = StringUtil.nvl(examVO.getExamTypeCd());
+            String insRefCd = StringUtil.nvl(examVO.getInsRefCd()).split("_")[0];
+            if(!"A".equals(StringUtil.nvl(vo.getExamStareTypeCd()))) {
+                // (시험,대체) 퀴즈 삭제
+                if("QUIZ".equals(examTypeCd) || ("EXAM".equals(examTypeCd) && "EXAM".equals(insRefCd))) {
+                    ExamVO quizVO = new ExamVO();
+                    quizVO.setExamCd(examVO.getInsRefCd());
+                    quizVO.setMdfrId(vo.getMdfrId());
+                    quizVO.setSearchKey("QUIZ");
+                    examService.updateExamDelYn(quizVO);
+                    // (시험,대체) 과제 삭제
+                } else if("ASMNT".equals(examTypeCd) || ("EXAM".equals(examTypeCd) && "ASMNT".equals(insRefCd))) {
+                    AsmtVO asmtVO = new AsmtVO();
+                    asmtVO.setSearchMenu("delete");
+                    asmtVO.setAsmtId(examVO.getInsRefCd());
+                    asmtVO.setMdfrId(vo.getMdfrId());
+                    asmntService.examAsmntManage(asmtVO, request);
+                    // (시험,대체) 토론 삭제
+                } else if("FORUM".equals(examTypeCd) || ("EXAM".equals(examTypeCd) && "FORUM".equals(insRefCd))) {
+                    ForumVO forumVO = new ForumVO();
+                    forumVO.setSearchMenu("delete");
+                    forumVO.setForumCd(examVO.getInsRefCd());
+                    forumVO.setMdfrId(vo.getMdfrId());
+                    forumService.examForumManage(forumVO, request);
+                }
+            }
+
+            if("insRef".equals(StringUtil.nvl(vo.getSearchKey()))) {
+                vo.setExamTypeCd("EXAM".equals(examTypeCd) ? examTypeCd : "ETC");
+                vo.setSearchFrom("EDIT");
+                examService.updateExam(vo);
+            } else {
+                examService.updateExamDelYn(vo);
+            }
+            examVO.setGoUrl("EXAM");
+            examService.setScoreRatio(examVO);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.delete"));/* 삭제 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 이전 시험 가져오기 팝업 (교수)
+     * @param ExamVO
+     * @return "exam/exam_write"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examCopyListPop.do")
+    public String examCopyListPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+        String orgId = SessionInfo.getOrgId(request);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        vo.setUserId(userId);
+        TermVO termVO = new TermVO();
+        termVO.setOrgId(orgId);
+        List<TermVO> termList = termService.list(termVO);
+        request.setAttribute("vo", vo);
+        request.setAttribute("termList", termList);
+
+        return "exam/popup/exam_copy_list_pop";
+    }
+
+    /*****************************************************
+     * 이전 시험 리스트 가져오기 ajax (학생)
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examCopyList.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> examCopyList(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+
+        try {
+            vo.setOrgId(orgId);
+            resultVO = examService.listMyCreCrsExam(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 이전 시험 가져오기 ajax (교수)
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examCopy.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> examCopy(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ExamVO> returnVO = new ProcessResultVO<ExamVO>();
+
+        try {
+            ExamVO examVO = new ExamVO();
+            examVO = examService.select(vo);
+            returnVO.setReturnVO(examVO);
+            returnVO.setResult(1);
+        } catch(Exception e) {
+            returnVO.setResult(-1);
+            returnVO.setMessage(getMessage("exam.error.info"));/* 정보 조회 중 에러가 발생하였습니다. */
+        }
+        return returnVO;
+    }
+
+    /*****************************************************
+     * 시험 과제 등록 팝업 (교수)
+     * @param AsmntVO
+     * @return "exam/popup/exam_write_asmnt_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examWriteAsmntPop.do")
+    public String examWriteAsmntPop(AsmtVO vo, ExamVO dateVO, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        vo.setUserId(userId);
+        AsmtVO asmtVO = (AsmtVO) asmntService.selectObject(vo).getReturnVO();
+        request.setAttribute("asmntVo", asmtVO);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("examTypeCd", vo.getSearchKey());
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        ExamVO evo = new ExamVO();
+        if(!"".equals(StringUtil.nvl(vo.getSearchFrom()))) {
+            evo.setExamCd(StringUtil.nvl(vo.getSearchFrom()));
+            evo = examService.select(evo);
+        }
+        request.setAttribute("evo", evo);
+        request.setAttribute("dateVO", dateVO);
+
+        return "exam/popup/exam_write_asmnt_pop";
+    }
+
+    /*****************************************************
+     * 시험 과제 등록 ajax (교수)
+     * @param AsmntVO
+     * @return ProcessResultVO<AsmtVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/addAsmnt.do")
+    @ResponseBody
+    public ProcessResultVO<AsmtVO> addAsmnt(AsmtVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<AsmtVO> returnVO = new ProcessResultVO<AsmtVO>();
+        vo.setUserId(userId);
+        vo.setRgtrId(userId);
+        vo.setMdfrId(userId);
+        vo.setSearchMenu("insert");
+
+        try {
+            returnVO = asmntService.examAsmntManage(vo, request);
+            returnVO.setResult(1);
+        } catch(Exception e) {
+            returnVO.setResult(-1);
+            returnVO.setMessage(getMessage("exam.error.insert"));/* 저장 중 에러가 발생하였습니다. */
+        }
+        return returnVO;
+    }
+
+    /*****************************************************
+     * 시험 과제 수정 ajax (교수)
+     * @param AsmntVO
+     * @return ProcessResultVO<AsmtVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/editAsmnt.do")
+    @ResponseBody
+    public ProcessResultVO<AsmtVO> editAsmnt(AsmtVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        Locale locale = LocaleUtil.getLocale(request);
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<AsmtVO> returnVO = new ProcessResultVO<AsmtVO>();
+        vo.setUserId(userId);
+        vo.setRgtrId(userId);
+        vo.setMdfrId(userId);
+        vo.setSearchMenu("update");
+
+        try {
+            returnVO = asmntService.examAsmntManage(vo, request);
+            returnVO.setResult(1);
+        } catch(Exception e) {
+            returnVO.setResult(-1);
+            returnVO.setMessage(getMessage("exam.error.update"));/* 수정 중 에러가 발생하였습니다. */
+        }
+        return returnVO;
+    }
+
+    /*****************************************************
+     * 시험 토론 등록 팝업 (교수)
+     * @param ForumVO
+     * @return "exam/popup/exam_write_forum_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examWriteForumPop.do")
+    public String examWriteForumPop(ForumVO vo, ExamVO dateVO, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        ForumVO forumVO = forumService.selectForum(vo);
+        request.setAttribute("forumVo", forumVO);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("examTypeCd", vo.getSearchKey());
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        ExamVO evo = new ExamVO();
+        if(!"".equals(StringUtil.nvl(vo.getSearchFrom()))) {
+            evo.setExamCd(StringUtil.nvl(vo.getSearchFrom()));
+            evo = examService.select(evo);
+        }
+        request.setAttribute("evo", evo);
+        request.setAttribute("dateVO", dateVO);
+
+        return "exam/popup/exam_write_forum_pop";
+    }
+
+    /*****************************************************
+     * 시험 토론 등록 ajax (교수)
+     * @param ForumVO
+     * @return ProcessResultVO<ForumVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/addForum.do")
+    @ResponseBody
+    public ProcessResultVO<ForumVO> addForum(ForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<ForumVO> returnVO = new ProcessResultVO<ForumVO>();
+        vo.setRgtrId(userId);
+        vo.setMdfrId(userId);
+        vo.setSearchMenu("insert");
+
+        try {
+            returnVO = forumService.examForumManage(vo, request);
+            returnVO.setResult(1);
+        } catch(Exception e) {
+            returnVO.setResult(-1);
+            returnVO.setMessage(getMessage("exam.error.insert"));/* 저장 중 에러가 발생하였습니다. */
+        }
+        return returnVO;
+    }
+
+    /*****************************************************
+     * 시험 토론 수정 ajax (교수)
+     * @param ForumVO
+     * @return ProcessResultVO<ForumVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/editForum.do")
+    @ResponseBody
+    public ProcessResultVO<ForumVO> editForum(ForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<ForumVO> returnVO = new ProcessResultVO<ForumVO>();
+        vo.setRgtrId(userId);
+        vo.setMdfrId(userId);
+        vo.setSearchMenu("update");
+
+        try {
+            returnVO = forumService.examForumManage(vo, request);
+            returnVO.setResult(1);
+        } catch(Exception e) {
+            returnVO.setResult(-1);
+            returnVO.setMessage(getMessage("exam.error.update"));/* 수정 중 에러가 발생하였습니다. */
+        }
+        return returnVO;
+    }
+
+    /*****************************************************
+     * 시험 퀴즈 등록 팝업 (교수)
+     * @param ExamVO
+     * @return "exam/popup/exam_write_quiz_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examWriteQuizPop.do")
+    public String examWriteQuizPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String examStareTypeCd = StringUtil.nvl(vo.getExamStareTypeCd());
+        vo.setExamStareTypeCd("");
+        ExamVO examVO = new ExamVO();
+        if(!"".equals(StringUtil.nvl(vo.getExamCd()))) {
+            examVO = examService.select(vo);
+        }
+        request.setAttribute("examVo", examVO);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("examTypeCd", vo.getSearchKey());
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        ExamVO evo = new ExamVO();
+        if(!"".equals(StringUtil.nvl(vo.getSearchFrom()))) {
+            evo.setExamCd(StringUtil.nvl(vo.getSearchFrom()));
+            evo = examService.select(evo);
+        }
+        vo.setExamStareTypeCd(examStareTypeCd);
+        request.setAttribute("evo", evo);
+        request.setAttribute("dateVO", vo);
+
+        return "exam/popup/exam_write_quiz_pop";
+    }
+
+    /*****************************************************
+     * 시험 정보 페이지 (교수)
+     * @param ExamVO
+     * @return "exam/exam_info_manage"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examInfoManage.do")
+    public String examInfoManage(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        Locale locale = LocaleUtil.getLocale(request);
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        ExamVO examVO = examService.select(vo);
+        request.setAttribute("vo", examVO);
+        request.setAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        request.setAttribute("orgId", orgId);
+        request.setAttribute("authGrpCd", authGrpCd);
+        request.setAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        request.setAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        request.setAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+
+        return "exam/exam_info_manage";
+    }
+
+    /*****************************************************
+     * 실시간 시험 성적 통계 팝업 (교수)
+     * @param ExamVO
+     * @return "exam/popup/exam_score_status_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examScoreStatusPop.do")
+    public String examScoreStatusPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        ExamVO examVO = examService.select(vo);
+        request.setAttribute("vo", examVO);
+
+        return "exam/popup/exam_score_status_pop";
+    }
+
+    /*****************************************************
+     * 시험 목록 페이지 (학생)
+     * @param ExamVO
+     * @return "exam/stu_exam_list"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/Form/stuExamList.do")
+    public String stuExamListForm(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String crsCreCd = vo.getCrsCreCd();
+
+        StdVO stdVO = new StdVO();
+        stdVO.setUserId(userId);
+        stdVO.setCrsCreCd(crsCreCd);
+        stdVO = stdService.selectStd(stdVO);
+        vo.setCrsCreCd(crsCreCd);
+        vo.setStdId(stdVO.getStdId());
+        vo.setUserId(userId);
+        model.addAttribute("vo", vo);
+
+        if("DSBL".equals(vo.getExamType())) {
+            String disablilityYn = StringUtil.nvl(SessionInfo.getDisablilityYn(request), "N");
+
+            if(!"Y".equals(disablilityYn)) {
+                // 사용권한이 없거나 로그아웃되었습니다. 다시 로그인하세요.
+                throw new AccessDeniedException(getMessage("common.system.no_auth"));
+            }
+        }
+
+        if("DSBL".equals(vo.getExamType()) || "ABSENT".equals(vo.getExamType())) {
+            // 강의실 활동 로그 등록
+            String typeStr = "DSBL".equals(vo.getExamType()) ? "장애인시험지원" : "결시원";
+            logLessonActnHstyService.saveLessonActnHsty(request, crsCreCd, CommConst.ACTN_HSTY_EXAM, typeStr + " 신청목록");
+
+            if("ABSENT".equals(vo.getExamType())) {
+                // 현재학기 정보조회
+                TermVO termVO = new TermVO();
+                termVO.setOrgId(orgId);
+                termVO = termService.selectCurrentTerm(termVO);
+
+                // 과목정보 조회
+                CreCrsVO creCrsVO = new CreCrsVO();
+                creCrsVO.setCrsCreCd(crsCreCd);
+                creCrsVO = crecrsService.select(creCrsVO);
+
+                boolean isCurrentTermCreCrs = false;
+                // 현재 학기 과목인지 체크
+                if(termVO != null && creCrsVO != null && termVO.getTermCd().equals(StringUtil.nvl(creCrsVO.getTermCd()))) {
+                    isCurrentTermCreCrs = true;
+                }
+
+                if(isCurrentTermCreCrs) {
+                    SysJobSchVO sysJobSchVO = new SysJobSchVO();
+                    sysJobSchVO.setOrgId(orgId);
+                    sysJobSchVO.setUseYn("Y");
+                    //sysJobSchVO.setTermCd(termCd);
+                    // 00190902: 결시원신청-중간고사(일정공지용), 00190903: 결시원신청-기말고사(일정공지용)
+                    sysJobSchVO.setSqlForeach(new String[]{"00190902", "00190903"});
+                    List<SysJobSchVO> jobSchList = sysJobSchService.list(sysJobSchVO);
+                    Map<String, SysJobSchVO> jobSchMap = new HashMap<>();
+                    for(SysJobSchVO sysJobSchVO2 : jobSchList) {
+                        jobSchMap.put(sysJobSchVO2.getCalendarCtgr(), sysJobSchVO2);
+                    }
+
+                    model.addAttribute("midSysJobSchVO", jobSchMap.get("00190902")); // 결시원신청-중간고사(일정공지용)
+                    model.addAttribute("lastSysJobSchVO", jobSchMap.get("00190903")); // 결시원신청-기말고사(일정공지용)
+                }
+            }
+        }
+
+        LocalDateTime today = LocalDateTime.now();
+        model.addAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(StringUtil.nvl(vo.getCrsCreCd()));
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        model.addAttribute("creCrsVO", creCrsVO);
+
+        TermVO termVO = new TermVO();
+        termVO.setCrsCreCd(crsCreCd);
+        termVO = termService.selectTermByCrsCreCd(termVO);
+        model.addAttribute("termVO", termVO);
+
+        model.addAttribute("orgId", SessionInfo.getOrgId(request));
+        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
+        model.addAttribute("crsCreCd", vo.getCrsCreCd());
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+
+        //String oathMidParam = "{\"yy\":\""+creCrsVO.getCreYear()+"\",\"tmGbn\":\""+creCrsVO.getCreTerm()+"\",\"examGbn\":\"01\"}";
+        //String oathEndParam = "{\"yy\":\""+creCrsVO.getCreYear()+"\",\"tmGbn\":\""+creCrsVO.getCreTerm()+"\",\"examGbn\":\"02\"}";
+        //oathMidParam = (new Base64()).encodeToString(oathMidParam.getBytes());
+        //oathEndParam = (new Base64()).encodeToString(oathEndParam.getBytes());
+
+        //String examOathMidUrl = CommConst.EXT_URL_EXAMOATH + oathMidParam;
+        //String examOathEndUrl = CommConst.EXT_URL_EXAMOATH + oathEndParam;
+        String examOathMidUrl = CommConst.EXT_URL_EXAMOATH;
+        String examOathEndUrl = CommConst.EXT_URL_EXAMOATH;
+        model.addAttribute("examOathMidUrl", examOathMidUrl);
+        model.addAttribute("examOathEndUrl", examOathEndUrl);
+
+        return "exam/stu_exam_list";
+    }
+
+    /*****************************************************
+     * 서약서 apiheader 가져오기
+     * @param ExamVO
+     * @return String
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/oathHeader.do")
+    @ResponseBody
+    public String oathHeader(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        String langApiHeader = SecureUtil.encodeAesCbc(DateTimeUtil.getCurrentString() + userId, null, CommConst.ERP_API_KEY);
+        return langApiHeader;
+    }
+
+    /*****************************************************
+     * 시험 목록  가져오기 ajax (학생)
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/stuExamList.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> stuExamList(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        Locale locale = LocaleUtil.getLocale(request);
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+
+        try {
+            resultVO = examService.list(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 정보 페이지 (학습자)
+     * @param ExamVO
+     * @return "exam/stu_exam_view"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/stuExamView.do")
+    public String stuQuizView(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String crsCreCd = StringUtil.nvl(vo.getCrsCreCd());
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        StdVO stdVO = new StdVO();
+        stdVO.setUserId(userId);
+        stdVO.setCrsCreCd(crsCreCd);
+        stdVO = stdService.selectStd(stdVO);
+        vo.setStdId(stdVO.getStdId());
+        ExamVO examVO = examService.select(vo);
+        examVO.setCrsCreCd(crsCreCd);
+        // 강의실 활동 로그 등록
+        String examStareTypeCd = StringUtil.nvl(examVO.getExamStareTypeCd());
+        String examStr = "M".equals(examStareTypeCd) ? "중간고사 대체평가" : "L".equals(examStareTypeCd) ? "기말고사 대체평가" : "수시평가";
+        logLessonActnHstyService.saveLessonActnHsty(request, crsCreCd, CommConst.ACTN_HSTY_EXAM, examStr + " 정보확인");
+
+        TermVO termVO = new TermVO();
+        termVO.setCrsCreCd(crsCreCd);
+        termVO = termService.selectTermByCrsCreCd(termVO);
+        request.setAttribute("termVO", termVO);
+
+        request.setAttribute("vo", examVO);
+        request.setAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        request.setAttribute("orgId", orgId);
+        request.setAttribute("authGrpCd", authGrpCd);
+        request.setAttribute("crsCreCd", crsCreCd);
+        request.setAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        LocalDateTime today = LocalDateTime.now();
+        request.setAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        LocalDateTime startDate = LocalDateTime.parse(examVO.getExamStartDttm(), DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        startDate = startDate.plusMinutes(examVO.getExamStareTm());
+        request.setAttribute("endDttm", startDate.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+
+        return "exam/stu_exam_view";
+    }
+
+    /*****************************************************
+     * 장애인 시험지원 신청 목록 페이지 (교수)
+     * @param vo
+     * @param model
+     * @param request
+     * @return "exam/exam_dsbl_req_list"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examDsblReqList.do")
+    public String examDsblReqListForm(ExamDsblReqVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String crsCreCd = StringUtil.nvl(vo.getCrsCreCd());
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage()); // 페이지 접근 권한이 없습니다.
+        }
+
+        vo.setCrsCreCd(crsCreCd);
+        model.addAttribute("vo", vo);
+
+        TermVO termVO = new TermVO();
+        termVO.setOrgId(SessionInfo.getOrgId(request));
+        termVO = termService.selectCurrentTerm(termVO);
+        model.addAttribute("termVO", termVO);
+        model.addAttribute("yearList", DateTimeUtil.getYearList(10, "mix"));
+        model.addAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
+
+        SysJobSchVO sysJobSchVO = new SysJobSchVO();
+        sysJobSchVO.setOrgId(orgId);
+        sysJobSchVO.setCalendarCtgr("00190806"); // 시험지원요청(교수)
+        sysJobSchVO.setTermCd(termVO.getTermCd());
+        sysJobSchVO = sysJobSchService.select(sysJobSchVO);
+        model.addAttribute("sysJobSchVO", sysJobSchVO);
+
+        model.addAttribute("menuType", menuType.contains("ADM") ? "ADM" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+        model.addAttribute("userId", userId);
+
+        return "exam/exam_dsbl_req_list";
+    }
+
+    /*****************************************************
+     * 모든 장애 학생 목록 가져오기 ajax (교수)
+     * @param vo
+     * @param model
+     * @param request
+     * @return ProcessResultVO<ExamDsblReqVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/allExamDsblReqList.do")
+    @ResponseBody
+    public ProcessResultVO<ExamDsblReqVO> allExamDsblReqList(ExamDsblReqVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamDsblReqVO> resultVO = new ProcessResultVO<>();
+
+        String orgId = SessionInfo.getOrgId(request);
+
+        try {
+            vo.setOrgId(orgId);
+            vo.setPagingYn("N");
+            resultVO = examDsblReqService.list(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 장애인 시험지원 신청 목록 팝업 (교수)
+     * @param ExamDsblReqVO
+     * @return "exam/popup/exam_dsbl_req_view_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/viewExamDsblReqPop.do")
+    public String viewExamDsblReqPop(ExamDsblReqVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        Locale locale = LocaleUtil.getLocale(request);
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        if(!"".equals(StringUtil.nvl(vo.getDsblReqCd()))) {
+            ExamDsblReqVO dsblReqVO = examDsblReqService.select(vo);
+            request.setAttribute("vo", dsblReqVO);
+        }
+
+        StdVO stdVO = new StdVO();
+        stdVO.setStdId(vo.getStdId());
+        stdVO = stdService.select(stdVO);
+        request.setAttribute("stdVO", stdVO);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        UsrUserInfoVO uuivo = new UsrUserInfoVO();
+        uuivo.setUserId(StringUtil.nvl(stdVO.getUserId()));
+        uuivo = usrUserInfoService.viewForLogin(uuivo);
+        request.setAttribute("uuivo", uuivo);
+
+        return "exam/popup/exam_dsbl_req_view_pop";
+    }
+
+    /*****************************************************
+     * 장애인 시험지원 학습자 신청 로그 팝업
+     * @param ExamDsblReqVO
+     * @return "exam/popup/exam_dsbl_req_hsty_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examDsblReqHstyPop.do")
+    public String examDsblReqHstyPop(LogLessonActnHstyVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        Locale locale = LocaleUtil.getLocale(request);
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        request.setAttribute("hstyList", logLessonActnHstyService.listLessonActnHsty(vo));
+
+        return "exam/popup/exam_dsbl_req_hsty_pop";
+    }
+
+    /*****************************************************
+     * 장애인 지원 신청 승인/반려 ajax (교수)
+     * @param ExamDsblReqVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/insertExamDsblReq.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> insertExamDsblReq(ExamDsblReqVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        try {
+            vo.setRgtrId(userId);
+            vo.setMdfrId(userId);
+            examDsblReqService.insertExamDsblReq(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.update"));/* 수정 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 장애인 시험지원 신청 목록 페이지 (학생)
+     * @param vo
+     * @param model
+     * @param request
+     * @return "exam/stu_exam_dsbl_req_list"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/Form/stuExamDsblReqList.do")
+    public String stuExamDsblReqListForm(ExamDsblReqVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String crsCreCd = StringUtil.nvl(vo.getCrsCreCd());
+
+        vo.setCrsCreCd(crsCreCd);
+        vo.setUserId(userId);
+        model.addAttribute("vo", vo);
+
+        TermVO termVO = new TermVO();
+        termVO.setOrgId(SessionInfo.getOrgId(request));
+        termVO = termService.selectCurrentTerm(termVO);
+        model.addAttribute("termVO", termVO);
+        model.addAttribute("yearList", DateTimeUtil.getYearList(10, "mix"));
+        model.addAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
+
+        UsrUserInfoVO uuivo = new UsrUserInfoVO();
+        uuivo.setUserId(userId);
+        uuivo = usrUserInfoService.viewUser(uuivo);
+        model.addAttribute("uuivo", uuivo);
+
+        SysJobSchVO sysJobSchVO = new SysJobSchVO();
+        sysJobSchVO.setOrgId(orgId);
+        sysJobSchVO.setCalendarCtgr("00190805"); // 시험지원요청
+        sysJobSchVO.setTermCd(termVO.getTermCd());
+        sysJobSchVO = sysJobSchService.select(sysJobSchVO);
+        model.addAttribute("sysJobSchVO", sysJobSchVO);
+        SysJobSchVO sjsVO = new SysJobSchVO();
+        sjsVO.setOrgId(orgId);
+        sjsVO.setCalendarCtgr("00190809"); // 시험지원요청(확인기간)
+        sjsVO.setTermCd(termVO.getTermCd());
+        sjsVO = sysJobSchService.select(sjsVO);
+        model.addAttribute("sysJobSchVO2", sjsVO);
+
+        // 강의실 활동 로그 등록
+        logLessonActnHstyService.saveLessonActnHsty(request, "", CommConst.ACTN_HSTY_COURSE_HOME, "장애인 시험지원 확인");
+
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+
+        return "exam/stu_exam_dsbl_req_list";
+    }
+
+    /*****************************************************
+     * 장애인 시험지원 신청 목록 가져오기 ajax (학생)
+     * @param ExamDsblReqVO
+     * @return ProcessResultVO<ExamDsblReqVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/stuExamDsblReqList.do")
+    @ResponseBody
+    public ProcessResultVO<ExamDsblReqVO> stuExamDsblReqList(ExamDsblReqVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ExamDsblReqVO> resultVO = new ProcessResultVO<ExamDsblReqVO>();
+
+        try {
+            resultVO = examDsblReqService.listMyCreCrsExamDsblReq(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 장애인 시험지원 신청 ajax (학생)
+     * @param vo
+     * @param model
+     * @param request
+     * @return ProcessResultVO<UsrUserInfoVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/stuExamDsblReqApplicate.do")
+    @ResponseBody
+    public ProcessResultVO<UsrUserInfoVO> stuExamDsblReqApplicate(ExamDsblReqVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        ProcessResultVO<UsrUserInfoVO> resultVO = new ProcessResultVO<>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+            UsrUserInfoVO uuivo = new UsrUserInfoVO();
+            uuivo.setUserId(userId);
+            uuivo = usrUserInfoService.viewForLogin(uuivo);
+            if(!"Y".equals(StringUtil.nvl(uuivo.getDisablilityYn()))) {
+                resultVO.setResult(-1);
+                resultVO.setMessage(getMessage("exam.alert.applicate.dsbl.req.not.target")); // 장애학생 시험지원 신청대상이 아닙니다.
+                return resultVO;
+            }
+            if("Y".equals(StringUtil.nvl(uuivo.getDisablilityExamYn()))) {
+                resultVO.setResult(-1);
+                resultVO.setMessage(getMessage("exam.alert.already.applicate.dsbl.req")); // 이미 장애학생 시험지원 신청하셨습니다.
+                return resultVO;
+            }
+            // 강의실 활동 로그 등록
+            logLessonActnHstyService.saveLessonActnHsty(request, "DSBLREQ", CommConst.ACTN_HSTY_EXAM, "장애인시험지원 신청");
+
+            uuivo.setSearchKey("NONCANCEL");
+            examDsblReqService.updateDisability(uuivo);
+
+            resultVO.setResult(1);
+        } catch(EgovBizException | MediopiaDefineException e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(e.getMessage()); // 신청 중 에러가 발생하였습니다.
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.apply")); // 신청 중 에러가 발생하였습니다.
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 장애인 시험지원 취소
+     * @param vo
+     * @param map
+     * @param request
+     * @return ProcessResultVO<UsrUserInfoVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/stuExamDsblReqCancel.do")
+    @ResponseBody
+    public ProcessResultVO<UsrUserInfoVO> stuExamDsblReqCancel(UsrUserInfoVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        ProcessResultVO<UsrUserInfoVO> resultVO = new ProcessResultVO<>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+            // 강의실 활동 로그 등록
+            logLessonActnHstyService.saveLessonActnHsty(request, "DSBLREQ", CommConst.ACTN_HSTY_EXAM, "장애인시험지원 취소");
+
+            vo.setMdfrId(userId);
+            vo.setSearchKey("CANCEL");
+            examDsblReqService.updateDisability(vo);
+            resultVO.setResult(1);
+        } catch(EgovBizException | MediopiaDefineException e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(e.getMessage()); // 신청 중 에러가 발생하였습니다.
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.apply")); // 신청 중 에러가 발생하였습니다.
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 결시원 신청 목록 페이지 (교수)
+     * @param ExamAbsentVO
+     * @return "exam/exam_absent_list"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/Form/examAbsentList.do")
+    public String examAbsentListForm(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String crsCreCd = StringUtil.nvl(vo.getCrsCreCd());
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        if("".equals(menuType)) {
+            menuType = "PROF";
+        }
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        vo.setCrsCreCd(crsCreCd);
+        request.setAttribute("vo", vo);
+
+        TermVO termVO = new TermVO();
+        termVO.setOrgId(SessionInfo.getOrgId(request));
+        termVO = termService.selectCurrentTerm(termVO);
+        request.setAttribute("termVO", termVO);
+        request.setAttribute("yearList", DateTimeUtil.getYearList(10, "mix"));
+        request.setAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
+
+        SysJobSchVO sysJobSchVO = new SysJobSchVO();
+        sysJobSchVO.setOrgId(orgId);
+        sysJobSchVO.setCalendarCtgr("00190901");
+        sysJobSchVO.setTermCd(termVO.getTermCd());
+        sysJobSchVO = sysJobSchService.select(sysJobSchVO);
+        request.setAttribute("sysJobSchVO", sysJobSchVO);
+        request.setAttribute("menuType", menuType.contains("ADM") ? "ADM" : "PROF");
+        request.setAttribute("orgId", orgId);
+        request.setAttribute("authGrpCd", authGrpCd);
+        request.setAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        request.setAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+        request.setAttribute("userId", userId);
+
+        return "exam/exam_absent_list";
+    }
+
+    /*****************************************************
+     * 시험 결시원 신청 정보 팝업 (교수)
+     * @param ExamAbsentVO
+     * @return "exam/popup/exam_absent_view_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examAbsentViewPop.do")
+    public String examAbsentViewPop(ExamAbsentVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        Locale locale = LocaleUtil.getLocale(request);
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+
+        if("".equals(menuType)) {
+            menuType = "PROF";
+        }
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        if(!"".equals(StringUtil.nvl(vo.getExamAbsentCd()))) {
+
+            ExamAbsentVO absentVO = examAbsentService.select(vo);
+            request.setAttribute("vo", absentVO);
+        }
+
+        TermVO termVO = new TermVO();
+        termVO.setOrgId(orgId);
+        termVO = termService.selectCurrentTerm(termVO);
+        request.setAttribute("termVO", termVO);
+
+        StdVO stdVO = new StdVO();
+        stdVO.setStdId(vo.getStdId());
+        stdVO = stdService.select(stdVO);
+        request.setAttribute("stdVO", stdVO);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        request.setAttribute("userId", userId);
+
+        ExamAbsentVO absentVO2 = new ExamAbsentVO();
+        absentVO2.setCrsCreCd(vo.getCrsCreCd());
+        absentVO2.setUserId(stdVO.getUserId());
+        EgovMap examAbsentApplicateYnMap = examAbsentService.selectExamAbsentApplicateYn(absentVO2);
+        request.setAttribute("examAbsentApplicateYnMap", examAbsentApplicateYnMap);
+
+        model.addAttribute("isKnou", SessionInfo.isKnou(request));
+        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+
+        return "exam/popup/exam_absent_view_pop";
+    }
+
+    /*****************************************************
+     * 시험 결시원 신청이력 팝업 (교수)
+     * @param ExamAbsentVO
+     * @return "exam/popup/exam_absent_list_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examAbsentListPop.do")
+    public String examAbsentListPop(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        Locale locale = LocaleUtil.getLocale(request);
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        
+        /*
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage()); 페이지 접근 권한이 없습니다.
+        }
+        */
+
+        List<ExamAbsentVO> absentList = examAbsentService.list(vo);
+        request.setAttribute("list", absentList);
+        request.setAttribute("cnt", absentList.size());
+
+        StdVO stdVO = new StdVO();
+        stdVO.setStdId(vo.getStdId());
+        stdVO = stdService.select(stdVO);
+        request.setAttribute("stdVO", stdVO);
+
+        return "exam/popup/exam_absent_list_pop";
+    }
+
+    /*****************************************************
+     * 결시원 신청 목록 페이지 (학생)
+     * @param ExamAbsentVO
+     * @return "exam/stu_exam_absent_list"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/Form/stuExamAbsentList.do")
+    public String stuExamAbsentListForm(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String crsCreCd = StringUtil.nvl(vo.getCrsCreCd());
+
+        vo.setCrsCreCd(crsCreCd);
+        vo.setUserId(userId);
+        request.setAttribute("vo", vo);
+        request.setAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
+
+        TermVO termVO = new TermVO();
+        termVO.setOrgId(orgId);
+        termVO = termService.selectCurrentTerm(termVO);
+
+        String termCd = null;
+
+        if(termVO != null) {
+            termCd = termVO.getTermCd();
+        }
+
+        request.setAttribute("termVO", termVO);
+        request.setAttribute("yearList", DateTimeUtil.getYearList(10, "mix"));
+        LocalDateTime today = LocalDateTime.now();
+        request.setAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+
+        SysJobSchVO sysJobSchVO = new SysJobSchVO();
+        sysJobSchVO.setOrgId(orgId);
+        sysJobSchVO.setUseYn("Y");
+        sysJobSchVO.setTermCd(termCd);
+        // 00190902: 결시원신청-중간고사(일정공지용), 00190903: 결시원신청-기말고사(일정공지용)
+        sysJobSchVO.setSqlForeach(new String[]{"00190902", "00190903"});
+        List<SysJobSchVO> jobSchList = sysJobSchService.list(sysJobSchVO);
+        Map<String, SysJobSchVO> jobSchMap = new HashMap<>();
+        for(SysJobSchVO sysJobSchVO2 : jobSchList) {
+            jobSchMap.put(sysJobSchVO2.getCalendarCtgr(), sysJobSchVO2);
+        }
+
+        request.setAttribute("midSysJobSchVO", jobSchMap.get("00190902")); // 결시원신청-중간고사(일정공지용)
+        request.setAttribute("lastSysJobSchVO", jobSchMap.get("00190903")); // 결시원신청-기말고사(일정공지용)
+
+        request.setAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        request.setAttribute("orgId", orgId);
+        request.setAttribute("authGrpCd", authGrpCd);
+        request.setAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+
+        // 강의실 활동 로그 등록
+        logLessonActnHstyService.saveLessonActnHsty(request, "", CommConst.ACTN_HSTY_COURSE_HOME, "결시원 확인");
+
+        return "exam/stu_exam_absent_list";
+    }
+
+    /*****************************************************
+     * 결시원 목록 가져오기 ajax (학생)
+     * @param ExamAbsentVO
+     * @return ProcessResultVO<ExamAbsentVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/stuExamAbsentList.do")
+    @ResponseBody
+    public ProcessResultVO<ExamAbsentVO> stuExamAbsentList(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ExamAbsentVO> resultVO = new ProcessResultVO<ExamAbsentVO>();
+
+        try {
+            resultVO = examAbsentService.listMyCreCrsExamAbsent(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 결시원 신청 팝업 (학생)
+     * @param ExamAbsentVO
+     * @return "exam/stu_exam_absent_applicate_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/stuExamAbsentApplicatePop.do")
+    public String stuExamAbsentApplicatePop(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+        String orgId = SessionInfo.getOrgId(request);
+
+        ExamVO examVO = new ExamVO();
+        examVO.setExamCd(vo.getExamCd());
+        examVO = examService.select(examVO);
+        examVO.setSearchMenu(StringUtil.nvl(vo.getSearchMenu()));
+        request.setAttribute("vo", examVO);
+
+        StdVO stdVO = new StdVO();
+        stdVO.setStdId(vo.getStdId());
+        stdVO = stdService.select(stdVO);
+        request.setAttribute("stdVO", stdVO);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        LocalDate date = LocalDate.now();
+        request.setAttribute("date", date);
+
+        // 결시원 일정공지
+        TermVO termVO = new TermVO();
+        termVO.setOrgId(orgId);
+        termVO = termService.selectCurrentTerm(termVO);
+
+        String termCd = null;
+
+        if(termVO != null) {
+            termCd = termVO.getTermCd();
+        }
+
+        SysJobSchVO sysJobSchVO = new SysJobSchVO();
+        sysJobSchVO.setOrgId(orgId);
+        sysJobSchVO.setUseYn("Y");
+        sysJobSchVO.setTermCd(termCd);
+        // 00190902: 결시원신청-중간고사(일정공지용), 00190903: 결시원신청-기말고사(일정공지용)
+        sysJobSchVO.setSqlForeach(new String[]{"00190902", "00190903"});
+        List<SysJobSchVO> jobSchList = sysJobSchService.list(sysJobSchVO);
+        Map<String, SysJobSchVO> jobSchMap = new HashMap<>();
+        for(SysJobSchVO sysJobSchVO2 : jobSchList) {
+            jobSchMap.put(sysJobSchVO2.getCalendarCtgr(), sysJobSchVO2);
+        }
+
+        if("M".equals(examVO.getExamStareTypeCd())) {
+            request.setAttribute("midSysJobSchVO", jobSchMap.get("00190902")); // 결시원신청-중간고사(일정공지용)
+        } else if("L".equals(examVO.getExamStareTypeCd())) {
+            request.setAttribute("lastSysJobSchVO", jobSchMap.get("00190903")); // 결시원신청-기말고사(일정공지용)
+        }
+
+        return "exam/popup/stu_exam_absent_applicate_pop";
+    }
+
+    /*****************************************************
+     * 결시원 신청 ajax (학생)
+     * @param ExamAbsentVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examAbsentApplicate.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> examAbsentApplicate(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        try {
+            ExamVO examVO = new ExamVO();
+            examVO.setExamCd(vo.getExamCd());
+            examVO = examService.select(examVO);
+            // 강의실 활동 로그 등록
+            String examStr = "M".equals(StringUtil.nvl(examVO.getExamStareTypeCd())) ? "중간고사" : "기말고사";
+            logLessonActnHstyService.saveLessonActnHsty(request, examVO.getCrsCreCd(), CommConst.ACTN_HSTY_EXAM, examStr + " 결시원 신청");
+
+            vo.setRgtrId(userId);
+            vo.setMdfrId(userId);
+            vo.setOrgId(orgId);
+            resultVO = examAbsentService.examAbsentApplicate(request, vo);
+            resultVO.setResult(1);
+        } catch(EgovBizException e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(e.getMessage());
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.apply"));/* 신청 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 결시 내역 팝업 (학생)
+     * @param ExamAbsentVO
+     * @return "exam/stu_exam_absent_applicate_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/stuExamAbsentApprViewPop.do")
+    public String stuExamAbsentApprViewPop(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String userId = SessionInfo.getUserId(request);
+
+        ExamAbsentVO absentVO = examAbsentService.select(vo);
+        request.setAttribute("vo", absentVO);
+
+        ExamAbsentVO absentVO2 = new ExamAbsentVO();
+        absentVO2.setCrsCreCd(absentVO.getCrsCreCd());
+        absentVO2.setUserId(userId);
+        EgovMap examAbsentApplicateYnMap = examAbsentService.selectExamAbsentApplicateYn(absentVO2);
+        request.setAttribute("examAbsentApplicateYnMap", examAbsentApplicateYnMap);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(absentVO.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        // 강의실 활동 로그 등록
+        logLessonActnHstyService.saveLessonActnHsty(request, creCrsVO.getCrsCreCd(), CommConst.ACTN_HSTY_EXAM, "결시원 신청내역 및 승인여부 확인");
+
+        return "exam/popup/stu_exam_absent_appr_view_pop";
+    }
+
+    /*****************************************************
+     * 결시원 수정 ajax (교수)
+     * @param ExamAbsentVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/updateExamAbsent.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> updateExamAbsent(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        Locale locale = LocaleUtil.getLocale(request);
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+        String userId = SessionInfo.getUserId(request);
+
+        try {
+            vo.setMdfrId(userId);
+            examAbsentService.updateAbsent(request, vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.update"));/* 수정 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 결시원 정리
+     * @param ExamAbsentVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/updateAllCompanion.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> updateAllCompanion(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+        String userId = SessionInfo.getUserId(request);
+
+        try {
+            vo.setMdfrId(userId);
+            examAbsentService.updateAllCompanion(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.batch.companion"));/* 일괄 반려 처리 중 에러가 발생하였습니다. */
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 결시원 정리 ajax (교수)
+     * @param ExamAbsentVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/updateAllCompanionProf.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> updateAllCompanionProf(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        Locale locale = LocaleUtil.getLocale(request);
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+        String userId = SessionInfo.getUserId(request);
+
+        try {
+            vo.setMdfrId(userId);
+            vo.setUserId(userId);
+            examAbsentService.updateAllCompanionProf(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.batch.companion"));/* 일괄 반려 처리 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 응시 파라미터
+     * @param ExamAbsentVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examStareEncrypto.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> examStareEncrypto(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        vo.setUserId(userId);
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+
+        try {
+            /*
+             * SiteCd
+             * 학부 중간/기말     : 0001
+             * 학부 수시평가       : 0003
+             * 대학원 중간/기말  : 0004
+             * 대학원 외국어시험 : 0007
+             * 학부 선수과목 수강생(대학원) : 0001
+             *
+             * Cert 인증여부
+             * Y(PKI인증, FIDO인증)
+             * K(카카오인증)
+             * D(유예처리)
+             * null(안심등교)
+             */
+            LocalDateTime today = LocalDateTime.now();
+            String time = today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            String timeLimit = CryptoUtil.encryptAes256(time, "EXAM");
+            userId = CryptoUtil.encryptAes256(userId, "EXAM");
+            String siteCd = StringUtil.nvl(vo.getSiteCd());
+
+            // 임시
+            String cert = "Y";
+
+            String returnStr = "";
+            String goUrl = "";
+
+            EgovMap egovMap = examService.selectExamEncryptoInfo(vo);
+            ExamVO examVO = examService.select(vo);
+            // 중간/기말
+            if("0001".equals(siteCd) || "0004".equals(siteCd)) {
+                returnStr = egovMap.get("userId") + "|HYYCU|" + siteCd + "|1|" + egovMap.get("creYear") + "|" + egovMap.get("creTerm") + "|" + egovMap.get("examGbn") + "||||||||||||";
+                returnStr = CryptoUtil.encryptAes256(returnStr, "EXAM");
+                goUrl = CommConst.EXT_URL_ETS + "?UserId=" + userId + "&Cert=" + cert + "&TargetSvc=ETS&TimeLimit=" + timeLimit + "&SiteCd=" + siteCd + "&returnStr=" + returnStr + "&gubun=ROAD";
+                // 강의실 활동 로그 등록
+                String examStr = "01".equals(egovMap.get("examGbn")) ? "중간고사" : "기말고사";
+                logLessonActnHstyService.saveLessonActnHsty(request, examVO.getCrsCreCd(), CommConst.ACTN_HSTY_EXAM, examStr + " 시험응시");
+                // 수시평가
+            } else if("0003".equals(siteCd)) {
+                returnStr = egovMap.get("userId") + "|HYYCU|" + siteCd + "|1|" + egovMap.get("creYear") + "|" + egovMap.get("creTerm") + "|01|"
+                        + egovMap.get("crsCd") + "|" + egovMap.get("tchId") + "|" + egovMap.get("ltWeek") + "|Y|" + egovMap.get("declsNo") + "|" + egovMap.get("userNm") + "|" + egovMap.get("deptId")
+                        + "|" + egovMap.get("deptNm") + "|Y|" + egovMap.get("userGrade") + "|" + egovMap.get("email") + "|" + egovMap.get("mobileNo");
+                returnStr = CryptoUtil.encryptAes256(returnStr, "EXAM");
+                goUrl = CommConst.EXT_URL_ETS + "?UserId=" + userId + "&Cert=" + cert + "&TargetSvc=ETS&TimeLimit=" + timeLimit + "&SiteCd=" + siteCd + "&returnStr=" + returnStr;
+                // 강의실 활동 로그 등록
+                logLessonActnHstyService.saveLessonActnHsty(request, examVO.getCrsCreCd(), CommConst.ACTN_HSTY_EXAM, "[" + egovMap.get("examTitle") + "] 수시평가 응시하기");
+                // 외국어시험
+            } else if("0007".equals(siteCd)) {
+                goUrl = CommConst.EXT_URL_ETS + "?UserId=" + userId + "&Cert=" + cert + "&TargetSvc=ETS&TimeLimit=" + timeLimit + "&SiteCd=" + siteCd;
+                // 맛보기
+            } else {
+                returnStr = egovMap.get("userId") + "|HYYCU|0001|3|||||||Y|01|" + egovMap.get("userNm") + "|" + egovMap.get("deptId") + "|" + egovMap.get("deptNm") + "|N|" + egovMap.get("userGrade") + "|" + egovMap.get("email") + "|" + egovMap.get("mobileNo");
+                returnStr = CryptoUtil.encryptAes256(returnStr, "EXAM");
+                goUrl = CommConst.EXT_URL_ETS_PREVIEW + "?returnStr=" + returnStr + "&gubun=ROAD";
+            }
+            vo.setGoUrl(goUrl);
+            resultVO.setReturnVO(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage());/* 에러가 발생했습니다! */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 기타, 대체 과제 정보 조회
+     * @param ExamVO
+     * @return ProcessResultVO<EgovMap>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/selectExamInsInfo.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> updateExamAbsent(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+
+        try {
+            EgovMap eMap = examService.selectExamInsInfo(vo);
+            resultVO.setReturnVO(eMap);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.info"));/* 정보 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 기타, 대체 과제 정보 조회
+     * @param ExamVO
+     * @return ProcessResultVO<EgovMap>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/listExamInsUser.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> listExamInsUser(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+
+        try {
+            List<EgovMap> egovList = examService.listExamInsUser(vo);
+            resultVO.setReturnList(egovList);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list")); /* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 대체평가 대상자 설정 팝업
+     * @param ExamVO
+     * @return "exam/popup/exam_ins_target_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examInsTargetPop.do")
+    public String examInsTargetPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        ExamVO examVO = examService.select(vo);
+        request.setAttribute("vo", examVO);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        LocalDateTime today = LocalDateTime.now();
+        request.setAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+
+        return "exam/popup/exam_ins_target_pop";
+    }
+
+    /*****************************************************
+     * 대체평가 대상자 목록
+     * @param ExamStareVO
+     * @return ProcessResultVO<ExamStareVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/listInsTraget.do")
+    @ResponseBody
+    public ProcessResultVO<ExamStareVO> listInsTraget(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ExamStareVO> resultVO = new ProcessResultVO<ExamStareVO>();
+
+        try {
+            List<ExamStareVO> stareList = examStareService.listExamNoStare(vo);
+            resultVO.setReturnList(stareList);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list")); /* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 대체평가 대상자 설정
+     * @param ExamStareVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/insTargetSet.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> insTargetSet(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        try {
+            vo.setRgtrId(userId);
+            vo.setMdfrId(userId);
+            vo.setReExamYn("Y");
+            String[] stdNoList = vo.getStdIds().split(",");
+            for(String stdNo : stdNoList) {
+                vo.setStdId(stdNo);
+                vo.setStareSn(stdNo + vo.getExamCd());
+                examStareService.updateExamStare(vo);
+            }
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.setting"));/* 설정 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 대체평가 대상자 취소 ( 다수 )
+     * @param ExamStareVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/insTargetCancelByStdNos.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> insTargetCancelByStdNos(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        try {
+            vo.setRgtrId(userId);
+            vo.setMdfrId(userId);
+            vo.setReExamYn("N");
+            String[] stdNoList = vo.getStdIds().split(",");
+            for(String stdNo : stdNoList) {
+                vo.setStdId(stdNo);
+                examStareService.updateExamStare(vo);
+            }
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.setting"));/* 설정 중 에러가 발생하였습니다. */
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 대체평가 대상자 설정 취소
+     * @param ExamStareVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/insTargetCancel.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> insTargetCancel(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        try {
+            vo.setMdfrId(userId);
+            examStareService.resetReExamStareByStd(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.setting")); /* 설정 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학생 전체 결시원 대상 시험 리스트 조회
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/listAllStuAbsentExam.do")
+    @ResponseBody
+    public ProcessResultVO<ExamAbsentVO> listAllStuAbsentExam(ExamAbsentVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<ExamAbsentVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            vo.setOrgId(orgId);
+            vo.setUserId(userId);
+            List<ExamAbsentVO> list = examAbsentService.listAllStuAbsentExam(vo);
+
+            resultVO.setReturnList(list);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list")); /* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 대체평가 연결 팝업
+     * @param ExamVO
+     * @return "exam/popup/exam_ins_ref_link_pop"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examInsRefLinkPop.do")
+    public String examInsRefLinkPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        ExamVO examVO = examService.select(vo);
+        request.setAttribute("vo", examVO);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        return "exam/popup/exam_ins_ref_link_pop";
+    }
+
+    /*****************************************************
+     * 중간/기말 대체평가 연결 가능 목록
+     * @param ExamVO
+     * @return ProcessResultVO<EgovMap>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/listSetInsRef.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> listSetInsRef(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+
+        try {
+            resultVO = examService.listSetInsRef(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.list")); /* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 중간/기말 대체평가 연결
+     * @param ExamVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/setInsRef.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> setInsRef(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+            vo.setMdfrId(userId);
+            examService.setInsRef(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); /* 에러가 발생했습니다! */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 중간/기말 대체평가 연결해제
+     * @param ExamVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/setInsRefCancel.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> setInsRefCancel(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+            vo.setMdfrId(userId);
+            examService.setInsRefCancel(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); /* 에러가 발생했습니다! */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 특정 학습자 시험 응시 여부
+     * @param ExamStareVO
+     * @return ProcessResultVO<ExamStareVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examStareByStdNo.do")
+    @ResponseBody
+    public ProcessResultVO<ExamStareVO> examStareByStdNo(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ExamStareVO> resultVO = new ProcessResultVO<ExamStareVO>();
+
+        try {
+            ExamStareVO stareVO = examStareService.examStareByStdNo(vo);
+            resultVO.setReturnVO(stareVO);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getMessage("exam.error.info"));/* 정보 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+}

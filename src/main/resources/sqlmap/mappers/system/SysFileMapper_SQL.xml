@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.common.dao.SysFileDAO">
+
+    <sql id="selectQuery">
+        SELECT A.FILE_ID
+             , A.FILENM
+             , A.FILE_SAVENM
+             , SUBSTR(A.FILE_SAVENM, 1, INSTR(A.FILE_SAVENM, '.', 1, 1)-1) AS FILE_ID
+             , A.FILE_PATH
+             , A.FILE_EXTNM
+             , NVL(A.FILE_SIZE, 0) AS FILE_SIZE
+             , A.FILE_TYCD
+             , A.ORG_ID
+             , A.ATFL_REPO_ID
+             , A.ATFL_REPO_PATH
+             , A.MIME_TYCD
+             , NVL(A.INQ_CNT, 0) INQ_CNT
+             , A.LST_INQ_DTTM
+             , A.RGTR_ID
+             , A.FRST_INQ_DTTM
+             , A.ATCL_ID
+             , A.ETCINFO1
+             , A.ETCINFO2
+             , A.ETCINFO3
+             , A.THMB_FILE_PATH
+             , A.OJB_STRG_PATH
+             , (SELECT CASE WHEN A.RGTR_ID = '000000000000'
+                            THEN '관리자'
+                            ELSE NVL(USERNM, 'UnKnown')
+                       END
+                  FROM TB_LMS_USR
+                 WHERE USER_ID = A.RGTR_ID) AS RGTRNM
+             , B.UP_TBLNM
+             , B.UP_CLMNNM
+        <if test="parFieldNm != null">
+            <if test="isUsingTable == 'true'">
+             , (SELECT COUNT(*)
+                  FROM ${parTableNm}
+                 WHERE ${parFieldNm} = A.ATCL_ID) AS USING_CNT
+            </if>
+            <if test="isUsingTable != 'true'">
+            , -1 AS USING_CNT
+            </if>
+        </if>
+        <if test="parFieldNm == null">
+             , -1 AS USING_CNT
+        </if>
+          FROM TB_LMS_ATFL A, TB_LMS_ATFL_REPO B
+         WHERE A.ATFL_REPO_ID = B.ATFL_REPO_ID
+    </sql>
+
+    <sql id="listQuery">
+        <include refid="selectQuery"/>
+        <if test="repoCd != 'ASMNT'">
+           AND A.ATFL_REPO_ID = #{repoCd}
+        </if>
+        <if test="repoCd == 'ASMNT'">
+           AND (A.ATFL_REPO_ID = #{repoCd} OR A.ATFL_REPO_ID = 'ASMNT_CNVS')
+        </if>
+        <if test="fileBindDataSn != null and fileBindDataSn != ''">
+           AND A.ATCL_ID = #{fileBindDataSn}
+        </if>
+        <if test="fileNm != null and fileNm != ''">
+           AND A.FILENM LIKE '%'||#{fileNm}||'%'
+        </if>
+        <if test="fileExt != null and fileExt != ''">
+           AND A.FILE_EXTNM LIKE '%'||#{fileExt}||'%'
+        </if>
+        <if test="fileSnList != null and fileSnList.length > 0">
+           AND A.FILE_ID IN
+           <foreach collection="fileSnList" item="item" index="index" separator="," open="(" close=")">
+               #{item}
+           </foreach>
+        </if>
+         ORDER BY A.FILE_ID
+    </sql>
+
+    <select id="list" parameterType="fileVO" resultType="fileVO">
+        /*
+             SQL ID : SysFileDAO.list
+             설  명 : 파일 전체 목록
+         */
+         <include refid="listQuery"/>
+    </select>
+
+    <select id="listPageing" parameterType="fileVO" resultType="fileVO">
+        /*
+             SQL ID : SysFileDAO.listPageing
+             설  명 : 파일 페이징 목록
+         */
+         <include refid="CommonSQL.pagePrefix"/>
+         <include refid="listQuery"/>
+         <include refid="CommonSQL.pageSubfix"/>
+    </select>
+    
+    <select id="count" parameterType="fileVO" resultType="Integer">
+        /*
+             SQL ID : SysFileDAO.count
+             설  명 : 파일 페이징 카운트
+         */
+         SELECT COUNT(*) FROM (
+         <include refid="listQuery"/>
+         ) T
+    </select>
+
+    <select id="select" parameterType="fileVO" resultType="fileVO">
+        /*
+             SQL ID : SysFileDAO.select
+             설  명 : 파일 정보 조회
+         */
+         <include refid="selectQuery"/>
+           AND A.FILE_ID = #{fileSn}
+           <if test="repoCd != null and repoCd != ''">
+           AND A.ATFL_REPO_ID = #{repoCd}
+           		<if test='repoCd == "FILE_BOX"'>
+           			AND A.FILE_PATH = CONCAT('/filebox/', #{userId})
+           		</if>
+           </if>
+    </select>
+
+    <select id="selectKey" resultType="String">
+        /*
+             SQL ID : SysFileDAO.selectKey
+             설  명 : 파일 키 생성
+         */
+         SELECT IFNULL(MAX(FILE_ID), 0) + 1 FROM TB_LMS_ATFL
+    </select>
+
+    <insert id="insert" parameterType="fileVO" >
+        /*
+             SQL ID : SysFileDAO.insert
+             설  명 : 파일 정보 등록
+         */
+        INSERT INTO TB_LMS_ATFL (
+               FILE_ID
+             , FILENM
+             , FILE_SAVENM
+             , FILE_PATH
+             , FILE_EXTNM
+             , FILE_SIZE
+             , FILE_TYCD
+             , ORG_ID
+             , ATFL_REPO_ID
+             , ATFL_REPO_PATH
+             , MIME_TYCD
+             , INQ_CNT
+             , LST_INQ_DTTM
+             , RGTR_ID
+             , FRST_INQ_DTTM
+             , ATCL_ID
+             , ETCINFO1
+             , ETCINFO2
+             , ETCINFO3
+             , THMB_FILE_PATH
+        ) VALUES (
+               #{fileSn}
+             , #{fileNm}
+             , #{fileSaveNm}
+             , #{filePath}
+             , #{fileExt}
+             , #{fileSize}
+             , #{fileType}
+             , NVL(#{orgId}, '-')
+             , #{repoCd}
+             , #{repoPath}
+             , #{mimeType}
+             , #{inqCnt}
+             , #{lastInqDttm}
+             , #{rgtrId}
+             , FN_DTTM()
+             , #{fileBindDataSn}
+             , #{etcInfo1}
+             , #{etcInfo2}
+             , #{etcInfo3}
+             , #{THMB_FILE_PATH}
+        )
+    </insert>
+
+    <update id="updateFileBindData" parameterType="fileVO" >
+        /*
+             SQL ID : SysFileDAO.updateFileBindData
+             설  명 : 파일 바인딩 정보 수정
+         */
+        UPDATE TB_LMS_ATFL
+           SET ATCL_ID  = #{fileBindDataSn}
+             , ETCINFO1 = #{etcInfo1}
+             , ETCINFO2 = #{etcInfo2}
+             , ETCINFO3 = #{etcInfo3}
+         WHERE FILE_ID = #{fileSn}
+    </update>
+
+    <update id="deleteFileBindData" parameterType="fileVO" >
+        /*
+             SQL ID : SysFileDAO.updateFileBindData
+             설  명 : 파일 바인딩 정보 삭제
+         */
+        UPDATE TB_LMS_ATFL
+           SET ATCL_ID = NULL
+         WHERE ATFL_REPO_ID = #{repoCd}
+           AND ATCL_ID = #{fileBindDataSn}
+    </update>
+
+    <delete id="delete" parameterType="fileVO" >
+        /*
+             SQL ID : SysFileDAO.delete
+             설  명 : 파일 정보 삭제
+         */
+        DELETE FROM TB_LMS_ATFL
+         WHERE FILE_ID = #{fileSn}
+    </delete>
+
+    <update id="updateFileLastInqDttm" parameterType="fileVO" >
+        /*
+             SQL ID : SysFileDAO.updateFileLastInqDttm
+             설  명 : 시스템 파일 조회에 따른 마지막 접속일시와 조회수 증가 업데이트
+         */
+        UPDATE TB_LMS_ATFL
+           SET INQ_CNT = INQ_CNT + 1
+             , LST_INQ_DTTM = FN_DTTM()
+         WHERE FILE_ID = #{fileSn}
+    </update>
+
+    <select id="listGarbageFile" parameterType="fileVO" resultType="fileVO">
+        <![CDATA[
+        /*
+             SQL ID : SysFileDAO.listGarbageFile
+             설  명 : 업무에서 사용하지 않은 쓰레기 파일 목록 조회
+         */
+        SELECT FILE_ID
+          FROM TB_LMS_ATFL
+         WHERE ATFL_REPO_ID NOT IN ('FILE_BOX', 'POPUP', 'USER_PROFILE') 
+           AND ATCL_ID IS NULL
+           AND FRST_INQ_DTTM < DATE_FORMAT(CURDATE(), '%Y%m%d%H%i%s')
+           AND ORG_ID = #{orgId}
+        ]]>
+    </select>
+    
+    <insert id="copyFileInfoFromOrigin" parameterType="fileVO" >
+        /*
+             SQL ID : SysFileDAO.copyFileInfoFromOrigin
+             설  명 : 원본 파일 정보 복사
+         */
+        INSERT INTO TB_LMS_ATFL (
+               FILE_ID
+             , FILENM
+             , FILE_SAVENM
+             , FILE_PATH
+             , FILE_EXTNM
+             , FILE_SIZE
+             , FILE_TYCD
+             , ORG_ID
+             , ATFL_REPO_ID
+             , ATFL_REPO_PATH
+             , MIME_TYCD
+             , INQ_CNT
+             <!-- , LST_INQ_DTTM -->
+             , RGTR_ID
+             , FRST_INQ_DTTM
+             , ATCL_ID
+             , ETCINFO1
+             , ETCINFO2
+             , ETCINFO3
+             , THMB_FILE_PATH
+        )
+        SELECT
+        	  FILE_ID || LINE_NO
+        	, FILENM
+			, FILE_SAVENM
+			, FILE_PATH
+			, FILE_EXTNM
+			, FILE_SIZE
+			, FILE_TYCD
+			, ORG_ID
+            , ATFL_REPO_ID
+			, ATFL_REPO_PATH
+			, MIME_TYCD
+			, INQ_CNT
+			<!-- , LST_INQ_DTTM -->
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, ATCL_ID
+			, ETCINFO1
+			, ETCINFO2
+			, ETCINFO3
+			, THMB_FILE_PATH
+        FROM (
+	        SELECT
+	        	  ROW_NUMBER() OVER(ORDER BY (SELECT 1 FROM DUAL)) AS LINE_NO
+	        	, #{fileSn} AS FILE_ID
+	        	, FILENM
+				, FILE_SAVENM
+				, FILE_PATH
+				, FILE_EXTNM
+				, FILE_SIZE
+				, 'clone' AS FILE_TYCD
+				, #{orgId} AS ORG_ID
+				, #{repoCd} AS ATFL_REPO_ID
+				, ATFL_REPO_PATH
+				, MIME_TYCD
+				, 0 AS INQ_CNT
+				<!-- , LST_INQ_DTTM -->
+				, RGTR_ID
+				, FN_DTTM() AS FRST_INQ_DTTM
+				, #{fileBindDataSn} AS ATCL_ID
+				, ETCINFO1
+				, ETCINFO2
+				, ETCINFO3
+				, THMB_FILE_PATH
+	        FROM TB_LMS_ATFL
+	        WHERE 1=1
+	        <choose>
+	        	<when test="copyFileSn != null and copyFileSn != ''">
+	        		AND FILE_ID = #{copyFileSn}
+	        	</when>
+	        	<otherwise>
+	        		AND ATCL_ID = #{copyFileBindDataSn}
+	        	</otherwise>
+	        </choose>
+        ) A
+    </insert>
+
+	<update id="updateObjectStorageInfo" parameterType="fileVO" >
+        /*
+             SQL ID : SysFileDAO.updateObjectStorageInfo
+             설  명 : 오브젝트 스토리지 경로 정보 수정
+         */
+        UPDATE TB_LMS_ATFL
+		SET OJB_STRG_PATH = #{objectStoragePath}
+           <if test="etcInfo1 != null">
+			, ETCINFO1 = IF(#{etcInfo1} = '', NULL, #{etcInfo1})
+           </if>
+           <if test="etcInfo2 != null">
+			, ETCINFO2 = IF(#{etcInfo2} = '', NULL, #{etcInfo2})
+           </if>
+           <if test="etcInfo3 != null">
+			, ETCINFO3 = IF(#{etcInfo3} = '', NULL, #{etcInfo3})
+           </if>
+         WHERE FILE_ID = #{fileSn}
+    </update>
+</mapper>

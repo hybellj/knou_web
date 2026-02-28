@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.exam.dao.TkexamAnswShtDAO">
+
+	<delete id="userListTkexamAnswShtDelete" parameterType="java.util.List">
+		/*
+             SQL ID : TkexamAnswShtDAO.userListTkexamAnswShtDelete
+             설  명  : 사용자목록시험응시답안삭제
+         */
+		<foreach item="item" collection="list" separator=";" open="BEGIN" close="; END;">
+	         DELETE FROM TB_LMS_TKEXAM_ANSW_SHT
+	          WHERE USER_ID = #{item.userId}
+	            AND EXAMPPR_ID IN (
+	            	SELECT
+	            		EXAMPPR.EXAMPPR_ID
+			          FROM TB_LMS_EXAMPPR EXAMPPR
+			          JOIN TB_LMS_TKEXAM TKEXAM
+			            ON EXAMPPR.TKEXAM_ID = TKEXAM.TKEXAM_ID
+			         WHERE TKEXAM.EXAM_DTL_ID = #{item.examDtlId}
+			           AND TKEXAM.USER_ID = #{item.userId}
+			           AND TKEXAM.DELYN = 'N'
+			        )
+         </foreach>
+	</delete>
+
+	<update id="userTkexamAnswShtDelete" parameterType="map">
+		/*
+             SQL ID : TkexamAnswShtDAO.userTkexamAnswShtDelete
+             설  명  : 사용자시험응시답안삭제
+         */
+        DELETE FROM TB_LMS_TKEXAM_ANSW_SHT
+	     WHERE USER_ID = #{userId}
+	       AND EXAMPPR_ID IN (
+		    	SELECT
+		    		EXAMPPR_ID
+			      FROM TB_LMS_EXAMPPR
+			     WHERE TKEXAM_ID = #{tkexamId}
+			       AND USER_ID = #{userId}
+		    )
+	</update>
+
+</mapper>

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.common.dao.OrgCfgDAO">
+
+	<sql id="selectQuery">
+		SELECT ORG_ID
+		     , CD
+		     , CDNM
+		     , CD_VL
+		     , CD_EXPLN
+		     , USEYN
+		     , RGTR_ID
+		     ,'' AS RGTRNM
+		     , REG_DTTM
+		     , MDFR_ID
+		     , '' AS MOD_NM
+		     , MOD_DTTM
+		  FROM TB_LMS_CMMN_CD A
+         WHERE ORG_ID = #{orgId}
+	</sql>
+	
+	<sql id="listQuery">
+		<include refid="selectQuery"/>
+		   AND STNG_CTGRCD = #{cfgCtgrCd}
+		<if test="orgId != null and orgId != ''">
+		   AND ORG_ID = #{orgId}
+		</if>
+	    <if test="searchValue != null and searchValue != ''">
+	       AND (
+	           LOWER(STNG_CD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	           OR LOWER(STNGNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	       )
+         </if>
+         <if test="useYn != null and useYn != ''">
+           AND USEYN = #{useYn}
+         </if>
+         <if test="cfgCtgrCd != null and cfgCtgrCd != ''">
+           AND STNG_CTGRCD = #{cfgCtgrCd}
+         </if>
+         <if test="cfgCd != null and cfgCd != ''">
+           AND STNG_CD = #{cfgCd}
+         </if>
+	     ORDER BY STNGNM		
+	</sql>		
+
+	<select id="list" parameterType="orgCfgVO" resultType="orgCfgVO">
+		/*
+			 SQL ID : OrgCfgDAO.list
+			 설  명 : 기관 설정 정보의 전체 목록
+	 	*/
+	 	<include refid="listQuery"/>
+	</select>
+	
+	<select id="listConfig" parameterType="sysCfgCtgrVO" resultType="orgCfgVO">
+		/*
+			 SQL ID : OrgCfgDAO.listConfig
+			 설  명 : 기관 설정 분류의 전체 목록
+	 	*/
+	 	<include refid="listQuery"/>
+	</select>
+
+	<select id="listPageing" parameterType="orgCfgVO" resultType="orgCfgVO">
+		/*
+			 SQL ID : OrgCfgDAO.listPageing
+			 설  명 : 기관 설정 정보의 페이징 목록
+	 	*/
+	 	<include refid="CommonSQL.pagePrefix"/>
+	 	<include refid="listQuery"/>
+	 	<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="count" parameterType="orgCfgVO" resultType="Integer">
+		/*
+			 SQL ID : OrgCfgDAO.count
+			 설  명 : 기관 설정 정보의 전체체 카운트 수
+	 	*/
+	 	SELECT COUNT(*) FROM (
+	 	<include refid="listQuery"/>
+	 	) T
+	</select>	
+	
+	<select id="select" parameterType="orgCfgVO" resultType="orgCfgVO">
+		/*
+			 SQL ID : OrgCfgDAO.select
+			 설  명 : 기관 설정 정보의 정보 조회
+	 	*/
+	 	<include refid="selectQuery"/>
+	 	   AND CD = #{cfgCtgrCd}
+	 	   <!-- AND STNG_CD = #{cfgCd} -->
+	</select>	
+	
+	<select id="selectCheck" parameterType="orgCfgVO" resultType="orgCfgVO">
+		/*
+			 SQL ID : OrgCfgDAO.select
+			 설  명 : 기관 설정 정보 사용 가능 여부 체크
+	 	*/
+	 	SELECT CASE WHEN COUNT(*) = 0 THEN 'Y' ELSE 'N' END AS isUseable
+          FROM TB_ORG_CFG
+         WHERE ORG_ID = #{orgId}
+           AND CD = #{cfgCtgrCd}
+           <!-- AND STNG_CD = #{cfgCd} -->
+	</select>
+	
+	<insert id="insert" parameterType="orgCfgVO" >
+		/*
+			 SQL ID : OrgCfgDAO.insert
+			 설  명 : 기관 설정 정보의 정보 등록
+	 	*/
+		INSERT INTO TB_ORG_CFG (
+		       ORG_ID
+		     , STNG_CD
+		     , STNG_CTGRCD
+		     , STNGNM
+		     , STNG_VL
+		     , STNG_EXPLN
+		     , USEYN
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		) VALUES (
+		       #{orgId}
+		     , #{cfgCd}
+		     , #{cfgCtgrCd}
+		     , #{cfgNm}
+		     , #{cfgVal}
+		     , #{cfgDesc}
+		     , #{useYn}
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		)	 	
+	</insert>
+	
+	<update id="update" parameterType="orgCfgVO" >
+		/*
+			 SQL ID : OrgCfgDAO.update
+			 설  명 : 기관 설정 정보의 정보 수정
+	 	*/
+		UPDATE TB_ORG_CFG
+		   SET MOD_DTTM = FN_DTTM()
+		   	 , MDFR_ID = #{mdfrId}
+		   	 <if test='orgId != null and orgId != ""'> 
+		   	 , ORG_ID = #{orgId}
+		   	 </if>
+		   	 <if test='cfgNm != null and cfgNm != ""'> 
+		   	 , STNGNM = #{cfgNm}
+		   	 </if>
+		   	 <if test='cfgVal != null and cfgVal != ""'> 
+		     , STNG_VL = #{cfgVal}
+		     </if>
+		     <if test='cfgDesc != null and cfgDesc != ""'> 
+		     , STNG_EXPLN = #{cfgDesc}
+		     </if>
+		     <if test='useYn != null and useYn != ""'> 
+		     , USEYN = #{useYn}
+		     </if>
+		 WHERE STNG_CTGRCD = #{cfgCtgrCd}
+		   AND STNG_CD = #{cfgCd}
+		   AND ORG_ID = #{orgId}
+	</update>	
+
+	<delete id="delete" parameterType="orgCfgVO" >
+		/*
+			 SQL ID : OrgCfgDAO.delete
+			 설  명 : 기관 설정 정보의 정보 삭제
+	 	*/	
+		DELETE FROM TB_ORG_CFG
+		 WHERE STNG_CTGRCD = #{cfgCtgrCd}
+		   AND STNG_CD = #{cfgCd}
+		   AND ORG_ID = #{orgId}
+	</delete>
+
+	<delete id="deleteAll" parameterType="orgCfgVO" >
+		/*
+			 SQL ID : OrgCfgDAO.deleteAll
+			 설  명 : 기관 분류 하위의 전체 코드 정보를 삭제
+	 	*/	
+		DELETE FROM TB_ORG_CFG
+		 WHERE STNG_CTGRCD = #{cfgCtgrCd}
+		   AND ORG_ID = #{orgId}
+	</delete>
+
+</mapper>

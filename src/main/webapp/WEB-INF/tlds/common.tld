@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://java.sun.com/xml/ns/j2ee
+            http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+        version="2.0">
+
+    <!-- 태그 라이브러리 정보 -->
+    <tlib-version>1.0</tlib-version>
+    <short-name>common</short-name>
+    <uri>http://localhost/common</uri> <!-- TODO: 차후 변경해야함. -->
+
+    <!-- EL Function 정의 -->
+    <function>
+        <name>defaultIfEmpty</name>
+        <function-class>knou.framework.tlds.CommonTag</function-class>
+        <function-signature>
+            java.lang.String defaultIfEmpty(java.lang.Object, java.lang.String)
+        </function-signature>
+    </function>
+
+
+
+	<function>
+        <name>dateFormat</name>
+        <function-class>knou.framework.tlds.CommonTag</function-class>
+        <function-signature>
+            java.lang.String dateFormat(java.lang.String, java.lang.String)
+        </function-signature>
+    </function>
+    
+</taglib>

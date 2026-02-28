@@ -1,0 +1,1267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.bbs.dao.BbsInfoDAO">
+
+	<select id="selectBbsInfo" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.selectBbsInfo
+             설  명 : 게시판 정보
+         */
+		SELECT
+			  A.*
+			, B.SBJCT_YR
+			, B.SBJCT_SMSTR
+			, B.CRS_ID
+		FROM (
+			SELECT
+				  A.BBS_ID
+				, A.ORG_ID
+				, A.BBSNM AS atclTitle
+				, A.BBS_EXPLN
+				, A.BBS_TYCD
+				, A.BBS_LANG_CD
+				, A.MENU_ID
+				, A.MN_IMG_FILE_ID
+				, A.ATFL_MAX_CNT
+				, A.ATFL_MAXSZ
+				, A.LIST_CNT
+				, A.DELYN
+				, A.RGTR_ID
+				, A.REG_DTTM
+				, A.MDFR_ID
+				, A.MOD_DTTM
+				, CASE
+					WHEN A.BBS_REF_TYCD = 'TEAM' THEN (SELECT AA.SBJCT_OFRNG_ID FROM TB_LMS_TEAM_GRP AA WHERE AA.LRN_GRP_ID = (SELECT BBS_REF_TYPE_ID FROM TB_LMS_BBS WHERE BBS_ID = #{bbsId}))
+					ELSE A.BBS_REF_TYPE_ID
+				  END AS SBJCT_ID
+			FROM TB_LMS_BBS A
+			WHERE 1=1
+				AND A.DELYN = 'N'
+				AND A.BBS_LANG_CD = #{langCd}
+				AND A.ORG_ID = #{orgId}
+			<if test="bbsId != null and bbsId != ''">
+				AND A.BBS_ID = #{bbsId}
+			</if>
+		) A
+		LEFT JOIN TB_LMS_SBJCT B
+			ON A.SBJCT_ID = B.SBJCT_ID
+	</select>
+
+	<sql id="listQuery">
+<!-- 		SELECT
+			  ROW_NUMBER() OVER(ORDER BY CASE WHEN A.SYS_BSC_PVSNYN = 'Y' THEN 1 ELSE 0 END, A.FRST_INQ_DTTM DESC) AS LINE_NO
+			, A.BBS_ID
+			, A.ORG_ID
+			, A.BBS_ID
+			, NVL(B.BBSNM, A.BBSNM) AS BBSNM
+			, NVL(B.BBS_EXPLN, A.BBS_EXPLN) AS BBS_EXPLN
+			, A.BBS_TYCD
+			, A.BBS_BSC_LANG_CD
+			, A.MENU_ID
+			, A.MN_IMG_FILE_ID
+			, A.SYS_USEYN
+			, A.SYS_BSC_PVSNYN
+			, A.WRT_USEYN
+			, A.CMNT_USEYN
+			, A.CMNT_USEYN
+			, A.NTC_USEYN
+			, A.FVRT_USEYN
+			, A.ATFL_USEYN
+			, A.ATFL_MAX_CNT
+			, A.ATFL_MAXSZ
+			, A.ATCH_DOC_TRSF_USEYN
+			, A.EDTR_USEYN
+			, A.MBL_USEYN
+			, A.SECRET_ATCL_USEYN
+			, A.VWR_USEYN
+			, A.NMBR_INQYN
+			, A.NMBR_REGYN
+			, A.HDR_USEYN
+			, A.LIST_CNT
+			, A.USEYN
+			, A.DELYN
+			, A.LOCK_USEYN
+			, A.UNIV_CD
+			, A.STDNT_INQYN
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL WHERE BBS_ID = A.BBS_ID AND UP_ATCL_ID IS NULL AND DELYN = 'N') AS ATCL_CNT
+			, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'BBS_TYCD' AND CD = A.BBS_TYCD) AS BBS_TYPE_NM
+			, CASE WHEN A.BBS_ID = 'TEAM' THEN (SELECT TEAM_TYCD FROM TB_LMS_TEAM WHERE TEAM_ID = C.RLTN_REF_CD) ELSE NULL END AS TEAM_TYCD
+			, CASE WHEN A.BBS_ID = 'TEAM' THEN C.RLTN_REF_CD ELSE NULL END AS TEAM_ID
+			, CASE WHEN A.BBS_ID = 'TEAM' THEN
+				(
+					SELECT AA.SBJCT_ID
+					FROM TB_LMS_TEAM_CTGR AA
+					JOIN TB_LMS_TEAM BB
+					ON AA.TEAM_TYCD = BB.TEAM_TYCD
+					AND BB.TEAM_ID = C.RLTN_REF_CD
+				)
+				ELSE C.RLTN_REF_CD
+			END AS SBJCT_ID
+			, CASE WHEN A.BBS_ID = 'TEAM' THEN TC.SBJCT_ID ELSE C.RLTN_REF_CD END AS SBJCT_ID
+		FROM TB_LMS_BBS A
+		LEFT JOIN TB_HOME_BBS_INFO_LANG B
+		ON A.BBS_ID = B.BBS_ID
+		AND B.LANG_CD = #{langCd}
+		LEFT JOIN TB_HOME_BBS_RLTN C
+		ON A.BBS_ID = C.BBS_ID
+		AND C.CONTS_TYCD = CASE WHEN A.BBS_ID = 'TEAM' THEN 'TEAM' ELSE 'COURSE' END
+		AND A.DELYN = 'N'
+		LEFT JOIN (
+			SELECT
+				B.TEAM_ID,
+				A.SBJCT_ID
+			FROM TB_LMS_TEAM_CTGR A
+			JOIN TB_LMS_TEAM B ON A.TEAM_TYCD = B.TEAM_TYCD
+		) TC ON TC.TEAM_ID = C.RLTN_REF_CD AND A.BBS_ID = 'TEAM'
+		WHERE A.ORG_ID = #{orgId}
+		<if test="bbsId != null and bbsId != ''">
+		AND A.BBS_ID = #{bbsId}
+		</if>
+		<if test="bbsCd != null and bbsCd != ''">
+		AND A.BBS_ID = #{bbsCd}
+		</if>
+		<if test="sysUseYn != null and sysUseYn != ''">
+		AND A.SYS_USEYN = #{sysUseYn}
+		</if>
+		<if test="sysDefaultYn != null and sysDefaultYn != ''">
+		AND A.SYS_BSC_PVSNYN = #{sysDefaultYn}
+		</if>
+		<if test="useYn != null and useYn != ''">
+		AND A.USEYN = #{useYn}
+		</if>
+		<if test="crsCreCd != null and crsCreCd != ''">
+		AND (
+			   (C.CONTS_TYCD = 'COURSE' AND C.RLTN_REF_CD = #{crsCreCd})
+			OR (C.CONTS_TYCD = 'TEAM' AND EXISTS (
+				   SELECT 1
+				   FROM TB_LMS_TEAM_CTGR
+				   WHERE TEAM_TYCD = (SELECT TEAM_TYCD FROM TB_LMS_TEAM WHERE TEAM_ID = C.RLTN_REF_CD)
+				   AND SBJCT_ID = #{crsCreCd}
+				)
+			)
+		)
+		</if>
+		<if test="searchValue != null and searchValue != ''">
+		AND (
+			   LOWER(NVL(B.BBSNM, A.BBSNM)) LIKE LOWER('%' || #{searchValue} || '%')
+			OR LOWER((SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID)) LIKE LOWER('%' || #{searchValue} || '%')
+		)
+		</if> -->
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.REG_DTTM ) AS LINE_NO
+			, A.BBS_ID
+			, A.ORG_ID
+			, A.SBJCT_ID
+			, A.BBSNM
+			, A.BBS_EXPLN
+			, A.BBS_TYCD
+			, A.BBS_BSC_LANG_CD
+			, A.MENU_CD
+			, A.MN_IMG_FILE_ID
+			<!-- , A.SYS_USEYN
+			, A.SYS_BSC_PVSNYN
+			, A.WRT_USEYN
+			, A.CMNT_USEYN
+			, A.CMNT_USEYN
+			, A.NTC_USEYN
+			, A.FVRT_USEYN -->
+			, A.ATFL_USEYN
+			, A.ATFL_MAX_CNT
+			, A.ATFL_MAXSZ
+			<!-- , A.ATCH_DOC_TRSF_USEYN
+			, A.EDTR_USEYN
+			, A.MBL_USEYN
+			, A.SECRET_ATCL_USEYN
+			, A.VWR_USEYN
+			, A.NMBR_INQYN
+			, A.NMBR_REGYN
+			, A.HDR_USEYN -->
+			, A.LIST_CNT
+			<!-- , A.USEYN -->
+			, A.DELYN
+			<!-- , A.LOCK_USEYN
+			, A.UNIV_ID
+			, A.STDNT_INQYN -->
+			, A.RGTR_ID
+			, A.REG_DTTM
+			<!-- , A.FRST_INQ_DTTM -->
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL WHERE BBS_ID = A.BBS_ID AND UP_ATCL_ID IS NULL) AS ATCL_CNT
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE ORG_ID = A.ORG_ID AND UP_CD = 'BBS_TYCD' AND CD = A.BBS_TYCD) AS BBS_TYPE_NM
+			<!-- , CASE WHEN A.BBS_ID = 'TEAM' THEN (SELECT TEAM_TYCD FROM TB_LMS_TEAM WHERE TEAM_ID = C.RLTN_REF_CD) ELSE NULL END AS TEAM_TYCD -->
+			, CASE WHEN A.BBS_REF_TYCD = 'TEAM' THEN B.TEAM_CTGRCD ELSE NULL END AS TEAM_TYCD
+			, CASE WHEN A.BBS_REF_TYCD = 'TEAM' THEN A.BBS_REF_TYPE_ID ELSE NULL END AS TEAM_ID
+			, CASE WHEN A.BBS_REF_TYCD = 'TEAM' THEN B.SBJCT_ID ELSE A.BBS_REF_TYPE_ID	END AS SBJCT_ID
+		FROM TB_LMS_BBS A
+		LEFT JOIN (
+			SELECT TEAM_ID, SBJCT_ID, TEAM_CTGRCD
+			FROM TB_LMS_TEAM) B
+			ON B.TEAM_ID = A.BBS_REF_TYPE_ID AND A.BBS_REF_TYCD = 'TEAM'
+		WHERE 1=1
+			AND A.ORG_ID = #{orgId}
+			AND A.BBS_BSC_LANG_CD = #{langCd}
+			AND A.DELYN = 'N'
+		<if test="bbsId != null and bbsId != ''">
+			AND A.BBS_ID = #{bbsId}
+		</if>
+		<if test="sbjctId != null and sbjctId != ''">
+			<!-- AND (
+				   (A.BBS_REF_TYCD = 'COURSE' AND A.BBS_REF_TYPE_ID = #{sbjctId})
+				OR (A.BBS_REF_TYCD = 'TEAM' AND EXISTS (SELECT 1 FROM TB_LMS_TEAM WHERE TEAM_ID = A.BBS_REF_TYPE_ID AND SBJCT_ID = #{sbjctId}))
+				) -->
+			A.SBJCT_ID = #{sbjctId}
+		</if>
+		<if test="searchValue != null and searchValue != ''">
+			AND (
+				   LOWER(A.BBSNM) LIKE LOWER('%' || #{searchValue} || '%')
+				OR LOWER((
+					SELECT USERNM
+					FROM TB_LMS_USER_ACNT
+					JOIN TB_LMS_USER_PRFIL ON USER_ID = USER_PRFIL_ID
+					WHERE USER_ACNT_ID = A.RGTR_ID
+				)) LIKE LOWER('%' || #{searchValue} || '%')
+			)
+		</if>
+	</sql>
+
+	<select id="countBbsInfo" parameterType="bbsInfoVO" resultType="Integer">
+		/*
+             SQL ID : BbsInfoDAO.countBbsInfo
+             설  명 : 게시판 목록 수
+         */
+		SELECT COUNT(1) FROM (
+			<include refid="listQuery" />
+		) Z
+	</select>
+
+	<select id="listBbsInfo" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.listBbsInfo
+             설  명 : 게시판 목록
+         */
+		<include refid="listQuery" />
+	</select>
+
+	<select id="listBbsInfoPaging" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.listBbsInfoPaging
+             설  명 : 게시판 목록 페이징
+         */
+		<include refid="CommonSQL.pagePrefix" />
+		<include refid="listQuery" />
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
+
+	<insert id="insertBbsInfo" parameterType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.insertBbsInfo
+             설  명 : 게시판 정보 저장
+         */
+		<!-- INSERT INTO TB_LMS_BBS (
+			  BBS_ID
+			, ORG_ID
+			, BBS_ID
+			, BBSNM
+			, BBS_EXPLN
+			, BBS_TYCD
+			, BBS_BSC_LANG_CD
+			, MENU_ID
+			, MN_IMG_FILE_ID
+			, SYS_USEYN
+			, SYS_BSC_PVSNYN
+			, WRT_USEYN
+			, CMNT_USEYN
+			, CMNT_USEYN
+			, NTC_USEYN
+			, FVRT_USEYN
+			, ATFL_USEYN
+			, ATFL_MAX_CNT
+			, ATFL_MAXSZ
+			, ATCH_DOC_TRSF_USEYN
+			, EDTR_USEYN
+			, MBL_USEYN
+			, SECRET_ATCL_USEYN
+			, VWR_USEYN
+			, NMBR_INQYN
+			, NMBR_REGYN
+			, HDR_USEYN
+			, LIST_CNT
+			, USEYN
+			, DELYN
+			, LOCK_USEYN
+			, STDNT_INQYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		) VALUES (
+			  #{bbsId}
+			, #{orgId}
+			, #{bbsCd}
+			, #{bbsNm}
+			, #{bbsDesc}
+			, #{bbsTypeCd}
+			, #{dfltLangCd}
+			, #{menuCd}
+			, #{mainImgFileSn}
+			, #{sysUseYn}
+			, #{sysDefaultYn}
+			, #{writeUseYn}
+			, NVL(#{cmntUseYn}, 'N')
+			, #{ansrUseYn}
+			, #{notiUseYn}
+			, #{goodUseYn}
+			, #{atchUseYn}
+			, #{atchFileCnt}
+			, #{atchFileSizeLimit}
+			, #{atchCvsnUseYn}
+			, #{editorUseYn}
+			, #{mobileUseYn}
+			, #{secrtAtclUseYn}
+			, #{viwrUseYn}
+			, #{nmbrViewYn}
+			, #{nmbrCreYn}
+			, #{headUseYn}
+			, #{listViewCnt}
+			, 'Y'
+			, #{delYn}
+			, #{lockUseYn}
+			, NVL(#{stdViewYn}, 'N')
+			, #{rgtrId}
+			, FN_DTTM()
+		) -->
+		INSERT INTO TB_LMS_BBS (
+			  BBS_ID
+	        , ORG_ID
+	        , SBJCT_ID
+	        , BBS_REF_TYPE_ID
+	        , BBS_REF_TYCD
+	        , BBSNM
+	        , BBS_ENNM
+	        , BBS_EXPLN
+	        , BBS_TYCD
+	        , BBS_BSC_LANG_CD
+	        , MENU_CD
+	        , MN_IMG_FILE_ID
+	        , LIST_CNT
+	        , ATFL_MAX_CNT
+	        , ATFL_MAXSZ
+	        , ATFL_USEYN
+	        , UNIV_ID
+	        , DELYN
+	        , RGTR_ID
+	        , REG_DTTM
+	    ) VALUES (
+	          #{bbsId}
+	        , #{orgId}
+	        , #{sbjctId}
+	        , #{bbsRefTypeId}
+	        , #{bbsRefTycd}
+	        , #{bbsNm}
+	        , #{bbsEnNm}
+	        , #{bbsExpln}
+	        , #{bbsTycd}
+	        , #{bbsBscLangCd}
+	        , #{menuCd}
+	        , #{mnImgFileId}
+	        , #{listCnt}
+	        , #{atflMaxCnt}
+	        , #{atflMaxsz}
+	        , #{atflUseyn}
+	        , #{univId}
+	        , #{delyn}
+	        , #{rgtrId}
+	        , FN_DTTM()
+	    )
+	</insert>
+
+	<update id="updateBbsInfo" parameterType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.updateBbsInfo
+             설  명 : 게시판 수정
+         */
+		UPDATE TB_LMS_BBS
+		SET
+			<!-- , ORG_ID				= #{orgId} -->
+			  BBS_ID			= #{bbsId}
+			, BBSNM				= #{bbsNm}
+			<!-- , BBS_EXPLN			= #{bbsExpln} -->
+			, BBS_TYCD			= #{bbsRefTyCd}
+			, BBS_BSC_LANG_CD	= #{bbsBscLangCd}
+			<!-- , MENU_ID				= #{menuCd} -->
+			<!-- , MN_IMG_FILE_ID		= #{mnImgFileId} -->
+			<!-- , SYS_USEYN			= #{sysUseYn} -->
+			<!-- , SYS_BSC_PVSNYN		= #{sysDefaultYn} -->
+			<!-- , WRT_USEYN			= #{writeUseYn} -->
+			<!-- , CMNT_USEYN		= #{cmntUseYn} -->
+			<!-- , CMNT_USEYN		= #{ansrUseYn} -->
+			<!-- , NTC_USEYN			= #{notiUseYn} -->
+			<!-- , FVRT_USEYN			= #{goodUseYn} -->
+			, ATFL_USEYN			= #{atflUseyn}
+			, ATFL_MAX_CNT			= #{atflMaxCnt}
+			, ATFL_MAXSZ			= #{atflMaxSz}
+			<!-- , ATCH_DOC_TRSF_USEYN	= #{atchCvsnUseYn} -->
+			<!-- , EDTR_USEYN			= #{editorUseYn} -->
+			<!-- , MBL_USEYN			= #{mobileUseYn} -->
+			<!-- , SECRET_ATCL_USEYN	= #{secrtAtclUseYn} -->
+			<!-- , VWR_USEYN			= #{viwrUseYn} -->
+			<!-- , NMBR_INQYN			= #{nmbrViewYn} -->
+			<!-- , NMBR_REGYN			= #{nmbrCreYn} -->
+			<!-- , HDR_USEYN			= #{headUseYn} -->
+			<!-- , LIST_CNT				= #{listCnt} -->
+			<!-- , USEYN				= #{useYn} -->
+			<!-- , DELYN				= #{delYn} -->
+			<!-- , LOCK_USEYN			= #{lockUseYn} -->
+			<!-- , STDNT_INQYN			= #{stdViewYn} -->
+			, MDFR_ID				= #{mdfrId}
+			, MOD_DTTM				= FN_DTTM()
+		WHERE BBS_ID = #{bbsId}
+	</update>
+
+	<delete id="deleteBbsInfo" parameterType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.deleteBbsInfo
+             설  명 : 게시판 삭제
+         */
+		DELETE FROM TB_LMS_BBS
+		WHERE BBS_ID = #{bbsId}
+	</delete>
+
+	<update id="updateBbsInfoStdViewYn" parameterType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.updateBbsInfoStdViewYn
+             설  명 : 게시판 학생 공개 여부 수정
+         */
+		UPDATE TB_LMS_BBS
+		SET
+			  STDNT_INQYN	= #{stdViewYn}
+			, MDFR_ID		= #{mdfrId}
+			, MOD_DTTM		= FN_DTTM()
+		WHERE BBS_ID = #{bbsId}
+	</update>
+
+	<update id="updateBbsInfoUseYn" parameterType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.updateBbsInfoUseYn
+             설  명 : 게시판 사용여부 수정
+         */
+		UPDATE TB_LMS_BBS
+		SET
+			  USEYN		= #{useYn}
+			, MDFR_ID	= #{mdfrId}
+			, MOD_DTTM	= FN_DTTM()
+		WHERE BBS_ID	= #{bbsId}
+	</update>
+
+	<select id="listBbsInfoCourseTab" parameterType="egovMap" resultType="egovMap">
+		/*
+             SQL ID : BbsInfoDAO.listBbsInfoCourseTab
+             설  명 : 게시판 강의실 탭
+         */
+		<!-- SELECT
+			  A.BBS_ID
+			, NVL(B.BBSNM, A.BBSNM) AS BBSNM
+
+
+			, (
+				SELECT COUNT(1)
+				FROM TB_LMS_BBS_ATCL AA
+				LEFT JOIN TB_HOME_BBS_RLTN BB
+				ON AA.BBS_ID = BB.BBS_ID
+				AND BB.CONTS_TYCD = CASE WHEN A.BBS_ID = 'TEAM' THEN 'TEAM' ELSE 'COURSE' END
+				WHERE AA.BBS_ID = A.BBS_ID
+				AND AA.UP_ATCL_ID IS NULL
+				AND AA.DELYN = 'N'
+			<if test='learnerViewModeYn != null and learnerViewModeYn == "Y"'>
+				AND (
+					   AA.RSRV_USEYN = 'N'
+					OR AA.RSRV_DTTM <![CDATA[ <= ]]> FN_DTTM()
+				)
+				AND (
+					   AA.LOCKYN = 'N'
+					OR AA.RGTR_ID = #{viewerNo}
+				)
+				AND (
+				   	   A.BBS_ID != 'TEAM'
+					OR (
+						    A.BBS_ID = 'TEAM'
+						AND EXISTS (
+							SELECT 1
+							FROM TB_LMS_TEAM_MBR
+							WHERE TEAM_ID = BB.RLTN_REF_CD
+							AND USER_ID = #{viewerNo}
+						)
+					)
+				)
+			</if>
+			) AS TOTAL_CNT
+
+
+
+
+			, CASE WHEN BBS_ID = 'QNA' OR BBS_ID = 'SECRET' THEN (
+				SELECT COUNT(1)
+				FROM TB_LMS_BBS_ATCL AA
+				WHERE AA.BBS_ID = A.BBS_ID
+				AND AA.DELYN = 'N'
+				AND AA.UP_ATCL_ID IS NULL
+				AND NOT EXISTS (
+					SELECT 1
+					FROM TB_LMS_BBS_ATCL
+					WHERE BBS_ID = AA.BBS_ID
+					AND UP_ATCL_ID = AA.ATCL_ID
+					AND DELYN = 'N'
+				)
+			<if test='learnerViewModeYn != null and learnerViewModeYn == "Y"'>
+				AND (
+					   AA.RSRV_USEYN = 'N'
+					OR AA.RSRV_DTTM <![CDATA[ <= ]]> FN_DTTM()
+				)
+				AND (
+					   AA.LOCKYN = 'N'
+					OR AA.RGTR_ID = #{viewerNo}
+				)
+			</if>
+			) ELSE 0 END AS NO_ANSWER_ATCL_CNT
+		FROM TB_LMS_BBS A
+		LEFT JOIN TB_HOME_BBS_INFO_LANG B
+		ON A.BBS_ID = B.BBS_ID
+		AND B.LANG_CD = #{langCd}
+		WHERE A.DELYN = 'N'
+		AND A.USEYN = 'Y'
+		AND A.ORG_ID = #{orgId}
+	<if test="bbsId != null and bbsId != ''">
+		AND A.BBS_ID = #{bbsId}
+	</if>
+	<if test="bbsCd != null and bbsCd != ''">
+<choose>
+	<when test="bbsCd == 'TEAM'">
+		AND A.BBS_ID = #{bbsCd}
+		AND A.BBS_ID IN (
+			SELECT BBS_ID
+			FROM TB_HOME_BBS_RLTN AA
+			WHERE AA.CONTS_TYCD = 'TEAM'
+			AND AA.RLTN_REF_CD IN (
+				SELECT TEAM_ID
+				FROM TB_LMS_TEAM AAA
+				WHERE AAA.TEAM_ID = AA.RLTN_REF_CD
+				AND AAA.TEAM_TYCD IN (
+					SELECT TEAM_TYCD
+					FROM TB_LMS_TEAM_CTGR AAAA
+					WHERE AAAA.TEAM_TYCD = AAA.TEAM_TYCD
+					AND AAAA.ORG_ID = #{orgId}
+					AND AAAA.SBJCT_ID = #{crsCreCd}
+				)
+			)
+		)
+	</when>
+	<otherwise>
+		AND A.BBS_ID = #{bbsCd}
+		AND A.SYS_USEYN = 'N'
+		AND A.SYS_BSC_PVSNYN = 'Y'
+		AND EXISTS (
+			SELECT 1
+			FROM TB_HOME_BBS_RLTN
+			WHERE BBS_ID = A.BBS_ID
+			AND CONTS_TYCD = 'COURSE'
+			AND RLTN_REF_CD = #{crsCreCd}
+		)
+	</otherwise>
+</choose>
+	</if> -->
+	SELECT
+		  A.BBS_ID
+		, A.BBS_ID
+		, NVL(B.BBSNM, A.BBSNM) AS BBSNM
+		, NVL(TOTAL.TOTAL_CNT, 0) AS TOTAL_CNT
+		, CASE
+			WHEN A.BBS_ID IN ('QNA', 'SECRET') THEN NVL(NO_ANS.NO_ANSWER_ATCL_CNT, 0)
+			ELSE 0
+		  END AS NO_ANSWER_ATCL_CNT
+	FROM TB_LMS_BBS A
+	LEFT JOIN TB_HOME_BBS_INFO_LANG B
+		ON A.BBS_ID = B.BBS_ID AND B.LANG_CD = 'ko'
+
+	-- 🔹 게시글 총 건수
+	LEFT JOIN (
+		SELECT AA.BBS_ID,
+			   COUNT(1) AS TOTAL_CNT
+		FROM TB_LMS_BBS_ATCL AA
+		LEFT JOIN TB_HOME_BBS_RLTN BB
+			ON AA.BBS_ID = BB.BBS_ID
+			AND BB.CONTS_TYCD IN ('TEAM', 'COURSE') -- 필요 시 조정
+		WHERE AA.UP_ATCL_ID IS NULL
+		  AND AA.DELYN = 'N'
+		  <if test='learnerViewModeYn != null and learnerViewModeYn == "Y"'>
+			AND (
+				   AA.RSRV_USEYN = 'N'
+				OR AA.RSRV_DTTM <![CDATA[ <= ]]> FN_DTTM()
+			)
+			AND (
+				   AA.LOCKYN = 'N'
+				OR AA.RGTR_ID = #{viewerNo}
+			)
+			AND (
+			   	   A.BBS_ID != 'TEAM'
+				OR (
+					    A.BBS_ID = 'TEAM'
+					AND EXISTS (
+						SELECT 1
+						FROM TB_LMS_TEAM_MBR
+						WHERE TEAM_ID = BB.RLTN_REF_CD
+						AND USER_ID = #{viewerNo}
+					)
+				)
+			)
+		</if>
+		GROUP BY AA.BBS_ID
+	) TOTAL
+		ON A.BBS_ID = TOTAL.BBS_ID
+
+	-- 🔹 미답변 게시글 건수
+	LEFT JOIN (
+		SELECT AA.BBS_ID,
+			   COUNT(1) AS NO_ANSWER_ATCL_CNT
+		FROM TB_LMS_BBS_ATCL AA
+		WHERE AA.DELYN = 'N'
+		  AND AA.UP_ATCL_ID IS NULL
+		  AND NOT EXISTS (
+			  SELECT 1 FROM TB_LMS_BBS_ATCL BB
+			  WHERE BB.BBS_ID = AA.BBS_ID
+				AND BB.UP_ATCL_ID = AA.ATCL_ID
+				AND BB.DELYN = 'N'
+		  )
+		  <if test='learnerViewModeYn != null and learnerViewModeYn == "Y"'>
+			AND (
+				   AA.RSRV_USEYN = 'N'
+				OR AA.RSRV_DTTM <![CDATA[ <= ]]> FN_DTTM()
+			)
+			AND (
+				   AA.LOCKYN = 'N'
+				OR AA.RGTR_ID = #{viewerNo}
+			)
+		</if>
+		GROUP BY AA.BBS_ID
+	) NO_ANS
+		ON A.BBS_ID = NO_ANS.BBS_ID
+
+	WHERE A.DELYN = 'N'
+	  AND A.USEYN = 'Y'
+	  AND A.ORG_ID = #{orgId}
+	  <if test="bbsId != null and bbsId != ''">
+		AND A.BBS_ID = #{bbsId}
+	  </if>
+	  <if test="bbsCd != null and bbsCd != ''">
+	  <choose>
+		<when test="bbsCd == 'TEAM'">
+	  AND A.BBS_ID = 'TEAM'
+	  AND A.BBS_ID IN (
+		SELECT BBS_ID
+		FROM TB_HOME_BBS_RLTN AA
+		WHERE AA.CONTS_TYCD = 'TEAM'
+		  AND AA.RLTN_REF_CD IN (
+			  SELECT TEAM_ID
+			  FROM TB_LMS_TEAM AAA
+			  WHERE AAA.TEAM_ID = AA.RLTN_REF_CD
+				AND AAA.TEAM_TYCD IN (
+					SELECT TEAM_TYCD
+					FROM TB_LMS_TEAM_CTGR AAAA
+					WHERE AAAA.TEAM_TYCD = AAA.TEAM_TYCD
+					  AND AAAA.ORG_ID = #{orgId}
+					  AND AAAA.SBJCT_ID = #{crsCreCd}
+				)
+		  )
+	  )
+	  </when>
+		<otherwise>
+			AND A.BBS_ID = #{bbsCd}
+			AND A.SYS_USEYN = 'N'
+			AND A.SYS_BSC_PVSNYN = 'Y'
+			AND EXISTS (
+				SELECT 1
+				FROM TB_HOME_BBS_RLTN
+				WHERE BBS_ID = A.BBS_ID
+				AND CONTS_TYCD = 'COURSE'
+				AND RLTN_REF_CD = #{crsCreCd}
+			)
+		</otherwise>
+	</choose>
+		</if>
+	</select>
+
+	<select id="listBbsInfoCourseAlarmTab" parameterType="egovMap" resultType="egovMap">
+		/*
+             SQL ID : BbsInfoDAO.listBbsInfoCourseAlarmTab
+             설  명 : 게시판 강의실 알림터 탭
+         */
+		WITH BBS_ODR AS (
+			SELECT 1 AS ODR, 'NOTICE' AS BBS_ID FROM DUAL
+		    UNION ALL SELECT 2, 'QNA' FROM DUAL
+		    UNION ALL SELECT 3, 'SECRET' FROM DUAL
+		    UNION ALL SELECT 4, 'PDS' FROM DUAL
+		)
+		SELECT
+			  BBS_ID,
+			  CASE WHEN LINE_NO IS NULL THEN NULL ELSE BBS_ID END AS BBS_ID,
+			  CASE WHEN LINE_NO IS NULL THEN NULL ELSE BBSNM END AS BBSNM,
+			  TOTAL_CNT,
+			  NO_ANSWER_ATCL_CNT,
+			  CASE WHEN LINE_NO IS NULL THEN NULL ELSE SYS_USEYN END AS SYS_USEYN
+		FROM (
+			SELECT
+			      LINE_NO
+			    , LISTAGG(A.BBS_ID, ',') WITHIN GROUP (ORDER BY A.BBS_ID) AS BBS_ID
+				, MIN(A.BBS_ID) AS BBS_ID
+				, MIN(A.BBSNM) AS BBSNM
+				, SUM(A.TOTAL_CNT) AS TOTAL_CNT
+				, SUM(A.NO_ANSWER_ATCL_CNT) AS NO_ANSWER_ATCL_CNT
+				, MIN(A.SYS_USEYN) AS SYS_USEYN
+			FROM (
+				SELECT
+					  ROW_NUMBER() OVER(ORDER BY CASE WHEN A.SYS_USEYN = 'N' THEN (SELECT ODR FROM BBS_ODR WHERE BBS_ID = A.BBS_ID) ELSE 9999 END) AS LINE_NO
+					, A.BBS_ID
+					, A.BBS_ID
+					, A.BBSNM
+					, A.TOTAL_CNT
+					, A.NO_ANSWER_ATCL_CNT
+					, A.SYS_USEYN
+				FROM (
+					SELECT
+						  A.BBS_ID
+						, A.BBS_ID
+						, NVL(C.BBSNM, A.BBSNM) AS BBSNM
+						, (
+							SELECT COUNT(1)
+							FROM TB_LMS_BBS_ATCL
+							WHERE BBS_ID = A.BBS_ID
+							AND UP_ATCL_ID IS NULL
+							AND DELYN = 'N'
+						<if test='learnerViewModeYn != null and learnerViewModeYn == "Y"'>
+							AND (
+								   RSRV_USEYN = 'N'
+								OR RSRV_DTTM <![CDATA[ <= ]]> FN_DTTM()
+							)
+							AND (
+								   LOCKYN = 'N'
+								OR RGTR_ID = #{viewerNo}
+							)
+						</if>
+						) AS TOTAL_CNT
+						, CASE WHEN A.BBS_ID IN ('QNA', 'SECRET') THEN
+							(
+								SELECT COUNT(1)
+								FROM TB_LMS_BBS_ATCL AA
+								WHERE AA.BBS_ID = A.BBS_ID
+								AND AA.UP_ATCL_ID IS NULL
+								AND AA.DELYN = 'N'
+								AND NOT EXISTS (
+									SELECT 1
+									FROM TB_LMS_BBS_ATCL
+									WHERE BBS_ID = AA.BBS_ID
+									AND UP_ATCL_ID = AA.ATCL_ID
+									AND DELYN = 'N'
+								)
+							<if test='learnerViewModeYn != null and learnerViewModeYn == "Y"'>
+								AND (
+									   AA.RSRV_USEYN = 'N'
+									OR AA.RSRV_DTTM <![CDATA[<=]]> FN_DTTM()
+								)
+								AND (
+									   AA.LOCKYN = 'N'
+									OR AA.RGTR_ID = #{viewerNo}
+								)
+							</if>
+							) ELSE 0
+						END AS NO_ANSWER_ATCL_CNT
+						, A.SYS_USEYN
+					FROM TB_LMS_BBS A
+					JOIN TB_HOME_BBS_RLTN B
+					ON A.BBS_ID = B.BBS_ID
+					AND B.CONTS_TYCD = 'COURSE'
+					AND B.RLTN_REF_CD = #{crsCreCd}
+					LEFT JOIN TB_HOME_BBS_INFO_LANG C
+					ON A.BBS_ID = C.BBS_ID
+					AND C.LANG_CD = #{langCd}
+					WHERE A.SYS_USEYN = 'N'
+					AND A.SYS_BSC_PVSNYN = 'Y'
+					AND A.DELYN = 'N'
+					AND A.USEYN = 'Y'
+					AND A.BBS_ID IN ('NOTICE', 'PDS', 'QNA', 'SECRET')
+					AND A.ORG_ID = #{orgId}
+					-- 전체공지 게시판
+					UNION ALL
+					SELECT
+						  A.BBS_ID
+						, NULL AS BBS_ID
+						, NVL(B.BBSNM, A.BBSNM) AS BBSNM
+						, (
+							SELECT COUNT(1)
+							FROM TB_LMS_BBS_ATCL
+							WHERE BBS_ID = A.BBS_ID
+							AND UP_ATCL_ID IS NULL
+							AND DELYN = 'N'
+						<if test='learnerViewModeYn != null and learnerViewModeYn == "Y"'>
+							AND (
+								   RSRV_USEYN = 'N'
+								OR RSRV_DTTM <![CDATA[<=]]> FN_DTTM()
+							)
+							AND (
+								   LOCKYN = 'N'
+								OR RGTR_ID = #{viewerNo}
+							)
+						</if>
+						) AS TOTAL_CNT
+						, 0 AS NO_ANSWER_ATCL_CNT
+						, A.SYS_USEYN
+					FROM TB_LMS_BBS A
+					LEFT JOIN TB_HOME_BBS_INFO_LANG B
+					ON A.BBS_ID = B.BBS_ID
+					AND B.LANG_CD = #{langCd}
+					WHERE A.BBS_ID = #{bbsId}
+					AND A.ORG_ID = #{orgId}
+				) A
+			) A
+			WHERE A.BBS_ID IS NOT NULL
+			GROUP BY ROLLUP(A.LINE_NO)
+		) A
+		ORDER BY A.LINE_NO
+	</select>
+
+	<select id="listBbsInfoCourseStudentTab" parameterType="egovMap" resultType="egovMap">
+		/*
+             SQL ID : BbsInfoDAO.listBbsInfoCourseStudentTab
+             설  명 : 게시판 강의실 학생 강의공지 탭
+         */
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY CASE WHEN A.GBN = 'COURSE' THEN 0 ELSE 1 END) AS LINE_NO
+			, A.BBS_ID
+			, A.BBS_ID
+			, A.BBSNM
+		FROM (
+			SELECT
+				  'COURSE' AS GBN
+				, A.BBS_ID
+				, A.BBS_ID
+				, NVL(C.BBSNM, A.BBSNM) AS BBSNM
+			FROM TB_LMS_BBS A
+			JOIN TB_HOME_BBS_RLTN B
+			ON A.BBS_ID = B.BBS_ID
+			AND B.CONTS_TYCD = 'COURSE'
+			AND B.RLTN_REF_CD = #{crsCreCd}
+			LEFT JOIN TB_HOME_BBS_INFO_LANG C
+			ON A.BBS_ID = C.BBS_ID
+			AND C.LANG_CD = #{langCd}
+			WHERE A.SYS_USEYN = 'N'
+			AND A.SYS_BSC_PVSNYN = 'Y'
+			AND A.DELYN = 'N'
+			AND A.USEYN = 'Y'
+			AND A.BBS_ID = 'NOTICE'
+			AND A.ORG_ID = #{orgId}
+			-- 전체공지 게시판
+			UNION ALL
+			SELECT
+				  'SYSTEM' AS GBN
+				, A.BBS_ID
+				, NULL AS BBS_ID
+				, NVL(B.BBSNM, A.BBSNM) AS BBSNM
+			FROM TB_LMS_BBS A
+			LEFT JOIN TB_HOME_BBS_INFO_LANG B
+			ON A.BBS_ID = B.BBS_ID
+			AND B.LANG_CD = #{langCd}
+			WHERE A.BBS_ID = #{bbsId}
+			AND A.ORG_ID = #{orgId}
+		) A
+	</select>
+
+	<select id="listBbsInfoCouncelProf" parameterType="bbsInfoVO" resultType="egovMap">
+		/*
+             SQL ID : BbsInfoDAO.listBbsInfoCouncelProf
+             설  명 : 게시판 상담교수 목록
+         */
+		SELECT
+			  C.USER_ID
+			, C.USERNM
+			, D.USER_ID
+		FROM TB_LMS_SBJCT A
+		JOIN SBJCT_PROF B
+		ON A.SBJCT_ID = B.SBJCT_ID
+		JOIN TB_LMS_USR C
+		ON B.USER_ID = C.USER_ID
+		AND C.ORG_ID = #{orgId}
+		JOIN TB_LMS_USER_ACNT D
+		ON B.USER_ID = D.USER_ID
+		AND D.ACNT_STSCD = 'U'
+		WHERE A.SBJCT_ID = #{crsCreCd}
+		  AND B.PROF_TYCD = 'PROFESSOR'
+	</select>
+
+	<select id="listBbsInfoDecls" parameterType="bbsInfoVO" resultType="egovMap">
+		/*
+             SQL ID : BbsInfoDAO.listBbsInfoDecls
+             설  명 : 게시판 분반 목록
+         */
+		SELECT
+			  A.SBJCT_ID
+			, A.SBJCTNM
+			, A.DVCLAS_NO
+		FROM (
+	        SELECT
+	        	  1 AS ODR
+	        	, A.SBJCT_ID
+				, A.SBJCTNM
+				, A.DVCLAS_NO
+	        FROM TB_LMS_SBJCT A
+	        WHERE A.SBJCT_ID = #{crsCreCd}
+	        UNION ALL
+			SELECT
+				  2 AS ODR
+				, A.SBJCT_ID
+				, A.SBJCTNM
+				, A.DVCLAS_NO
+			FROM TB_LMS_SBJCT A
+			JOIN SBJCT_PROF B
+			ON A.SBJCT_ID = B.SBJCT_ID
+			AND B.PROF_TYCD = 'PROFESSOR'
+			AND B.RPRSYN = 'Y'
+			JOIN TB_LMS_TERM_CRE_CRS_RLTN C
+			ON A.SBJCT_ID = C.SBJCT_ID
+			JOIN (
+				SELECT
+					  A.CRS_ID
+					, A.SBJCT_ID
+					, A.DVCLAS_NO
+					, B.USER_ID
+					, C.CRS_SMSTR_ID
+				FROM TB_LMS_SBJCT A
+				JOIN SBJCT_PROF B
+				ON A.SBJCT_ID = B.SBJCT_ID
+				AND B.PROF_TYCD = 'PROFESSOR'
+				AND B.RPRSYN = 'Y'
+				JOIN TB_LMS_TERM_CRE_CRS_RLTN C
+				ON A.SBJCT_ID = C.SBJCT_ID
+				WHERE A.SBJCT_ID = #{crsCreCd}
+			) D
+			ON A.CRS_ID = D.CRS_ID
+			AND C.CRS_SMSTR_ID = D.CRS_SMSTR_ID
+			AND B.USER_ID = D.USER_ID
+			AND A.SBJCT_ID != D.SBJCT_ID
+			WHERE A.DELYN = 'N'
+			AND A.USEYN = 'Y'
+			AND A.ATNDLC_CERT_STSCD != 'CLOSE'
+			AND EXISTS (
+				SELECT 1
+				FROM TB_HOME_BBS_RLTN AA
+				JOIN TB_LMS_BBS BB
+				ON AA.BBS_ID = BB.BBS_ID
+				AND BB.ORG_ID = #{orgId}
+				AND BB.DELYN = 'N'
+				AND BB.USEYN = 'Y'
+				WHERE AA.RLTN_REF_CD = A.SBJCT_ID
+				AND AA.CONTS_TYCD = 'COURSE'
+			)
+		) A
+		ORDER BY A.ODR, A.DVCLAS_NO
+	</select>
+
+	<select id="listQnaSecretCountByLsnOdr" parameterType="bbsInfoVO" resultType="egovMap">
+		/*
+             SQL ID : BbsInfoDAO.listQnaSecretCountByLsnOdr
+             설  명 : 게시판 문의, 상담 현황 목록
+         */
+		WITH LESSON_SCHEDULE_T AS (
+			-- 강의 주차
+			SELECT
+				  A.LCTR_SCHDL_ID
+			    , A.LCTR_SCHDL_SEQ
+			    , A.LCTR_SYMD
+			    , A.LCTR_EYMD
+			    , (
+			        SELECT COUNT(1)
+			        FROM TB_LMS_SBJCT_LCTR_SCHDL
+			        WHERE LCTR_EYMD <![CDATA[ < ]]> A.LCTR_SYMD
+					AND SBJCT_ID = A.SBJCT_ID
+					AND DELYN = 'N'
+			    ) + 1 AS GROUP_SEQ
+			FROM TB_LMS_SBJCT_LCTR_SCHDL A
+			WHERE A.SBJCT_ID = #{crsCreCd}
+			AND A.DELYN = 'N'
+		)
+		SELECT
+			  A.LESSON_SCHEDULE_ID_MIN
+			, A.LESSON_SCHEDULE_ID_MAX
+			, A.LESSON_SCHEDULE_ORDER_MIN
+			, A.LESSON_SCHEDULE_ORDER_MAX
+			, A.LESSON_START_DT_MIN
+			, A.LESSON_END_DT_MAX
+			, COUNT(B.ATCL_ID) AS ATCL_CNT
+		FROM (
+			SELECT
+			      A.GROUP_SEQ
+				, (SELECT LCTR_SCHDL_ID FROM LESSON_SCHEDULE_T WHERE GROUP_SEQ = A.GROUP_SEQ AND LCTR_SCHDL_SEQ = MIN(A.LCTR_SCHDL_SEQ)) AS LESSON_SCHEDULE_ID_MIN
+				, (SELECT LCTR_SCHDL_ID FROM LESSON_SCHEDULE_T WHERE GROUP_SEQ = A.GROUP_SEQ AND LCTR_SCHDL_SEQ = MAX(A.LCTR_SCHDL_SEQ)) AS LESSON_SCHEDULE_ID_MAX
+				, MIN(A.LCTR_SCHDL_SEQ) AS LESSON_SCHEDULE_ORDER_MIN
+				, MAX(A.LCTR_SCHDL_SEQ) AS LESSON_SCHEDULE_ORDER_MAX
+				, MIN(LCTR_SYMD) AS LESSON_START_DT_MIN
+				, MAX(LCTR_EYMD) AS LESSON_END_DT_MAX
+			FROM LESSON_SCHEDULE_T A
+			GROUP BY GROUP_SEQ
+		) A
+		LEFT JOIN (
+			SELECT
+				  A.ATCL_ID
+				, A.FRST_INQ_DTTM
+			FROM TB_LMS_BBS_ATCL A
+			JOIN TB_LMS_BBS B
+			ON A.BBS_ID = B.BBS_ID
+			AND B.SYS_USEYN = 'N'
+			AND B.SYS_BSC_PVSNYN = 'Y'
+			AND B.DELYN = 'N'
+			AND B.USEYN = 'Y'
+			AND B.ORG_ID = #{orgId}
+		<if test="bbsCd == 'QNA'">
+			AND B.BBS_ID = 'QNA'
+		</if>
+		<if test="bbsCd == 'SECRET'">
+			AND B.BBS_ID = 'SECRET'
+		</if>
+			WHERE A.UP_ATCL_ID IS NULL
+			AND A.DELYN = 'N'
+			AND EXISTS (
+				SELECT 1
+				FROM TB_HOME_BBS_RLTN
+				WHERE BBS_ID = A.BBS_ID
+				AND CONTS_TYCD = 'COURSE'
+				AND RLTN_REF_CD = #{crsCreCd}
+			)
+		<if test="rgtrId != null and rgtrId != ''">
+			AND A.RGTR_ID = #{rgtrId}
+		</if>
+		) B
+        ON LEFT(B.FRST_INQ_DTTM, 8) BETWEEN LEFT(A.LESSON_START_DT_MIN, 8) AND LEFT(A.LESSON_END_DT_MAX, 8)
+		GROUP BY A.GROUP_SEQ
+		ORDER BY A.GROUP_SEQ
+	</select>
+
+	<select id="listBbsInfoTeamCtgr" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.listBbsInfoTeamCtgr
+             설  명 : 게시판 팀 카테고리 목록
+         */
+		SELECT
+			  A.TEAM_TYCD
+			, A.TEAM_CTGRNM
+		FROM TB_LMS_TEAM_CTGR A
+		WHERE A.ORG_ID = #{orgId}
+		AND A.SBJCT_ID = #{crsCreCd}
+		AND A.TEAM_BBS_YN = 'Y'
+		AND A.TEAM_CPST_CMPTNYN = 'Y'
+		<if test="userId != null and userId != ''">
+		AND EXISTS (
+			SELECT 1
+			FROM TB_LMS_TEAM AA
+			JOIN TB_LMS_TEAM_MBR BB
+			ON AA.TEAM_ID = BB.TEAM_ID
+			AND BB.USER_ID = #{userId}
+			AND EXISTS (
+				SELECT 1
+				FROM TB_LMS_ATNDLC_SBJCT
+				WHERE USER_ID = BB.USER_ID
+				AND STD_ID = BB.STD_ID
+				AND SBJCT_ID = #{crsCreCd}
+				AND ATNDLC_STSCD = 'S'
+			)
+			WHERE AA.TEAM_TYCD = A.TEAM_TYCD
+		)
+	</if>
+	</select>
+
+	<select id="listTeamBbsId" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.listTeamBbsId
+             설  명 : 게시판 팀 목록
+         */
+		SELECT
+			  A.TEAM_ID
+			, A.TEAMNM
+			, C.BBS_ID
+		FROM TB_LMS_TEAM A
+		JOIN TB_LMS_TEAM_CTGR B
+		ON A.TEAM_TYCD = B.TEAM_TYCD
+		AND B.TEAM_BBS_YN = 'Y'
+		AND B.TEAM_CPST_CMPTNYN = 'Y'
+		AND B.SBJCT_ID = #{crsCreCd}
+		<if test="teamCtgrCd != null and teamCtgrCd != ''">
+		AND A.TEAM_TYCD = #{teamCtgrCd}
+		</if>
+		LEFT JOIN TB_HOME_BBS_RLTN C
+		ON A.TEAM_ID = C.RLTN_REF_CD
+		AND C.CONTS_TYCD = 'TEAM'
+		<where>
+			<if test="userId != null and userId != ''">
+				AND EXISTS (
+					SELECT 1
+					FROM TB_LMS_TEAM_MBR AA
+					WHERE TEAM_ID = A.TEAM_ID
+					AND USER_ID = #{userId}
+					AND EXISTS (
+						SELECT 1
+						FROM TB_LMS_ATNDLC_SBJCT
+						WHERE USER_ID = AA.USER_ID
+						AND ORG_ID = #{orgId}
+						AND STD_ID = AA.STD_ID
+						AND SBJCT_ID = #{crsCreCd}
+						AND ATNDLC_STSCD = 'S'
+					)
+				)
+			</if>
+		</where>
+	</select>
+
+	<select id="selectTeamBbsInfo" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.selectTeamBbsInfo
+             설  명 : 팀 게시판 조회
+         */
+		SELECT
+			  A.TEAM_ID
+			, A.TEAMNM
+			, C.BBS_ID
+		FROM TB_LMS_TEAM A
+		JOIN TB_LMS_TEAM_CTGR B
+		ON A.TEAM_TYCD = B.TEAM_TYCD
+		AND B.TEAM_BBS_YN = 'Y'
+		AND B.TEAM_CPST_CMPTNYN = 'Y'
+		<if test="teamCtgrCd != null and teamCtgrCd != ''">
+		AND A.TEAM_TYCD = #{teamCtgrCd}
+		</if>
+		JOIN TB_HOME_BBS_RLTN C
+		ON A.TEAM_ID = C.RLTN_REF_CD
+		AND C.CONTS_TYCD = 'TEAM'
+		WHERE A.TEAM_ID = #{teamCd}
+	</select>
+
+	<select id="countTeamBbsMember" parameterType="egovMap" resultType="Integer">
+		/*
+             SQL ID : BbsInfoDAO.countTeamBbsMember
+             설  명 : 게시판 팀원여부 체크
+         */
+		SELECT COUNT(1) AS CNT
+		FROM TB_HOME_BBS_RLTN A
+		JOIN TB_LMS_TEAM B
+		ON A.RLTN_REF_CD = B.TEAM_ID
+		AND B.TEAM_ID = #{teamCd}
+		WHERE A.CONTS_TYCD = 'TEAM'
+		AND EXISTS (
+			SELECT 1
+			FROM TB_LMS_TEAM_CTGR
+			WHERE TEAM_TYCD = B.TEAM_TYCD
+			AND ORG_ID = #{orgId}
+			AND SBJCT_ID = #{crsCreCd}
+			AND TEAM_TYCD = #{teamCtgrCd}
+			AND TEAM_BBS_YN = 'Y'
+			AND TEAM_CPST_CMPTNYN = 'Y'
+		)
+		AND EXISTS (
+			SELECT 1
+			FROM TB_LMS_TEAM_MBR AA
+			WHERE TEAM_ID = B.TEAM_ID
+			AND USER_ID = #{userId}
+			AND EXISTS (
+				SELECT 1
+				FROM TB_LMS_ATNDLC_SBJCT
+				WHERE USER_ID = AA.USER_ID
+				AND STD_ID = AA.STD_ID
+				AND SBJCT_ID = #{crsCreCd}
+				AND ORG_ID = #{orgId}
+				AND ATNDLC_STSCD = 'S'
+			)
+		)
+	</select>
+
+	<select id="selectBbsInfoByOldRegDttm" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+		/*
+             SQL ID : BbsInfoDAO.selectBbsInfoByOldRegDttm
+             	설  명 : 게시판 코드별 생성일 빠른 게시판 조회
+         */
+         SELECT
+         	  A.*
+         	, B.CRS_ID
+         FROM (
+	         SELECT
+	         	  A.BBS_ID	AS bbsId
+	         	, A.ORG_ID	AS orgId
+	         	, A.BBS_ID	AS bbsCd
+	         	, IF(A.BBS_ID = 'TEAM', (SELECT AA.SBJCT_ID FROM TB_LMS_TEAM_CTGR AA JOIN TEAM BB ON AA.TEAM_TYCD = BB.TEAM_TYCD AND BB.TEAM_ID = B.RLTN_REF_CD), B.RLTN_REF_CD) AS SBJCT_ID
+	           FROM TB_LMS_BBS A
+	           JOIN TB_HOME_BBS_RLTN AS B
+	             ON A.BBS_ID = B.BBS_ID
+	           LEFT JOIN TB_HOME_BBS_INFO_LANG AS C
+	             ON A.BBS_ID = C.BBS_ID
+	            AND C.LANG_CD = #{langCd}
+	          WHERE A.DELYN = 'N'
+	            AND A.ORG_ID = #{orgId}
+	          <if test="bbsCd != null and bbsCd != ''">
+	          	AND A.BBS_ID = #{bbsCd}
+	          </if>
+	          <if test="crsCreCd != null and crsCreCd != ''">
+	          	AND B.RLTN_REF_CD = #{crsCreCd}
+	          </if>
+	          <if test="useYn != null and useYn != ''">
+	          	AND A.USEYN = #{useYn}
+	          </if>
+	          <if test="sysUseYn != null and sysUseYn != ''">
+	          	AND A.SYS_USEYN = #{sysUseYn}
+	          </if>
+	          ORDER BY A.FRST_INQ_DTTM
+	          LIMIT 1
+          ) A
+          LEFT JOIN TB_LMS_SBJCT B
+          ON A.SBJCT_ID = B.SBJCT_ID
+	</select>
+
+
+
+    <!--
+    TODO 새로 생성되거나 명칭 변경해서 작업하는 메쏘드는 여기 아래에......
+    -->
+
+
+
+
+	<select id="selectBbs" parameterType="bbsVO" resultType="bbsVO">
+		/*
+			SQL ID : BbsDAO.selectBbs
+			설 명 : 게시판 정보 조회
+		*/
+		SELECT
+			  BBS_ID
+			, ORG_ID
+			, SBJCT_ID
+			, BBS_REF_TYPE_ID
+			, BBS_REF_TYCD
+			, BBSNM
+			, BBS_ENNM
+			, BBS_EXPLN
+			, BBS_TYCD
+			, BBS_LANG_CD
+			, MENU_ID
+			, MN_IMG_FILE_ID
+			, LIST_CNT
+			, ATFL_MAX_CNT
+			, ATFL_MAXSZ
+			, ATFL_USEYN
+			, DELYN
+			, RGTR_ID
+			, REG_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+			, USEYN
+		FROM TB_LMS_BBS
+		WHERE 1=1
+			AND BBS_ID = #{bbsId}
+	</select>
+
+</mapper>

@@ -1,0 +1,1017 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.score.dao.ScoreConfDAO">
+
+    <select id="selectConvertCClassList" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectConvertCClassList
+            설  명 : 성적기초정보관리 > 성적환산등급
+        */
+        SELECT ORG_ID
+               , MRK_GRDCD
+               , UNIV_CD
+               , AVG_CRDTS
+               , CRTR_SCR
+               , START_SCR
+               , END_SCR
+               , GRD_SEQ
+               , USEYN
+               , RGTR_ID
+               , FRST_INQ_DTTM
+               , MDFR_ID
+               , MOD_DTTM
+          FROM TB_LMS_MRK_CNVS_GRD
+         WHERE ORG_ID = #{orgId}
+         	AND UNIV_CD = 'C'
+         ORDER BY GRD_SEQ
+    </select>
+
+    <select id="selectConvertGClassList" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectConvertGClassList
+            설  명 : 성적기초정보관리 > 성적환산등급
+        */
+        SELECT ORG_ID
+               , MRK_GRDCD
+               , UNIV_CD
+               , AVG_CRDTS
+               , CRTR_SCR
+               , START_SCR
+               , END_SCR
+               , GRD_SEQ
+               , USEYN
+               , RGTR_ID
+               , FRST_INQ_DTTM
+               , MDFR_ID
+               , MOD_DTTM
+          FROM TB_LMS_MRK_CNVS_GRD
+         WHERE ORG_ID = #{orgId}
+         	AND UNIV_CD = 'G'
+         ORDER BY GRD_SEQ
+    </select>
+
+    <select id="editConvertClassView" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : editConvertClassView
+            설  명 : 성적기초정보관리 > 성적환산등급
+        */
+        SELECT ORG_ID
+               , MRK_GRDCD
+               , AVG_CRDTS
+               , CRTR_SCR
+               , START_SCR
+               , END_SCR
+               , GRD_SEQ
+               , USEYN
+               , RGTR_ID
+               , FRST_INQ_DTTM
+               , MDFR_ID
+               , MOD_DTTM
+          FROM TB_LMS_MRK_CNVS_GRD
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_GRDCD = #{scorCd}
+	</select>
+
+    <update id="editConvertClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editConvertClass
+            설  명 : 성적기초정보관리 > 성적환산등급 수정
+        */
+        UPDATE TB_LMS_MRK_CNVS_GRD
+           SET AVG_CRDTS = #{avgScor}
+               , CRTR_SCR = #{baseScor}
+               , START_SCR = #{startScor}
+               , END_SCR = #{endScor}
+               , MDFR_ID = #{mdfrId}
+               , MOD_DTTM = FN_DTTM()
+         WHERE ORG_ID = #{orgId}
+           AND UNIV_CD = #{uniCd}
+           AND MRK_GRDCD = #{scorCd}
+    </update>
+
+	<update id="editConvertUseYn" parameterType="scoreConfVO">
+        /*
+            SQL ID : editConvertUseYn
+            설  명 : 성적기초정보관리 > 성적환산등급 사용여부 수정
+        */	
+		UPDATE TB_LMS_MRK_CNVS_GRD
+		      SET USEYN = #{useYn}
+		             , MDFR_ID = #{mdfrId}
+		             , MOD_DTTM = FN_DTTM()
+		 WHERE MRK_GRDCD = #{scorCd}
+		 	AND ORG_ID = #{orgId}
+		 	AND UNIV_CD = #{uniCd}
+	</update>
+	
+    <select id="selectRelativeCClassList" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectRelativeCClassList
+            설  명 : 성적기초정보관리 > 상대평가비율
+        */
+        SELECT ORG_ID
+               , EVL_CRTR_CD
+               , UNIV_CD
+               , SMRK_GRDCD
+               , END_SCR_CD
+               , SPRCNTL
+               , END_PRCNTL
+               , GRD_SEQ
+               , USEYN
+               , RGTR_ID
+               , FRST_INQ_DTTM
+               , MDFR_ID
+               , MOD_DTTM
+          FROM MRK_RLTV_EVL_CRTRRT
+         WHERE ORG_ID = #{orgId}
+         	AND UNIV_CD = 'C' 
+         ORDER BY GRD_SEQ
+    </select>
+
+    <select id="selectRelativeGClassList" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectRelativeGClassList
+            설  명 : 성적기초정보관리 > 상대평가비율
+        */
+        SELECT ORG_ID
+               , EVL_CRTR_CD
+               , UNIV_CD
+               , SMRK_GRDCD
+               , END_SCR_CD
+               , SPRCNTL
+               , END_PRCNTL
+               , GRD_SEQ
+               , USEYN
+               , RGTR_ID
+               , FRST_INQ_DTTM
+               , MDFR_ID
+               , MOD_DTTM
+          FROM MRK_RLTV_EVL_CRTRRT
+         WHERE ORG_ID = #{orgId}
+         	AND UNIV_CD = 'G' 
+         ORDER BY GRD_SEQ
+    </select>
+
+    <select id="editRelativeClassView" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : editRelativeClassView
+            설  명 : 성적기초정보관리 > 상대평가비율
+        */
+        SELECT ORG_ID
+               , EVL_CRTR_CD
+               , SMRK_GRDCD
+               , END_SCR_CD
+               , SPRCNTL
+               , END_PRCNTL
+               , GRD_SEQ
+               , USEYN
+               , RGTR_ID
+               , FRST_INQ_DTTM
+               , MDFR_ID
+               , MOD_DTTM
+          FROM MRK_RLTV_EVL_CRTRRT
+         WHERE ORG_ID = 'ORG0000001'
+              AND EVL_CRTR_CD = #{scorRelCd}
+	</select>
+
+    <update id="editRelativeClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editRelativeClass
+            설  명 : 성적기초정보관리 > 상대평가비율 수정
+        */
+        UPDATE MRK_RLTV_EVL_CRTRRT
+           SET SMRK_GRDCD = #{startScorCd}
+               , END_SCR_CD = #{endScorCd}
+               , SPRCNTL = #{startRatio}
+               , END_PRCNTL = #{endRatio}
+               , MDFR_ID = #{mdfrId}
+               , MOD_DTTM = FN_DTTM()
+         WHERE ORG_ID = #{orgId}
+           AND EVL_CRTR_CD = #{scorRelCd}
+           AND UNIV_CD = #{uniCd}
+    </update>
+
+	<update id="editRelativeUseYn" parameterType="scoreConfVO">
+        /*
+            SQL ID : editRelativeUseYn
+            설  명 : 성적기초정보관리 > 상대평가비율 사용여부 수정
+        */	
+		UPDATE MRK_RLTV_EVL_CRTRRT
+		      SET USEYN = #{useYn}
+		             , MDFR_ID = #{mdfrId}
+		             , MOD_DTTM = FN_DTTM()
+		 WHERE EVL_CRTR_CD = #{scorRelCd}
+		 	AND ORG_ID = #{orgId}
+		 	AND UNIV_CD = #{uniCd}
+	</update>
+
+    <select id="selectAttendOpenClassWeek" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAttendOpenClassWeek
+            설  명 : 출석점수기준 강의오픈일 조회
+        */
+        SELECT MRK_STNG_CD 	AS OPEN_WEEK_CD
+                     , MRK_STNG_CDNM	AS OPEN_WEEK_NM
+                     , MRK_STNG_VL	AS OPEN_WEEK_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'OPEN_WEEK'
+    </select>
+
+    <select id="selectAttendOpenClassTm" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAttendOpenClassTm
+            설  명 : 출석점수기준 강의오픈시간 조회
+        */
+        SELECT MRK_STNG_CD 	AS OPEN_TM_CD
+                     , MRK_STNG_CDNM	AS OPEN_TM_NM
+                     , MRK_STNG_VL	AS OPEN_TM_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+             AND MRK_STNG_GBNCD = 'LESSON'
+             AND MRK_STNG_CD = 'OPEN_TM'
+    </select>
+
+    <select id="selectAttendOpenClassWeekAp" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAttendOpenClassWeekAp
+            설  명 : 출석점수기준 강의1주 오픈일 조회
+        */
+        SELECT MRK_STNG_CD 	AS OPEN_WEEK1_AP_CD
+                     , MRK_STNG_CDNM	AS OPEN_WEEK1_AP_NM
+                     , MRK_STNG_VL	AS OPEN_WEEK1_AP_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+             AND MRK_STNG_GBNCD = 'LESSON'
+             AND MRK_STNG_CD = 'OPEN_WEEK1_AP'
+    </select>
+
+    <select id="selectAttendOpenClassWeekTm" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAttendOpenClassWeekTm
+            설  명 : 출석점수기준 강의1주 오픈 시간 조회
+        */   
+        SELECT MRK_STNG_CD 	AS OPEN_WEEK1_TM_CD
+                     , MRK_STNG_CDNM	AS OPEN_WEEK1_TM_NM
+                     , MRK_STNG_VL	AS OPEN_WEEK1_TM_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'OPEN_WEEK1_TM'
+    </select>
+
+    <select id="selectAttendAnceClassTerm" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAttendAnceClassTerm
+            설  명 : 출석점수기준 출석인정기간 주차 조회
+        */
+        SELECT MRK_STNG_CD 	AS ATEND_TERM_CD
+                     , MRK_STNG_CDNM	AS ATEND_TERM_NM
+                     , MRK_STNG_VL	AS ATEND_TERM_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'ATND_AVAL_TERM'
+    </select>
+
+    <select id="selectAttendAnceClassTermWeek" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAttendAnceClassTermWeek
+            설  명 : 출석점수기준 출석인정기간 1주차 조회
+        */
+        SELECT MRK_STNG_CD 	AS ATEND_WEEK_CD
+                     , MRK_STNG_CDNM	AS ATEND_WEEK_NM
+                     , MRK_STNG_VL	AS ATEND_WEEK_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'ATND_AVAL_TERM_WEEK1'
+    </select>
+
+    <select id="selectAttendRatioRegularClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAttendRatioRegularClass
+            설  명 : 출석점수기준 강의 출석률(정규학기) 조회
+        */
+        SELECT MRK_STNG_CD 	AS ATND_RATIO_CD
+                     , MRK_STNG_CDNM	AS ATND_RATIO_NM
+                     , MRK_STNG_VL	AS ATND_RATIO_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'ATND_RATIO'
+    </select>
+
+    <select id="selectLateRatioRegularClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectLateRatioRegularClass
+            설  명 : 출석점수기준 강의 지각률(정규학기) 조회
+        */
+        SELECT MRK_STNG_CD 	AS LATE_RATIO_CD
+                     , MRK_STNG_CDNM	AS LATE_RATIO_NM
+                     , MRK_STNG_VL	AS LATE_RATIO_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'LATE_RATIO'
+    </select>
+
+    <select id="selectAbsentRatioRegularClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAbsentRatioRegularClass
+            설  명 : 출석점수기준 강의 결석률(정규학기) 조회
+        */
+        SELECT MRK_STNG_CD 	AS ABSENT_RATIO_CD
+                     , MRK_STNG_CDNM	AS ABSENT_RATIO_NM
+                     , MRK_STNG_VL	AS ABSENT_RATIO_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'ABSENT_RATIO'
+    </select>
+
+    <select id="selectAtndWeekSeasonClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAtndWeekSeasonClass
+            설  명 : 출석점수기준 강의 계절학기 출석주차 조회
+        */    
+        SELECT MRK_STNG_CD 	AS SEN_LESN_WEEK_CD
+                     , MRK_STNG_CDNM	AS SEN_LESN_WEEK_NM
+                     , MRK_STNG_VL	AS SEN_LESN_WEEK_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'SEN_ATND_WEEK'
+    </select>
+    
+    <select id="selectAtndRatioSeasonClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAtndRatioSeasonClass
+            설  명 : 출석점수기준 강의 계절학기 출석비율 조회
+        */    
+        SELECT MRK_STNG_CD 	AS SEN_ATND_RATIO_CD
+                     , MRK_STNG_CDNM	AS SEN_ATND_RATIO_NM
+                     , MRK_STNG_VL	AS SEN_ATND_RATIO_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'SEN_ATND_RATIO'
+    </select>
+
+    <select id="selectAbsentRatioSeasonClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAbsentRatioSeasonClass
+            설  명 : 출석점수기준 강의 계절학기 결석비율 정보 조회
+        */    
+        SELECT MRK_STNG_CD 	AS SEN_ABSENT_RATIO_CD
+                     , MRK_STNG_CDNM	AS SEN_ABSENT_RATIO_NM
+                     , MRK_STNG_VL	AS SEN_ABSENT_RATIO_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'SEN_ABSENT_RATIO'
+    </select>
+
+    <select id="selectWeek1SeasonClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectWeek1SeasonClass
+            설  명 : 출석점수기준 강의 계절학기 1주차 강의수 조회
+        */    
+        SELECT MRK_STNG_CD 	AS SEN_LESN_WEEK1_CD
+                     , MRK_STNG_CDNM	AS SEN_LESN_WEEK1_NM
+                     , MRK_STNG_VL	AS SEN_LESN_WEEK1_VAL
+            FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'SEN_LESN_WEEK1'
+    </select>
+
+    <select id="selectWeek2SeasonClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectWeek2SeasonClass
+            설  명 : 출석점수기준 강의 계절학기 2주차 강의수 조회
+        */    
+        SELECT MRK_STNG_CD 	AS SEN_LESN_WEEK2_CD
+                     , MRK_STNG_CDNM	AS SEN_LESN_WEEK2_NM
+                     , MRK_STNG_VL	AS SEN_LESN_WEEK2_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+             AND MRK_STNG_GBNCD = 'LESSON'
+             AND MRK_STNG_CD = 'SEN_LESN_WEEK2'
+    </select>
+
+    <select id="selectWeek3SeasonClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectWeek3SeasonClass
+            설  명 : 출석점수기준 강의 계절학기 3주차 강의수 조회
+        */    
+        SELECT MRK_STNG_CD 	AS SEN_LESN_WEEK3_CD
+                     , MRK_STNG_CDNM	AS SEN_LESN_WEEK3_NM
+                     , MRK_STNG_VL	AS SEN_LESN_WEEK3_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'SEN_LESN_WEEK3'
+    </select>
+
+    <select id="selectWeek4SeasonClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectWeek4SeasonClass
+            설  명 : 출석점수기준 강의 계절학기 4주차 강의수 조회
+        */    
+        SELECT MRK_STNG_CD 	AS SEN_LESN_WEEK4_CD
+                     , MRK_STNG_CDNM	AS SEN_LESN_WEEK4_NM
+                     , MRK_STNG_VL	AS SEN_LESN_WEEK4_VAL
+           FROM TB_LMS_SCORE_ATND_CONF 
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'LESSON'
+              AND MRK_STNG_CD = 'SEN_LESN_WEEK4'
+    </select>
+
+
+    <update id="editAttendOpenClassWeek" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAttendOpenClassWeek
+            설  명 : 출석점수기준 강의오픈일 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF 
+           SET MRK_STNG_VL = #{openWeekVal}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND  MRK_STNG_CD = #{openWeekCd}
+    </update>
+
+    <update id="editAttendOpenClassTm" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAttendOpenClassTm
+            설  명 : 출석점수기준 강의오픈시간 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{openTmVal}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{openTmCd}
+    </update>
+
+    <update id="editAttendOpenClassWeekAp" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAttendOpenClassWeekAp
+            설  명 : 출석점수기준 강의1주 오픈일 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{openWeek1ApVal}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{openWeek1ApCd}
+    </update>
+
+    <update id="editAttendOpenClassWeekTm" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAttendOpenClassWeekTm
+            설  명 : 출석점수기준 강의1주 오픈 시간 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{openWeek1TmVal}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{openWeek1TmCd}
+    </update>
+
+    <update id="editAttendAnceClassTerm" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAttendAnceClassTerm
+            설  명 : 출석점수기준 출석인정기간 주차 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{atendTermVal}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{atendTermCd}
+    </update>
+
+    <update id="editAttendAnceClassTermWeek" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAttendAnceClassTermWeek
+            설  명 : 출석점수기준 출석인정기간 1주차 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{atendWeekVal}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{atendWeekCd}
+    </update>
+
+    <update id="editAttendRatioRegularClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAttendRatioRegularClass
+            설  명 : 출석점수기준 강의 출석률(정규학기) 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+            SET MRK_STNG_VL = #{atndRatioVal}
+          WHERE ORG_ID = 'ORG0000001'
+            AND MRK_STNG_GBNCD = 'LESSON'
+            AND MRK_STNG_CD = #{atndRatioCd}
+    </update>
+
+    <update id="editLateRatioRegularClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editLateRatioRegularClass
+            설  명 : 출석점수기준 강의 지각률(정규학기) 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{lateRatioVal}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{lateRatioCd}
+    </update>
+
+    <update id="editAbsentRatioRegularClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAbsentRatioRegularClass
+            설  명 : 출석점수기준 강의 결석률(정규학기) 수정
+        */
+         UPDATE TB_LMS_SCORE_ATND_CONF
+            SET MRK_STNG_VL = #{absentRatioVal}
+          WHERE ORG_ID = 'ORG0000001'
+            AND MRK_STNG_GBNCD = 'LESSON'
+            AND MRK_STNG_CD = #{absentRatioCd}
+    </update>
+
+    <update id="editAtndWeekSeasonClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAtndWeekSeasonClass
+            설  명 : 출석점수기준 강의 계절학기 출석주차 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{senLesnWeekVal}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{senLesnWeekCd}
+    </update>
+    
+    <update id="editAtndRatioSeasonClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAtndRatioSeasonClass
+            설  명 : 출석점수기준 강의 계절학기 출석비율 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF 
+           SET MRK_STNG_VL = #{senAtndRatioVal}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{senAtndRatioCd}
+    </update>
+
+    <update id="editAbsentRatioSeasonClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAbsentRatioSeasonClass
+            설  명 : 출석점수기준 강의 계절학기 결석비율 정보 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{senAbsentRatioVal}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{senAbsentRatioCd}
+    </update>
+
+    <update id="editWeek1SeasonClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editWeek1SeasonClass
+            설  명 : 출석점수기준 강의 계절학기 1주차 강의수 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{senLesnWeek1Val}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{senLesnWeek1Cd}
+    </update>
+
+    <update id="editWeek2SeasonClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editWeek2SeasonClass
+            설  명 : 출석점수기준 강의 계절학기 2주차 강의수 수정
+        */    
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{senLesnWeek2Val}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{senLesnWeek2Cd}
+    </update>
+
+    <update id="editWeek3SeasonClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editWeek3SeasonClass
+            설  명 : 출석점수기준 강의 계절학기 3주차 강의수 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{senLesnWeek3Val}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{senLesnWeek3Cd}
+    </update>
+
+    <update id="editWeek4SeasonClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editWeek4SeasonClass
+            설  명 : 출석점수기준 강의 계절학기 4주차 강의수 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = #{senLesnWeek4Val}
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{senLesnWeek4Cd}
+    </update>
+
+    <select id="selectAbsentScoreClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectAbsentScoreClass
+            설  명 : 출석점수기준 강의 출석평가 정보 조회
+        */    
+        SELECT 
+        	LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_5' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS ABSENT_SCORE_NM5,
+    		LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_4' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS ABSENT_SCORE_NM4,
+    		LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_3' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS ABSENT_SCORE_NM3,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_2' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS ABSENT_SCORE_NM2,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_1' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS ABSENT_SCORE_NM1,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_5' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS ABSENT_SCORE_VAL5,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_4' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS ABSENT_SCORE_VAL4,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_3' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS ABSENT_SCORE_VAL3,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_2' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS ABSENT_SCORE_VAL2,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_1' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS ABSENT_SCORE_VAL1,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_5' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CD) AS ABSENT_SCORE_CD5,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_4' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CD) AS ABSENT_SCORE_CD4,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_3' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CD) AS ABSENT_SCORE_CD3,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_2' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CD) AS ABSENT_SCORE_CD2,
+		    LISTAGG(CASE WHEN MRK_STNG_CD = 'ABSENT_SCORE_1' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CD) AS ABSENT_SCORE_CD1
+		   FROM TB_LMS_SCORE_ATND_CONF
+		 WHERE ORG_ID = 'ORG0000001'
+		      AND MRK_STNG_GBNCD = 'LESSON'
+		      AND MRK_STNG_CD IN ('ABSENT_SCORE_1', 'ABSENT_SCORE_2', 'ABSENT_SCORE_3', 'ABSENT_SCORE_4', 'ABSENT_SCORE_5')
+		 ORDER BY MRK_STNG_CD DESC
+    </select>
+
+	<update id="editAbsentScoreClass5" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAbsentScoreClass5
+            설  명 : 출석점수기준 강의 출석평가 정보 수정
+        */
+		UPDATE TB_LMS_SCORE_ATND_CONF
+  			  SET MRK_STNG_VL = (SELECT A.MRK_STNG_VL FROM ( SELECT #{absentScoreVal5} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{absentScoreCd5}) A)
+		  WHERE ORG_ID = 'ORG0000001'
+               AND MRK_STNG_GBNCD = 'LESSON'
+               AND  MRK_STNG_CD = #{absentScoreCd5}
+    </update> 
+    
+    <update id="editAbsentScoreClass4" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAbsentScoreClass4
+            설  명 : 출석점수기준 강의 출석평가 정보 수정
+        */
+		UPDATE TB_LMS_SCORE_ATND_CONF
+  			  SET MRK_STNG_VL = (SELECT B.MRK_STNG_VL FROM ( SELECT #{absentScoreVal4} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{absentScoreCd4}) B)
+		  WHERE ORG_ID = 'ORG0000001'
+               AND MRK_STNG_GBNCD = 'LESSON'
+               AND  MRK_STNG_CD = #{absentScoreCd4}
+    </update> 
+    
+    <update id="editAbsentScoreClass3" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAbsentScoreClass3
+            설  명 : 출석점수기준 강의 출석평가 정보 수정
+        */
+		UPDATE TB_LMS_SCORE_ATND_CONF
+  			  SET MRK_STNG_VL = (SELECT C.MRK_STNG_VL FROM ( SELECT #{absentScoreVal3} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{absentScoreCd3}) C)
+   		  WHERE ORG_ID = 'ORG0000001'
+               AND MRK_STNG_GBNCD = 'LESSON'
+               AND  MRK_STNG_CD = #{absentScoreCd3}
+    </update> 
+    
+    <update id="editAbsentScoreClass2" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAbsentScoreClass2
+            설  명 : 출석점수기준 강의 출석평가 정보 수정
+        */
+		UPDATE TB_LMS_SCORE_ATND_CONF
+  			  SET MRK_STNG_VL = (SELECT D.MRK_STNG_VL FROM ( SELECT #{absentScoreVal2} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{absentScoreCd2}) D)
+		  WHERE ORG_ID = 'ORG0000001'
+               AND MRK_STNG_GBNCD = 'LESSON'
+               AND  MRK_STNG_CD = #{absentScoreCd2}
+    </update> 
+    
+    <update id="editAbsentScoreClass1" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAbsentScoreClass1
+            설  명 : 출석점수기준 강의 출석평가 정보 수정
+        */
+		UPDATE TB_LMS_SCORE_ATND_CONF
+  			  SET MRK_STNG_VL = (SELECT E.MRK_STNG_VL FROM ( SELECT #{absentScoreVal1} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{absentScoreCd1}) E)
+		  WHERE ORG_ID = 'ORG0000001'
+               AND MRK_STNG_GBNCD = 'LESSON'
+               AND  MRK_STNG_CD = #{absentScoreCd1}
+    </update> 
+ 
+	<!--     
+	<update id="editAbsentScoreClass" parameterType="scoreConfVO">
+        /*
+            SQL ID : editAbsentScoreClass
+            설  명 : 출석점수기준 강의 출석평가 정보 수정
+        */
+		UPDATE TB_LMS_SCORE_ATND_CONF
+  			  SET MRK_STNG_VL = (SELECT A.MRK_STNG_VL FROM ( SELECT #{absentScoreVal1} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{absentScoreCd1}) A)
+		             , MRK_STNG_VL = (SELECT B.MRK_STNG_VL FROM ( SELECT #{absentScoreVal2} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{absentScoreCd2}) B)
+		             , MRK_STNG_VL = (SELECT C.MRK_STNG_VL FROM ( SELECT #{absentScoreVal3} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{absentScoreCd3}) C)
+		             , MRK_STNG_VL = (SELECT D.MRK_STNG_VL FROM ( SELECT #{absentScoreVal4} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{absentScoreCd4}) D)
+		             , MRK_STNG_VL = (SELECT E.MRK_STNG_VL FROM ( SELECT #{absentScoreVal5} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{absentScoreCd5}) E)
+		  WHERE ORG_ID = 'ORG0000001'
+               AND MRK_STNG_GBNCD = 'LESSON'
+              AND  MRK_STNG_CD IN (#{absentScoreCd1}, #{absentScoreCd2}, #{absentScoreCd3}, #{absentScoreCd4}, #{absentScoreCd5})
+    </update> 
+    -->
+    
+    <select id="selectLateScoreClass" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectLateScoreClass
+            설  명 : 출석점수기준 강의 지각감전기준 정보 조회
+        */    
+		SELECT 
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_1' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS LATE_SCORE_NM1,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_2' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS LATE_SCORE_NM2,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_3' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS LATE_SCORE_NM3,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_4' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS LATE_SCORE_NM4,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_5' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS LATE_SCORE_NM5,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_6' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS LATE_SCORE_NM6,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_7' THEN SUBSTR(MRK_STNG_CDNM, 8) END, ',') WITHIN GROUP (ORDER BY MRK_STNG_CDNM) AS LATE_SCORE_NM7,
+			 
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_1' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_VAL1,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_2' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_VAL2,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_3' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_VAL3,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_4' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_VAL4,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_5' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_VAL5,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_6' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_VAL6,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_7' THEN MRK_STNG_VL END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_VAL7,
+			 
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_1' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_CD1,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_2' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_CD2,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_3' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_CD3,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_4' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_CD4,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_5' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_CD5,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_6' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_CD6,
+			 LISTAGG(CASE WHEN MRK_STNG_CD = 'LATE_SCORE_7' THEN MRK_STNG_CD END, ',') WITHIN GROUP (ORDER BY MRK_STNG_VL) AS LATE_SCORE_CD7			   
+		   FROM TB_LMS_SCORE_ATND_CONF 
+		 WHERE ORG_ID = 'ORG0000001'
+		      AND MRK_STNG_GBNCD = 'LESSON'
+		      AND MRK_STNG_CD IN ('LATE_SCORE_1', 'LATE_SCORE_2', 'LATE_SCORE_3', 'LATE_SCORE_4', 'LATE_SCORE_5', 'LATE_SCORE_6', 'LATE_SCORE_7')
+		 ORDER BY MRK_STNG_CD
+    </select>
+
+    <update id="editLateScoreClass1" parameterType="scoreConfVO">
+        /*
+            SQL ID : editLateScoreClass1
+            설  명 : 출석점수기준 강의 지각감전기준 정보 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = (SELECT A.MRK_STNG_VL FROM ( SELECT #{lateScoreVal1} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{lateScoreCd1}) A)
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{lateScoreCd1}
+    </update>
+
+    <update id="editLateScoreClass2" parameterType="scoreConfVO">
+        /*
+            SQL ID : editLateScoreClass2
+            설  명 : 출석점수기준 강의 지각감전기준 정보 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = (SELECT B.MRK_STNG_VL FROM ( SELECT #{lateScoreVal2} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{lateScoreCd2}) B)
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{lateScoreCd2}
+    </update>
+
+    <update id="editLateScoreClass3" parameterType="scoreConfVO">
+        /*
+            SQL ID : editLateScoreClass3
+            설  명 : 출석점수기준 강의 지각감전기준 정보 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = (SELECT C.MRK_STNG_VL FROM ( SELECT #{lateScoreVal3} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{lateScoreCd3}) C)
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{lateScoreCd3}
+    </update>
+
+    <update id="editLateScoreClass4" parameterType="scoreConfVO">
+        /*
+            SQL ID : editLateScoreClass4
+            설  명 : 출석점수기준 강의 지각감전기준 정보 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = (SELECT D.MRK_STNG_VL FROM ( SELECT #{lateScoreVal4} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{lateScoreCd4}) D)
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{lateScoreCd4}
+    </update>
+
+    <update id="editLateScoreClass5" parameterType="scoreConfVO">
+        /*
+            SQL ID : editLateScoreClass5
+            설  명 : 출석점수기준 강의 지각감전기준 정보 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = (SELECT E.MRK_STNG_VL FROM ( SELECT #{lateScoreVal5} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{lateScoreCd5}) E)
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{lateScoreCd5}
+    </update>
+
+    <update id="editLateScoreClass6" parameterType="scoreConfVO">
+        /*
+            SQL ID : editLateScoreClass6
+            설  명 : 출석점수기준 강의 지각감전기준 정보 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = (SELECT F.MRK_STNG_VL FROM ( SELECT #{lateScoreVal6} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{lateScoreCd6}) F)
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{lateScoreCd6}
+    </update>
+
+    <update id="editLateScoreClass7" parameterType="scoreConfVO">
+        /*
+            SQL ID : editLateScoreClass7
+            설  명 : 출석점수기준 강의 지각감전기준 정보 수정
+        */
+        UPDATE TB_LMS_SCORE_ATND_CONF
+           SET MRK_STNG_VL = (SELECT G.MRK_STNG_VL FROM ( SELECT #{lateScoreVal7} AS MRK_STNG_VL FROM TB_LMS_SCORE_ATND_CONF WHERE MRK_STNG_CD = #{lateScoreCd7}) G)
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'LESSON'
+           AND MRK_STNG_CD = #{lateScoreCd7}
+    </update>
+
+    <select id="selectSeminarRatio" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectSeminarRatio
+            설  명 : 세미나 출석기준 출석비율
+        */
+        SELECT MRK_STNG_GBNCD
+               , MRK_STNG_CD		AS SEMINAR_ATND_RATIO_CD
+               , MRK_STNG_CDNM	AS SEMINAR_ATND_RATIO_NM
+               , MRK_STNG_VL	AS SEMINAR_ATND_RATIO_VAL
+               , USEYN
+          FROM TB_LMS_SCORE_ATND_CONF
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'SEMINAR'
+           AND MRK_STNG_CD = 'SEMINAR_ATND_RATIO' 
+    </select>
+
+    <select id="selectSeminarTm" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectSeminarTm
+            설  명 : 세미나 출석기준 출석시간
+        */
+        SELECT MRK_STNG_GBNCD
+               , MRK_STNG_CD		AS SEMINAR_ATND_TM_CD
+               , MRK_STNG_CDNM	AS SEMINAR_ATND_TM_NM
+               , MRK_STNG_VL	AS SEMINAR_ATND_TM_VAL
+               , USEYN
+          FROM TB_LMS_SCORE_ATND_CONF
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'SEMINAR'
+           AND MRK_STNG_CD = 'SEMINAR_ATND_TM' 
+    </select>
+
+    <select id="selectSeminarLateRatio" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectSeminarLateRatio
+            설  명 : 세미나 출석기준 지각비율
+        */
+        SELECT MRK_STNG_GBNCD
+               , MRK_STNG_CD		AS SEMINAR_LATE_RATIO_CD
+               , MRK_STNG_CDNM	AS SEMINAR_LATE_RATIO_NM
+               , MRK_STNG_VL	AS SEMINAR_LATE_RATIO_VAL
+               , USEYN
+          FROM TB_LMS_SCORE_ATND_CONF
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'SEMINAR'
+           AND MRK_STNG_CD = 'SEMINAR_LATE_RATIO' 
+    </select>
+
+    <select id="selectSeminarLateTm" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectSeminarLateTm
+            설  명 : 세미나 출석기준 지각시간
+        */
+        SELECT MRK_STNG_GBNCD
+               , MRK_STNG_CD		AS SEMINAR_LATE_TM_CD
+               , MRK_STNG_CDNM	AS SEMINAR_LATE_TM_NM
+               , MRK_STNG_VL	AS SEMINAR_LATE_TM_VAL
+               , USEYN
+          FROM TB_LMS_SCORE_ATND_CONF
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'SEMINAR'
+           AND MRK_STNG_CD = 'SEMINAR_LATE_TM' 
+    </select>
+
+    <select id="selectSeminarAbsentRatio" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectSeminarAbsentRatio
+            설  명 : 세미나 출석기준 결석비율
+        */
+        SELECT MRK_STNG_GBNCD
+               , MRK_STNG_CD		AS SEMINAR_ABSENT_RATIO_CD
+               , MRK_STNG_CDNM	AS SEMINAR_ABSENT_RATIO_NM
+               , MRK_STNG_VL	AS SEMINAR_ABSENT_RATIO_VAL
+               , USEYN
+          FROM TB_LMS_SCORE_ATND_CONF
+         WHERE ORG_ID = 'ORG0000001'
+           AND MRK_STNG_GBNCD = 'SEMINAR'
+           AND MRK_STNG_CD = 'SEMINAR_ABSENT_RATIO' 
+    </select>
+
+    <update id="editSeminarAtndTm" parameterType="scoreConfVO">
+        /*
+            SQL ID : editSeminarAtndTm
+            설  명 : 성적기초정보관리 > 세미나 출석기준 출석시간 수정
+        */
+       UPDATE TB_LMS_SCORE_ATND_CONF
+             SET  MRK_STNG_VL = #{seminarAtndTmVal}
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'SEMINAR'
+              AND MRK_STNG_CD = #{seminarAtndTmCd}
+    </update>
+
+    <update id="editSeminarAtndRatio" parameterType="scoreConfVO">
+        /*
+            SQL ID : editSeminarAtndRatio
+            설  명 : 성적기초정보관리 > 세미나 출석기준 출석비율 수정
+        */
+       UPDATE TB_LMS_SCORE_ATND_CONF
+             SET MRK_STNG_VL = #{seminarAtndRatioVal}
+         WHERE ORG_ID = 'ORG0000001'
+             AND MRK_STNG_GBNCD = 'SEMINAR'
+             AND MRK_STNG_CD = #{seminarAtndRatioCd}
+    </update>
+
+    <update id="editSeminarLateTm" parameterType="scoreConfVO">
+        /*
+            SQL ID : editSeminarLateTm
+            설  명 : 성적기초정보관리 > 세미나 출석기준 지각시간 수정
+        */  
+        UPDATE TB_LMS_SCORE_ATND_CONF
+              SET MRK_STNG_VL = #{seminarLateTmVal}
+         WHERE ORG_ID = 'ORG0000001'
+             AND MRK_STNG_GBNCD = 'SEMINAR'
+             AND MRK_STNG_CD = #{seminarLateTmCd}
+    </update>
+
+    <update id="editSeminarLateRatio" parameterType="scoreConfVO">
+        /*
+            SQL ID : editSeminarLateRatio
+            설  명 : 성적기초정보관리 > 세미나 출석기준 지각비율 수정
+        */  
+        UPDATE TB_LMS_SCORE_ATND_CONF
+              SET MRK_STNG_VL = #{seminarLateRatioVal}
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'SEMINAR'
+              AND MRK_STNG_CD = #{seminarLateRatioCd}
+    </update>
+
+    <update id="editSeminarAbsentRatio" parameterType="scoreConfVO">
+        /*
+            SQL ID : editSeminarAbsentRatio
+            설  명 : 성적기초정보관리 > 세미나 출석기준 결석 비율 수정
+        */  
+        UPDATE TB_LMS_SCORE_ATND_CONF
+              SET MRK_STNG_VL = #{seminarAbsentRatioVal}
+         WHERE ORG_ID = 'ORG0000001'
+              AND MRK_STNG_GBNCD = 'SEMINAR'
+              AND MRK_STNG_CD = #{seminarAbsentRatioCd}
+    </update>
+
+    <select id="selectCRelCdLList" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectCRelCdLList
+            설  명 : 성적기초정보관리 > 등록된 등급 조회
+        */
+		SELECT 
+			EVL_CRTR_CD
+		FROM MRK_RLTV_EVL_CRTRRT
+		WHERE ORG_ID = #{orgId}
+			AND UNIV_CD = 'C'
+		ORDER BY GRD_SEQ
+    </select>
+
+    <select id="selectGRelCdLList" parameterType="scoreConfVO" resultType="scoreConfVO">
+        /*
+            SQL ID : selectGRelCdLList
+            설  명 : 성적기초정보관리 > 등록된 등급 조회
+        */
+		SELECT 
+			EVL_CRTR_CD
+		FROM MRK_RLTV_EVL_CRTRRT
+		WHERE ORG_ID = #{orgId}
+			AND UNIV_CD = 'G'
+		ORDER BY GRD_SEQ
+    </select>
+
+</mapper>

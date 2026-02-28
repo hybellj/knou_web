@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.user.dao.UsrLoginDAO">
+
+	<select id="select" parameterType="usrLoginVO" resultType="usrLoginVO">
+		/*
+			 SQL ID : select
+			 설  명 : 사용자의 로그인 정보 조회
+	 	*/
+	 	<![CDATA[
+		SELECT USER_ID as userId
+		     , USER_ID as userId
+		     , USER_ENCPSWD as userPass
+		     , ADMIN_LOGIN_ACPT_DIV_CD as adminLoginAcptDivCd
+		     , LOGIN_FAIL_DTTM as loginFailDttm
+		     , LGN_CNTNU_FAIL_CNT as loginFailCnt
+		     , LAST_LOGIN_DTTM as lastLoginDttm
+		     , LOGIN_CNT as loginCnt
+		     , ACNT_LEAVE_DTTM as secedeDttm
+		     , ACNT_STSCD as userSts
+		     , PSWD_CHG_REQ_DTTM as pswdChgReqDttm
+		     , RGTR_ID as rgtrId
+		     , FRST_INQ_DTTM as regDttm
+		     , MDFR_ID as mdfrId
+		     , MOD_DTTM as modDttm
+		     , CASE WHEN LGN_CNTNU_FAIL_CNT >= FN_GET_CONFIG_VALUE('LOGIN','FAILCNT') THEN
+		            CASE WHEN FN_DTTM() - IFNULL(LOGIN_FAIL_DTTM, '19900101000001') < fn_get_config_value('LOGIN','GAPTIME')
+		                 THEN 'N' ELSE 'Y' END
+		            ELSE 'Y' END AS loginUseYn
+		    , ( SELECT fn_get_config_value('LOGIN','FAILCNT')
+		           ) as cfgLoginCnt
+		    , SNS_KEY as snsKey
+		    , SNS_GBNCD as snsDiv
+		 FROM TB_LMS_USER_ACNT
+		   WHERE USER_ID = #{userId}
+		]]>
+	</select>
+
+	<select id="selectIdCheck" parameterType="usrLoginVO" resultType="String">
+		/*
+			 SQL ID : selectIdCheck
+			 설  명 : 사용자 ID 중복 체크
+	 	*/
+		SELECT CASE WHEN COUNT(*) = 0 THEN 'Y' ELSE 'N' END AS isUseable
+		  FROM TB_LMS_USER_ACNT
+		 WHERE USER_ID = #{userId}
+	</select>
+
+	<select id="selectOrgIdCheck" parameterType="usrLoginVO" resultType="String">
+		/*
+			 SQL ID : selectOrgIdCheck
+			 설  명 : 사용자 ID 중복 체크
+	 	*/
+		SELECT CASE WHEN COUNT(TUI.USER_ID) = 0 THEN 'Y' ELSE 'N' END AS isUseable
+		  FROM TB_LMS_USER_ACNT TUL
+		     , TB_LMS_USR TUI
+		 WHERE TUL.USER_ID = #{userId}
+		 AND   TUL.USER_ID = TUI.USER_ID
+		 AND   TUI.ORG_ID = #{orgId}
+	</select>
+
+	<select id="selectSsoIdCheck" parameterType="usrLoginVO" resultType="String">
+		/*
+			 SQL ID : selectSsoIdCheck
+			 설  명 : 사용자 Sso ID 중복 체크
+	 	*/
+		SELECT CASE WHEN COUNT(TUI.USER_ID) = 0 THEN 'Y' ELSE 'N' END AS isUseable
+		  FROM TB_LMS_USER_ACNT TUL
+		     , TB_LMS_USR TUI
+		 WHERE TUL.USER_ID = #{userId}
+		 AND   TUL.SNS_GBNCD = 'SSO'
+		 AND   TUL.USER_ID = TUI.USER_ID
+		 AND   TUI.ORG_ID = #{orgId}
+	</select>
+
+	<select id="snsDivCheck" parameterType="usrLoginVO" resultType="String">
+		/*
+			 SQL ID : selectIdCheck
+			 설  명 : 사용자 ID 중복 체크
+	 	*/
+		SELECT CASE WHEN COUNT(SNS_GBNCD) = 0 THEN 'Y' ELSE 'N' END AS isUseable
+		  FROM TB_LMS_USER_ACNT
+		 WHERE USER_ID = #{userId}
+	</select>
+
+	<insert id="insert" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : insert
+			 설  명 : 사용자의 정보 등록
+	 	*/
+		INSERT INTO TB_LMS_USER_ACNT (
+		       USER_ID
+		     , USER_ID
+		     , USER_ENCPSWD
+		     , ADMIN_LOGIN_ACPT_DIV_CD
+		     , LOGIN_FAIL_DTTM
+		     , LGN_CNTNU_FAIL_CNT
+		     , LAST_LOGIN_DTTM
+		     , LOGIN_CNT
+		     , ACNT_APLY_DTTM
+		     , ACNT_APRV_DTTM
+		     , ACNT_LEAVE_DTTM
+		     , ACNT_STSCD
+		     , PSWD_CHG_REQ_DTTM
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		     , SNS_KEY
+		     , SNS_GBNCD
+		) VALUES (
+		       #{userId}
+		     , #{userId}
+		     , #{userPass}
+		     , #{adminLoginAcptDivCd}
+		     , ''
+		     , 0
+		     , ''
+		     , 0
+		     , FN_DTTM()
+		     , CASE #{userSts} WHEN 'U' THEN FN_DTTM() ELSE '' END
+		     , ''
+		     , #{userSts}
+		     , TO_CHAR(ADD_MONTHS(SYSDATE, 6), 'YYYYMMDDHH24MISS')
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		     , #{snsKey}
+		     , #{snsDiv}
+		)
+	</insert>
+
+	<update id="update" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : update
+			 설  명 : 사용자의 로그인 정보 수정
+	 	*/
+		UPDATE TB_LMS_USER
+		   SET ADMIN_LOGIN_ACPT_DIV_CD = #{adminLoginAcptDivCd}
+		     , ACNT_LEAVE_DTTM = DECODE(#{userSts}, 'U','',ACNT_LEAVE_DTTM)
+		     , ACNT_STSCD = #{userSts}
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		 WHERE USER_ID = #{userId}
+	</update>
+
+	<delete id="delete" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : delete
+			 설  명 : 사용자의 로그인 정보 삭제
+	 	*/
+		DELETE FROM TB_LMS_USER_ACNT
+		 WHERE USER_ID = #{userId}
+	</delete>
+
+	<update id="updateLoginCount" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : updateLoginCount
+			 설  명 : 사용자의 로그인 횟수 증가
+	 	*/
+		UPDATE TB_LMS_USER
+		   SET LGN_CNTNU_FAIL_CNT = 0
+		     <!-- , LOGIN_FAIL_DTTM = ''
+		     , LAST_LOGIN_DTTM = FN_DTTM() -->
+		     <!-- , LOGIN_CNT = LOGIN_CNT + 1 -->
+		 WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="updateFailInfo" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : updateFailInfo
+			 설  명 : 사용자의 로그인 실패에 대한 정보 수정
+	 	*/
+		UPDATE TB_LMS_USER
+		   SET LGN_CNTNU_FAIL_CNT = NVL(LGN_CNTNU_FAIL_CNT, 0) + 1
+		   <if test='loginFailDttm == "Y"'>
+		     , LOGIN_FAIL_DTTM = FN_DTTM()
+		   </if>
+		 WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="updatePassword" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : updatePassword
+			 설  명 : 사용자의 비밀번호 변경
+	 	*/
+		UPDATE TB_LMS_USER
+		   SET USER_ENCPSWD = CASE WHEN #{userPass} = '' THEN USER_ENCPSWD WHEN #{userPass} = NULL THEN USER_ENCPSWD ELSE #{userPass} END
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		     , PSWD_CHG_REQ_DTTM = TO_CHAR(SYSDATE + FN_GET_CONFIG_VALUE('LOGIN','PSWDCHG'), 'YYYYMMDDHH24MISS')
+		 WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="updateTmpPassword" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : updateTmpPassword
+			 설  명 : 사용자의 비밀번호 변경
+	 	*/
+		UPDATE TB_LMS_USER
+		   SET TMP_PASS = #{tmpPass}
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		 WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="updateStatus" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : updateStatus
+			 설  명 : 사용자의 샹태 변경
+	 	*/
+		UPDATE TB_LMS_USER
+		   SET ACNT_STSCD = #{userSts}
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		 WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="updateWithdrawal" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : updateWithdrawal
+			 설  명 : 사용자의 탈퇴 처리
+	 	*/
+		UPDATE TB_LMS_USER
+		   SET ACNT_STSCD = 'D'
+		     , USER_ENCPSWD = ' '
+		     , ADMIN_LOGIN_ACPT_DIV_CD = ''
+		     , LGN_CNTNU_FAIL_CNT = 0
+		     , LOGIN_FAIL_DTTM = ''
+		     , LAST_LOGIN_DTTM = ''
+		     , SNS_KEY = ''
+		     , ACNT_LEAVE_DTTM = FN_DTTM()
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		 WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="updatePassDate" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : updatePassDate
+			 설  명 : 사용자의 탈퇴 처리
+	 	*/
+		UPDATE TB_LMS_USER
+		   SET MDFR_ID = :mdfrId
+		     , MOD_DTTM = FN_DTTM()
+		     , PSWD_CHG_REQ_DTTM = TO_CHAR((SYSDATE + FN_GET_CONFIG_VALUE('LOGIN','PSWDCHG')),'YYYYMMDDHH24MISS')
+		 WHERE USER_ID = #{userId}
+	</update>
+	<update id="updateSns" parameterType="usrLoginVO" >
+		/*
+			 SQL ID : updateSns
+			 설  명 : 사용자의 SNS_GBNCD입력
+	 	*/
+		UPDATE TB_LMS_USER
+		   SET SNS_GBNCD = #{snsDiv}
+		     , SNS_KEY = #{snsKey}
+		 WHERE USER_ID = #{userId}
+	</update>
+
+
+
+	<select id="selectSessionId" parameterType="usrLoginVO" resultType="usrLoginVO">
+		/*
+			 SQL ID : selectSessionId
+			 설  명 : 사용자 세션ID 조회
+	 	*/
+		SELECT
+			SESS_ID
+			, USER_ID
+			, REG_DTTM
+		FROM TB_LMS_SESS
+		WHERE SESS_ID = #{sessionId}
+	</select>
+
+	<insert id="insertSessionId" parameterType="usrLoginVO">
+		/*
+			 SQL ID : insertSessionId
+			 설  명 : 사용자 세션ID 저장
+	 	*/
+		INSERT INTO TB_LMS_SESS (
+			SESS_ID
+			, USER_ID
+			, RGTR_ID
+			, REG_DTTM
+		)
+		VALUES (
+			#{sessionId}
+			, #{userId}
+			, #{userId}
+			, FN_DTTM()
+		)
+	</insert>
+
+	<insert id="updateSessionId" parameterType="usrLoginVO">
+		/*
+			 SQL ID : udpateSessionId
+			 설  명 : 사용자 세션ID 수정
+	 	*/
+		UPDATE TB_LMS_SESS SET
+			  SESS_ID = #{sessionId}
+			, REG_DTTM = FN_DTTM()
+		WHERE USER_ID = #{userId}
+	</insert>
+</mapper>

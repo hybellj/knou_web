@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="knou.lms.asmt.dao.AsmtProTeamDAO">
+
+	<!-- 과제팀 기본 -->
+	<sql id="refQuery">
+		SELECT A.ASMT_SBMSN_ID
+			   , A.ASMT_ID
+			   , A.STD_ID
+			   , INFO.DEPTNM
+			   , INFO.USERNM
+			   , STD.USER_ID
+			   , A.SBMSN_TYCD
+			   , A.TEAM_ID
+			   , A.SBMSN_CTS
+			   , A.SCR
+			   , A.SBMSN_STSCD
+			   , ( SELECT CDNM
+			         FROM TB_ORG_CODE
+			        WHERE CTGRCD = 'ASMNT_SUBMIT_CD'
+			          AND CD = A.SBMSN_STSCD AND ORG_ID = #{orgId}) AS ASMNT_SUBMIT_STATUS_NM
+			   , A.SBMSN_CNT
+			   , A.CNTN_IP
+			   , A.EVLYN
+			   , A.SCR_MEMO
+			   , A.DELYN
+			   , A.EXLN_ASMTYN
+			   , A.RGTR_ID
+			   , A.FRST_INQ_DTTM
+			   , A.MDFR_ID
+			   , A.MOD_DTTM
+			   , B.MDFR_ID AS FILE_RGTR_ID
+			   , B.MOD_DTTM AS FILE_REG_DTTM
+			   , ( SELECT T.teamnm
+			         FROM TB_LMS_TEAM T
+			        WHERE T.TEAM_ID = A.TEAM_ID) AS teamnm
+			   , ( SELECT T.ROLE
+			         FROM TB_LMS_TEAM_MBR T
+			        WHERE T.TEAM_ID = A.TEAM_ID
+			          AND T.STD_ID = A.STD_ID ) AS ROLE
+			   , ( SELECT IFNULL(AVG(T.SCR),0)
+			         FROM TB_LMS_ASMT_MTL_EVL T
+			        WHERE T.ASMT_SBMSN_ID = A.ASMT_SBMSN_ID 
+			          AND T.RGTR_ID IN (
+				          	  SELECT USER_ID 
+				          	  FROM TB_LMS_ATNDLC_SBJCT 
+				          	  WHERE SBJCT_ID = STD.SBJCT_ID 
+				          	  AND ATNDLC_STSCD = 'S' 
+				          	  AND AUDITYN = 'N'
+				          	  AND (
+				          	  	     ASMNT.TEAM_EVAL_YN = 'N'
+				          	  	  OR (ASMNT.TEAM_EVAL_YN = 'Y' AND EXISTS(SELECT 1 FROM TB_LMS_TEAM_MBR WHERE TEAM_ID = A.TEAM_ID AND USER_ID = TB_LMS_ATNDLC_SBJCT.USER_ID))
+				          	  )
+			          	  ) ) AS EVL_SCR
+			   , ( SELECT COUNT(RGTR_ID)
+			         FROM TB_LMS_ASMT_MTL_EVL T
+			        WHERE T.ASMT_SBMSN_ID = A.ASMT_SBMSN_ID
+			          AND T.RGTR_ID IN (
+				          	  SELECT USER_ID 
+				          	  FROM TB_LMS_ATNDLC_SBJCT 
+				          	  WHERE SBJCT_ID = STD.SBJCT_ID 
+				          	  AND ATNDLC_STSCD = 'S' 
+				          	  AND AUDITYN = 'N'
+				          	  AND (
+				          	  	     ASMNT.TEAM_EVAL_YN = 'N'
+				          	  	  OR (ASMNT.TEAM_EVAL_YN = 'Y' AND EXISTS(SELECT 1 FROM TB_LMS_TEAM_MBR WHERE TEAM_ID = A.TEAM_ID AND USER_ID = TB_LMS_ATNDLC_SBJCT.USER_ID))
+				          	  )
+			          	  ) ) AS EVAL_CNT
+			   , ( SELECT COUNT(ASMT_FDBK_ID)
+	 		         FROM TB_LMS_ASMNT_FDBK
+	 		        WHERE ASMT_ID = A.ASMT_ID
+	 		          AND STD_ID = A.STD_ID
+	 		          AND DELYN = 'N' ) AS FDBK_CNT
+		       , (SELECT FILENM FROM TB_LMS_ATFL WHERE ATCL_ID = B.ASMT_SBMSN_ID ORDER BY FILE_ID LIMIT 1) AS FILENM
+		       , (SELECT CONCAT(FILE_PATH, '/', FILE_SAVENM) FROM TB_LMS_ATFL WHERE ATCL_ID = B.ASMT_SBMSN_ID ORDER BY FILE_ID LIMIT 1) AS FILE_PATH
+		       , (SELECT CONCAT(FILE_PATH, '/', THMB_FILE_PATH) FROM TB_LMS_ATFL WHERE ATCL_ID = B.ASMT_SBMSN_ID AND (THMB_FILE_PATH IS NOT NULL AND THMB_FILE_PATH != '') ORDER BY FILE_ID LIMIT 1) AS THUMB_PATH
+		       , (SELECT FILE_EXTNM FROM TB_LMS_ATFL WHERE ATCL_ID = B.ASMT_SBMSN_ID ORDER BY FILE_ID LIMIT 1) AS FILE_EXTNM
+		       , (SELECT COUNT(1) FROM TB_LMS_ATFL WHERE ATCL_ID = B.ASMT_SBMSN_ID) AS FILE_CNT
+		   	   , STD.GDSC_DGRS_CRS_GBNCD
+               , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = STD.ORG_ID AND CTGRCD = 'GDSC_DGRS_CRS_GBNCD' AND CD = STD.GDSC_DGRS_CRS_GBNCD) AS GRSC_DEGR_CORS_GBN_NM
+		  FROM TB_LMS_ASMT_SBMSN A
+		  JOIN TB_LMS_ATNDLC_SBJCT STD
+			ON STD.STD_ID = A.STD_ID
+		   AND STD.ATNDLC_STSCD = 'S'
+		   AND STD.AUDITYN = 'N'
+		  JOIN TB_LMS_USER_ACNT LOGIN
+		    ON STD.USER_ID = LOGIN.USER_ID
+		   AND LOGIN.ACNT_STSCD = 'U'
+		  JOIN TB_LMS_USR INFO
+		    ON STD.USER_ID = INFO.USER_ID
+		  JOIN TB_LMS_ASMT ASMNT
+		    ON A.ASMT_ID = ASMNT.ASMT_ID
+		  LEFT JOIN TB_LMS_ASMNT_SBMT_FILE B
+			ON A.ASMT_SBMSN_ID = B.ASMT_SBMSN_ID
+		 WHERE A.ASMT_ID = #{asmtId}
+		   AND A.DELYN = 'N'
+		<if test="searchKey != null and searchKey != ''">
+			<choose>
+				<when test="searchKey == 'SUBMIT'">
+					AND A.SBMSN_STSCD IN ('SUBMIT','RE')
+				</when>
+				<when test="searchKey == 'NO_RE'">
+					AND A.SBMSN_STSCD = 'NO'
+					AND A.RESEND_YN = 'Y'
+				</when>
+				<when test="searchKey == 'NO'">
+					AND A.SBMSN_STSCD = 'NO'
+					AND A.RESEND_YN = 'N'
+				</when>
+				<when test="searchKey == 'EVALY'">
+					AND A.EVLYN = 'Y'
+				</when>
+				<when test="searchKey == 'EVALN'">
+					AND A.EVLYN = 'N'
+				</when>
+				<otherwise>
+					AND A.SBMSN_STSCD = #{searchKey}
+				</otherwise>
+			</choose>
+		</if>
+		<if test="searchKey2 != null and searchKey2 != ''">
+			AND A.TEAM_ID = #{searchKey2}
+		</if>
+		<if test="searchValue != null and searchValue != ''">
+			AND ( LOWER( INFO.DEPTNM ) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+        	   OR LOWER( INFO.USER_ID ) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+        	   OR LOWER( INFO.USERNM ) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+       	    )
+		</if>
+	</sql>
+
+	<select id="selectObject" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntProTeamDAO.selectObject
+             	설  명 : 단건 조회
+         */	
+		<include refid="refQuery" />
+		<choose>
+			<when test="stdNo != null and stdNo != ''">
+				AND A.STD_ID = #{stdNo}
+			</when>
+			<otherwise>
+				AND A.STD_ID = ( SELECT STD_ID
+     							   FROM TB_LMS_ATNDLC_SBJCT
+    							  WHERE USER_ID = #{userId}
+    								AND ATNDLC_STSCD = 'S'
+    								AND SBJCT_ID = #{crsCreCd})
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="selectList" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntProTeamDAO.selectList
+             	설  명 : 다건 조회
+         */	
+		SELECT RT.*
+		<choose>
+			<when test="sortType == 'NO'">
+				, ROW_NUMBER() OVER(ORDER BY RT.TEAM_ID, RT.ROLE DESC, RT.USER_ID) AS LINE_NO
+			</when>
+			<when test="sortType == 'DT'">
+				, ROW_NUMBER() OVER(ORDER BY RT.TEAM_ID, RT.ROLE DESC, (CASE WHEN RT.FILE_REG_DTTM IS NULL THEN 1 ELSE 0 END), RT.FILE_REG_DTTM) AS LINE_NO
+			</when>
+			<otherwise>
+				, ROW_NUMBER() OVER(ORDER BY RT.TEAM_ID, RT.ROLE DESC, RT.USERNM) AS LINE_NO
+			</otherwise>
+		</choose>
+			   , COUNT(RT.ASMT_SBMSN_ID) OVER() AS TOTAL_CNT
+		  FROM ( <include refid="refQuery" /> ) RT
+		<choose>
+			<when test="sortType == 'NO'">
+				ORDER BY RT.TEAM_ID, RT.ROLE DESC, RT.USER_ID
+			</when>
+			<when test="sortType == 'DT'">
+				ORDER BY RT.TEAM_ID, RT.ROLE DESC, (CASE WHEN RT.FILE_REG_DTTM IS NULL THEN 1 ELSE 0 END), RT.FILE_REG_DTTM
+			</when>
+			<otherwise>
+				ORDER BY RT.TEAM_ID, RT.ROLE DESC, RT.USERNM
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="selectListPaging" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntProTeamDAO.selectListPaging
+             	설  명 : 페이징
+         */		
+		SELECT RT.*
+	 		   , ROW_NUMBER() OVER(ORDER BY RT.USERNM) AS LINE_NO
+			   , COUNT(RT.ASMT_SBMSN_ID) OVER() AS TOTAL_CNT
+		  FROM ( <include refid="refQuery" /> ) RT
+		ORDER BY RT.TEAM_ID, RT.USERNM
+		LIMIT #{firstIndex}, #{listScale}
+	</select>
+
+	<select id="selectTeamList" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntProTeamDAO.selectTeamList
+             	설  명 : 팀 목록 조회
+         */		
+		SELECT TEAM_TYCD
+			   , TEAM_ID
+			   , teamnm
+		  FROM TB_LMS_TEAM
+		 WHERE TEAM_TYCD = #{lrnGrpId}
+	</select>
+
+	<select id="selectTarget" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntProTeamDAO.selectTarget
+             	설  명 : 과제 대상자 조회
+         */		
+		SELECT ATNDLC.ATNDLC_ID
+		    , ATNDLC.USER_ID
+		    , USR.USERNM
+		    , MBR.TEAM_ID
+		    , (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = USR.DEPT_ID) AS DEPTNM
+		FROM TB_LMS_ATNDLC ATNDLC
+		JOIN TB_LMS_TEAM TEAM ON TEAM.LRN_GRP_ID = #{lrnGrpId}
+		JOIN TB_LMS_TEAM_MBR MBR ON MBR.TEAM_ID = TEAM.TEAM_ID AND MBR.USER_ID = ATNDLC.USER_ID
+		JOIN TB_LMS_USER USR ON USR.USER_ID = ATNDLC.USER_ID
+		WHERE ATNDLC.SBJCT_ID = #{sbjctId}
+		    AND ATNDLC.ATNDLC_STSCD = 'ATNDLC'
+	</select>
+
+	<select id="selectTeamCd" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntProTeamDAO.selectTeamCd
+             	설  명 : 대상자 팀코드 조회
+         */		
+		SELECT TEAM.TEAM_ID
+		    , MBR.USER_ID
+		FROM TB_LMS_TEAM TEAM
+			JOIN TB_LMS_TEAM_MBR MBR ON MBR.TEAM_ID = TEAM.TEAM_ID
+		WHERE TEAM.LRN_GRP_ID = #{lrnGrpId}
+			AND MBR.USER_ID = #{userId}
+	</select>
+
+	<insert id="insertTarget" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProTeamDAO.insertTarget
+             	설  명 : 과제 대상자 등록
+         */
+		INSERT INTO TB_LMS_ASMT_TRGT (
+			ASMT_SBMSN_TRGT_ID
+			, ASMT_ID
+			, USER_ID
+			, TEAM_ID
+			, REG_DTTM
+			, RGTR_ID
+		) VALUES
+		(
+			#{asmtSbmsnTrgtId}
+			, #{asmtId}
+			, #{userId}
+			, #{teamId}
+			, FN_DTTM()
+			, #{rgtrId}
+		)
+	</insert>
+	<insert id="insertTargetList" parameterType="java.util.List">
+		/*
+             SQL ID : AsmntProTeamDAO.insertTargetList
+             	설  명 : 과제 대상자 목록 등록
+         */
+		INSERT INTO TB_LMS_ASMT_TRGT (
+			ASMT_SBMSN_TRGT_ID
+		  , ASMT_ID
+		  , USER_ID
+		  , TEAM_ID
+		  , REG_DTTM
+		  , RGTR_ID
+		)
+		<foreach collection="list" item="item" separator="UNION ALL">
+		SELECT
+			#{item.asmtSbmsnTrgtId}
+		  , #{item.asmtId}
+		  , #{item.userId}
+		  , #{item.teamId}
+		  , FN_DTTM()
+		  , #{item.rgtrId}
+		FROM DUAL
+		</foreach>
+	</insert>
+
+</mapper>

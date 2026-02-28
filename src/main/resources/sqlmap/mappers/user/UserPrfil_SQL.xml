@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.user.dao.UserPrfilDAO">
+
+
+    <select id="userPrfilSelect" resultType="userPrfilVO">
+        /*
+            SQL ID : UserPrfilDAO.userPrfilSelect
+            설 명 : 사용자의 정보 조회
+        */
+        SELECT USER_ID
+            , USER_RPRS_ID
+            , USERNM
+            , USER_ENNM
+            , ORG_ID
+            , DEPT_ID
+            , PHOTO_FILE_ID
+            , SHRTNT_ALIM_RCVYN
+            , EML_NOTI_RCVYN
+            , PUSH_TALK_SMS_FLAG
+            , USE_EML_GBNCD
+            , USER_NCNM
+            , STDNT_NO
+            , GNDR_TYCD
+            , USER_ID_ENCPSWD
+            , (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE ORG_ID = #{orgId} AND LANG_CD = NVL(#{langCd}, 'ko') AND UP_CD = 'GNDR_TYCD') AS GNDR_TYNM
+            , CASE WHEN SUBSTR(NVL(PUSH_TALK_SMS_FLAG, '0000000000'), 4, 1) = '1' THEN 'Y' ELSE 'N' END AS PUSH_RCVYN              -- 푸시(4)
+            , CASE WHEN SUBSTR(NVL(PUSH_TALK_SMS_FLAG, '0000000000'), 6, 1) = '1' THEN 'Y' ELSE 'N' END AS ALIM_TALK_RCVYN         -- 알림톡(6)
+            , CASE WHEN SUBSTR(NVL(PUSH_TALK_SMS_FLAG, '0000000000'), 1, 1) = '1' THEN 'Y' ELSE 'N' END AS SMS_RCVYN               -- 문자(1)
+            , (SELECT MAX(CNTCT) FROM TB_LMS_USER_CNTCT T1 WHERE T1.USER_ID = USR.USER_ID AND T1.CNTCT_TYCD = 'LNKG_EML') AS LNKG_EML
+            , (SELECT MAX(CNTCT) FROM TB_LMS_USER_CNTCT T1 WHERE T1.USER_ID = USR.USER_ID AND T1.CNTCT_TYCD = 'INDV_EML') AS INDV_EML
+            , (SELECT MAX(CNTCT) FROM TB_LMS_USER_CNTCT T1 WHERE T1.USER_ID = USR.USER_ID AND T1.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
+        FROM TB_LMS_USER USR
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="pushTalkSmsFlagSelect" parameterType="userPrfilVO" resultType="userPrfilVO">
+        /*
+            SQL ID : UserPrfilDAO.pushTalkSmsFlagSelect
+            설 명 : 푸시톡문자수신플래그 조회
+        */
+        SELECT PUSH_TALK_SMS_FLAG
+        FROM TB_LMS_USER
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <update id="userPrfilAlimChange" parameterType="userPrfilVO">
+        /*
+            SQL ID : UserPrfilDAO.userPrfilAlimChange
+            설 명 : 사용자 알림수신여부 변경
+        */
+        UPDATE TB_LMS_USER
+        SET EML_NOTI_RCVYN     = #{emlNotiRcvyn}
+            , SHRTNT_ALIM_RCVYN  = #{shrtntAlimRcvyn}
+            , PUSH_TALK_SMS_FLAG = #{pushTalkSmsFlag}
+            , MDFR_ID = #{userId}
+            , MOD_DTTM = FN_DTTM()
+        WHERE USER_ID = #{userId}
+    </update>
+    <update id="modifyUserBasic">
+        /*
+            SQL ID : UserPrfilDAO.modifyUserPrfil
+            설 명 : 사용자프로필 수정
+        */
+        UPDATE TB_LMS_USER
+        SET
+            USERNM = #{usernm}               -- 사용자명
+            , USER_NCNM = #{userNcnm}          -- 사용자별칭
+            , GNDR_TYCD = #{gndrTycd}          -- 성별유형코드
+            , USE_EML_GBNCD = #{useEmlGbncd}   -- 사용이메일구분코드(LNKG/INDV)
+            , PHOTO_FILE_ID = #{photoFileId}
+            , MDFR_ID = #{mdfrId}              -- 수정자아이디
+            , MOD_DTTM = FN_DTTM()  -- 수정일시
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <insert id="mergeUserCntct" parameterType="userPrfilVO">
+        /*
+            SQL ID : UserPrfilDAO.mergeUserCntct
+            설 명 : 사용자연락처 수정
+        */
+        MERGE INTO TB_LMS_USER_CNTCT T
+        USING (
+            SELECT
+                  #{userId} AS USER_ID
+                , #{cntctTycd} AS CNTCT_TYCD
+            FROM DUAL
+        ) S
+           ON (
+                T.USER_ID = S.USER_ID
+            AND T.CNTCT_TYCD = S.CNTCT_TYCD
+           )
+        WHEN MATCHED THEN
+            UPDATE
+               SET CNTCT = #{cntct}
+                 , MDFR_ID = #{mdfrId}
+                 , MOD_DTTM = FN_DTTM()
+        WHEN NOT MATCHED THEN
+            INSERT (
+                  USER_CNTCT_ID
+                , USER_ID
+                , CNTCT_TYCD
+                , CNTCT
+                , RGTR_ID
+                , REG_DTTM
+            )
+            VALUES (
+                  #{userCntctId}
+                , #{userId}
+                , #{cntctTycd}
+                , #{cntct}
+                , #{rgtrId}
+                , FN_DTTM()
+            )
+    </insert>
+
+    <sql id="authrtQuerySelect">
+        SELECT
+            AUTHRT.AUTHRT_CD
+            , AUTHRT.AUTHRT_GRPCD
+            , USER_AUTHRT.AUTHRT_ID
+            , ORG.ORG_ID
+            , ORG.ORGNM
+        FROM TB_LMS_USER_AUTHRT USER_AUTHRT
+        JOIN TB_LMS_AUTHRT AUTHRT ON AUTHRT.AUTHRT_ID = USER_AUTHRT.AUTHRT_ID
+        JOIN TB_LMS_USER USR ON USER_AUTHRT.USER_ID = USR.USER_ID
+        JOIN TB_LMS_ORG ORG ON AUTHRT.ORG_ID = ORG.ORG_ID
+        WHERE 1=1
+    </sql>
+
+    <select id="authrtList" parameterType="userPrfilVO" resultType="userPrfilVO">
+        /*
+            SQL ID : UserPrfilDAO.authrtList
+            설 명 : 권한조회
+        */
+        <include refid="authrtQuerySelect"/>
+    </select>
+
+    <select id="userAllOrgAuthrtList" parameterType="userPrfilVO" resultType="userPrfilVO">
+        /*
+            SQL ID : UserPrfilDAO.userAllOrgAuthrtList
+            설 명 : 사용자모든기관권한조회
+        */
+        <include refid="authrtQuerySelect"/>
+        AND USR.USER_ID = #{userId}
+        AND AUTHRT.AUTHRT_GRPCD = #{authrtGrpcd}
+    </select>
+
+    <select id="nowSmstrLectOrgList" parameterType="userPrfilVO" resultType="userPrfilVO">
+        /*
+            SQL ID : UserPrfilDAO.nowSmstrLectOrgList
+            설 명 : 현재학기 강의 기관 목록 조회
+        */
+        SELECT DISTINCT
+              T.ORG_ID
+            , T.ORGNM
+        FROM (
+            <include refid="authrtQuerySelect"/>
+        ) T
+        WHERE EXISTS (
+            SELECT 1
+            FROM TB_LMS_SBJCT OFRNG
+                JOIN TB_LMS_SMSTR_CHRT CHRT ON CHRT.SMSTR_CHRT_ID = OFRNG.SMSTR_CHRT_ID
+            WHERE CHRT.NOW_SMSTRYN = 'Y'
+                AND OFRNG.PROF_ID = #{userId}
+                AND CHRT.ORG_ID = T.ORG_ID
+        )
+    </select>
+
+    <select id="isPswdMtch" resultType="int" parameterType="userPrfilVO">
+        /*
+            SQL ID : UserPrfilDAO.isPswdMtch
+            설 명 : 패스워드 일치여부
+        */
+        SELECT COUNT(1)
+        FROM TB_LMS_USER
+        WHERE USER_ID = #{userId}
+            AND USER_ID_ENCPSWD = #{userIdEncpswd}
+    </select>
+
+    <insert id="insertUserAuthrtByAuthrtSelect" parameterType="userPrfilVO">
+        /*
+            SQL ID : UserPrfilDAO.insertUserAuthrtByAuthrtSelect
+            설 명 : 권한조회하여 사용자권한등록
+        */
+        INSERT INTO TB_LMS_USER_AUTHRT
+        (
+            USER_AUTHRT_ID
+            , USER_ID
+            , AUTHRT_ID
+            , RGTR_ID
+            , REG_DTTM
+        )
+        SELECT
+            #{userAuthrtId}
+            , #{userId}
+            , AUTHRT.AUTHRT_ID
+            , #{rgtrId}
+            , FN_DTTM()
+        FROM TB_LMS_AUTHRT AUTHRT
+        WHERE AUTHRT.ORG_ID = #{orgId}
+            AND AUTHRT.AUTHRT_CD = #{authrtCd}
+            AND AUTHRT.AUTHRT_GRPCD = #{authrtGrpcd}
+            AND NOT EXISTS (
+            SELECT 1
+            FROM TB_LMS_USER_AUTHRT UA
+            WHERE UA.USER_ID = #{userId}
+            AND UA.AUTHRT_ID = AUTHRT.AUTHRT_ID
+        )
+
+    </insert>
+    <delete id="deleteUserAuthrtByAuthrtIdList" parameterType="userPrfilVO">
+        /*
+            SQL ID : UserPrfilDAO.deleteUserAuthrtByAuthrtIdList
+            설 명 : 권한아이디목록으로 사용자권한 삭제
+        */
+        DELETE
+        FROM TB_LMS_USER_AUTHRT
+        WHERE USER_ID = #{userId}
+            AND AUTHRT_ID IN
+        <foreach collection="authrtIdList" item="authrtId" open="(" separator="," close=")">
+            #{authrtId}
+        </foreach>
+    </delete>
+
+
+</mapper>

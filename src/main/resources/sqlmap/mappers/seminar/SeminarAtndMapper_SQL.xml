@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.seminar.dao.SeminarAtndDAO">
+
+	<select id="select" parameterType="seminarAtndVO" resultType="seminarAtndVO">
+		/*
+             SQL ID : SeminarAtndDAO.select
+            	 설  명 : 세미나 참석 정보 조회
+         */
+         SELECT
+         	  SMNR_ATND_ID		AS seminarAtndId
+			, SMNR_ID            AS seminarId
+			, STD_ID                AS stdNo
+			, USER_ID               AS userId
+			, ATND_SDTTM             AS atndDttm
+			, ATND_SCNDS             AS atndTime
+			, ATND_STSCD               AS atndCd
+			, CNTN_DVC_TYCD        AS deviceTypeCd
+			, ATND_MEMO				AS atndMemo
+			, RGTR_IP                AS regIp
+			, RGTR_ID                AS rgtrId
+			, FRST_INQ_DTTM              AS regDttm
+			, MDFR_ID                AS mdfrId
+			, MOD_DTTM              AS modDttm
+           FROM TB_LMS_SMNR_ATND
+          WHERE SMNR_ID = #{seminarId}
+            AND USER_ID = #{userId}
+          <if test="stdNo != null and stdNo != ''">
+            AND STD_ID = #{stdNo}
+          </if>
+	</select>
+
+	<select id="listStd" parameterType="seminarAtndVO" resultType="seminarAtndVO">
+		/*
+             SQL ID : SeminarAtndDAO.listStd
+            	 설  명 : 세미나 참석 수강생 리스트 조회
+         */
+         <!-- SELECT
+         	  ROW_NUMBER() OVER(ORDER BY AA.userNm) 		AS lineNo
+         	, AA.*
+           FROM (
+	         SELECT
+			 	  A.STD_ID 									AS stdNo
+				, A.USER_ID 								AS userId
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.USER_ID) 	AS userNm
+				, (SELECT DEPTNM FROM TB_LMS_USR WHERE USER_ID = A.USER_ID) 	AS deptNm
+				, (SELECT EMAIL FROM TB_LMS_USR WHERE USER_ID = A.USER_ID) 		AS email
+				, (SELECT MOBILE_NO FROM TB_LMS_USR WHERE USER_ID = A.USER_ID) 	AS mobileNo
+				, A.SCYR																	AS SCYR
+				, NVL((SELECT ENTR_YY FROM TB_LMS_USR WHERE USER_ID = A.USER_ID), '-') AS entrYy
+				, NVL((SELECT ENTR_HY FROM TB_LMS_USR WHERE USER_ID = A.USER_ID), '-') AS entrHy
+				, NVL((SELECT ENTR_GBN_NM FROM TB_LMS_USR WHERE USER_ID = A.USER_ID), '-') AS entrGbnNm
+				<if test="seminarId != null and seminarId != ''">
+				, D.SMNR_ATND_ID							AS seminarAtndId
+				, D.ATND_SDTTM								AS atndDttm
+				, D.ATND_SCNDS								AS atndTime
+				, D.ATND_STSCD									AS atndCd
+				, D.FRST_INQ_DTTM								AS regDttm
+				</if>
+				, A.GDSC_DGRS_CRS_GBNCD
+                , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'GDSC_DGRS_CRS_GBNCD' AND CD = A.GDSC_DGRS_CRS_GBNCD) AS GRSC_DEGR_CORS_GBN_NM
+			  FROM TB_LMS_ATNDLC_SBJCT A
+			  JOIN TB_LMS_USR B
+			    ON A.USER_ID = B.USER_ID
+			  JOIN TB_LMS_USER_ACNT BB
+			    ON B.USER_ID = BB.USER_ID
+			   AND BB.ACNT_STSCD = 'U'
+			 <if test="seminarId != null and seminarId != ''">
+			  LEFT JOIN TB_LMS_SMNR C
+			    ON A.SBJCT_ID = C.SBJCT_ID
+			   AND C.DELYN = 'N'
+			   AND C.SMNR_ID = #{seminarId}
+			  LEFT JOIN TB_LMS_SMNR_ATND D
+			    ON A.STD_ID = D.STD_ID 
+			   AND A.USER_ID = D.USER_ID
+			   AND C.SMNR_ID = D.SMNR_ID
+			 </if>
+			 WHERE A.ATNDLC_STSCD NOT IN ('D', 'T')
+			   AND A.AUDITYN = 'N'
+			 <if test="orgId != null and orgId != ''">
+			   AND A.ORG_ID = #{orgId}
+			 </if>
+			 <if test="crsCreCd != null and crsCreCd != ''">
+			   AND A.SBJCT_ID = #{crsCreCd}
+			 </if>
+			 <if test='atndCd != null and atndCd != "" and atndCd != "ALL" and seminarId != null and seminarId != ""'>
+			 	<choose>
+			 		<when test='atndCd == "NONE"'>
+			 			AND D.ATND_STSCD IS NULL
+			 		</when>
+			 		<otherwise>
+			 			AND D.ATND_STSCD = #{atndCd}
+			 		</otherwise>
+			 	</choose>
+			 </if>
+			 <if test="searchValue != null and searchValue != ''">
+			   AND (
+			   		 LOWER(A.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				  OR LOWER((SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.USER_ID)) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				  OR LOWER((SELECT DEPTNM FROM TB_LMS_USR WHERE USER_ID = A.USER_ID)) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			   )
+			 </if>
+		 ) AA
+		 ORDER BY AA.userNm -->
+		 select 1 from dual
+	</select>
+	
+	<select id="selectStd" parameterType="seminarAtndVO" resultType="seminarAtndVO">
+		/*
+             SQL ID : SeminarAtndDAO.selectStd
+            	 설  명 : 세미나 참석 수강생 정보 조회
+         */
+         SELECT
+			  A.STD_ID							AS stdNo
+			, A.USER_ID							AS userId
+			, (SELECT DEPTNM FROM TB_LMS_USR WHERE USER_ID = A.USER_ID) AS deptNm
+			, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.USER_ID) AS userNm
+			, B.SMNR_ATND_ID					AS seminarAtndId
+			, B.ATND_SCNDS						AS atndTime
+			, B.ATND_SDTTM						AS atndDttm
+			, B.ATND_STSCD							AS atndCd
+			, B.ATND_MEMO						AS atndMemo
+			, (SELECT S.SMNR_MNTS FROM TB_LMS_SMNR S WHERE S.SMNR_ID = #{seminarId}) AS seminarTime
+			<![CDATA[
+			, (
+				SELECT
+					CASE WHEN (TO_DATE(S.SMNR_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 > 0 THEN '대기'
+ 			   	    	 WHEN (TO_DATE(S.SMNR_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 < 0 AND (TO_DATE(S.SMNR_EDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 > 0 THEN '진행'
+ 			  	    	 WHEN (TO_DATE(S.SMNR_EDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 < 0 THEN '완료' END
+				  FROM TB_LMS_SMNR S
+				 WHERE S.SMNR_ID = #{seminarId}
+			) AS seminarStatus
+ 			]]>
+		  FROM TB_LMS_ATNDLC_SBJCT A
+		  LEFT JOIN TB_LMS_SMNR_ATND B
+		    ON A.STD_ID = B.STD_ID
+		   AND B.SMNR_ID = #{seminarId}
+		 WHERE A.STD_ID = #{stdNo}
+	</select>
+	
+	<update id="update" parameterType="seminarAtndVO">
+		/*
+             SQL ID : SeminarAtndDAO.update
+            	 설  명 : 세미나 참석 수정
+         */
+		INSERT INTO TB_LMS_SMNR_ATND (
+              SMNR_ATND_ID
+			, SMNR_ID
+			, STD_ID
+			, USER_ID
+			, ATND_SDTTM
+			, ATND_SCNDS
+			, ATND_STSCD
+			, CNTN_DVC_TYCD
+			, RGTR_IP
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			  #{seminarAtndId}
+         	, #{seminarId}
+         	, #{stdNo}
+         	, #{userId}
+         	, IFNULL(#{atndDttm}, FN_DTTM())
+         	, IFNULL(#{atndTime}, 0)
+         	, IFNULL(#{atndCd}, 'START')
+         	, IFNULL(#{deviceTypeCd}, '-')
+         	, IFNULL(#{regIp}, '-')
+         	, #{rgtrId}
+         	, FN_DTTM()
+         	, #{mdfrId}
+         	, FN_DTTM()
+        )
+        ON DUPLICATE KEY
+        UPDATE
+        	  MDFR_ID = #{mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	<if test="atndTime != null">
+         	, ATND_SCNDS = #{atndTime}
+         	</if>
+         	<if test="atndCd != null and atndCd != ''">
+         	, ATND_STSCD = #{atndCd}
+         	</if>
+	</update>
+	
+	<update id="atndTimeReset" parameterType="seminarAtndVO">
+		/*
+             SQL ID : SeminarAtndDAO.atndTimeReset
+            	 설  명 : 세미나 참석 시간 초기화
+         */
+         UPDATE TB_LMS_SMNR_ATND SET
+         	ATND_SCNDS = 0
+          WHERE SMNR_ID = #{seminarId}
+	</update>
+	
+	<update id="updateMemo" parameterType="seminarAtndVO">
+		/*
+             SQL ID : SeminarAtndDAO.updateMemo
+            	 설  명 : 수강생 메모 수정
+         */
+         INSERT INTO TB_LMS_SMNR_ATND (
+              SMNR_ATND_ID
+			, SMNR_ID
+			, STD_ID
+			, USER_ID
+			, CNTN_DVC_TYCD
+			, ATND_MEMO
+			, RGTR_IP
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			  #{seminarAtndId}
+         	, #{seminarId}
+         	, #{stdNo}
+         	, #{userId}
+         	, IFNULL(#{deviceTypeCd}, '-')
+         	, #{atndMemo}
+         	, IFNULL(#{regIp}, '-')
+         	, #{rgtrId}
+         	, FN_DTTM()
+         	, #{mdfrId}
+         	, FN_DTTM()
+        )
+        ON DUPLICATE KEY
+        UPDATE
+        	  MDFR_ID = #{mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, ATND_MEMO = #{atndMemo}
+	</update>
+
+</mapper>

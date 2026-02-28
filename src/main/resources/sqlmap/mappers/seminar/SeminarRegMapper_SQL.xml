@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.seminar.dao.SeminarRegDAO">
+
+	<sql id="selectQuery">
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY SMNR_ID, USER_ID) AS lineNo
+			, SEMINAR_REG_ID	AS seminarRegId
+			, SMNR_ID		AS seminarId
+			, SBJCT_ID        AS crsCreCd
+			, ZOOM_ID           AS zoomId
+			, STD_ID            AS stdNo
+			, USER_ID           AS userId
+			, PREREG_ID      AS registantId
+			, PTCP_URL          AS joinUrl
+			, TKN_EML          AS tcEmail
+			, RGTR_ID            AS rgtrId
+			, FRST_INQ_DTTM          AS regDttm
+		  FROM TB_LMS_SMNR_PREREG
+		 WHERE 1 = 1
+		 <if test="seminarRegId != null and seminarRegId != ''">
+		   AND SEMINAR_REG_ID = #{seminarRegId}
+		 </if>
+		 <if test="seminarId != null and seminarId != ''">
+		   AND SMNR_ID = #{seminarId}
+		 </if>
+		 <if test="crsCreCd != null and crsCreCd != ''">
+		   AND SBJCT_ID = #{crsCreCd}
+		 </if>
+		 <if test="zoomId != null and zoomId != ''">
+		   AND ZOOM_ID = #{zoomId}
+		 </if>
+		 <if test="stdNo != null and stdNo != ''">
+		   AND STD_ID = #{stdNo}
+		 </if>
+		 <if test="userId != null and userId != ''">
+		   AND USER_ID = #{userId}
+		 </if>
+		 <if test="registantId != null and registantId != ''">
+		   AND PREREG_ID = #{registantId}
+		 </if>
+		 <if test="tcEmail != null and tcEmail != ''">
+		   AND TKN_EML = #{tcEmail}
+		 </if>
+	</sql>
+	
+	<select id="select" parameterType="seminarRegVO" resultType="seminarRegVO">
+		/*
+             SQL ID : SeminarRegDAO.select
+            	 설  명 : 세미나 사전 등록 참가자 정보 조회
+         */
+         <include refid="selectQuery" />
+	</select>
+	
+	<select id="list" parameterType="seminarRegVO" resultType="seminarRegVO">
+		/*
+             SQL ID : SeminarRegDAO.list
+            	 설  명 : 세미나 사전 등록 참가자 목록 조회
+         */
+         <include refid="selectQuery" />
+         ORDER BY SMNR_ID, USER_ID
+	</select>
+	
+	<insert id="insert" parameterType="seminarRegVO">
+		/*
+             SQL ID : SeminarRegDAO.insert
+            	 설  명 : 세미나 사전 등록 참가자 등록
+         */
+         INSERT INTO TB_LMS_SMNR_PREREG (
+         	  SEMINAR_REG_ID
+         	, SMNR_ID
+			, SBJCT_ID
+			, ZOOM_ID
+			, STD_ID
+			, USER_ID
+			, PREREG_ID
+			, PTCP_URL
+			, TKN_EML
+			, RGTR_ID
+			, FRST_INQ_DTTM
+         ) VALUES (
+         	  #{seminarRegId}
+         	, #{seminarId}
+         	, #{crsCreCd}
+         	, #{zoomId}
+         	, #{stdNo}
+         	, #{userId}
+         	, #{registantId}
+         	, #{joinUrl}
+         	, #{tcEmail}
+         	, #{rgtrId}
+         	, FN_DTTM()
+         )
+	</insert>
+	
+	<update id="update" parameterType="seminarRegVO">
+		/*
+             SQL ID : SeminarRegDAO.update
+            	 설  명 : 세미나 사전 등록 참가자 수정
+         */
+         UPDATE TB_LMS_SMNR_PREREG SET
+         	    SMNR_ID = #{seminarId}
+         	<if test="registantId != null and registantId != ''">
+         	  , PREREG_ID = #{registantId}
+         	</if>
+         	<if test="joinUrl != null and joinUrl != ''">
+         	  , PTCP_URL = #{joinUrl}
+         	</if>
+         	<if test="tcEmail != null and tcEmail != ''">
+         	  , TKN_EML = #{tcEmail}
+         	</if>
+          WHERE ZOOM_ID = #{zoomId}
+          <if test="seminarRegId != null and seminarRegId != ''">
+            AND SEMINAR_REG_ID = #{seminarRegId}
+          </if>
+          <if test="stdNo != null and stdNo != ''">
+            AND STD_ID = #{stdNo}
+          </if>
+	</update>
+	
+	<delete id="delete" parameterType="seminarRegVO">
+		/*
+             SQL ID : SeminarRegDAO.delete
+            	 설  명 : 세미나 사전 등록 참가자 삭제
+         */
+         DELETE FROM TB_LMS_SMNR_PREREG
+          WHERE ZOOM_ID = #{zoomId}
+          <if test="seminarRegId != null and seminarRegId != ''">
+          	AND SEMINAR_REG_ID = #{seminarRegId}
+          </if>
+          <if test="userId != null and userId != ''">
+            AND USER_ID = #{userId}
+          </if>
+          <if test="stdNo != null and stdNo != ''">
+            AND STD_ID = #{stdNo}
+          </if>
+          <if test="registantId != null and registantId != ''">
+          	AND PREREG_ID = #{registantId}
+          </if>
+          <if test="seminarId != null and seminarId != ''">
+            AND SMNR_ID = #{seminarId}
+          </if>
+	</delete>
+
+</mapper>

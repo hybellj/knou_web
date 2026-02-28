@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.team.dao.TeamCtgrDAO">
+
+	<select id="list" parameterType="teamCtgrVO" resultType="teamCtgrVO">
+		/*
+			팀 분류 조회
+			TeamCtgrDAO.list
+		*/
+		SELECT
+			  A.TEAM_TYCD
+			, A.SBJCT_ID
+			, A.ORG_ID
+			, A.TEAM_CTGRNM
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_TEAM_CTGR A
+		WHERE A.ORG_ID = #{orgId}
+		<if test="teamCtgrCd != null and teamCtgrCd != ''">
+			AND A.TEAM_TYCD = #{teamCtgrCd}
+		</if>
+		<if test="crsCreCd != null and crsCreCd != ''">
+			AND A.SBJCT_ID = #{crsCreCd}
+		</if>
+		<if test="teamCtgrNm != null and teamCtgrNm != ''">
+			AND LOWER(A.TEAM_CTGRNM) LIKE LOWER( '%' || #{teamCtgrNm} || '%')
+		</if>
+	</select>
+
+	<select id="select" parameterType="teamCtgrVO" resultType="teamCtgrVO">
+		/*
+			팀 분류 조회
+			TeamCtgrDAO.select
+		*/
+		<![CDATA[
+		SELECT CTGR.TEAM_TYCD
+			, CTGR.SBJCT_ID
+			, CTGR.ORG_ID
+			, CTGR.TEAM_CTGRNM
+			, CTGR.TEAM_BBS_YN
+			, (SELECT COUNT(*) FROM TB_LMS_ASMT B WHERE B.TEAM_TYCD = CTGR.TEAM_TYCD) AS ASMNT_CNT
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS B WHERE B.TEAM_TYCD = CTGR.TEAM_TYCD) AS FORUM_CNT
+		FROM TB_LMS_TEAM_CTGR CTGR
+		WHERE 1=1
+		]]>
+		<if test='crsCreCd != null and crsCreCd != ""'>
+			AND CTGR.SBJCT_ID = #{crsCreCd}
+		</if>
+		<if test='teamCtgrCd != null and teamCtgrCd != ""'>
+			AND CTGR.TEAM_TYCD = #{teamCtgrCd}
+		</if>
+	</select>
+
+	<select id="selecTeamForm" parameterType="teamCtgrVO" resultType="teamCtgrVO">
+		/*
+			팀 분류 정보
+			TeamCtgrDAO.selecTeamForm
+		*/
+		<![CDATA[
+		SELECT CTGR.TEAM_TYCD
+			 , CTGR.SBJCT_ID
+			 , CTGR.ORG_ID
+			 , CTGR.TEAM_CTGRNM
+			 , CTGR.TEAM_BBS_YN
+		FROM TB_LMS_TEAM_CTGR CTGR
+		WHERE 1=1
+		]]>
+		<if test='crsCreCd != null and crsCreCd != ""'>
+			AND CTGR.SBJCT_ID = #{crsCreCd}
+		</if>
+		<if test='teamCtgrCd != null and teamCtgrCd != ""'>
+			AND CTGR.TEAM_TYCD = #{teamCtgrCd}
+		</if>
+	</select>
+
+	<select id="listComplateTeamByCrsCreCd" parameterType="teamCtgrVO" resultType="teamCtgrVO">
+		/*
+			팀 배정 완료된 팀 분류 목록
+			TeamCtgrDAO.listComplateTeamByCrsCreCd
+		*/
+		<!-- SELECT
+			  A.TEAM_TYCD
+			, A.TEAM_CTGRNM
+			, A.SBJCT_ID
+		FROM TB_LMS_TEAM_CTGR A
+		WHERE A.SBJCT_ID = #{crsCreCd}
+		AND EXISTS (
+			SELECT 1 FROM (
+				SELECT
+					COUNT(STD_ID) AS CNT
+				FROM TB_LMS_ATNDLC_SBJCT
+				WHERE SBJCT_ID = #{crsCreCd}
+					AND ATNDLC_STSCD = 'S'
+					AND AUDITYN = 'N'
+			) AA
+			WHERE AA.CNT = (
+				SELECT
+					COUNT(STD_ID)
+				FROM TB_LMS_TEAM_MBR
+				WHERE TEAM_ID IN (SELECT TEAM_ID FROM TEAM WHERE TEAM_TYCD = A.TEAM_TYCD)
+				  AND STD_ID IN (
+				  	SELECT
+						STD_ID
+					FROM TB_LMS_ATNDLC_SBJCT
+					WHERE SBJCT_ID = #{crsCreCd}
+						AND ATNDLC_STSCD = 'S'
+						AND AUDITYN = 'N'
+				  )
+			)
+		) -->
+		WITH SBJCT_USER AS (
+			SELECT
+				SBJCT_ID,
+				USER_ID
+			  FROM TB_LMS_ATNDLC
+			 WHERE AUDITYN = 'N'
+			   AND ATNDLC_STSCD = 'ATNDLC'
+		), CMPTNY_TEAM_GRP AS (
+			SELECT
+				LRN_GRP_ID
+			  FROM TB_LMS_TEAM
+			 GROUP BY LRN_GRP_ID
+			 HAVING MIN(TEAM_CPST_CMPTNYN) = 'Y'
+			   AND MAX(TEAM_CPST_CMPTNYN) = 'Y'
+		)
+		SELECT
+			  TEAM_GRP.LRN_GRP_ID
+			, TEAM_GRP.LRN_GRPNM
+			, TEAM_GRP.SBJCT_ID
+		FROM TB_LMS_TEAM_GRP TEAM_GRP
+		WHERE TEAM_GRP.SBJCT_ID = #{sbjctId}
+		  AND TEAM_GRP.DELYN = 'N'
+		  AND TEAM_GRP.USEYN = 'Y'
+		AND (SELECT COUNT(USER_ID) FROM SBJCT_USER WHERE SBJCT_ID = TEAM_GRP.SBJCT_ID)
+			= (SELECT COUNT(TEAM_MBR.USER_ID) FROM TB_LMS_TEAM_MBR TEAM_MBR JOIN TB_LMS_TEAM TEAM ON TEAM_MBR.TEAM_ID = TEAM.TEAM_ID WHERE TEAM.LRN_GRP_ID = TEAM_GRP.LRN_GRP_ID)
+		AND TEAM_GRP.LRN_GRP_ID IN (SELECT LRN_GRP_ID FROM CMPTNY_TEAM_GRP)
+	</select>
+
+	<insert id="insertTeamCtgr" parameterType="teamCtgrVO">
+		/*
+			팀 분류 등록
+			TeamCtgrDAO.insertTeamCtgr
+		*/
+		INSERT INTO TB_LMS_TEAM_CTGR (
+			TEAM_TYCD
+			, SBJCT_ID
+			, ORG_ID
+			, TEAM_CTGRNM
+			, TEAM_BBS_YN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		) VALUES (
+			#{teamCtgrCd}
+			, #{crsCreCd}
+			, #{orgId}
+			, #{teamCtgrNm}
+			, #{teamBbsYn}
+			, #{rgtrId}
+			, FN_DTTM()
+		)
+	</insert>
+
+	<insert id="updateTeamCtgr" parameterType="teamCtgrVO">
+		/*
+			팀 분류 수정
+			TeamCtgrDAO.updateTeamCtgr
+		*/
+		UPDATE TB_LMS_TEAM_CTGR
+		SET MOD_DTTM = FN_DTTM()
+			, MDFR_ID = #{mdfrId}
+			<if test='crsCreCd != null and crsCreCd != ""'>
+			, SBJCT_ID = #{crsCreCd}
+			</if>
+			<if test='orgId != null and orgId != ""'>
+			, ORG_ID = #{orgId}
+			</if>
+			<if test='teamCtgrNm != null and teamCtgrNm != ""'>
+			, TEAM_CTGRNM = #{teamCtgrNm}
+			</if>
+			<if test='teamBbsYn != null and teamBbsYn != ""'>
+			, TEAM_BBS_YN = #{teamBbsYn}
+			</if>
+		WHERE TEAM_TYCD = #{teamCtgrCd}
+	</insert>
+
+	<select id="selectTeam" parameterType="teamCtgrVO" resultType="int">
+		/*
+			팀 조회
+			TeamCtgrDAO.selectTeam
+		*/
+		SELECT COUNT(*) FROM TEAM WHERE TEAM_TYCD = #{teamCtgrCd}
+	</select>
+
+	<delete id="delTeamMember" parameterType="teamCtgrVO">
+		/*
+			팀원 삭제
+			TeamCtgrDAO.delTeamMember
+		*/
+		DELETE FROM TB_LMS_TEAM_MBR WHERE TEAM_ID IN (
+			SELECT TEAM_ID FROM TEAM WHERE TEAM_TYCD = #{teamCtgrCd}
+		)
+	</delete>
+
+	<delete id="delTeam" parameterType="teamCtgrVO">
+		/*
+			팀 삭제
+			TeamCtgrDAO.delTeam
+		*/
+		DELETE FROM TEAM
+		WHERE TEAM_TYCD = #{teamCtgrCd}
+	</delete>
+
+	<delete id="delete" parameterType="teamCtgrVO" >
+		/*
+			팀분류 삭제
+			TeamCtgrDAO.delete
+		*/
+		DELETE FROM TB_LMS_TEAM_CTGR
+		WHERE TEAM_TYCD = #{teamCtgrCd}
+	</delete>
+
+	<select id="teamListDiv" parameterType="teamCtgrVO" resultType="teamCtgrVO">
+		/*
+			팀분류 조회
+			TeamCtgrDAO.teamListDiv
+		*/
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY TEAM_TYCD) AS LINE_NO
+			, TEAM_TYCD
+			, TEAM_CTGRNM
+			, (SELECT COUNT(TEAM_ID) FROM TEAM WHERE TEAM_TYCD = A.TEAM_TYCD ) AS TEAM_CNT
+			, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS RGTRNM
+			, FRST_INQ_DTTM
+			, TEAM_CPST_CMPTNYN
+			, (SELECT COUNT(*) FROM TB_LMS_ASMT B WHERE B.TEAM_TYCD = A.TEAM_TYCD AND DELYN = 'N') AS ASMNT_CNT
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS B WHERE B.TEAM_TYCD = A.TEAM_TYCD AND DELYN = 'N') AS forum_cnt
+		FROM TB_LMS_TEAM_CTGR A
+		WHERE SBJCT_ID = #{crsCreCd}
+		<if test='searchValue != null and searchValue != ""'>
+			 AND (
+			 	TEAM_CTGRNM LIKE '%' || #{searchValue} || '%'
+			 )
+		</if>
+	</select>
+
+	<delete id="editDelTeamMember" parameterType="teamCtgrVO">
+		/*
+			팀 수정시 팀원 삭제
+			TeamCtgrDAO.editDelTeamMember
+		*/
+		DELETE FROM TB_LMS_TEAM_MBR WHERE TEAM_ID = #{teamCd}
+	</delete>
+
+	<select id="teamList" resultType="teamCtgrVO">
+		/*
+			팀 토론의 팀 리스트
+			TeamCtgrDAO.teamList
+		*/
+		SELECT
+			TEAM_TYCD AS teamCtgrCd
+			, TEAM_ID AS teamCd
+			, TEAMNM AS teamNm
+		FROM TEAM
+		WHERE TEAM_TYCD = #{teamCtgrCd}
+	</select>
+
+	<select id="selectTeamCtgr" parameterType="teamCtgrVO" resultType="int">
+		/*
+			팀 분류 카운트
+			TeamCtgrDAO.selectTeamCtgr
+		*/
+		SELECT COUNT(*) FROM TB_LMS_TEAM_CTGR WHERE TEAM_TYCD = #{teamCtgrCd}
+	</select>
+
+	<update id="setTeamSetYn" parameterType="teamCtgrVO">
+		/*
+			팀 구성 완료 여부 수정
+			TeamCtgrDAO.setTeamSetYn
+		*/
+		UPDATE TB_LMS_TEAM_CTGR
+			SET TEAM_CPST_CMPTNYN = #{teamSetYn}
+		WHERE SBJCT_ID = #{crsCreCd}
+			AND TEAM_TYCD = #{teamCtgrCd}
+	</update>
+
+	<select id="totalTeamMember" parameterType="teamCtgrVO" resultType="int">
+		/*
+			팀 구성된 총 인원
+			TeamCtgrDAO.totalTeamMember
+		*/
+		SELECT
+			COUNT(*)
+		FROM TB_LMS_TEAM_CTGR A
+			LEFT JOIN TEAM B
+				ON A.TEAM_TYCD = B.TEAM_TYCD
+			LEFT JOIN TB_LMS_TEAM_MBR C
+				ON B.TEAM_ID = C.TEAM_ID
+		WHERE 1 = 1
+			AND A.TEAM_TYCD = #{teamCtgrCd}
+	</select>
+
+	<select id="teamCtgrUseCnt" parameterType="teamCtgrVO" resultType="teamCtgrVO">
+		/*
+			팀분류 사용 개수
+			TeamCtgrDAO.teamCtgrUseCnt
+		*/
+		SELECT
+			  (SELECT COUNT(*) FROM TB_LMS_ASMT B WHERE B.TEAM_TYCD = A.TEAM_TYCD AND DELYN = 'N') AS ASMNT_CNT
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS B WHERE B.TEAM_TYCD = A.TEAM_TYCD AND DELYN = 'N') AS FORUM_CNT
+		  FROM TB_LMS_TEAM_CTGR A
+		 WHERE A.TEAM_TYCD = #{teamCtgrCd}
+	</select>
+
+</mapper>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="knou.lms.asmt.dao.AsmtCmntDAO">
+
+	<sql id="selectQuery">
+		WITH RECURSIVE OPNN AS
+		(
+			SELECT
+				  A.ATCL_CMNT_ID
+				, A.ASMT_ID
+				, A.STD_ID
+				, A.SBJCT_ID
+				, A.UP_ATCL_CMNT_ID
+				, A.ATCL_CMNT_CTS
+				, CHAR_LENGTH(A.ATCL_CMNT_CTS) AS cmntLen
+				, A.DELYN
+				, A.RGTR_ID
+				, (SELECT PHT_FILE FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS PHT_FILE_BYTE
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS regNm
+				, A.FRST_INQ_DTTM
+				, A.MDFR_ID
+				, A.MOD_DTTM
+				, CONCAT('', CONVERT(a.ATCL_CMNT_ID, CHAR(1000)), '') AS PATH
+				, 1 AS cmntLvl
+		      FROM TB_LMS_ASMT_CMNT AS A
+			 WHERE 1 = 1
+		 	   AND (
+		 	   		A.UP_ATCL_CMNT_ID IS NULL
+		 	   	 OR A.UP_ATCL_CMNT_ID = ''
+		 	   )
+
+			UNION ALL
+
+			SELECT
+				  A.ATCL_CMNT_ID
+				, A.ASMT_ID
+				, A.STD_ID
+				, A.SBJCT_ID
+				, A.UP_ATCL_CMNT_ID
+				, A.ATCL_CMNT_CTS
+				, CHAR_LENGTH(A.ATCL_CMNT_CTS) AS cmntLen
+				, A.DELYN
+				, A.RGTR_ID
+				, (SELECT PHT_FILE FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS PHT_FILE_BYTE
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS regNm
+				, A.FRST_INQ_DTTM
+				, A.MDFR_ID
+				, A.MOD_DTTM
+				, CONCAT(B.path, '-', A.ATCL_CMNT_ID) AS PATH
+				, 1+cmntLvl AS cmntLvl
+			  FROM TB_LMS_ASMT_CMNT AS A
+			  INNER JOIN OPNN AS B
+				ON A.UP_ATCL_CMNT_ID = B.ATCL_CMNT_ID
+		)
+		SELECT 
+			  R.*
+			, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = (SELECT A.RGTR_ID FROM TB_LMS_ASMT_CMNT AS A WHERE ATCL_CMNT_ID = R.UP_ATCL_CMNT_ID)) AS parRegNm
+		  FROM OPNN AS R
+		 WHERE 1 = 1
+	</sql>
+	
+	<select id="selectCmnt" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntCmntDAO.selectCmnt
+             	설  명 : 과제 댓글 조회
+         */
+         <include refid="selectQuery"/>
+         AND R.ATCL_CMNT_ID = #{asmntCmntId}
+         AND R.ASMT_ID = #{asmtId}
+         AND R.STD_ID = #{stdNo}
+	</select>
+	
+	<select id="listCmnt" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntCmntDAO.listCmnt
+             	설  명 : 과제 댓글 목록 조회
+         */
+         <include refid="selectQuery"/>
+           AND R.ASMT_ID = #{asmtId}
+           AND R.STD_ID = #{stdNo}
+         ORDER BY R.PATH
+	</select>
+	
+	<insert id="insertCmnt" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntCmntDAO.insertCmnt
+             	설  명 : 과제 댓글 등록
+         */
+         INSERT INTO TB_LMS_ASMT_CMNT (
+         	  ATCL_CMNT_ID
+			, ASMT_ID
+			, STD_ID
+			, SBJCT_ID
+			, UP_ATCL_CMNT_ID
+			, ATCL_CMNT_CTS
+			, DELYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+         ) VALUES (
+         	  #{asmntCmntId}
+         	, #{asmtId}
+         	, #{stdNo}
+         	, #{crsCreCd}
+         	, #{upAsmntCmntId}
+         	, #{asmntCmntCts}
+         	, 'N'
+         	, #{userId}
+         	, FN_DTTM()
+         	, #{userId}
+         	, FN_DTTM()
+         )
+	</insert>
+	
+	<update id="updateCmnt" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntCmntDAO.updateCmnt
+             	설  명 : 과제 댓글 수정
+         */
+         UPDATE TB_LMS_ASMT_CMNT SET
+         	  MDFR_ID = #{userId}
+         	, MOD_DTTM = FN_DTTM()
+         	<if test="crsCreCd != null and crsCreCd != ''">
+         	, SBJCT_ID = #{crsCreCd}
+         	</if>
+         	<if test="upAsmntCmntId != null and upAsmntCmntId != ''">
+         	, UP_ATCL_CMNT_ID = #{upAsmntCmntId}
+         	</if>
+         	<if test="asmntCmntCts != null and asmntCmntCts != ''">
+         	, ATCL_CMNT_CTS = #{asmntCmntCts}
+         	</if>
+         	<if test="delYn != null and delYn != ''">
+         	, DELYN = #{delYn}
+         	</if>
+          WHERE ATCL_CMNT_ID = #{asmntCmntId}
+            AND ASMT_ID = #{asmtId}
+            AND STD_ID = #{stdNo}
+	</update>
+
+</mapper>

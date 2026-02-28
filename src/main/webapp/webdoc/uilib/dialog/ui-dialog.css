@@ -1,0 +1,68 @@
+@charset "UTF-8";
+
+/* ===========================================================================================
+dialog-box, message-box
+=========================================================================================== */
+.ui-dialog.dialog-box,
+.ui-dialog.message-box {
+	border-radius: 10px;
+}
+.ui-dialog.dialog-box .ui-dialog-titlebar,
+.ui-dialog.message-box .ui-dialog-titlebar {
+	background: none;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 1px solid #ddd;
+    border-radius: unset;
+}
+.ui-dialog.dialog-box .ui-dialog .ui-dialog-title,
+.ui-dialog.message-box .ui-dialog .ui-dialog-title {
+    color: var(--text-dark-0);
+}
+.ui-dialog.dialog-box .ui-dialog-titlebar-close,
+.ui-dialog.message-box .ui-dialog-titlebar-close {
+    border: 0;
+    background: none;
+    right: .5em;
+}
+.ui-dialog.dialog-box .ui-dialog-buttonpane button,
+.ui-dialog.message-box .ui-dialog-buttonpane button {
+    margin: .5em 0 .2em 0.4em;
+    padding: 0.4em 0.8em;
+    font-size: 1.4rem;
+}
+.ui-dialog.dialog-box .ui-dialog-titlebar-close:active .ui-icon, 
+.ui-dialog.message-box .ui-dialog-titlebar-close:active .ui-icon {
+    background-image: url(images/ui-icons_555555_256x240.png);
+}
+.ui-dialog.message-box .message-content {
+	display: table;
+	margin-top: .5em;
+}
+.ui-dialog.message-box .message-content .message-text {
+    display: table-cell;
+    padding-left: 0.7em;
+    vertical-align: middle;
+    color: var(--text-dark-0);
+}
+.ui-dialog.message-box .message-content .message-icon {
+	font-size: 2.5em;
+    display: table-cell;
+    vertical-align: middle;
+}
+.ui-dialog.message-box .message-content .message-icon.info {
+	color: var(--information);
+}
+.ui-dialog.message-box .message-content .message-icon.success {
+	color: var(--success);
+}
+.ui-dialog.message-box .message-content .message-icon.error {
+	color: var(--danger);
+}
+.ui-dialog.message-box .message-content .message-icon.warning {
+	color: var(--warning);
+}
+.ui-dialog.message-box .message-content .message-icon.confirm {
+	color: var(--primary-c02);
+}

@@ -1,0 +1,607 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.common.dao.OrgOrgInfoDAO">
+
+	<sql id="selectQuery">
+		<!-- SELECT A.ORG_ID
+			 , A.ORGNM
+			 , A.DMNNM
+			 , A.SDTTM
+			 , A.EDTTM
+			 , A.USEYN
+			 , A.ORG_SYS_TYCD
+			 , A.BBS_BSC_LANG_CD
+			 , A.PROD_CD
+			 , A.LAYOUT_TPL_CD
+			 , A.COLR_TMPLT_CD
+			 , A.LIMIT_NOP_CNT
+			 , A.TMPLT_ID
+			 , A.TOP_LOGO_FILE_ID
+			 , A.SBST_LOGO1_FILE_ID
+			 , A.SBST_LOGO1_URL
+			 , A.SBST_LOGO2_FILE_ID
+			 , A.SBST_LOGO2_URL
+			 , A.ORG_LOGO_FILE_ID
+			 , A.HMPG_FTR
+			 , A.ORG_FTR
+			 , A.MENU_VRSN
+			 , A.EML_ADDR
+			 , A.EMLNM
+			 , A.RPRS_TELNO
+			 , A.CHRGRNM
+			 , A.MBR_TYCD
+			 , A.RGTR_ID
+			 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS RGTRNM
+			 , A.FRST_INQ_DTTM
+			 , A.MDFR_ID
+			 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.MDFR_ID) AS MOD_NM
+			 , A.MOD_DTTM
+			 , CASE WHEN FN_DTTM() BETWEEN SDTTM AND EDTTM
+					THEN 'Y' 
+					ELSE 'N' 
+					END AS DURATION_YN
+			 , IFNULL(A.JOIN_USEYN,'Y') AS JOIN_USEYN
+		  FROM TB_LMS_ORG A
+		 WHERE 1 = 1 -->
+		 
+		 SELECT
+		 	   A.ORG_ID
+			 , A.ORGNM
+			 , A.DMNNM
+			 , A.SDTTM
+			 , A.EDTTM
+			 , A.USEYN
+			 , A.ORG_TYCD
+			 <!-- , A.BBS_BSC_LANG_CD -->
+			 , A.LANG_CD
+			 , B.PROD_CD
+			 <!-- , B.LYOT_TMPLT_CD -->
+			 , B.COLR_TMPLT_CD
+			 <!-- , A.LIMIT_NOP_CNT -->
+			 , B.ORG_TMPLT_ID
+			 , B.TOP_LOGO_FILE_ID
+			 , B.SBST_LOGO1_FILE_ID
+			 , B.SBST_LOGO1_URL
+			 , B.SBST_LOGO2_FILE_ID
+			 , B.SBST_LOGO2_URL
+			 , B.LOGO_FILE_ID
+			 , B.HMPG_FTR
+			 , B.FTR
+			 , B.MENU_VRSN
+			 <!-- , A.EML -->
+			 <!-- , A.EMLNM -->
+			 , A.RPRS_TELNO
+			 , A.CHRGRNM
+			 , A.MBRID_TYCD
+			 , A.RGTR_ID
+			 , (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = A.RGTR_ID) AS RGTRNM
+			<!--  , A.FRST_INQ_DTTM -->
+			 , A.MDFR_ID
+			 , (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = A.MDFR_ID) AS MOD_NM
+			 , A.MOD_DTTM
+			 , CASE WHEN FN_DTTM() BETWEEN SDTTM AND EDTTM
+					THEN 'Y' 
+					ELSE 'N' 
+					END AS DURATION_YN
+			 , NVL(A.JOIN_USEYN, 'Y') AS JOIN_USEYN
+		  FROM TB_LMS_ORG A
+<!-- 		  JOIN TB_LMS_TMPLT B ON A.ORG_ID = B.ORG_ID -->
+		  LEFT JOIN TB_LMS_ORG_TMPLT B ON A.ORG_ID = B.ORG_ID
+		 WHERE 1 = 1
+	</sql>
+	
+	<sql id="listQuery">
+		<include refid="selectQuery"/>
+		<if test="useYn != null and useYn != ''">
+			AND USEYN = #{useYn}
+		</if>
+		<if test="searchValue != null and searchValue != ''">
+			AND DECODE(#{searchKey}, 'orgNm', A.ORGNM) LIKE '%'||#{searchValue}||'%'
+		</if>
+		<if test="sortKey == 'ORG_NM_ASC'">
+			ORDER BY A.ORGNM ASC
+		</if>
+		<if test="sortKey == 'ORG_NM_DESC'">
+			ORDER BY A.ORGNM DESC
+		</if>
+		<if test="sortKey == 'START_DTTM_ASC'">
+			ORDER BY A.SDTTM ASC
+		</if>
+		<if test="sortKey == 'START_DTTM_DESC'">
+			ORDER BY A.SDTTM DESC
+		</if>
+		<if test="sortKey == 'END_DTTM_ASC'">
+			ORDER BY A.EDTTM ASC
+		</if>
+		<if test="sortKey == 'END_DTTM_DESC'">
+			ORDER BY A.EDTTM DESC
+		</if>
+		<if test="useYn != null and useYn != ''">
+			<if test="sortKey != null and sortKey != ''">
+				ORDER BY A.ORGNM	
+			</if>
+		</if>
+	</sql>
+
+	<select id="list" parameterType="orgOrgInfoVO" resultType="orgOrgInfoVO">
+		/*
+			 SQL ID : OrgOrgInfoDAO.list
+			 설  명 : 기관 정보의 전체 목록
+		*/
+		<include refid="listQuery"/>
+	</select>
+	
+	<select id="listPaging" parameterType="orgOrgInfoVO" resultType="orgOrgInfoVO">
+		/*
+			 SQL ID : OrgOrgInfoDAO.listPaging
+			 설  명 : 기관 정보의 페이징 목록
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		<include refid="listQuery"/>
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="count" parameterType="orgOrgInfoVO" resultType="Integer">
+		/*
+			 SQL ID : OrgOrgInfoDAO.count
+			 설  명 : 기관 정보의 전체 카운트
+		*/
+		SELECT COUNT(*) FROM (
+		<include refid="listQuery"/>
+		) T
+	</select>
+	
+	<select id="select" parameterType="orgOrgInfoVO" resultType="orgOrgInfoVO">
+		/*
+			 SQL ID : OrgOrgInfoDAO.select
+			 설  명 : 기관 정보의 정보 조회
+		*/
+		<include refid="selectQuery"/>
+			AND ORG_ID = #{orgId}
+	</select>
+
+	<sql id="selectQuerySiteStat">
+		SELECT A.ORG_ID
+			 , A.ORGNM
+			 , COUNT(DISTINCT DECODE(C.ACNT_STSCD, 'U', B.USER_ID)) 								AS USER_STATU_CNT
+			 , COUNT(DISTINCT DECODE(C.ACNT_STSCD, 'C', B.USER_ID)) 								AS USER_STATC_CNT
+			 , COUNT(DISTINCT DECODE(C.ACNT_STSCD, 'F', B.USER_ID)) 								AS USER_STATF_CNT
+			 , COUNT(DISTINCT DECODE(C.ACNT_STSCD, 'D', B.USER_ID)) 								AS USER_STATD_CNT
+			 , COUNT(DISTINCT DECODE(D.KNOW_TYPE, 'DOC', D.KNOW_SN)) 							AS KNOW_DOC_CNT
+			 , COUNT(DISTINCT DECODE(D.KNOW_TYPE, 'IMG', D.KNOW_SN)) 							AS KNOW_IMG_CNT
+			 , COUNT(DISTINCT DECODE(D.KNOW_TYPE, 'HTML', D.KNOW_SN)) 							AS KNOW_HTML_CNT
+			 , COUNT(DISTINCT DECODE(D.KNOW_TYPE, 'LINK', D.KNOW_SN)) 							AS KNOW_LINK_CNT
+			 , COUNT(DISTINCT DECODE(D.KNOW_TYPE, 'MOV', D.KNOW_SN)) 							AS KNOW_MOV_CNT
+			 , COUNT(DISTINCT DECODE(D.KNOW_TYPE, 'STD_MOV', D.KNOW_SN, 'STD_DOC', D.KNOW_SN))	AS KNOW_STUDY_CNT
+			 , COUNT(DISTINCT DECODE(D.ORIGIN_KNOW_SN, NULL, NULL, D.KNOW_SN)) 					AS SHARE_KNOW_CNT
+		  FROM TB_LMS_ORG A, TB_LMS_USR B, TB_HOME_LOGIN C, TB_MIC_KNOW D
+		 WHERE A.ORG_ID = B.ORG_ID(+)
+		   AND B.USER_ID = C.USER_ID(+)
+			<!-- AND C.USER_ID = D.RGTR_ID(+) -->
+		   AND A.ORG_ID = D.ORG_ID(+)
+		 GROUP BY A.ORG_ID, A.ORGNM
+	</sql>
+	
+	<sql id="listQuerySiteStat">
+		<include refid="selectQuerySiteStat"/>
+	</sql>
+
+	<select id="listSiteStat" parameterType="knou.lms.common.vo.SiteStatVO" resultType="knou.lms.common.vo.SiteStatVO">
+		/*
+			 SQL ID : OrgOrgInfoDAO.listSiteStat
+			 설  명 : 사이트 운영 현황의 전체 목록
+		*/
+		<include refid="listQuerySiteStat"/>
+	</select>
+	
+	<select id="listPageingSiteStat" parameterType="knou.lms.common.vo.SiteStatVO" resultType="knou.lms.common.vo.SiteStatVO">
+		/*
+			 SQL ID : OrgOrgInfoDAO.listPageingSiteStat
+			 설  명 : 사이트 운영 현황의 페이징 목록
+		*/
+		<include refid="listQuerySiteStat"/>
+		LIMIT #{firstIndex}, #{listScale}
+	</select>
+	
+	<select id="countSiteStat" parameterType="knou.lms.common.vo.SiteStatVO" resultType="Integer">
+		/*
+			 SQL ID : OrgOrgInfoDAO.countSiteStat
+			 설  명 : 사이트 운영 현황의 전체 카운트
+		*/
+		SELECT COUNT(*) FROM (
+		<include refid="listQuerySiteStat"/>
+		) T
+	</select>
+	
+	<select id="selectKey" resultType="String">
+		/*
+			 SQL ID : OrgOrgInfoDAO.selectKey
+			 설  명 : 기관 정보의 키 값 생성
+		*/
+		SELECT 'ORG'||LPAD(SQ_ORG_ORG_INFO.nextVal, 7, '0') 
+	</select>
+	
+	<insert id="insert" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.insert
+			 설  명 : 기관 정보의 정보 등록
+		*/
+		INSERT INTO TB_LMS_ORG (
+		       ORG_ID
+		     , ORGNM
+		     , DMNNM
+		     , SDTTM
+		     , EDTTM
+		     , USEYN
+		     , ORG_SYS_TYCD
+		     , BBS_BSC_LANG_CD
+		     , PROD_CD
+		     , LAYOUT_TPL_CD
+		     , COLR_TMPLT_CD
+		     , LIMIT_NOP_CNT
+		     , TMPLT_ID
+		     , TOP_LOGO_FILE_ID
+		     , SBST_LOGO1_FILE_ID
+		     , SBST_LOGO1_URL
+		     , SBST_LOGO2_FILE_ID
+		     , SBST_LOGO2_URL
+		     , ORG_LOGO_FILE_ID
+		     , HMPG_FTR
+		     , ORG_FTR
+		     , MENU_VRSN
+		     , EML_ADDR
+		     , EMLNM
+		     , RPRS_TELNO
+		     , CHRGRNM
+		     , MBR_TYCD
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		     , JOIN_USEYN
+		) VALUES (
+		       #{orgId}
+		     , #{orgNm}
+		     , #{domainNm}
+		     , #{startDttm}
+		     , #{endDttm}
+		     , #{useYn}
+		     , #{sysTypeCd}
+		     , #{dfltLangCd}
+		     , #{productCd}
+		     , #{layoutTplCd}
+		     , #{colorTplCd}
+		     , #{limitNopCnt}
+		     , #{tplCd}
+		     , #{topLogoFileSn}
+		     , #{subLogo1FileSn}
+		     , #{subLogo1Url}
+		     , #{subLogo2FileSn}
+		     , #{subLogo2Url}
+		     , #{admLogoFileSn}
+		     , #{wwwFooter}
+		     , #{admFooter}
+		     , '0'
+		     , #{emailAddr}
+		     , #{emailNm}
+		     , #{rprstPhoneNo}
+		     , #{chrgPrsnInfo}
+		     , #{mbrIdType}
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		     , #{mbrAplcUseYn}
+		)		
+	</insert>
+	
+	<update id="update" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.update
+			 설  명 : 기관 정보의 정보 수정
+		*/
+		UPDATE TB_LMS_ORG
+		   SET ORGNM = #{orgNm}
+		     , DMNNM = #{domainNm}
+		     , SDTTM = #{startDttm}
+		     , EDTTM = #{endDttm}
+		     , USEYN = #{useYn}
+		     , ORG_SYS_TYCD =#{sysTypeCd}
+		     , BBS_BSC_LANG_CD = #{dfltLangCd}
+		     , PROD_CD = #{productCd}
+		     , LIMIT_NOP_CNT = #{limitNopCnt}
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		     , JOIN_USEYN = #{mbrAplcUseYn}
+		 WHERE ORG_ID = #{orgId}
+	</update>
+	
+	<update id="updateInfo" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.updateInfo
+			 설  명 : 기관 정보의 정보 수정
+		*/
+		UPDATE TB_LMS_ORG
+		   SET BBS_BSC_LANG_CD = #{dfltLangCd}
+		     , EML_ADDR = #{emailAddr}
+		     , EMLNM = #{emailNm}
+		     , RPRS_TELNO = #{rprstPhoneNo}
+		     , CHRGRNM = #{chrgPrsnInfo}
+		     , MBR_TYCD = #{mbrIdType}
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		     , JOIN_USEYN = #{mbrAplcUseYn}
+		 WHERE ORG_ID = #{orgId}
+	</update>
+	
+	<update id="updateTemplate" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.updateTemplate
+			 설  명 : 기관의 템플릿 정보 수정
+		*/
+		UPDATE TB_LMS_ORG
+		   SET LAYOUT_TPL_CD = #{layoutTplCd}
+		     , COLR_TMPLT_CD = #{colorTplCd}
+		     , TMPLT_ID = #{tplCd}
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		 WHERE ORG_ID = #{orgId}
+	</update>
+	
+	<update id="updateDesign" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.updateDesign
+			 설  명 : 기관의 디자인 정보 수정
+		*/
+		UPDATE TB_LMS_ORG
+		   SET TOP_LOGO_FILE_ID = #{topLogoFileSn}
+		     , SBST_LOGO1_FILE_ID = #{subLogo1FileSn}
+		     , SBST_LOGO1_URL = #{subLogo1Url}
+		     , SBST_LOGO2_FILE_ID = #{subLogo2FileSn}
+		     , SBST_LOGO2_URL = #{subLogo2Url}
+		     , ORG_LOGO_FILE_ID = #{admLogoFileSn}
+		     , HMPG_FTR = #{wwwFooter}
+		     , ORG_FTR = #{admFooter}
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		 WHERE ORG_ID = #{orgId}		
+	</update>
+	
+	<delete id="delete" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.delete
+			 설  명 : 기관 정보의 정보 삭제
+		*/
+		DELETE FROM TB_LMS_ORG
+		 WHERE ORG_ID = #{orgId}
+	</delete>	
+
+	<select id="selectMenuVersion" resultType="Integer">
+		/*
+			 SQL ID : OrgOrgInfoDAO.selectMenuVersion
+			 설  명 : 기관 정보의 메뉴 버전
+		*/
+		SELECT MENU_VRSN
+		  FROM TB_LMS_ORG
+		 WHERE ORG_ID = #{orgId}
+	</select>
+
+	<update id="updateMenuVersion" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.updateMenuVersion
+			 설  명 : 기관의 메뉴 버전을 증가 시킴.
+		*/
+		UPDATE TB_LMS_ORG
+		   SET MENU_VRSN = MENU_VRSN + 1
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		 WHERE ORG_ID = #{orgId}
+	</update>
+
+	<select id="selectLogCount" parameterType="orgOrgInfoVO" resultType="Integer">
+		/*
+			 SQL ID : OrgOrgInfoDAO.selectLogCount
+			 설  명 : 기관의 로그 기록 횟수를 구한다.
+		*/
+		SELECT COUNT(*) AS LOG_CNT
+		  FROM TB_LOG_SYS_CONN_LOG
+		 WHERE ORG_ID = #{orgId}	
+	</select>
+	
+	<insert id="insertCodeCtgr" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.insertCodeCtgr
+			 설  명 : 기관 생성시 기본 코드 분류를 등록함.
+		*/
+		INSERT INTO TB_ORG_CODE_CTGR (
+		       ORG_ID
+		     , CTGRCD
+		     , CODE_CTGR_NM
+		     , CODE_CTGR_DESC
+		     , CODE_CTGR_ODR
+		     , USEYN
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		)
+		SELECT #{orgId}
+		     , CTGRCD
+		     , CODE_CTGR_NM
+		     , CODE_CTGR_DESC
+		     , CODE_CTGR_ODR
+		     , USEYN
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		  FROM TB_SYS_CODE_CTGR
+		 WHERE CTGRCD IN ('USER_DIV_CD','RGN_CD','JOB_CD', 'DEPT_CD')
+	</insert>
+	
+	<delete id="deleteCodeCtgr" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.deleteCodeCtgr
+			 설  명 : 기관 정보 삭제시 코드 분류를 삭제
+		*/
+		DELETE FROM TB_ORG_CODE_CTGR
+		 WHERE ORG_ID = #{orgId}
+	</delete>
+	
+	<insert id="insertCode" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.insertCode
+			 설  명 : 기관 생성시 기본 코드를 등록함.
+		*/
+		INSERT INTO TB_ORG_CODE (
+		       CD
+		     , CTGRCD
+		     , ORG_ID
+		     , CDNM
+		     , USEYN
+		     , CD_EXPLN
+		     , CD_OPTN
+		     , CD_SEQ
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		)
+		SELECT CD
+		     , CTGRCD
+		     , #{orgId}
+		     , CDNM
+		     , USEYN
+		     , CD_EXPLN
+		     , CD_OPTN
+		     , CD_SEQ
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		  FROM TB_SYS_CODE
+		 WHERE CTGRCD IN ('USER_DIV_CD','RGN_CD','JOB_CD', 'DEPT_CD')
+	</insert>
+	
+	<delete id="deleteCode" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.deleteCode
+			 설  명 : 기관 정보 삭제시 코드를 삭제
+		*/
+		DELETE FROM TB_ORG_CODE
+		 WHERE ORG_ID = #{orgId}
+	</delete>
+	
+	<insert id="insertUserInfoCfg" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.insertUserInfoCfg
+			 설  명 : 기관 생성시 사용자 정보 설정을 등록함.
+		*/
+		INSERT INTO TB_ORG_USER_INFO_CFG (
+		       FIELD_NM
+		     , ORG_ID
+		     , USEYN
+		     , REQUIRED_YN
+		     , INQYN
+		     , BSCYN
+		     , VIEW_ODR
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		)
+		SELECT FIELD_NM
+		     , #{orgId}
+		     , USEYN
+		     , REQUIRED_YN
+		     , INQYN
+		     , BSCYN
+		     , VIEW_ODR
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		  FROM TB_ORG_USER_INFO_CFG_MAST
+	</insert>
+	
+	<delete id="deleteUserInfoCfg" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.deleteUserInfoCfg
+			 설  명 : 기관 정보 삭제시 사용자 정보 설정을 삭제
+		*/
+		DELETE FROM TB_ORG_USER_INFO_CFG
+		 WHERE ORG_ID = #{orgId}
+	</delete>
+	
+	<insert id="insertKnowCtgr" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.insertKnowCtgr
+			 설  명 : 기관 생성시 지식분류 코드값를 등록 
+		*/
+		INSERT INTO TB_ORG_KNOW_CTGR (
+		       ORG_ID
+		     , KNOW_CTGR_CD
+		     , PAR_KNOW_CTGR_CD
+		     , KNOW_CTGR_LVL
+		     , KNOW_CTGR_ODR
+		     , KNOW_CTGR_NM
+		     , KNOW_CTGR_DESC
+		     , USEYN
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		)
+		SELECT #{orgId}
+		     , KNOW_CTGR_CD
+		     , PAR_KNOW_CTGR_CD
+		     , KNOW_CTGR_LVL
+		     , KNOW_CTGR_ODR
+		     , KNOW_CTGR_NM
+		     , KNOW_CTGR_DESC
+		     , USEYN
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		  FROM TB_ORG_KNOW_CTGR_MAST
+	</insert>
+	
+	<delete id="deleteUserKnowCtgr" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.deleteUserKnowCtgr
+			 설  명 : 기관 삭제시 사용자의 지식분류 코드값 전부를 삭제
+		*/
+		DELETE FROM TB_HOME_KNOW_CTGR
+		 WHERE ORG_ID = #{orgId}
+	</delete>
+	
+	<delete id="deleteKnowCtgr" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.deleteKnowCtgr
+			 설  명 : 기관 삭제시 지식분류 코드값 전부를 삭제
+		*/
+		DELETE FROM TB_ORG_KNOW_CTGR
+		 WHERE ORG_ID = #{orgId}
+	</delete>
+	
+	<delete id="deleteRelatedSite" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.deleteRelatedSite
+			 설  명 : 기관 삭제시 관련사이트 정보 삭제
+		*/
+		DELETE FROM TB_ETC_RELATED_SITE
+		 WHERE ORG_ID = #{orgId}
+	</delete>
+	
+	<delete id="deleteRelatedSiteCtgr" parameterType="orgOrgInfoVO" >
+		/*
+			 SQL ID : OrgOrgInfoDAO.deleteRelatedSiteCtgr
+			 설  명 : 기관 삭제시 관련사이트 분류의 정보 삭제
+		*/
+		DELETE FROM TB_ETC_RELATED_SITE_CTGR 
+		 WHERE ORG_ID = #{orgId}
+	</delete>
+
+</mapper>

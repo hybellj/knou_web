@@ -1,0 +1,2633 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.exam.dao.ExamStareDAO">
+
+	<select id="list" parameterType="examStareVO" resultType="examStareVO">
+		/*
+             SQL ID : ExamStareDAO.list
+            	 설  명 : 시험응시 리스트 조회
+         */
+		SELECT
+			  A.STD_ID
+			, A.EXAM_ID
+			, A.ACQS_TOT_SCR
+			, A.STARE_CNT
+			, A.STARE_TM
+			, A.SDTTM
+			, A.EDTTM
+			, A.ADDNDM_CTS
+			, A.EVL_DTTM
+			, A.EVLYN
+			, A.REEXAMYN
+			, A.DELYN
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+    	FROM TB_LMS_EXAM_STARE A
+    	WHERE 1 = 1
+    	<if test="examCd != null and examCd != ''">
+    	  AND A.EXAM_ID = #{examCd}
+    	</if>
+	</select>
+	
+	<sql id="examStareStdQuery">
+		<include refid="CommonSQL.pagePrefix"/>
+			<![CDATA[
+			SELECT
+				  ROW_NUMBER() OVER(ORDER BY C.USERNM) AS LINE_NO
+				, A.EXAM_ID
+				, C.USER_ID
+				, B.STD_ID
+	            , C.DEPT_CD
+	            , C.DEPTNM
+	            , C.USERNM
+	            , D.USER_ID
+	            , NVL(H.HSTRY_TYCD, 'SET') AS HSTRY_TYCD
+	            , NVL((SELECT CDNM FROM TB_ORG_CODE WHERE CTGRCD = 'HSTRY_TYCD' AND CD = H.HSTRY_TYCD AND ROWNUM = 1), '미응시') AS HSTY_TYPE_NM
+	            , H.FRST_INQ_DTTM
+	            , NVL(E.REEXAMYN, 'N') AS REEXAMYN
+	            , NVL(E.STARE_CNT, 0) AS STARE_CNT
+	            , COUNT(1) OVER() AS TOTAL_CNT
+	            , E.KONAN_MAX_MOSART
+	            , E.ACQS_TOT_SCR
+	            , NVL((
+	               SELECT SUM(AA.ACQS_SCR)
+	                 FROM TB_LMS_EXAM_STARE_PAPER AA
+	                WHERE AA.EXAM_ID = A.EXAM_ID
+	                  AND AA.STD_ID = B.STD_ID
+	              ), 0) AS STARE_SCORE
+				, E.SCR_MEMO
+				, C.MOBILE_NO
+				, C.EMAIL
+				, NVL(E.EVLYN, 'N') AS EVLYN
+				, NVL(B.SCYR,'-') AS SCYR
+				, NVL(C.ENTR_YY,'-') AS ENTR_YY
+				, NVL(C.ENTR_HY,'-') AS ENTR_HY
+				, NVL(C.ENTR_GBN,'-') AS ENTR_GBN
+				, NVL(C.ENTR_GBN_NM,'-') AS ENTR_GBN_NM
+				, CASE
+					WHEN(TO_DATE(E.SDTTM, 'YYYYMMDDHH24MISS') + NUMTODSINTERVAL((SELECT TKEXAM_MNTS FROM TB_LMS_EXAM_BSC WHERE EXAM_ID = A.EXAM_ID), 'MINUTE') < SYSDATE)
+						OR
+	  					H.HSTRY_TYCD = 'COMPLETE'
+	  			  	THEN 'Y'
+		 			ELSE 'N'
+				  END AS STAER_YN
+				, B.GDSC_DGRS_CRS_GBNCD
+				, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = B.ORG_ID AND CTGRCD = 'GDSC_DGRS_CRS_GBNCD' AND CD = B.GDSC_DGRS_CRS_GBNCD) AS GRSC_DEGR_CORS_GBN_NM
+			]]>
+			FROM TB_LMS_EXAM_CRE_CRS_RLTN A
+			JOIN TB_LMS_ATNDLC_SBJCT B
+			  ON A.SBJCT_ID = B.SBJCT_ID
+			  AND B.ATNDLC_STSCD = 'S'
+			JOIN TB_LMS_USR C
+			  ON B.USER_ID = C.USER_ID
+			JOIN TB_LMS_USER_ACNT D
+			  ON C.USER_ID = D.USER_ID
+			  AND B.USER_ID = D.USER_ID
+			  AND D.ACNT_STSCD = 'U'
+		  	LEFT JOIN (
+				SELECT EXAM_ID, STD_ID, HSTRY_TYCD, FRST_INQ_DTTM
+				FROM (
+					SELECT EXAM_ID, STD_ID, HSTRY_TYCD, FRST_INQ_DTTM
+					FROM TB_LMS_EXAM_STARE_HSTY HSTY
+					ORDER BY HSTY.FRST_INQ_DTTM DESC)
+				WHERE ROWNUM = 1
+			) H
+			  ON H.EXAM_ID = A.EXAM_ID AND H.STD_ID = B.STD_ID
+			LEFT JOIN TB_LMS_EXAM_STARE E
+    		  ON E.EXAM_ID = A.EXAM_ID AND E.STD_ID = B.STD_ID
+			WHERE A.EXAM_ID = #{examCd}
+			  AND B.AUDITYN = 'N'
+	         <if test="searchValue != null and searchValue != ''">
+			  AND (
+				   LOWER(C.DEPT_CD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				OR LOWER(C.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				OR LOWER(C.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				OR LOWER(C.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				)
+	         </if>
+	         <if test="examTypeCd == 'SUBS'">
+			  AND B.STD_ID IN (
+			  	SELECT STD_ID
+		  		FROM TB_LMS_EXAM_STARE
+		  		WHERE REEXAMYN = 'Y'
+		  		  AND EXAM_ID = (
+		  		  	SELECT EXAM_ID
+		  		  	FROM TB_LMS_EXAM_BSC
+		  		  	WHERE EXAM_SBST_REF_ID = A.EXAM_ID
+		  		  	  AND EXAM_CTGRCD = 'EXAM'
+		  		  	  AND DELYN = 'N')
+  		  	  )
+	         </if>
+	        <include refid="CommonSQL.pageSubfix"/>
+	        <if test='searchFrom != null and searchFrom != "" and searchFrom == "REEXAM"'>
+	         	AND (A.HSTRY_TYCD NOT IN ('COMPLETE', 'START', 'RESTORE')
+	         		OR (A.REEXAMYN= 'Y' AND A.HSTRY_TYCD NOT IN ('COMPLETE', 'START', 'RESTORE')))
+	         </if>
+	         <if test="reExamYn != null and reExamYn != '' and reExamYn != 'all'">
+	            AND A.REEXAMYN = #{reExamYn}
+	         </if>
+	         <if test="searchKey != null and searchKey != ''">
+	         	<if test="searchKey == 'COMPLETE'">
+	         		AND A.HSTRY_TYCD IN ('COMPLETE', 'START', 'RESTORE')
+	         		AND A.REEXAMYN != 'Y'
+	         	</if>
+	         	<if test="searchKey == 'NONCOMPLETE'">
+	         		AND A.HSTRY_TYCD NOT IN ('COMPLETE', 'START', 'RESTORE')
+	         		AND A.REEXAMYN != 'Y'
+	         	</if>
+	         	<if test="searchKey == 'RECOMPLETE'">
+	         		AND A.HSTRY_TYCD IN ('COMPLETE', 'START', 'RESTORE')
+	         		AND A.REEXAMYN = 'Y'
+	         	</if>
+	         	<if test="searchKey == 'RENONCOMPLETE'">
+	         		AND A.HSTRY_TYCD NOT IN ('COMPLETE', 'START', 'RESTORE')
+	         		AND A.REEXAMYN = 'Y'
+	         	</if>
+	         </if>
+	         <if test="searchMenu != null and searchMenu != '' and searchMenu != 'ALL'">
+	         	<if test='searchMenu == "Y"'>
+	         		AND A.EVLYN = 'Y'
+	         	</if>
+	         	<if test='searchMenu == "N"'>
+	         		AND A.EVLYN != 'Y'
+	         	</if>
+	         </if>
+	</sql>
+
+	<select id="listExamStareStd" parameterType="examStareVO" resultType="examStareVO">
+		/*
+             SQL ID : ExamStareDAO.listExamStareStd
+            	 설  명 : 시험응시 학습자 리스트 조회
+         */
+        <include refid="examStareStdQuery" />
+	</select>
+	
+	<select id="listExamStareStdEgov" parameterType="examStareVO" resultType="egovMap">
+		/*
+             SQL ID : ExamStareDAO.listExamStareStdEgov
+            	 설  명 : 시험응시 학습자 리스트 조회
+         */
+        <include refid="examStareStdQuery" />
+	</select>
+
+	<select id="selectExamStareStd" parameterType="examStareVO" resultType="examStareVO">
+		/*
+             SQL ID : ExamStareDAO.selectExamStareStd
+            	 설  명 : 시험응시 학습자 정보 조회
+         */
+		SELECT
+			  A.EXAM_ID
+			, A.STD_ID
+			, A.ACQS_TOT_SCR
+			, C.USER_ID
+			, C.USERNM
+			, C.DEPTNM
+			, A.EVLYN
+			, A.SCR_MEMO
+			, A.REEXAMYN
+			, NVL((SELECT REEXAM_RFLTRT FROM TB_LMS_EXAM_BSC WHERE EXAM_ID = A.EXAM_ID), 100) AS REEXAM_RFLTRT
+		FROM TB_LMS_EXAM_STARE A
+		JOIN TB_LMS_ATNDLC_SBJCT B
+		  ON A.STD_ID = B.STD_ID
+		JOIN TB_LMS_USR C
+		  ON B.USER_ID = C.USER_ID
+		WHERE EXAM_ID = #{examCd}
+		  AND A.STD_ID = #{stdNo}
+	</select>
+
+	<select id="selectExamScoreStatus" parameterType="examStareVO" resultType="egovMap">
+        /*
+       		SQL ID : ExamStareDAO.selectExamScoreStatus
+       		설  명 : 시험 현황 조회
+         */
+		<![CDATA[
+        SELECT
+        	  NVL(SUM(CASE WHEN A.STARE_STATUS_CD = 'N' THEN 1 ELSE 0 END), 0) AS NO_STARE_CNT
+			, NVL(SUM(CASE WHEN A.STARE_STATUS_CD = 'T' THEN 1 ELSE 0 END), 0) AS TEMP_SAVE_CNT
+			, NVL(SUM(CASE WHEN A.STARE_STATUS_CD = 'C' THEN 1 ELSE 0 END), 0) AS COMPLETE_CNT
+			, NVL(ROUND(AVG(A.ACQS_TOT_SCR)), 0) AS AVG_SCORE
+			, NVL(MAX(A.ACQS_TOT_SCR), 0) AS MAX_SCORE
+			, NVL(MIN(A.ACQS_TOT_SCR), 0) AS MIN_SCORE
+			, NVL(ROUND(SUM(CASE WHEN A.LINE_NO <= A.CNT THEN A.ACQS_TOT_SCR ELSE 0 END) / A.CNT), 0) AS TOP_AVG_SCORE
+		]]>
+		FROM (
+			<choose>
+				<when test='searchMenu != null and searchMenu != "" and searchMenu == "termExam"'>
+					<![CDATA[
+					SELECT
+						  ROW_NUMBER() OVER(ORDER BY CASE EXAM_TYCD
+							WHEN 'EXAM' THEN D.ACQS_TOT_SCR
+							WHEN 'QUIZ' THEN G.ACQS_TOT_SCR
+							WHEN 'ASMNT' THEN E.SCR
+							WHEN 'FORUM' THEN F.SCR END DESC) AS LINE_NO
+						, CASE EXAM_TYCD
+							WHEN 'EXAM' THEN CASE
+								WHEN D.STARE_CNT > 0 THEN 'C'
+				           		ELSE 'N' END
+				           	WHEN 'QUIZ' THEN CASE
+								WHEN G.SDTTM IS NULL THEN 'N'
+								WHEN G.EDTTM IS NULL THEN 'T'
+								WHEN G.EDTTM IS NOT NULL THEN 'C' END
+				           	WHEN 'ASMNT' THEN CASE
+				           		WHEN E.SBMSN_STSCD = 'SUBMIT' THEN 'C'
+				           		ELSE 'N' END
+				           	WHEN 'FORUM' THEN CASE
+				           		WHEN  (SELECT COUNT(1) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = F.DSCS_ID AND DELYN = 'N' AND STD_ID = C.STD_ID)
+				           			+ (SELECT COUNT(1) FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = f.DSCS_ID AND DELYN = 'N' AND STD_ID = C.STD_ID) = 0
+				           		THEN 'N'
+				           		ELSE 'C' END
+						  END AS STARE_STATUS_CD
+						, NVL(CASE EXAM_TYCD
+								WHEN 'EXAM' THEN D.ACQS_TOT_SCR
+					           	WHEN 'QUIZ' THEN G.ACQS_TOT_SCR
+					           	WHEN 'ASMNT' THEN E.SCR
+					           	WHEN 'FORUM' THEN F.SCR
+				          END, 0) AS ACQS_TOT_SCR
+				            , COUNT(1) OVER() / 10 AS CNT
+						]]>
+					FROM TB_LMS_EXAM_BSC A
+					JOIN TB_LMS_EXAM_CRE_CRS_RLTN B
+					  ON A.EXAM_ID = B.EXAM_ID
+					  AND B.SBJCT_ID = #{crsCreCd}
+					  AND A.DELYN = 'N'
+					  AND B.DELYN = 'N'
+					JOIN TB_LMS_ATNDLC_SBJCT C
+					  ON B.SBJCT_ID = C.SBJCT_ID
+					  AND C.ATNDLC_STSCD NOT IN('D', 'T')
+					LEFT JOIN TB_LMS_EXAM_STARE D
+					  ON A.EXAM_ID = D.EXAM_ID
+					  AND C.STD_ID = D.STD_ID
+					LEFT JOIN TB_LMS_ASMT_SBMSN E
+					  ON A.EXAM_SBST_REF_ID = E.ASMT_ID
+					  AND C.STD_ID = E.STD_ID
+					LEFT JOIN TB_LMS_DSCS_PTCP F
+					  ON A.EXAM_SBST_REF_ID = F.DSCS_ID
+					  AND C.STD_ID = F.STD_ID
+					LEFT JOIN TB_LMS_EXAM_STARE G
+					  ON A.EXAM_SBST_REF_ID = G.EXAM_ID
+					  AND C.STD_ID = G.STD_ID
+					WHERE A.EXAM_CTGRCD = 'EXAM'
+						AND C.AUDITYN = 'N'
+				       	AND A.EXAM_ID = (
+							SELECT EXAM_ID
+							FROM(
+								SELECT
+									  ROW_NUMBER() OVER(ORDER BY AA.EXAM_SDTTM DESC) AS RN
+									, AA.EXAM_ID
+								FROM TB_LMS_EXAM_BSC AA
+							  	JOIN TB_LMS_EXAM_CRE_CRS_RLTN BB
+							      ON AA.EXAM_ID = BB.EXAM_ID
+								  AND AA.EXAM_CTGRCD = 'EXAM'
+								  AND AA.TKEXAM_TYCD = 'M'
+								  AND AA.DELYN = 'N'
+								  AND BB.DELYN = 'N'
+								WHERE BB.SBJCT_ID = '202510CME00001'
+						  	)
+							WHERE RN = 1
+					  	)
+				</when>
+				<otherwise>
+					<![CDATA[
+					SELECT 
+						ROW_NUMBER() OVER(ORDER BY A.ACQS_TOT_SCR DESC) AS LINE_NO
+						, ( SELECT
+								CASE
+									WHEN AA.EXAM_CTGRCD = 'EXAM' THEN CASE
+										WHEN A.STARE_CNT  >  0 THEN 'C'
+										ELSE 'N' END
+	                   			 	ELSE CASE
+	                   			 		WHEN A.SDTTM IS NULL THEN 'N'
+	               			 		   	WHEN A.EDTTM IS NULL THEN 'T'
+										WHEN A.EDTTM IS NOT NULL THEN 'C'
+			                     	END
+		                   		END
+							FROM TB_LMS_EXAM_BSC AA
+	                   	 	WHERE AA.EXAM_ID = A.EXAM_ID
+                   		  ) AS STARE_STATUS_CD
+						, NVL(A.ACQS_TOT_SCR, 0) AS ACQS_TOT_SCR
+						, COUNT(1) OVER() / 10 AS CNT
+					]]>
+					FROM TB_LMS_ATNDLC_SBJCT S
+		            JOIN TB_LMS_USER_ACNT B
+		              ON S.USER_ID = B.USER_ID
+		              AND B.ACNT_STSCD = 'U'
+		            LEFT JOIN TB_LMS_EXAM_STARE A
+		              ON S.STD_ID = A.STD_ID
+		              AND A.DELYN = 'N'
+		              AND A.EXAM_ID = #{examCd}
+		           	<if test="examTypeCd == 'SUBS'">
+		            JOIN TB_LMS_EXAM_STARE C
+		              ON C.EXAM_ID = (SELECT EXAM_ID FROM TB_LMS_EXAM_BSC WHERE EXAM_SBST_REF_ID = #{examCd} AND DELYN = 'N')
+		              AND S.STD_ID = C.STD_ID
+		              AND C.REEXAMYN = 'Y'
+		            </if>
+		            WHERE S.SBJCT_ID = #{crsCreCd}
+		              AND S.ATNDLC_STSCD = 'S'
+		              AND S.AUDITYN = 'N'
+          			</otherwise>
+          		</choose>
+               ) A
+           GROUP BY A.CNT
+    </select>
+    
+    <select id="listExamNonStare" parameterType="examStareVO" resultType="examStareVO">
+		/*
+             SQL ID : ExamStareDAO.listExamNonStare
+            	 설  명 : 시험 미응시 리스트 조회
+         */
+    	SELECT
+			A.STD_ID
+    	FROM TB_LMS_ATNDLC_SBJCT A
+    	LEFT JOIN TB_LMS_EXAM_STARE B
+    	ON A.STD_ID = B.STD_ID
+    	AND B.EXAM_ID = #{examCd}
+    	WHERE A.SBJCT_ID = #{crsCreCd}
+    	AND A.ATNDLC_STSCD = 'S'
+    	AND A.AUDITYN = 'N'
+    	AND B.STD_ID IS NULL
+	</select>
+
+    <insert id="insertExamStare" parameterType="examStareVO">
+    	/*
+       		SQL ID : ExamStareDAO.insertExamStare
+       		설  명 : 시험응시 등록
+         */
+    	<!-- INSERT IGNORE INTO TB_LMS_EXAM_STARE (
+    		  STD_ID
+			, EXAM_ID
+			, STARE_SN
+			, STARE_CNT
+			, STARE_TM
+			, SDTTM
+			, EDTTM
+			, ADDNDM_CTS
+			, EVL_DTTM
+			, EVLYN
+			, REEXAMYN
+			, DELYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+    	) VALUES (
+    		  #{stdNo}
+			, #{examCd}
+			, #{stareSn}
+			, #{stareCnt}
+			, #{stareTm}
+			, #{startDttm}
+			, #{endDttm}
+			, #{atchCts}
+			, #{evalDttm}
+			, #{evalYn}
+			, #{reExamYn}
+			, 'N'
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+    	) -->
+    	INSERT INTO TB_LMS_EXAM_STARE (
+    		  STD_ID
+			, EXAM_ID
+			, STARE_SN
+			, STARE_CNT
+			, STARE_TM
+			, SDTTM
+			, EDTTM
+			, ADDNDM_CTS
+			, EVL_DTTM
+			, EVLYN
+			, REEXAMYN
+			, DELYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+    	) SELECT
+	    	  #{stdNo}
+			, #{examCd}
+			, #{stareSn}
+			, #{stareCnt}
+			, #{stareTm}
+			, #{startDttm}
+			, #{endDttm}
+			, #{atchCts}
+			, #{evalDttm}
+			, #{evalYn}
+			, #{reExamYn}
+			, 'N'
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		FROM DUAL
+		WHERE NOT EXISTS (
+			SELECT 1
+			FROM TB_LMS_EXAM_STARE
+			WHERE STD_ID = #{stdNo}
+				AND EXAM_ID = #{examCd}
+		)
+    </insert>
+    
+    <insert id="insertExamStareBatch" parameterType="java.util.List">
+    	/*
+       		SQL ID : ExamStareDAO.insertExamStareBatch
+       		설  명 : 시험응시 일괄 등록
+         */
+        INSERT ALL 
+		<foreach collection="list" item="item" separator=" ">
+    	INTO TB_LMS_EXAM_STARE (
+    		  STD_ID
+			, EXAM_ID
+			, STARE_SN
+			, STARE_CNT
+			, STARE_TM
+			, SDTTM
+			, EDTTM
+			, ADDNDM_CTS
+			, EVL_DTTM
+			, EVLYN
+			, REEXAMYN
+			, DELYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+    	) VALUES (
+    		  #{item.stdNo}
+			, #{item.examCd}
+			, #{item.stareSn}
+			, #{item.stareCnt}
+			, #{item.stareTm}
+			, #{item.startDttm}
+			, #{item.endDttm}
+			, #{item.atchCts}
+			, #{item.evalDttm}
+			, #{item.evalYn}
+			, #{item.reExamYn}
+			, 'N'
+			, #{item.rgtrId}
+			, FN_DTTM()
+			, #{item.mdfrId}
+			, FN_DTTM()
+    	)
+    	</foreach>
+		SELECT * FROM SYS.DUAL
+    </insert>
+
+    <update id="updateExamStare" parameterType="examStareVO">
+    	/*
+       		SQL ID : ExamStareDAO.updateExamStare
+       		설  명 : 시험응시 수정
+         */
+    	UPDATE TB_LMS_EXAM_STARE SET
+    		  MDFR_ID = #{mdfrId}
+    		, MOD_DTTM = FN_DTTM()
+    		<if test="totGetScore != null">
+    		, ACQS_TOT_SCR = #{totGetScore}
+    		</if>
+    		<if test="stareCnt != null and stareCnt gt 0">
+			, STARE_CNT = #{stareCnt}
+    		</if>
+    		<if test="stareTm != null and stareTm gt 0">
+			, STARE_TM = #{stareTm}
+    		</if>
+    		<if test="startDttm != null and startDttm != ''">
+			, SDTTM = #{startDttm}
+    		</if>
+    		<if test="endDttm != null and endDttm != ''">
+			, EDTTM = #{endDttm}
+    		</if>
+    		<if test="atchCts != null and atchCts != ''">
+			, ADDNDM_CTS = #{atchCts}
+    		</if>
+    		<if test="evalYn != null and evalYn != ''">
+			, EVLYN = #{evalYn}
+			, EVL_DTTM = FN_DTTM()
+    		</if>
+    		<if test="reExamYn != null and reExamYn != ''">
+			, REEXAMYN = #{reExamYn}
+    		</if>
+    		<if test="profMemo != null and profMemo != ''">
+    		, SCR_MEMO = #{profMemo}
+    		</if>
+    		<if test="delYn != null and delYn != ''">
+			, DELYN = #{delYn}
+    		</if>
+    	 WHERE STD_ID = #{stdNo}
+    	   AND EXAM_ID = #{examCd}
+    </update>
+
+    <update id="updateReExamStare" parameterType="examStareVO">
+        /*
+         	SQL ID : ExamStareDAO.updateReExamStare
+         	설  명 : 재시험 설정
+        */
+        UPDATE TB_LMS_EXAM_STARE
+           SET MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+             , ACQS_TOT_SCR = NULL
+             , STARE_CNT = 0
+             , STARE_TM = 0
+             , SDTTM = NULL
+             , EDTTM = NULL
+             , EVL_DTTM = NULL
+             , EVLYN = 'N'
+        <if test="reExamYn != null and reExamYn != ''">
+             , REEXAMYN = #{reExamYn}
+        </if>
+         WHERE EXAM_ID = #{examCd}
+           AND STD_ID IN
+        <foreach item="item" index="index" collection="stdNoList" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="updateReExamStareByStdNo" parameterType="examStareVO">
+    	/*
+         	SQL ID : ExamStareDAO.updateReExamStareByStdNo
+         	설  명 : 학습자별 재시험 설정
+        */
+    	<!-- INSERT INTO TB_LMS_EXAM_STARE (
+              STD_ID
+			, EXAM_ID
+			, STARE_SN
+			, STARE_CNT
+			, STARE_TM
+			, SDTTM
+			, EDTTM
+			, ADDNDM_CTS
+			, EVL_DTTM
+			, EVLYN
+			, REEXAMYN
+			, DELYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			  #{stdNo}
+			, #{examCd}
+			, #{stareSn}
+			, 0
+			, #{stareTm}
+			, NULL
+			, NULL
+			, NULL
+			, NULL
+			, 'N'
+			, #{reExamYn}
+			, 'N'
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+        )
+        ON DUPLICATE KEY
+        UPDATE
+        	   MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+             , ACQS_TOT_SCR = 0
+             , STARE_CNT = 0
+             , STARE_TM = 0
+             , SDTTM = NULL
+             , EDTTM = NULL
+             , EVL_DTTM = NULL
+             , EVLYN = 'N'
+        	 <if test="reExamYn != null and reExamYn != ''">
+             , REEXAMYN = #{reExamYn}
+        	 </if> -->
+		MERGE INTO TB_LMS_EXAM_STARE T
+		USING (
+			SELECT
+				  #{stdNo}		AS STD_ID
+				, #{examCd}		AS EXAM_ID
+				, #{stareSn}	AS STARE_SN
+				, 0				AS STARE_CNT
+				, #{stareTm}	AS STARE_TM
+				, NULL			AS SDTTM
+				, NULL			AS EDTTM  
+				, NULL			AS ADDNDM_CTS  
+				, NULL			AS EVL_DTTM 
+				, 'N'			AS EVLYN   
+				, #{reExamYn}	AS REEXAMYN
+				, 'N'			AS DELYN    
+				, #{rgtrId}		AS RGTR_ID    
+				, #{mdfrId}		AS MDFR_ID    
+			FROM DUAL
+		) S
+		ON (T.STD_ID = S.STD_ID AND T.EXAM_ID = S.EXAM_ID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  T.STARE_SN   = S.STARE_SN  
+				, T.STARE_CNT  = S.STARE_CNT 
+				, T.STARE_TM   = S.STARE_TM  
+				, T.SDTTM = S.SDTTM
+				, T.EDTTM   = S.EDTTM  
+				, T.ADDNDM_CTS   = S.ADDNDM_CTS  
+				, T.EVL_DTTM  = S.EVL_DTTM 
+				, T.EVLYN    = S.EVLYN   
+				, T.REEXAMYN = S.REEXAMYN
+				, T.DELYN     = S.DELYN    
+				, T.RGTR_ID     = S.RGTR_ID    
+				, T.FRST_INQ_DTTM   = FN_DTTM()  
+				, T.MDFR_ID     = S.MDFR_ID    
+				, T.MOD_DTTM   = FN_DTTM()
+		WHEN NOT MATCHED THEN
+			INSERT (
+	              STD_ID
+				, EXAM_ID
+				, STARE_SN
+				, STARE_CNT
+				, STARE_TM
+				, SDTTM
+				, EDTTM
+				, ADDNDM_CTS
+				, EVL_DTTM
+				, EVLYN
+				, REEXAMYN
+				, DELYN
+				, RGTR_ID
+				, FRST_INQ_DTTM
+				, MDFR_ID
+				, MOD_DTTM
+			) VALUES (
+				  S.STD_ID    
+				, S.EXAM_ID   
+				, S.STARE_SN  
+				, S.STARE_CNT 
+				, S.STARE_TM  
+				, S.SDTTM
+				, S.EDTTM  
+				, S.ADDNDM_CTS  
+				, S.EVL_DTTM 
+				, S.EVLYN   
+				, S.REEXAMYN
+				, S.DELYN    
+				, S.RGTR_ID    
+				, FN_DTTM()   
+				, S.MDFR_ID    
+				, FN_DTTM()
+			) 
+    </update>
+
+    <update id="updateExamStareScore" parameterType="examStareVO">
+        /*
+       		SQL ID : ExamStareDAO.updateExamStareScore
+       	 	설  명 : 학습자 토탈 시험 점수 수정
+        */
+        UPDATE TB_LMS_EXAM_STARE
+           SET MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+             , EVLYN = 'Y'
+             , EVL_DTTM = FN_DTTM()
+             , ACQS_TOT_SCR =
+			<choose>
+				<when test="scoreType == 'addition'">
+					<![CDATA[
+					(
+					SELECT
+						ACQS_TOT_SCR
+					FROM(
+						SELECT
+							CASE
+								WHEN NVL(ACQS_TOT_SCR, 0.0) + #{totGetScore} < 0.0	  THEN 0.0
+								WHEN NVL(ACQS_TOT_SCR, 0.0) + #{totGetScore} > 100.0 THEN 100.0
+		  						ELSE NVL(ACQS_TOT_SCR, 0.0) + #{totGetScore}
+							END AS ACQS_TOT_SCR
+	           			FROM TB_LMS_EXAM_STARE
+	               		WHERE EXAM_ID = #{examCd}
+	               		  AND STD_ID = #{stdNo}
+					) TMP)
+	          		]]> 		   
+				</when>
+				<otherwise>
+					#{totGetScore}
+				</otherwise>
+               </choose>
+         WHERE EXAM_ID = #{examCd}
+           AND STD_ID = #{stdNo}
+    </update>
+
+    <select id="listExamTargetStd" parameterType="examStareVO" resultType="egovMap">
+        /*
+           	SQL ID : ExamStareDAO.listExamTargetStd
+   		 	설  명 : 시험 설정 대상 학습자 번호 조회
+         */
+        SELECT A.STD_ID AS stdNo
+        	 , A.EXAM_ID AS examCd
+             , A.ACQS_TOT_SCR AS totGetScore
+             , IFNULL((
+					 SELECT SUM(AA.ACQS_SCR)
+					   FROM TB_LMS_EXAM_STARE_PAPER AA
+					  WHERE AA.EXAM_ID = A.EXAM_ID
+						AND AA.STD_ID = A.STD_ID
+				   ), 0) AS stareScore
+             , A.EVLYN AS evalYn
+             , A.STD_ID AS stdNo
+             , C.STARE_STATUS_CD AS stareStatusCd
+             , A.SDTTM AS startDttm
+             , A.EDTTM AS endDttm
+             , A.EVL_DTTM AS evalDttm
+             , A.REEXAMYN AS reExamYn
+             , A.STARE_CNT AS stareCnt
+             , A.STARE_TM AS stareTm
+          FROM TB_LMS_EXAM_STARE A
+          JOIN ( SELECT 
+				   	  CASE WHEN BB.EXAM_CTGRCD = 'EXAM
+				   	  	   THEN CASE WHEN B.STARE_CNT <![CDATA[ > ]]> 0 THEN 'C' ELSE 'N' END
+				   	  	   ELSE CASE WHEN B.SDTTM IS NULL THEN 'N'
+				   	  	   			 WHEN B.EDTTM IS NULL THEN 'T'
+				   	  	   			 WHEN B.EDTTM IS NOT NULL THEN 'C'
+				   	  	   			 END
+				   	  	   END AS STARE_STATUS_CD
+				   	  ,B.EXAM_ID
+				   	  ,B.STD_ID
+			  FROM TB_LMS_EXAM_STARE B
+			  JOIN TB_LMS_EXAM_BSC BB
+			    ON B.EXAM_ID = BB.EXAM_ID
+			   AND BB.DELYN = 'N'  ) C
+			   ON A.EXAM_ID = C.EXAM_ID
+			   AND A.STD_ID = C.STD_ID
+         WHERE A.EXAM_ID = #{examCd}
+         <if test="stdNoList != null">
+	           AND A.STD_ID IN
+	        <foreach item="item" index="index" collection="stdNoList" open="(" close=")" separator=",">
+	            #{item}
+	        </foreach>
+		 </if>
+        <if test="stareStatusCd != null and stareStatusCd != ''">
+			AND C.STARE_STATUS_CD = #{stareStatusCd}
+		</if>
+    </select>
+
+    <update id="updateExamStart" parameterType="examStareVO">
+        /*
+         	SQL ID : ExamStareDAO.updateExamStart
+         	설  명 : 시험 응시 시작
+        */
+        <!-- UPDATE TB_LMS_EXAM_STARE A
+          JOIN TB_LMS_EXAM_BSC B
+            ON A.EXAM_ID = B.EXAM_ID
+           SET A.MDFR_ID = #{mdfrId}
+             , A.MOD_DTTM = FN_DTTM()
+        <if test="stareTm != null and stareTm == -1">
+             , A.SDTTM = NVL(A.SDTTM, FN_DTTM())
+        </if>
+        <if test="stareTm != null and stareTm == 1">
+             , A.STARE_TM = TIMESTAMPDIFF(SECOND, IFNULL(STR_TO_DATE(A.SDTTM, '%Y%m%d%H%i%s'), NOW()), NOW())
+        </if>
+         WHERE A.EXAM_ID = #{examCd}
+           AND A.STD_ID = #{stdNo}
+           AND A.DELYN = 'N' -->
+           
+       UPDATE TB_LMS_EXAM_STARE A
+	   SET A.MDFR_ID = #{mdfrId},
+		    A.MOD_DTTM = FN_DTTM(),
+		
+		    <if test="stareTm != null and stareTm == -1">
+		    A.SDTTM = CASE 
+		                     WHEN #{stareTm} IS NOT NULL AND #{stareTm} = -1 
+		                     THEN NVL(A.SDTTM, FN_DTTM()) 
+		                     ELSE A.SDTTM 
+		                   END,
+			</if>
+		    <if test="stareTm != null and stareTm == 1">
+		    A.STARE_TM = CASE 
+		                   WHEN #{stareTm} IS NOT NULL AND #{stareTm} = 1 
+		                   THEN ROUND(
+		                          (SYSDATE - NVL(TO_DATE(A.SDTTM, 'YYYYMMDDHH24MISS'), SYSDATE)) * 86400
+		                        )
+		                   ELSE A.STARE_TM 
+		                 END
+			</if>
+		WHERE A.EXAM_ID = #{examCd}
+		  AND A.STD_ID = #{stdNo}
+		  AND A.DELYN = 'N'
+    </update>
+
+    <select id="selectExamStdStareInfo" parameterType="examStareVO" resultType="egovMap">
+        /*
+         	SQL ID : ExamStareDAO.selectExamStdStareInfo
+   			설  명 : 시험 응시 가능여부 등의 정보 조회
+        */
+        SELECT NVL(B.MAX_TKEXAM_CNT, 9999) - A.STARE_CNT AS leftCnt
+             , CASE WHEN B.EXAM_EXPSR_TYCD = 'LEFT'
+                    THEN CASE WHEN B.EXAM_ALLOC_TYCD = 'WHOLE' THEN B.TKEXAM_MNTS * 60 - NVL(A.STARE_TM, 0)
+                          ELSE LEAST((TO_DATE(CASE WHEN A.REEXAMYN = 'Y' THEN B.RE_EXAM_END_DTTM ELSE B.EXAM_EDTTM END, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400, B.TKEXAM_MNTS * 60 - NVL(A.STARE_TM, 0)) END
+                    ELSE NVL(A.STARE_TM, 0)
+               END AS stareTm
+             , B.TKEXAM_MNTS * 60 - NVL(A.STARE_TM, 0) AS leftTm
+             , A.SDTTM AS startDttm
+             , A.EDTTM AS endDttm
+             , CASE WHEN A.REEXAMYN = 'Y'
+             	    THEN CASE WHEN FN_DTTM() BETWEEN B.RE_EXAM_START_DTTM AND B.RE_EXAM_END_DTTM THEN 'Y'
+             	    		  ELSE 'N'
+             	    		  END
+             	    ELSE CASE WHEN FN_DTTM() BETWEEN B.EXAM_SDTTM AND B.EXAM_EDTTM THEN 'Y'
+		                      ELSE 'N'
+		               		  END
+             		END AS starePeriodYn
+          FROM TB_LMS_EXAM_STARE A
+          JOIN TB_LMS_EXAM_BSC B
+            ON A.EXAM_ID = B.EXAM_ID
+         WHERE A.EXAM_ID = #{examCd}
+           AND A.STD_ID = #{stdNo}
+           AND A.DELYN = 'N'
+    </select>
+
+    <update id="updateExamStareTempSave" parameterType="examStareVO">
+        /*
+       		SQL ID : ExamStareDAO.updateExamStareTempSave
+       	 	설  명 : 시험 응시 임시저장
+        */
+        UPDATE TB_LMS_EXAM_STARE
+           SET MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+        <if test="stareTm != null and stareTm gt -1">
+             , STARE_TM = STARE_TM + #{stareTm}
+        </if>
+        <if test="endDttm != null and endDttm != ''">
+             , EDTTM = FN_DTTM()
+             , STARE_CNT = STARE_CNT + 1
+        </if>
+        <if test="totGetScore != null and totGetScore gt -1 ">
+             , ACQS_TOT_SCR = #{totGetScore}
+        </if>
+        <if test="evalYn != null and evalYn != ''">
+        	, EVLYN = #{evalYn}
+        </if>
+         WHERE EXAM_ID = #{examCd}
+           AND STD_ID = #{stdNo}
+    </update>
+
+    <select id="listStuExamScoreStatus" parameterType="examStareVO" resultType="examStareVO">
+        /*
+       		SQL ID : ExamStareDAO.listStuExamScoreStatus
+           	설  명 : 시험에 응시한 학습자의 점수대역별 통계정보 조회
+         */
+        <!-- WITH SCORE_T AS
+        (
+          SELECT -1 AS SP, 10 AS EP, '0~10' AS LABEL, 1 AS ODR
+           UNION ALL SELECT 10, 20, '11~20', 2
+           UNION ALL SELECT 20, 30, '21~30', 3
+           UNION ALL SELECT 30, 40, '31~40', 4
+           UNION ALL SELECT 40, 50, '41~50', 5
+           UNION ALL SELECT 50, 60, '51~60', 6
+           UNION ALL SELECT 60, 70, '61~70', 7
+           UNION ALL SELECT 70, 80, '71~80', 8
+           UNION ALL SELECT 80, 90, '81~90', 9
+           UNION ALL SELECT 90, 100, '91~100', 10
+        )
+        <choose>
+        	<when test='searchMenu != null and searchMenu != "" and searchMenu == "termExam"'>
+        		SELECT
+        			  T.LABEL AS LABEL
+	            	, CASE A.EXAM_TYCD
+	            		WHEN 'EXAM' THEN NVL((
+	            			SELECT COUNT(C.STD_ID)
+           				 	FROM (
+								SELECT
+									  AA.STD_ID
+									, CASE
+										WHEN (SELECT REEXAMYN FROM TB_LMS_EXAM_STARE WHERE EXAM_ID = A.EXAM_ID AND STD_ID = AA.STD_ID) = 'Y' THEN CASE SUBSTRING_INDEX(A.EXAM_SBST_REF_ID, '_', 1)
+											WHEN 'EXAM'  THEN (SELECT ACQS_TOT_SCR FROM TB_LMS_EXAM_STARE WHERE STD_ID = AA.STD_ID AND DELYN = 'N' AND EXAM_ID = A.EXAM_SBST_REF_ID)
+									        WHEN 'ASMNT' THEN (SELECT SCR FROM TB_LMS_ASMT_SBMSN WHERE STD_ID = AA.STD_ID AND DELYN = 'N' AND ASMT_ID = A.EXAM_SBST_REF_ID)
+									        WHEN 'FORUM' THEN (SELECT SCR FROM TB_LMS_DSCS_PTCP WHERE STD_ID = AA.STD_ID AND DELYN = 'N' AND DSCS_ID = A.EXAM_SBST_REF_ID) END
+										ELSE (SELECT ACQS_TOT_SCR FROM TB_LMS_EXAM_STARE WHERE STD_ID = AA.STD_ID AND DELYN = 'N' AND EXAM_ID = A.EXAM_ID)
+									  END AS SCR
+								FROM TB_LMS_ATNDLC_SBJCT AA
+								WHERE AA.ATNDLC_STSCD = 'S'
+								  AND AA.SBJCT_ID = B.SBJCT_ID
+								  AND AA.AUDITYN = 'N'
+							 ) C
+							<![CDATA[
+							WHERE T.SP <  NVL(C.SCR,0)
+						 	  AND T.EP >= NVL(C.SCR,0)
+						), 0)
+       					WHEN 'QUIZ'
+							THEN NVL((SELECT COUNT(C.STD_ID) FROM TB_LMS_ATNDLC_SBJCT C LEFT JOIN TB_LMS_EXAM_STARE D      ON C.STD_ID = D.STD_ID AND D.DELYN = 'N' AND D.EXAM_ID  = A.EXAM_SBST_REF_ID WHERE C.ATNDLC_STSCD = 'S' AND C.AUDITYN = 'N' AND C.SBJCT_ID = B.SBJCT_ID AND T.SP < NVL(D.ACQS_TOT_SCR,0) AND T.EP >= NVL(D.ACQS_TOT_SCR,0)), 0)
+						WHEN 'ASMNT'
+							THEN NVL((SELECT COUNT(C.STD_ID) FROM TB_LMS_ATNDLC_SBJCT C LEFT JOIN TB_LMS_ASMT_SBMSN D ON C.STD_ID = D.STD_ID AND D.DELYN = 'N' AND D.ASMT_ID = A.EXAM_SBST_REF_ID WHERE C.ATNDLC_STSCD = 'S' AND C.AUDITYN = 'N' AND C.SBJCT_ID = B.SBJCT_ID AND T.SP < NVL(D.SCR,0) AND T.EP >= NVL(D.SCR,0)), 0)
+						WHEN 'FORUM'
+							THEN NVL((SELECT COUNT(C.STD_ID) FROM TB_LMS_ATNDLC_SBJCT C LEFT JOIN TB_LMS_DSCS_PTCP D ON C.STD_ID = D.STD_ID AND D.DELYN = 'N' AND D.DSCS_ID = A.EXAM_SBST_REF_ID WHERE C.ATNDLC_STSCD = 'S' AND C.AUDITYN = 'N' AND C.SBJCT_ID = B.SBJCT_ID AND T.SP < NVL(D.SCR,0) AND T.EP >= NVL(D.SCR,0)), 0)
+             			END AS CNT
+							]]>
+				FROM SCORE_T T
+	          	CROSS JOIN TB_LMS_EXAM_BSC A
+				LEFT JOIN TB_LMS_EXAM_CRE_CRS_RLTN B
+          	   	  ON A.EXAM_ID = B.EXAM_ID
+	          	  AND B.DELYN = 'N'
+	         	WHERE A.EXAM_ID = (
+         			SELECT AA.EXAM_ID
+	         		FROM TB_LMS_EXAM_BSC AS AA
+	         		JOIN TB_LMS_EXAM_CRE_CRS_RLTN AS BB
+	         		  ON AA.EXAM_ID = BB.EXAM_ID
+		         	  AND AA.EXAM_CTGRCD = 'EXAM'
+		         	  AND AA.TKEXAM_TYCD = #{examStareTypeCd}
+		         	  AND AA.DELYN = 'N'
+		         	  AND BB.DELYN = 'N'
+	         		WHERE BB.SBJCT_ID = #{crsCreCd}
+		         	<if test='examStareTypeCd == "A"'>
+		         	  AND AA.EXAM_ID = #{examCd}
+		         	</if>
+		         	AND ROWNUM = 1
+         			ORDER BY AA.EXAM_SDTTM DESC
+				)
+        	</when>
+        	<otherwise>
+        		<![CDATA[
+				SELECT
+					  T.LABEL 			AS LABEL
+					, COUNT(B.STD_ID) 	AS CNT
+				FROM SCORE_T T
+	          	CROSS JOIN TB_LMS_EXAM_BSC A
+	          	LEFT JOIN TB_LMS_EXAM_STARE B
+            	  ON A.EXAM_ID = B.EXAM_ID
+             	  AND T.SP <  NVL(B.ACQS_TOT_SCR, 0)
+	           	  AND T.EP >= NVL(B.ACQS_TOT_SCR, 0)
+	           	  AND B.DELYN = 'N'
+	           	  AND B.STD_ID IN (SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE ATNDLC_STSCD = 'S' AND SBJCT_ID = #{crsCreCd})
+	         	WHERE A.EXAM_ID = #{examCd}
+	         	GROUP BY T.LABEL, T.ODR
+	         	 ]]>
+        	</otherwise>
+        </choose>
+         ORDER BY T.ODR -->
+    
+	WITH SCORE_T AS ( <!-- 점수 구간 -->
+		SELECT -1 AS SP, 10 AS EP, '0~10' AS LABEL, 1 AS ODR FROM dual
+	    UNION ALL SELECT 10, 20, '11~20', 2 FROM dual
+	    UNION ALL SELECT 20, 30, '21~30', 3 FROM dual
+	    UNION ALL SELECT 30, 40, '31~40', 4 FROM dual
+	    UNION ALL SELECT 40, 50, '41~50', 5 FROM dual
+	    UNION ALL SELECT 50, 60, '51~60', 6 FROM dual
+	    UNION ALL SELECT 60, 70, '61~70', 7 FROM dual
+	    UNION ALL SELECT 70, 80, '71~80', 8 FROM dual
+	    UNION ALL SELECT 80, 90, '81~90', 9 FROM dual
+	    UNION ALL SELECT 90, 100, '91~100', 10 FROM dual
+	),
+	LATEST_EXAM AS ( <!-- 제일 최근 1개 시험 -->
+		SELECT EXAM_ID, EXAM_SBST_REF_ID, EXAM_TYCD
+		FROM (
+			SELECT
+				  ROW_NUMBER() OVER (ORDER BY AA.EXAM_SDTTM DESC) AS RN
+				, AA.EXAM_ID
+				, AA.EXAM_SBST_REF_ID
+				, AA.EXAM_TYCD
+			FROM TB_LMS_EXAM_BSC AA
+	        JOIN TB_LMS_EXAM_CRE_CRS_RLTN BB
+	          ON AA.EXAM_ID = BB.EXAM_ID
+	        WHERE 1 = 1
+	          AND BB.SBJCT_ID = #{crsCreCd}
+	          AND AA.EXAM_CTGRCD = 'EXAM'
+	          AND AA.TKEXAM_TYCD = #{examStareTypeCd}
+	          AND AA.DELYN = 'N'
+	          AND BB.DELYN = 'N'
+			  <if test='examStareTypeCd == "A"'>
+         	  AND AA.EXAM_ID = #{examCd}
+       		  </if>
+	    )
+	    WHERE RN = 1
+	),
+	STD_T AS ( <!-- 수강중인 학생목록 -->
+		SELECT
+			  S.STD_ID
+	        , S.SBJCT_ID
+	    FROM TB_LMS_ATNDLC_SBJCT S
+	    WHERE S.ATNDLC_STSCD = 'S'
+	      AND S.AUDITYN = 'N'
+	      AND S.SBJCT_ID = #{crsCreCd}
+	),
+	EXAM_SCORE_RAW AS (
+	    SELECT
+			  B.STD_ID
+	        , B.SBJCT_ID
+	        , A.EXAM_ID
+	        , A.EXAM_SBST_REF_ID
+	        , A.EXAM_TYCD
+	        , E.REEXAMYN
+	        , CASE
+				WHEN E.REEXAMYN = 'Y' THEN
+	                CASE REGEXP_SUBSTR(A.EXAM_SBST_REF_ID, '[^_]+', 1, 1)
+	                    WHEN 'EXAM' THEN (
+	                        SELECT ACQS_TOT_SCR
+	                        FROM TB_LMS_EXAM_STARE
+	                        WHERE STD_ID = B.STD_ID AND EXAM_ID = A.EXAM_SBST_REF_ID AND DELYN = 'N'
+	                    )
+	                    WHEN 'ASMNT' THEN (
+	                        SELECT SCR
+	                        FROM TB_LMS_ASMT_SBMSN
+	                        WHERE STD_ID = B.STD_ID AND ASMT_ID = A.EXAM_SBST_REF_ID AND DELYN = 'N'
+	                    )
+	                    WHEN 'FORUM' THEN (
+	                        SELECT SCR
+	                        FROM TB_LMS_DSCS_PTCP
+	                        WHERE STD_ID = B.STD_ID AND DSCS_ID = A.EXAM_SBST_REF_ID AND DELYN = 'N'
+	                    )
+	                END
+	            ELSE (
+	                SELECT ACQS_TOT_SCR
+	                FROM TB_LMS_EXAM_STARE
+	                WHERE STD_ID = B.STD_ID AND EXAM_ID = A.EXAM_ID AND DELYN = 'N'
+	            )
+	        END AS SCR
+	    FROM STD_T B
+	    CROSS JOIN LATEST_EXAM A
+	    LEFT JOIN TB_LMS_EXAM_STARE E
+	           ON E.EXAM_ID = A.EXAM_ID AND E.STD_ID = B.STD_ID AND E.DELYN = 'N'
+	)
+	<choose>
+		<when test='searchMenu != null and searchMenu != "" and searchMenu == "termExam"'>
+			<![CDATA[
+			SELECT
+			      T.LABEL
+			    , COUNT(*) AS CNT
+			FROM SCORE_T T
+			JOIN EXAM_SCORE_RAW S
+			  ON T.SP < NVL(S.SCR, 0) AND T.EP >= NVL(S.SCR, 0)
+			GROUP BY T.LABEL, T.ODR
+			]]>
+		</when>
+		<otherwise>
+			<![CDATA[
+			SELECT
+				  T.LABEL 			AS LABEL
+				, COUNT(B.STD_ID) 	AS CNT
+			FROM SCORE_T T
+          	CROSS JOIN TB_LMS_EXAM_BSC A
+          	LEFT JOIN TB_LMS_EXAM_STARE B
+           	  ON A.EXAM_ID = B.EXAM_ID
+            	  AND T.SP <  NVL(B.ACQS_TOT_SCR, 0)
+           	  AND T.EP >= NVL(B.ACQS_TOT_SCR, 0)
+           	  AND B.DELYN = 'N'
+           	  AND B.STD_ID IN (SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE ATNDLC_STSCD = 'S' AND SBJCT_ID = #{crsCreCd})
+         	WHERE A.EXAM_ID = #{examCd}
+         	GROUP BY T.LABEL, T.ODR
+         	 ]]>
+        	</otherwise>
+        </choose>
+		ORDER BY T.ODR
+    </select>
+
+    <select id="selectStuExamInfo" parameterType="examStareVO" resultType="egovMap">
+        /*
+       		SQL ID : ExamStareDAO.selectStuExamInfo
+		 	설  명 : 시험 정보 및 학생의 시험 응시정보 조회
+         */
+        SELECT A.EXAM_ID 																			AS examCd
+        	 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = (SELECT AA.USER_ID FROM TB_LMS_ATNDLC_SBJCT AS AA WHERE STD_ID = B.STD_ID)) AS userNm
+        	 , B.STD_ID 																			AS stdNo
+             , A.EXAM_TTL 																		AS examTitle
+             , A.EXAM_CTS 																			AS examCts
+             , A.TKEXAM_TYCD 																AS examStareTypeCd
+             , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'EXAM_STARE_UNI_CD' AND CD = A.TKEXAM_TYCD LIMIT 1) AS examStareTypeNm
+             , DATE_FORMAT(STR_TO_DATE(A.EXAM_SDTTM, '%Y%m%d%H%i%s'), '%Y.%m.%d %H:%i') 		AS examStartDttm
+             , DATE_FORMAT(STR_TO_DATE(A.EXAM_EDTTM, '%Y%m%d%H%i%s'), '%Y.%m.%d %H:%i') 			AS examEndDttm
+             , CASE WHEN A.REEXAMYN = 'Y'
+                    THEN DATE_FORMAT(STR_TO_DATE(A.RE_EXAM_START_DTTM, '%Y%m%d%H%i%s'), '%Y.%m.%d %H:%i')
+               END 																					AS reExamStartDttm
+             , CASE WHEN A.REEXAMYN = 'Y'
+                    THEN DATE_FORMAT(STR_TO_DATE(A.RE_EXAM_END_DTTM, '%Y%m%d%H%i%s'), '%Y.%m.%d %H:%i')
+               END 																					AS reExamEndDttm
+             , A.MRK_OYN AS scoreOpenYn
+             , CASE WHEN A.MRK_OYN = 'Y'
+                    THEN DATE_FORMAT(STR_TO_DATE(A.MRK_OPEN_SDTTM, '%Y%m%d%H%i%s'), '%Y.%m.%d %H:%i')
+               END 																					AS scoreOpenDttm
+             , A.TKEXAM_MNTS 																		AS examStareTm
+             , A.MAX_TKEXAM_CNT 																	AS stareLimitCnt
+             , A.EXAMPPR_OYN 																		AS gradeViewYn
+             <![CDATA[
+             , CASE WHEN B.REEXAMYN = 'Y' AND A.RE_EXAM_START_DTTM > FN_DTTM()
+                    THEN 'B'
+                    WHEN B.REEXAMYN = 'Y' AND FN_DTTM() BETWEEN A.RE_EXAM_START_DTTM AND A.RE_EXAM_END_DTTM
+                    THEN 'P'
+                    WHEN B.REEXAMYN = 'Y' AND A.RE_EXAM_END_DTTM < FN_DTTM()
+                    THEN 'A'
+                    WHEN IFNULL(B.REEXAMYN, 'N') = 'N' AND A.EXAM_SDTTM > FN_DTTM()
+                    THEN 'B'
+                    WHEN IFNULL(B.REEXAMYN, 'N') = 'N' AND FN_DTTM() BETWEEN A.EXAM_SDTTM AND A.EXAM_EDTTM
+                    THEN 'P'
+                    WHEN IFNULL(B.REEXAMYN, 'N') = 'N' AND A.EXAM_EDTTM < FN_DTTM()
+                    THEN 'A'
+               END 																					AS periodTypeCd
+             ]]>
+             , IFNULL(B.ACQS_TOT_SCR,0) 															AS totGetScore
+             , B.STARE_CNT 																			AS stareCnt
+             , B.STARE_TM 																			AS stareTm
+             , DATE_FORMAT(STR_TO_DATE(B.SDTTM, '%Y%m%d%H%i%s'), '%Y.%m.%d %H:%i:%s') 			AS stareStartDt
+             , DATE_FORMAT(STR_TO_DATE(B.EDTTM, '%Y%m%d%H%i%s'), '%Y.%m.%d %H:%i:%s') 			AS stareEndDt
+             , B.EVLYN 																			AS evalYn
+             , DATE_FORMAT(STR_TO_DATE(B.EVL_DTTM, '%Y%m%d%H%i%s'), '%Y.%m.%d %H:%i:%s') 			AS evalDt
+             , B.REEXAMYN 																		AS reExamYn
+             , (
+                 SELECT SUM(BB.QSTN_SCR)
+                   FROM TB_LMS_EXAM_STARE_PAPER AA
+                   JOIN TB_LMS_EXAM_QSTN BB
+                     ON AA.EXAM_ID = BB.EXAM_ID
+                    AND AA.EXAM_QSTN_NO = BB.EXAM_QSTN_NO
+                  WHERE AA.EXAM_ID = A.EXAM_ID
+                    AND AA.STD_ID = B.STD_ID
+               ) 																					AS fullScore
+          FROM TB_LMS_EXAM_BSC A
+          LEFT JOIN TB_LMS_EXAM_STARE B
+            ON A.EXAM_ID = B.EXAM_ID
+           AND B.DELYN = 'N'
+           AND B.STD_ID = #{stdNo}
+         WHERE A.EXAM_ID = #{examCd}
+    </select>
+	
+    <select id="listExamStareStdPageing" parameterType="examStareVO" resultType="egovMap">
+        /*
+           	SQL ID : ExamStareDAO.listExamStareStdPageing
+           	설  명 : 시험응시 학습자 리스트 조회
+         */
+		WITH STD_T AS
+        (
+          SELECT #{stdNos}  AS STD_ID FROM DUAL
+        )
+        , COPY_T(N) AS
+        (
+			SELECT 1 FROM DUAL
+			UNION ALL
+			SELECT N + 1
+            FROM COPY_T, STD_T
+			<![CDATA[
+			WHERE N <= LENGTH(STD_ID) - LENGTH(REPLACE(STD_ID, ',', ''))
+			]]>
+        )
+        <include refid="CommonSQL.pagePrefix"/>
+        SELECT
+        	  ROW_NUMBER() OVER(ORDER BY C.USERNM) AS LINE_NO
+			, A.EXAM_ID
+			, A.ACQS_TOT_SCR
+            , A.ACQS_TOT_SCR AS EVL_SCR
+            , NVL((
+				SELECT SUM(AA.ACQS_SCR)
+				FROM TB_LMS_EXAM_STARE_PAPER AA
+				WHERE AA.EXAM_ID = A.EXAM_ID
+				  AND AA.STD_ID = A.STD_ID), 0) AS STARE_SCORE
+            , A.EVLYN
+            , A.STD_ID 
+            , B.USER_ID
+            , C.USERNM
+            , C.DEPTNM
+            , D.USER_ID
+            , (SELECT
+				CASE
+	      			WHEN AA.EXAM_CTGRCD = 'EXAM' THEN CASE
+	      				WHEN A.STARE_CNT <![CDATA[ > ]]> 0 THEN 'C'
+	       				ELSE 'N' END
+					ELSE CASE WHEN A.SDTTM IS NULL THEN 'N'
+	       				WHEN A.EDTTM IS NULL THEN 'T'
+	       			 	WHEN A.EDTTM IS NOT NULL THEN 'C'
+	       			END
+           		END
+			  FROM TB_LMS_EXAM_BSC AA WHERE AA.EXAM_ID = A.EXAM_ID) AS STARE_STATUS_CD
+            , A.SDTTM
+            , A.EDTTM 
+            , A.EVL_DTTM 
+            , A.REEXAMYN
+            , A.STARE_CNT 
+            , A.STARE_TM 
+            , CASE
+				WHEN T.STD_ID IS NOT NULL THEN 'Y'
+             	ELSE 'N'
+       		   END AS CHECK_YN
+             , C.MOBILE_NO
+             , C.EMAIL
+             , NVL(B.SCYR, '-') AS SCYR
+             , NVL(C.ENTR_YY,'-') AS ENTR_YY
+			 , NVL(C.ENTR_HY,'-') AS ENTR_HY
+			 , NVL(C.ENTR_GBN_NM,'-') AS ENTR_GBN_NM
+          FROM TB_LMS_EXAM_STARE A
+          JOIN TB_LMS_ATNDLC_SBJCT B
+            ON A.STD_ID = B.STD_ID
+           AND B.SBJCT_ID = (SELECT SBJCT_ID FROM TB_LMS_EXAM_CRE_CRS_RLTN WHERE EXAM_ID = #{examCd})
+          JOIN TB_LMS_USR C
+            ON B.USER_ID = C.USER_ID
+          JOIN TB_LMS_USER_ACNT D
+            ON C.USER_ID = D.USER_ID
+          LEFT JOIN (
+                SELECT DISTINCT REGEXP_SUBSTR(STD_ID, '[^,]+', 1, N)AS STD_ID
+                  FROM COPY_T, STD_T
+               ) T
+            ON A.STD_ID = T.STD_ID
+         WHERE A.EXAM_ID = #{examCd}
+           AND A.DELYN = 'N'
+        <if test="searchKey != null and searchKey != ''">
+           <if test='searchKey == "COMPLETE"'>
+           	AND A.EDTTM IS NOT NULL
+           </if>
+           <if test='searchKey == "NONCOMPLETE"'>
+           	AND (
+           		   A.SDTTM IS NULL
+           		OR A.EDTTM IS NULL
+           		)
+           </if>
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+           AND (C.USERNM LIKE CONCAT('%', #{searchValue}, '%') COLLATE utf8mb4_general_ci
+            OR  C.DEPTNM LIKE CONCAT('%', #{searchValue}, '%') COLLATE utf8mb4_general_ci
+            OR  D.USER_ID LIKE CONCAT('%', #{searchValue}, '%') ) COLLATE utf8mb4_general_ci
+        </if>
+        <if test='(searchMenu != null and searchMenu != "" and searchMenu == "PRINT") or (stdNos != null and stdNos != "")'>
+            AND T.STD_ID IS NOT NULL
+        </if>
+          ORDER BY C.USERNM
+        <include refid="CommonSQL.pageSubfix"/>
+    </select>	
+
+    <select id="listExamStareStdCount" parameterType="examStareVO" resultType="int">
+        /*
+         	SQL ID : ExamStareDAO.listExamStareStdCount
+   			설  명 : 시험응시 학습자 수 카운트
+         */
+		SELECT COUNT(1)
+		FROM (
+			WITH STD_T AS
+	        (
+				SELECT #{stdNos}  AS STD_ID FROM DUAL
+			)
+        	, COPY_T(N) AS
+	        (
+	          SELECT 1 FROM DUAL
+	           UNION ALL
+	          SELECT N + 1
+	            FROM COPY_T, STD_T
+	           <![CDATA[
+	           WHERE N <= LENGTH(STD_ID) - LENGTH(REPLACE(STD_ID, ',', ''))
+	           ]]>
+	        )
+			SELECT
+				  A.EXAM_ID
+				, A.ACQS_TOT_SCR
+				, A.ACQS_TOT_SCR AS EVL_SCR
+				, NVL((
+					SELECT SUM(AA.ACQS_SCR)
+				      FROM TB_LMS_EXAM_STARE_PAPER AA
+				     WHERE AA.EXAM_ID = A.EXAM_ID
+				       AND AA.STD_ID = A.STD_ID ), 0) AS STARE_SCORE
+				, A.EVLYN
+				, A.STD_ID
+				, B.USER_ID 
+				, C.USERNM 
+				, C.DEPTNM 
+				, D.USER_ID 
+				, (SELECT
+					CASE
+						WHEN AA.EXAM_CTGRCD = 'EXAM' THEN CASE
+							WHEN A.STARE_CNT <![CDATA[ > ]]> 0 THEN 'C'
+							ELSE 'N' END
+						ELSE CASE
+							WHEN A.SDTTM IS NULL THEN 'N'
+			 		   		WHEN A.EDTTM IS NULL THEN 'T'
+			 		   		WHEN A.EDTTM IS NOT NULL THEN 'C'
+	             		END
+	             	END
+				  FROM TB_LMS_EXAM_BSC AA WHERE AA.EXAM_ID = A.EXAM_ID ) AS STARE_STATUS_CD
+	             , A.SDTTM
+	             , A.EDTTM
+	             , A.EVL_DTTM
+	             , A.REEXAMYN
+	             , A.STARE_CNT
+	             , A.STARE_TM
+	             , CASE WHEN T.STD_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS CHECK_YN
+	             , NVL(B.SCYR, '-') AS SCYR
+	          FROM TB_LMS_EXAM_STARE A
+	          JOIN TB_LMS_ATNDLC_SBJCT B
+	            ON A.STD_ID = B.STD_ID
+	           AND B.SBJCT_ID = (SELECT SBJCT_ID FROM TB_LMS_EXAM_CRE_CRS_RLTN WHERE EXAM_ID = #{examCd})
+	          JOIN TB_LMS_USR C
+	            ON B.USER_ID = C.USER_ID
+	          JOIN TB_LMS_USER_ACNT D
+	            ON C.USER_ID = D.USER_ID
+	          LEFT JOIN (
+				SELECT DISTINCT REGEXP_SUBSTR(STD_ID, '[^,]+', 1, N)AS STD_ID
+				FROM COPY_T, STD_T
+			  ) T
+	            ON A.STD_ID = T.STD_ID
+	         WHERE A.EXAM_ID = #{examCd}
+	           AND A.DELYN = 'N'
+	        <if test="searchValue != null and searchValue != ''">
+	           AND (C.USERNM LIKE CONCAT('%', #{searchValue}, '%') COLLATE utf8mb4_general_ci
+	            OR  C.DEPTNM LIKE CONCAT('%', #{searchValue}, '%') COLLATE utf8mb4_general_ci
+	            OR  D.USER_ID LIKE CONCAT('%', #{searchValue}, '%') ) COLLATE utf8mb4_general_ci
+	        </if>
+		) T
+    </select>
+
+    <select id="listExamStareStatus" parameterType="examVO" resultType="egovMap">
+    	/*
+         	SQL ID : ExamStareDAO.listExamStareStatus
+   			설  명 : 중간 기말 수시 참여 현황 목록
+         */
+        <!--  SELECT
+         	Z.*,
+         	ROW_NUMBER() OVER(ORDER BY Z.userNm) AS lineNo
+           FROM (
+		         WITH RECURSIVE STD_T AS
+		        (
+		          SELECT #{stdNos}  AS STD_ID
+		        )
+		        , COPY_T AS
+		        (
+		          SELECT 1 AS N
+		           UNION ALL
+		          SELECT N + 1
+		            FROM COPY_T, STD_T
+		           WHERE N <= LENGTH(STD_ID) - LENGTH(REPLACE(STD_ID, ',', ''))
+		        )
+		    	, EXAM AS (
+					SELECT
+						  C.STD_ID
+						, A.EXAM_ID
+						, A.EXAM_TYCD
+						, A.TKEXAM_TYCD
+						, IF(D.ACQS_TOT_SCR IS NOT NULL, 'Y', 'N') AS EVLYN
+						, CASE A.EXAM_TYCD WHEN 'EXAM' THEN 
+						      (CASE WHEN D.STARE_CNT IS NOT NULL AND D.STARE_CNT > 0 THEN IFNULL(D.ACQS_TOT_SCR,0) ELSE 'N' END)
+						  END AS SCR
+						, CASE A.EXAM_TYCD WHEN 'EXAM'  THEN CASE WHEN A.EXAM_SBST_REF_ID IS NOT NULL
+																	  AND IFNULL((SELECT 'Y' FROM TB_LMS_EXAM_STARE WHERE STD_ID = C.STD_ID AND EXAM_ID = A.EXAM_ID AND REEXAMYN = 'Y'),'N') = 'Y'
+																	 THEN IFNULL(G.ACQS_TOT_SCR, IFNULL(E.SCR, IFNULL(F.SCR, 'N'))) END
+											  WHEN 'QUIZ'  THEN IFNULL(G.ACQS_TOT_SCR, 'N')
+											  WHEN 'ASMNT' THEN IFNULL(E.SCR, 'N')
+											  WHEN 'FORUM' THEN IFNULL(F.SCR, 'N')
+											  END AS ACQS_TOT_SCR
+						, (
+							
+							SELECT ASMT_ID AS EXAM_SBST_REF_ID
+							FROM TB_LMS_ASMT
+							WHERE ASMT_ID = A.EXAM_SBST_REF_ID
+							AND DELYN = 'N'
+							UNION ALL
+							SELECT DSCS_ID AS EXAM_SBST_REF_ID
+							FROM TB_LMS_DSCS
+							WHERE DSCS_ID = A.EXAM_SBST_REF_ID
+							AND DELYN = 'N'
+							UNION ALL
+							SELECT EXAM_ID AS EXAM_SBST_REF_ID
+							FROM TB_LMS_EXAM_BSC
+							WHERE EXAM_ID = A.EXAM_SBST_REF_ID
+							AND DELYN = 'N'
+						) EXAM_SBST_REF_ID
+						, (SELECT APRV_STSCD FROM TB_LMS_EXAM_ABSNCE WHERE STD_ID = C.STD_ID AND EXAM_ID = A.EXAM_ID ORDER BY MOD_DTTM DESC LIMIT 1) AS APRV_STSCD
+					FROM TB_LMS_EXAM_BSC AS A
+					JOIN TB_LMS_EXAM_CRE_CRS_RLTN AS B
+					  ON A.EXAM_ID = B.EXAM_ID
+					 AND B.SBJCT_ID = #{crsCreCd}
+					 AND A.DELYN = 'N'
+					 AND B.DELYN = 'N'
+					JOIN TB_LMS_ATNDLC_SBJCT AS C
+					  ON B.SBJCT_ID = C.SBJCT_ID
+					 AND C.ATNDLC_STSCD = 'S'
+					 AND C.AUDITYN = 'N'
+					LEFT JOIN TB_LMS_EXAM_STARE AS D
+					  ON A.EXAM_ID = D.EXAM_ID
+					 AND C.STD_ID = D.STD_ID
+					LEFT JOIN TB_LMS_ASMT_SBMSN AS E
+					  ON A.EXAM_SBST_REF_ID = E.ASMT_ID
+					 AND C.STD_ID = E.STD_ID
+					LEFT JOIN TB_LMS_DSCS_PTCP AS F
+					  ON A.EXAM_SBST_REF_ID = F.DSCS_ID
+					 AND C.STD_ID = F.STD_ID
+					LEFT JOIN TB_LMS_EXAM_STARE AS G
+					  ON A.EXAM_SBST_REF_ID = G.EXAM_ID
+					 AND C.STD_ID = G.STD_ID
+					WHERE A.EXAM_CTGRCD = 'EXAM'
+					  AND A.EXAM_ID IN
+					  <foreach item="item" index="index" collection="examCdList" open="(" close=")" separator=",">
+			              #{item}
+			          </foreach>
+					ORDER BY C.STD_ID
+				)
+				SELECT
+					  A.USER_ID 							AS userId
+					, B.DEPTNM					 			AS deptNm
+					, B.USERNM					 			AS userNm
+					, A.STD_ID 								AS stdNo
+					, B.MOBILE_NO							AS mobileNo
+					, B.EMAIL								AS email
+					, IFNULL(A.SCYR, '-')						AS SCYR
+					, IFNULL(B.ENTR_YY, '-')				AS entrYy
+					, IFNULL(B.ENTR_HY, '-')				AS entrHy
+					, IFNULL(B.ENTR_GBN_NM, '-')			AS entrGbnNm
+					, (SELECT EVLYN FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'M' AND EXAM_TYCD = 'EXAM') AS midEvalYn
+					, (SELECT EVLYN FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'L' AND EXAM_TYCD = 'EXAM') AS endEvalYn
+					, IFNULL((SELECT CASE WHEN SCR = 'N' THEN '미응시' ELSE SCR END FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'M' AND EXAM_TYCD = 'EXAM'), '-')		AS midScore
+					, IFNULL((SELECT CASE WHEN ACQS_TOT_SCR = 'N' THEN '미응시' ELSE ACQS_TOT_SCR END FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'M' AND EXAM_TYCD = 'EXAM' AND EXAM_SBST_REF_ID IS NOT NULL), '-') 	AS midReplaceScore
+					, IFNULL((SELECT CASE WHEN ACQS_TOT_SCR = 'N' THEN '미응시' ELSE ACQS_TOT_SCR END FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'M' AND EXAM_TYCD <![CDATA[ <> ]]> 'EXAM'), '-') 				AS midEtcScore
+					, (SELECT IF(SCR IS NULL, ACQS_TOT_SCR, SCR) FROM EXAM WHERE STD_ID = A.STD_ID and TKEXAM_TYCD = 'M') AS MID_STARE_YN
+					, IFNULL((SELECT CASE WHEN SCR = 'N' THEN '미응시' ELSE SCR END FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'L' AND EXAM_TYCD = 'EXAM'), '-')		AS endScore
+					, IFNULL((SELECT CASE WHEN ACQS_TOT_SCR = 'N' THEN '미응시' ELSE ACQS_TOT_SCR END FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'L' AND EXAM_TYCD = 'EXAM' AND EXAM_SBST_REF_ID IS NOT NULL), '-') 	AS endReplaceScore
+					, IFNULL((SELECT CASE WHEN ACQS_TOT_SCR = 'N' THEN '미응시' ELSE ACQS_TOT_SCR END FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'L' AND EXAM_TYCD <![CDATA[ <> ]]> 'EXAM'), '-') 				AS endEtcScore
+					, (SELECT IF(SCR IS NULL, ACQS_TOT_SCR, SCR) FROM EXAM WHERE STD_ID = A.STD_ID and TKEXAM_TYCD = 'L') AS END_STARE_YN
+					, IFNULL((SELECT CASE WHEN SCR = 'N' THEN '미응시' ELSE SCR END FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'A' AND EXAM_TYCD = 'EXAM'), '-')		AS admissionScore
+					, IFNULL((SELECT CASE WHEN ACQS_TOT_SCR = 'N' THEN '미응시' ELSE ACQS_TOT_SCR END FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'A' AND EXAM_TYCD <![CDATA[ <> ]]> 'EXAM'), '-') 				AS admissionEtcScore
+					, (SELECT IF(SCR IS NULL, ACQS_TOT_SCR, SCR) FROM EXAM WHERE STD_ID = A.STD_ID and TKEXAM_TYCD = 'A') AS ADM_STARE_YN
+					, IFNULL((SELECT APRV_STSCD FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'M' AND EXAM_TYCD = 'EXAM'), '-') AS midApprStat
+					, IFNULL((SELECT APRV_STSCD FROM EXAM WHERE STD_ID = A.STD_ID AND TKEXAM_TYCD = 'L' AND EXAM_TYCD = 'EXAM'), '-') AS endApprStat
+				FROM TB_LMS_ATNDLC_SBJCT AS A
+				JOIN TB_LMS_USR B
+				  ON A.USER_ID = B.USER_ID
+				LEFT JOIN (
+		                SELECT DISTINCT SUBSTRING_INDEX(SUBSTRING_INDEX(STD_ID, ',', N), ',', -1) AS STD_ID
+		                  FROM COPY_T, STD_T
+		               ) T
+		            ON A.STD_ID = T.STD_ID
+				WHERE A.SBJCT_ID = #{crsCreCd}
+				  AND A.ATNDLC_STSCD NOT IN('D', 'T')
+				  AND A.AUDITYN = 'N'
+				<if test="searchValue != null and searchValue != ''">
+				  AND (
+				  		LOWER(B.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				  	 OR LOWER(B.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				  	 OR LOWER(B.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				  )
+				</if>
+				<if test="stdNos != null and stdNos != ''">
+				  AND T.STD_ID IS NOT NULL
+				</if>
+				ORDER BY B.USERNM
+           ) Z
+           WHERE 1 = 1
+           <if test="searchKey != null and searchKey != '' and searchKey != 'ALL'">
+           	 AND (
+           	 	<choose>
+           	 		<when test="searchKey == 'stare'">
+           	 			<if test='searchFrom == "M"'>(Z.MID_STARE_YN IS NOT NULL AND Z.MID_STARE_YN <![CDATA[ <> ]]> 'N') OR</if>
+           	 			<if test='searchFrom == "L"'>(Z.END_STARE_YN IS NOT NULL AND Z.END_STARE_YN <![CDATA[ <> ]]> 'N') OR</if>
+           	 			(Z.ADM_STARE_YN IS NOT NULL AND Z.ADM_STARE_YN <![CDATA[ <> ]]> 'N')
+           	 		</when>
+           	 		<otherwise>
+           	 			<if test='searchFrom == "M"'>(Z.MID_STARE_YN IS NOT NULL AND Z.MID_STARE_YN = 'N') OR</if>
+           	 			<if test='searchFrom == "L"'>(Z.END_STARE_YN IS NOT NULL AND Z.END_STARE_YN = 'N') OR</if>
+           	 			(Z.ADM_STARE_YN IS NOT NULL AND Z.ADM_STARE_YN = 'N')
+           	 		</otherwise>
+           	 	</choose>
+           	 )
+           </if> -->
+		SELECT
+      		  Z.*
+    		, ROW_NUMBER() OVER(ORDER BY Z.USERNM) AS LINE_NO
+		FROM (
+  			WITH STDNOS AS (
+    			SELECT #{stdNos} AS STD_ID
+    			FROM DUAL
+   			)
+   			<![CDATA[  
+    		, LIST_STD AS (
+				SELECT
+   					REGEXP_SUBSTR(STD_ID, '[^,]+', 1, LEVEL) AS STD_ID
+    			FROM STDNOS
+    			CONNECT BY LEVEL <= REGEXP_COUNT(STD_ID, ',') + 1
+  			)
+  			]]>
+  			, EXAM AS (
+    			SELECT
+					  C.STD_ID
+			        , A.EXAM_ID
+			        , A.EXAM_TYCD
+			        , A.TKEXAM_TYCD
+			        , CASE
+			        	WHEN D.ACQS_TOT_SCR IS NOT NULL THEN 'Y'
+		        		ELSE 'N'
+	        		  END AS EVLYN
+	        		  <!-- 데이터타입이 맞지않아 'N'에서 NULL로 변경 -->
+			        , CASE A.EXAM_TYCD
+			        	WHEN 'EXAM' THEN CASE
+			        		WHEN D.STARE_CNT IS NOT NULL AND D.STARE_CNT > 0 THEN TO_CHAR(NVL(D.ACQS_TOT_SCR, 0))
+		              		ELSE NULL END
+			          	END AS SCR
+			        , TO_CHAR(
+			        	CASE A.EXAM_TYCD
+				        	WHEN 'EXAM' THEN CASE
+				            	WHEN A.EXAM_SBST_REF_ID IS NOT NULL
+				               		AND NVL((SELECT 'Y' FROM TB_LMS_EXAM_STARE WHERE STD_ID = C.STD_ID AND EXAM_ID = A.EXAM_ID AND REEXAMYN = 'Y'), 'N') = 'Y'
+				               		THEN NVL(TO_CHAR(G.ACQS_TOT_SCR), NVL(TO_CHAR(E.SCR), NVL(TO_CHAR(F.SCR), 'N')))
+				            	END
+			            	WHEN 'QUIZ'  THEN NVL(TO_CHAR(G.ACQS_TOT_SCR), 'N')
+				            WHEN 'ASMNT' THEN NVL(TO_CHAR(E.SCR), 'N')
+				            WHEN 'FORUM' THEN NVL(TO_CHAR(F.SCR), 'N')
+				        END
+			        ) AS ACQS_TOT_SCR
+			        , (SELECT ASMT_ID FROM TB_LMS_ASMT WHERE ASMT_ID = A.EXAM_SBST_REF_ID AND DELYN = 'N'
+			           UNION ALL
+			           SELECT DSCS_ID FROM TB_LMS_DSCS WHERE DSCS_ID = A.EXAM_SBST_REF_ID AND DELYN = 'N'
+			           UNION ALL
+			           SELECT EXAM_ID FROM TB_LMS_EXAM_BSC WHERE EXAM_ID = A.EXAM_SBST_REF_ID AND DELYN = 'N') AS EXAM_SBST_REF_ID
+			        , F.APRV_STSCD
+    			FROM TB_LMS_EXAM_BSC A
+			      JOIN TB_LMS_EXAM_CRE_CRS_RLTN B ON A.EXAM_ID = B.EXAM_ID AND B.SBJCT_ID = #{crsCreCd}
+			      JOIN TB_LMS_ATNDLC_SBJCT C ON B.SBJCT_ID = C.SBJCT_ID AND C.ATNDLC_STSCD = 'S' AND C.AUDITYN = 'N'
+			      LEFT JOIN TB_LMS_EXAM_STARE D ON A.EXAM_ID = D.EXAM_ID AND C.STD_ID = D.STD_ID
+			      LEFT JOIN TB_LMS_ASMT_SBMSN E ON A.EXAM_SBST_REF_ID = E.ASMT_ID AND C.STD_ID = E.STD_ID
+			      LEFT JOIN TB_LMS_DSCS_PTCP F ON A.EXAM_SBST_REF_ID = F.DSCS_ID AND C.STD_ID = F.STD_ID
+			      LEFT JOIN TB_LMS_EXAM_STARE G ON A.EXAM_SBST_REF_ID = G.EXAM_ID AND C.STD_ID = G.STD_ID
+			      <!-- F테이블: 기존에는 SELECT절에서 서브쿼리로 가져왔으나, 오라클에서는 최상위의 A, C테이블을 참조하지 못해서 LEFT JOIN으로 변경함... -->
+			      LEFT JOIN (
+			      	SELECT STD_ID, EXAM_ID, APRV_STSCD
+			      	FROM (  SELECT ROW_NUMBER() OVER(PARTITION BY STD_ID, EXAM_ID ORDER BY MOD_DTTM DESC) AS RN, STD_ID, EXAM_ID, APRV_STSCD
+	  						FROM TB_LMS_EXAM_ABSNCE)
+			      	WHERE RN = 1
+			      )F ON F.STD_ID = C.STD_ID AND F.EXAM_ID = A.EXAM_ID
+			    WHERE A.DELYN = 'N'
+			      AND B.DELYN = 'N'
+			      AND A.EXAM_CTGRCD = 'EXAM'
+			      AND A.EXAM_ID IN
+				<foreach item="item" index="index" collection="examCdList" open="(" close=")" separator=",">
+	              #{item}
+				</foreach>
+			)
+			<![CDATA[ 
+			SELECT
+				  A.USER_ID
+				, B.DEPTNM
+		      	, B.USERNM
+				, A.STD_ID
+				, B.MOBILE_NO
+				, B.EMAIL
+				, NVL(A.SCYR, '-') AS SCYR
+				, NVL(B.ENTR_YY, '-') AS ENTR_YY
+				, NVL(B.ENTR_HY, '-') AS ENTR_HY
+				, NVL(B.ENTR_GBN_NM, '-') AS ENTR_GBN_NM
+		      	, ( SELECT EVLYN
+		      	 	FROM EXAM
+	      	 	 	WHERE STD_ID = A.STD_ID
+					  AND TKEXAM_TYCD = 'M'
+					  AND EXAM_TYCD = 'EXAM') AS MID_EVAL_YN
+				, ( SELECT EVLYN
+					FROM EXAM
+					WHERE STD_ID = A.STD_ID
+					  AND TKEXAM_TYCD = 'L'
+					  AND EXAM_TYCD = 'EXAM') AS END_EVAL_YN
+				, NVL((
+		      		SELECT
+		      			CASE WHEN SCR = 'N' THEN '미응시' ELSE SCR END
+					FROM EXAM
+		      		WHERE STD_ID = A.STD_ID
+		      			  AND TKEXAM_TYCD = 'M'
+		      			  AND EXAM_TYCD = 'EXAM'
+				    ), '-') AS MID_SCORE
+				, NVL((
+		      		SELECT
+		      			CASE WHEN ACQS_TOT_SCR = 'N' THEN '미응시' ELSE ACQS_TOT_SCR END
+	      			FROM EXAM
+	      			WHERE STD_ID = A.STD_ID
+	      			  AND TKEXAM_TYCD = 'M'
+	      			  AND EXAM_TYCD = 'EXAM'
+	      			  AND EXAM_SBST_REF_ID IS NOT NULL
+	   			  ), '-') AS MID_REPLACE_SCORE
+				, NVL((
+		      		SELECT CASE WHEN ACQS_TOT_SCR = 'N' THEN '미응시' ELSE ACQS_TOT_SCR END
+		      		FROM EXAM
+					WHERE STD_ID = A.STD_ID
+					  AND TKEXAM_TYCD = 'M'
+					  AND EXAM_TYCD <> 'EXAM'
+			      ), '-') AS MID_ETC_SCORE
+				, ( SELECT CASE WHEN SCR IS NULL THEN ACQS_TOT_SCR ELSE SCR END
+		      	 	FROM EXAM
+		      	 	WHERE STD_ID = A.STD_ID
+		      	   	  AND TKEXAM_TYCD = 'M') AS MID_STARE_YN
+		      	, NVL((
+		      		SELECT CASE WHEN SCR = 'N' THEN '미응시' ELSE SCR END
+		      		FROM EXAM
+		      		WHERE STD_ID = A.STD_ID
+		      		  AND TKEXAM_TYCD = 'L'
+		      		  AND EXAM_TYCD = 'EXAM'
+	   		      ), '-') AS END_SCORE
+				, NVL((
+			      	SELECT CASE WHEN ACQS_TOT_SCR = 'N' THEN '미응시' ELSE ACQS_TOT_SCR END
+			      	FROM EXAM
+			      	WHERE STD_ID = A.STD_ID
+			      	  AND TKEXAM_TYCD = 'L'
+			      	  AND EXAM_TYCD = 'EXAM'
+			      	  AND EXAM_SBST_REF_ID IS NOT NULL
+	      	      ), '-') AS END_REPLACE_SCORE
+		      	, NVL((
+		      		SELECT CASE WHEN ACQS_TOT_SCR = 'N' THEN '미응시' ELSE ACQS_TOT_SCR END
+		      		FROM EXAM
+		      		WHERE STD_ID = A.STD_ID
+		      		  AND TKEXAM_TYCD = 'L'
+		      		  AND EXAM_TYCD <> 'EXAM'
+	   		      ), '-') AS END_ETC_SCORE
+		      	, ( SELECT CASE WHEN SCR IS NULL THEN ACQS_TOT_SCR ELSE SCR END
+		         	FROM EXAM
+		         	WHERE STD_ID = A.STD_ID
+		           	  AND TKEXAM_TYCD = 'L') AS END_STARE_YN
+		      	, NVL((
+			    	SELECT CASE WHEN SCR = 'N' THEN '미응시' ELSE SCR END
+			      	FROM EXAM
+			      	WHERE STD_ID = A.STD_ID
+			          AND TKEXAM_TYCD = 'A'
+			          AND EXAM_TYCD = 'EXAM'
+	        	  ), '-') AS ADMISSION_SCORE
+		      	, NVL((
+		      		SELECT CASE WHEN ACQS_TOT_SCR = 'N' THEN '미응시' ELSE ACQS_TOT_SCR END
+		      		FROM EXAM
+		      		WHERE STD_ID = A.STD_ID
+		      		  AND TKEXAM_TYCD = 'A'
+		      		  AND EXAM_TYCD <> 'EXAM'), '-') AS ADMISSION_ETC_SCORE
+		      	, ( SELECT CASE WHEN SCR IS NULL THEN ACQS_TOT_SCR ELSE SCR END
+		      	 	FROM EXAM
+		      	 	WHERE STD_ID = A.STD_ID
+		      	   	  AND TKEXAM_TYCD = 'A') AS ADM_STARE_YN
+		      	, NVL((
+		      		SELECT APRV_STSCD
+		      		FROM EXAM
+		      		WHERE STD_ID = A.STD_ID
+		      		  AND TKEXAM_TYCD = 'M'
+		      		  AND EXAM_TYCD = 'EXAM'
+	   		      ), '-') AS MID_APPR_STAT
+		      	, NVL((
+		      		SELECT APRV_STSCD
+		      		FROM EXAM
+		      		WHERE STD_ID = A.STD_ID
+		      		  AND TKEXAM_TYCD = 'L'
+		      		  AND EXAM_TYCD = 'EXAM'
+	   			  ), '-') AS APRV_STSCD
+			]]>
+			FROM TB_LMS_ATNDLC_SBJCT A
+			  JOIN TB_LMS_USR B ON A.USER_ID = B.USER_ID
+			  LEFT JOIN LIST_STD T ON A.STD_ID = T.STD_ID
+			WHERE A.SBJCT_ID = #{crsCreCd}
+		   	  AND A.ATNDLC_STSCD NOT IN ('D', 'T')
+		      AND A.AUDITYN = 'N'
+			<if test="searchValue != null and searchValue != ''">
+			  AND (
+			  		LOWER(B.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			  	 OR LOWER(B.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			  	 OR LOWER(B.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			  )
+			</if>
+			<if test="stdNos != null and stdNos != ''">
+		  	  AND T.STD_ID IS NOT NULL
+			</if>
+			ORDER BY B.USERNM
+			) Z
+		WHERE 1 = 1
+			<if test="searchKey != null and searchKey != '' and searchKey != 'ALL'">
+			AND (
+				<choose>
+           	 		<when test="searchKey == 'stare'">
+           	 			<if test='searchFrom == "M"'>(Z.MID_STARE_YN IS NOT NULL AND Z.MID_STARE_YN <![CDATA[ <> ]]> 'N') OR</if>
+           	 			<if test='searchFrom == "L"'>(Z.END_STARE_YN IS NOT NULL AND Z.END_STARE_YN <![CDATA[ <> ]]> 'N') OR</if>
+           	 			(Z.ADM_STARE_YN IS NOT NULL AND Z.ADM_STARE_YN <![CDATA[ <> ]]> 'N')
+           	 		</when>
+           	 		<otherwise>
+           	 			<if test='searchFrom == "M"'>(Z.MID_STARE_YN IS NOT NULL AND Z.MID_STARE_YN = 'N') OR</if>
+           	 			<if test='searchFrom == "L"'>(Z.END_STARE_YN IS NOT NULL AND Z.END_STARE_YN = 'N') OR</if>
+           	 			(Z.ADM_STARE_YN IS NOT NULL AND Z.ADM_STARE_YN = 'N')
+           	 		</otherwise>
+           	 	</choose>
+           	 )
+           </if>
+    </select>
+
+    <update id="updateExamStareMemo" parameterType="examStareVO">
+    	/*
+       		SQL ID : ExamStareDAO.updateExamStare
+       		설  명 : 시험응시 교수 메모 수정
+         */
+    	UPDATE TB_LMS_EXAM_STARE SET
+    		  MDFR_ID = #{mdfrId}
+    		, MOD_DTTM = FN_DTTM()
+    		, SCR_MEMO = #{profMemo}
+    	 WHERE STD_ID = #{stdNo}
+    	   AND EXAM_ID = #{examCd}
+    </update>
+
+    <update id="updateExamStareExcel" parameterType="examStareVO">
+    	/*
+       		SQL ID : ExamStareDAO.updateExamStareExcel
+       		설  명 : 시험 엑셀 성적 등록
+         */
+         UPDATE TB_LMS_EXAM_STARE SET
+         	  MDFR_ID = #{mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, ACQS_TOT_SCR = #{totGetScore}
+         	, EVLYN = 'Y'
+         	, EVL_DTTM = FN_DTTM()
+          WHERE EXAM_ID = #{examCd}
+            AND STD_ID IN (
+            				SELECT
+            					STD_ID
+            				  FROM TB_LMS_ATNDLC_SBJCT
+            				 WHERE USER_ID = #{userId}
+            				   AND SBJCT_ID = (
+            				 						SELECT
+            				 							SBJCT_ID
+            				 						  FROM TB_LMS_EXAM_CRE_CRS_RLTN
+            				 						 WHERE EXAM_ID = #{examCd}
+            				 					)
+            			)
+    </update>
+
+    <delete id="deleteAllStare" parameterType="examVO">
+    	/*
+       		SQL ID : ExamStareDAO.deleteAllStare
+       		설  명 : 시험 응시 전체 삭제
+         */
+         DELETE FROM TB_LMS_EXAM_STARE
+          WHERE EXAM_ID = #{examCd}
+    </delete>
+
+    <sql id="reExamStdQuery">
+    	WITH CRE_CRS_T AS (
+			SELECT
+				  A.SBJCT_ID
+				, A.SBJCTNM
+				, A.CRS_ID
+				, A.DVCLAS_NO
+				, A.UNIV_CD
+				, (SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE DEPT_CD = A.DEPT_CD AND ORG_ID = #{orgId}) AS CRS_CRE_DEPT_NM
+				, C.USER_ID AS TCH_NO
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = C.USER_ID) AS TCH_NM
+			FROM TB_LMS_SBJCT A
+			JOIN TB_LMS_TERM_CRE_CRS_RLTN B
+			ON A.SBJCT_ID = B.SBJCT_ID
+			AND B.CRS_SMSTR_ID = #{termCd}
+			LEFT JOIN SBJCT_PROF C
+			ON A.SBJCT_ID = C.SBJCT_ID
+			AND C.RPRSYN = 'Y'
+			WHERE A.DELYN = 'N'
+			AND A.USEYN = 'Y'
+			<if test="crsCreCd != null and crsCreCd != ''">
+			AND A.SBJCT_ID = #{crsCreCd}
+			</if>
+			<if test="deptCd != null and deptCd != ''">
+			AND A.DEPT_CD = #{deptCd}
+	    	</if>
+			<if test="uniCd != null and uniCd != ''">
+			AND A.UNIV_CD = #{uniCd}
+	    	</if>
+	    	<if test="tchNo != null and tchNo != ''">
+	    	AND C.USER_ID = #{tchNo}
+	    	</if>
+	    	<if test="tchNm != null and tchNm != ''">
+	    	AND LOWER((SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = C.USER_ID)) LIKE LOWER(CONCAT('%', #{tchNm}, '%'))
+	    	</if>
+	    	ORDER BY A.UNIV_CD, A.SBJCTNM, A.DVCLAS_NO
+		)
+		SELECT
+			  A.*
+		FROM (
+			SELECT
+				  A.SBJCT_ID
+				, A.SBJCTNM
+				, A.CRS_ID
+				, A.DVCLAS_NO
+				, A.UNIV_CD
+				, A.CRS_CRE_DEPT_NM
+				, A.TCH_NO
+				, A.TCH_NM
+				, A.EXAM_ID
+				, A.EXAM_TTL
+				, A.EXAM_SDTTM
+				, A.TKEXAM_MNTS
+				, A.TKEXAM_TYCD
+				, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'EXAM_STARE_UNI_CD' AND CD = A.TKEXAM_TYCD LIMIT 1) AS EXAM_STARE_TYPE_NM
+				, B.USER_ID
+				, B.USERNM
+				, B.DEPTNM
+				, B.STD_ID
+				, B.EMAIL
+				, B.MOBILE_NO
+				, (SELECT APRV_STSCD FROM TB_LMS_EXAM_ABSNCE WHERE SBJCT_ID = A.SBJCT_ID AND EXAM_ID = A.EXAM_ID AND STD_ID = B.STD_ID ORDER BY FRST_INQ_DTTM DESC LIMIT 1) AS APRV_STSCD
+				, C.REEXAMYN
+			FROM (
+				-- 강의실별 실시간 시험
+				SELECT
+					  A.SBJCT_ID
+					, A.SBJCTNM
+					, A.CRS_ID
+					, A.DVCLAS_NO
+					, A.UNIV_CD
+					, A.CRS_CRE_DEPT_NM
+					, A.TCH_NO
+					, A.TCH_NM
+					, C.EXAM_ID
+					, C.EXAM_TTL
+					, C.EXAM_SDTTM
+					, C.TKEXAM_MNTS
+					, C.TKEXAM_TYCD
+					, C.REEXAMYN
+				FROM CRE_CRS_T A
+				JOIN TB_LMS_EXAM_CRE_CRS_RLTN B
+				ON A.SBJCT_ID = B.SBJCT_ID
+				AND B.DELYN = 'N'
+				JOIN TB_LMS_EXAM_BSC C
+				ON B.EXAM_ID = C.EXAM_ID
+				AND C.DELYN = 'N'
+				AND C.USEYN = 'Y'
+				AND C.EXAM_CTGRCD = 'EXAM'
+				AND C.EXAM_TYCD = 'EXAM'
+				AND C.TKEXAM_TYCD = #{examStareTypeCd}
+			) A
+			JOIN (
+				-- 강의실별 수강생
+				SELECT
+					  A.SBJCT_ID
+					, A.STD_ID
+					, C.USER_ID
+					, C.USERNM
+					, C.DEPTNM
+					, C.EMAIL
+					, C.MOBILE_NO
+				FROM TB_LMS_ATNDLC_SBJCT A
+				JOIN TB_LMS_USER_ACNT B
+				ON A.USER_ID = B.USER_ID
+				AND B.ACNT_STSCD = 'U'
+				JOIN TB_LMS_USR C
+				ON A.USER_ID = C.USER_ID
+				WHERE A.ATNDLC_STSCD = 'S'
+				AND A.SBJCT_ID IN (
+					SELECT SBJCT_ID
+					FROM CRE_CRS_T
+				)
+				<if test="userId != null and userId != ''">
+		    	AND A.USER_ID = #{userId}
+		    	</if>
+		    	<if test="userNm != null and userNm != ''">
+		    	AND LOWER(C.USERNM) LIKE LOWER(CONCAT('%', #{userNm}, '%'))
+		    	</if>
+			) B
+			ON A.SBJCT_ID = B.SBJCT_ID
+			LEFT JOIN TB_LMS_EXAM_STARE C
+			ON A.EXAM_ID = C.EXAM_ID
+			AND B.STD_ID = C.STD_ID
+			AND C.DELYN = 'N'
+			WHERE C.SDTTM IS NULL
+			<if test="reExamYn != null and reExamYn != ''">
+			AND C.REEXAMYN = #{reExamYn}
+			</if>
+		) A
+		WHERE 1=1
+		<if test="apprStat != null and apprStat != ''">
+    	AND IF(A.APRV_STSCD = 'RAPPLICATE', 'APPLICATE', IFNULL(A.APRV_STSCD, 'NOAPPLICATE')) = #{apprStat}
+    	</if>
+    </sql>
+
+    <select id="countPagingReExamStd" parameterType="examStareVO" resultType="Integer">
+		/*
+             SQL ID : ExamStareDAO.listReExamStd
+            	 설  명 : 실시간 시험 미응시 학생 목록 수
+         */
+		SELECT COUNT(1) FROM (
+			<include refid="reExamStdQuery" />
+		) Z
+	</select>
+
+    <select id="listReExamStd" parameterType="examStareVO" resultType="egovMap">
+		/*
+             SQL ID : ExamStareDAO.listReExamStd
+            	 설  명 : 실시간 시험 미응시 학생 목록
+         */
+        SELECT
+        	  ROW_NUMBER() OVER(ORDER BY A.DEPTNM, A.USERNM) AS LINE_NO
+        	, A.*
+        FROM (
+			<include refid="reExamStdQuery" />
+		) A
+	</select>
+
+	<select id="listPagingReExamStd" parameterType="examStareVO" resultType="egovMap">
+		/*
+             SQL ID : ExamStareDAO.listReExamStd
+            	 설  명 : 실시간 시험 미응시 학생 목록 페이징
+         */
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT
+        	  ROW_NUMBER() OVER(ORDER BY A.DEPTNM, A.USERNM) AS LINE_NO
+        	, A.*
+        FROM (
+			<include refid="reExamStdQuery" />
+		) A
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="listReExamConfigStatus" parameterType="examStareVO" resultType="egovMap">
+		/*
+             SQL ID : ExamStareDAO.listReExamConfigStatus
+            	 설  명 : 실시간 시험 재시험 등록현황
+         */
+		SELECT
+			  A.SBJCT_ID
+			, A.SBJCTNM
+			, A.CRS_ID
+			, A.DVCLAS_NO
+			, A.UNIV_CD
+			, A.DEPT_CD
+			, A.DEPTNM
+			, A.USERNM
+			, C.EXAM_ID
+			, C.RE_EXAM_START_DTTM
+			, C.RE_EXAM_STARE_TM
+			, C.DSBL_ADD_TM
+			, C.TKEXAM_TYCD
+			, (
+				SELECT COUNT(1)
+				FROM TB_LMS_EXAM_STARE
+				WHERE EXAM_ID = C.EXAM_ID
+				AND STD_ID IN (
+					SELECT STD_ID
+					FROM TB_LMS_ATNDLC_SBJCT AA
+					JOIN TB_LMS_USER_ACNT BB
+					ON AA.USER_ID = BB.USER_ID
+					AND BB.ACNT_STSCD = 'U'
+					WHERE AA.ATNDLC_STSCD = 'S'
+					AND AA.SBJCT_ID = A.SBJCT_ID
+				)
+				AND DELYN = 'N'
+				AND REEXAMYN = 'Y'
+				AND SDTTM IS NULL
+			) AS RE_EXAM_STD_CNT
+		FROM (
+			SELECT
+				  A.SBJCT_ID
+				, A.SBJCTNM
+				, A.CRS_ID
+				, A.DVCLAS_NO
+				, A.UNIV_CD
+				, A.DEPT_CD
+				, (SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE DEPT_CD = A.DEPT_CD AND ORG_ID = #{orgId}) AS DEPTNM
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = C.USER_ID) AS USERNM
+			FROM TB_LMS_SBJCT A
+			JOIN TB_LMS_TERM_CRE_CRS_RLTN B
+			ON A.SBJCT_ID = B.SBJCT_ID
+			AND B.CRS_SMSTR_ID = #{termCd}
+			LEFT JOIN SBJCT_PROF C
+			ON A.SBJCT_ID = C.SBJCT_ID
+			AND C.RPRSYN = 'Y'
+			WHERE A.DELYN = 'N'
+			AND A.USEYN = 'Y'
+			ORDER BY A.UNIV_CD, A.SBJCTNM, A.DVCLAS_NO
+		) A
+		JOIN TB_LMS_EXAM_CRE_CRS_RLTN B
+		ON A.SBJCT_ID = B.SBJCT_ID
+		AND B.DELYN = 'N'
+		JOIN TB_LMS_EXAM_BSC C
+		ON B.EXAM_ID = C.EXAM_ID
+		AND C.DELYN = 'N'
+		AND C.USEYN = 'Y'
+		AND C.EXAM_CTGRCD = 'EXAM'
+		AND C.EXAM_TYCD = 'EXAM'
+		AND C.TKEXAM_TYCD IN ('M', 'L')
+		AND C.REEXAMYN = 'Y'
+		ORDER BY A.UNIV_CD, A.SBJCTNM, A.DVCLAS_NO, C.TKEXAM_TYCD DESC
+	</select>
+
+	<update id="resetReExamStare" parameterType="examStareVO">
+		/*
+             SQL ID : ExamStareDAO.resetReExamStare
+            	 설  명 : 시험 재시험 설정 취소
+         */
+         UPDATE TB_LMS_EXAM_STARE SET
+         	  MDFR_ID = #{mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, STARE_TM = 0
+         	, REEXAMYN = 'N'
+          WHERE EXAM_ID = #{examCd}
+            AND REEXAMYN = 'Y'
+	</update>
+	
+	<update id="resetReExamStareByStd" parameterType="examStareVO">
+		/*
+             SQL ID : ExamStareDAO.resetReExamStareByStd
+            	 설  명 : 개별 학습자 시험 재시험 설정 취소
+         */
+         UPDATE TB_LMS_EXAM_STARE SET
+         	  MDFR_ID = #{mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, STARE_TM = 0
+         	, REEXAMYN = 'N'
+          WHERE EXAM_ID = #{examCd}
+            AND REEXAMYN = 'Y'
+            AND STD_ID = #{stdNo}
+	</update>
+	
+    <select id="selectHaksaYear" parameterType="examIndustryConVO" resultType="examIndustryConVO">
+        /*
+          SQL ID : ExamStareDAO.selectHaksaYear
+                    설       명 : 학사 년도 조회
+         */    
+        SELECT DISTINCT TLT.DGRS_YR FROM CRS_SMSTR TLT ORDER BY DGRS_YR DESC
+    </select>
+    
+    <select id="selectHaksaTerm" parameterType="examIndustryConVO" resultType="examIndustryConVO">
+        /*
+          SQL ID : ExamStareDAO.selectHaksaTerm
+                    설       명 : 학사 학기 조회
+         */      
+        SELECT 
+            DISTINCT DGRS_SMSTR AS HAKSA_TERM_CD
+            , ( SELECT CDNM FROM TB_ORG_CODE TOC 
+                WHERE ORG_ID = 'ORG0000001' 
+                    AND CTGRCD = 'DGRS_SMSTR' 
+                    AND TOC.CD = TLT.DGRS_SMSTR) AS HAKSA_TERM_NM
+            , NOW_SMSTRYN                    
+        FROM 
+            CRS_SMSTR TLT 
+        WHERE 
+            DGRS_YR = #{haksaYear}      
+        ORDER BY
+            HAKSA_TERM_CD   
+    </select>
+    
+    <select id="selectCreCrsNm" parameterType="examIndustryConVO" resultType="examIndustryConVO">
+        /*
+          SQL ID : ExamStareDAO.selectCreCrsNm
+                    설       명 : 진행중인 과목명 조회
+         */      
+        SELECT 
+            SBJCT_ID
+            , SBJCTNM  
+        FROM 
+            TB_LMS_SBJCT TLCC 
+        WHERE 
+            USEYN = 'Y' 
+            AND DELYN = 'N' 
+            <if test="haksaYear != null and haksaYear != ''">
+            AND SBJCT_ID = #{haksaYear}
+            </if>
+            <if test="haksaTerm != null and haksaTerm != ''">
+            AND CRS_ID = #{haksaTerm}
+            </if>                                   
+    </select>
+    
+    <select id="selectLessonSchedule" parameterType="examIndustryConVO" resultType="examIndustryConVO">
+        /*
+          SQL ID : ExamStareDAO.selectLessonSchedule 
+                    설       명 : 차시 및 날짜 조회
+         */      
+		SELECT 
+			MIN(ONE_WEEK_END_DT) AS ONE_WEEK_END_DT
+			, MIN(TWO_WEEK_END_DT) AS TWO_WEEK_END_DT
+			, MIN(THREE_WEEK_END_DT) AS THREE_WEEK_END_DT
+			, MIN(FOUR_WEEK_END_DT) AS FOUR_WEEK_END_DT
+			, MIN(FIVE_WEEK_END_DT) AS FIVE_WEEK_END_DT
+			, MIN(SIX_WEEK_END_DT) AS SIX_WEEK_END_DT
+			, MIN(SEVEN_WEEK_END_DT) AS SEVEN_WEEK_END_DT
+			, MIN(EIGHT_WEEK_END_DT) AS EIGHT_WEEK_END_DT
+			, MIN(NINE_WEEK_END_DT) AS NINE_WEEK_END_DT
+			, MIN(TEN_WEEK_END_DT) AS TEN_WEEK_END_DT
+			, MIN(ELEVEN_WEEK_END_DT) AS ELEVEN_WEEK_END_DT
+			, MIN(TWELVE_WEEK_END_DT) AS TWELVE_WEEK_END_DT
+			, MIN(THIRTEEN_WEEK_END_DT) AS THIRTEEN_WEEK_END_DT
+			, MIN(FOURTEEN_WEEK_END_DT) AS FOURTEEN_WEEK_END_DT
+			, MIN(FIFTEEN_WEEK_END_DT) AS FIFTEEN_WEEK_END_DT
+		FROM 
+		    (SELECT 
+				CASE WHEN LCTR_SCHDLNM = '1주차' THEN LCTR_EYMD  END ONE_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '2주차' THEN LCTR_EYMD  END TWO_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '3주차' THEN LCTR_EYMD  END THREE_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '4주차' THEN LCTR_EYMD  END FOUR_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '5주차' THEN LCTR_EYMD  END FIVE_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '6주차' THEN LCTR_EYMD  END SIX_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '7주차' THEN LCTR_EYMD  END SEVEN_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '8주차' THEN LCTR_EYMD  END EIGHT_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '9주차' THEN LCTR_EYMD  END NINE_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '10주차' THEN LCTR_EYMD  END TEN_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '11주차' THEN LCTR_EYMD  END ELEVEN_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '12주차' THEN LCTR_EYMD  END TWELVE_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '13주차' THEN LCTR_EYMD  END THIRTEEN_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '14주차' THEN LCTR_EYMD  END FOURTEEN_WEEK_END_DT
+				, CASE WHEN LCTR_SCHDLNM = '15주차' THEN LCTR_EYMD  END FIFTEEN_WEEK_END_DT
+		    FROM 
+		        (SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 1
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 2
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 3
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 4
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 5
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 6
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 7
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 8
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 9
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 10
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 11
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 12
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 13
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 14
+		            AND SBJCT_ID = #{crsCreCd}
+		        UNION ALL 
+		        SELECT 
+		            LCTR_SCHDLNM
+		            , CONCAT('(~ ', DATE_FORMAT(LCTR_EYMD, '%m.%d'), ')') AS LCTR_EYMD
+		        FROM    
+		            TB_LMS_SBJCT_LCTR_SCHDL  
+		        WHERE 
+		            LCTR_SCHDL_SEQ = 15
+		            AND SBJCT_ID = #{crsCreCd}        
+		        ) A
+		    ) AA
+    </select>
+        
+    <select id="selectIndustryConLearningList" parameterType="examIndustryConVO" resultType="examIndustryConVO">
+        /*
+          SQL ID : ExamStareDAO.selectIndustryConLearningList
+                    설       명 : 산업체위탁생학습진행현황 조회
+         */      
+        WITH CRS_STD_INFO AS (
+            SELECT 
+                TLCC.SBJCT_ID 
+                , TLS.USER_ID                                                                                 -- 학번 또는 사번
+                , (SELECT USERNM FROM TB_LMS_USR THUI WHERE TLS.USER_ID = THUI.USER_ID) AS USERNM    -- 성명
+                , TLCC.CRS_ID                                                                                 -- 학수번호
+                , TLCC.SBJCTNM                                                                             -- 교과목명
+                , THUL.LOGIN_CNT                                                                              -- 로그인횟수  
+                , TLCC.CRDTS                                                                                 -- 학점
+                , TLS.STD_ID   
+                , THUL.USER_ID 
+            FROM 
+                TB_LMS_SBJCT TLCC
+                INNER JOIN TB_LMS_ATNDLC_SBJCT TLS
+                    ON TLCC.SBJCT_ID = TLS.SBJCT_ID 
+                INNER JOIN TB_LMS_USER_ACNT THUL
+                    ON TLS.USER_ID = THUL.USER_ID
+                    AND THUL.ACNT_STSCD = 'U'
+                    AND TLS.ATNDLC_STSCD = 'S'    
+                WHERE 
+                    1 = 1
+                    <if test="haksaYear != null and haksaYear != ''">
+                    AND TLCC.SBJCT_ID = #{haksaYear}
+                    </if>
+                    <if test="haksaTerm != null and haksaTerm != ''">
+                    AND TLCC.CRS_ID = #{haksaTerm}
+                    </if> 
+                    <if test="haksaYear != null and haksaYear != ''">
+                    AND TLCC.SBJCT_ID = #{crsCreCd}
+                    </if>
+        ), LESSON_SCHEDULE_INFO AS (
+            SELECT
+                SBJCT_ID
+                , USER_ID
+                , STD_ID
+                , CASE WHEN ONE_WEEK      = 1 THEN 'O' WHEN ONE_WEEK      = 2 THEN '지각' WHEN ONE_WEEK      = 3 THEN '결석' WHEN ONE_WEEK      = 4 THEN '학습중' END AS ONE_WEEK_RESULT
+                , CASE WHEN TWO_WEEK      = 1 THEN 'O' WHEN TWO_WEEK      = 2 THEN '지각' WHEN TWO_WEEK      = 3 THEN '결석' WHEN TWO_WEEK      = 4 THEN '학습중' END AS TWO_WEEK_RESULT
+                , CASE WHEN THREE_WEEK    = 1 THEN 'O' WHEN THREE_WEEK    = 2 THEN '지각' WHEN THREE_WEEK    = 3 THEN '결석' WHEN THREE_WEEK    = 4 THEN '학습중' END AS THREE_WEEK_RESULT
+                , CASE WHEN FOUR_WEEK     = 1 THEN 'O' WHEN FOUR_WEEK     = 2 THEN '지각' WHEN FOUR_WEEK     = 3 THEN '결석' WHEN FOUR_WEEK     = 4 THEN '학습중' END AS FOUR_WEEK_RESULT
+                , CASE WHEN FIVE_WEEK     = 1 THEN 'O' WHEN FIVE_WEEK     = 2 THEN '지각' WHEN FIVE_WEEK     = 3 THEN '결석' WHEN FIVE_WEEK     = 4 THEN '학습중' END AS FIVE_WEEK_RESULT
+                , CASE WHEN SIX_WEEK      = 1 THEN 'O' WHEN SIX_WEEK      = 2 THEN '지각' WHEN SIX_WEEK      = 3 THEN '결석' WHEN SIX_WEEK      = 4 THEN '학습중' END AS SIX_WEEK_RESULT
+                , CASE WHEN SEVEN_WEEK    = 1 THEN 'O' WHEN SEVEN_WEEK    = 2 THEN '지각' WHEN SEVEN_WEEK    = 3 THEN '결석' WHEN SEVEN_WEEK    = 4 THEN '학습중' END AS SEVEN_WEEK_RESULT
+                , CASE WHEN NINE_WEEK     = 1 THEN 'O' WHEN NINE_WEEK     = 2 THEN '지각' WHEN NINE_WEEK     = 3 THEN '결석' WHEN NINE_WEEK     = 4 THEN '학습중' END AS NINE_WEEK_RESULT
+                , CASE WHEN TEN_WEEK      = 1 THEN 'O' WHEN TEN_WEEK      = 2 THEN '지각' WHEN TEN_WEEK      = 3 THEN '결석' WHEN TEN_WEEK      = 4 THEN '학습중' END AS TEN_WEEK_RESULT
+                , CASE WHEN ELEVEN_WEEK   = 1 THEN 'O' WHEN ELEVEN_WEEK   = 2 THEN '지각' WHEN ELEVEN_WEEK   = 3 THEN '결석' WHEN ELEVEN_WEEK   = 4 THEN '학습중' END AS ELEVEN_WEEK_RESULT
+                , CASE WHEN TWELVE_WEEK   = 1 THEN 'O' WHEN TWELVE_WEEK   = 2 THEN '지각' WHEN TWELVE_WEEK   = 3 THEN '결석' WHEN TWELVE_WEEK   = 4 THEN '학습중' END AS TWELVE_WEEK_RESULT
+                , CASE WHEN THIRTEEN_WEEK = 1 THEN 'O' WHEN THIRTEEN_WEEK = 2 THEN '지각' WHEN THIRTEEN_WEEK = 3 THEN '결석' WHEN THIRTEEN_WEEK = 4 THEN '학습중' END AS THIRTEEN_WEEK_RESULT
+                , CASE WHEN FOURTEEN_WEEK = 1 THEN 'O' WHEN FOURTEEN_WEEK = 2 THEN '지각' WHEN FOURTEEN_WEEK = 3 THEN '결석' WHEN FOURTEEN_WEEK = 4 THEN '학습중' END AS FOURTEEN_WEEK_RESULT
+                , CASE WHEN SIXTEEN_WEEK  = 1 THEN 'O' WHEN SIXTEEN_WEEK  = 2 THEN '지각' WHEN SIXTEEN_WEEK  = 3 THEN '결석' WHEN SIXTEEN_WEEK  = 4 THEN '학습중' END AS SIXTEEN_WEEK_RESULT
+            FROM
+                (SELECT
+                    SBJCT_ID
+                    , USER_ID
+                    , STD_ID
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 1  THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS ONE_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 2  THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS TWO_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 3  THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS THREE_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 4  THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS FOUR_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 5  THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS FIVE_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 6  THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS SIX_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 7  THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS SEVEN_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 9  THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS NINE_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 10 THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS TEN_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 11 THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS ELEVEN_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 12 THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS TWELVE_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 13 THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS THIRTEEN_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 14 THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS FOURTEEN_WEEK
+                    , SUM(IFNULL(CASE WHEN LCTR_SCHDL_SEQ = 16 THEN IF(ATNDLC_STSCD = 'COMPLETE', 1, IF(ATNDLC_STSCD = 'LATE', 2, IF(ATNDLC_STSCD = 'NOSTUDY', 3, IF(ATNDLC_STSCD = 'STUDY', 4, 0)))) END, 0)) AS SIXTEEN_WEEK
+                FROM 
+                    (SELECT 
+                        TLLS.SBJCT_ID 
+                        , LCTR_SCHDL_SEQ 
+                        , USER_ID
+                        , STD_ID
+                        , ATNDLC_STSCD
+                    FROM 
+                        TB_LMS_SBJCT_LCTR_SCHDL TLLS 
+                        INNER JOIN TB_LMS_SBJCT TLCC 
+                            ON TLLS.SBJCT_ID = tlcc.SBJCT_ID 
+                        LEFT JOIN TB_LMS_LESSON_STUDY_STATE TLLSS 
+                            ON TLLSS .LCTR_SCHDL_ID = TLLS .LCTR_SCHDL_ID 
+                    WHERE 
+                        USER_ID IS NOT NULL
+                        <if test="haksaYear != null and haksaYear != ''">
+                        AND TLCC.SBJCT_ID = #{haksaYear}
+                        </if>
+                        <if test="haksaTerm != null and haksaTerm != ''">
+                        AND TLCC.CRS_ID = #{haksaTerm}
+                        </if> 
+                        <if test="haksaYear != null and haksaYear != ''">
+                        AND TLCC.SBJCT_ID = #{crsCreCd}
+                        </if>                   
+                    ) A 
+                GROUP BY SBJCT_ID, USER_ID, STD_ID) AA
+        ), MIDDLE_EXAM_INFO as (
+            SELECT 
+                SBJCT_ID
+                , STD_ID    
+                , TKEXAM_TYCD
+                , CASE WHEN IFNULL(EIGHT_WEEK_RESULT, '-') = '0' THEN '미제출'
+                       WHEN IFNULL(EIGHT_WEEK_RESULT, '-') = '1' THEN '제출' 
+                       ELSE IFNULL(EIGHT_WEEK_RESULT, '-')
+                  END EIGHT_WEEK_RESULT
+            FROM 
+                (SELECT 
+                    SBJCT_ID
+                    , TLECCR.EXAM_ID 
+                    , STD_ID        
+                    , TLE.EXAM_SBST_REF_ID 
+                    , TKEXAM_TYCD        
+                    , STARE_CNT
+                    , CASE WHEN TLE.EXAM_SBST_REF_ID IS NULL AND TKEXAM_TYCD = 'M' THEN
+                            CASE WHEN IFNULL(STARE_CNT, 0) > 0 THEN CONCAT('중간고사 ', DATE_FORMAT(SDTTM, '%m.%d %h:%m'))      -- 시험을 응시
+                            ELSE '-'                                                                                              -- 시험을 미응시
+                            END
+                        WHEN TLE.EXAM_SBST_REF_ID IS NOT NULL AND TKEXAM_TYCD = 'M' THEN                                         -- 실시간 시험이면서 과제,토론,퀴즈로 대체 할 수 있다.
+                            CASE WHEN IFNULL(STARE_CNT, 0) > 0 THEN CONCAT('중간고사 ', DATE_FORMAT(SDTTM, '%m.%d %h:%m'))
+                                WHEN IFNULL(STARE_CNT, 0) = 0 THEN
+                                    CASE WHEN SUBSTR(TLE.EXAM_SBST_REF_ID, 1, 4) = 'EXAM' THEN 
+                                            (SELECT 
+                                                IFNULL(STARE_CNT, '0') 
+                                            FROM 
+                                                TB_LMS_EXAM_STARE 
+                                            WHERE 
+                                                EXAM_ID = TLES.EXAM_ID 
+                                                AND STD_ID = TLES.STD_ID)
+                                        WHEN SUBSTR(TLE.EXAM_SBST_REF_ID, 1, 5) =  'ASMNT' THEN 
+                                            (SELECT 
+                                                CASE WHEN SBMSN_STSCD IN ('SUMBIT', 'LATE', 'RE') THEN '1' ELSE '0' END 
+                                            FROM 
+                                                TB_LMS_ASMT_SBMSN 
+                                            WHERE 
+                                                ASMT_SBMSN_ID = TLES.EXAM_ID 
+                                                AND STD_ID = TLES.STD_ID)
+                                        WHEN SUBSTR(TLE.EXAM_SBST_REF_ID, 1, 5) =  'FORUM' THEN 
+                                            (SELECT 
+                                                COUNT(1) 
+                                            FROM 
+                                                TB_LMS_DSCS_ATCL 
+                                            WHERE 
+                                                DSCS_ID = TLES.EXAM_ID 
+                                                AND STD_ID = TLES.STD_ID)
+                                    END
+                            END
+                      END EIGHT_WEEK_RESULT         
+                FROM 
+                    TB_LMS_EXAM_CRE_CRS_RLTN TLECCR 
+                    INNER JOIN TB_LMS_EXAM_BSC TLE 
+                        ON TLECCR.EXAM_ID = TLE.EXAM_ID 
+                        AND TLE.EXAM_CTGRCD = 'EXAM' 
+                        AND TLECCR.DELYN = 'N' 
+                        AND TLE.TKEXAM_TYCD = 'M'
+                    LEFT JOIN TB_LMS_EXAM_STARE TLES 
+                    ON TLECCR.EXAM_ID = TLES.EXAM_ID 
+                WHERE 
+                    1 = 1
+                    <if test="haksaYear != null and haksaYear != ''">
+                    AND TLECCR.SBJCT_ID = #{crsCreCd}
+                    </if>
+                    <if test="(haksaYear != null and haksaYear != '') or (haksaTerm != null and haksaTerm != '')">
+                    AND TLECCR.SBJCT_ID IN (
+                                              SELECT 
+                                                  SBJCT_ID 
+                                              FROM 
+                                                  TB_LMS_SBJCT TLCC 
+                                              WHERE 1 = 1 
+                                                  <if test="haksaYear != null and haksaYear != ''">
+                                                  AND TLCC.SBJCT_ID = #{haksaYear}
+                                                  </if>
+                                                  <if test="haksaTerm != null and haksaTerm != ''">
+                                                  AND TLCC.CRS_ID = #{haksaTerm}
+                                                  </if>                                                   
+                                             )  
+                    </if>
+                ) A
+        ), LAST_EXAM_INFO as (
+            SELECT 
+                SBJCT_ID
+                , STD_ID    
+                , TKEXAM_TYCD
+                , CASE WHEN IFNULL(FIFTEEN_WEEK_RESULT, '-') = '0' THEN '미제출'
+                WHEN IFNULL(FIFTEEN_WEEK_RESULT, '-') = '1' THEN '제출' 
+                ELSE IFNULL(FIFTEEN_WEEK_RESULT, '-')
+                  END FIFTEEN_WEEK_RESULT
+            FROM 
+                (SELECT 
+                    SBJCT_ID
+                    , TLECCR.EXAM_ID 
+                    , STD_ID        
+                    , TLE.EXAM_SBST_REF_ID 
+                    , TKEXAM_TYCD        
+                    , STARE_CNT
+                    , CASE WHEN TLE.EXAM_SBST_REF_ID IS NULL AND TKEXAM_TYCD = 'L' THEN
+                            CASE WHEN IFNULL(STARE_CNT, 0) > 0 THEN CONCAT('기말고사 ', DATE_FORMAT(SDTTM, '%m.%d %h:%m'))  -- 시험을 응시
+                            ELSE '-'                                                                                          -- 시험을 미응시
+                            END
+                        WHEN TLE.EXAM_SBST_REF_ID IS NOT NULL AND TKEXAM_TYCD = 'L' THEN                                     -- 실시간 시험이면서 과제,토론,퀴즈로 대체 할 수 있다.
+                            CASE WHEN IFNULL(STARE_CNT, 0) > 0 THEN CONCAT('기말고사 ', DATE_FORMAT(SDTTM, '%m.%d %h:%m'))
+                                WHEN IFNULL(STARE_CNT, 0) = 0 THEN
+                                    CASE WHEN SUBSTR(TLE.EXAM_SBST_REF_ID, 1, 4) = 'EXAM' THEN 
+                                            (SELECT 
+                                                IFNULL(STARE_CNT, '0') 
+                                            FROM 
+                                                TB_LMS_EXAM_STARE 
+                                            WHERE 
+                                                EXAM_ID = TLES.EXAM_ID 
+                                                AND STD_ID = TLES.STD_ID)
+                                        WHEN SUBSTR(TLE.EXAM_SBST_REF_ID, 1, 5) =  'ASMNT' THEN 
+                                            (SELECT 
+                                                CASE WHEN SBMSN_STSCD IN ('SUMBIT', 'LATE', 'RE') THEN '1' ELSE '0' END 
+                                            FROM 
+                                                TB_LMS_ASMT_SBMSN 
+                                            WHERE 
+                                                ASMT_SBMSN_ID = TLES.EXAM_ID 
+                                                AND STD_ID = TLES.STD_ID)
+                                        WHEN SUBSTR(TLE.EXAM_SBST_REF_ID, 1, 5) =  'FORUM' THEN 
+                                            (SELECT 
+                                                COUNT(1) 
+                                            FROM 
+                                                TB_LMS_DSCS_ATCL 
+                                            WHERE 
+                                                DSCS_ID = TLES.EXAM_ID 
+                                                AND STD_ID = TLES.STD_ID)
+                                    END
+                            END
+                      END FIFTEEN_WEEK_RESULT           
+                FROM 
+                    TB_LMS_EXAM_CRE_CRS_RLTN TLECCR 
+                    INNER JOIN TB_LMS_EXAM_BSC TLE 
+                        ON TLECCR.EXAM_ID = TLE.EXAM_ID 
+                        AND TLE.EXAM_CTGRCD = 'EXAM' 
+                        AND TLECCR.DELYN = 'N' 
+                        AND TLE.TKEXAM_TYCD = 'L'
+                    LEFT JOIN TB_LMS_EXAM_STARE TLES 
+                    ON TLECCR.EXAM_ID = TLES.EXAM_ID 
+                WHERE 
+                    1 = 1
+                    <if test="haksaYear != null and haksaYear != ''">
+                    AND TLECCR.SBJCT_ID = #{crsCreCd}
+                    </if>
+                    <if test="(haksaYear != null and haksaYear != '') or (haksaTerm != null and haksaTerm != '')">
+                    AND TLECCR.SBJCT_ID IN (
+                                              SELECT 
+                                                  SBJCT_ID 
+                                              FROM 
+                                                  TB_LMS_SBJCT TLCC 
+                                              WHERE 1 = 1 
+                                                  <if test="haksaYear != null and haksaYear != ''">
+                                                  AND TLCC.SBJCT_ID = #{haksaYear}
+                                                  </if>
+                                                  <if test="haksaTerm != null and haksaTerm != ''">
+                                                  AND TLCC.CRS_ID = #{haksaTerm}
+                                                  </if>                                                   
+                                             )  
+                    </if>
+                ) A                                     
+        ) 
+        SELECT 
+            ROW_NUMBER() OVER(ORDER BY CSI.USERNM) AS LINE_NO                    -- No
+            , CSI.USER_ID                                                         -- 학번 또는 사번
+            , CSI.USERNM                                                         -- 성명
+            , CSI.CRS_ID                                                          -- 학수번호
+            , CSI.SBJCTNM                                                      -- 교과목명
+            , IFNULL(LSI.ONE_WEEK_RESULT, '-') AS ONE_WEEK_RESULT                 -- 1차시
+            , IFNULL(LSI.TWO_WEEK_RESULT, '-') AS TWO_WEEK_RESULT                 -- 2차시
+            , IFNULL(LSI.THREE_WEEK_RESULT, '-') AS THREE_WEEK_RESULT             -- 3차시
+            , IFNULL(LSI.FOUR_WEEK_RESULT, '-') AS FOUR_WEEK_RESULT               -- 4차시
+            , IFNULL(LSI.FIVE_WEEK_RESULT, '-') AS FIVE_WEEK_RESULT               -- 5차시
+            , IFNULL(LSI.SIX_WEEK_RESULT, '-') AS SIX_WEEK_RESULT                 -- 6차시
+            , IFNULL(LSI.SEVEN_WEEK_RESULT, '-') AS SEVEN_WEEK_RESULT             -- 7차시
+            , IFNULL(MEI.EIGHT_WEEK_RESULT, '-') AS EIGHT_WEEK_RESULT             -- 8차시
+            , IFNULL(LSI.NINE_WEEK_RESULT, '-') AS NINE_WEEK_RESULT               -- 9차시
+            , IFNULL(LSI.TEN_WEEK_RESULT, '-') AS TEN_WEEK_RESULT                 -- 10차시
+            , IFNULL(LSI.ELEVEN_WEEK_RESULT, '-') AS ELEVEN_WEEK_RESULT           -- 11차시
+            , IFNULL(LSI.TWELVE_WEEK_RESULT, '-') AS TWELVE_WEEK_RESULT           -- 12차시
+            , IFNULL(LSI.THIRTEEN_WEEK_RESULT, '-') AS THIRTEEN_WEEK_RESULT       -- 13차시
+            , IFNULL(LSI.FOURTEEN_WEEK_RESULT, '-') AS FOURTEEN_WEEK_RESULT       -- 14차시
+            , IFNULL(LEI.FIFTEEN_WEEK_RESULT, '-') AS FIFTEEN_WEEK_RESULT         -- 15차시
+            , IFNULL(LSI.SIXTEEN_WEEK_RESULT, '-') AS SIXTEEN_WEEK_RESULT         -- 16차시
+            , IFNULL(CSI.LOGIN_CNT, '0') AS LOGIN_CNT                             -- 로그인횟수
+            , CSI.CRDTS                                                          -- 학점
+            , 0.0 AS MEAN_RATING                                                  -- 평균평점
+            , IFNULL(TOT_SCR, '0.0') AS TOT_SCR                               -- 백분율점수
+            , IFNULL(SCR_GRDCD, '') AS SCR_GRDCD                              -- 등급
+        FROM 
+            CRS_STD_INFO CSI
+            LEFT JOIN LESSON_SCHEDULE_INFO LSI 
+                ON CSI.SBJCT_ID = LSI.SBJCT_ID 
+                AND CSI.USER_ID = LSI.USER_ID 
+                AND CSI.STD_ID = LSI.STD_ID
+            LEFT JOIN MIDDLE_EXAM_INFO MEI 
+                ON CSI.SBJCT_ID = MEI.SBJCT_ID 
+                AND CSI.STD_ID = MEI.STD_ID
+            LEFT JOIN LAST_EXAM_INFO LEI 
+                ON CSI.SBJCT_ID = LEI.SBJCT_ID 
+                AND CSI.STD_ID = LEI.STD_ID
+            LEFT JOIN TB_LMS_MRK_SBJCT TLSS 
+                ON CSI.STD_ID = TLSS.STD_ID          
+    </select>
+    
+    <select id="listExamNoStare" parameterType="examStareVO" resultType="examStareVO">
+    	/*
+          SQL ID : ExamStareDAO.listExamNoStare
+                        설       명 : 대체평가 대상자 목록
+         */
+         SELECT
+			  ROW_NUMBER() OVER(ORDER BY D.USERNM) AS LINE_NO
+			, D.DEPTNM
+			, D.USER_ID
+			, D.USERNM
+			, D.EMAIL
+			, D.MOBILE_NO
+			, C.STD_ID
+			, CASE
+				WHEN NVL(E.STARE_CNT, 0) = 0 THEN 'N'
+				ELSE 'Y'
+			  END AS STARE_YN
+			, CASE
+				WHEN (SELECT COUNT(EXAM_ABSNCE_ID) FROM TB_LMS_EXAM_ABSNCE WHERE EXAM_ID = A.EXAM_ID AND STD_ID = C.STD_ID) <![CDATA[ > ]]> 0 THEN 'Y'
+				ELSE 'N'
+			  END AS ABSENT_YN
+			, NVL((
+				SELECT APRV_STSCD
+				FROM TB_LMS_EXAM_ABSNCE
+				WHERE FRST_INQ_DTTM = (
+					SELECT MAX(FRST_INQ_DTTM)
+					FROM TB_LMS_EXAM_ABSNCE
+					WHERE EXAM_ID = A.EXAM_ID AND STD_ID = C.STD_ID 
+			)), '-') AS ABSENT_NM
+		  FROM TB_LMS_EXAM_BSC A
+		  JOIN TB_LMS_EXAM_CRE_CRS_RLTN B
+		    ON A.EXAM_ID = B.EXAM_ID
+		   AND B.DELYN = 'N'
+		  JOIN TB_LMS_ATNDLC_SBJCT C
+		    ON B.SBJCT_ID = C.SBJCT_ID
+		   AND C.ATNDLC_STSCD = 'S'
+		   AND C.AUDITYN = 'N'
+		  JOIN TB_LMS_USR D
+		    ON C.USER_ID = D.USER_ID
+		  LEFT JOIN TB_LMS_EXAM_STARE E
+		    ON A.EXAM_ID = E.EXAM_ID
+		   AND C.STD_ID = E.STD_ID
+		 WHERE A.EXAM_ID = #{examCd}
+		   AND A.DELYN = 'N'
+		   AND C.SBJCT_ID = #{crsCreCd}
+		   <if test="searchType != null and searchType != ''">
+		   	<choose>
+		   		<when test="searchType == 'submit'">
+		   			AND E.REEXAMYN = 'Y'
+		   		</when>
+		   		<otherwise>
+		   			AND (
+		   				   E.REEXAMYN = 'N'
+		   				OR E.REEXAMYN IS NULL
+		   			)
+		   			AND (
+		   				   E.STARE_CNT = 0
+		   				OR E.STARE_CNT IS NULL
+		   			)
+		   		</otherwise>
+		   	</choose>
+		   </if>
+		   <if test="searchValue != null and searchValue != ''">
+		   AND (
+		   		   LOWER(D.DEPTNM) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+		   		OR LOWER(D.USER_ID) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+		   		OR LOWER(D.USERNM) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+		   )
+		   </if>
+    </select>
+    
+    <select id="examStareByStdNo" parameterType="examStareVO" resultType="examStareVO">
+    	/*
+          SQL ID : ExamStareDAO.examStareByStdNo
+                        설       명 : 특정 학습자 시험 응시 여부
+         */
+         SELECT
+			  (SELECT SBJCT_ID FROM TB_LMS_SBJCT WHERE SBJCT_ID = B.SBJCT_ID) AS DGRS_YR
+			, (SELECT FN_GET_ORG_CODE_NM(A.ORG_ID, 'DGRS_SMSTR', CRS_ID) FROM TB_LMS_SBJCT WHERE SBJCT_ID = B.SBJCT_ID) AS DGRS_SMSTR
+			, A.TKEXAM_TYCD
+			, CASE WHEN NVL((SELECT STARE_CNT FROM TB_LMS_EXAM_STARE WHERE EXAM_ID = A.EXAM_ID AND STD_ID = #{stdNo}), 0) = 0 THEN 'N' ELSE 'Y' END AS examStareYn
+		  FROM TB_LMS_EXAM_BSC A
+		  JOIN TB_LMS_EXAM_CRE_CRS_RLTN B
+		    ON A.EXAM_ID = B.EXAM_ID
+		   AND A.DELYN = 'N'
+		   AND B.DELYN = 'N'
+		 WHERE A.EXAM_ID = #{examCd}
+    </select>
+    
+</mapper>

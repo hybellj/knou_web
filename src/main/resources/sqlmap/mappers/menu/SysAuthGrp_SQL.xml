@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.menu.dao.SysAuthGrpDAO">
+
+	<select id="selectListAuthGrp" parameterType="sysAuthGrpVO" resultType="sysAuthGrpVO">
+		/*
+			 SQL ID : SysAuthGrpDAO.selectListAuthGrp
+			 설  명 : 시스템 권한그룹정보 조회
+	 	*/	
+		SELECT * 
+		  FROM TB_LMS_AUTHRT_GRP A
+		 WHERE ORG_ID = #{orgId}
+		   AND MENU_TYCD = #{menuType}
+		   <if test="menuType == 'ADMIN'">
+		   AND USER_AUTHRT_ID != 'ADMIN'
+		   </if> 
+		 ORDER BY AUTHRT_GRP_SEQ		
+	</select>
+	
+		<select id="selectHomeUserAuthGrp" parameterType="sysAuthGrpVO" resultType="sysAuthGrpVO">
+		/*
+			 SQL ID : SysAuthGrpDAO.selectListAuthGrp
+			 설  명 : 시스템 권한그룹정보 조회
+	 	*/	
+		SELECT * 
+		  FROM TB_LMS_AUTHRT_GRP A
+		 WHERE ORG_ID = #{orgId}
+		   AND MENU_TYCD = #{menuType}
+		   <if test="menuType == 'ADMIN'">
+		   AND USER_AUTHRT_ID != 'ADMIN'
+		   </if> 
+		 ORDER BY AUTHRT_GRP_SEQ		
+	</select>
+	
+	<select id="list" parameterType="sysAuthGrpVO" resultType="sysAuthGrpVO">
+		/*
+			 SQL ID : SysAuthGrpDAO.list
+			 설  명 : 시스템 권한의 전체 목록
+	 	*/
+	 	SELECT MENU_TYCD as menuType
+		     , USER_AUTHRT_ID as authGrpCd
+		     , AUTHRT_GRPNM as authGrpNm
+		     , USEYN as useYn
+		     , AUTHRT_GRP_EXPLN as authGrpDesc
+		     , AUTHRT_GRP_SEQ as authGrpOdr
+		     , RGTR_ID as rgtrId
+			 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS regNm
+		     , FRST_INQ_DTTM as regDttm
+		     , MDFR_ID as mdfrId
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS modNm
+		     , MOD_DTTM as modDttm
+		 FROM TB_SYS_AUTH_GRP
+		 WHERE MENU_TYCD = #{menuType}
+		<if test="useYn != null">
+		   AND USEYN = #{useYn}
+		</if>
+		 ORDER BY AUTHRT_GRP_SEQ
+	</select>
+
+	<select id="listInUser" parameterType="sysAuthGrpVO" resultType="sysAuthGrpVO">
+		/*
+			 SQL ID : SysAuthGrpDAO.listInUser
+			 설  명 : 해당 사용자가 부여 받은 권한 목록
+	 	*/
+		SELECT MENU_TYCD as menuType
+		     , USER_AUTHRT_ID as authGrpCd
+		     , AUTHRT_GRPNM as authGrpNm
+		     , USEYN as useYn
+		     , AUTHRT_GRP_EXPLN as authGrpDesc
+		     , AUTHRT_GRP_SEQ as authGrpOdr
+		     , RGTR_ID as rgtrId
+			 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS regNm
+		     , FRST_INQ_DTTM as regDttm
+		     , MDFR_ID as mdfrId
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS modNm
+		     , MOD_DTTM as modDttm
+		 FROM TB_SYS_AUTH_GRP
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USEYN = 'Y'
+		   AND USER_AUTHRT_ID IN (SELECT USER_AUTHRT_ID FROM TB_LMS_USER_AUTHRT WHERE USER_ID = #{userId} )
+		 ORDER BY AUTHRT_GRP_SEQ
+	</select>
+	
+	<select id="listNotInUser" parameterType="sysAuthGrpVO" resultType="sysAuthGrpVO">
+		/*
+			 SQL ID : SysAuthGrpDAO.listNotInUser
+			 설  명 : 해당 사용자가 부여 받지 않은 권한 목록
+	 	*/
+		SELECT MENU_TYCD as menuType
+		     , USER_AUTHRT_ID as authGrpCd
+		     , AUTHRT_GRPNM as authGrpNm
+		     , USEYN as useYn
+		     , AUTHRT_GRP_EXPLN as authGrpDesc
+		     , AUTHRT_GRP_SEQ as authGrpOdr
+		     , RGTR_ID as rgtrId
+			 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS regNm
+		     , FRST_INQ_DTTM as regDttm
+		     , MDFR_ID as mdfrId
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS modNm
+		     , MOD_DTTM as modDttm
+		 FROM TB_SYS_AUTH_GRP
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USEYN = 'Y'
+		   AND USER_AUTHRT_ID NOT IN (SELECT USER_AUTHRT_ID FROM TB_LMS_USER_AUTHRT WHERE USER_ID = #{userId} )
+		 ORDER BY AUTHRT_GRP_SEQ
+	</select>
+	
+	<select id="select" parameterType="sysAuthGrpVO" resultType="sysAuthGrpVO">
+		/*
+			 SQL ID : SysAuthGrpDAO.select
+			 설  명 : 시스템 권한의 정보 조회
+	 	*/
+	 	SELECT MENU_TYCD as menuType
+		     , USER_AUTHRT_ID as authGrpCd
+		     , AUTHRT_GRPNM as authGrpNm
+		     , USEYN as useYn
+		     , AUTHRT_GRP_EXPLN as authGrpDesc
+		     , AUTHRT_GRP_SEQ as authGrpOdr
+		     , RGTR_ID as rgtrId
+			 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS regNm
+		     , FRST_INQ_DTTM as regDttm
+		     , MDFR_ID as mdfrId
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS modNm
+		     , MOD_DTTM as modDttm
+		 FROM TB_SYS_AUTH_GRP
+		 WHERE MENU_TYCD = #{menuType}
+		   AND #{authGrpCd} LIKE CONCAT('%',USER_AUTHRT_ID,'%') COLLATE utf8mb4_general_ci
+	</select>	
+	
+	<insert id="insert" parameterType="sysAuthGrpVO" >
+		/*
+			 SQL ID : SysAuthGrpDAO.insert
+			 설  명 : 시스템 권한의 정보 등록
+	 	*/
+		INSERT INTO TB_SYS_AUTH_GRP (
+		       MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , AUTHRT_GRPNM
+		     , USEYN
+		     , AUTHRT_GRP_EXPLN
+		     , AUTHRT_GRP_SEQ
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		) VALUES ( 
+		       #{menuType}
+		     , #{authGrpCd}
+		     , #{authGrpNm}
+		     , #{useYn}
+		     , #{authGrpDesc}
+		     , ( SELECT IFNULL(MAX(A.AUTHRT_GRP_SEQ),0)+1
+		           FROM TB_SYS_AUTH_GRP A
+		          WHERE A.MENU_TYCD = #{menuType} )
+		     , #{rgtrId}
+		     , DATE_FORMAT(NOW()-1, '%Y%m%d%H%i%s')
+		     , #{mdfrId}
+		     , DATE_FORMAT(NOW()-1, '%Y%m%d%H%i%s')
+		)		     
+	</insert>
+	
+	<update id="update" parameterType="sysAuthGrpVO" >
+		/*
+			 SQL ID : SysAuthGrpDAO.update
+			 설  명 : 시스템 권한의 정보 수정
+	 	*/
+		UPDATE TB_SYS_AUTH_GRP
+		   SET USEYN = #{useYn}
+		   <if test="authGrpNm != null">
+		   	 ,AUTHRT_GRPNM = #{authGrpNm} 
+		   </if>
+		   <if test="authGrpDesc != null">
+		     , AUTHRT_GRP_EXPLN = #{authGrpDesc}
+		   </if>
+		   <if test="authGrpOdr != null">
+		     , AUTHRT_GRP_SEQ = #{authGrpOdr}
+		   </if>
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = DATE_FORMAT(NOW()-1, '%Y%m%d%H%i%s')
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+	</update>	
+
+	<delete id="delete" parameterType="sysAuthGrpVO" >
+		/*
+			 SQL ID : SysAuthGrpDAO.delete
+			 설  명 : 시스템 권한의 정보 삭제
+	 	*/
+		DELETE FROM TB_SYS_AUTH_GRP
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+	</delete>
+
+</mapper>

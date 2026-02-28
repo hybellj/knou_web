@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.log2.user.dao.LogUserActvDAO">
+	
+	<select id="userSbjctOfrngActvHstryList" parameterType="map" resultType="eGovMap">
+		/*	설명 : 사용자과목개설활동이력목록조회 - 현재시간보다 30분이전 접속기록조회*/	
+		SELECT	*		
+		FROM 	TB_LMS_LOG_USER_ACTV A		
+		WHERE 	A.ACTV_DTTM &gt;= TO_CHAR(SYSDATE - NUMTODSINTERVAL(#{timeRange}, 'MINUTE'), 'YYYYMMDDHH24MISS')
+		   		AND A.SBJCT_ID = #{subjectId}		   		
+		ORDER 	BY	A.USER_ID
+	</select>
+		
+</mapper>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.bbs.dao.BbsInfoLangDAO">
+	
+	<select id="selectBbsInfoLang" parameterType="bbsInfoLangVO" resultType="bbsInfoLangVO">
+		/*
+             SQL ID : BbsInfoLangDAO.selectBbsInfoLang
+             설  명 : 게시판 언어 정보
+         */
+		SELECT
+			  BBS_ID
+			, LANG_CD
+			, BBSNM
+			, BBS_EXPLN
+		FROM TB_HOME_BBS_INFO_LANG
+		WHERE BBS_ID = #{bbsId}
+		AND LANG_CD = #{langCd}
+	</select>
+	
+	<select id="updateBbsInfoLang" parameterType="bbsInfoLangVO">
+		/*
+             SQL ID : BbsInfoLangDAO.updateBbsInfoLang
+             설  명 : 게시판 언어 수정
+         */
+		<!-- INSERT INTO TB_HOME_BBS_INFO_LANG (
+              BBS_ID
+			, LANG_CD
+			, BBSNM
+			, BBS_EXPLN
+		) VALUES (
+			  #{bbsId}
+			, #{langCd}
+			, #{bbsNm}
+			, #{bbsDesc}
+        )
+        ON DUPLICATE KEY
+        UPDATE
+        	  BBSNM = #{bbsNm}
+			, BBS_EXPLN = #{bbsDesc} -->
+			
+		MERGE INTO TB_HOME_BBS_INFO_LANG T 	
+		USING(
+            SELECT
+                  #{bbsId} AS BBS_ID
+                , #{langCd} AS LANG_CD
+            FROM DUAL
+        ) S 
+        ON (T.BBS_ID = S.BBS_ID AND T.LANG_CD = S.LANG_CD)
+        WHEN MATCHED THEN
+            UPDATE SET
+            	T.BBSNM = #{bbsNm}
+			  , T.BBS_EXPLN = #{bbsDesc}
+		WHEN NOT MATCHED THEN
+            INSERT(
+	            BBS_ID
+				, LANG_CD
+				, BBSNM
+				, BBS_EXPLN
+			) VALUES (
+				  #{bbsId}
+				, #{langCd}
+				, #{bbsNm}
+				, #{bbsDesc}
+	        )	  
+			
+	</select>
+	
+	<select id="deleteBbsInfoLangAll" parameterType="bbsInfoLangVO">
+		/*
+             SQL ID : BbsInfoLangDAO.deleteBbsInfoLangAll
+             설  명 : 게시판 언어 전체삭제
+         */
+		DELETE FROM TB_HOME_BBS_INFO_LANG
+		WHERE BBS_ID = #{bbsId}
+	</select>
+</mapper>

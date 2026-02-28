@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.msg.dao.MsgAlimDAO">
+
+    <select id="selectAlimUnrdCnt" parameterType="MsgAlimVO" resultType="egovMap">
+        /*
+             SQL ID : MsgAlimDAO.selectAlimUnrdCnt
+             설  명 : 알림 유형별 읽지 않은 건수 조회
+         */
+        SELECT
+            NVL(PUSH_CNT, 0) AS PUSH_CNT,
+            NVL(SMS_CNT, 0) AS SMS_CNT,
+            NVL(SHRTNT_CNT, 0) AS SHRTNT_CNT,
+            NVL(ALIMTALK_CNT, 0) AS ALIMTALK_CNT,
+            NVL(PUSH_CNT, 0) + NVL(SMS_CNT, 0) + NVL(SHRTNT_CNT, 0) + NVL(ALIMTALK_CNT, 0) AS TOTAL_UNRD_CNT
+        FROM (
+            SELECT
+                (SELECT COUNT(*) FROM TB_LMS_MSG_MBL_SNDNG WHERE RCVR_ID = #{userId} AND MBL_SNDNG_TYCD = 'PUSH' AND READ_DTTM IS NULL) AS PUSH_CNT,
+                (SELECT COUNT(*) FROM TB_LMS_MSG_MBL_SNDNG WHERE RCVR_ID = #{userId} AND MBL_SNDNG_TYCD = 'SMS' AND READ_DTTM IS NULL) AS SMS_CNT,
+                (SELECT COUNT(*) FROM TB_LMS_MSG_SHRTNT_SNDNG WHERE RCVR_ID = #{userId} AND READ_DTTM IS NULL AND RCVR_DELYN = 'N') AS SHRTNT_CNT,
+                (SELECT COUNT(*) FROM TB_LMS_MSG_MBL_SNDNG WHERE RCVR_ID = #{userId} AND MBL_SNDNG_TYCD = 'ALIM_TALK' AND READ_DTTM IS NULL) AS ALIMTALK_CNT
+            FROM DUAL
+        )
+    </select>
+
+    <select id="selectShrtntList" parameterType="MsgAlimVO" resultType="MsgAlimVO">
+        /*
+             SQL ID : MsgAlimDAO.selectShrtntList
+             설  명 : 쪽지 최근 목록 조회
+         */
+        SELECT * FROM (
+            SELECT
+                A.MSG_SHRTNT_SNDNG_ID AS SNDNG_ID,
+                A.MSG_ID,
+                S.SBJCTNM,
+                A.SNDNGR_ID,
+                A.SNDNGNM,
+                A.SNDNG_TTL,
+                A.SNDNG_CTS,
+                A.SNDNG_DTTM,
+                A.READ_DTTM,
+                CASE WHEN A.READ_DTTM IS NULL THEN 'N' ELSE 'Y' END AS READ_YN,
+                ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
+            FROM TB_LMS_MSG_SHRTNT_SNDNG A
+            LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
+            LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
+            WHERE A.RCVR_ID = #{userId}
+              AND A.RCVR_DELYN = 'N'
+        )
+        WHERE RNUM <![CDATA[<=]]> #{listCnt}
+    </select>
+
+    <select id="selectPushList" parameterType="MsgAlimVO" resultType="MsgAlimVO">
+        /*
+             SQL ID : MsgAlimDAO.selectPushList
+             설  명 : PUSH 최근 목록 조회
+         */
+        SELECT * FROM (
+            SELECT
+                A.MSG_MBL_SNDNG_ID AS SNDNG_ID,
+                A.MSG_ID,
+                S.SBJCTNM,
+                A.SNDNGNM,
+                A.SNDNG_TTL,
+                A.SNDNG_CTS,
+                A.SNDNG_DTTM,
+                A.READ_DTTM,
+                CASE WHEN A.READ_DTTM IS NULL THEN 'N' ELSE 'Y' END AS READ_YN,
+                ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
+            FROM TB_LMS_MSG_MBL_SNDNG A
+            LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
+            LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
+            WHERE A.RCVR_ID = #{userId}
+              AND A.MBL_SNDNG_TYCD = 'PUSH'
+        )
+        WHERE RNUM <![CDATA[<=]]> #{listCnt}
+    </select>
+
+    <select id="selectSmsList" parameterType="MsgAlimVO" resultType="MsgAlimVO">
+        /*
+             SQL ID : MsgAlimDAO.selectSmsList
+             설  명 : SMS 최근 목록 조회
+         */
+        SELECT * FROM (
+            SELECT
+                A.MSG_MBL_SNDNG_ID AS SNDNG_ID,
+                A.MSG_ID,
+                S.SBJCTNM,
+                A.SNDNGNM,
+                A.SNDNG_TTL,
+                A.SNDNG_CTS,
+                A.SNDNG_DTTM,
+                A.READ_DTTM,
+                CASE WHEN A.READ_DTTM IS NULL THEN 'N' ELSE 'Y' END AS READ_YN,
+                ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
+            FROM TB_LMS_MSG_MBL_SNDNG A
+            LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
+            LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
+            WHERE A.RCVR_ID = #{userId}
+              AND A.MBL_SNDNG_TYCD = 'SMS'
+        )
+        WHERE RNUM <![CDATA[<=]]> #{listCnt}
+    </select>
+
+    <select id="selectAlimtalkList" parameterType="MsgAlimVO" resultType="MsgAlimVO">
+        /*
+             SQL ID : MsgAlimDAO.selectAlimtalkList
+             설  명 : 알림톡 최근 목록 조회
+         */
+        SELECT * FROM (
+            SELECT
+                A.MSG_MBL_SNDNG_ID AS SNDNG_ID,
+                A.MSG_ID,
+                S.SBJCTNM,
+                A.SNDNGNM,
+                A.SNDNG_TTL,
+                A.SNDNG_CTS,
+                A.SNDNG_DTTM,
+                A.READ_DTTM,
+                CASE WHEN A.READ_DTTM IS NULL THEN 'N' ELSE 'Y' END AS READ_YN,
+                ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
+            FROM TB_LMS_MSG_MBL_SNDNG A
+            LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
+            LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
+            WHERE A.RCVR_ID = #{userId}
+              AND A.MBL_SNDNG_TYCD = 'ALIM_TALK'
+        )
+        WHERE RNUM <![CDATA[<=]]> #{listCnt}
+    </select>
+
+    <update id="modifyShrtntReadDttm" parameterType="MsgAlimVO">
+        /*
+             SQL ID : MsgAlimDAO.modifyShrtntReadDttm
+             설  명 : 쪽지 읽음 처리
+         */
+        UPDATE TB_LMS_MSG_SHRTNT_SNDNG
+           SET READ_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'),
+               MDFR_ID = #{userId},
+               MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+         WHERE MSG_SHRTNT_SNDNG_ID = #{sndngId}
+           AND RCVR_ID = #{userId}
+           AND READ_DTTM IS NULL
+    </update>
+
+    <update id="modifyMblReadDttm" parameterType="MsgAlimVO">
+        /*
+             SQL ID : MsgAlimDAO.modifyMblReadDttm
+             설  명 : 모바일 알림 읽음 처리
+         */
+        UPDATE TB_LMS_MSG_MBL_SNDNG
+           SET READ_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'),
+               MDFR_ID = #{userId},
+               MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+         WHERE MSG_MBL_SNDNG_ID = #{sndngId}
+           AND RCVR_ID = #{userId}
+           AND READ_DTTM IS NULL
+    </update>
+
+    <insert id="registMsg" parameterType="MsgAlimVO">
+        /*
+             SQL ID : MsgAlimDAO.registMsg
+             설  명 : 메시지 등록
+         */
+        INSERT INTO TB_LMS_MSG (
+            MSG_ID,
+            SBJCT_ID,
+            MSG_TMPLT_ID,
+            MSG_TYCD,
+            MSG_CTS_GBNCD,
+            DGRS_YR,
+            SMSTR,
+            TTL,
+            TXT_CTS,
+            HTML_CTS,
+            SNDNG_ONLYYN,
+            MSG_TAGNM,
+            REQ_SDTTM,
+            REQ_EDTTM,
+            RSRV_SNDNG_SDTTM,
+            RSRV_SNDNG_CNCL_DTTM,
+            RSRV_SNDNG_CNCL_RSN,
+            SNDNG_RETRY_MAX_CNT,
+            RGTR_ID,
+            REG_DTTM,
+            MDFR_ID,
+            MOD_DTTM
+        ) VALUES (
+            #{msgId},
+            #{sbjctOfrngId},
+            #{msgTmpltId},
+            #{msgTycd},
+            #{msgCtsGbncd},
+            #{dgrsYr},
+            #{smstr},
+            #{ttl},
+            #{txtCts},
+            #{htmlCts},
+            NVL(#{sndngOnlyyn}, 'N'),
+            #{msgTagnm},
+            #{reqSdttm},
+            #{reqEdttm},
+            #{rsrvSndngSdttm},
+            #{rsrvSndngCnclDttm},
+            #{rsrvSndngCnclRsn},
+            #{sndngRetryMaxCnt},
+            #{rgtrId},
+            TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'),
+            #{mdfrId},
+            TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        )
+    </insert>
+
+</mapper>

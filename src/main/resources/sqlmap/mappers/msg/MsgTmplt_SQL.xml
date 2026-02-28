@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.msg.dao.MsgTmpltDAO">
+
+    <select id="selectTmpltCnt" parameterType="MsgTmpltVO" resultType="int">
+        /*
+             SQL ID : MsgTmpltDAO.selectTmpltCnt
+             설  명 : 템플릿 목록 건수 조회
+         */
+        SELECT COUNT(*)
+        FROM TB_LMS_MSG_TMPLT
+        WHERE 1 = 1
+        <if test="orgId != null and orgId != ''">
+            AND ORG_ID = #{orgId}
+        </if>
+        <if test="msgCtsGbncd != null and msgCtsGbncd != ''">
+            AND MSG_CTS_GBNCD = #{msgCtsGbncd}
+        </if>
+        <if test="rgtrId != null and rgtrId != ''">
+            AND RGTR_ID = #{rgtrId}
+        </if>
+        <choose>
+            <when test="searchType == 'ttl'">
+                <if test="searchText != null and searchText != ''">
+                    AND MSG_TMPLT_TTL LIKE '%' || #{searchText} || '%'
+                </if>
+            </when>
+            <when test="searchType == 'cts'">
+                <if test="searchText != null and searchText != ''">
+                    AND MSG_TMPLT_CTS LIKE '%' || #{searchText} || '%'
+                </if>
+            </when>
+            <otherwise>
+                <if test="searchText != null and searchText != ''">
+                    AND (MSG_TMPLT_TTL LIKE '%' || #{searchText} || '%'
+                    OR MSG_TMPLT_CTS LIKE '%' || #{searchText} || '%')
+                </if>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectTmpltList" parameterType="MsgTmpltVO" resultType="MsgTmpltVO">
+        /*
+             SQL ID : MsgTmpltDAO.selectTmpltList
+             설  명 : 템플릿 목록 조회
+         */
+        SELECT *
+        FROM (
+        SELECT ROWNUM AS RNUM, A.*
+        FROM (
+        SELECT MSG_TMPLT_ID
+        , ORG_ID
+        , MSG_CTS_GBNCD
+        , MSG_TMPLT_TTL
+        , MSG_TMPLT_CTS
+        , RGTR_ID
+        , REG_DTTM
+        , MDFR_ID
+        , MOD_DTTM
+        FROM TB_LMS_MSG_TMPLT
+        WHERE 1 = 1
+        <if test="orgId != null and orgId != ''">
+            AND ORG_ID = #{orgId}
+        </if>
+        <if test="msgCtsGbncd != null and msgCtsGbncd != ''">
+            AND MSG_CTS_GBNCD = #{msgCtsGbncd}
+        </if>
+        <if test="rgtrId != null and rgtrId != ''">
+            AND RGTR_ID = #{rgtrId}
+        </if>
+        <choose>
+            <when test="searchType == 'ttl'">
+                <if test="searchText != null and searchText != ''">
+                    AND MSG_TMPLT_TTL LIKE '%' || #{searchText} || '%'
+                </if>
+            </when>
+            <when test="searchType == 'cts'">
+                <if test="searchText != null and searchText != ''">
+                    AND MSG_TMPLT_CTS LIKE '%' || #{searchText} || '%'
+                </if>
+            </when>
+            <otherwise>
+                <if test="searchText != null and searchText != ''">
+                    AND (MSG_TMPLT_TTL LIKE '%' || #{searchText} || '%'
+                    OR MSG_TMPLT_CTS LIKE '%' || #{searchText} || '%')
+                </if>
+            </otherwise>
+        </choose>
+        ORDER BY REG_DTTM DESC
+        ) A
+        WHERE ROWNUM <![CDATA[<=]]> #{lastIndex}
+        )
+        WHERE RNUM <![CDATA[>=]]> #{firstIndex}
+    </select>
+
+    <select id="selectTmplt" parameterType="MsgTmpltVO" resultType="MsgTmpltVO">
+        /*
+             SQL ID : MsgTmpltDAO.selectTmplt
+             설  명 : 템플릿 상세 조회
+         */
+        SELECT MSG_TMPLT_ID
+             , ORG_ID
+             , MSG_CTS_GBNCD
+             , MSG_TMPLT_TTL
+             , MSG_TMPLT_CTS
+             , RGTR_ID
+             , REG_DTTM
+             , MDFR_ID
+             , MOD_DTTM
+        FROM TB_LMS_MSG_TMPLT
+        WHERE MSG_TMPLT_ID = #{msgTmpltId}
+    </select>
+
+    <insert id="registTmplt" parameterType="MsgTmpltVO">
+        /*
+             SQL ID : MsgTmpltDAO.registTmplt
+             설  명 : 템플릿 등록
+         */
+        INSERT INTO TB_LMS_MSG_TMPLT (
+                                       MSG_TMPLT_ID
+                                     , ORG_ID
+                                     , MSG_CTS_GBNCD
+                                     , MSG_TMPLT_TTL
+                                     , MSG_TMPLT_CTS
+                                     , RGTR_ID
+                                     , REG_DTTM
+        ) VALUES (
+                   #{msgTmpltId}
+                 , #{orgId}
+                 , #{msgCtsGbncd}
+                 , #{msgTmpltTtl}
+                 , #{msgTmpltCts}
+                 , #{rgtrId}
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                 )
+    </insert>
+
+    <update id="modifyTmplt" parameterType="MsgTmpltVO">
+        /*
+             SQL ID : MsgTmpltDAO.modifyTmplt
+             설  명 : 템플릿 수정
+         */
+        UPDATE TB_LMS_MSG_TMPLT
+        SET MSG_TMPLT_TTL = #{msgTmpltTtl}
+        , MSG_TMPLT_CTS = #{msgTmpltCts}
+        , MDFR_ID = #{mdfrId}
+        , MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        <if test="msgCtsGbncd != null and msgCtsGbncd != ''">
+            , MSG_CTS_GBNCD = #{msgCtsGbncd}
+        </if>
+        WHERE MSG_TMPLT_ID = #{msgTmpltId}
+    </update>
+
+    <delete id="deleteTmplt" parameterType="MsgTmpltVO">
+        /*
+             SQL ID : MsgTmpltDAO.deleteTmplt
+             설  명 : 템플릿 삭제
+         */
+        DELETE FROM TB_LMS_MSG_TMPLT
+        WHERE MSG_TMPLT_ID = #{msgTmpltId}
+    </delete>
+
+    <delete id="deleteAllTmplt" parameterType="MsgTmpltVO">
+        /*
+             SQL ID : MsgTmpltDAO.deleteAllTmplt
+             설  명 : 템플릿 전체 삭제
+         */
+        DELETE FROM TB_LMS_MSG_TMPLT
+        WHERE ORG_ID = #{orgId}
+        <if test="msgCtsGbncd != null and msgCtsGbncd != ''">
+          AND MSG_CTS_GBNCD = #{msgCtsGbncd}
+        </if>
+        <if test="rgtrId != null and rgtrId != ''">
+          AND RGTR_ID = #{rgtrId}
+        </if>
+    </delete>
+
+    <select id="selectTmpltExcelList" parameterType="MsgTmpltVO" resultType="MsgTmpltVO">
+        /*
+             SQL ID : MsgTmpltDAO.selectTmpltExcelList
+             설  명 : 템플릿 엑셀 목록 조회
+         */
+        SELECT MSG_TMPLT_ID
+        , ORG_ID
+        , MSG_CTS_GBNCD
+        , MSG_TMPLT_TTL
+        , MSG_TMPLT_CTS
+        , RGTR_ID
+        , REG_DTTM
+        , MDFR_ID
+        , MOD_DTTM
+        FROM TB_LMS_MSG_TMPLT
+        WHERE 1 = 1
+        <if test="orgId != null and orgId != ''">
+            AND ORG_ID = #{orgId}
+        </if>
+        <if test="msgCtsGbncd != null and msgCtsGbncd != ''">
+            AND MSG_CTS_GBNCD = #{msgCtsGbncd}
+        </if>
+        <if test="rgtrId != null and rgtrId != ''">
+            AND RGTR_ID = #{rgtrId}
+        </if>
+        <choose>
+            <when test="searchType == 'ttl'">
+                <if test="searchText != null and searchText != ''">
+                    AND MSG_TMPLT_TTL LIKE '%' || #{searchText} || '%'
+                </if>
+            </when>
+            <when test="searchType == 'cts'">
+                <if test="searchText != null and searchText != ''">
+                    AND MSG_TMPLT_CTS LIKE '%' || #{searchText} || '%'
+                </if>
+            </when>
+            <otherwise>
+                <if test="searchText != null and searchText != ''">
+                    AND (MSG_TMPLT_TTL LIKE '%' || #{searchText} || '%'
+                    OR MSG_TMPLT_CTS LIKE '%' || #{searchText} || '%')
+                </if>
+            </otherwise>
+        </choose>
+        ORDER BY REG_DTTM DESC
+    </select>
+
+</mapper>

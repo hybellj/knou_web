@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.team.dao.TeamDAO">
+
+	<select id="list" parameterType="teamVO" resultType="teamVO">
+		/*
+			팀목록 조회
+			TeamDAO.list
+		*/
+		<!-- SELECT
+			  ROW_NUMBER() OVER(ORDER BY TEAM_ID ASC) AS lineNo
+			, A.TEAM_ID
+			, A.TEAM_TYCD
+			, A.TEAMNM
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, IFNULL((SELECT U.USERNM FROM TB_LMS_USR U, TB_LMS_ATNDLC_SBJCT S, TB_LMS_TEAM_MBR M
+	 			WHERE U.USER_ID = S.USER_ID AND S.STD_ID = M.STD_ID AND M.TEAM_ID = A.TEAM_ID and M.TEAM_LDRYN = 'Y'),'-') as leaderNm
+			, (SELECT COUNT(tlts.STD_ID) FROM TB_LMS_TEAM_MBR tlts WHERE tlts.TEAM_ID = A.TEAM_ID) AS teamMbrCnt
+		FROM TB_LMS_TEAM A
+		<where>
+			<if test="teamCd != null and teamCd != ''">
+				AND A.TEAM_ID = #{teamCd}
+			</if>
+			<if test="teamCtgrCd != null and teamCtgrCd != ''">
+				AND A.TEAM_TYCD = #{teamCtgrCd}
+			</if>
+			<if test="teamNm != null and teamNm != ''">
+				AND LOWER(A.TEAMNM) LIKE LOWER(CONCAT('%', #{teamNm}, '%'))
+			</if>
+		</where>
+		ORDER BY TEAM_ID ASC
+		 -->
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY TEAM.TEAM_ID ASC) AS lineNo
+			, TEAM.TEAM_ID
+			, TEAM.TEAM_TYCD
+			, TEAM.TEAMNM
+			, TEAM.RGTR_ID
+			, TEAM.REG_DTTM
+			, TEAM.MDFR_ID
+			, TEAM.MOD_DTTM
+			, NVL((SELECT USR.USERNM FROM TB_LMS_USER USR JOIN TB_LMS_TEAM_MBR TEAM_MBR ON USR.USER_ID = TEAM_MBR.USER_ID WHERE TEAM_MBR.LDRYN = 'Y' AND TEAM_MBR.TEAM_ID = TEAM.TEAM_ID), '-') AS leaderNm
+			, (SELECT COUNT(tlts.USER_ID) FROM TB_LMS_TEAM_MBR tlts WHERE tlts.TEAM_ID = TEAM.TEAM_ID) AS teamMbrCnt
+		FROM TB_LMS_TEAM TEAM
+		<where>
+			<if test="teamCd != null and teamCd != ''">
+				AND TEAM.TEAM_ID = #{teamCd}
+			</if>
+			<if test="teamCtgrCd != null and teamCtgrCd != ''">
+				AND TEAM.LRN_GRP_ID = #{teamCtgrCd}
+			</if>
+			<if test="teamNm != null and teamNm != ''">
+				AND LOWER(TEAM.TEAMNM) LIKE LOWER(CONCAT('%', #{teamNm}, '%'))
+			</if>
+		</where>
+		ORDER BY TEAM.TEAM_ID ASC
+	</select>
+
+	<select id="teamList" parameterType="teamVO" resultType="teamVO">
+		/*
+			팀토론 토론방 팀리스트
+			TeamDAO.teamList
+		*/
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY TEAM_ID ASC) as lineNo
+			, TEAM_TYCD as teamCtgrCd
+			, TEAM_ID as teamCd
+			, TEAMNM as teamNm
+			, IFNULL((SELECT U.USERNM FROM TB_LMS_USR U, TB_LMS_ATNDLC_SBJCT S, TB_LMS_TEAM_MBR M
+	 			WHERE U.USER_ID = S.USER_ID AND S.STD_ID = M.STD_ID AND M.TEAM_ID = A.TEAM_ID and M.TEAM_LDRYN = 'Y'),'-') as leaderNm
+			, (select COUNT(tlts.STD_ID) from TB_LMS_TEAM_MBR tlts where tlts.TEAM_ID = A.TEAM_ID) as teamMbrCnt
+		FROM TB_LMS_TEAM A
+			WHERE 1=1
+		<if test='teamCtgrCd != null and teamCtgrCd != ""'>
+			AND TEAM_TYCD = #{teamCtgrCd}
+		</if>
+		ORDER BY TEAM_ID ASC
+	</select>
+
+	<select id="selectLastTeamNm" parameterType="teamVO" resultType="int">
+		/*
+			팀 분류 조회
+			TeamDAO.selectLastTeamNm
+		*/
+		SELECT COUNT(*)
+		FROM TB_LMS_TEAM TLT
+		WHERE TEAM_TYCD = #{teamCtgrCd}
+	</select>
+
+	<insert id="insert" parameterType="teamVO" >
+		/*
+			팀 등록
+			TeamDAO.insert
+		*/
+		INSERT INTO TB_LMS_TEAM (
+			TEAM_TYCD
+			, TEAM_ID
+			, TEAMNM
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		) VALUES (
+			#{teamCtgrCd}
+			, #{teamCd}
+			, #{teamNm}
+			, #{rgtrId}
+			, FN_DTTM()
+		)
+	</insert>
+
+	<update id="update" parameterType="teamVO">
+		/*
+			팀 수정
+			TeamDAO.update
+		*/
+		UPDATE TB_LMS_TEAM SET
+			TEAMNM = #{teamNm}
+		 WHERE TEAM_ID = #{teamCd}
+	</update>
+
+	<select id="listTeam" parameterType="teamVO" resultType="teamVO">
+		/*
+			팀 목록 조회
+			TeamDAO.listTeam
+		*/
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY LENGTH(TEAMNM), TEAMNM) AS LINE_NO
+			, TEAM_TYCD
+			, TEAM_ID
+			, TEAMNM
+			, NVL((SELECT U.USERNM FROM TB_LMS_USR U, TB_LMS_ATNDLC_SBJCT S, TB_LMS_TEAM_MBR M
+	 			WHERE U.USER_ID = S.USER_ID AND S.STD_ID = M.STD_ID AND M.TEAM_ID = A.TEAM_ID and M.TEAM_LDRYN = 'Y'),'-') AS LEADER_NM
+			, (SELECT COUNT(TLTS.STD_ID) FROM TB_LMS_TEAM_MBR TLTS WHERE TLTS.TEAM_ID = A.TEAM_ID) AS TEAM_MBR_CNT
+		FROM TB_LMS_TEAM A
+		WHERE 1=1
+			AND TEAM_TYCD = #{teamCtgrCd}
+		ORDER BY LINE_NO ASC
+	</select>
+
+	<select id="select" parameterType="teamVO" resultType="teamVO">
+		/*
+			팀 정보 조회
+			TeamDAO.select
+		*/
+		<![CDATA[
+		SELECT A.TEAM_ID
+			, A.TEAMNM
+			, A.TEAM_TYCD
+			, (SELECT COUNT(TLTS.STD_ID) FROM TB_LMS_TEAM_MBR TLTS WHERE TLTS.TEAM_ID = A.TEAM_ID) AS TEAM_MBR_CNT
+		FROM TB_LMS_TEAM A
+		WHERE 1 = 1
+		]]>
+		  AND A.TEAM_ID = #{teamCd}
+	</select>
+
+	<delete id="deleteStd" parameterType="teamVO" >
+		/*
+			팀원 삭제
+			TeamDAO.deleteStd
+		*/
+		DELETE FROM TB_LMS_TEAM_MBR
+		WHERE TEAM_ID = #{teamCd}
+	</delete>
+
+	<delete id="delete" parameterType="teamVO" >
+		/*
+			팀 삭제
+			TeamDAO.delete
+		*/
+		DELETE FROM TB_LMS_TEAM
+		WHERE TEAM_ID = #{teamCd}
+	</delete>
+
+	<select id="count" parameterType="teamVO" resultType="Integer">
+		/*
+			팀 정보의 전체 카운트
+			TeamDAO.count
+		*/
+		SELECT COUNT(*) FROM (
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY TEAM_ID DESC) AS LINE_NO
+				, TEAM_TYCD
+				, TEAM_ID
+				, TEAMNM
+			FROM TB_LMS_TEAM A
+			WHERE 1=1
+			<if test='teamCtgrCd != null and teamCtgrCd != ""'>
+				AND TEAM_TYCD = #{teamCtgrCd}
+			</if>
+			ORDER BY TEAM_ID DESC
+		) T
+	</select>
+
+	<select id="setGroupConcatMaxLen">
+		<!-- TODO: 오라클엔 없는 것. 추후 어떻게 처리할지 고민  -->
+		<!-- SET SESSION group_concat_max_len = 102400 -->
+	</select>
+
+	<select id="selectTeamCtgrStd" parameterType="teamVO" resultType="teamVO">
+		/*
+			팀원 조회
+			TeamDAO.selectTeamCtgrStd
+		*/
+		SELECT NVL(LISTAGG(TLTS.STD_ID,',') WITHIN GROUP(ORDER BY TLTS.STD_ID),' ') AS STD_ID
+		FROM TB_LMS_TEAM_MBR TLTS
+		JOIN TB_LMS_TEAM TLT ON TLTS.TEAM_ID = TLT.TEAM_ID
+		WHERE TLT.TEAM_TYCD = #{teamCtgrCd}
+		<if test='teamCd != null and teamCd != ""'>
+			AND TLT.TEAM_ID != #{teamCd}
+		</if>
+	</select>
+
+	<select id="listStd" parameterType="teamVO" resultType="teamVO">
+		/*
+			팀원 리스트
+			TeamDAO.listStd
+		*/
+		SELECT
+		   ROW_NUMBER() OVER(ORDER BY AAA.TEAM_LDRYN, AAA.USERNM DESC) AS LINE_NO
+			, AAA.*
+		FROM (
+			SELECT ROW_NUMBER() OVER(ORDER BY TLTS.TEAM_LDRYN, TLTS.STD_ID DESC) AS LINE_NO
+				, TLTS.*
+				, TLT.TEAMNM
+				, (SELECT DEPTNM FROM TB_LMS_USR WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = TLTS.STD_ID)) AS DEPTNM
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = TLTS.STD_ID)) AS USERNM
+				, (SELECT USER_ID FROM TB_LMS_USER_ACNT WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = TLTS.STD_ID)) AS USER_ID
+			FROM TB_LMS_TEAM_MBR TLTS, TB_LMS_TEAM TLT
+			WHERE TLTS.TEAM_ID = TLT.TEAM_ID
+				AND TLT.TEAM_ID = #{teamCd}
+		) AAA
+		ORDER BY LINE_NO DESC, AAA.STD_ID ASC
+	</select>
+
+	<select id="teamStdList" parameterType="teamMemberVO" resultType="teamMemberVO">
+		/*
+			현재 팀원 리스트
+			TeamDAO.teamStdList
+		*/
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY X.USERNM ASC) AS LINE_NO
+			, X.*
+		FROM (
+			SELECT
+				 (SELECT D.DEPTNM FROM TB_HOME_USER_DEPT_CD D, TB_LMS_USR U WHERE U.USER_ID = A.USER_ID AND D.DEPT_CD = U.DEPT_CD) AS DEPTNM
+				, A.USER_ID
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.USER_ID) AS USERNM
+				, A.TEAM_LDRYN
+				, A.STD_ID
+				, NVL((SELECT SCYR FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = A.STD_ID), '-') AS SCYR
+				, NVL(TO_CHAR((SELECT AVG_CRDTS FROM TB_LMS_MRK WHERE USER_ID = A.USER_ID)), '-') AS AVG_CRDTS
+				, NVL((
+               		SELECT RISK_GRDCD
+               		FROM TB_LMS_LRN_STOP_RISK_IDX
+               		WHERE USER_ID = A.USER_ID
+               		AND PSTG_YR = D.SBJCT_ID
+               		AND PSTG_SMSTR = D.CRS_ID
+				), '-') AS RISK_GRDCD
+				, (SELECT GDSC_DGRS_CRS_GBNCD FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = A.STD_ID) GDSC_DGRS_CRS_GBNCD
+				, (SELECT (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = X.ORG_ID AND CTGRCD = 'GDSC_DGRS_CRS_GBNCD' AND CD = X.GDSC_DGRS_CRS_GBNCD) FROM TB_LMS_ATNDLC_SBJCT X WHERE STD_ID = A.STD_ID) GRSC_DEGR_CORS_GBN_NM
+			FROM TB_LMS_TEAM_MBR A
+			JOIN TB_LMS_TEAM B
+			ON A.TEAM_ID = B.TEAM_ID
+			JOIN TB_LMS_TEAM_CTGR C
+			ON B.TEAM_TYCD = C.TEAM_TYCD
+			JOIN TB_LMS_SBJCT D
+			ON C.SBJCT_ID = D.SBJCT_ID
+			WHERE A.TEAM_ID = #{teamCd}
+		) X
+		ORDER BY X.USERNM
+	</select>
+
+	<select id="selectTeamList" parameterType="teamVO" resultType="teamVO">
+		/*
+			팀 리스트 조회
+			TeamDAO.selectTeamList
+		*/
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY TEAM_ID) AS LINE_NO
+			, TEAM_ID
+			, TEAM_TYCD
+			, TEAMNM
+			, (SELECT U.USERNM FROM TB_LMS_USR U, TB_LMS_ATNDLC_SBJCT S, TB_LMS_TEAM_MBR M
+	 			WHERE U.USER_ID = S.USER_ID AND S.STD_ID = M.STD_ID AND M.TEAM_ID = A.TEAM_ID and M.TEAM_LDRYN = 'Y') AS LEADER_NM
+			, (SELECT COUNT(TLTS.STD_ID) FROM TB_LMS_TEAM_MBR TLTS WHERE TLTS.TEAM_ID = A.TEAM_ID) AS TEAM_MBR_CNT
+		FROM TB_LMS_TEAM A
+		WHERE 1=1
+			AND TEAM_TYCD = #{teamCtgrCd}
+	</select>
+
+	<select id="selectTeamMemberList" parameterType="teamMemberVO" resultType="teamMemberVO">
+		/*
+			팀원 리스트 조회
+			TeamDAO.selectTeamMemberList
+		*/
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY ROLE DESC, B.USERNM) AS LINE_NO
+			, TEAM_ID AS teamCd
+			<!-- , FN_GET_STD_DEPT_NM(STD_ID) AS deptNm -->
+			, B.DEPTNM
+			, A.USER_ID
+			<!-- , FN_GET_STD_USER_NM(STD_ID) as userNm -->
+			, B.USERNM
+			, ROLE
+			, TEAM_LDRYN
+			, NVL((SELECT SCYR FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = A.STD_ID), '-') AS SCYR
+			, NVL(B.ENTR_YY ,'-') AS ENTR_YY
+			, NVL(B.ENTR_HY, '-') AS ENTR_HY
+			, NVL(B.ENTR_GBN_NM, '-') AS ENTR_GBN_NM
+		FROM TB_LMS_TEAM_MBR A
+			LEFT JOIN TB_LMS_USR B
+				ON A.USER_ID = B.USER_ID
+		WHERE 1=1
+			AND TEAM_ID = #{teamCd}
+		ORDER BY LINE_NO
+	</select>
+
+	<select id="selectScoreChart_old" parameterType="teamVO" resultType="egovMap">
+		/*
+			토론 성적 분포 현황
+			TeamDAO.selectScoreChart_old
+		*/
+		SELECT
+			MIN(SCR) AS minScore
+			, MAX(SCR) AS maxScore
+			, ROUND(AVG(SCR)) AS avgScore
+		FROM TB_LMS_DSCS_PTCP TLTSS, TB_LMS_TEAM TLT
+		WHERE TLTSS.TEAM_ID = TLT.TEAM_TYCD
+			AND TLT.TEAM_TYCD = #{teamCtgrCd}
+		GROUP BY TLT.TEAM_TYCD
+	</select>
+
+	<select id="selectScoreChart" parameterType="forumVO" resultType="egovMap">
+		/*
+			토론 성적 분포 현황
+			TeamDAO.selectScoreChart
+		*/
+		SELECT
+			MIN(SCR) AS minScore
+			, MAX(SCR) AS maxScore
+			, ROUND(AVG(SCR)) AS avgScore
+		FROM TB_LMS_DSCS_PTCP
+		WHERE DSCS_ID = #{forumCd}
+		GROUP BY DSCS_ID
+	</select>
+
+	<select id="selectTeamCtgrCd" parameterType="teamVO" resultType="Integer">
+		/*
+			팀 분류 코드에 해당하는 팀 분류 조회
+			TeamDAO.selectTeamCtgrCd
+		*/
+		SELECT
+			COUNT(*)
+		FROM tb_lms_team_ctgr
+		WHERE TEAM_TYCD = #{teamCtgrCd}
+	</select>
+
+</mapper>

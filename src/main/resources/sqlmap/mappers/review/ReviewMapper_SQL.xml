@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.menu.dao.ReviewDAO">
+
+	<sql id="reviewInfoQuery">
+		SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID) AS LINE_NO
+			 , TLCC.SBJCT_OP_TYCD
+			 , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = TLC.ORG_ID AND CTGRCD = 'LEARNING_TYPE' AND CD = TLCC.SBJCT_OP_TYCD) AS CRS_OPER_TYPE_NM			              
+			 , TLCC.DEPT_CD
+			 , (SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE ORG_ID = TLC.ORG_ID AND DEPT_CD = TLCC.DEPT_CD AND USEYN = 'Y') AS DEPTNM
+			 , TLC.CRS_ID
+			 , TLCC.SBJCT_ID
+			 , TLCC.SBJCTNM
+			 , TLCC.DVCLAS_NO
+			 , IFNULL(TLCC.RVW_STSCD,'0') AS RVW_STSCD
+			 , TLCC.RVW_SDTTM
+			 , TLCC.RVW_EDTTM
+		  FROM TB_LMS_CRS TLC
+		 INNER JOIN TB_LMS_SBJCT TLCC
+			ON TLC.CRS_ID = TLCC.CRS_ID 
+		 INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+			ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+		   AND TLC.DELYN = 'N'
+		   AND TLCC.DELYN = 'N'
+		   AND TLC.ORG_ID = #{orgId}
+	</sql>
+
+	<select id="countReviewInfo" parameterType="reviewVO" resultType="Integer">
+		/*
+			 SQL ID : ReviewDAO.countReviewInfo
+			 설  명 : 복습기간 현황 > 복습기간 정보 목록 수
+		*/
+		SELECT COUNT(1)
+		  FROM TB_LMS_CRS TLC
+		 INNER JOIN TB_LMS_SBJCT TLCC
+			ON TLC.CRS_ID = TLCC.CRS_ID 
+		 INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+			ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+		   AND TLC.DELYN = 'N'
+		   AND TLCC.DELYN = 'N'
+		   AND TLC.ORG_ID = #{orgId}
+		<where>
+			<if test="crsCreCd != null and crsCreCd != ''">AND TLCC.SBJCT_ID = #{crsCreCd}</if>
+			<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+			<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if>
+			<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+			<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+			<if test="useYn != null and useYn != ''">AND TLCC.USEYN = #{useYn}</if>
+			<if test="enrlCertStatus != null and enrlCertStatus != ''">AND TLCC.ATNDLC_CERT_STSCD = #{enrlCertStatus}</if>
+			<if test="uniCd != null and uniCd != ''">AND TLCC.UNIV_CD = #{uniCd}</if>
+			<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+				AND TLC.SBJCT_TYCD IN
+				<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="searchValue != null and searchValue != ''">
+				AND (
+					   LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					OR LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				)
+			</if>
+		</where>
+	</select>
+
+	<select id="reviewListPaging" parameterType="reviewVO" resultType="reviewVO">
+		/*
+			 SQL ID : ReviewDAO.reviewListPaging
+			 설  명 : 복습기간 현황 > 복습기간 정보 목록 페이징
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		<include refid="reviewInfoQuery" />
+		<where>
+			<if test="crsCreCd != null and crsCreCd != ''">AND TLCC.SBJCT_ID = #{crsCreCd}</if>
+			<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+			<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if>
+			<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+			<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+			<if test="enrlCertStatus != null and enrlCertStatus != ''">AND TLCC.ATNDLC_CERT_STSCD = #{enrlCertStatus}</if>
+			<if test="uniCd != null and uniCd != ''">AND TLCC.UNIV_CD = #{uniCd}</if>
+			<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+				AND TLC.SBJCT_TYCD IN
+				<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="searchValue != null and searchValue != ''">
+				AND (
+					   LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					OR LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				)
+			</if>
+			</where>
+			ORDER BY TLCC.SBJCT_ID
+			<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="reviewListExcel" parameterType="reviewVO" resultType="egovMap">
+		/*
+			 SQL ID : ReviewDAO.reviewListExcel
+			 설  명 : 복습기간 현황 > 복습기간 정보 엑셀 리스트
+		*/
+		SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID DESC) AS LINE_NO
+			 , TLCC.SBJCT_OP_TYCD
+			 , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = TLC.ORG_ID AND CTGRCD = 'LEARNING_TYPE' AND CD = TLCC.SBJCT_OP_TYCD) AS CRS_OPER_TYPE_NM
+			 , TLCC.DEPT_CD 
+			 , (SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE ORG_ID = TLC.ORG_ID AND DEPT_CD = TLCC.DEPT_CD AND USEYN = 'Y') AS DEPTNM
+			 , TLC.CRS_ID
+			 , TLCC.SBJCT_ID
+			 , TLCC.SBJCTNM
+			 , TLCC.DVCLAS_NO
+			 , (CASE WHEN IFNULL(TLCC.RVW_STSCD,'0') = 0 THEN '불가'
+					 WHEN IFNULL(TLCC.RVW_STSCD,'0') = 1 THEN '영구'
+					 WHEN IFNULL(TLCC.RVW_STSCD,'0') = 2 THEN CONCAT('기간설정', ' (', DATE_FORMAT(TLCC.RVW_SDTTM, '%Y.%m.%d'), ' ~ ', DATE_FORMAT(TLCC.RVW_EDTTM, '%Y.%m.%d'), ')')
+					 ELSE '' 
+				END) AS RVW_STSCD
+		  FROM TB_LMS_CRS TLC
+		 INNER JOIN TB_LMS_SBJCT TLCC
+			ON TLC.CRS_ID = TLCC.CRS_ID 
+		 INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+			ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+		   AND TLC.DELYN = 'N'
+		   AND TLCC.DELYN = 'N'
+		   AND TLC.ORG_ID = #{orgId}
+		<where>
+			<if test="crsCreCd != null and crsCreCd != ''">AND TLCC.SBJCT_ID = #{crsCreCd}</if>
+			<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+			<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if>
+			<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+			<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+			<if test="enrlCertStatus != null and enrlCertStatus != ''">AND TLCC.ATNDLC_CERT_STSCD = #{enrlCertStatus}</if>
+			<if test="uniCd != null and uniCd != ''">AND TLCC.UNIV_CD = #{uniCd}</if>
+			<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+				AND TLC.SBJCT_TYCD IN
+				<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="searchValue != null and searchValue != ''">
+				AND (
+					   LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					OR LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				)
+			</if>
+		</where>
+		ORDER BY TLCC.SBJCT_ID
+	</select>
+
+	<update id="updateReview" parameterType="reviewVO">
+		/*
+			 SQL ID : ReviewDAO.updateReview
+			 설  명 : 복습기간설정
+		*/
+		UPDATE TB_LMS_SBJCT
+		   SET RVW_STSCD = #{reviewStatus}
+		   <if test="reviewStartDttm != null and reviewStartDttm != ''">
+				, RVW_SDTTM = DATE_FORMAT(#{reviewStartDttm},'%Y%m%d')
+		   </if>
+		   <if test="reviewEndDttm != null and reviewEndDttm != ''">
+				, RVW_EDTTM = DATE_FORMAT(#{reviewEndDttm},'%Y%m%d')
+		   </if>
+			   , MDFR_ID = #{mdfrId}
+			   , MOD_DTTM = FN_DTTM()
+		 WHERE SBJCT_ID = #{crsCreCd}
+	</update>
+	
+		<update id="updateReviewAll" parameterType="crsTermLessonVO">
+		/*
+			 SQL ID : ReviewDAO.updateReview
+			 설  명 : 복습기간설정
+		*/
+		UPDATE TB_LMS_SBJCT
+		   SET RVW_STSCD = #{reviewStatus}
+		   <if test="startDtString != null and startDtString != ''">
+			   , RVW_SDTTM = DATE_FORMAT(#{startDtString},'%Y%m%d')
+		   </if>
+		   <if test="endDtString != null and endDtString != ''">
+			   , RVW_EDTTM = DATE_FORMAT(#{endDtString},'%Y%m%d')
+		   </if>
+			   , MDFR_ID = #{mdfrId}
+			   , MOD_DTTM = FN_DTTM()
+		 WHERE SBJCT_ID = #{crsCreCd}
+	</update>
+	
+</mapper>

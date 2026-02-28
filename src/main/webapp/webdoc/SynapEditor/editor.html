@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Insert title here</title>
+
+	<link rel="stylesheet" type="text/css" href="/webdoc/css/jquery-ui.css" />
+	<link href="/webdoc/SynapEditor/synapeditor.min.css" rel="stylesheet" type="text/css">
+	<link href="/webdoc/SynapEditor/plugins/characterPicker/characterPicker.min.css" rel="stylesheet" type="text/css">
+	<link href="/webdoc/SynapEditor/plugins/shapeEditor/shapeEditor.min.css" rel="stylesheet" type="text/css">
+	
+	<script type="text/javascript" src="../js/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.min.js"></script>
+	<script src="/webdoc/js/ui-dialog.js"></script>
+	<script src="/webdoc/SynapEditor/synapeditor.config.js"></script>
+	<script src="/webdoc/SynapEditor/synapeditor.min.js"></script>
+	<script src="/webdoc/SynapEditor/plugins/characterPicker/characterPicker.min.js"></script>
+	<script src="/webdoc/SynapEditor/plugins/shapeEditor/shapeEditor.min.js"></script>
+	<script src="/webdoc/SynapEditor/externals/SEShapeManager/SEShapeManager.min.js"></script>
+	<script src="/webdoc/SynapEditor/plugins/math/math.js"></script>
+
+	<script type="text/javascript">
+	$(document).ready(function() {
+		var snapEditor = new SynapEditor('contentTextArea', synapEditorConfig);
+		
+	});
+	
+	</script>
+
+</head>
+<body>
+
+	<div>
+		<textarea name="atclCts" id="contentTextArea" style="font-family:굴림">에디터 테스트입니다.</textarea>
+	</div>
+</body>
+</html>

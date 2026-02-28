@@ -1,0 +1,9 @@
+-- FN_DTTM_SUB
+CREATE FUNCTION FN_DTTM_SUB (
+		days INT
+	) RETURNS varchar(14)
+	READS SQL DATA
+	COMMENT '현재일시에 일수 차감하여 문자열 가져오기'
+BEGIN
+	RETURN DATE_FORMAT(DATE_SUB(NOW(), INTERVAL days DAY), '%Y%m%d%H%i%s');
+END

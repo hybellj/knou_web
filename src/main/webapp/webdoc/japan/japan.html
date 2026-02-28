@@ -1,0 +1,401 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>일본어 입력기</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link href="./japan.css" type="text/css" rel="stylesheet"  media="screen" />
+<script src="../js/jquery.min.js" language="javascript" type="text/javascript"></script>
+
+
+<script language="javascript">
+var parentContext;
+    // 페이지 로딩후
+    $(document).ready(function () {
+        $("#japanInput").focus();                                                   // 커서를 셋팅하지 않으면 입력값 셋팅시 커서는 맨앞으므로 포커스셋팅.
+        //$("#japanInput").val(parent.eq_argument);                                   // 부모창의 입력된 입력값을 셋팅. 커서 마지막으로.
+    });
+
+    function setInputText(text){
+        $("#japanInput").val(text);
+    }
+    function setParentContext(context){
+        parentContext = context;
+    }
+    
+    function getJapanInputText(){
+        return $("#japanInput").val();
+    }
+    
+    function japan(num) {
+        for (var z=1; z<=2; z++){
+            obj = $("#japanCont"+ z);
+            if (z == num){
+                obj.css("display", "");
+            } else {
+                obj.css("display", "none");
+            }
+        }
+        return;
+    }
+
+    function mmover(obj, gubun) {
+        if(gubun=='over') obj.src = obj.src.replace(".gif","on.gif");
+        else obj.src = obj.src.replace("on.gif",".gif");
+    }
+    // 일본어 입력 // text, textarea 상자의 커서위치 파악 커서 위치에 텍스트를 입력
+    // 익스, 파폭, 크롬, 사파리 정상작동.
+    // 오페라는 영역지정후 치환안되고 해당영역 앞쪽으로 문자입력
+    // 오페라 해결방법은 input아 아닌 textarea로 하면 영역정보를 정상적으로 반환받아 치환되어 들어간다.
+    // input으로 할경우는 a태그가 아닌 input botton으로 펑션을 호출하면 영역정보를 반환받을수 있다.
+    function Fn_JpIn(txt){
+
+        var obj = document.getElementById("japanInput");
+        var postfix = txt;
+        var prefix = "";
+        var caretPos = "";
+        var s1;
+        var s2;
+        var s3;
+        var selStart;
+        var selEnd;
+
+        if (document.getSelection)    ts = document.getSelection();
+        else if (document.selection)  ts = document.selection.createRange().text;
+        else if (window.getSelection) ts = window.getSelection();
+
+        if (ts != ""){                                                                  //IE
+            document.selection.createRange().text = prefix + ts + postfix;
+        }else {
+            if (obj.selectionStart == obj.selectionEnd){                                // 커서를 가져놓음
+                if(/*@cc_on!@*/false){                                                  // 익스
+                    obj.focus();
+                    caretPos = document.selection.createRange().duplicate();
+                    caretPos.text = prefix + caretPos.text + postfix;
+                    document.selection.createRange().select();
+                }else{                                                                  // 다른브라우저
+                    s1 = obj.value.substring(0, obj.selectionStart);                    // 커서위치 앞글자
+                    s2 = obj.value.substring(obj.selectionStart);                       // 커서위치 뒷글자
+                    selStart = obj.selectionStart;                                      // 커서 시작위치값 저장.
+
+                    $(obj).val(s1 + prefix + postfix + s2);                             // 앞글자 + 입력글자 + 뒷글자
+
+                    // value를 셋팅하면 커서가 제일뒤로 이동하므로 다시 문자입력한 다음자리로 커서를 이동시켜준다.
+                    fn_setCursorPosition(obj, selStart+1);                              // 영역지정 문자 변경후 커서위치 셋팅(
+                }
+            }else{                                                                      // 영역지정
+                if(/*@cc_on!@*/false){                                                  // 익스
+                    obj.focus();
+                    caretPos = document.selection.createRange().duplicate();
+                    caretPos.text = prefix + caretPos.text.charAt(caretPos.text.length - 1) == prefix ? postfix + prefix : postfix;
+                    document.selection.createRange().select();                          // 치환된문자로 영역지정.
+                    fn_setCursorPosition(obj, obj.selectionStart+1);                    // 영역지정 문자 변경후 커서위치 다음칸으로 셋팅
+                }else{                                                                  // 다른브라우저
+                    s1 = obj.value.substring(0, obj.selectionStart);                    // 영역지정 시작위치까지의 글자
+                    s2 = obj.value.substring(obj.selectionStart, obj.selectionEnd);     // 영역지정 시작위치부터 마지막위치까지의 글자
+                    s3 = obj.value.substring(obj.selectionEnd);                         // 영역지정 마지막위치부터 마지막글자까지
+                    selStart = obj.selectionStart;                                      // 커서 시작위치값 저장.
+
+                    $(obj).val(s1 + prefix + postfix + s3);                             // 시작위치까지의글자 + 입력글자 + 영역끝부터마자믹까지글자
+                    fn_setCursorPosition(obj, selStart+1);                              // 영역지정 문자 변경후 커서위치 다음칸으로 셋팅
+                }
+            }
+        }
+    }
+
+    // 커서위치이동
+    function fn_setCursorPosition(obj,pos){
+        if ($(obj).get(0).setSelectionRange) {
+            $(obj).get(0).setSelectionRange(pos, pos);
+        } else if ($(obj).get(0).createTextRange) {
+            var range = $(obj).get(0).createTextRange();
+            range.collapse(true);
+            range.moveEnd('character', pos);
+            range.moveStart('character', pos);
+            range.select();
+        }
+        obj.focus();
+    }
+    // 일본어 입력 // text, textarea 상자의 커서위치 파악 커서 위치에 텍스트를 입력
+
+    // 부모창에 입력된 일본어 전달
+    function Fn_MoveJp(){
+        var inputVal = $("#japanInput").val();
+        parent.postMessage("japanInput:"+inputVal, "*");
+    }
+    
+	// 일본어 입력창 닫기
+	function closeEditor() {
+		parent.postMessage("closeJapanInput", "*");
+	}
+</script>
+
+        
+</head>
+<body>
+<center>
+<div class="japanWarp">
+    <!-- <div class="header">
+        <h3><img src="./eqimages/japan/guide_japan.gif" alt="일본어 입력기" style="width:100%;"/></h3>
+    </div> -->
+    <!-- 히라가나 -->
+    <div id="japanCont1">
+        <ul class="japanTab">
+            <li style="word-wrap: normal;"><img src="./eqimages/japan/tab_01on.gif" alt="히라가나 (ひらがな)" /></li>
+            <li style="word-wrap: normal;"><a href="#" onClick="japan(2)"><img src="./eqimages/japan/tab_02.gif" alt="가타가나 (カタカナ)" /></a></li>
+        </ul>
+        <div class="cb"></div>
+        <table cellspacing="0" cellpadding="0" border="0" class="japanTbl">
+            <tbody>
+                <tr>
+                    <td>
+                    <a href="javascript:Fn_JpIn('あ');"><img src="./eqimages/japan/j_0101.gif" alt="あ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぁ');"><img src="./eqimages/japan/j_0102.gif" alt="ぁ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('か');"><img src="./eqimages/japan/j_0103.gif" alt="か" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('が');"><img src="./eqimages/japan/j_0104.gif" alt="が" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('さ');"><img src="./eqimages/japan/j_0105.gif" alt="さ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ざ');"><img src="./eqimages/japan/j_0106.gif" alt="ざ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('た');"><img src="./eqimages/japan/j_0107.gif" alt="た" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('だ');"><img src="./eqimages/japan/j_0108.gif" alt="だ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('な');"><img src="./eqimages/japan/j_0109.gif" alt="な" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('は');"><img src="./eqimages/japan/j_0110.gif" alt="は" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ば');"><img src="./eqimages/japan/j_0111.gif" alt="ば" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぱ');"><img src="./eqimages/japan/j_0112.gif" alt="ぱ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ま');"><img src="./eqimages/japan/j_0113.gif" alt="ま" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('や');"><img src="./eqimages/japan/j_0114.gif" alt="や" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ゃ');"><img src="./eqimages/japan/j_0115.gif" alt="ゃ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ら');"><img src="./eqimages/japan/j_0116.gif" alt="ら" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('わ');"><img src="./eqimages/japan/j_0117.gif" alt="わ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ゎ');"><img src="./eqimages/japan/j_0118.gif" alt="ゎ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ん');"><img src="./eqimages/japan/j_0119.gif" alt="ん" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                </tr>
+                <tr>
+                    <td><a href="javascript:Fn_JpIn('い');"><img src="./eqimages/japan/j_0120.gif" alt="い" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぃ');"><img src="./eqimages/japan/j_0121.gif" alt="ぃ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('き');"><img src="./eqimages/japan/j_0122.gif" alt="き" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぎ');"><img src="./eqimages/japan/j_0123.gif" alt="ぎ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('し');"><img src="./eqimages/japan/j_0124.gif" alt="し" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('じ');"><img src="./eqimages/japan/j_0125.gif" alt="じ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ち');"><img src="./eqimages/japan/j_0126.gif" alt="ち" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぢ');"><img src="./eqimages/japan/j_0127.gif" alt="ぢ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('に');"><img src="./eqimages/japan/j_0128.gif" alt="に" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ひ');"><img src="./eqimages/japan/j_0129.gif" alt="ひ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('び');"><img src="./eqimages/japan/j_0130.gif" alt="び" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぴ');"><img src="./eqimages/japan/j_0131.gif" alt="ぴ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('み');"><img src="./eqimages/japan/j_0132.gif" alt="み" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('り');"><img src="./eqimages/japan/j_0133.gif" alt="り" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank2.gif" alt="" /></td>
+                </tr>
+                <tr>
+                    <td><a href="javascript:Fn_JpIn('う');"><img src="./eqimages/japan/j_0134.gif" alt="う" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぅ');"><img src="./eqimages/japan/j_0135.gif" alt="ぅ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('く');"><img src="./eqimages/japan/j_0136.gif" alt="く" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぐ');"><img src="./eqimages/japan/j_0137.gif" alt="ぐ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('す');"><img src="./eqimages/japan/j_0138.gif" alt="す" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ず');"><img src="./eqimages/japan/j_0139.gif" alt="ず" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('つ');"><img src="./eqimages/japan/j_0140.gif" alt="つ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('づ');"><img src="./eqimages/japan/j_0141.gif" alt="づ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('っ');"><img src="./eqimages/japan/j_0142.gif" alt="っ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぬ');"><img src="./eqimages/japan/j_0143.gif" alt="ぬ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ふ');"><img src="./eqimages/japan/j_0144.gif" alt="ふ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぶ');"><img src="./eqimages/japan/j_0145.gif" alt="ぶ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぷ');"><img src="./eqimages/japan/j_0146.gif" alt="ぷ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('む');"><img src="./eqimages/japan/j_0147.gif" alt="む" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ゆ');"><img src="./eqimages/japan/j_0148.gif" alt="ゆ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ゅ');"><img src="./eqimages/japan/j_0149.gif" alt="ゅ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('る');"><img src="./eqimages/japan/j_0150.gif" alt="る" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank2.gif" alt="" /></td>
+                </tr>
+                <tr>
+                    <td><a href="javascript:Fn_JpIn('え');"><img src="./eqimages/japan/j_0151.gif" alt="え" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぇ');"><img src="./eqimages/japan/j_0152.gif" alt="ぇ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('け');"><img src="./eqimages/japan/j_0153.gif" alt="け" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('げ');"><img src="./eqimages/japan/j_0154.gif" alt="げ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('せ');"><img src="./eqimages/japan/j_0155.gif" alt="せ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぜ');"><img src="./eqimages/japan/j_0156.gif" alt="ぜ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('て');"><img src="./eqimages/japan/j_0157.gif" alt="て" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('で');"><img src="./eqimages/japan/j_0158.gif" alt="で" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('ね');"><img src="./eqimages/japan/j_0159.gif" alt="ね" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('へ');"><img src="./eqimages/japan/j_0160.gif" alt="へ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('べ');"><img src="./eqimages/japan/j_0161.gif" alt="べ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぺ');"><img src="./eqimages/japan/j_0162.gif" alt="ぺ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('め');"><img src="./eqimages/japan/j_0163.gif" alt="め" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('れ');"><img src="./eqimages/japan/j_0164.gif" alt="れ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank2.gif" alt="" /></td>
+                </tr>
+                <tr>
+                    <td><a href="javascript:Fn_JpIn('お');"><img src="./eqimages/japan/j_0165.gif" alt="お" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぉ');"><img src="./eqimages/japan/j_0166.gif" alt="ぉ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('こ');"><img src="./eqimages/japan/j_0167.gif" alt="こ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ご');"><img src="./eqimages/japan/j_0168.gif" alt="ご" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('そ');"><img src="./eqimages/japan/j_0169.gif" alt="そ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぞ');"><img src="./eqimages/japan/j_0170.gif" alt="ぞ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('と');"><img src="./eqimages/japan/j_0171.gif" alt="と" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ど');"><img src="./eqimages/japan/j_0172.gif" alt="ど" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank3.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('の');"><img src="./eqimages/japan/j_0173.gif" alt="の" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ほ');"><img src="./eqimages/japan/j_0174.gif" alt="ほ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぼ');"><img src="./eqimages/japan/j_0175.gif" alt="ぼ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ぽ');"><img src="./eqimages/japan/j_0176.gif" alt="ぽ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('も');"><img src="./eqimages/japan/j_0177.gif" alt="も" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('よ');"><img src="./eqimages/japan/j_0178.gif" alt="よ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ょ');"><img src="./eqimages/japan/j_0179.gif" alt="ょ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ろ');"><img src="./eqimages/japan/j_0180.gif" alt="ろ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('を');"><img src="./eqimages/japan/j_0181.gif" alt="を" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank3.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank4.gif" alt="" /></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- 가타가나 -->
+    <div id="japanCont2" style="display:none">
+        <ul class="japanTab">
+            <li style="word-wrap: normal;"><a href="#" onClick="japan(1)"><img src="./eqimages/japan/tab_01.gif" alt="히라가나 (ひらがな)" /></a></li>
+            <li style="word-wrap: normal;"><img src="./eqimages/japan/tab_02on.gif" alt="가타가나 (カタカナ)" /></li>
+        </ul>
+        <div class="cb"></div>
+        <table cellspacing="0" cellpadding="0" border="0" class="japanTbl">
+            <tbody>
+                <tr>
+                    <td><a href="javascript:Fn_JpIn('ア');"><img src="./eqimages/japan/j_0201.gif" alt="ア" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ァ');"><img src="./eqimages/japan/j_0202.gif" alt="ァ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('カ');"><img src="./eqimages/japan/j_0203.gif" alt="カ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ガ');"><img src="./eqimages/japan/j_0204.gif" alt="ガ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('サ');"><img src="./eqimages/japan/j_0205.gif" alt="サ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ザ');"><img src="./eqimages/japan/j_0206.gif" alt="ザ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('タ');"><img src="./eqimages/japan/j_0207.gif" alt="タ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ダ');"><img src="./eqimages/japan/j_0208.gif" alt="ダ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('ナ');"><img src="./eqimages/japan/j_0209.gif" alt="ナ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ハ');"><img src="./eqimages/japan/j_0210.gif" alt="ハ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('バ');"><img src="./eqimages/japan/j_0211.gif" alt="バ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('パ');"><img src="./eqimages/japan/j_0212.gif" alt="パ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('マ');"><img src="./eqimages/japan/j_0213.gif" alt="マ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ヤ');"><img src="./eqimages/japan/j_0214.gif" alt="ヤ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ャ');"><img src="./eqimages/japan/j_0215.gif" alt="ャ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ラ');"><img src="./eqimages/japan/j_0216.gif" alt="ラ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ワ');"><img src="./eqimages/japan/j_0217.gif" alt="ワ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ヮ');"><img src="./eqimages/japan/j_0218.gif" alt="ヮ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ン');"><img src="./eqimages/japan/j_0219.gif" alt="ン" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                </tr>
+                <tr>
+                    <td><a href="javascript:Fn_JpIn('イ');"><img src="./eqimages/japan/j_0220.gif" alt="イ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ィ');"><img src="./eqimages/japan/j_0221.gif" alt="ィ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('キ');"><img src="./eqimages/japan/j_0222.gif" alt="キ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ギ');"><img src="./eqimages/japan/j_0223.gif" alt="ギ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('シ');"><img src="./eqimages/japan/j_0224.gif" alt="シ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ジ');"><img src="./eqimages/japan/j_0225.gif" alt="ジ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('チ');"><img src="./eqimages/japan/j_0226.gif" alt="チ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ヂ');"><img src="./eqimages/japan/j_0227.gif" alt="ヂ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('ニ');"><img src="./eqimages/japan/j_0228.gif" alt="ニ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ヒ');"><img src="./eqimages/japan/j_0229.gif" alt="ヒ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ビ');"><img src="./eqimages/japan/j_0230.gif" alt="ビ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ピ');"><img src="./eqimages/japan/j_0231.gif" alt="ピ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ミ');"><img src="./eqimages/japan/j_0232.gif" alt="ミ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('リ');"><img src="./eqimages/japan/j_0233.gif" alt="リ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank2.gif" alt="" /></td>
+                </tr>
+                <tr>
+                    <td><a href="javascript:Fn_JpIn('ウ');"><img src="./eqimages/japan/j_0234.gif" alt="ウ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ゥ');"><img src="./eqimages/japan/j_0235.gif" alt="ゥ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ク');"><img src="./eqimages/japan/j_0236.gif" alt="ク" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('グ');"><img src="./eqimages/japan/j_0237.gif" alt="グ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ス');"><img src="./eqimages/japan/j_0238.gif" alt="ス" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ズ');"><img src="./eqimages/japan/j_0239.gif" alt="ズ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ツ');"><img src="./eqimages/japan/j_0240.gif" alt="ツ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ヅ');"><img src="./eqimages/japan/j_0241.gif" alt="ヅ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ッ');"><img src="./eqimages/japan/j_0242.gif" alt="ッ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ヌ');"><img src="./eqimages/japan/j_0243.gif" alt="ヌ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('フ');"><img src="./eqimages/japan/j_0244.gif" alt="フ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ブ');"><img src="./eqimages/japan/j_0245.gif" alt="ブ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('プ');"><img src="./eqimages/japan/j_0246.gif" alt="プ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ム');"><img src="./eqimages/japan/j_0247.gif" alt="ム" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ユ');"><img src="./eqimages/japan/j_0248.gif" alt="ユ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ュ');"><img src="./eqimages/japan/j_0249.gif" alt="ュ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ル');"><img src="./eqimages/japan/j_0250.gif" alt="ル" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('ヴ');"><img src="./eqimages/japan/j_0282.gif" alt="ヴ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                </tr>
+                <tr>
+                    <td><a href="javascript:Fn_JpIn('エ');"><img src="./eqimages/japan/j_0251.gif" alt="エ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ェ');"><img src="./eqimages/japan/j_0252.gif" alt="ェ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ケ');"><img src="./eqimages/japan/j_0253.gif" alt="ケ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ゲ');"><img src="./eqimages/japan/j_0254.gif" alt="ゲ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('セ');"><img src="./eqimages/japan/j_0255.gif" alt="セ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ゼ');"><img src="./eqimages/japan/j_0256.gif" alt="ゼ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('テ');"><img src="./eqimages/japan/j_0257.gif" alt="テ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('デ');"><img src="./eqimages/japan/j_0258.gif" alt="デ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('ネ');"><img src="./eqimages/japan/j_0259.gif" alt="ネ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ヘ');"><img src="./eqimages/japan/j_0260.gif" alt="ヘ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ベ');"><img src="./eqimages/japan/j_0261.gif" alt="ベ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ペ');"><img src="./eqimages/japan/j_0262.gif" alt="ペ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('メ');"><img src="./eqimages/japan/j_0263.gif" alt="メ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('レ');"><img src="./eqimages/japan/j_0264.gif" alt="レ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank.gif" alt="" /></td>
+                    <td><img src="./eqimages/japan/j_blank2.gif" alt="" /></td>
+                </tr>
+                <tr>
+                    <td><a href="javascript:Fn_JpIn('オ');"><img src="./eqimages/japan/j_0265.gif" alt="オ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ォ');"><img src="./eqimages/japan/j_0266.gif" alt="ォ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('コ');"><img src="./eqimages/japan/j_0267.gif" alt="コ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ゴ');"><img src="./eqimages/japan/j_0268.gif" alt="ゴ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ソ');"><img src="./eqimages/japan/j_0269.gif" alt="ソ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ゾ');"><img src="./eqimages/japan/j_0270.gif" alt="ゾ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ト');"><img src="./eqimages/japan/j_0271.gif" alt="ト" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ド');"><img src="./eqimages/japan/j_0272.gif" alt="ド" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank3.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('ノ');"><img src="./eqimages/japan/j_0273.gif" alt="ノ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ホ');"><img src="./eqimages/japan/j_0274.gif" alt="ホ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ボ');"><img src="./eqimages/japan/j_0275.gif" alt="ボ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ポ');"><img src="./eqimages/japan/j_0276.gif" alt="ポ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('モ');"><img src="./eqimages/japan/j_0277.gif" alt="モ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ヨ');"><img src="./eqimages/japan/j_0278.gif" alt="ヨ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ョ');"><img src="./eqimages/japan/j_0279.gif" alt="ョ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><a href="javascript:Fn_JpIn('ロ');"><img src="./eqimages/japan/j_0280.gif" alt="ロ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                    <td><img src="./eqimages/japan/j_blank3.gif" alt="" /></td>
+                    <td><a href="javascript:Fn_JpIn('ヲ');"><img src="./eqimages/japan/j_0281.gif" alt="ヲ" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+
+                    <td><a href="javascript:Fn_JpIn('ー');"><img src="./eqimages/japan/j_0283.gif" alt="ー" onmouseout="mmover(this,'')" onmouseover="mmover(this,'over')" /></a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="japanBottom" style="height:40px">
+    	<input type="text" class="it" id="japanInput" name="japanInput" style="font-size:16px;height:24px;width:90%"/>
+    </div>
+    
+</div>
+
+    <div class="buttonBox">
+		<button id="cancelBtn" class="btn" onclick="closeEditor();">Cancel</button>
+		<button id="insertBtn" class="btn" onclick="Fn_MoveJp();">Insert</button>
+	</div>
+
+</center>
+
+</body>
+</html>

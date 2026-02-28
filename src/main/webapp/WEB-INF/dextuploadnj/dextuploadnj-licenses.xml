@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<dextuploadnj-licenses>
+	<license type="eval" path="dextuploadnj.config"/>
+	
+	<!-- 
+	<license type="cert" hostname="hycu-dev-lmsweb1" ip="10.70.254.201" path="dextuploadnj-server-dev.config"/>
+	--> 
+</dextuploadnj-licenses>

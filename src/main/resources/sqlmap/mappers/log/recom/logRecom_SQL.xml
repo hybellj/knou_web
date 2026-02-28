@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.log.recom.dao.LogRecomDAO">
+
+	<insert id="insert" parameterType="logRecomVO">
+		INSERT INTO TB_LMS_USER_CONTS_REACT (
+			  USER_CONTS_REACT_ID
+			, CONTS_TYCD
+			, LINK_CD
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		) VALUES (
+			  #{recomCd}
+			, #{rltnType}
+			, #{rltnCd}
+			, #{rgtrId}
+			, FN_DTTM()
+		)
+	</insert>
+
+	<delete id="delete" parameterType="logRecomVO">
+		DELETE FROM TB_LMS_USER_CONTS_REACT
+		WHERE LINK_CD = #{rltnCd}
+		AND CONTS_TYCD = #{rltnType}
+		AND RGTR_ID = #{rgtrId}
+	</delete>
+	
+	<select id="count" parameterType="logRecomVO"  resultType="Integer">
+		SELECT COUNT(*) FROM TB_LMS_USER_CONTS_REACT
+		WHERE LINK_CD = #{rltnCd}
+		AND CONTS_TYCD = #{rltnType}
+	</select>
+	
+	<select id="countRecomRgtrId" parameterType="logRecomVO"  resultType="Integer">
+		SELECT COUNT(*) FROM TB_LMS_USER_CONTS_REACT
+		WHERE LINK_CD = #{rltnCd}
+		AND CONTS_TYCD = #{rltnType}
+		AND RGTR_ID = #{rgtrId}
+	</select>
+	
+</mapper>

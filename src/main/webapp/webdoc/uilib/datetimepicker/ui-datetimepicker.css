@@ -1,0 +1,43 @@
+@charset "UTF-8";
+
+.datepicker-label { display: inline-flex; position: relative; }
+.datepicker-label::before { content: "\e9a0"; position: absolute; display: inline-flex; height: 100%; width: 36px; color: var(--text-dark-2); font-family: xeicon !important; font-style: normal; font-weight: 400 !important; font-variant: normal; text-transform: none; line-height: 1; vertical-align: -.125em; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-size: calc(1em + 3px); align-items: center; justify-content: center; }
+.datepicker-label > .datepicker:not([type="checkbox"]):not([type="radio"]) { padding-left: 30px; flex: 1; width:130px}
+.date_area.wide .datepicker { width: 230px;}
+.date_area.wide .datepicker-label { width: 230px;}
+
+.ui-datepicker {
+    width: 15em;
+}
+.ui-datepicker th {
+    padding: .5em .3em;
+    font-size: .9em;
+}
+.ui-datepicker .ui-datepicker-prev, .ui-datepicker .ui-datepicker-next {
+    top: 4px;
+}
+.ui-datepicker .ui-datepicker-title {
+    white-space: nowrap;
+}
+.ui-datepicker .ui-datepicker-title select {
+	font-size: 0.9em !important;
+    min-width: unset !important;
+    padding: .16em .4em;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+.ui-datepicker .ui-datepicker-title .year-label {
+	margin-right:5px;
+	font-size: 0.9em !important;
+}
+
+.ui-datepicker select.ui-datepicker-year {
+    width: 4.8em;
+}
+.ui-datepicker select.ui-datepicker-month {
+    width: 4.5em;
+}
+
+.timepicker-label { display: inline-flex; position: relative; }
+.timepicker-label::before { content: "\ea2c"; position: absolute; display: inline-flex; height: 100%; width: 36px; color: var(--text-dark-2); font-family: xeicon !important; font-style: normal; font-weight: 400 !important; font-variant: normal; text-transform: none; line-height: 1; vertical-align: -.125em; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-size: calc(1em + 3px); align-items: center; justify-content: center; }
+.timepicker-label > .timepicker:not([type="checkbox"]):not([type="radio"]) { padding-left: 30px; flex: 1; width: 105px;}

@@ -1,0 +1,2756 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.lesson.dao.LessonOperateDAO">
+
+	<select id="listPageing" parameterType="lessonOperateVO" resultType="lessonOperateVO">
+		/*
+			 SQL ID : LessonOperateDAO.listPageing
+			 설  명 :수업운영 목록
+		*/
+		WITH BBS_INFO AS (
+		    SELECT 
+		        THBA.SBJCT_ID
+		         , THBI.BBS_ID
+		        -- , SUM(IF(THBI.BBS_ID = 'QNA' AND THBA.UP_ATCL_ID IS NULL, 1, 0)) AS QNA_CNT
+		        -- , SUM(IF(THBI.BBS_ID = 'QNA' AND THBA.UP_ATCL_ID IS NOT NULL, 1, 0)) AS QNA_ANS_CNT
+		        -- , SUM(IF(THBI.BBS_ID = 'SECRET' AND THBA.UP_ATCL_ID IS NULL, 1, 0)) AS SECRET_CNT
+		        -- , SUM(IF(THBI.BBS_ID = 'SECRET' AND THBA.UP_ATCL_ID IS NOT NULL, 1, 0)) AS SECRET_ANS_CNT       
+		        , IF(THBA.UP_ATCL_ID IS NULL, 1, 0) AS QNA_CNT
+		        , IF(THBA.UP_ATCL_ID IS NOT NULL, 1, 0) AS QNA_ANS_CNT
+		    FROM 
+		        TB_LMS_BBS_ATCL THBA 
+		        , TB_LMS_BBS THBI 
+		        , TB_HOME_BBS_RLTN THBR 
+		        , TB_LMS_SBJCT TLCC 
+		        , TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+		        , TB_LMS_CRS TLC 
+		    WHERE 
+		        THBA.BBS_ID = THBI.BBS_ID
+		        AND THBI.BBS_ID = THBR.BBS_ID
+		        AND THBA.SBJCT_ID = THBR.RLTN_REF_CD
+		        AND THBR.RLTN_REF_CD = TLCC.SBJCT_ID 
+		        AND THBR.CONTS_TYCD = 'COURSE'
+		        AND TLCC.SBJCT_ID = TLTCCR.SBJCT_ID 
+		        AND TLCC.CRS_ID = TLC.CRS_ID
+		        AND THBI.BBS_ID IN ('QNA', 'SECRET')
+		        AND THBI.DELYN = 'N'
+		        AND THBI.USEYN = 'Y'
+		        AND THBI.SYS_BSC_PVSNYN = 'Y'
+		        AND THBA.DELYN = 'N'
+		        AND THBA.LOCKYN = 'N'
+		        AND THBR.CONTS_TYCD = 'COURSE'
+		        <if test="termCd != null and termCd != ''">
+		        AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+		        </if>
+                <if test="deptCd != null and deptCd != ''">
+                AND TLCC.DEPT_CD = #{deptCd}
+                </if>		
+                <if test="uniCd != null and uniCd != ''">
+                AND TLCC.UNIV_CD = #{uniCd}
+                </if>
+                <if test='searchValue != null and searchValue != ""'>
+                AND (
+                    LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.SBJCT_ID) IN (SELECT 
+                                                     SBJCT_ID 
+                                                 FROM 
+                                                     SBJCT_PROF 
+                                                 WHERE 
+                                                     USER_ID IN (SELECT USER_ID FROM TB_LMS_USR WHERE USERNM LIKE FN_LIKE_VAL(LOWER(#{searchValue})))
+                                                     AND PROF_TYCD = 'PROFESSOR' 
+                                                     AND RPRSYN = 'Y')
+                    )
+                </if>            
+                <if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+                    AND TLC.SBJCT_TYCD IN
+                    <foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+                        #{item}
+                    </foreach>
+                </if>    
+		     -- GROUP BY THBA.SBJCT_ID, THBI.BBS_ID 
+		) , ASMNT_INFO AS (
+		    SELECT 
+		        TLA.SBJCT_ID
+		        , TLAJU.SCR 
+		        , IF(TLAJU.SCR IS NOT NULL OR TLAJU.SCR IS NULL, 1, 0) AS ASMNT_SUBMIT_CNT
+		        , IF(TLAJU.SCR IS NOT NULL, 1, 0) AS ASMNT_EVAL_CNT
+		    FROM 
+		        TB_LMS_ASMT_SBMSN TLAJU 
+		        , TB_LMS_ASMT TLA 
+		        , TB_LMS_SBJCT TLCC 
+		        , TB_LMS_TERM_CRE_CRS_RLTN TLTCCR    
+		        , TB_LMS_CRS TLC   
+		    WHERE 
+		        TLAJU.ASMT_ID = TLA.ASMT_ID 
+		        AND TLA.SBJCT_ID = TLCC.SBJCT_ID 
+		        AND TLCC.SBJCT_ID = TLTCCR.SBJCT_ID    
+		        AND TLCC.CRS_ID = TLC.CRS_ID     
+		        AND TLAJU.SBMSN_STSCD IN ('SUBMIT', 'LATE')  
+		        AND TLAJU.DELYN = 'N'
+		        AND TLA.DELYN = 'N'        
+                <if test="termCd != null and termCd != ''">
+                AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+                </if>	
+                <if test="deptCd != null and deptCd != ''">
+                AND TLCC.DEPT_CD = #{deptCd}
+                </if>
+                <if test="uniCd != null and uniCd != ''">
+                AND TLCC.UNIV_CD = #{uniCd}
+                </if>                
+                <if test='searchValue != null and searchValue != ""'>
+                AND (
+                    LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.SBJCT_ID) IN (SELECT 
+                                                     SBJCT_ID 
+                                                 FROM 
+                                                     SBJCT_PROF 
+                                                 WHERE 
+                                                     USER_ID IN (SELECT USER_ID FROM TB_LMS_USR WHERE USERNM LIKE FN_LIKE_VAL(LOWER(#{searchValue})))
+                                                     AND PROF_TYCD = 'PROFESSOR' 
+                                                     AND RPRSYN = 'Y')
+                    )
+                </if>    
+                <if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+                    AND TLC.SBJCT_TYCD IN
+                    <foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+                        #{item}
+                    </foreach>
+                </if>    
+		), QUIZ_INFO AS (
+		    SELECT 
+		        TLECCR.SBJCT_ID 
+		        , TLES.ACQS_TOT_SCR 
+		        , IF(TLES.ACQS_TOT_SCR IS NOT NULL OR TLES.ACQS_TOT_SCR IS NULL, 1, 0) AS QUIZ_SUBMIT_CNT
+		        , IF(TLES.ACQS_TOT_SCR IS NOT NULL, 1, 0) AS QUIZ_EVAL_CNT
+		    FROM 
+		        TB_LMS_EXAM_STARE TLES
+		        , TB_LMS_EXAM_BSC TLE
+		        , TB_LMS_EXAM_CRE_CRS_RLTN TLECCR 
+		        , TB_LMS_SBJCT TLCC 
+		        , TB_LMS_TERM_CRE_CRS_RLTN TLTCCR   
+		        , TB_LMS_CRS TLC            
+		    WHERE 
+		        TLES.EXAM_ID = TLE.EXAM_ID 
+		        AND TLECCR.SBJCT_ID = TLCC.SBJCT_ID 
+		        AND TLCC.SBJCT_ID = TLTCCR.SBJCT_ID   
+		        AND TLCC.CRS_ID = TLC.CRS_ID      
+		        AND TLES.SDTTM IS NOT NULL 
+		        AND TLES.EDTTM IS NOT NULL
+		        AND TLE.EXAM_CTGRCD = 'QUIZ'
+		        AND TLES.DELYN = 'N'                                 
+		        AND TLE.DELYN = 'N'
+		        AND TLECCR.DELYN = 'N'
+		        AND TLE.USEYN = 'Y' 
+		        AND TLE.EXAM_ID = TLECCR.EXAM_ID 
+                <if test="termCd != null and termCd != ''">
+                AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+                </if>
+                <if test="deptCd != null and deptCd != ''">
+                AND TLCC.DEPT_CD = #{deptCd}
+                </if>  
+                <if test="uniCd != null and uniCd != ''">
+                AND TLCC.UNIV_CD = #{uniCd}
+                </if>  
+                <if test='searchValue != null and searchValue != ""'>
+                AND (
+                    LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.SBJCT_ID) IN (SELECT 
+                                                     SBJCT_ID 
+                                                 FROM 
+                                                     SBJCT_PROF 
+                                                 WHERE 
+                                                     USER_ID IN (SELECT USER_ID FROM TB_LMS_USR WHERE USERNM LIKE FN_LIKE_VAL(LOWER(#{searchValue})))
+                                                     AND PROF_TYCD = 'PROFESSOR' 
+                                                     AND RPRSYN = 'Y')
+                    )
+                </if>    
+                <if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+                    AND TLC.SBJCT_TYCD IN
+                    <foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+                        #{item}
+                    </foreach>
+                </if>                
+		), FORUM_INFO AS (
+		    SELECT 
+		        TLFCCR.SBJCT_ID
+		        , TLFJU.SCR 
+		        , IF(TLFJU.SCR IS NOT NULL OR TLFJU.SCR IS NULL, 1, 0) AS FORUM_SUBMIT_CNT
+		        , IF(TLFJU.SCR IS NOT NULL, 1, 0) AS FORUM_EVAL_CNT
+		    FROM 
+		        TB_LMS_DSCS_PTCP TLFJU
+		        , TB_LMS_DSCS TLF
+		        , TB_LMS_FORUM_CRE_CRS_RLTN TLFCCR 
+		        , TB_LMS_SBJCT TLCC 
+		        , TB_LMS_TERM_CRE_CRS_RLTN TLTCCR    
+		        , TB_LMS_CRS TLC   
+		    WHERE 
+		        TLFJU.DSCS_ID = TLF.DSCS_ID 
+		        AND TLFJU.EVLYN = 'Y' 
+		        AND EXISTS (SELECT 1 
+		                    FROM TB_LMS_DSCS_ATCL 
+		                    WHERE DSCS_ID = TLF.DSCS_ID 
+		                        AND STD_ID = TLFJU.STD_ID 
+		                        AND DELYN = 'N' )
+		        AND TLF.DSCS_ID = TLFCCR.DSCS_ID 
+		        AND TLFCCR.SBJCT_ID = TLCC.SBJCT_ID 
+		        AND TLCC.SBJCT_ID = TLTCCR.SBJCT_ID  
+		        AND TLCC.CRS_ID = TLC.CRS_ID       
+		        AND TLF.DELYN = 'N' 
+                <if test="termCd != null and termCd != ''">
+                AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+                </if>
+                <if test="deptCd != null and deptCd != ''">
+                AND TLCC.DEPT_CD = #{deptCd}
+                </if>      
+                <if test="uniCd != null and uniCd != ''">
+                AND TLCC.UNIV_CD = #{uniCd}
+                </if>  
+                <if test='searchValue != null and searchValue != ""'>
+                AND (
+                    LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.SBJCT_ID) IN (SELECT 
+                                                     SBJCT_ID 
+                                                 FROM 
+                                                     SBJCT_PROF 
+                                                 WHERE 
+                                                     USER_ID IN (SELECT USER_ID FROM TB_LMS_USR WHERE USERNM LIKE FN_LIKE_VAL(LOWER(#{searchValue})))
+                                                     AND PROF_TYCD = 'PROFESSOR' 
+                                                     AND RPRSYN = 'Y')
+                    )
+                </if>     
+                <if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+                    AND TLC.SBJCT_TYCD IN
+                    <foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+                        #{item}
+                    </foreach>
+                </if>    
+		), MIDDLE_INFO AS (
+		    SELECT 
+		        TLECCR.SBJCT_ID
+		        , DATE_FORMAT(STR_TO_DATE(TLE.EXAM_SDTTM, '%Y%m%d%H%i%s'),'%Y.%m.%d %H:%i') AS MIDDLE_START_DTTM
+		        , DATE_FORMAT(STR_TO_DATE(TLE.EXAM_EDTTM, '%Y%m%d%H%i%s'),'%Y.%m.%d %H:%i') AS MIDDLE_END_DTTM   
+		        , TLE.TKEXAM_MNTS AS MIDDLE_EXAM_STARE_TM
+		        , CASE WHEN TLE.EXAMPPR_OYN = 'Y' THEN '시험지공개' ELSE '시험지미공개' END AS MIDDLE_GRADE_VIEW_NM
+		        , CASE WHEN TLE.MRK_OYN = 'Y' THEN '성적공개' ELSE '성적미공개' END AS MIDDLE_SCORE_OPEN_NM
+		    FROM 
+		        TB_LMS_EXAM_BSC TLE
+		        , TB_LMS_EXAM_CRE_CRS_RLTN TLECCR 
+		        , TB_LMS_SBJCT TLCC 
+		        , TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+		        , TB_LMS_CRS TLC           
+		    WHERE 
+		        TLE.EXAM_ID = TLECCR.EXAM_ID 
+		        AND TLECCR.SBJCT_ID = TLCC.SBJCT_ID 
+		        AND TLCC.SBJCT_ID = TLTCCR.SBJCT_ID 
+		        AND TLCC.CRS_ID = TLC.CRS_ID        
+		        AND TLE.TKEXAM_TYCD = 'M'
+		        AND TLE.DELYN = 'N'
+		        AND TLE.EXAM_TYCD = 'EXAM'
+		        AND TLE.EXAM_CTGRCD = 'EXAM'
+                <if test="termCd != null and termCd != ''">
+                AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+                </if>		        
+                <if test="deptCd != null and deptCd != ''">
+                AND TLCC.DEPT_CD = #{deptCd}
+                </if>       
+                <if test="uniCd != null and uniCd != ''">
+                AND TLCC.UNIV_CD = #{uniCd}
+                </if> 
+                <if test='searchValue != null and searchValue != ""'>
+                AND (
+                    LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.SBJCT_ID) IN (SELECT 
+                                                     SBJCT_ID 
+                                                 FROM 
+                                                     SBJCT_PROF 
+                                                 WHERE 
+                                                     USER_ID IN (SELECT USER_ID FROM TB_LMS_USR WHERE USERNM LIKE FN_LIKE_VAL(LOWER(#{searchValue})))
+                                                     AND PROF_TYCD = 'PROFESSOR' 
+                                                     AND RPRSYN = 'Y')
+                    )
+                </if>  
+                <if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+                    AND TLC.SBJCT_TYCD IN
+                    <foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+                        #{item}
+                    </foreach>
+                </if>                    
+		), LAST_INFO AS (
+		    SELECT
+		        TLECCR.SBJCT_ID
+		        , DATE_FORMAT(STR_TO_DATE(TLE.EXAM_SDTTM, '%Y%m%d%H%i%s'),'%Y.%m.%d %H:%i') AS LAST_START_DTTM
+		        , DATE_FORMAT(STR_TO_DATE(TLE.EXAM_EDTTM, '%Y%m%d%H%i%s'),'%Y.%m.%d %H:%i') AS LAST_END_DTTM
+		        , TKEXAM_MNTS AS LAST_EXAM_STARE_TM 
+		        , CASE WHEN TLE.MRK_OYN = 'Y' THEN '성적공개' ELSE '성적미공개' END AS LAST_GRADE_VIEW_NM
+		        , CASE WHEN TLE.EXAMPPR_OYN = 'Y' THEN '시험지공개' ELSE '시험지미공개' END AS LAST_SCORE_OPEN_NM
+		    FROM 
+		        TB_LMS_EXAM_BSC TLE
+		        , TB_LMS_EXAM_CRE_CRS_RLTN TLECCR
+		        , TB_LMS_SBJCT TLCC 
+		        , TB_LMS_TERM_CRE_CRS_RLTN TLTCCR  
+		        , TB_LMS_CRS TLC         
+		    WHERE 
+		        TLE.EXAM_ID = TLECCR.EXAM_ID 
+		        AND TLECCR.SBJCT_ID = TLCC.SBJCT_ID 
+		        AND TLCC.SBJCT_ID = TLTCCR.SBJCT_ID    
+		        AND TLCC.CRS_ID = TLC.CRS_ID     
+		        AND TLE.TKEXAM_TYCD = 'L'
+		        AND TLE.DELYN = 'N'
+		        AND TLE.EXAM_TYCD = 'EXAM'
+		        AND TLE.EXAM_CTGRCD = 'EXAM'
+                <if test="termCd != null and termCd != ''">
+                AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+                </if>
+                <if test="deptCd != null and deptCd != ''">
+                AND TLCC.DEPT_CD = #{deptCd}
+                </if>
+                <if test="uniCd != null and uniCd != ''">
+                AND TLCC.UNIV_CD = #{uniCd}
+                </if> 
+                <if test='searchValue != null and searchValue != ""'>
+                AND (
+                    LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(TLCC.SBJCT_ID) IN (SELECT 
+                                                     SBJCT_ID 
+                                                 FROM 
+                                                     SBJCT_PROF 
+                                                 WHERE 
+                                                     USER_ID IN (SELECT USER_ID FROM TB_LMS_USR WHERE USERNM LIKE FN_LIKE_VAL(LOWER(#{searchValue})))
+                                                     AND PROF_TYCD = 'PROFESSOR' 
+                                                     AND RPRSYN = 'Y')
+                    )
+                </if>  
+	            <if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+	                AND TLC.SBJCT_TYCD IN
+	                <foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+	                    #{item}
+	                </foreach>
+	            </if>                  
+		)
+		SELECT 
+		    ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID DESC) AS LINE_NO
+		    , FN_GET_DEPT_NM(tlc.ORG_ID, TLCC.DEPT_CD) AS DEPTNM                       -- 개설학과
+		    , TLCC.SBJCT_ID
+		    , TLCC.CRS_ID                                                               -- 학수번호
+		    , CONCAT(TLCC.SBJCTNM, ' ( ', TLCC.DVCLAS_NO, '반 ) ') AS SBJCTNM       -- 과목명
+		    , FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y')) AS MAJOR_USER_NM -- 교수명
+		    , FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'Y')) AS MINOR_USER_NM -- 조교명
+		    , (SELECT COUNT(1) FROM TB_LMS_ATNDLC_SBJCT A WHERE A.SBJCT_ID = TLCC.SBJCT_ID AND A.ATNDLC_STSCD = 'S' AND A.AUDITYN = 'N') STD_CNT
+		    , (SELECT IFNULL(SUM(QNA_CNT), 0) FROM BBS_INFO WHERE SBJCT_ID = TLCC.SBJCT_ID) AS QNA_CNT
+		    , (SELECT IFNULL(SUM(QNA_ANS_CNT), 0) FROM BBS_INFO WHERE SBJCT_ID = TLCC.SBJCT_ID) AS QNA_ANS_CNT  
+		    --  , (SELECT IFNULL(SECRET_CNT, 0) FROM BBS_INFO WHERE SBJCT_ID = TLCC.SBJCT_ID AND BBS_ID = 'SECRET') AS SECRET_CNT
+		    --  , (SELECT IFNULL(SECRET_ANS_CNT, 0) FROM BBS_INFO WHERE SBJCT_ID = TLCC.SBJCT_ID AND BBS_ID = 'SECRET') AS SECRET_ANS_CNT   
+		    , (SELECT IFNULL(SUM(ASMNT_SUBMIT_CNT), 0) FROM ASMNT_INFO WHERE SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_SUBMIT_CNT
+		    , (SELECT IFNULL(SUM(ASMNT_EVAL_CNT), 0) FROM ASMNT_INFO WHERE SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_EVAL_CNT      
+		    , (SELECT IFNULL(SUM(QUIZ_SUBMIT_CNT), 0) FROM QUIZ_INFO WHERE SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_SUBMIT_CNT
+		    , (SELECT IFNULL(SUM(QUIZ_EVAL_CNT), 0) FROM QUIZ_INFO WHERE SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_EVAL_CNT     
+		    , (SELECT IFNULL(SUM(FORUM_SUBMIT_CNT), 0) FROM FORUM_INFO WHERE SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_SUBMIT_CNT
+		    , (SELECT IFNULL(SUM(FORUM_EVAL_CNT), 0) FROM FORUM_INFO WHERE SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_EVAL_CNT      
+		    , MIDDLE_START_DTTM
+		    , MIDDLE_END_DTTM
+		    , MIDDLE_EXAM_STARE_TM
+		    , MIDDLE_GRADE_VIEW_NM
+		    , MIDDLE_SCORE_OPEN_NM
+		    , LAST_START_DTTM
+		    , LAST_END_DTTM
+		    , LAST_EXAM_STARE_TM 
+		    , LAST_GRADE_VIEW_NM
+		    , LAST_SCORE_OPEN_NM    
+		FROM 
+		    TB_LMS_SBJCT TLCC 
+		    INNER JOIN TB_LMS_CRS TLC 
+		        ON TLCC.CRS_ID = TLC.CRS_ID 
+		    INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+		        ON TLCC.SBJCT_ID = TLTCCR .SBJCT_ID 
+		    LEFT JOIN MIDDLE_INFO MI
+		        ON TLCC.SBJCT_ID = MI.SBJCT_ID
+		    LEFT JOIN LAST_INFO LI
+		        ON TLCC.SBJCT_ID = LI.SBJCT_ID
+		WHERE 
+		    1 = 1
+            <if test="termCd != null and termCd != ''">
+            AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+            </if>
+            <if test="deptCd != null and deptCd != ''">
+            AND TLCC.DEPT_CD = #{deptCd}
+            </if>
+            <if test="uniCd != null and uniCd != ''">
+            AND TLCC.UNIV_CD = #{uniCd}
+            </if> 
+            <if test='searchValue != null and searchValue != ""'>
+            AND (
+                LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(TLCC.SBJCT_ID) IN (SELECT 
+                                                 SBJCT_ID 
+                                             FROM 
+                                                 SBJCT_PROF 
+                                             WHERE 
+                                                 USER_ID IN (SELECT USER_ID FROM TB_LMS_USR WHERE USERNM LIKE FN_LIKE_VAL(LOWER(#{searchValue})))
+                                                 AND PROF_TYCD = 'PROFESSOR' 
+                                                 AND RPRSYN = 'Y')
+                )
+            </if>
+            <if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+                AND TLC.SBJCT_TYCD IN
+                <foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>              
+	</select>
+	
+	<select id="count" parameterType="lessonOperateVO" resultType="Integer">
+		/*
+			 SQL ID : LessonOperateDAO.count
+			 설  명 : 수업운영 카운트
+		*/
+		<![CDATA[
+			SELECT COUNT(*)
+			  FROM ( SELECT TLTCCR.CRS_SMSTR_ID
+							, (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+							, TLCC.CRS_ID 
+							, TLCC.SBJCT_ID 
+							, TLCC.CRS_ID
+							, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+							, TLCC.SBJCT_ID
+							, CONCAT(TLCC.SBJCTNM, ' ( ', TLCC.DVCLAS_NO, '반 ) ') AS SBJCTNM 
+							, TLCC.DEPT_CD
+							, FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y')) AS MAJOR_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y'))  AS MAJOR_USER_ID
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'N' LIMIT 1)) AS MINOR_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'N' LIMIT 1 ))  AS MINOR_USER_ID
+							, (SELECT COUNT(1) FROM TB_LMS_ATNDLC_SBJCT A WHERE A.SBJCT_ID = TLCC.SBJCT_ID AND A.ATNDLC_STSCD = 'S' AND A.AUDITYN = 'N') STD_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C 
+								WHERE A.BBS_ID = B.BBS_ID 
+								  AND B.BBS_ID = C.BBS_ID 
+								  AND B.BBS_ID = 'QNA' 
+								  AND B.DELYN = 'N' 
+								  AND B.USEYN = 'Y' 
+								  AND B.SYS_BSC_PVSNYN = 'Y' 
+								  AND A.UP_ATCL_ID IS NULL 
+								  AND A.DELYN = 'N' 
+								  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+								  AND C.CONTS_TYCD = 'COURSE') AS QNA_CNT 
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_BBS_ATCL 
+								WHERE UP_ATCL_ID IN ( SELECT A.ATCL_ID 
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C 
+														WHERE A.BBS_ID = B.BBS_ID 
+														  AND B.BBS_ID = C.BBS_ID 
+														  AND B.BBS_ID = 'QNA' 
+														  AND B.DELYN = 'N' 
+														  AND B.USEYN = 'Y' 
+														  AND B.SYS_BSC_PVSNYN = 'Y' 
+														  AND A.UP_ATCL_ID IS NULL 
+														  AND A.DELYN = 'N' 
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE') 
+								  AND DELYN = 'N') AS QNA_ANS_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL 
+								WHERE UP_ATCL_ID IS NULL  
+								  AND SBJCT_ID = TLCC.SBJCT_ID
+								  AND BBS_ID IN (SELECT BBS_ID FROM TB_HOME_BBS_RLTN WHERE RLTN_REF_CD = TLCC.SBJCT_ID)
+								  AND ATCL_ID NOT IN ( SELECT UP_ATCL_ID 
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID 
+														  AND B.BBS_ID = C.BBS_ID 
+														  AND B.BBS_ID = 'QNA' 
+														  AND B.DELYN = 'N' 
+														  AND B.USEYN = 'Y' 
+														  AND B.SYS_BSC_PVSNYN = 'Y' 
+														  AND A.UP_ATCL_ID IS NOT NULL  
+														  AND A.DELYN = 'N'
+		]]>
+												<choose>
+													<when test="progressCd == '3' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -3 DAY) ]]>
+													</when>
+													<when test="progressCd == '7' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</when>
+													<when test="progressCd == '10' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -10 DAY) ]]>
+													</when>
+													<when test="progressCd == '30' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -30 DAY) ]]>
+													</when>
+													<otherwise>
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</otherwise>
+												</choose>
+		<![CDATA[
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE')
+								  AND DELYN = 'N') AS QNA_NO_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+								WHERE A.BBS_ID = B.BBS_ID
+								  AND B.BBS_ID = C.BBS_ID
+								  AND B.BBS_ID = 'SECRET'
+								  AND B.DELYN = 'N'
+								  AND B.USEYN = 'Y'
+								  AND B.SYS_BSC_PVSNYN = 'Y'
+								  AND A.UP_ATCL_ID IS NULL
+								  AND A.DELYN = 'N'
+								  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+								  AND C.CONTS_TYCD = 'COURSE') AS SECRET_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL
+								WHERE UP_ATCL_ID IN ( SELECT A.ATCL_ID
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID
+														  AND B.BBS_ID = C.BBS_ID
+														  AND B.BBS_ID = 'SECRET'
+														  AND B.DELYN = 'N'
+														  AND B.USEYN = 'Y'
+														  AND B.SYS_BSC_PVSNYN = 'Y'
+														  AND A.UP_ATCL_ID IS NULL
+														  AND A.DELYN = 'N'
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE') 
+								  AND DELYN = 'N') AS SECRET_ANS_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL 
+								WHERE UP_ATCL_ID IS NULL  
+								  AND SBJCT_ID = TLCC.SBJCT_ID
+								  AND BBS_ID IN (SELECT BBS_ID FROM TB_HOME_BBS_RLTN WHERE RLTN_REF_CD = TLCC.SBJCT_ID AND CONTS_TYCD = 'COURSE')
+								  AND ATCL_ID NOT IN ( SELECT UP_ATCL_ID 
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID
+														  AND B.BBS_ID = C.BBS_ID
+														  AND B.BBS_ID = 'SECRET'
+														  AND B.DELYN = 'N'
+														  AND B.USEYN = 'Y'
+														  AND B.SYS_BSC_PVSNYN = 'Y'
+														  AND A.UP_ATCL_ID IS NOT NULL
+														  AND A.DELYN = 'N'
+		]]>
+												<choose>
+													<when test="progressCd == '3' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -3 DAY) ]]>
+													</when>
+													<when test="progressCd == '7' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</when>
+													<when test="progressCd == '10' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -10 DAY) ]]>
+													</when>
+													<when test="progressCd == '30' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -30 DAY) ]]>
+													</when>
+													<otherwise>
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</otherwise>
+												</choose>
+		<![CDATA[
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE')
+								  AND DELYN = 'N') AS SECRET_NO_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT A
+								WHERE A.DELYN = 'N'
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+								  AND A.DELYN = 'N' 
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_SUBMIT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'NO' OR J.SBMSN_STSCD IS NULL)
+								  AND A.DELYN = 'N' 
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+									<choose>
+										<when test="progressCd == '3' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '7' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '10' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '30' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<otherwise>
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</otherwise>
+									</choose>
+		<![CDATA[
+								  /* EXT_SEND_ACPT_YN */
+								  AND A.EXT_SEND_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY)) AS ASMNT_NO_SUBMIT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+								  AND J.EVLYN = 'Y' 
+								  AND A.DELYN = 'N' 
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_EVAL_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B 
+								WHERE A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B
+								WHERE J.DSCS_ID = A.DSCS_ID 
+								  AND EXISTS(SELECT 1 
+											   FROM TB_LMS_DSCS_ATCL
+											  WHERE DSCS_ID = A.DSCS_ID
+												AND STD_ID = J.STD_ID 
+												AND DELYN = 'N')
+								  AND A.DSCS_ID = B.DSCS_ID
+								  AND A.DELYN = 'N'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_ANS_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B
+								WHERE J.DSCS_ID = A.DSCS_ID
+								  AND NOT EXISTS(SELECT 1
+											   FROM TB_LMS_DSCS_ATCL
+											  WHERE DSCS_ID = A.DSCS_ID
+												AND STD_ID = J.STD_ID
+												AND DELYN = 'N')
+								  AND A.DSCS_ID = B.DSCS_ID
+								  AND A.DELYN = 'N'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+								<choose>
+									<when test="progressCd == '3'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -3 DAY) ]]>
+									</when>
+									<when test="progressCd == '7'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+									</when>
+									<when test="progressCd == '10'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -10 DAY) ]]>
+									</when>
+									<when test="progressCd == '30'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -30 DAY) ]]>
+									</when>
+									<otherwise>
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+									</otherwise>
+								</choose>
+		<![CDATA[
+								  /*PRD_AFTR_WRTYN*/
+								  AND A.EXTD_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY)) AS FORUM_NO_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B 
+								WHERE J.DSCS_ID = A.DSCS_ID 
+								  AND J.EVLYN = 'Y' 
+								  AND EXISTS ( SELECT 1 
+												 FROM TB_LMS_DSCS_ATCL 
+												WHERE DSCS_ID = A.DSCS_ID 
+												  AND STD_ID = J.STD_ID 
+												  AND DELYN = 'N' )
+								  AND A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_EVAL_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE A.EXAM_CTGRCD = 'QUIZ' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE S.EXAM_ID = A.EXAM_ID 
+								  AND S.SDTTM IS NOT NULL 
+								  AND S.EDTTM IS NOT NULL 
+								  AND A.EXAM_CTGRCD = 'QUIZ' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID 
+								  AND S.EDTTM IS NULL 
+								  AND A.EXAM_CTGRCD = 'QUIZ' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+								<choose>
+										<when test="progressCd == '3' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '7' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '10' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '30' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<otherwise>
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</otherwise>
+									</choose>
+		<![CDATA[
+									 ) AS QUIZ_NO_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID 
+								  AND S.SDTTM IS NOT NULL 
+								  AND S.EDTTM IS NOT NULL 
+								  AND S.EVLYN = 'Y' 
+								  AND A.EXAM_CTGRCD = 'QUIZ' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_EVAL_CNT
+							, (SELECT COUNT(1) 
+							     FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+							    WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.DELYN = 'N' 
+								  AND A.EXAM_CTGRCD = 'EXAM'
+							      AND ( A.TKEXAM_TYCD = 'M' OR A.TKEXAM_TYCD = 'L' )
+							      AND ( A.EXAM_SBST_REF_ID IS NOT NULL OR A.EXAM_SBST_REF_ID != '' )
+							      AND B.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A, TB_LMS_EXAM_BSC C
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND J.ASMT_ID = C.EXAM_SBST_REF_ID
+								  AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+								  AND A.DELYN = 'N' 
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_ASMNT_SUBMT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B, TB_LMS_EXAM_BSC C
+								WHERE J.DSCS_ID = A.DSCS_ID
+								  AND J.DSCS_ID = C.EXAM_SBST_REF_ID
+								  AND EXISTS(SELECT 1 
+											   FROM TB_LMS_DSCS_ATCL 
+											  WHERE DSCS_ID = A.DSCS_ID 
+												AND STD_ID = J.STD_ID 
+												AND DELYN = 'N') 
+								  AND A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_FORUM_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID
+								  AND S.EXAM_ID = A.EXAM_SBST_REF_ID 
+								  AND S.SDTTM IS NOT NULL 
+								  AND S.EDTTM IS NOT NULL 
+								  AND A.EXAM_CTGRCD = 'EXAM' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_EXAM_ANS_CNT
+							, (SELECT DATE_FORMAT(STR_TO_DATE(A.EXAM_SDTTM, '%Y%m%d%H%i%s'),'%Y.%m.%d %H:%i')
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.TKEXAM_TYCD = 'M'
+								  AND A.DELYN = 'N'
+								  AND A.EXAM_TYCD = 'EXAM'
+								  AND A.EXAM_CTGRCD = 'EXAM'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS MIDDLE_START_DTTM
+							, (SELECT DATE_FORMAT(STR_TO_DATE(A.EXAM_EDTTM, '%Y%m%d%H%i%s'),'%Y.%m.%d %H:%i')
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.TKEXAM_TYCD = 'M'
+								  AND A.DELYN = 'N'
+								  AND A.EXAM_TYCD = 'EXAM'
+								  AND A.EXAM_CTGRCD = 'EXAM'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS MIDDLE_END_DTTM
+							, (SELECT A.TKEXAM_MNTS
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.TKEXAM_TYCD = 'M'
+								  AND A.DELYN = 'N'
+								  AND A.EXAM_TYCD = 'EXAM'
+								  AND A.EXAM_CTGRCD = 'EXAM'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS MIDDLE_EXAM_STARE_TM
+							, (SELECT CASE WHEN A.EXAMPPR_OYN = 'Y' THEN '시험지공개' ELSE '시험지미공개' END
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.TKEXAM_TYCD = 'M'
+								  AND A.DELYN = 'N'
+								  AND A.EXAM_TYCD = 'EXAM'
+								  AND A.EXAM_CTGRCD = 'EXAM'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS MIDDLE_GRADE_VIEW_NM
+							, (SELECT CASE WHEN A.MRK_OYN = 'Y' THEN '성적공개' ELSE '성적미공개' END
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.TKEXAM_TYCD = 'M'
+								  AND A.DELYN = 'N'
+								  AND A.EXAM_TYCD = 'EXAM'
+								  AND A.EXAM_CTGRCD = 'EXAM'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS MIDDLE_SCORE_OPEN_NM
+							, (SELECT DATE_FORMAT(STR_TO_DATE(A.EXAM_SDTTM, '%Y%m%d%H%i%s'),'%Y.%m.%d %H:%i')
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.TKEXAM_TYCD = 'L'
+								  AND A.DELYN = 'N'
+								  AND A.EXAM_TYCD = 'EXAM'
+								  AND A.EXAM_CTGRCD = 'EXAM'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS LAST_START_DTTM
+							, (SELECT DATE_FORMAT(STR_TO_DATE(A.EXAM_EDTTM, '%Y%m%d%H%i%s'),'%Y.%m.%d %H:%i')
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.TKEXAM_TYCD = 'L'
+								  AND A.DELYN = 'N'
+								  AND A.EXAM_TYCD = 'EXAM'
+								  AND A.EXAM_CTGRCD = 'EXAM'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS LAST_END_DTTM
+							, (SELECT TKEXAM_MNTS
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.TKEXAM_TYCD = 'L'
+								  AND A.DELYN = 'N'
+								  AND A.EXAM_TYCD = 'EXAM'
+								  AND A.EXAM_CTGRCD = 'EXAM'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS LAST_EXAM_STARE_TM
+							, (SELECT CASE WHEN A.EXAMPPR_OYN = 'Y' THEN '시험지공개' ELSE '시험지미공개' END
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.TKEXAM_TYCD = 'L'
+								  AND A.DELYN = 'N'
+								  AND A.EXAM_TYCD = 'EXAM'
+								  AND A.EXAM_CTGRCD = 'EXAM'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS LAST_GRADE_VIEW_NM
+							, (SELECT CASE WHEN A.MRK_OYN = 'Y' THEN '성적공개' ELSE '성적미공개' END
+								 FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B
+								WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.TKEXAM_TYCD = 'L'
+								  AND A.DELYN = 'N'
+								  AND A.EXAM_TYCD = 'EXAM'
+								  AND A.EXAM_CTGRCD = 'EXAM'
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS LAST_SCORE_OPEN_NM
+							, TLCC.RGTR_ID  
+							, TLCC.FRST_INQ_DTTM 
+							, TLCC.MDFR_ID   
+							, TLCC.MOD_DTTM
+					   FROM TB_LMS_SBJCT TLCC
+					   LEFT JOIN TB_LMS_CRE_CRS_EVAL TLCCE
+						 ON TLCC.SBJCT_ID = TLCCE.SBJCT_ID
+					  INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+						 ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+					  INNER JOIN TB_LMS_CRS TLC
+		                   ON TLCC.CRS_ID = TLC.CRS_ID 
+		                 AND TLC.DELYN = 'N'
+		                 AND TLC.ORG_ID = #{orgId}
+					  WHERE 1 = 1
+						AND TLCC.DELYN = 'N'
+		]]>
+				<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+					AND TLC.SBJCT_TYCD IN
+					<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+		            	#{item}
+		        	</foreach>
+				</if>
+				<!-- 
+				<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+				<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+				<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+				<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+				<if test='searchValue != null and searchValue != ""'>
+					AND (
+							LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(FN_GET_USER_NM((SELECT USER_ID 
+																			FROM SBJCT_PROF 
+																			WHERE SBJCT_ID = TLCC.SBJCT_ID 
+																			AND PROF_TYCD = 'PROFESSOR' 
+																			AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					)
+				</if>
+				) X
+	</select>
+	
+	<select id="listAsmntNoSubmitPageing" parameterType="lessonOperateVO" resultType="lessonOperateVO">
+		/*
+			 SQL ID : LessonOperateDAO.listAsmntNoSubmitPageing
+			 설  명 : 과제미제출과목 목록
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		<![CDATA[
+			SELECT	X.LINE_NO
+					, X.CRS_SMSTR_ID					, X.SMSTRNM
+					, X.CRS_ID					, X.SBJCT_ID				, X.CRS_ID		, X.ORGNM
+					, X.SBJCT_ID				, X.SBJCTNM				/*, X.DVCLAS_NO */
+					, X.DEPT_CD					, X.DEPTNM
+					, X.MAJOR_USER_NM			, X.MAJOR_USER_ID			
+					, X.TRIPLE_USER_NM			, X.TRIPLE_USER_ID			
+					, X.MINOR_USER_NM			, X.MINOR_USER_ID
+					, X.STD_CNT		
+					, X.ASMNT_SUBMIT_CNT		, X.ASMNT_NO_SUBMIT_CNT		, X.ASMNT_CNT
+					, X.RGTR_ID					, X.FRST_INQ_DTTM				, X.MDFR_ID			, X.MOD_DTTM
+			  FROM (SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID DESC) AS LINE_NO
+							, TLTCCR.CRS_SMSTR_ID
+							, (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+							, TLCC.CRS_ID 
+							, TLCC.SBJCT_ID 
+							, TLCC.CRS_ID
+							, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+							, TLCC.SBJCT_ID
+							, CONCAT(TLCC.SBJCTNM, ' ( ', TLCC.DVCLAS_NO, '반 ) ') AS SBJCTNM 
+							, TLCC.DEPT_CD
+							, FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y')) AS MAJOR_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y'))  AS MAJOR_USER_ID
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'N' LIMIT 1)) AS TRIPLE_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'N' LIMIT 1))  AS TRIPLE_USER_ID
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'N' LIMIT 1)) AS MINOR_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'N' LIMIT 1 ))  AS MINOR_USER_ID
+							, (SELECT COUNT(1) FROM TB_LMS_ATNDLC_SBJCT A WHERE A.SBJCT_ID = TLCC.SBJCT_ID AND A.ATNDLC_STSCD = 'S' AND A.AUDITYN = 'N') STD_CNT
+							, ( SELECT COUNT(J.ASMT_SBMSN_ID) 
+							      FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+							     WHERE J.ASMT_ID = A.ASMT_ID 
+							       AND J.SBMSN_STSCD IN ('SUBMIT','RE','LATE') 
+							       AND J.DELYN = 'N' 
+							       AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_SUBMIT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'NO' OR J.SBMSN_STSCD IS NULL)
+								  AND A.DELYN = 'N'
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+									<choose>
+										<when test="progressCd == '3' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '7' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '10' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '30' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<otherwise>
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</otherwise>
+									</choose>
+		<![CDATA[
+								  /* EXT_SEND_ACPT_YN 
+								  AND A.EXT_SEND_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY)*/) AS ASMNT_NO_SUBMIT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT A
+								WHERE A.DELYN = 'N'
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_CNT
+							, TLCC.RGTR_ID , TLCC.FRST_INQ_DTTM , TLCC.MDFR_ID , TLCC.MOD_DTTM
+					   FROM TB_LMS_SBJCT TLCC
+					   LEFT JOIN TB_LMS_CRE_CRS_EVAL TLCCE
+						 ON TLCC.SBJCT_ID = TLCCE.SBJCT_ID
+					  INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+						 ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+					  INNER JOIN TB_LMS_CRS TLC
+		                   ON TLCC.CRS_ID = TLC.CRS_ID 
+		                 AND TLC.DELYN = 'N'
+		                 AND TLC.ORG_ID = #{orgId}
+					  WHERE 1 = 1
+						AND TLCC.DELYN = 'N'
+		]]>
+				<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+					AND TLC.SBJCT_TYCD IN
+					<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+		            	#{item}
+		        	</foreach>
+				</if>		
+				<!-- 
+				<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+				<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+				<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+				<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+				<if test='searchValue != null and searchValue != ""'>
+					AND (
+							LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(FN_GET_USER_NM((SELECT USER_ID 
+						                                                    FROM SBJCT_PROF
+						                                                    WHERE SBJCT_ID = TLCC.SBJCT_ID
+						                                                    AND PROF_TYCD = 'PROFESSOR'
+						                                                    AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					)
+				</if>
+				ORDER BY TLCC.SBJCT_ID
+				) X
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="countAsmntNoSubmit" parameterType="lessonOperateVO" resultType="Integer">
+		/*
+			 SQL ID : LessonOperateDAO.countAsmntNoSubmit
+			 설  명 : 과제미제출과목 카운트
+		*/
+		<![CDATA[
+			SELECT COUNT(*)
+			  FROM ( SELECT TLTCCR.CRS_SMSTR_ID
+							, (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+							, TLCC.CRS_ID 
+							, TLCC.SBJCT_ID 
+							, TLCC.CRS_ID
+							, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+							, TLCC.SBJCT_ID
+							, CONCAT(TLCC.SBJCTNM, ' ( ', TLCC.DVCLAS_NO, '반 ) ') AS SBJCTNM 
+							, TLCC.DEPT_CD
+							, FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y')) AS MAJOR_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y'))  AS MAJOR_USER_ID
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'N' LIMIT 1)) AS TRIPLE_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'N' LIMIT 1))  AS TRIPLE_USER_ID
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'N' LIMIT 1)) AS MINOR_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'N' LIMIT 1 ))  AS MINOR_USER_ID
+							, (SELECT COUNT(1) FROM TB_LMS_ATNDLC_SBJCT A WHERE A.SBJCT_ID = TLCC.SBJCT_ID AND A.ATNDLC_STSCD = 'S' AND A.AUDITYN = 'N') STD_CNT
+							, ( SELECT COUNT(J.ASMT_SBMSN_ID) 
+							      FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+							     WHERE J.ASMT_ID = A.ASMT_ID 
+							       AND J.SBMSN_STSCD IN ('SUBMIT','RE','LATE') 
+							       AND J.DELYN = 'N' 
+							       AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_SUBMIT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'NO' OR J.SBMSN_STSCD IS NULL)
+								  AND A.DELYN = 'N'
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+									<choose>
+										<when test="progressCd == '3' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '7' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '10' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '30' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<otherwise>
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</otherwise>
+									</choose>
+		<![CDATA[
+								  /* EXT_SEND_ACPT_YN 
+								  AND A.EXT_SEND_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY)*/) AS ASMNT_NO_SUBMIT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT A
+								WHERE A.DELYN = 'N'
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_CNT
+							, TLCC.RGTR_ID	, TLCC.FRST_INQ_DTTM	, TLCC.MDFR_ID,	TLCC.MOD_DTTM
+					   FROM TB_LMS_SBJCT TLCC
+					   LEFT JOIN TB_LMS_CRE_CRS_EVAL TLCCE
+						 ON TLCC.SBJCT_ID = TLCCE.SBJCT_ID
+					  INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+						 ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+					  INNER JOIN TB_LMS_CRS TLC
+		                   ON TLCC.CRS_ID = TLC.CRS_ID 
+		                 AND TLC.DELYN = 'N'
+		                 AND TLC.ORG_ID = #{orgId}						 
+					  WHERE 1 = 1
+						AND TLCC.DELYN = 'N'
+		]]>
+				<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+					AND TLC.SBJCT_TYCD IN
+					<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+		            	#{item}
+		        	</foreach>
+				</if>
+				<!-- 
+				<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+				<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+				<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+				<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+				<if test='searchValue != null and searchValue != ""'>
+					AND (
+							LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(FN_GET_USER_NM((SELECT USER_ID
+						                                                    FROM SBJCT_PROF
+						                                                    WHERE SBJCT_ID = TLCC.SBJCT_ID
+						                                                    AND PROF_TYCD = 'PROFESSOR'
+						                                                    AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					)
+				</if>
+				) X
+	</select>
+
+	<select id="listScoreUnratedPageing" parameterType="lessonOperateVO" resultType="lessonOperateVO">
+		/*
+			 SQL ID : LessonOperateDAO.listScoreUnratedPageing
+			 설  명 : 성적미평가 목록
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		<![CDATA[
+			SELECT	X.LINE_NO
+					, X.CRS_SMSTR_ID			, X.SMSTRNM
+					, X.CRS_ID			, X.SBJCT_ID
+					, X.CRS_ID		, X.ORGNM
+					, X.SBJCT_ID		, X.SBJCTNM
+					, X.DEPT_CD			, X.DEPTNM
+					, X.MAJOR_USER_NM	, X.MAJOR_USER_ID
+					, X.TRIPLE_USER_NM	, X.TRIPLE_USER_ID
+					, X.MINOR_USER_NM	, X.MINOR_USER_ID
+					, X.STD_CNT
+					, X.SCORE_EVAL_GBN	, X.SCORE_GRANT_GBN
+					, X.RGTR_ID			, X.FRST_INQ_DTTM
+					, X.MDFR_ID			, X.MOD_DTTM
+			  FROM ( SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID DESC) AS LINE_NO
+			                , TLTCCR.CRS_SMSTR_ID
+							, (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+							, TLCC.CRS_ID 
+							, TLCC.SBJCT_ID 
+							, TLCC.CRS_ID
+							, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+							, TLCC.SBJCT_ID
+							, CONCAT(TLCC.SBJCTNM, ' ( ', TLCC.DVCLAS_NO, '반 ) ') AS SBJCTNM 
+							, TLCC.DEPT_CD
+							, FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y')) AS MAJOR_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y'))  AS MAJOR_USER_ID
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'N' LIMIT 1)) AS TRIPLE_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'N' LIMIT 1))  AS TRIPLE_USER_ID
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'N' LIMIT 1)) AS MINOR_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'N' LIMIT 1 ))  AS MINOR_USER_ID
+							, (SELECT COUNT(1) FROM TB_LMS_ATNDLC_SBJCT A WHERE A.SBJCT_ID = TLCC.SBJCT_ID AND A.ATNDLC_STSCD = 'S' AND A.AUDITYN = 'N') STD_CNT
+							, TLCCSG.SCORE_EVAL_GBN
+							, TLCCSG.SCORE_GRANT_GBN
+							, TLCC.RGTR_ID  
+							, TLCC.FRST_INQ_DTTM 
+							, TLCC.MDFR_ID   
+							, TLCC.MOD_DTTM
+					   FROM TB_LMS_SBJCT TLCC
+					   LEFT JOIN TB_LMS_CRE_CRS_EVAL TLCCE
+						 ON TLCC.SBJCT_ID = TLCCE.SBJCT_ID
+					  INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+						 ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+					  LEFT OUTER JOIN TB_LMS_CRE_CRS_SCORE_GBN TLCCSG 
+					    ON TLCCSG.SBJCT_ID = TLCC.SBJCT_ID
+					  INNER JOIN TB_LMS_CRS TLC
+		                   ON TLCC.CRS_ID = TLC.CRS_ID 
+		                 AND TLC.DELYN = 'N'
+		                 AND TLC.ORG_ID = #{orgId}
+					  WHERE 1 = 1
+						AND TLCC.DELYN = 'N'
+		]]>
+				<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+					AND TLC.SBJCT_TYCD IN
+					<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+		            	#{item}
+		        	</foreach>
+				</if>		
+				<!-- 
+				<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+				<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+				<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+				<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+				<if test='searchValue != null and searchValue != ""'>
+					AND (
+							LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(FN_GET_USER_NM((SELECT USER_ID
+						                                                    FROM SBJCT_PROF
+						                                                    WHERE SBJCT_ID = TLCC.SBJCT_ID
+						                                                    AND PROF_TYCD = 'PROFESSOR'
+						                                                    AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					)
+				</if>
+				ORDER BY TLCC.SBJCT_ID
+				) X
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="countScoreUnrated" parameterType="lessonOperateVO" resultType="Integer">
+		/*
+			 SQL ID : LessonOperateDAO.countScoreUnrated
+			 설  명 : 성적미평가 : 카운트
+		*/
+		<![CDATA[
+			SELECT COUNT(*)
+			  FROM ( SELECT TLTCCR.CRS_SMSTR_ID
+							, (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+							, TLCC.CRS_ID 
+							, TLCC.SBJCT_ID 
+							, TLCC.CRS_ID
+							, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+							, TLCC.SBJCT_ID
+							, CONCAT(TLCC.SBJCTNM, ' ( ', TLCC.DVCLAS_NO, '반 ) ') AS SBJCTNM 
+							, TLCC.DEPT_CD
+							, FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y')) AS MAJOR_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y'))  AS MAJOR_USER_ID
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'N' LIMIT 1)) AS TRIPLE_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'N' LIMIT 1))  AS TRIPLE_USER_ID
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'N' LIMIT 1)) AS MINOR_USER_NM
+							, FN_GET_USER_ID((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'ASSISTANT' AND RPRSYN = 'N' LIMIT 1 ))  AS MINOR_USER_ID
+							, (SELECT COUNT(1) FROM TB_LMS_ATNDLC_SBJCT A WHERE A.SBJCT_ID = TLCC.SBJCT_ID AND A.ATNDLC_STSCD = 'S' AND A.AUDITYN = 'N') STD_CNT
+							, TLCCSG.SCORE_EVAL_GBN
+							, TLCCSG.SCORE_GRANT_GBN
+							, TLCC.RGTR_ID  
+							, TLCC.FRST_INQ_DTTM 
+							, TLCC.MDFR_ID   
+							, TLCC.MOD_DTTM
+					   FROM TB_LMS_SBJCT TLCC
+					   LEFT JOIN TB_LMS_CRE_CRS_EVAL TLCCE
+						 ON TLCC.SBJCT_ID = TLCCE.SBJCT_ID
+					  INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+						 ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+					  LEFT OUTER JOIN TB_LMS_CRE_CRS_SCORE_GBN TLCCSG 
+					    ON TLCCSG.SBJCT_ID = TLCC.SBJCT_ID
+					  INNER JOIN TB_LMS_CRS TLC
+		                   ON TLCC.CRS_ID = TLC.CRS_ID 
+		                 AND TLC.DELYN = 'N'
+		                 AND TLC.ORG_ID = #{orgId}
+					  WHERE 1 = 1
+						AND TLCC.DELYN = 'N'
+		]]>
+				<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+					AND TLC.SBJCT_TYCD IN
+					<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+		            	#{item}
+		        	</foreach>
+				</if>
+				<!-- 
+				<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+				<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+				<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+				<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+				<if test='searchValue != null and searchValue != ""'>
+					AND (
+							LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(FN_GET_USER_NM((SELECT USER_ID 
+						                                                    FROM SBJCT_PROF 
+						                                                    WHERE SBJCT_ID = TLCC.SBJCT_ID 
+						                                                    AND PROF_TYCD = 'PROFESSOR' 
+						                                                    AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					)
+				</if>
+				) X
+	</select>
+
+	<select id="listLoginChiefPageing" parameterType="lessonOperateVO" resultType="lessonOperateVO">
+		/*
+			 SQL ID : LessonOperateDAO.lessonLoginChiefPageing
+			 설  명 : 교수 / 조교 로그인 목록
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		<![CDATA[
+			SELECT X.LINE_NO
+				   , X.USER_ID			, X.USER_ID
+				   , X.USERNM			, X.MOBILE_NO
+				   , X.ORG_ID			, X.ORGNM
+				   , X.DEPT_CD			, X.DEPTNM
+				   , X.ACNT_STSCD			, X.USER_STS_NM
+				   , X.USER_TYPE		, X.USER_TYPE_NM
+				   , X.LAST_LOGIN_DTTM	, X.LOGIN_CNT
+				   , X.LESSON_CNT
+			  FROM ( SELECT ROW_NUMBER() OVER(ORDER BY B.USER_ID DESC) AS LINE_NO
+									, A.USER_ID , B.USER_ID , A.USERNM , A.USER_ENNM
+									, A.MOBILE_NO , A.EMAIL
+									, A.ORG_ID 
+									, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM 
+									, A.DEPT_CD
+									, FN_GET_DEPT_NM(#{orgId}, A.DEPT_CD) AS DEPTNM 
+									, B.ACNT_STSCD
+									, FN_GET_ORG_CODE_NM(#{orgId}, 'ACNT_STSCD', B.ACNT_STSCD) AS USER_STS_NM 
+									, C.USER_AUTHRT_ID AS USER_TYPE
+									, FN_GET_ORG_CODE_NM(#{orgId}, 'USER_TYPE', C.USER_AUTHRT_ID) AS USER_TYPE_NM
+									, DATE_FORMAT(STR_TO_DATE(B.LAST_LOGIN_DTTM, '%Y%m%d%H%i%s'),'%Y.%m.%d %H:%i') AS LAST_LOGIN_DTTM
+									, B.LOGIN_CNT 
+									, (SELECT COUNT(*)
+										 FROM TB_LMS_SBJCT TLCC
+										 LEFT JOIN SBJCT_PROF TLCCTR
+										   ON TLCC.SBJCT_ID = TLCCTR.SBJCT_ID 
+										INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+										   ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+										  AND TLCCTR.PROF_TYCD = 'PROFESSOR'
+										  AND TLCCTR.RPRSYN = 'Y'
+										WHERE TLCC.DELYN = 'N'
+										  AND TLCC.USEYN = 'Y'
+		]]>
+										<if test="termCd != null and termCd != ''">
+											AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+										</if>
+										<if test='searchValue != null and searchValue != ""'>
+											AND (
+													LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+												OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+												OR LOWER(FN_GET_USER_NM((SELECT USER_ID 
+																									FROM SBJCT_PROF 
+																									WHERE SBJCT_ID = TLCC.SBJCT_ID 
+																									AND PROF_TYCD = 'PROFESSOR' 
+																									AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+											)
+										</if>
+		<![CDATA[
+										  AND TLCCTR.USER_ID = A.USER_ID) LESSON_CNT
+					   FROM TB_LMS_USR A 
+					   JOIN TB_LMS_USER_ACNT B 
+						 ON A.USER_ID = B.USER_ID
+					   JOIN TB_LMS_USER_AUTHRT C
+						 ON C.USER_ID = A.USER_ID
+					  WHERE A.ORG_ID = #{orgId}
+						AND B.ACNT_STSCD = 'U'
+						/* AND C.USER_AUTHRT_ID IN ('PFS', 'PROFESSOR', 'TUT', 'ASSISTANT') */
+						AND C.USER_AUTHRT_ID IN ('PFS', 'PROFESSOR')
+		]]>
+					<if test="deptCd != null and deptCd != ''">
+						AND A.DEPT_CD = #{deptCd}
+					</if>
+		<![CDATA[
+					  ORDER BY B.USER_ID ASC
+					) X
+		]]>
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="countLoginChief" parameterType="lessonOperateVO" resultType="Integer">
+		/*
+			 SQL ID : LessonOperateDAO.countLoginChief
+			 설  명 : 교수 / 조교 로그인 카운트
+		*/
+		<![CDATA[
+			SELECT COUNT(*)
+			  FROM ( SELECT A.USER_ID , B.USER_ID , A.USERNM , A.MOBILE_NO
+							, A.ORG_ID 
+							, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM 
+							, A.DEPT_CD 
+							, FN_GET_DEPT_NM(#{orgId}, A.DEPT_CD) AS DEPTNM 
+							, B.ACNT_STSCD
+							, FN_GET_ORG_CODE_NM(#{orgId}, 'ACNT_STSCD', B.ACNT_STSCD) AS USER_STS_NM 
+							, C.USER_AUTHRT_ID AS USER_TYPE
+							, FN_GET_ORG_CODE_NM(#{orgId}, 'USER_TYPE', C.USER_AUTHRT_ID) AS USER_TYPE_NM
+							, B.LAST_LOGIN_DTTM 
+							, B.LOGIN_CNT 
+							, (SELECT COUNT(*)
+								 FROM TB_LMS_SBJCT TLCC
+								 LEFT JOIN SBJCT_PROF TLCCTR
+								   ON TLCC.SBJCT_ID = TLCCTR.SBJCT_ID 
+								INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+								   ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+								  AND TLCCTR.PROF_TYCD = 'PROFESSOR'
+								  AND TLCCTR.RPRSYN = 'Y'
+								WHERE TLCC.DELYN = 'N'
+								  AND TLCC.USEYN = 'Y'
+		]]>
+							<if test="termCd != null and termCd != ''">
+								AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+							</if>
+							<if test='searchValue != null and searchValue != ""'>
+								AND (
+										LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+									OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+									OR LOWER(FN_GET_USER_NM((SELECT USER_ID 
+																						FROM SBJCT_PROF 
+																						WHERE SBJCT_ID = TLCC.SBJCT_ID 
+																						AND PROF_TYCD = 'PROFESSOR' 
+																						AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+									)
+							</if>
+		<![CDATA[
+								  AND TLCCTR.USER_ID = A.USER_ID) LESSON_CNT
+					  FROM TB_LMS_USR A 
+					  JOIN TB_LMS_USER_ACNT B 
+						ON A.USER_ID = B.USER_ID
+					  JOIN TB_LMS_USER_AUTHRT C
+						ON C.USER_ID = A.USER_ID
+					 WHERE A.ORG_ID = #{orgId}
+					   AND B.ACNT_STSCD = 'U'
+						/* AND C.USER_AUTHRT_ID IN ('PFS', 'PROFESSOR', 'TUT', 'ASSISTANT') */
+						AND C.USER_AUTHRT_ID IN ('PFS', 'PROFESSOR')
+		]]>
+					<if test="deptCd != null and deptCd != ''">
+						AND A.DEPT_CD = #{deptCd}
+					</if>
+		<![CDATA[
+				) X
+		]]>
+	</select>
+
+	<select id="listLoginLecturePageing" parameterType="lessonOperateVO" resultType="lessonOperateVO">
+		/*
+			 SQL ID : LessonOperateDAO.listLoginLecturePageing
+			 설  명 :로그인 경과 개설과목 목록
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		<![CDATA[
+			SELECT	 X.LINE_NO
+					, X.CRS_ID					, X.SBJCT_ID				, X.SBJCT_ID			, X.CRS_ID
+					, X.CRS_SMSTR_ID					, X.SMSTRNM
+					, X.ORGNM					, X.SBJCTNM				, X.MAJOR_USER_NM
+					, X.DEPT_CD					, X.DEPTNM
+					, X.STD_CNT					, X.SCORE_EVAL_GBN			, X.SCORE_GRANT_GBN
+					, X.QNA_ANS_CNT				, X.QNA_NO_ANS_CNT			, X.QNA_CNT				, X.LECTURE_COMMENTS
+					, IFNULL(X.SECRET_ANS_CNT,0)			, X.SECRET_NO_ANS_CNT		, X.SECRET_CNT
+					, X.ASMNT_EVAL_CNT			, X.ASMNT_SUBMIT_CNT			, X.ASMNT_NO_SUBMIT_CNT
+					, X.QUIZ_EVAL_CNT			, X.QUIZ_ANS_CNT			, X.QUIZ_NO_ANS_CNT
+					, X.FORUM_EVAL_CNT			, X.FORUM_ANS_CNT			, X.FORUM_NO_ANS_CNT
+					, X.ALTASK_ASMNT_SUBMT_CNT	, X.ALTASK_FORUM_ANS_CNT	, X.ALTASK_EXAM_ANS_CNT	, X.ALTASK_CNT
+					, X.RGTR_ID					, X.FRST_INQ_DTTM				, X.MDFR_ID				, X.MOD_DTTM
+			  FROM ( SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID DESC) AS LINE_NO
+							, TLCC.CRS_ID , TLCC.SBJCT_ID , TLCC.SBJCT_ID, TLCC.CRS_ID
+							, TLTCCR.CRS_SMSTR_ID
+							, (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+							, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+							, CONCAT(TLCC.SBJCTNM, ' ( ', TLCC.DVCLAS_NO, '반 ) ') AS SBJCTNM 
+							, TLCC.DEPT_CD
+							, FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+							, FN_GET_USER_NM((SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y')) AS MAJOR_USER_NM
+							, (SELECT COUNT(1) FROM TB_LMS_ATNDLC_SBJCT A WHERE A.SBJCT_ID = TLCC.SBJCT_ID AND A.ATNDLC_STSCD = 'S' AND A.AUDITYN = 'N') STD_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL
+								WHERE UP_ATCL_ID IN ( SELECT A.ATCL_ID
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID
+														  AND B.BBS_ID = C.BBS_ID
+														  AND B.BBS_ID = 'QNA'
+														  AND B.DELYN = 'N'
+														  AND B.USEYN = 'Y'
+														  AND B.SYS_BSC_PVSNYN = 'Y'
+														  AND A.UP_ATCL_ID IS NULL
+														  AND A.DELYN = 'N'
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE')
+								  AND DELYN = 'N') AS QNA_ANS_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL
+								WHERE UP_ATCL_ID IS NULL
+								  AND SBJCT_ID = TLCC.SBJCT_ID
+								  AND BBS_ID IN (SELECT BBS_ID FROM TB_HOME_BBS_RLTN WHERE RLTN_REF_CD = TLCC.SBJCT_ID)
+								  AND ATCL_ID NOT IN ( SELECT UP_ATCL_ID 
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID 
+														  AND B.BBS_ID = C.BBS_ID 
+														  AND B.BBS_ID = 'QNA'
+														  AND B.DELYN = 'N'
+														  AND B.USEYN = 'Y'
+														  AND B.SYS_BSC_PVSNYN = 'Y'
+														  AND A.UP_ATCL_ID IS NOT NULL
+														  AND A.DELYN = 'N'
+		]]>
+												<choose>
+													<when test="progressCd == '3' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -3 DAY) ]]>
+													</when>
+													<when test="progressCd == '7' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</when>
+													<when test="progressCd == '10' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -10 DAY) ]]>
+													</when>
+													<when test="progressCd == '30' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -30 DAY) ]]>
+													</when>
+													<otherwise>
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</otherwise>
+												</choose>
+		<![CDATA[
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE')
+								  AND DELYN = 'N') AS QNA_NO_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+								WHERE A.BBS_ID = B.BBS_ID
+								  AND B.BBS_ID = C.BBS_ID
+								  AND B.BBS_ID = 'QNA'
+								  AND B.DELYN = 'N'
+								  AND B.USEYN = 'Y'
+								  AND B.SYS_BSC_PVSNYN = 'Y'
+								  AND A.UP_ATCL_ID IS NULL
+								  AND A.DELYN = 'N'
+								  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+								  AND C.CONTS_TYCD = 'COURSE') AS QNA_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+								WHERE A.BBS_ID = B.BBS_ID
+								  AND B.BBS_ID = C.BBS_ID
+								  AND B.BBS_ID IN ('FREE', 'PHOTO','TEAM')
+								  AND B.DELYN = 'N'
+								  AND B.USEYN = 'Y'
+								  AND B.SYS_BSC_PVSNYN = 'Y'
+								  AND A.UP_ATCL_ID IS NULL
+								  AND A.DELYN = 'N'
+								  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+								  AND C.CONTS_TYCD = 'COURSE') AS LECTURE_COMMENTS
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL
+								WHERE UP_ATCL_ID IN ( SELECT A.ATCL_ID
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID
+														  AND B.BBS_ID = C.BBS_ID
+														  AND B.BBS_ID = 'SECRET'
+														  AND B.DELYN = 'N'
+														  AND B.USEYN = 'Y'
+														  AND B.SYS_BSC_PVSNYN = 'Y'
+														  AND A.UP_ATCL_ID IS NULL
+														  AND A.DELYN = 'N'
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE')
+								  AND DELYN = 'N') AS SECRET_ANS_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL
+								WHERE UP_ATCL_ID IS NULL
+								  AND SBJCT_ID = TLCC.SBJCT_ID
+								  AND BBS_ID IN (SELECT BBS_ID FROM TB_HOME_BBS_RLTN WHERE RLTN_REF_CD = TLCC.SBJCT_ID AND CONTS_TYCD = 'COURSE')
+								  AND ATCL_ID NOT IN ( SELECT UP_ATCL_ID
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID
+														  AND B.BBS_ID = C.BBS_ID
+														  AND B.BBS_ID = 'SECRET'
+														  AND B.DELYN = 'N'
+														  AND B.USEYN = 'Y'
+														  AND B.SYS_BSC_PVSNYN = 'Y'
+														  AND A.UP_ATCL_ID IS NOT NULL
+														  AND A.DELYN = 'N'
+		]]>
+												<choose>
+													<when test="progressCd == '3' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -3 DAY) ]]>
+													</when>
+													<when test="progressCd == '7' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</when>
+													<when test="progressCd == '10' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -10 DAY) ]]>
+													</when>
+													<when test="progressCd == '30' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -30 DAY) ]]>
+													</when>
+													<otherwise>
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</otherwise>
+												</choose>
+		<![CDATA[
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE')
+								  AND DELYN = 'N') AS SECRET_NO_ANS_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+								WHERE A.BBS_ID = B.BBS_ID
+								  AND B.BBS_ID = C.BBS_ID
+								  AND B.BBS_ID = 'SECRET'
+								  AND B.DELYN = 'N'
+								  AND B.USEYN = 'Y'
+								  AND B.SYS_BSC_PVSNYN = 'Y'
+								  AND A.UP_ATCL_ID IS NULL
+								  AND A.DELYN = 'N' 
+								  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+								  AND C.CONTS_TYCD = 'COURSE') AS SECRET_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+								  AND J.EVLYN = 'Y'
+								  AND A.DELYN = 'N'
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_EVAL_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+								  AND A.DELYN = 'N' 
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_SUBMIT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'NO' OR J.SBMSN_STSCD IS NULL)
+								  AND A.DELYN = 'N'
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+									<choose>
+										<when test="progressCd == '3' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '7' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '10' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '30' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<otherwise>
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</otherwise>
+									</choose>
+		<![CDATA[
+								  /* EXT_SEND_ACPT_YN 
+								  AND A.EXT_SEND_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY)*/) AS ASMNT_NO_SUBMIT_CNT
+							/* , (SELECT COUNT(1) FROM TB_LMS_ASMT A WHERE A.DELYN = 'N' AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_CNT */
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID 
+								  AND S.SDTTM IS NOT NULL 
+								  AND S.EDTTM IS NOT NULL 
+								  AND S.EVLYN = 'Y' 
+								  AND A.EXAM_CTGRCD = 'QUIZ' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_EVAL_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID 
+								  AND S.SDTTM IS NOT NULL 
+								  AND S.EDTTM IS NOT NULL 
+								  AND A.EXAM_CTGRCD = 'QUIZ' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID 
+								  AND S.EDTTM IS NULL 
+								  AND A.EXAM_CTGRCD = 'QUIZ' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+								<choose>
+										<when test="progressCd == '3' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '7' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '10' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '30' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<otherwise>
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</otherwise>
+									</choose>
+		<![CDATA[
+									 ) AS QUIZ_NO_ANS_CNT
+							/* , (SELECT COUNT(1) FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B WHERE A.EXAM_CTGRCD = 'QUIZ' AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' AND A.EXAM_ID = B.EXAM_ID AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_CNT */
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B 
+								WHERE J.DSCS_ID = A.DSCS_ID 
+								  AND J.EVLYN = 'Y' 
+								  AND EXISTS ( SELECT 1 
+												 FROM TB_LMS_DSCS_ATCL 
+												WHERE DSCS_ID = A.DSCS_ID 
+												  AND STD_ID = J.STD_ID 
+												  AND DELYN = 'N' )
+								  AND A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_EVAL_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B
+								WHERE J.DSCS_ID = A.DSCS_ID 
+								  AND EXISTS(SELECT 1 
+											   FROM TB_LMS_DSCS_ATCL 
+											  WHERE DSCS_ID = A.DSCS_ID 
+												AND STD_ID = J.STD_ID 
+												AND DELYN = 'N') 
+								  AND A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B
+								WHERE J.DSCS_ID = A.DSCS_ID 
+								  AND NOT EXISTS(SELECT 1 
+											   FROM TB_LMS_DSCS_ATCL 
+											  WHERE DSCS_ID = A.DSCS_ID 
+												AND STD_ID = J.STD_ID 
+												AND DELYN = 'N') 
+								  AND A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+								<choose>
+									<when test="progressCd == '3'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -3 DAY) ]]>
+									</when>
+									<when test="progressCd == '7'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+									</when>
+									<when test="progressCd == '10'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -10 DAY) ]]>
+									</when>
+									<when test="progressCd == '30'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -30 DAY) ]]>
+									</when>
+									<otherwise>
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+									</otherwise>
+								</choose>
+		<![CDATA[
+								  /*PRD_AFTR_WRTYN
+								  AND A.EXTD_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY)*/) AS FORUM_NO_ANS_CNT
+							/* , (SELECT COUNT(1) FROM TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B WHERE A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_CNT */
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A, TB_LMS_EXAM_BSC C
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND J.ASMT_ID = C.EXAM_SBST_REF_ID
+								  AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+								  AND A.DELYN = 'N' 
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_ASMNT_SUBMT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B, TB_LMS_EXAM_BSC C
+								WHERE J.DSCS_ID = A.DSCS_ID
+								  AND J.DSCS_ID = C.EXAM_SBST_REF_ID
+								  AND EXISTS(SELECT 1 
+											   FROM TB_LMS_DSCS_ATCL 
+											  WHERE DSCS_ID = A.DSCS_ID 
+												AND STD_ID = J.STD_ID 
+												AND DELYN = 'N') 
+								  AND A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_FORUM_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID
+								  AND S.EXAM_ID = A.EXAM_SBST_REF_ID 
+								  AND S.SDTTM IS NOT NULL 
+								  AND S.EDTTM IS NOT NULL 
+								  AND A.EXAM_CTGRCD = 'EXAM' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_EXAM_ANS_CNT
+							, (SELECT COUNT(1) 
+							     FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+							    WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.DELYN = 'N' 
+								  AND A.EXAM_CTGRCD = 'EXAM'
+							      AND ( A.TKEXAM_TYCD = 'M' OR A.TKEXAM_TYCD = 'L' )
+							      AND ( A.EXAM_SBST_REF_ID IS NOT NULL OR A.EXAM_SBST_REF_ID != '' )
+							      AND B.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_CNT
+							, TLCCSG.SCORE_EVAL_GBN
+							, TLCCSG.SCORE_GRANT_GBN
+							, TLCC.RGTR_ID , TLCC.FRST_INQ_DTTM , TLCC.MDFR_ID , TLCC.MOD_DTTM
+					  FROM SBJCT_PROF TLCCTR
+					 INNER JOIN TB_LMS_SBJCT TLCC
+						ON TLCCTR.SBJCT_ID = TLCC.SBJCT_ID 
+					   AND TLCC.DELYN = 'N' 
+					   AND TLCC.USEYN = 'Y' 
+					   AND TLCCTR.USER_ID = #{userId}
+					  LEFT OUTER JOIN TB_LMS_CRE_CRS_SCORE_GBN TLCCSG 
+						ON TLCCSG.SBJCT_ID = TLCC.SBJCT_ID
+					 INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+						ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+	]]>
+				<!-- 
+				<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+				<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+				<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+				<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+				<if test='searchValue != null and searchValue != ""'>
+					AND (
+							LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(FN_GET_USER_NM((SELECT USER_ID 
+																			FROM SBJCT_PROF 
+																			WHERE SBJCT_ID = TLCC.SBJCT_ID 
+																			AND PROF_TYCD = 'PROFESSOR' 
+																			AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					)
+				</if>
+				ORDER BY TLCC.SBJCT_ID
+				) X
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="countLoginLecture" parameterType="lessonOperateVO" resultType="Integer">
+		/*
+			 SQL ID : LessonOperateDAO.countLoginLecture
+			 설  명 : 로그인 경과 개설과목 카운트
+		*/
+		<![CDATA[
+			SELECT COUNT(*)
+			  FROM ( SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID DESC) AS LINE_NO
+							, TLCC.CRS_ID , TLCC.SBJCT_ID , TLCC.SBJCT_ID, TLCC.CRS_ID
+							, TLTCCR.CRS_SMSTR_ID
+							, (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+							, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+							, CONCAT(TLCC.SBJCTNM, ' ( ', TLCC.DVCLAS_NO, '반 ) ') AS SBJCTNM 
+							, TLCC.SBJCT_ENNM
+							, TLCC.DEPT_CD
+							, FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+							, (SELECT COUNT(1) FROM TB_LMS_ATNDLC_SBJCT A WHERE A.SBJCT_ID = TLCC.SBJCT_ID AND A.ATNDLC_STSCD = 'S' AND A.AUDITYN = 'N') STD_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL
+								WHERE UP_ATCL_ID IN ( SELECT A.ATCL_ID
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID
+														  AND B.BBS_ID = C.BBS_ID
+														  AND B.BBS_ID = 'QNA'
+														  AND B.DELYN = 'N'
+														  AND B.USEYN = 'Y'
+														  AND B.SYS_BSC_PVSNYN = 'Y'
+														  AND A.UP_ATCL_ID IS NULL
+														  AND A.DELYN = 'N'
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE')
+								  AND DELYN = 'N') AS QNA_ANS_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL
+								WHERE UP_ATCL_ID IS NULL
+								  AND SBJCT_ID = TLCC.SBJCT_ID
+								  AND BBS_ID IN (SELECT BBS_ID FROM TB_HOME_BBS_RLTN WHERE RLTN_REF_CD = TLCC.SBJCT_ID AND CONTS_TYCD = 'COURSE')
+								  AND ATCL_ID NOT IN ( SELECT UP_ATCL_ID 
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID 
+														  AND B.BBS_ID = C.BBS_ID 
+														  AND B.BBS_ID = 'QNA'
+														  AND B.DELYN = 'N'
+														  AND B.USEYN = 'Y'
+														  AND B.SYS_BSC_PVSNYN = 'Y'
+														  AND A.UP_ATCL_ID IS NOT NULL
+														  AND A.DELYN = 'N'
+		]]>
+												<choose>
+													<when test="progressCd == '3' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -3 DAY) ]]>
+													</when>
+													<when test="progressCd == '7' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</when>
+													<when test="progressCd == '10' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -10 DAY) ]]>
+													</when>
+													<when test="progressCd == '30' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -30 DAY) ]]>
+													</when>
+													<otherwise>
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</otherwise>
+												</choose>
+		<![CDATA[
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE')
+								  AND DELYN = 'N') AS QNA_NO_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+								WHERE A.BBS_ID = B.BBS_ID
+								  AND B.BBS_ID = C.BBS_ID
+								  AND B.BBS_ID = 'QNA'
+								  AND B.DELYN = 'N'
+								  AND B.USEYN = 'Y'
+								  AND B.SYS_BSC_PVSNYN = 'Y'
+								  AND A.UP_ATCL_ID IS NULL
+								  AND A.DELYN = 'N'
+								  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+								  AND C.CONTS_TYCD = 'COURSE') AS QNA_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+								WHERE A.BBS_ID = B.BBS_ID
+								  AND B.BBS_ID = C.BBS_ID
+								  AND B.BBS_ID IN ('FREE', 'PHOTO','TEAM')
+								  AND B.DELYN = 'N'
+								  AND B.USEYN = 'Y'
+								  AND B.SYS_BSC_PVSNYN = 'Y'
+								  AND A.UP_ATCL_ID IS NULL
+								  AND A.DELYN = 'N'
+								  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+								  AND C.CONTS_TYCD = 'COURSE') AS LECTURE_COMMENTS
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL
+								WHERE UP_ATCL_ID IN ( SELECT A.ATCL_ID
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID
+														  AND B.BBS_ID = C.BBS_ID
+														  AND B.BBS_ID = 'SECRET'
+														  AND B.DELYN = 'N'
+														  AND B.USEYN = 'Y'
+														  AND B.SYS_BSC_PVSNYN = 'Y'
+														  AND A.UP_ATCL_ID IS NULL
+														  AND A.DELYN = 'N'
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE')
+								  AND DELYN = 'N') AS SECRET_ANS_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL
+								WHERE UP_ATCL_ID IS NULL
+								  AND SBJCT_ID = TLCC.SBJCT_ID
+								  AND BBS_ID IN (SELECT BBS_ID FROM TB_HOME_BBS_RLTN WHERE RLTN_REF_CD = TLCC.SBJCT_ID AND CONTS_TYCD = 'COURSE')
+								  AND ATCL_ID NOT IN ( SELECT UP_ATCL_ID
+														 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+														WHERE A.BBS_ID = B.BBS_ID
+														  AND B.BBS_ID = C.BBS_ID
+														  AND B.BBS_ID = 'SECRET'
+														  AND B.DELYN = 'N'
+														  AND B.USEYN = 'Y'
+														  AND B.SYS_BSC_PVSNYN = 'Y'
+														  AND A.UP_ATCL_ID IS NOT NULL
+														  AND A.DELYN = 'N'
+		]]>
+												<choose>
+													<when test="progressCd == '3' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -3 DAY) ]]>
+													</when>
+													<when test="progressCd == '7' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</when>
+													<when test="progressCd == '10' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -10 DAY) ]]>
+													</when>
+													<when test="progressCd == '30' ">
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -30 DAY) ]]>
+													</when>
+													<otherwise>
+														<![CDATA[ AND A.FRST_INQ_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+													</otherwise>
+												</choose>
+		<![CDATA[
+														  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+														  AND C.CONTS_TYCD = 'COURSE')
+								  AND DELYN = 'N') AS SECRET_NO_ANS_CNT
+							, (SELECT COUNT(1)
+								 FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B, TB_HOME_BBS_RLTN C
+								WHERE A.BBS_ID = B.BBS_ID
+								  AND B.BBS_ID = C.BBS_ID
+								  AND B.BBS_ID = 'SECRET'
+								  AND B.DELYN = 'N'
+								  AND B.USEYN = 'Y'
+								  AND B.SYS_BSC_PVSNYN = 'Y'
+								  AND A.UP_ATCL_ID IS NULL
+								  AND A.DELYN = 'N' 
+								  AND C.RLTN_REF_CD = TLCC.SBJCT_ID
+								  AND C.CONTS_TYCD = 'COURSE') AS SECRET_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+								  AND J.EVLYN = 'Y'
+								  AND A.DELYN = 'N'
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_EVAL_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+								  AND A.DELYN = 'N' 
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_SUBMIT_CNT   
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND (J.SBMSN_STSCD = 'NO' OR J.SBMSN_STSCD IS NULL)
+								  AND A.DELYN = 'N'
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+									<choose>
+										<when test="progressCd == '3' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '7' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '10' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '30' ">
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<otherwise>
+											<![CDATA[ AND A.SEND_END_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</otherwise>
+									</choose>
+		<![CDATA[
+								  /* EXT_SEND_ACPT_YN 
+								  AND A.EXT_SEND_DTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY)*/) AS ASMNT_NO_SUBMIT_CNT
+							/* , (SELECT COUNT(1) FROM TB_LMS_ASMT A WHERE A.DELYN = 'N' AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_CNT */
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID 
+								  AND S.SDTTM IS NOT NULL 
+								  AND S.EDTTM IS NOT NULL 
+								  AND S.EVLYN = 'Y' 
+								  AND A.EXAM_CTGRCD = 'QUIZ' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_EVAL_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID 
+								  AND S.SDTTM IS NOT NULL 
+								  AND S.EDTTM IS NOT NULL 
+								  AND A.EXAM_CTGRCD = 'QUIZ' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID 
+								  AND S.EDTTM IS NULL 
+								  AND A.EXAM_CTGRCD = 'QUIZ' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+								<choose>
+										<when test="progressCd == '3' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '7' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '10' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<when test="progressCd == '30' ">
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</when>
+										<otherwise>
+											<![CDATA[ AND A.EXAM_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+										</otherwise>
+									</choose>
+		<![CDATA[
+									 ) AS QUIZ_NO_ANS_CNT
+							/* , (SELECT COUNT(1) FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B WHERE A.EXAM_CTGRCD = 'QUIZ' AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' AND A.EXAM_ID = B.EXAM_ID AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_CNT */
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B 
+								WHERE J.DSCS_ID = A.DSCS_ID 
+								  AND J.EVLYN = 'Y' 
+								  AND EXISTS ( SELECT 1 
+												 FROM TB_LMS_DSCS_ATCL 
+												WHERE DSCS_ID = A.DSCS_ID 
+												  AND STD_ID = J.STD_ID 
+												  AND DELYN = 'N' )
+								  AND A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_EVAL_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B
+								WHERE J.DSCS_ID = A.DSCS_ID 
+								  AND EXISTS(SELECT 1 
+											   FROM TB_LMS_DSCS_ATCL 
+											  WHERE DSCS_ID = A.DSCS_ID 
+												AND STD_ID = J.STD_ID 
+												AND DELYN = 'N') 
+								  AND A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B
+								WHERE J.DSCS_ID = A.DSCS_ID 
+								  AND NOT EXISTS(SELECT 1 
+											   FROM TB_LMS_DSCS_ATCL 
+											  WHERE DSCS_ID = A.DSCS_ID 
+												AND STD_ID = J.STD_ID 
+												AND DELYN = 'N') 
+								  AND A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID
+		]]>
+								<choose>
+									<when test="progressCd == '3'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -3 DAY) ]]>
+									</when>
+									<when test="progressCd == '7'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+									</when>
+									<when test="progressCd == '10'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -10 DAY) ]]>
+									</when>
+									<when test="progressCd == '30'">
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -30 DAY) ]]>
+									</when>
+									<otherwise>
+										<![CDATA[ AND A.DSCS_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY) ]]>
+									</otherwise>
+								</choose>
+		<![CDATA[
+								  /*PRD_AFTR_WRTYN
+								  AND A.EXTD_EDTTM < DATE_ADD(CURDATE(), INTERVAL -7 DAY)*/) AS FORUM_NO_ANS_CNT
+							/* , (SELECT COUNT(1) FROM TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B WHERE A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_CNT */
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A, TB_LMS_EXAM_BSC C
+								WHERE J.ASMT_ID = A.ASMT_ID 
+								  AND J.ASMT_ID = C.EXAM_SBST_REF_ID
+								  AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+								  AND A.DELYN = 'N' 
+								  AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_ASMNT_SUBMT_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B, TB_LMS_EXAM_BSC C
+								WHERE J.DSCS_ID = A.DSCS_ID
+								  AND J.DSCS_ID = C.EXAM_SBST_REF_ID
+								  AND EXISTS(SELECT 1 
+											   FROM TB_LMS_DSCS_ATCL 
+											  WHERE DSCS_ID = A.DSCS_ID 
+												AND STD_ID = J.STD_ID 
+												AND DELYN = 'N') 
+								  AND A.DSCS_ID = B.DSCS_ID 
+								  AND A.DELYN = 'N' 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_FORUM_ANS_CNT
+							, (SELECT COUNT(1) 
+								 FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+								WHERE S.EXAM_ID = A.EXAM_ID
+								  AND S.EXAM_ID = A.EXAM_SBST_REF_ID 
+								  AND S.SDTTM IS NOT NULL 
+								  AND S.EDTTM IS NOT NULL 
+								  AND A.EXAM_CTGRCD = 'EXAM' 
+								  AND A.DELYN = 'N' 
+								  AND A.USEYN = 'Y' 
+								  AND A.EXAM_ID = B.EXAM_ID 
+								  AND B.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_EXAM_ANS_CNT
+							, (SELECT COUNT(1) 
+							     FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+							    WHERE A.EXAM_ID = B.EXAM_ID 
+								  AND A.DELYN = 'N' 
+								  AND A.EXAM_CTGRCD = 'EXAM'
+							      AND ( A.TKEXAM_TYCD = 'M' OR A.TKEXAM_TYCD = 'L' )
+							      AND ( A.EXAM_SBST_REF_ID IS NOT NULL OR A.EXAM_SBST_REF_ID != '' )
+							      AND B.SBJCT_ID = TLCC.SBJCT_ID) AS ALTASK_CNT
+							, TLCCSG.SCORE_EVAL_GBN
+							, TLCCSG.SCORE_GRANT_GBN
+							, TLCC.RGTR_ID , TLCC.FRST_INQ_DTTM , TLCC.MDFR_ID , TLCC.MOD_DTTM
+					  FROM SBJCT_PROF TLCCTR
+					 INNER JOIN TB_LMS_SBJCT TLCC
+						ON TLCCTR.SBJCT_ID = TLCC.SBJCT_ID 
+					   AND TLCC.DELYN = 'N' 
+					   AND TLCC.USEYN = 'Y' 
+					   AND TLCCTR.USER_ID = #{userId}
+					  LEFT OUTER JOIN TB_LMS_CRE_CRS_SCORE_GBN TLCCSG 
+						ON TLCCSG.SBJCT_ID = TLCC.SBJCT_ID
+					 INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+						ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+	]]>
+				<!-- 
+				년도<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+				학기<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+				<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+				<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+				<if test='searchValue != null and searchValue != ""'>
+					AND (
+							LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(FN_GET_USER_NM((SELECT USER_ID 
+																			FROM SBJCT_PROF 
+																			WHERE SBJCT_ID = TLCC.SBJCT_ID 
+																			AND PROF_TYCD = 'PROFESSOR' 
+																			AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					)
+				</if>
+				ORDER BY TLCC.SBJCT_ID
+				) X
+	</select>
+
+	<select id="listLoginAsmntPageing" parameterType="lessonOperateVO" resultType="lessonOperateVO">
+		/*
+			 SQL ID : LessonOperateDAO.listLoginAsmntPageing
+			 설  명 : 학습요소 과제
+		*/
+		SELECT	X.LINE_NO
+				, X.CRS_ID				, X.SBJCT_ID		, X.SBJCT_ID		, X.CRS_ID
+				, X.CRS_SMSTR_ID				, X.SMSTRNM			, X.ORGNM			, X.SBJCTNM
+				, X.DEPT_CD				, X.DEPTNM			, X.ASMT_TTL		
+				, X.SEND_START_DTTM		, X.SEND_END_DTTM	, X.EXT_SEND_DTTM
+				, X.ASMNT_EVAL_CNT		, X.ASMNT_CNT
+		  FROM (SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID) AS LINE_NO
+	                   , TLCC.CRS_ID , TLCC.SBJCT_ID , TLCC.SBJCT_ID , TLCC.CRS_ID
+	                   , TLTCCR.CRS_SMSTR_ID
+	                   , (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+	                   , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+	                   , CONCAT(TLCC.SBJCTNM,' (', TLCC.DVCLAS_NO,')') AS SBJCTNM
+	                   , TLCC.DEPT_CD , FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+	                   , TLA.ASMT_TTL
+	                   , TLA.SEND_START_DTTM
+	                   , TLA.SEND_END_DTTM
+	                   , CASE WHEN TLA.EXT_SEND_ACPT_YN = 'Y'
+	                          THEN TLA.EXT_SEND_DTTM
+	                          ELSE '-'
+	                     END AS EXT_SEND_DTTM
+	                   , (SELECT COUNT(1) 
+	                        FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+	                       WHERE J.ASMT_ID = A.ASMT_ID 
+	                         AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+	                         AND J.EVLYN = 'Y'
+	                         AND A.DELYN = 'N'
+	                         AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_EVAL_CNT
+	                   , (SELECT COUNT(1) 
+	                        FROM TB_LMS_ASMT A 
+	                       WHERE A.DELYN = 'N' 
+	                         AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_CNT
+	              FROM SBJCT_PROF TLCCTR
+	             INNER JOIN TB_LMS_SBJCT TLCC
+	                ON TLCCTR.SBJCT_ID = TLCC.SBJCT_ID 
+	               AND TLCC.DELYN = 'N' 
+	               AND TLCC.USEYN = 'Y' 
+	               AND TLCCTR.USER_ID = #{userId}
+	             INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+	                ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+	             INNER JOIN TB_LMS_ASMNT_CRE_CRS_RLTN TLACCR
+	                ON TLCC.SBJCT_ID = TLACCR.SBJCT_ID
+	               AND TLACCR.DELYN = 'N' 
+	             INNER JOIN TB_LMS_ASMT TLA
+	                ON TLA.ASMT_ID = TLACCR.ASMT_ID 
+	               AND TLACCR.SBJCT_ID = TLCC.SBJCT_ID
+		         <!-- 
+		         <if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+		         <if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				 -->
+		         <if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+		         <if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+		         <if test='searchValue != null and searchValue != ""'>
+		         	AND (
+		         			LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		         		OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		         		OR LOWER(FN_GET_USER_NM((SELECT USER_ID 
+															         		FROM SBJCT_PROF 
+															         		WHERE SBJCT_ID = TLCC.SBJCT_ID 
+															         		AND PROF_TYCD = 'PROFESSOR' 
+															         		AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		         		)
+		         </if>
+	             WHERE 1 = 1 
+	             ORDER BY TLCC.SBJCT_ID
+		) X
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="countLoginAsmnt" parameterType="lessonOperateVO" resultType="Integer">
+		/*
+			 SQL ID : LessonOperateDAO.countLoginAsmnt
+			 설  명 : 학습요소 과제
+		*/
+		SELECT COUNT(*)
+		  FROM (SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID) AS LINE_NO
+	                   , TLCC.CRS_ID , TLCC.SBJCT_ID , TLCC.SBJCT_ID , TLCC.CRS_ID
+	                   , TLTCCR.CRS_SMSTR_ID
+	                   , (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+	                   , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+	                   , CONCAT(TLCC.SBJCTNM,' (', TLCC.DVCLAS_NO,')') AS SBJCTNM
+	                   , TLCC.DEPT_CD , FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+	                   , TLA.ASMT_TTL
+	                   , TLA.SEND_START_DTTM
+	                   , TLA.SEND_END_DTTM
+	                   , CASE WHEN TLA.EXT_SEND_ACPT_YN = 'Y'
+	                          THEN TLA.EXT_SEND_DTTM
+	                          ELSE '-'
+	                     END AS EXT_SEND_DTTM
+	                   , (SELECT COUNT(1) 
+	                        FROM TB_LMS_ASMT_SBMSN J, TB_LMS_ASMT A 
+	                       WHERE J.ASMT_ID = A.ASMT_ID 
+	                         AND (J.SBMSN_STSCD = 'SUBMIT' OR J.SBMSN_STSCD = 'LATE') 
+	                         AND J.EVLYN = 'Y'
+	                         AND A.DELYN = 'N'
+	                         AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_EVAL_CNT
+	                   , (SELECT COUNT(1) 
+	                        FROM TB_LMS_ASMT A 
+	                       WHERE A.DELYN = 'N' 
+	                         AND A.SBJCT_ID = TLCC.SBJCT_ID) AS ASMNT_CNT
+	              FROM SBJCT_PROF TLCCTR
+	             INNER JOIN TB_LMS_SBJCT TLCC
+	                ON TLCCTR.SBJCT_ID = TLCC.SBJCT_ID 
+	               AND TLCC.DELYN = 'N' 
+	               AND TLCC.USEYN = 'Y' 
+	               AND TLCCTR.USER_ID = #{userId}
+	             INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+	                ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+	             INNER JOIN TB_LMS_ASMNT_CRE_CRS_RLTN TLACCR
+	                ON TLCC.SBJCT_ID = TLACCR.SBJCT_ID
+	               AND TLACCR.DELYN = 'N' 
+	             INNER JOIN TB_LMS_ASMT TLA
+	                ON TLA.ASMT_ID = TLACCR.ASMT_ID 
+	               AND TLACCR.SBJCT_ID = TLCC.SBJCT_ID
+		         <!-- 
+		         <if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+		         <if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				 -->
+		         <if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+		         <if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+		         <if test='searchValue != null and searchValue != ""'>
+		         	AND (
+		         			LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		         		OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		         		OR LOWER(FN_GET_USER_NM((SELECT USER_ID
+															         		 FROM SBJCT_PROF 
+															         		 WHERE SBJCT_ID = TLCC.SBJCT_ID 
+															         		 AND PROF_TYCD = 'PROFESSOR' 
+															         		 AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		         		)
+		         </if>
+	             WHERE 1 = 1 
+	             ORDER BY TLCC.SBJCT_ID
+		) X
+	</select>
+
+	<select id="listLoginQuizPageing" parameterType="lessonOperateVO" resultType="lessonOperateVO">
+		/*
+			 SQL ID : LessonOperateDAO.listLoginQuizPageing
+			 설  명 : 학습요소 퀴즈
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT	X.LINE_NO
+				, X.CRS_ID				, X.SBJCT_ID		, X.SBJCT_ID		, X.CRS_ID
+				, X.CRS_SMSTR_ID				, X.SMSTRNM			, X.ORGNM			, X.SBJCTNM
+				, X.DEPT_CD				, X.DEPTNM			, X.EXAM_TTL		
+				, X.EXAM_SDTTM		, X.EXAM_EDTTM	, X.EXT_SEND_DTTM
+				, X.QUIZ_EVAL_CNT		, X.QUIZ_CNT
+		  FROM (SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID) AS LINE_NO
+	                   , TLCC.CRS_ID , TLCC.SBJCT_ID , TLCC.SBJCT_ID , TLCC.CRS_ID
+	                   , TLTCCR.CRS_SMSTR_ID
+	                   , (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+	                   , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+	                   , CONCAT(TLCC.SBJCTNM,' (', TLCC.DVCLAS_NO,')') AS SBJCTNM
+	                   , TLCC.DEPT_CD , FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+	                   , TLA.EXAM_TTL
+                       , TLA.EXAM_SDTTM
+                       , TLA.EXAM_EDTTM
+                       , CASE WHEN TLA.REEXAMYN = 'Y'
+                              THEN TLA.RE_EXAM_END_DTTM
+                              ELSE '-'
+                         END AS EXT_SEND_DTTM
+                       , (SELECT COUNT(1) 
+                            FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+                           WHERE S.EXAM_ID = A.EXAM_ID 
+                        	 AND S.SDTTM IS NOT NULL 
+                        	 AND S.EDTTM IS NOT NULL 
+                        	 AND S.EVLYN = 'Y' 
+                        	 AND A.EXAM_CTGRCD = 'QUIZ' 
+                        	 AND A.DELYN = 'N' 
+                        	 AND A.USEYN = 'Y' 
+                        	 AND A.EXAM_ID = B.EXAM_ID 
+                        	 AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_EVAL_CNT
+                       , (SELECT COUNT(1) 
+                            FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+                           WHERE A.EXAM_CTGRCD = 'QUIZ' 
+                             AND A.DELYN = 'N' 
+		                     AND A.USEYN = 'Y' 
+		                     AND A.EXAM_ID = B.EXAM_ID 
+		                     AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_CNT
+	              FROM SBJCT_PROF TLCCTR
+	             INNER JOIN TB_LMS_SBJCT TLCC
+	                ON TLCCTR.SBJCT_ID = TLCC.SBJCT_ID 
+	               AND TLCC.DELYN = 'N' 
+	               AND TLCC.USEYN = 'Y' 
+	               AND TLCCTR.USER_ID = #{userId}
+	             INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+	                ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+                 INNER JOIN TB_LMS_EXAM_CRE_CRS_RLTN TLACCR
+                    ON TLCC.SBJCT_ID = TLACCR.SBJCT_ID
+                   AND TLACCR.DELYN = 'N'
+                   AND TLACCR.SBJCT_ID != 'LEB'
+                 INNER JOIN TB_LMS_EXAM_BSC TLA
+                    ON TLA.EXAM_ID = TLACCR.EXAM_ID
+                   AND TLA.EXAM_CTGRCD = 'QUIZ'
+                   AND TLA.USEYN = 'Y' 
+                   AND TLACCR.SBJCT_ID = TLCC.SBJCT_ID
+		        <!-- 
+		        <if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+		        <if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+		        <if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+		        <if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+		        <if test='searchValue != null and searchValue != ""'>
+		        	AND (
+		        			LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		        		OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		        		OR LOWER(FN_GET_USER_NM((SELECT USER_ID 
+															        		FROM SBJCT_PROF 
+															        		WHERE SBJCT_ID = TLCC.SBJCT_ID 
+															        		AND PROF_TYCD = 'PROFESSOR' 
+															        		AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		        		)
+		        </if>
+                 WHERE 1 = 1 
+                 ORDER BY TLCC.SBJCT_ID
+		) X
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="countLoginQuiz" parameterType="lessonOperateVO" resultType="Integer">
+		/*
+			 SQL ID : LessonOperateDAO.countLoginQuiz
+			 설  명 : 학습요소 퀴즈
+		*/
+		SELECT COUNT(*)
+		  FROM (SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID) AS LINE_NO
+	                   , TLCC.CRS_ID , TLCC.SBJCT_ID , TLCC.SBJCT_ID , TLCC.CRS_ID
+	                   , TLTCCR.CRS_SMSTR_ID
+	                   , (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+	                   , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+	                   , CONCAT(TLCC.SBJCTNM,' (', TLCC.DVCLAS_NO,')') AS SBJCTNM
+	                   , TLCC.DEPT_CD , FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+	                   , TLA.EXAM_TTL
+                       , TLA.EXAM_SDTTM
+                       , TLA.EXAM_EDTTM
+                       , CASE WHEN TLA.REEXAMYN = 'Y'
+                              THEN TLA.RE_EXAM_END_DTTM
+                              ELSE '-'
+                         END AS EXT_SEND_DTTM
+                       , (SELECT COUNT(1) 
+                            FROM TB_LMS_EXAM_STARE S, TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+                           WHERE S.EXAM_ID = A.EXAM_ID 
+                        	 AND S.SDTTM IS NOT NULL 
+                        	 AND S.EDTTM IS NOT NULL 
+                        	 AND S.EVLYN = 'Y' 
+                        	 AND A.EXAM_CTGRCD = 'QUIZ' 
+                        	 AND A.DELYN = 'N' 
+                        	 AND A.USEYN = 'Y' 
+                        	 AND A.EXAM_ID = B.EXAM_ID 
+                        	 AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_EVAL_CNT
+                       , (SELECT COUNT(1) 
+                            FROM TB_LMS_EXAM_BSC A, TB_LMS_EXAM_CRE_CRS_RLTN B 
+                           WHERE A.EXAM_CTGRCD = 'QUIZ' 
+                             AND A.DELYN = 'N' 
+		                     AND A.USEYN = 'Y' 
+		                     AND A.EXAM_ID = B.EXAM_ID 
+		                     AND B.SBJCT_ID = TLCC.SBJCT_ID) AS QUIZ_CNT
+	              FROM SBJCT_PROF TLCCTR
+	             INNER JOIN TB_LMS_SBJCT TLCC
+	                ON TLCCTR.SBJCT_ID = TLCC.SBJCT_ID 
+	               AND TLCC.DELYN = 'N' 
+	               AND TLCC.USEYN = 'Y' 
+	               AND TLCCTR.USER_ID = #{userId}
+	             INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+	                ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+                 INNER JOIN TB_LMS_EXAM_CRE_CRS_RLTN TLACCR
+                    ON TLCC.SBJCT_ID = TLACCR.SBJCT_ID
+                   AND TLACCR.DELYN = 'N'
+                   AND TLACCR.SBJCT_ID != 'LEB'
+                 INNER JOIN TB_LMS_EXAM_BSC TLA
+                    ON TLA.EXAM_ID = TLACCR.EXAM_ID
+                   AND TLA.EXAM_CTGRCD = 'QUIZ'
+                   AND TLA.USEYN = 'Y' 
+                   AND TLACCR.SBJCT_ID = TLCC.SBJCT_ID
+		        <!-- 
+		        <if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+		        <if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+		        <if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+		        <if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+		        <if test='searchValue != null and searchValue != ""'>
+		        	AND (
+		        			LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		        		OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		        		OR LOWER(FN_GET_USER_NM((SELECT USER_ID
+															        		FROM SBJCT_PROF 
+															        		WHERE SBJCT_ID = TLCC.SBJCT_ID 
+															        		AND PROF_TYCD = 'PROFESSOR' 
+															        		AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		        		)
+		        </if>
+                 WHERE 1 = 1 
+                 ORDER BY TLCC.SBJCT_ID
+		) X
+	</select>
+
+	<select id="listLoginForumPageing" parameterType="lessonOperateVO" resultType="lessonOperateVO">
+		/*
+			 SQL ID : LessonOperateDAO.listLoginForumPageing
+			 설  명 : 학습요소 토론
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT	X.LINE_NO
+				, X.CRS_ID				, X.SBJCT_ID		, X.SBJCT_ID		, X.CRS_ID
+				, X.CRS_SMSTR_ID				, X.SMSTRNM			, X.ORGNM			, X.SBJCTNM
+				, X.DEPT_CD				, X.DEPTNM			, X.DSCS_TTL		
+				, X.DSCS_SDTTM	, X.DSCS_EDTTM	, X.EXTD_EDTTM	
+				, X.FORUM_EVAL_CNT		, X.FORUM_CNT
+		  FROM (SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID) AS LINE_NO
+	                   , TLCC.CRS_ID , TLCC.SBJCT_ID , TLCC.SBJCT_ID , TLCC.CRS_ID
+	                   , TLTCCR.CRS_SMSTR_ID
+	                   , (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+	                   , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+	                   , CONCAT(TLCC.SBJCTNM,' (', TLCC.DVCLAS_NO,')') AS SBJCTNM
+	                   , TLCC.DEPT_CD , FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+                       , TLA.DSCS_TTL
+                       , TLA.DSCS_SDTTM
+                       , TLA.DSCS_EDTTM
+                       , CASE WHEN TLA.PRD_AFTR_WRTYN = 'Y'
+                              THEN TLA.EXTD_EDTTM
+                              ELSE '-'
+                         END AS EXTD_EDTTM
+	                   , (SELECT COUNT(1) 
+	                        FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B 
+	                       WHERE J.DSCS_ID = A.DSCS_ID 
+	                         AND J.EVLYN = 'Y' 
+	                         AND EXISTS (SELECT 1 
+	                                       FROM TB_LMS_DSCS_ATCL 
+	                                      WHERE DSCS_ID = A.DSCS_ID 
+	                                        AND STD_ID = J.STD_ID 
+	                                        AND DELYN = 'N')
+	                         AND A.DSCS_ID = B.DSCS_ID 
+	                         AND A.DELYN = 'N' 
+	                         AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_EVAL_CNT
+	                   , (SELECT COUNT(1)
+	                        FROM TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B 
+	                       WHERE A.DSCS_ID = B.DSCS_ID 
+	                         AND A.DELYN = 'N'
+	                         AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_CNT
+	              FROM SBJCT_PROF TLCCTR
+	             INNER JOIN TB_LMS_SBJCT TLCC
+	                ON TLCCTR.SBJCT_ID = TLCC.SBJCT_ID 
+	               AND TLCC.DELYN = 'N' 
+	               AND TLCC.USEYN = 'Y' 
+	               AND TLCCTR.USER_ID = #{userId}
+                 INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+                    ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+                 INNER JOIN TB_LMS_FORUM_CRE_CRS_RLTN TLACCR
+                    ON TLCC.SBJCT_ID = TLACCR.SBJCT_ID
+                   AND TLACCR.DELYN = 'N'
+                 INNER JOIN TB_LMS_DSCS TLA
+                    ON TLA.DSCS_ID = TLACCR.DSCS_ID
+                   AND TLA.DELYN = 'N' 
+                   AND TLACCR.SBJCT_ID = TLCC.SBJCT_ID
+					<!-- 
+					<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+					<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+					-->
+					<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+					<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+					<if test='searchValue != null and searchValue != ""'>
+						AND (
+								LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							OR LOWER(FN_GET_USER_NM(( SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							)
+					</if>
+                 WHERE 1 = 1 
+                 ORDER BY TLCC.SBJCT_ID
+		) X
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="countLoginForum" parameterType="lessonOperateVO" resultType="Integer">
+		/*
+			 SQL ID : LessonOperateDAO.countLoginForum
+			 설  명 : 학습요소 토론
+		*/
+		SELECT COUNT(*)
+		  FROM (SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID) AS LINE_NO
+	                   , TLCC.CRS_ID , TLCC.SBJCT_ID , TLCC.SBJCT_ID , TLCC.CRS_ID
+	                   , TLTCCR.CRS_SMSTR_ID
+	                   , (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+	                   , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+	                   , CONCAT(TLCC.SBJCTNM,' (', TLCC.DVCLAS_NO,')') AS SBJCTNM
+	                   , TLCC.DEPT_CD , FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+                       , TLA.DSCS_TTL
+                       , TLA.DSCS_SDTTM
+                       , TLA.DSCS_EDTTM
+                       , CASE WHEN TLA.PRD_AFTR_WRTYN = 'Y'
+                              THEN TLA.EXTD_EDTTM
+                              ELSE '-'
+                         END AS EXTD_EDTTM
+	                   , (SELECT COUNT(1) 
+	                        FROM TB_LMS_DSCS_PTCP J, TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B 
+	                       WHERE J.DSCS_ID = A.DSCS_ID 
+	                         AND J.EVLYN = 'Y' 
+	                         AND EXISTS (SELECT 1 
+	                                       FROM TB_LMS_DSCS_ATCL 
+	                                      WHERE DSCS_ID = A.DSCS_ID 
+	                                        AND STD_ID = J.STD_ID 
+	                                        AND DELYN = 'N')
+	                         AND A.DSCS_ID = B.DSCS_ID 
+	                         AND A.DELYN = 'N' 
+	                         AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_EVAL_CNT
+	                   , (SELECT COUNT(1)
+	                        FROM TB_LMS_DSCS A, TB_LMS_FORUM_CRE_CRS_RLTN B 
+	                       WHERE A.DSCS_ID = B.DSCS_ID 
+	                         AND A.DELYN = 'N'
+	                         AND B.SBJCT_ID = TLCC.SBJCT_ID) AS FORUM_CNT
+	              FROM SBJCT_PROF TLCCTR
+	             INNER JOIN TB_LMS_SBJCT TLCC
+	                ON TLCCTR.SBJCT_ID = TLCC.SBJCT_ID 
+	               AND TLCC.DELYN = 'N' 
+	               AND TLCC.USEYN = 'Y' 
+	               AND TLCCTR.USER_ID = #{userId}
+                 INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+                    ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+                 INNER JOIN TB_LMS_FORUM_CRE_CRS_RLTN TLACCR
+                    ON TLCC.SBJCT_ID = TLACCR.SBJCT_ID
+                   AND TLACCR.DELYN = 'N'
+                 INNER JOIN TB_LMS_DSCS TLA
+                    ON TLA.DSCS_ID = TLACCR.DSCS_ID
+                   AND TLA.DELYN = 'N' 
+                   AND TLACCR.SBJCT_ID = TLCC.SBJCT_ID
+					<!-- 
+					<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+					<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+					-->
+					<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+					<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+					<if test='searchValue != null and searchValue != ""'>
+						AND (
+								LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							OR LOWER(FN_GET_USER_NM(( SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							)
+					</if>
+                 WHERE 1 = 1 
+                 ORDER BY TLCC.SBJCT_ID
+		) X
+	</select>
+
+	<select id="listLoginResearchPageing" parameterType="lessonOperateVO" resultType="lessonOperateVO">
+		/*
+			 SQL ID : LessonOperateDAO.listLoginResearchPageing
+			 설  명 : 학습요소 설문
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT	X.LINE_NO
+				, X.CRS_ID				, X.SBJCT_ID		, X.SBJCT_ID		, X.CRS_ID
+				, X.CRS_SMSTR_ID				, X.SMSTRNM			, X.ORGNM			, X.SBJCTNM
+				, X.DEPT_CD				, X.DEPTNM			, X.SRVY_TTL		
+				, X.SRVY_SDTTM	, X.RESCH_END_DTTM	, X.EXTD_EDTTM	
+				, X.RESCH_EVAL_CNT		, X.RESCH_CNT
+		  FROM (SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID) AS LINE_NO
+					   , TLCC.CRS_ID , TLCC.SBJCT_ID , TLCC.SBJCT_ID , TLCC.CRS_ID
+					   , TLTCCR.CRS_SMSTR_ID
+					   , (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+					   , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+					   , CONCAT(TLCC.SBJCTNM,' (', TLCC.DVCLAS_NO,')') AS SBJCTNM
+					   , TLCC.DEPT_CD , FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+					   , TLA.SRVY_TTL
+					   , TLA.SRVY_SDTTM
+					   , TLA.RESCH_END_DTTM
+					   , CASE WHEN TLA.EXTD_PTCPYN = 'Y'
+							  THEN TLA.EXTD_EDTTM
+							  ELSE '-'
+						 END AS EXTD_EDTTM
+					   , (SELECT COUNT(1) 
+							FROM TB_LMS_SRVY_PTCP J, TB_LMS_SRVY A, TB_LMS_RESCH_CRE_CRS_RLTN B 
+						   WHERE J.SRVY_ID = A.SRVY_ID 
+							 AND J.EVLYN = 'Y' 
+							 AND A.SRVY_ID = B.SRVY_ID 
+							 AND A.DELYN = 'N' 
+							 AND B.SBJCT_ID = TLCC.SBJCT_ID) AS RESCH_EVAL_CNT
+					   , (SELECT COUNT(1) 
+							FROM TB_LMS_SRVY A, TB_LMS_RESCH_CRE_CRS_RLTN B 
+						   WHERE A.DELYN = 'N' 
+							 AND A.USEYN = 'Y' 
+							 AND A.SRVY_ID = B.SRVY_ID 
+							 AND B.SBJCT_ID = TLCC.SBJCT_ID) AS RESCH_CNT
+				  FROM SBJCT_PROF TLCCTR
+				 INNER JOIN TB_LMS_SBJCT TLCC
+					ON TLCCTR.SBJCT_ID = TLCC.SBJCT_ID 
+				   AND TLCC.DELYN = 'N' 
+				   AND TLCC.USEYN = 'Y' 
+				   AND TLCCTR.USER_ID = #{userId}
+				 INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+					ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+				 INNER JOIN TB_LMS_RESCH_CRE_CRS_RLTN TLACCR
+					ON TLCC.SBJCT_ID = TLACCR.SBJCT_ID
+				   AND TLACCR.DELYN = 'N'
+				 INNER JOIN TB_LMS_SRVY TLA
+					ON TLA.SRVY_ID = TLACCR.SRVY_ID
+				   AND TLA.USEYN = 'Y'
+				   AND TLA.DELYN = 'N' 
+				   AND TLACCR.SBJCT_ID = TLCC.SBJCT_ID
+				<!-- 
+				<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+				<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+				<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+				<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+				<if test='searchValue != null and searchValue != ""'>
+					AND (
+							LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(FN_GET_USER_NM(( SELECT USER_ID FROM SBJCT_PROF WHERE SBJCT_ID = TLCC.SBJCT_ID AND PROF_TYCD = 'PROFESSOR' AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						)
+				</if>
+				 WHERE 1 = 1 
+				 ORDER BY TLCC.SBJCT_ID
+		) X
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="countLoginResearch" parameterType="lessonOperateVO" resultType="Integer">
+		/*
+			 SQL ID : LessonOperateDAO.countLoginResearch
+			 설  명 : 학습요소 설문
+		*/
+		SELECT COUNT(*)
+		  FROM (SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID) AS LINE_NO
+					   , TLCC.CRS_ID , TLCC.SBJCT_ID , TLCC.SBJCT_ID , TLCC.CRS_ID
+					   , TLTCCR.CRS_SMSTR_ID
+					   , (SELECT SMSTRNM FROM CRS_SMSTR WHERE CRS_SMSTR_ID = TLTCCR.CRS_SMSTR_ID) AS SMSTRNM
+					   , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = #{orgId}) AS ORGNM
+					   , CONCAT(TLCC.SBJCTNM,' (', TLCC.DVCLAS_NO,')') AS SBJCTNM
+					   , TLCC.DEPT_CD , FN_GET_DEPT_NM(#{orgId}, TLCC.DEPT_CD) AS DEPTNM
+					   , TLA.SRVY_TTL
+					   , TLA.SRVY_SDTTM
+					   , TLA.RESCH_END_DTTM
+					   , CASE WHEN TLA.EXTD_PTCPYN = 'Y'
+							  THEN TLA.EXTD_EDTTM
+							  ELSE '-'
+						 END AS EXTD_EDTTM
+					   , (SELECT COUNT(1) 
+							FROM TB_LMS_SRVY_PTCP J, TB_LMS_SRVY A, TB_LMS_RESCH_CRE_CRS_RLTN B 
+						   WHERE J.SRVY_ID = A.SRVY_ID 
+							 AND J.EVLYN = 'Y' 
+							 AND A.SRVY_ID = B.SRVY_ID 
+							 AND A.DELYN = 'N' 
+							 AND B.SBJCT_ID = TLCC.SBJCT_ID) AS RESCH_EVAL_CNT
+					   , (SELECT COUNT(1) 
+							FROM TB_LMS_SRVY A, TB_LMS_RESCH_CRE_CRS_RLTN B 
+						   WHERE A.DELYN = 'N' 
+							 AND A.USEYN = 'Y' 
+							 AND A.SRVY_ID = B.SRVY_ID 
+							 AND B.SBJCT_ID = TLCC.SBJCT_ID) AS RESCH_CNT
+				  FROM SBJCT_PROF TLCCTR
+				 INNER JOIN TB_LMS_SBJCT TLCC
+					ON TLCCTR.SBJCT_ID = TLCC.SBJCT_ID 
+				   AND TLCC.DELYN = 'N' 
+				   AND TLCC.USEYN = 'Y' 
+				   AND TLCCTR.USER_ID = #{userId}
+				 INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR
+					ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+				 INNER JOIN TB_LMS_RESCH_CRE_CRS_RLTN TLACCR
+					ON TLCC.SBJCT_ID = TLACCR.SBJCT_ID
+				   AND TLACCR.DELYN = 'N'
+				 INNER JOIN TB_LMS_SRVY TLA
+					ON TLA.SRVY_ID = TLACCR.SRVY_ID
+				   AND TLA.USEYN = 'Y'
+				   AND TLA.DELYN = 'N' 
+				   AND TLACCR.SBJCT_ID = TLCC.SBJCT_ID
+				<!-- 
+				<if test="creYear != null and creYear != ''">AND TLCC.SBJCT_ID = #{creYear}</if>
+				<if test="creTerm != null and creTerm != ''">AND TLCC.CRS_ID = #{creTerm}</if> 
+				-->
+				<if test="termCd != null and termCd != ''">AND TLTCCR.CRS_SMSTR_ID = #{termCd}</if>
+				<if test="deptCd != null and deptCd != ''">AND TLCC.DEPT_CD = #{deptCd}</if>
+				<if test='searchValue != null and searchValue != ""'>
+					AND (
+							LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(TLCC.SBJCT_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						OR LOWER(FN_GET_USER_NM((SELECT USER_ID
+						                                                    FROM SBJCT_PROF 
+						                                                    WHERE SBJCT_ID = TLCC.SBJCT_ID 
+						                                                    AND PROF_TYCD = 'PROFESSOR' 
+						                                                    AND RPRSYN = 'Y'))) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						)
+				</if>
+				 WHERE 1 = 1 
+				 ORDER BY TLCC.SBJCT_ID
+		) X
+	</select>
+	
+</mapper>

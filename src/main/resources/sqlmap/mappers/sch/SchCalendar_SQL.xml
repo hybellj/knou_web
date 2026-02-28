@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.sch.dao.SchCalendarDAO">
+	
+	<select id="listCalendar" parameterType="schCalendarVO" resultType="schCalendarVO">
+		/*
+			SQL ID : SchCalendarDAO.listCalendar
+			설 명 : 캘린더 정보 조회
+		*/
+		WITH COLORS AS (
+			SELECT 1 AS ROWNUM , '#D0DBF2' AS BG_COLOR UNION ALL
+			SELECT 2 AS ROWNUM , '#D4BFF5' AS BG_COLOR UNION ALL
+			SELECT 3 AS ROWNUM , '#FAC5D4' AS BG_COLOR UNION ALL
+			SELECT 4 AS ROWNUM , '#CEF5EE' AS BG_COLOR UNION ALL
+			SELECT 5 AS ROWNUM , '#F0F7C8' AS BG_COLOR UNION ALL
+			SELECT 6 AS ROWNUM , '#B3E0E8' AS BG_COLOR UNION ALL
+			SELECT 7 AS ROWNUM , '#F5DDB0' AS BG_COLOR UNION ALL
+			SELECT 8 AS ROWNUM , '#C9ADAD' AS BG_COLOR UNION ALL
+			SELECT 9 AS ROWNUM , '#D2D9C1' AS BG_COLOR UNION ALL
+			SELECT 10 AS ROWNUM , '#E0DECC' AS BG_COLOR UNION ALL
+			SELECT 11 AS ROWNUM , '#F2EAA2' AS BG_COLOR UNION ALL
+			SELECT 12 AS ROWNUM , '#BAE2F7' AS BG_COLOR UNION ALL
+			SELECT 13 AS ROWNUM , '#B8B59A' AS BG_COLOR UNION ALL
+			SELECT 14 AS ROWNUM , '#C1D9BF' AS BG_COLOR UNION ALL
+			SELECT 15 AS ROWNUM , '#D9D3A5' AS BG_COLOR UNION ALL
+			SELECT 16 AS ROWNUM , '#C7EDED' AS BG_COLOR UNION ALL
+			SELECT 17 AS ROWNUM , '#B2D9B0' AS BG_COLOR UNION ALL
+			SELECT 18 AS ROWNUM , '#D2D6B8' AS BG_COLOR UNION ALL
+			SELECT 19 AS ROWNUM , '#FFCBCB' AS BG_COLOR UNION ALL
+			SELECT 20 AS ROWNUM , '#E0C5D4' AS BG_COLOR    
+		)
+		, CALENDAR_INFO AS (
+			SELECT ROW_NUMBER() OVER(ORDER BY ODR, NAME) AS ROWNUM
+					, CALENDAR_ID
+					, NAME
+					, DVCLAS_NO
+			FROM VW_CALENDAR_INFO
+			WHERE ( USER_TYPES = 'ALL'
+					<foreach collection="userTypes" item="item" index="index" separator="OR" open="OR" close="">
+						USER_TYPES LIKE '%' || #{item} || '%'
+					</foreach>
+				)
+			AND ( USER_ID = #{userId} OR CALENDAR_ID IN ('course', 'personal') )
+		)
+		SELECT A.CALENDAR_ID
+			 , A.NAME
+		     , NVL(B.BG_COLOR, '#' || HEX(FLOOR(16 + RAND() * (255 - 16))) || HEX(FLOOR(16 + RAND() * (255 - 16))) || HEX(FLOOR(16 + RAND() * (255 - 16))) ) AS BG_COLOR
+		     , A.DVCLAS_NO
+		FROM CALENDAR_INFO A
+		LEFT JOIN COLORS B
+		ON A.ROWNUM = B.ROWNUM
+	</select>
+
+	<select id="listSchedule" parameterType="schCalendarVO" resultType="schCalendarVO">
+		/*
+		 SQL ID : SchDAO.listSchedule
+		 설  명 : 일정 조회
+		*/
+		<if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
+			<include refid="CommonSQL.pagePrefix"/>
+		</if>
+		WITH M2 AS (
+			/* 학사일정*/
+			SELECT SYSJOB_SCHDL_TYCD			AS CALENDAR_ID
+					, ACAD_SCH_SN			AS SCHEDULE_ID
+					, '[' || (CASE UNIV_CD WHEN 'A' THEN '공통' WHEN 'C' THEN '대학' WHEN 'G' THEN '대학원' ELSE '' END) || ']' AS UNIV_CD
+					, CALENDAR_REF_CD		AS SCHEDULE_GUBUN
+					, '[' || (CASE WHEN SYSJOB_SCHDL_TYCD = 'course' THEN '과목' ELSE '개인' END) || ']' AS PREFIX
+					, ACAD_SCH_NM			AS TTL
+					, SCH_CNTS				AS CONTENT
+					, SYSJOB_SCHDL_SYMD			AS SYMD
+					, SYSJOB_SCHDL_EYMD			AS EYMD
+			FROM TB_HOME_ACAD_SCH
+			WHERE ORG_ID = #{orgId}
+			AND USEYN = 'Y'
+			<if test="termCd != null and termCd != ''">
+				AND (
+					SYSJOB_SCHDL_TYCD = 'personal'
+					<choose>
+						<when test="uniCd != null and uniCd != ''">
+							OR CALENDAR_REF_CD IN (SELECT AA.SBJCT_ID FROM TB_LMS_TERM_CRE_CRS_RLTN AS AA JOIN TB_LMS_SBJCT AS BB ON AA.SBJCT_ID = BB.SBJCT_ID AND BB.DELYN = 'N' WHERE AA.CRS_SMSTR_ID = #{termCd} AND BB.UNIV_CD = #{uniCd})
+						</when>
+						<otherwise>
+							OR CALENDAR_REF_CD IN (SELECT SBJCT_ID FROM TB_LMS_TERM_CRE_CRS_RLTN WHERE CRS_SMSTR_ID = #{termCd})
+						</otherwise>
+					</choose>
+				)
+			</if>
+		)
+		, SCHEDULE_INFO AS ( 
+			SELECT CASE WHEN M2.CALENDAR_ID IN ('course', 'personal', 'schedule') THEN 'ALL' WHEN NVL((SELECT 'Y' FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = #{userId} AND ROWNUM = 1), 'N') = 'Y' THEN 'STUDENT' ELSE 'PROFESSOR' END AS USER_TYPES
+					, #{userId} AS USER_ID
+					, M2.CALENDAR_ID
+					, M2.SCHEDULE_ID
+					, M2.UNIV_CD
+					, M2.SCHEDULE_GUBUN
+					, M2.PREFIX
+					, M2.TTL
+					, M2.CONTENT
+					, M2.SYMD
+					, M2.EYMD
+					, CASE WHEN M2.CALENDAR_ID IN ('course', 'personal', 'schedule') THEN '0' ELSE CASE (SELECT SBJCT_TYCD FROM CRS WHERE CRS_ID = (SELECT CRS_ID FROM TB_LMS_SBJCT WHERE SBJCT_ID = M2.CALENDAR_ID)) WHEN 'UN	I' THEN '1' WHEN 'CO' THEN '2' ELSE '3' END END AS ODR
+					, CASE M2.CALENDAR_ID WHEN 'course' THEN '과목일정' WHEN 'personal' THEN '개인일정' WHEN 'schedule' THEN '업무일정' ELSE (SELECT SBJCTNM FROM TB_LMS_SBJCT WHERE SBJCT_ID = M2.CALENDAR_ID) END AS NAME
+					, CASE WHEN M2.CALENDAR_ID IN ('course', 'personal', 'schedule') THEN '' ELSE (SELECT DVCLAS_NO FROM TB_LMS_SBJCT WHERE SBJCT_ID = M2.CALENDAR_ID) END AS DVCLAS_NO
+			FROM M2
+			WHERE (
+					M2.CALENDAR_ID IN ('course', 'personal', 'schedule')
+					<choose>
+						<when test="uniCd != null and uniCd != ''">
+							OR M2.CALENDAR_ID IN (SELECT AA.SBJCT_ID FROM TB_LMS_ATNDLC_SBJCT AS AA JOIN TB_LMS_SBJCT AS BB ON AA.SBJCT_ID = BB.SBJCT_ID AND BB.DELYN = 'N' WHERE AA.USER_ID = #{userId} AND AA.ATNDLC_STSCD = 'S' AND BB.UNIV_CD = #{uniCd})
+							OR M2.CALENDAR_ID IN (SELECT AA.SBJCT_ID FROM SBJCT_PROF AS AA JOIN TB_LMS_SBJCT AS BB ON AA.SBJCT_ID = BB.SBJCT_ID AND BB.DELYN = 'N' WHERE AA.USER_ID = #{userId} AND BB.UNIV_CD = #{uniCd})
+						</when>
+						<otherwise>
+							OR M2.CALENDAR_ID IN (SELECT SBJCT_ID FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = #{userId} AND ATNDLC_STSCD = 'S')
+							OR M2.CALENDAR_ID IN (SELECT SBJCT_ID FROM SBJCT_PROF WHERE USER_ID = #{userId})
+						</otherwise>
+				</choose>
+			)
+		)
+		SELECT CALENDAR_ID
+				, SCHEDULE_ID
+				, UNIV_CD
+				, SCHEDULE_GUBUN
+				, PREFIX
+				, TTL
+				, CONTENT
+				, SYMD
+				, EYMD
+				, TO_CHAR(SYMD, 'YYYY-MM-DD"T"HH24:MI:SS') || '+09:00' AS START_FMT
+				, TO_CHAR(EYMD, 'YYYY-MM-DD"T"HH24:MI:SS') || '+09:00' AS END_FMT
+				, CASE WHEN CALENDAR_ID = 'course' THEN NAME || ' (' || (SELECT SBJCTNM || ' [' || DVCLAS_NO || '반]' FROM TB_LMS_SBJCT WHERE SBJCT_ID = SCHEDULE_GUBUN) || ')' ELSE NAME END AS NAME
+				, CASE WHEN CALENDAR_ID = 'course' THEN (SELECT SBJCTNM || ' ' || DVCLAS_NO || '반' FROM TB_LMS_SBJCT WHERE SBJCT_ID = SCHEDULE_GUBUN) ELSE DVCLAS_NO END AS DVCLAS_NO
+		FROM SCHEDULE_INFO
+		WHERE ( USER_TYPES = 'ALL'
+				<foreach collection="userTypes" item="item" index="index" separator="OR" open="OR" close="">
+					USER_TYPES LIKE '%' || #{item} || '%'
+					</foreach>
+			)
+		AND ((USER_ID = #{userId} AND CALENDAR_ID != 'personal')
+			OR CALENDAR_ID = 'schedule'
+			OR (CALENDAR_ID = 'personal' AND SCHEDULE_GUBUN = #{userId})
+			OR (CALENDAR_ID = 'course' AND SCHEDULE_GUBUN IN (SELECT A.SBJCT_ID FROM TB_LMS_SBJCT A
+																<if test="searchMenu == 'STUDENT'">
+																	JOIN TB_LMS_ATNDLC_SBJCT B
+																	ON A.SBJCT_ID = B.SBJCT_ID
+																	AND B.USER_ID = #{userId}
+																	AND B.ATNDLC_STSCD = 'S'
+																</if>
+																<if test="searchMenu != 'STUDENT'">
+																	JOIN SBJCT_PROF B
+																	ON A.SBJCT_ID = B.SBJCT_ID
+																	AND B.USER_ID = #{userId}
+																</if>))
+			)
+		<choose>
+			<when test="searchFrom != null and searchFrom != ''">
+				AND SUBSTR(SYMD,1,8) BETWEEN #{startDt} AND #{endDt}
+			</when>
+			<otherwise>
+				AND (	SUBSTR(SYMD,1,8) BETWEEN #{startDt} AND #{endDt}
+						OR SUBSTR(EYMD,1,8) BETWEEN #{startDt} AND #{endDt}
+						OR (SUBSTR(SYMD,1,8) <![CDATA[ <= ]]> #{startDt} AND SUBSTR(EYMD,1,8) <![CDATA[ >= ]]> #{startDt})
+						OR CALENDAR_ID = 'schedule'
+					)
+			</otherwise>
+		</choose>
+		<if test="searchKey != null and searchKey != ''">
+			<if test='searchKey == "course"'>
+				AND CALENDAR_ID NOT IN ('personal', 'schedule')
+			</if>
+			<if test='searchKey == "personal"'>
+				AND CALENDAR_ID = 'personal'
+			</if>
+			<if test='searchKey == "schedule"'>
+				AND CALENDAR_ID = 'schedule'
+			</if>
+		</if>
+		<if test="scheduleId != null and scheduleId != ''">
+			AND SCHEDULE_ID = #{scheduleId}
+		</if>
+		<if test="searchGubun != null and searchGubun != ''">
+			AND CALENDAR_ID NOT IN ('schedule', 'personal', 'course')
+			AND (SUBSTR(SYMD,1,8) BETWEEN #{startDt} AND #{endDt}
+					OR
+						SUBSTR(EYMD,1,8) BETWEEN #{startDt} AND #{endDt}
+					OR
+						(SUBSTR(SYMD,1,8) <![CDATA[ <= ]]> #{startDt} AND SUBSTR(EYMD,1,8) <![CDATA[ >= ]]> #{startDt})
+				)
+		</if>
+		ORDER BY SYMD, EYMD
+		<if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
+			<include refid="CommonSQL.pageSubfix"/>
+		</if>
+	</select>
+	
+	<select id="listPaging" parameterType="schCalendarVO" resultType="schCalendarVO">
+		/*
+			SQL ID : SchCalendarDAO.listPaging
+			설 명 : 수업일정 페이징 조회
+		*/
+		<!-- SELECT 
+			  ROW_NUMBER() OVER(order by SYSJOB_SCHDL_SYMD, SYSJOB_SCHDL_EYMD) AS LINE_NO
+			, ACAD_SCH_SN 			AS scheduleId
+			, IFNULL(UNIV_CD, 'A') 	AS UNIV_CD
+			, ACAD_SCH_NM			AS TTL
+			, SCH_CNTS				AS content
+			, SYSJOB_SCHDL_SYMD			AS startDt
+			, SYSJOB_SCHDL_EYMD			AS endDt
+			, COUNT(*) OVER() 		AS TOTAL_CNT
+		  FROM TB_HOME_ACAD_SCH
+		 WHERE SYSJOB_SCHDL_TYCD = 'course'
+		   AND USEYN = 'Y'
+		   <if test="creYear != null and creYear != ''">
+		   AND (
+		   		SUBSTRING(SYSJOB_SCHDL_SYMD, 1, 4) = #{creYear}
+		   	 OR SUBSTRING(SYSJOB_SCHDL_EYMD, 1, 4) = #{creYear}
+		   )
+		   </if>
+		   <if test="uniCd != null and uniCd != '' and uniCd != 'all'">
+			   <choose>
+			   		<when test='uniCd == "C"'>
+			   			AND UNIV_CD <![CDATA[ <> ]]> 'G'
+			   		</when>
+			   		<otherwise>
+			   			AND UNIV_CD <![CDATA[ <> ]]> 'C'
+			   		</otherwise>
+			   </choose>
+		   </if>
+		   <if test="searchValue != null and searchValue != ''">
+		   AND LOWER(ACAD_SCH_NM) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+		   </if>
+		 ORDER BY SYSJOB_SCHDL_SYMD, SYSJOB_SCHDL_EYMD
+		 LIMIT #{firstIndex}, #{listScale} -->
+		 
+		 SELECT A.* FROM (
+		 SELECT 
+			  ROW_NUMBER() OVER(order by SYSJOB_SCHDL_SYMD, SYSJOB_SCHDL_EYMD) AS LINE_NO
+			, ACAD_SCH_SN 			AS scheduleId
+			, NVL(UNIV_CD, 'A') 	    AS UNIV_CD
+			, ACAD_SCH_NM			AS TTL
+			, SCH_CNTS				AS content
+			, SYSJOB_SCHDL_SYMD			AS startDt
+			, SYSJOB_SCHDL_EYMD			AS endDt
+			, COUNT(*) OVER() 		AS TOTAL_CNT
+		  FROM TB_HOME_ACAD_SCH
+		 WHERE SYSJOB_SCHDL_TYCD = 'course'
+		   AND USEYN = 'Y'
+		   <if test="creYear != null and creYear != ''">
+		   AND (
+		   		SUBSTR(SYSJOB_SCHDL_SYMD, 1, 4) = #{creYear}
+		   	 OR SUBSTR(SYSJOB_SCHDL_EYMD, 1, 4) = #{creYear}
+		   )
+		   </if>
+		   <if test="uniCd != null and uniCd != '' and uniCd != 'all'">
+			   <choose>
+			   		<when test='uniCd == "C"'>
+			   			AND UNIV_CD <![CDATA[ <> ]]> 'G'
+			   		</when>
+			   		<otherwise>
+			   			AND UNIV_CD <![CDATA[ <> ]]> 'C'
+			   		</otherwise>
+			   </choose>
+		   </if>
+		   <if test="searchValue != null and searchValue != ''">
+		   AND LOWER(ACAD_SCH_NM) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+		   </if>
+		 ORDER BY SYSJOB_SCHDL_SYMD, SYSJOB_SCHDL_EYMD
+		 ) A
+		 WHERE A.LINE_NO <![CDATA[ >= ]]> #{firstIndex} AND A.LINE_NO <![CDATA[ <= ]]> #{listScale}
+	</select>
+	
+</mapper>

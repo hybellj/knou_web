@@ -1,0 +1,15 @@
+-- FN_GET_USER_ID
+CREATE FUNCTION FN_GET_USER_ID (
+		IN_USER_ID varchar(30)
+	) RETURNS varchar(200)
+	READS SQL DATA
+	COMMENT '사용자 ID 조회'
+BEGIN
+	DECLARE userId VARCHAR(50);
+
+	SELECT USER_ID INTO userId
+	FROM tb_home_user_login
+	WHERE USER_ID = IN_USER_ID;
+
+	RETURN userId;
+END

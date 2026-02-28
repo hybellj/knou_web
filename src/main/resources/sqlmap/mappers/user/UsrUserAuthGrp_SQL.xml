@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.user.dao.UsrUserAuthGrpDAO">
+
+	<sql id="selectQuery">
+		SELECT
+              B.AUTHRT_CD
+             ,B.AUTHRT_GRPCD
+			, A.AUTHRT_ID
+        FROM DEV_LMS.TB_LMS_USER_AUTHRT A
+           , TB_LMS_AUTHRT B
+           , TB_LMS_USER C
+        WHERE A.AUTHRT_ID = B.AUTHRT_ID
+          AND A.USER_ID = C.USER_ID
+	</sql>
+
+	<sql id="listQuery">
+		<include refid="selectQuery"/>
+		   AND B.ORG_ID  = #{orgId}
+		   AND A.USER_ID = #{userId}
+		 ORDER BY A.AUTHRT_ID
+	</sql>
+
+	<select id="selectUserAuthList" parameterType="usrUserAuthGrpVO" resultType="usrUserAuthGrpVO">
+		/*
+			 SQL ID : UsrUserAuthGrpDAO.selectUserAuthList
+			 설  명 : 사용자의 권한 정보 전체 목록
+	 	*/
+	 	<include refid="listQuery"/>
+	</select>
+
+	<select id="select" parameterType="usrUserAuthGrpVO" resultType="usrUserAuthGrpVO">
+		/*
+			 SQL ID : UsrUserAuthGrpDAO.select
+			 설  명 : 사용자의 권한 정보 조회
+	 	*/
+		<include refid="selectQuery"/>
+		   AND A.USER_ID = #{userId}
+		   AND A.USER_AUTHRT_ID = #{authGrpCd}
+		   AND B.MENU_TYCD = #{menuType}
+	</select>
+
+	<insert id="insert" parameterType="usrUserAuthGrpVO">
+		/*
+			 SQL ID : UsrUserAuthGrpDAO.insert
+			 설  명 : 사용자의 권한 정보 등록
+	 	*/
+	 	INSERT INTO TB_LMS_USER_AUTHRT (
+	 		  MENU_TYCD
+			, USER_AUTHRT_ID
+			, USER_ID
+			, ATFL_MAXSZ
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+	 	) VALUES (
+	 		  #{menuType}
+	 		, #{authGrpCd}
+	 		, #{userId}
+	 		, #{fileLimitSize}
+	 		, #{rgtrId}
+	 		, FN_DTTM()
+	 		, #{mdfrId}
+	 		, FN_DTTM()
+	 	)
+	</insert>
+
+	<delete id="delete" parameterType="usrUserAuthGrpVO">
+		/*
+			 SQL ID : UsrUserAuthGrpDAO.delete
+			 설  명 : 사용자의 권한 정보 삭제
+	 	*/
+	 	DELETE FROM TB_LMS_USER_AUTHRT
+	 	 WHERE USER_ID = #{userId}
+	 	   AND MENU_TYCD = #{menuType}
+	 	   AND USER_AUTHRT_ID = #{authGrpCd}
+	</delete>
+
+	<delete id="deleteAll" parameterType="usrUserAuthGrpVO">
+		/*
+			 SQL ID : UsrUserAuthGrpDAO.deleteAll
+			 설  명 : 사용자의 권한 정보 전체 삭제
+	 	*/
+	 	DELETE FROM TB_LMS_USER_AUTHRT
+	 	 WHERE USER_ID = #{userId}
+	 	   AND MENU_TYCD = #{menuType}
+	</delete>
+
+	<delete id="deleteAllUser" parameterType="usrUserAuthGrpVO">
+		/*
+			 SQL ID : UsrUserAuthGrpDAO.deleteAllUser
+			 설  명 : 사용자의 권한 정보 전체 삭제
+	 	*/
+	 	DELETE FROM TB_LMS_USER_AUTHRT
+	 	 WHERE USER_ID = #{userId}
+	</delete>
+
+</mapper>

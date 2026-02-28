@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.qbnk.dao.QbnkCtgrDAO">
+
+	<select id="profQbnkCtgrList" parameterType="qbnkCtgrVO" resultType="qbnkCtgrVO">
+		/*
+             SQL ID : QbnkCtgrDAO.profQbnkCtgrList
+             설  명 : 교수문제은행분류목록조회
+         */
+		WITH SBJCT AS (
+			SELECT
+				SBJCT.SMSTR_CHRT_ID
+			  FROM TB_LMS_SBJCT SBJCT
+			  JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
+			    ON SBJCT.SBJCT_ID = SBJCT_ADM.SBJCT_ID
+			   AND SBJCT_ADM_TYCD = 'PROF'
+			 WHERE SBJCT.DELYN = 'N'
+			   AND SBJCT.USEYN = 'Y'
+			   AND SBJCT_ADM.USER_ID = (SELECT MAX(USER_ID) FROM TB_LMS_SBJCT_ADM WHERE SBJCT_ADM_TYCD = 'PROF' AND SBJCT_ID = #{sbjctId})
+		)
+		SELECT
+			  QBNK_CTGR_ID
+			, CTGRNM
+		  FROM TB_LMS_QBNK_CTGR
+		 WHERE DELYN = 'N'
+		   AND QBNK_QSTN_GBNCD = #{qbnkQstnGbncd}
+		   AND (
+		   		   CRS_MSTR_ID IN (SELECT CRS_MSTR_ID FROM SBJCT)
+		   		OR SMSTR_CHRT_ID IN (SELECT SMSTR_CHRT_ID FROM SBJCT)
+	   		)
+		 <choose>
+			 <when test="upQbnkCtgrId != null and upQbnkCtgrId != ''">
+			 	AND UP_QBNK_CTGR_ID = #{upQbnkCtgrId}
+			 </when>
+		 	 <otherwise>
+		 	 	AND UP_QBNK_CTGR_ID IS NULL
+		 	 </otherwise>
+		 </choose>
+		 ORDER BY CTGR_SEQNO
+	</select>
+
+</mapper>

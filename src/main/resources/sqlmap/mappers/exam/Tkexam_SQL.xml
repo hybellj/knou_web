@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.exam.dao.TkexamDAO">
+
+	<select id="quizTkexamList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : TkexamDAO.quizTkexamList
+             설  명  : 퀴즈응시목록
+         */
+         SELECT
+         	  ROW_NUMBER() OVER(ORDER BY A.USERNM) AS LINE_NO
+         	, A.*
+           FROM (
+           	 WITH DTL AS (
+           	 	SELECT
+           	 		EXAM_DTL_ID
+           	 	  FROM TB_LMS_EXAM_DTL
+           	 	 WHERE DELYN = 'N'
+           	 	   AND USEYN = 'Y'
+           	 	   AND EXAM_BSC_ID = #{examBscId}
+           	 ), TEAM AS (
+				SELECT
+					  EXAM_TRGTR.EXAM_DTL_ID
+					, TEAM.TEAM_ID
+					, TEAM.TEAMNM
+					, TEAM_MBR.USER_ID
+					, TEAM_MBR.LDRYN
+				  FROM TB_LMS_TEAM TEAM
+				  JOIN TB_LMS_EXAM_TRGTR EXAM_TRGTR
+				    ON TEAM.TEAM_ID = EXAM_TRGTR.TEAM_ID
+				  JOIN TB_LMS_TEAM_MBR TEAM_MBR
+				    ON TEAM.TEAM_ID = TEAM_MBR.TEAM_ID
+				 WHERE TEAM.TEAM_CPST_CMPTNYN = 'Y'
+				   AND EXAM_TRGTR.EXAM_DTL_ID IN (SELECT EXAM_DTL_ID FROM DTL)
+			), TKEXAM AS (
+				SELECT
+					  TKEXAM.EXAM_DTL_ID
+					, TKEXAM.TKEXAM_ID
+					, TKEXAM.USER_ID
+					, TKEXAM.TKEXAM_CNT
+					, TKEXAM.TKEXAM_SDTTM
+					, TKEXAM.TKEXAM_EDTTM
+					, TKEXAM.TKEXAM_CMPTNYN
+					, TKEXAM_RSLT.EVLYN
+					, TKEXAM_RSLT.TOT_SCR
+					, TKEXAM.RETKEXAM_YN
+					, QS.QUIZ_SCR
+				  FROM TB_LMS_TKEXAM TKEXAM
+				  LEFT JOIN TB_LMS_TKEXAM_RSLT TKEXAM_RSLT
+				    ON TKEXAM.TKEXAM_ID = TKEXAM_RSLT.TKEXAM_ID
+				   AND TKEXAM.USER_ID = TKEXAM_RSLT.USER_ID
+				  LEFT JOIN (
+				  	SELECT
+						  ANSW.USER_ID
+						, EXAMPPR.TKEXAM_ID
+						, SUM(ANSW.SCR) AS QUIZ_SCR
+			          FROM TB_LMS_TKEXAM_ANSW_SHT ANSW
+			          JOIN TB_LMS_EXAMPPR EXAMPPR
+			            ON ANSW.EXAMPPR_ID = EXAMPPR.EXAMPPR_ID
+			           AND ANSW.USER_ID = EXAMPPR.USER_ID
+			         GROUP BY ANSW.USER_ID, EXAMPPR.TKEXAM_ID
+				  ) QS
+				    ON TKEXAM.TKEXAM_ID = QS.TKEXAM_ID
+				   AND TKEXAM.USER_ID = QS.USER_ID
+				 WHERE TKEXAM.DELYN = 'N'
+				   AND TKEXAM.EXAM_DTL_ID IN (SELECT EXAM_DTL_ID FROM DTL)
+			)
+			SELECT
+				  ATNDLC.SBJCT_ID
+				, TM.TEAM_ID
+				, TM.TEAMNM
+				, NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE ORG_ID = USR.ORG_ID AND DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
+				, NVL(USR.STDNT_NO,'-') AS STDNT_NO
+				, (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = ATNDLC.USER_ID) AS MOBILE_NO
+				, (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'INDV_EML' AND USER_ID = ATNDLC.USER_ID) AS EMAIL
+				, ATNDLC.USER_ID
+				, USR.USER_RPRS_ID
+				, USR.USERNM
+				, TM.LDRYN
+				, CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TM.EXAM_DTL_ID ELSE (SELECT EXAM_DTL_ID FROM DTL) END EXAM_DTL_ID
+			 	, CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.TKEXAM_ID ELSE TKEXAM_INDI.TKEXAM_ID END AS TKEXAM_ID
+			    , NVL(CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.QUIZ_SCR ELSE TKEXAM_INDI.QUIZ_SCR END, 0) AS QUIZ_SCR
+			    , NVL(CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.TOT_SCR ELSE TKEXAM_INDI.TOT_SCR END, 0) AS TOT_SCR
+			    , CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.TKEXAM_SDTTM ELSE TKEXAM_INDI.TKEXAM_SDTTM END AS TKEXAM_SDTTM
+			    , CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.TKEXAM_EDTTM ELSE TKEXAM_INDI.TKEXAM_EDTTM END AS TKEXAM_EDTTM
+			    , NVL(CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.TKEXAM_CMPTNYN ELSE TKEXAM_INDI.TKEXAM_CMPTNYN END,'N') AS TKEXAM_CMPTNYN
+			    , NVL(CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.TKEXAM_CNT ELSE TKEXAM_INDI.TKEXAM_CNT END, 0) AS TKEXAM_CNT
+			    , NVL(CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.EVLYN ELSE TKEXAM_INDI.EVLYN END,'N') AS EVLYN
+			    , NVL(CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.RETKEXAM_YN ELSE TKEXAM_INDI.RETKEXAM_YN END,'N') AS RETKEXAM_YN
+			  FROM TB_LMS_ATNDLC ATNDLC
+			  JOIN TB_LMS_EXAM_BSC EXAM_BSC
+			    ON ATNDLC.SBJCT_ID = EXAM_BSC.SBJCT_ID
+			   AND EXAM_BSC.USEYN = 'Y'
+			   AND EXAM_BSC.DELYN = 'N'
+			  JOIN TB_LMS_USER USR
+			    ON ATNDLC.USER_ID = USR.USER_ID
+			   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+			   AND USR.USER_TYCD = 'STDNT'
+			  LEFT JOIN TEAM TM
+			    ON TM.USER_ID = ATNDLC.USER_ID
+			  LEFT JOIN TKEXAM TKEXAM_TEAM
+			    ON TKEXAM_TEAM.EXAM_DTL_ID = TM.EXAM_DTL_ID
+			   AND TKEXAM_TEAM.USER_ID = ATNDLC.USER_ID
+			  LEFT JOIN TKEXAM TKEXAM_INDI
+			    ON TKEXAM_INDI.USER_ID = ATNDLC.USER_ID
+			 WHERE ATNDLC.AUDITYN = 'N'
+			   AND ATNDLC.ATNDLC_STSCD = 'ATNDLC'
+			   AND EXAM_BSC.EXAM_BSC_ID = #{examBscId}
+           ) A
+         <where>
+         	<if test="tkexamCmptnyn != null and tkexamCmptnyn != '' and tkexamCmptnyn != 'all'">
+         		<choose>
+         			<when test='tkexamCmptnyn == "Y"'>
+         				AND (
+         					   A.TKEXAM_CMPTNYN = #{tkexamCmptnyn}
+         					OR A.TKEXAM_SDTTM IS NOT NULL
+         				)
+         			</when>
+         			<otherwise>
+		         		AND A.TKEXAM_CMPTNYN = #{tkexamCmptnyn}
+         			</otherwise>
+         		</choose>
+         	</if>
+         	<if test="evlyn != null and evlyn != '' and evlyn != 'all'">
+         		AND A.EVLYN = #{evlyn}
+         	</if>
+         	<if test="searchValue != null and searchValue != ''">
+         		AND (
+         			   LOWER(A.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+         			OR LOWER(A.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+         			OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+         		)
+         	</if>
+         </where>
+	</select>
+
+	<select id="quizExamneeSelect" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : TkexamDAO.quizExamneeSelect
+             설  명  : 퀴즈응시자조회
+         */
+         SELECT
+			  NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE ORG_ID = USR.ORG_ID AND DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
+			, NVL(USR.STDNT_NO,'-') AS STDNT_NO
+			, USR.USERNM
+			, USR.USER_ID
+			, NVL(TKEXAM_RSLT.TOT_SCR,0) AS TOT_SCR
+			, TKEXAM.TKEXAM_ID
+		  FROM TB_LMS_USER USR
+		  LEFT JOIN TB_LMS_TKEXAM TKEXAM
+		    ON USR.USER_ID = TKEXAM.USER_ID
+		   AND TKEXAM.EXAM_DTL_ID = #{examDtlId}
+		  LEFT JOIN TB_LMS_TKEXAM_RSLT TKEXAM_RSLT
+		    ON TKEXAM.TKEXAM_ID = TKEXAM_RSLT.TKEXAM_ID
+		   AND TKEXAM.USER_ID = TKEXAM_RSLT.USER_ID
+		 WHERE USR.USER_ID = #{userId}
+	</select>
+
+	<update id="userListRetkexamSetting" parameterType="java.util.List">
+		/*
+             SQL ID : TkexamDAO.userListRetkexamSetting
+             설  명  : 사용자목록재응시설정
+         */
+        MERGE INTO TB_LMS_TKEXAM TKEXAM
+	    USING (
+	        <foreach item="item" collection="list" separator="UNION ALL">
+	            SELECT
+	            	  #{item.subParam} AS TKEXAM_ID
+	            	, #{item.examDtlId} AS EXAM_DTL_ID
+	            	, #{item.userId} AS USER_ID
+	            	, #{item.reexamyn} AS RETKEXAM_YN
+	            	, 0 AS TKEXAM_CNT
+	            	, 0 AS TKEXAM_MNTS
+	            	, 'N' AS TKEXAM_CMPTNYN
+	            	, #{item.rgtrId} AS RGTR_ID
+	              FROM DUAL
+	        </foreach>
+	    ) USR
+	    ON (
+	    	    TKEXAM.EXAM_DTL_ID = USR.EXAM_DTL_ID
+	     	AND TKEXAM.USER_ID = USR.USER_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  TKEXAM.RETKEXAM_YN = USR.RETKEXAM_YN
+	        	, TKEXAM.TKEXAM_CNT = USR.TKEXAM_CNT
+	        	, TKEXAM.TKEXAM_MNTS = USR.TKEXAM_MNTS
+	        	, TKEXAM.TKEXAM_CMPTNYN = USR.TKEXAM_CMPTNYN
+	        	, TKEXAM.MDFR_ID = USR.RGTR_ID
+				, TKEXAM.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  TKEXAM_ID
+				, EXAM_DTL_ID
+				, USER_ID
+				, TKEXAM_CNT
+				, TKEXAM_MNTS
+				, TKEXAM_CMPTNYN
+				, RETKEXAM_YN
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  USR.TKEXAM_ID
+				, USR.EXAM_DTL_ID
+				, USR.USER_ID
+				, USR.TKEXAM_CNT
+				, USR.TKEXAM_MNTS
+				, USR.TKEXAM_CMPTNYN
+				, USR.RETKEXAM_YN
+				, USR.RGTR_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+	<update id="userTkexamRegist" parameterType="map">
+		/*
+             SQL ID : TkexamDAO.userTkexamRegist
+             설  명  : 사용자시험응시등록
+         */
+        INSERT INTO TB_LMS_TKEXAM (
+        	TKEXAM_ID, EXAM_DTL_ID, USER_ID, TKEXAM_CNT, TKEXAM_MNTS, TKEXAM_CMPTNYN, RGTR_ID, REG_DTTM
+        ) VALUES (
+        	#{tkexamId}, #{examDtlId}, #{userId}, 0, 0, 'N', #{rgtrId}, FN_DTTM()
+        )
+	</update>
+
+	<update id="userTkexamInit" parameterType="map">
+		/*
+             SQL ID : TkexamDAO.userTkexamInit
+             설  명  : 사용자시험응시초기화
+         */
+         UPDATE TB_LMS_TKEXAM SET
+         	  MDFR_ID = #{rgtrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, TKEXAM_CNT = 0
+			, TKEXAM_MNTS = 0
+			, TKEXAM_CMPTNYN = 'N'
+			, TKEXAM_SDTTM = NULL
+			, TKEXAM_EDTTM = NULL
+          WHERE TKEXAM_ID = #{tkexamId}
+		    AND EXAM_DTL_ID = #{examDtlId}
+			AND USER_ID = #{userId}
+	</update>
+
+	<insert id="userListTkexamRegist" parameterType="java.util.List">
+		/*
+             SQL ID : TkexamDAO.userListTkexamRegist
+             설  명  : 사용자목록시험응시등록
+         */
+		MERGE INTO TB_LMS_TKEXAM TKEXAM
+	    USING (
+	        <foreach item="item" collection="list" separator="UNION ALL">
+	            SELECT
+	            	  #{item.tkexamId} AS TKEXAM_ID
+	            	, #{item.examDtlId} AS EXAM_DTL_ID
+	            	, #{item.userId} AS USER_ID
+	            	, 0 AS TKEXAM_CNT
+	            	, 0 AS TKEXAM_MNTS
+	            	, 'N' AS TKEXAM_CMPTNYN
+	            	, #{item.rgtrId} AS RGTR_ID
+	              FROM DUAL
+	        </foreach>
+	    ) USR
+	    ON (
+	    		TKEXAM.TKEXAM_ID = USR.TKEXAM_ID
+	    	AND TKEXAM.EXAM_DTL_ID = USR.EXAM_DTL_ID
+	     	AND TKEXAM.USER_ID = USR.USER_ID
+	    )
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  TKEXAM_ID
+				, EXAM_DTL_ID
+				, USER_ID
+				, TKEXAM_CNT
+				, TKEXAM_MNTS
+				, TKEXAM_CMPTNYN
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  USR.TKEXAM_ID
+				, USR.EXAM_DTL_ID
+				, USR.USER_ID
+				, USR.TKEXAM_CNT
+				, USR.TKEXAM_MNTS
+				, USR.TKEXAM_CMPTNYN
+				, USR.RGTR_ID
+				, FN_DTTM()
+	        )
+	</insert>
+
+	<select id="userTkexamStatusSelect" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : TkexamDAO.userTkexamStatusSelect
+             설  명  : 사용자시험응시현황조회
+         */
+        SELECT
+		      NVL(SUM(CASE WHEN TKEXAM_CD = 'N' THEN 1 ELSE 0 END), 0) AS NO_TKEXAM_CNT
+		    , NVL(SUM(CASE WHEN TKEXAM_CD = 'T' THEN 1 ELSE 0 END), 0) AS TEMP_SAVE_CNT
+		    , NVL(SUM(CASE WHEN TKEXAM_CD = 'C' THEN 1 ELSE 0 END), 0) AS COMPLETE_CNT
+		    , NVL(ROUND(AVG(QUIZ_SCR)), 0)                             AS AVG_SCORE
+		    , NVL(MAX(QUIZ_SCR), 0)                                    AS MAX_SCORE
+		    , NVL(MIN(QUIZ_SCR), 0)                                    AS MIN_SCORE
+		    , NVL(ROUND(SUM(CASE WHEN LINE_NO <![CDATA[ <= ]]> CNT THEN QUIZ_SCR ELSE 0 END) / NULLIF(CNT,0)),0) AS TOP_AVG_SCORE
+		  FROM (
+		    SELECT
+		        QUIZ_SCR
+		      , TKEXAM_CD
+		      , ROW_NUMBER() OVER (ORDER BY QUIZ_SCR DESC) AS LINE_NO
+		      , COUNT(1) OVER () / 10                      AS CNT
+		    FROM (
+		        SELECT
+		            TKEXAM.QUIZ_SCR
+		          , CASE WHEN TKEXAM.TKEXAM_SDTTM IS NULL THEN 'N'
+		                 WHEN TKEXAM.TKEXAM_EDTTM IS NULL THEN 'T'
+		                 WHEN TKEXAM.TKEXAM_EDTTM IS NOT NULL THEN 'C'
+		            END AS TKEXAM_CD
+		          , CASE
+		                WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ' THEN 'Y'
+		                WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN
+		                    CASE WHEN SBJCT_USER.USER_ID IN (
+		                        SELECT TEAM_MBR.USER_ID
+		                          FROM TB_LMS_TEAM_MBR   TEAM_MBR
+		                          JOIN TB_LMS_EXAM_TRGTR EXAM_TRGTR ON TEAM_MBR.TEAM_ID = EXAM_TRGTR.TEAM_ID
+		                         WHERE EXAM_TRGTR.EXAM_DTL_ID IN (
+		                               SELECT EXAM_DTL_ID FROM TB_LMS_EXAM_DTL
+		                                WHERE EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USEYN = 'Y' AND DELYN = 'N')
+		                    ) THEN 'Y' ELSE 'N' END
+		                WHEN EXAM_BSC.EXAM_GBNCD IN ('QUIZ_EXAM_MID', 'QUIZ_EXAM_LST') THEN
+		                    CASE WHEN SBJCT_USER.USER_ID NOT IN (
+		                        SELECT USER_ID FROM TB_LMS_EXAM_ABSNCE
+		                         WHERE APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
+		                    ) THEN 'Y' ELSE 'N' END
+		                WHEN EXAM_BSC.EXAM_GBNCD IN ('QUIZ_SBST_EXAM_MID', 'QUIZ_SBST_EXAM_LST') THEN
+		                    CASE WHEN SBJCT_USER.USER_ID IN (
+		                        SELECT USER_ID FROM TB_LMS_EXAM_ABSNCE
+		                         WHERE APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
+		                    ) THEN 'Y' ELSE 'N' END
+		            END AS IS_TARGET
+		        FROM TB_LMS_EXAM_BSC EXAM_BSC
+		        JOIN TB_LMS_SBJCT SBJCT
+		          ON EXAM_BSC.SBJCT_ID = SBJCT.SBJCT_ID
+		        JOIN (
+		            SELECT USER_ID, SBJCT_ID
+		              FROM TB_LMS_ATNDLC
+		             WHERE AUDITYN = 'N'
+		               AND SBJCT_ID = #{sbjctId}
+		        ) SBJCT_USER
+		          ON SBJCT.SBJCT_ID = SBJCT_USER.SBJCT_ID
+		        LEFT JOIN (
+		            SELECT
+		            	  TKEXAM.USER_ID
+		            	, TKEXAM.TKEXAM_SDTTM
+		            	, TKEXAM.TKEXAM_EDTTM
+		                , NVL(SUM(ANSW.SCR), 0) AS QUIZ_SCR
+		              FROM TB_LMS_TKEXAM TKEXAM
+		              JOIN TB_LMS_EXAM_DTL EXAM_DTL
+		                ON TKEXAM.EXAM_DTL_ID = EXAM_DTL.EXAM_DTL_ID
+		               AND EXAM_DTL.EXAM_BSC_ID = #{examBscId}
+		               AND EXAM_DTL.USEYN = 'Y'
+		               AND EXAM_DTL.DELYN = 'N'
+		              LEFT JOIN TB_LMS_EXAMPPR EXAMPPR
+		                ON TKEXAM.TKEXAM_ID = EXAMPPR.TKEXAM_ID
+		               AND TKEXAM.USER_ID = EXAMPPR.USER_ID
+		              LEFT JOIN TB_LMS_TKEXAM_ANSW_SHT ANSW
+		                ON EXAMPPR.EXAMPPR_ID = ANSW.EXAMPPR_ID
+		               AND EXAMPPR.USER_ID = ANSW.USER_ID
+		             WHERE TKEXAM.DELYN = 'N'
+		             GROUP BY TKEXAM.USER_ID, TKEXAM.TKEXAM_SDTTM, TKEXAM.TKEXAM_EDTTM
+		        ) TKEXAM ON SBJCT_USER.USER_ID = TKEXAM.USER_ID
+		        WHERE EXAM_BSC.EXAM_BSC_ID = #{examBscId}
+		          AND EXAM_BSC.EXAM_TYCD   = 'QUIZ'
+		          AND EXAM_BSC.DELYN = 'N'
+		          AND EXAM_BSC.USEYN = 'Y'
+		    )
+		    WHERE IS_TARGET = 'Y'
+		)
+		GROUP BY CNT
+	</select>
+
+</mapper>

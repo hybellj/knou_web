@@ -1,0 +1,8 @@
+-- FN_DTTM
+CREATE FUNCTION FN_DTTM () 
+	RETURNS varchar(14)
+	READS SQL DATA
+	COMMENT '현재일시 문자열 가져오기'
+BEGIN
+	RETURN DATE_FORMAT(NOW(), '%Y%m%d%H%i%s');
+END

@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.resh.dao.ReshDAO">
+
+	<sql id="selectQuery">
+		SELECT
+			  A.SRVY_ID
+			, A.SRVY_CTGRCD
+			, A.SRVY_TMPLT_CD
+			, A.SRVY_TMPLTYN
+			, A.ORG_ID
+			, A.SRVY_TTL
+			, A.SRVY_CTS
+			, A.SRVY_TYCD
+			, A.JOIN_TRGT
+			, A.SRVY_SDTTM
+			, A.RESCH_END_DTTM
+			, A.RSLT_OPEN_TYCD
+			, A.MRK_INQYN
+			, A.DVCLAS_REGYN
+			, A.QSTN_COPYYN
+			, A.ITEM_COPY_RESCH_CD
+			, A.SRVY_QSTNS_CMPTNYN
+			, A.MRK_RFLTYN
+			, A.MRK_RFLTRT
+			, A.MRK_OYN
+			, A.EXTD_PTCPYN
+			, A.EXTD_EDTTM
+			, A.EVL_CTGRCD
+			, A.USEYN
+			, A.DELYN
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, COUNT(A.SRVY_ID) OVER()				 AS totalCnt
+			<if test="crsCreCd == null or crsCreCd == ''">
+			, (SELECT SBJCT_ID FROM TB_LMS_RESCH_CRE_CRS_RLTN WHERE SRVY_ID = A.SRVY_ID) AS SBJCT_ID
+			</if>
+			<if test="crsCreCd != null and crsCreCd != ''">
+			, B.SBJCT_ID
+			, (SELECT COUNT(A.STD_ID) FROM TB_LMS_ATNDLC_SBJCT A JOIN TB_LMS_USER_ACNT B ON A.USER_ID = B.USER_ID AND B.ACNT_STSCD = 'U' WHERE A.SBJCT_ID = #{crsCreCd} AND A.ATNDLC_STSCD = 'S' AND A.AUDITYN = 'N') AS reschTotalUserCnt
+			, (SELECT COUNT(DISTINCT AA.USER_ID) FROM TB_LMS_SRVY_RSPNS AA INNER JOIN TB_LMS_ATNDLC_SBJCT BB ON AA.USER_ID = BB.USER_ID AND BB.SBJCT_ID = #{crsCreCd} AND BB.ATNDLC_STSCD = 'S' WHERE AA.SRVY_ID = A.SRVY_ID AND BB.AUDITYN = 'N') AS reschJoinUserCnt
+			, (SELECT COUNT(AA.STD_ID) FROM TB_LMS_SRVY_PTCP AA INNER JOIN TB_LMS_ATNDLC_SBJCT BB ON AA.USER_ID = BB.USER_ID AND BB.SBJCT_ID = #{crsCreCd} AND BB.ATNDLC_STSCD = 'S' WHERE AA.SRVY_ID = A.SRVY_ID AND AA.EVLYN = 'Y' AND BB.AUDITYN = 'N') AS reschEvalCnt
+			, B.GRPCD								 AS declsGrpCd
+			</if>
+			, (SELECT COUNT(*) FROM TB_LMS_SRVY_QSTN WHERE RESCH_PAGE_CD IN (SELECT RESCH_PAGE_CD FROM TB_LMS_RESCH_PAGE WHERE SRVY_ID = A.SRVY_ID)) AS reschQstnCnt
+			, <![CDATA[ CASE WHEN (TO_DATE(A.SRVY_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 > 0 THEN '대기'
+				             WHEN (TO_DATE(A.SRVY_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 <= 0 AND (TO_DATE(A.RESCH_END_DTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 > 0 THEN '진행'
+				             WHEN (TO_DATE(A.EXTD_EDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 > 0 THEN '진행'
+				             WHEN (TO_DATE(A.RESCH_END_DTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 < 0 THEN '완료' END ]]> AS reschStatus
+ 			<if test="userId != null and userId != ''">
+ 			, (SELECT CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID and USER_ID = #{userId}) AS joinYn
+ 			, NVL((SELECT SCR FROM TB_LMS_SRVY_PTCP WHERE SRVY_ID = A.SRVY_ID AND USER_ID = #{userId}), '0') AS SCR
+ 			<!-- , (SELECT MOD_DTTM FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID AND USER_ID = #{userId} ORDER BY MOD_DTTM DESC LIMIT 1) AS joinDttm -->
+ 			</if>
+ 			<if test='reschTypeCd != null and reschTypeCd == "HOME"'>
+ 			, (SELECT COUNT(*) FROM TB_LMS_USER_AUTHRT AA WHERE AA.USER_AUTHRT_ID IN (
+ 				(
+ 					SELECT DISTINCT
+ 						SUBSTRING_INDEX(SUBSTRING_INDEX(A.JOIN_TRGT,',',numbers.n),',',-1)
+ 					  FROM (
+ 						SELECT  1 n UNION ALL SELECT 2  
+					    UNION ALL SELECT 3 UNION ALL SELECT 4 
+					    UNION ALL SELECT 5 UNION ALL SELECT 6
+					    UNION ALL SELECT 7 UNION ALL SELECT 8 
+					    UNION ALL SELECT 9 UNION ALL SELECT 10
+ 					) numbers
+ 					WHERE CHAR_LENGTH(A.JOIN_TRGT) - CHAR_LENGTH(REPLACE(A.JOIN_TRGT, ',' ,'')) <![CDATA[ >= ]]> numbers.n-1  
+ 				)
+ 			)) AS homeReschTotalUserCnt
+			, (SELECT COUNT(*) FROM TB_LMS_USER_AUTHRT A JOIN TB_LMS_USR B ON A.USER_ID = B.USER_ID JOIN TB_LMS_SRVY_PTCP C ON B.USER_ID = C.USER_ID AND C.SRVY_ID = A.SRVY_ID WHERE A.USER_AUTHRT_ID REGEXP REGEXP_REPLACE(A.JOIN_TRGT, ',', '|')) AS homeReschJoinUserCnt
+ 			</if>
+ 			FROM TB_LMS_SRVY A
+		<if test="crsCreCd != null and crsCreCd != ''">
+		INNER JOIN TB_LMS_RESCH_CRE_CRS_RLTN B
+		 ON A.SRVY_ID = B.SRVY_ID
+		AND B.SBJCT_ID = #{crsCreCd}
+		</if>
+		WHERE A.DELYN = 'N'
+		  AND A.SRVY_TMPLTYN = 'N'
+		<if test="reschCd != null and reschCd != ''">
+		  AND A.SRVY_ID = #{reschCd}
+		</if>
+		<if test="searchValue != null and searchValue != ''">
+		  AND LOWER(A.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		</if>
+		<if test='searchMenu != null and searchMenu != "" and searchMenu == "LEARNER"'>
+		  AND A.SRVY_QSTNS_CMPTNYN = 'Y'
+			<if test='reschTypeCd != null and (reschTypeCd == "EVAL" or reschTypeCd == "LEVEL")'>
+		  AND FN_DTTM() BETWEEN A.SRVY_SDTTM AND A.RESCH_END_DTTM
+		  	</if>
+		</if>
+		<if test="reschTypeCd != null and reschTypeCd != ''">
+		  AND A.SRVY_TYCD = #{reschTypeCd}
+		</if>
+		<if test="joinTrgt != null and joinTrgt != ''">
+		  AND LOWER(A.JOIN_TRGT) LIKE '%' || LOWER(#{joinTrgt}) || '%' COLLATE utf8mb4_general_ci
+		</if>
+		<if test="reschCtgrCd != null and reschCtgrCd != ''">
+		  AND A.SRVY_CTGRCD = #{reschCtgrCd}
+		</if>
+	</sql>
+	
+	<select id="select" parameterType="reshVO" resultType="reshVO">
+		/*
+             SQL ID : ReshDAO.select
+            	 설  명 : 설문 조회
+         */
+		<include refid="selectQuery" />
+	</select>
+	
+	<select id="list" parameterType="reshVO" resultType="reshVO">
+		/*
+             SQL ID : ReshDAO.list
+            	 설  명 : 설문 리스트 조회
+         */
+        SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.SRVY_SDTTM, A.FRST_INQ_DTTM) AS lineNo
+			, A.*
+		FROM (
+			<include refid="selectQuery" />
+		) A
+		ORDER BY A.SRVY_SDTTM DESC, A.FRST_INQ_DTTM DESC
+	</select>
+	
+	<select id="listPaging" parameterType="reshVO" resultType="reshVO">
+		/*
+             SQL ID : ReshDAO.listPaging
+            	 설  명 : 설문 리스트 조회 페이징
+         */
+        <include refid="CommonSQL.pagePrefix"/>
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.SRVY_SDTTM, A.FRST_INQ_DTTM) AS LINE_NO
+			, A.*
+		FROM (
+			<include refid="selectQuery" />
+		) A
+		ORDER BY A.SRVY_SDTTM DESC, A.FRST_INQ_DTTM DESC
+		<!-- LIMIT #{firstIndex}, #{listScale} -->
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="count" parameterType="reshVO" resultType="int">
+		/*
+             SQL ID : ReshDAO.count
+            	 설  명 : 설문 개수 조회
+         */
+		SELECT COUNT(1) FROM (
+			<include refid="selectQuery" />
+		) Z
+	</select>
+	
+	<select id="listMyCreCrsResh" parameterType="reshVO" resultType="reshVO">
+		/*
+             SQL ID : ReshDAO.listMyCreCrsResh
+            	 설  명 : 내 강의에 등록된 설문 리스트 조회
+         */
+		SELECT ROW_NUMBER() OVER(ORDER BY C.SRVY_ID DESC) AS lineNo
+			 , C.SRVY_ID 		AS reschCd
+             , C.SRVY_TTL 	AS reschTitle
+             , D.SBJCT_ID 		AS creYear
+             , D.CRS_ID 		AS creTerm
+             , D.SBJCTNM 	AS crsCreNm
+             , F.SMSTRNM 		AS termNm
+          FROM SBJCT_PROF A
+          JOIN TB_LMS_RESCH_CRE_CRS_RLTN B
+            ON A.SBJCT_ID = B.SBJCT_ID
+           AND B.DELYN = 'N' 
+          JOIN TB_LMS_SRVY C
+            ON C.SRVY_ID = B.SRVY_ID
+           AND C.ORG_ID = #{orgId}
+           AND C.DELYN = 'N'
+          JOIN TB_LMS_SBJCT D
+            ON D.SBJCT_ID = A.SBJCT_ID
+          LEFT JOIN TB_LMS_TERM_CRE_CRS_RLTN E
+            ON E.SBJCT_ID = D.SBJCT_ID
+          LEFT JOIN CRS_SMSTR F
+            ON F.CRS_SMSTR_ID = E.CRS_SMSTR_ID
+         WHERE A.USER_ID = #{rgtrId}
+         ORDER BY C.SRVY_ID
+	</select>
+	
+	<select id="listMyCreCrsReshPaging" parameterType="reshVO" resultType="reshVO">
+		/*
+             SQL ID : ReshDAO.listMyCreCrsReshPaging
+            	 설  명 : 내 강의에 등록된 설문 리스트 조회 페이징
+         */
+         <include refid="CommonSQL.pagePrefix" />
+		SELECT ROW_NUMBER() OVER(ORDER BY D.SBJCTNM, D.DVCLAS_NO, C.FRST_INQ_DTTM DESC) AS lineNo
+			 , C.SRVY_ID 		AS reschCd
+             , C.SRVY_TTL 	AS reschTitle
+             , D.SBJCT_ID 		AS creYear
+             , D.CRS_ID 		AS creTerm
+             , D.SBJCTNM 	AS crsCreNm
+             , D.DVCLAS_NO		AS declsNo
+             , F.SMSTRNM 		AS termNm
+             , COUNT(1)	OVER()	AS totalCnt
+          FROM SBJCT_PROF A
+          JOIN TB_LMS_RESCH_CRE_CRS_RLTN B
+            ON A.SBJCT_ID = B.SBJCT_ID
+           AND B.DELYN = 'N' 
+          JOIN TB_LMS_SRVY C
+            ON C.SRVY_ID = B.SRVY_ID
+           AND C.ORG_ID = #{orgId}
+           AND C.DELYN = 'N'
+          JOIN TB_LMS_SBJCT D
+            ON D.SBJCT_ID = A.SBJCT_ID
+          LEFT JOIN TB_LMS_TERM_CRE_CRS_RLTN E
+            ON E.SBJCT_ID = D.SBJCT_ID
+          LEFT JOIN CRS_SMSTR F
+            ON F.CRS_SMSTR_ID = E.CRS_SMSTR_ID
+         WHERE A.USER_ID = #{rgtrId}
+         <if test="crsCreCd != null and crsCreCd != ''">
+           AND D.SBJCT_ID = #{crsCreCd}
+         </if>
+         <if test="termCd != null and termCd != ''">
+           AND F.CRS_SMSTR_ID = #{termCd}
+         </if>
+         <if test="creYear != null and creYear != ''">
+           AND D.SBJCT_ID = #{creYear}
+         </if>
+         <if test="creTerm != null and creTerm != ''">
+           AND D.CRS_ID = #{creTerm}
+         </if>
+         <if test="searchValue != null and searchValue != ''">
+           AND LOWER(C.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+         </if>
+         <!-- <if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
+         LIMIT #{firstIndex}, #{listScale}
+         </if> -->
+         <include refid="CommonSQL.pageSubfix" />
+	</select>
+	
+	<insert id="insertResh" parameterType="reshVO">
+		/*
+             SQL ID : ReshDAO.insertResh
+             	설  명 : 설문 등록 
+        */
+		INSERT INTO TB_LMS_SRVY (
+			  SRVY_ID
+			, SRVY_CTGRCD
+			, SRVY_TMPLT_CD
+			, SRVY_TMPLTYN
+			, ORG_ID
+			, SRVY_TTL
+			, SRVY_CTS
+			, SRVY_TYCD
+			, JOIN_TRGT
+			, SRVY_SDTTM
+			, RESCH_END_DTTM
+			, RSLT_OPEN_TYCD
+			, MRK_INQYN
+			, DVCLAS_REGYN
+			, QSTN_COPYYN
+			, ITEM_COPY_RESCH_CD
+			, MRK_RFLTYN
+			, MRK_OYN
+			, EXTD_PTCPYN
+			, EXTD_EDTTM
+			, EVL_CTGRCD
+			, USEYN
+			, DELYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		)
+		VALUES (
+			  #{reschCd}
+			, #{reschCtgrCd}
+			, #{reschTplCd}
+			, #{reschTplYn}
+			, #{orgId}
+			, #{reschTitle}
+			, #{reschCts}
+			, #{reschTypeCd}
+			, #{joinTrgt}
+			, #{reschStartDttm}
+			, #{reschEndDttm}
+			, #{rsltTypeCd}
+			, #{scoreViewYn}
+			, #{declsRegYn}
+			, #{itemCopyYn}
+			, CASE WHEN #{itemCopyYn} = 'Y' THEN #{itemCopyReschCd} ELSE NULL END
+			, #{scoreAplyYn}
+			, #{scoreOpenYn}
+			, #{extJoinYn}
+			, #{extEndDttm}
+			, #{evalCtgr}
+			, #{useYn}
+			, #{delYn}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		)
+	</insert>
+	
+	<insert id="copyResh" parameterType="reshVO">
+		/*
+             SQL ID : ReshDAO.copyResh
+             	설  명 : 설문 복사 
+        */
+		INSERT INTO TB_LMS_SRVY (
+			  SRVY_ID
+			, SRVY_CTGRCD
+			, SRVY_TMPLT_CD
+			, SRVY_TMPLTYN
+			, ORG_ID
+			, SRVY_TTL
+			, SRVY_CTS
+			, SRVY_TYCD
+			, JOIN_TRGT
+			, SRVY_SDTTM
+			, RESCH_END_DTTM
+			, RSLT_OPEN_TYCD
+			, MRK_INQYN
+			, DVCLAS_REGYN
+			, QSTN_COPYYN
+			, ITEM_COPY_RESCH_CD
+			, USEYN
+			, DELYN
+			, SRVY_QSTNS_CMPTNYN
+			, MRK_RFLTYN
+			, MRK_RFLTRT
+			, MRK_OYN
+			, EXTD_PTCPYN
+			, EXTD_EDTTM
+			, EVL_CTGRCD
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		)
+		SELECT
+			  #{reschCd}
+			, SRVY_CTGRCD
+			, SRVY_TMPLT_CD
+			, SRVY_TMPLTYN
+			, ORG_ID
+			, SRVY_TTL
+			, SRVY_CTS
+			, SRVY_TYCD
+			, JOIN_TRGT
+			, SRVY_SDTTM
+			, RESCH_END_DTTM
+			, RSLT_OPEN_TYCD
+			, MRK_INQYN
+			, 'N'
+			, QSTN_COPYYN
+			, ITEM_COPY_RESCH_CD
+			, USEYN
+			, DELYN
+			, SRVY_QSTNS_CMPTNYN
+			, MRK_RFLTYN
+			, MRK_RFLTRT
+			, MRK_OYN
+			, EXTD_PTCPYN
+			, EXTD_EDTTM
+			, EVL_CTGRCD
+			, #{rgtrId}
+			<choose>
+				<when test='lineNo != null and lineNo != ""'>
+					, TO_CHAR(SYSDATE + NUMTODSINTERVAL(#{lineNo}, 'SECOND'), 'YYYYMMDDHH24MISS')
+				</when>
+				<otherwise>
+					, FN_DTTM()
+				</otherwise>
+			</choose>
+		FROM TB_LMS_SRVY
+		WHERE SRVY_ID = #{copyReschCd}
+	</insert>
+	
+	<insert id="insertReshCreCrsRltn" parameterType="reshVO">
+        /*
+             SQL ID : ReshDAO.insertReshCreCrsRltn
+             	설  명 : 설문 강의 연결 등록 
+        */
+        INSERT INTO TB_LMS_RESCH_CRE_CRS_RLTN (
+               SBJCT_ID
+             , SRVY_ID
+             , GRPCD
+             , DELYN
+        ) VALUES (
+               #{crsCreCd}
+             , #{reschCd}
+             , #{grpCd}
+             , 'N'
+        )
+    </insert>
+	
+	<update id="updateResh" parameterType="reshVO">
+		/*
+             SQL ID : ReshDAO.updateResh
+             	설  명 : 설문 수정 
+        */
+		UPDATE TB_LMS_SRVY SET
+			  MDFR_ID 			 = #{mdfrId}
+			, MOD_DTTM 			 = FN_DTTM()
+			, SRVY_TTL 		 = #{reschTitle}
+			, SRVY_CTS 		 = #{reschCts}
+			, JOIN_TRGT 		 = #{joinTrgt}
+			, SRVY_SDTTM 	 = #{reschStartDttm}
+			, RESCH_END_DTTM 	 = #{reschEndDttm}
+			, RSLT_OPEN_TYCD 		 = #{rsltTypeCd}
+			, MRK_INQYN 	 = #{scoreViewYn}
+			, DVCLAS_REGYN 		 = #{declsRegYn}
+			, QSTN_COPYYN 		 = #{itemCopyYn}
+			<if test='itemCopyYn != null and itemCopyYn == "Y" and itemCopyReschCd != null and itemCopyReschCd != ""'>
+			, ITEM_COPY_RESCH_CD = #{itemCopyReschCd}
+			</if>
+			, MRK_RFLTYN		 = #{scoreAplyYn}
+			, MRK_OYN		 = #{scoreOpenYn}
+			, EXTD_PTCPYN		 = #{extJoinYn}
+			, EXTD_EDTTM		 = #{extEndDttm}
+			, EVL_CTGRCD			 = #{evalCtgr}
+			, USEYN = #{useYn}
+		WHERE SRVY_ID = #{reschCd}
+	</update>
+	
+	<update id="updateReshQstnCopy" parameterType="reshVO">
+        /*
+             SQL ID : ReshDAO.updateReshQstnCopy
+            	 설  명 : 설문 문항가져오기 시 복사된 설문 정보 업데이트
+        */
+        UPDATE TB_LMS_SRVY SET
+               MDFR_ID 				= #{mdfrId}
+             , MOD_DTTM 			= FN_DTTM()
+             , QSTN_COPYYN 		= #{itemCopyYn}
+             , ITEM_COPY_RESCH_CD 	= #{itemCopyReschCd}
+         WHERE SRVY_ID = #{reschCd}
+    </update>
+	
+	<update id="updateReshDelYn" parameterType="reshVO">
+        /*
+             SQL ID : ReshDAO.updateReshDelYn
+             	설  명 : 설문 삭제 상태로 수정
+        */
+        UPDATE TB_LMS_SRVY SET
+              MDFR_ID   = #{mdfrId}
+            , MOD_DTTM = FN_DTTM()
+            , DELYN   = 'Y'
+         WHERE SRVY_ID = #{reschCd}
+    </update>
+    
+    <update id="updateReshCreCrsRltnDelYn" parameterType="reshVO">
+    	/*
+             SQL ID : ReshDAO.updateReshCreCrsDelYn
+             	설  명 : 설문 삭제 상태로 수정
+        */
+    	UPDATE TB_LMS_RESCH_CRE_CRS_RLTN SET
+    		DELYN = 'Y'
+    	 WHERE SRVY_ID = #{reschCd}
+    </update>
+    
+    <select id="selectScoreViewReshCount" parameterType="reshVO" resultType="int">
+    	/*
+             SQL ID : ReshDAO.selectScoreViewReshCount
+             	설  명 : 강의에 연결된 설문중에서 설문에 참여해야 성적을 조회할수 있도록 설정한 설문의 카운트
+         */
+        SELECT COUNT(1)
+          FROM TB_LMS_RESCH_CRE_CRS_RLTN A
+          JOIN TB_LMS_SRVY B
+            ON A.SRVY_ID = B.SRVY_ID 
+         WHERE A.SBJCT_ID = #{crsCreCd}
+           AND A.DELYN = 'N'
+           AND B.DELYN = 'N'
+           AND B.MRK_INQYN = 'Y'
+         <if test="reschCd != null and reschCd != ''">
+           AND B.SRVY_ID != #{reschCd}
+         </if>
+    </select>
+    
+    <select id="listReshCreCrsDecls" parameterType="reshVO" resultType="egovMap">
+        /*
+             SQL ID : ReshMapper.listReshCreCrsDecls
+             	설  명 : 설문과 같이 등록된 분반 또는 다른 과목 목록 조회
+         */
+        SELECT A.SBJCT_ID		AS creCrsCd
+             , C.SBJCTNM		AS crsCreNm
+             , C.SBJCT_ID		AS creYear
+             , C.CRS_ID		AS creTerm
+             , A.SRVY_ID		AS reschCd
+             , B.SRVY_TTL	AS reschTitle
+             , A.GRPCD			AS grpCd
+          FROM TB_LMS_RESCH_CRE_CRS_RLTN A
+          JOIN TB_LMS_SRVY B
+            ON A.SRVY_ID = B.SRVY_ID
+          JOIN TB_LMS_SBJCT C
+            ON C.SBJCT_ID = A.SBJCT_ID  
+         WHERE A.DELYN = 'N'
+           AND EXISTS (  
+                 SELECT 1
+                   FROM TB_LMS_RESCH_CRE_CRS_RLTN AA
+                  WHERE AA.SRVY_ID = #{reschCd}
+                    AND AA.GRPCD =  A.GRPCD
+                    AND AA.SRVY_ID != A.SRVY_ID
+               )  
+    </select>
+    
+    <select id="selectReshCreCrsDecls" parameterType="reshVO" resultType="egovMap">
+        /*
+             SQL ID : ReshDAO.selectReshCreCrsDecls
+             	설  명 : 설문과 같이 등록된 분반 또는 다른 과목 조회
+         */
+        SELECT A.SRVY_ID 	AS reschCd
+             , A.DELYN 	AS delYn
+          FROM TB_LMS_RESCH_CRE_CRS_RLTN A
+         WHERE A.SBJCT_ID = #{crsCreCd}
+           AND A.GRPCD = #{declsGrpCd}
+    </select>
+    
+    <update id="updateReschSubmitYn" parameterType="reshVO">
+    	/*
+             SQL ID : ReshDAO.updateReschSubmitYn
+             	설  명 : 설문 문항 출제 완료 처리
+         */
+    	UPDATE TB_LMS_SRVY SET
+    		  MDFR_ID = #{mdfrId}
+    		, MOD_DTTM = FN_DTTM()
+    		, SRVY_QSTNS_CMPTNYN = #{reschSubmitYn}
+    	 WHERE SRVY_ID = #{reschCd}
+    </update>
+    
+    <select id="selectEvalJoinCheck" parameterType="reshAnsrVO" resultType="egovMap">
+        /*
+             SQL ID : ReshAnsrDAO.selectEvalJoinCheck
+             	설  명 : 강의평가/만족도조사 설문 참여가능 여부 체크
+		*/
+        SELECT 
+			  IF(FN_DTTM() BETWEEN A.SRVY_SDTTM AND A.RESCH_END_DTTM, 'Y', 'N') AS RESCH_DATE_YN
+			, IF(
+				EXISTS (
+					SELECT 1
+					FROM TB_LMS_ATNDLC_SBJCT
+					WHERE SBJCT_ID = B.SBJCT_ID
+					AND ORG_ID = A.ORG_ID
+					AND ATNDLC_STSCD = 'S'
+					AND USER_ID = #{userId}
+				) , 'Y', 'N'
+			) AS STD_YN
+			, IF(
+				EXISTS (
+					SELECT 1
+					FROM TB_LMS_SRVY_PTCP
+					WHERE SRVY_ID = A.SRVY_ID
+					AND USER_ID = #{userId}
+				) , 'Y', 'N'
+			) AS JOIN_YN
+		FROM TB_LMS_SRVY A
+		JOIN TB_LMS_RESCH_CRE_CRS_RLTN B 
+		ON A.SRVY_ID = B.SRVY_ID
+		WHERE A.DELYN = 'N'
+		AND A.SRVY_TMPLTYN = 'N'
+		AND A.SRVY_QSTNS_CMPTNYN = 'Y'
+		AND A.SRVY_TYCD = #{reschTypeCd}
+		AND A.SRVY_ID = #{reschCd}
+    </select>
+    
+    <update id="updateScoreOpenYn" parameterType="reshVO">
+		/*
+             SQL ID : ReshDAO.updateScoreOpenYn
+             	설  명 : 설문 성적공개여부 수정 
+        */
+		UPDATE TB_LMS_SRVY SET
+			  MDFR_ID			= #{mdfrId}
+			, MOD_DTTM			= FN_DTTM()
+			, MRK_OYN		= CASE WHEN #{scoreOpenYn} = 'Y' THEN 'Y' ELSE 'N' END
+		WHERE SRVY_ID = #{reschCd}
+	</update>
+	
+	<update id="updateScoreRatio" parameterType="reshVO">
+		/*
+             SQL ID : ReshDAO.updateScoreRatio
+             	설  명 : 설문 성적 반영비율 수정
+        */
+        UPDATE TB_LMS_SRVY SET
+			  MDFR_ID		= #{mdfrId}
+			, MOD_DTTM		= FN_DTTM()
+			, MRK_RFLTRT	= #{scoreRatio}
+		WHERE SRVY_ID = #{reschCd}
+	</update>
+	
+	<select id="listReshScoreAply" parameterType="reshVO" resultType="reshVO">
+		/*
+             SQL ID : ReshDAO.listReshScoreAply
+             	설  명 : 성적 반영 설문 목록
+        */
+        SELECT
+			  A.SRVY_ID
+			, A.SRVY_TTL
+		  FROM TB_LMS_SRVY A
+		  JOIN TB_LMS_RESCH_CRE_CRS_RLTN B
+		    ON A.SRVY_ID = B.SRVY_ID
+		   AND A.DELYN = 'N'
+		   AND B.DELYN = 'N'
+		 WHERE B.SBJCT_ID = #{crsCreCd}
+		   AND A.SRVY_TYCD = 'LECT'
+		   AND A.MRK_RFLTYN = 'Y'
+	</select>
+	
+</mapper>

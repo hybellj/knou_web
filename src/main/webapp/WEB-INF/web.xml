@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	id="WebApp_ID" version="2.5">
+	<display-name>Project</display-name>
+    
+	<filter>
+		<filter-name>encodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>utf-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>encodingFilter</filter-name>
+		<!-- <url-pattern>*.do</url-pattern> -->
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- ClickjackFilter -->
+	<!-- <display-name>ClickjackFilter</display-name> -->
+	<!-- <filter>
+		<filter-name>ClickjackFilterDeny</filter-name>
+		<filter-class>knou.framework.filter.ClickjackFilter</filter-class>
+		<init-param>
+			<param-name>mode</param-name>
+			<param-value>DENY</param-value>
+		</init-param>
+	</filter>
+	-->
+
+	<filter>
+		<filter-name>ClickjackFilterSameOrigin</filter-name>
+		<filter-class>knou.framework.filter.ClickjackFilter</filter-class>
+		<init-param>
+			<param-name>mode</param-name>
+			<param-value>SAMEORIGIN</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>ClickjackFilterSameOrigin</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- lucy filter -->
+	<filter>
+		<filter-name>xssFilter</filter-name>
+		<filter-class>knou.framework.filter.XSSFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>xssFilter</filter-name>
+		<url-pattern>/adm/*</url-pattern>
+	</filter-mapping>
+
+	<!-- header filter -->
+	<filter>
+		<filter-name>AntiMIMESnifingFilder</filter-name>
+		<filter-class>knou.framework.filter.AntiMIMESnifingFilder</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>AntiMIMESnifingFilder</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- CORS filter -->
+	<filter>
+		<filter-name>cors</filter-name>
+		<filter-class>knou.framework.filter.CORSFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>cors</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping> 
+
+    <filter>
+        <filter-name>extensionUploadFilter</filter-name>
+        <filter-class>devpia.dextuploadnj.support.spring.DEXTUploadNJSpringExtensionUploadFilter</filter-class>
+	    <init-param>
+	        <param-name>licenseFilePath</param-name>
+	        <param-value>WEB-INF/dextuploadnj/dextuploadnj.config</param-value>
+	        <!-- <param-value>WEB-INF/dextuploadnj/dextuploadnj-server-1.config</param-value> -->
+	        <!-- <param-value>WEB-INF/dextuploadnj/dextuploadnj-server-2.config</param-value> -->
+	        <!-- <param-value>WEB-INF/dextuploadnj/dextuploadnj-server-3.config</param-value> -->
+	        <!-- <param-value>WEB-INF/dextuploadnj/dextuploadnj-server-dev.config</param-value> -->
+	        <!-- <param-value>WEB-INF/dextuploadnj/dextuploadnj-server-ex5.config</param-value> -->
+	        <!-- <param-value>WEB-INF/dextuploadnj/dextuploadnj-server-ex6.config</param-value> -->
+	    </init-param>
+	    <init-param>
+	    	<param-name>tempRepository</param-name>
+	    	<param-value>/data/tomcat-temp</param-value>
+	    </init-param>
+    </filter>   
+    <filter-mapping>
+        <filter-name>extensionUploadFilter</filter-name>
+        <url-pattern>*.up</url-pattern>
+    </filter-mapping>
+
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath*:spring/context-*.xml</param-value>
+	</context-param>
+    
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+    
+	<servlet>
+		<servlet-name>action</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/config/springmvc/dispatcher-servlet.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>action</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+
+   <!-- DEXT 업로드를 처리하는 디스패처 서블릿 -->
+    <servlet>
+        <servlet-name>extensionDispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>/WEB-INF/config/springmvc/dispatcher-servlet-dext.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>extensionDispatcher</servlet-name>
+        <url-pattern>*.up</url-pattern> 
+    </servlet-mapping>
+    <!-- DEXT 업로드를 처리하는 디스패처 서블릿 -->
+
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+	<login-config>
+		<auth-method>BASIC</auth-method>
+	</login-config>
+
+	<error-page>
+		<exception-type>java.lang.Throwable</exception-type>
+		<location>/WEB-INF/jsp/common/error.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>404</error-code>
+		<location>/WEB-INF/jsp/common/error_404.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/WEB-INF/jsp/common/error_500.jsp</location>
+	</error-page>
+
+	<jsp-config>
+		<taglib>
+			<taglib-uri>
+				tag-utils
+			</taglib-uri>
+			<taglib-location>
+				/WEB-INF/tags/edutrack.tld
+			</taglib-location>
+		</taglib>
+	</jsp-config>
+
+</web-app>

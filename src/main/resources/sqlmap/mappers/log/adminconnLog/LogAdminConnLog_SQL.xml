@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.log.adminconnlog.dao.LogAdminConnLogDAO">
+
+	<select id="list" parameterType="logAdminConnLogVO" resultType="logAdminConnLogVO">
+		/*
+			 SQL ID : LogAdminConnLogMapper.list
+			 설  명 : 관리자 페이지 접속 로그 목록을 조회한다.
+	 	*/
+	 	SELECT  ROW_NUMBER() OVER(ORDER BY USER_ACTV_ID DESC) AS LINE_NO
+			,  USER_ACTV_ID										
+			,  USER_ID										
+			,  CNTN_IP										
+			,  ACTV_DTTM										
+			,  REG_DTTM									
+		FROM TB_LMS_LOG_USER_ACTV		        			
+		WHERE USER_ID LIKE CONCAT('%',IFNULL(#{userId}, USER_ID),'%') COLLATE utf8mb4_general_ci
+		ORDER BY USER_ACTV_ID DESC	
+	</select>
+	
+	<select id="count" parameterType="logAdminConnLogVO" resultType="Integer">
+		/*
+			 SQL ID : LogAdminConnLogMapper.count
+			 설  명 : 관리자 페이지 접속 로그 개수를 조회한다.
+	 	*/
+	 	SELECT COUNT(*) FROM (
+		 	SELECT  ROW_NUMBER() OVER(ORDER  BY USER_ACTV_ID DESC) AS LINE_NO
+				,  USER_ACTV_ID										
+				,  USER_ID											
+				,  CNTN_IP										
+				,  ACTV_DTTM										
+				,  REG_DTTM										
+			FROM TB_LMS_LOG_USER_ACTV		        			
+			WHERE USER_ID LIKE CONCAT('%',IFNULL(#{userId}, USER_ID),'%') COLLATE utf8mb4_general_ci
+			ORDER BY USER_ACTV_ID DESC
+		) T
+	</select>
+	
+	<select id="listPageing" parameterType="logAdminConnLogVO" resultType="logAdminConnLogVO">
+		/*
+			 SQL ID : LogAdminConnLogMapper.listPageing
+			 설  명 : 관리자 페이지 접속 로그 목록을 조회한다. (페이징 적용)
+	 	*/
+	 	<include refid="CommonSQL.pagePrefix"/>
+	 	SELECT  ROW_NUMBER() OVER(ORDER  BY USER_ACTV_ID DESC) AS LINE_NO
+				,  USER_ACTV_ID										
+				,  USER_ID											
+				,  CNTN_IP										
+				,  ACTV_DTTM										
+				,  REG_DTTM	
+		FROM TB_LMS_LOG_USER_ACTV		        			
+		WHERE USER_ID LIKE CONCAT('%',IFNULL(#{userId}, USER_ID),'%') COLLATE utf8mb4_general_ci
+		ORDER BY USER_ACTV_ID DESC
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="selectLastSn" parameterType="logAdminConnLogVO" resultType="logAdminConnLogVO">
+		/*
+			 SQL ID : LogAdminConnLogMapper.selectLastSn
+			 설  명 : 관리자 페이지 접속 로그의 마지막 데이터 PK를 반환한다.
+	 	*/
+	  	SELECT  MAX(USER_ACTV_ID) AS USER_ACTV_ID		
+		FROM  TB_LMS_LOG_USER_ACTV		        
+		WHERE  USER_ID = #{userId}
+	</select>
+		
+	<insert id="insert" parameterType="logAdminConnLogVO" >
+		/*
+			 SQL ID : LogAdminConnLogMapper.insert
+			 설  명 : 관리자 페이지 접속 로그를 등록한다.
+	 	*/
+	  	INSERT 	INTO TB_LOG_ADMIN_CONN_LOG(			
+	           CNTN_LOG_ID							
+	        ,  USER_ID								
+	        ,  USERNM								
+	        ,  USER_ID								
+	        ,  LGN_IP							
+	        ,  LGN_DTTM							
+	 	) VALUES (									
+	           #{connLogSn}							
+	        ,  #{userId}							
+	        ,  #{userNm}								
+	        ,  #{userId}								
+	        ,  #{loginIp}							
+	        ,  FN_DTTM()
+	 	)		
+	</insert>
+	
+	<update id="update" parameterType="logAdminConnLogVO" >
+		/*
+			 SQL ID : LogAdminConnLogMapper.update
+			 설  명 : 관리자 페이지 접속 로그를 수정한다. (로그아웃 일시)
+	 	*/
+		UPDATE  TB_LOG_ADMIN_CONN_LOG 								
+		SET  LGT_DTTM = FN_DTTM()
+		WHERE  CNTN_LOG_ID = #{connLogSn}		
+	</update>
+	
+</mapper>

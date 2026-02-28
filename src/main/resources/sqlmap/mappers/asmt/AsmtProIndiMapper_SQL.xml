@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="knou.lms.asmt.dao.AsmtProIndiDAO">
+
+	<!-- 과제개인 기본 -->
+	<sql id="refQuery">
+		SELECT A.ASMT_SBMSN_ID
+			   , A.ASMT_ID
+			   , A.STD_ID
+			   , INFO.DEPTNM
+			   , INFO.USERNM
+			   , STD.USER_ID
+			   , A.SBMSN_TYCD
+			   , A.TEAM_ID
+			   , A.SBMSN_CTS
+			   , A.SBMSN_TXT
+			   , A.SCR
+			   , A.SBMSN_STSCD
+			   , ( SELECT CDNM
+			         FROM TB_ORG_CODE
+			        WHERE CTGRCD = 'ASMNT_SUBMIT_CD'
+			          AND CD = A.SBMSN_STSCD AND ORG_ID = #{orgId}) AS ASMNT_SUBMIT_STATUS_NM
+			   , A.SBMSN_CNT
+			   , A.CNTN_IP
+			   , A.EVLYN
+			   , A.SCR_MEMO
+			   , A.DELYN
+			   , A.EXLN_ASMTYN
+			   , A.RESEND_YN
+			   , A.KONAN_MAX_MOSART
+			   , A.RGTR_ID
+			   , A.FRST_INQ_DTTM
+			   , A.MDFR_ID
+			   , A.MOD_DTTM
+			   , B.MDFR_ID AS FILE_RGTR_ID
+			   , CASE WHEN A.SBMSN_STSCD = 'SUBMIT' THEN B.MOD_DTTM ELSE null END AS FILE_REG_DTTM
+			   , CASE WHEN A.SBMSN_STSCD = 'SUBMIT' THEN SUBSTR(B.MOD_DTTM, 1, 4) || '.' || SUBSTR(B.MOD_DTTM, 5, 2) || '.' || SUBSTR(B.MOD_DTTM, 7, 2) || ' ' || SUBSTR(B.MOD_DTTM, 9, 2) || ':' || SUBSTR(B.MOD_DTTM, 11, 2) || ':' || SUBSTR(B.MOD_DTTM, 13, 2) ELSE '' END AS submitDttm
+			   , CASE WHEN A.SBMSN_STSCD = 'LATE' THEN B.MOD_DTTM ELSE null END AS lateDttm
+			   , CASE WHEN A.SBMSN_STSCD = 'LATE' THEN SUBSTR(B.MOD_DTTM, 1, 4) || '.' || SUBSTR(B.MOD_DTTM, 5, 2) || '.' || SUBSTR(B.MOD_DTTM, 7, 2) || ' ' || SUBSTR(B.MOD_DTTM, 9, 2) || ':' || SUBSTR(B.MOD_DTTM, 11, 2) || ':' || SUBSTR(B.MOD_DTTM, 13, 2) ELSE '' END AS lateDttmFmt
+			   , CASE WHEN A.SBMSN_STSCD = 'RE' THEN B.MOD_DTTM ELSE null END AS reDttm
+			   , CASE WHEN A.SBMSN_STSCD = 'RE' THEN SUBSTR(B.MOD_DTTM, 1, 4) || '.' || SUBSTR(B.MOD_DTTM, 5, 2) || '.' || SUBSTR(B.MOD_DTTM, 7, 2) || ' ' || SUBSTR(B.MOD_DTTM, 9, 2) || ':' || SUBSTR(B.MOD_DTTM, 11, 2) || ':' || SUBSTR(B.MOD_DTTM, 13, 2) ELSE '' END AS reDttmFmt
+			   , ( SELECT T.teamnm
+			         FROM TB_LMS_TEAM T
+			        WHERE T.TEAM_ID = A.TEAM_ID) AS teamnm
+			   , ( SELECT T.ROLE
+			         FROM TB_LMS_TEAM_MBR T
+			        WHERE T.TEAM_ID = A.TEAM_ID
+			          AND T.STD_ID = A.STD_ID ) AS ROLE
+			   , ( SELECT NVL(ROUND(AVG(T.SCR)),0)
+			         FROM TB_LMS_ASMT_MTL_EVL T
+			        WHERE T.ASMT_SBMSN_ID = A.ASMT_SBMSN_ID
+			          AND T.RGTR_ID IN (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID = STD.SBJCT_ID AND ATNDLC_STSCD = 'S' AND AUDITYN = 'N') ) AS EVL_SCR
+				, ( SELECT COUNT(RGTR_ID)
+			         FROM TB_LMS_ASMT_MTL_EVL T
+			        WHERE T.ASMT_SBMSN_ID = A.ASMT_SBMSN_ID
+			          AND T.RGTR_ID IN (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID = STD.SBJCT_ID AND ATNDLC_STSCD = 'S' AND AUDITYN = 'N') ) AS EVAL_CNT
+			   , ( SELECT COUNT(ASMT_FDBK_ID)
+	 		         FROM TB_LMS_ASMNT_FDBK
+	 		        WHERE ASMT_ID = A.ASMT_ID
+	 		          AND STD_ID = A.STD_ID AND DELYN = 'N' ) AS FDBK_CNT
+			   , NVL(STD.SCYR,'-') SCYR
+			   , NVL(INFO.ENTR_YY,'-') ENTR_YY
+			   , NVL(INFO.ENTR_HY,'-') ENTR_HY
+			   , NVL(INFO.ENTR_GBN,'-') ENTR_GBN
+			   , NVL(INFO.ENTR_GBN_NM,'-') ENTR_GBN_NM
+			   , INFO.PHT_FILE AS PHT_FILE_BYTE
+			   , (SELECT FILENM FROM TB_LMS_ATFL WHERE ATCL_ID = B.ASMT_SBMSN_ID ORDER BY FILE_ID LIMIT 1) AS FILENM
+			   , (SELECT CONCAT(FILE_PATH, '/', FILE_SAVENM) FROM TB_LMS_ATFL WHERE ATCL_ID = B.ASMT_SBMSN_ID ORDER BY FILE_ID LIMIT 1) AS FILE_PATH
+			   , (SELECT CONCAT(FILE_PATH, '/', THMB_FILE_PATH) FROM TB_LMS_ATFL WHERE ATCL_ID = B.ASMT_SBMSN_ID AND (THMB_FILE_PATH IS NOT NULL AND THMB_FILE_PATH != '') ORDER BY FILE_ID LIMIT 1) AS THUMB_PATH
+			   , (SELECT FILE_EXTNM FROM TB_LMS_ATFL WHERE ATCL_ID = B.ASMT_SBMSN_ID ORDER BY FILE_ID LIMIT 1) AS FILE_EXTNM
+			   , NVL((SELECT CASE WHEN MRK_OYN = 'Y' THEN CASE WHEN TIMESTAMPDIFF(SECOND, NOW(), STR_TO_DATE(SEND_END_DTTM,'%Y%m%d%H%i%s')) &lt; 0 THEN 'Y' ELSE 'N' END ELSE 'N' END FROM TB_LMS_ASMT WHERE ASMT_ID = A.ASMT_ID), 'N') AS ASMNT_SCORE_OPEN_YN
+		  	   , (SELECT COUNT(1) FROM TB_LMS_ATFL WHERE ATCL_ID = B.ASMT_SBMSN_ID) AS FILE_CNT
+		  	   , STD.GDSC_DGRS_CRS_GBNCD
+               , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = STD.ORG_ID AND CTGRCD = 'GDSC_DGRS_CRS_GBNCD' AND CD = STD.GDSC_DGRS_CRS_GBNCD) AS GRSC_DEGR_CORS_GBN_NM
+		  FROM TB_LMS_ASMT_SBMSN A
+		  JOIN TB_LMS_ATNDLC_SBJCT STD
+			ON STD.STD_ID = A.STD_ID
+		   AND STD.ATNDLC_STSCD = 'S'
+		   AND STD.AUDITYN = 'N'
+		  JOIN TB_LMS_USER_ACNT LOGIN
+		    ON STD.USER_ID = LOGIN.USER_ID
+		   AND LOGIN.ACNT_STSCD = 'U'
+		  JOIN TB_LMS_USR INFO
+		    ON STD.USER_ID = INFO.USER_ID
+		  LEFT JOIN TB_LMS_ASMNT_SBMT_FILE B
+			ON A.ASMT_SBMSN_ID = B.ASMT_SBMSN_ID
+		 WHERE A.ASMT_ID = #{asmtId}
+		   AND A.DELYN = 'N'
+		<if test="searchKey != null and searchKey != ''">
+			<choose>
+				<when test="searchKey == 'SUBMIT'">
+					AND A.SBMSN_STSCD IN ('SUBMIT','RE')
+				</when>
+				<when test="searchKey == 'NO_RE'">
+					AND A.SBMSN_STSCD = 'NO'
+					AND A.RESEND_YN = 'Y'
+				</when>
+				<when test="searchKey == 'NO'">
+					AND A.SBMSN_STSCD = 'NO'
+					AND A.RESEND_YN = 'N'
+				</when>
+				<when test="searchKey == 'EVALY'">
+					AND A.EVLYN = 'Y'
+				</when>
+				<when test="searchKey == 'EVALN'">
+					AND A.EVLYN = 'N'
+				</when>
+				<when test="searchKey == 'RESEND'">
+					AND A.RESEND_YN = 'Y'
+					AND A.SBMSN_STSCD = 'RE'
+				</when>
+				<otherwise>
+					AND A.SBMSN_STSCD = #{searchKey}
+				</otherwise>
+			</choose>
+		</if>
+		<if test="searchValue != null and searchValue != ''">
+			AND ( LOWER( INFO.DEPTNM ) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+        	   OR LOWER( INFO.USER_ID ) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+        	   OR LOWER( INFO.USERNM ) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+       	   )
+		</if>
+		<if test="searchKey3 != null and searchKey3 != ''">
+			AND A.EVLYN = #{searchKey3}
+		</if>
+		<if test="asmtGbncd != null and asmtGbncd != '' and asmtGbncd == 'SUBS'">
+		    AND STD.STD_ID IN (SELECT STD_ID FROM TB_LMS_EXAM_STARE WHERE REEXAMYN = 'Y' AND EXAM_ID = NVL((SELECT EXAM_ID FROM TB_LMS_EXAM_BSC WHERE EXAM_CTGRCD = 'EXAM' AND EXAM_SBST_REF_ID = A.ASMT_ID AND DELYN = 'N'), ''))
+		</if>
+	</sql>
+
+	<select id="selectObject" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.selectObject
+             	설  명 : 과제 제출 참여자 조회
+         */
+		<include refid="refQuery" />
+		<choose>
+			<when test="stdNo != null and stdNo != ''">
+				AND A.STD_ID = #{stdNo}
+			</when>
+			<otherwise>
+				AND A.STD_ID = ( SELECT STD_ID
+     							   FROM TB_LMS_ATNDLC_SBJCT
+    							  WHERE USER_ID = #{userId}
+    								AND ATNDLC_STSCD = 'S'
+    								AND SBJCT_ID = #{crsCreCd})
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="selectList" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.selectList
+             	설  명 : 과제 제출 목록
+         */
+		SELECT RT.*
+			, (SELECT MOBILE_NO FROM TB_LMS_USR WHERE USER_ID = RT.USER_ID) AS MOBILE_NO
+			, (SELECT EMAIL FROM TB_LMS_USR WHERE USER_ID = RT.USER_ID) AS EMAIL
+		<choose>
+			<when test="sortType == 'NO'">
+				, ROW_NUMBER() OVER(ORDER BY RT.USER_ID) AS LINE_NO
+			</when>
+			<when test="sortType == 'DT'">
+				, ROW_NUMBER() OVER(ORDER BY (CASE WHEN RT.FILE_REG_DTTM IS NULL THEN 1 ELSE 0 END), RT.FILE_REG_DTTM) AS LINE_NO
+			</when>
+			<otherwise>
+				, ROW_NUMBER() OVER(ORDER BY RT.USERNM) AS LINE_NO
+			</otherwise>
+		</choose>
+			   , COUNT(RT.ASMT_SBMSN_ID) OVER() AS TOTAL_CNT
+		  FROM ( <include refid="refQuery" /> ) RT
+		<choose>
+			<when test="sortType == 'NO'">
+				ORDER BY RT.USER_ID
+			</when>
+			<when test="sortType == 'DT'">
+				ORDER BY (CASE WHEN RT.FILE_REG_DTTM IS NULL THEN 1 ELSE 0 END), RT.FILE_REG_DTTM
+			</when>
+			<otherwise>
+				ORDER BY RT.USERNM
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="selectListPaging" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.selectListPaging
+             	설  명 : 페이징
+         */
+		SELECT RT.*
+	 		   , ROW_NUMBER() OVER(ORDER BY RT.USERNM) AS LINE_NO
+			   , COUNT(RT.ASMT_SBMSN_ID) OVER() AS TOTAL_CNT
+		  FROM ( <include refid="refQuery" /> ) RT
+		ORDER BY RT.USERNM
+		LIMIT #{firstIndex}, #{listScale}
+	</select>
+
+	<select id="selectTarget" parameterType="asmtVO" resultType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.selectTarget
+             	설  명 : 과제 대상자 조회
+         */
+		SELECT Z.* FROM (
+			SELECT ATNDLC.ATNDLC_ID
+				, ATNDLC.USER_ID
+				, USR.USERNM
+				, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = USR.DEPT_ID) AS DEPTNM
+			FROM TB_LMS_ATNDLC ATNDLC
+			JOIN TB_LMS_USER USR ON ATNDLC.USER_ID = USR.USER_ID
+			<if test='searchKey != null and searchKey != "" and searchKey == "NOSUBMIT"'>
+				JOIN TB_LMS_ASMT_SBMSN SBMSN
+					ON SBMSN.USER_ID = ATNDLC.USER_ID
+					AND SBMSN.ASMT_ID = #{asmtId}
+					AND SBMSN.DELYN = 'N'
+-- 					AND SBMSN_STSCD = 'NON_SBMSN'
+					AND SBMSN.RESBMSNYN = 'N'
+			</if>
+			WHERE ATNDLC.SBJCT_ID = #{sbjctId}
+			AND ATNDLC.ATNDLC_STSCD = 'ATNDLC'
+			AND USR.USER_STSCD = 'ACTV'
+			AND ATNDLC.AUDITYN = 'N'
+		) Z
+		ORDER BY Z.USERNM
+	</select>
+
+	<insert id="insertTarget" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.insertTarget
+             	설  명 : 과제 대상자 등록
+         */
+		INSERT INTO TB_LMS_ASMT_TRGT (
+			ASMT_SBMSN_TRGT_ID
+			, ASMT_ID
+			, USER_ID
+			, REG_DTTM
+			, RGTR_ID
+		) VALUES
+		(
+			#{asmtSbmsnTrgtId}
+			, #{asmtId}
+			, #{userId}
+			, FN_DTTM()
+			, #{rgtrId}
+		)
+	</insert>
+	
+	<insert id="insertTargetList" parameterType="java.util.List">
+		/*
+             SQL ID : AsmntProIndiDAO.insertTargetList
+             	설  명 : 과제 대상자 목록 등록
+         */
+		INSERT INTO TB_LMS_ASMT_TRGT (
+			ASMT_SBMSN_TRGT_ID
+		  , ASMT_ID
+		  , USER_ID
+		  , REG_DTTM
+		  , RGTR_ID
+		)
+		<foreach collection="list" item="item" separator="UNION ALL">
+		SELECT
+			#{item.asmtSbmsnTrgtId}
+		  , #{item.asmtId}
+		  , #{item.userId}
+		  , FN_DTTM()
+		  , #{item.rgtrId}
+		FROM DUAL
+		</foreach>
+	</insert>
+
+	<insert id="insertTargetFile" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.insertTargetFile
+             	설  명 : 과제 대상자 파일 등록
+         */
+		INSERT INTO TB_LMS_ASMNT_SBMT_FILE (
+			  ASMT_ID
+			, ASMT_SBMSN_ID
+			, FILE_ID
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		) VALUES (
+			  #{asmtId}
+			, #{asmtSbmsnId}
+			, 0
+			, #{userId}
+			, FN_DTTM()
+		)
+	</insert>
+	
+	<insert id="insertTargetFileList" parameterType="java.util.List">
+		/*
+             SQL ID : AsmntProIndiDAO.insertTargetFileList
+             	설  명 : 과제 대상자 파일 목록 등록
+         */
+         INSERT ALL
+    	<foreach collection="list" item="item">
+         INTO TB_LMS_ASMNT_SBMT_FILE (
+			  ASMT_ID
+			, ASMT_SBMSN_ID
+			, FILE_ID
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		) VALUES (
+			  #{item.asmtId}
+			, #{item.asmtSbmsnId}
+			, 0
+			, #{item.userId}
+			, FN_DTTM()
+		)
+		</foreach>
+    SELECT * FROM DUAL
+	</insert>
+	
+	<delete id="deleteTarget" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.deleteTarget
+             	설  명 : 과제 대상자 삭제
+         */
+		DELETE FROM TB_LMS_ASMT_SBMSN
+		 WHERE ASMT_ID = #{asmtId}
+	</delete>
+
+	<delete id="deleteTargetFile" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.deleteTargetFile
+             	설  명 : 과제 대상자 파일 삭제
+         */
+		DELETE FROM TB_LMS_ASMNT_SBMT_FILE
+		 WHERE ASMT_ID = #{asmtId}
+	</delete>
+
+	<update id="updateScore" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.updateScore
+             	설  명 : 과제 대상자 성적 수정
+         */
+		UPDATE TB_LMS_ASMT_SBMSN
+		   SET MDFR_ID = #{userId}
+			   , MOD_DTTM = FN_DTTM()
+			   , SCR =
+			   	<choose>
+			   		<when test="scoreType == 'addition'">
+			   			( SELECT S1.SCR FROM ( SELECT CASE WHEN SCR + #{SCR} <![CDATA[<]]> 0 THEN 0
+  								   						     WHEN SCR + #{SCR} <![CDATA[>]]> 100 THEN 100
+					                       				     ELSE SCR + #{SCR}
+					                                     END SCR
+								   			   	   FROM TB_LMS_ASMT_SBMSN
+								   			   	  WHERE ASMT_ID = #{asmtId}
+						       					 	AND STD_ID = #{stdNo} ) S1 )
+			   		</when>
+			   		<otherwise>
+			   			#{SCR}
+			   		</otherwise>
+			   	</choose>
+			   , EVLYN = 'Y'
+		 WHERE ASMT_ID = #{asmtId}
+	       AND STD_ID = #{stdNo}
+	</update>
+	
+	<update id="updateScoreBatch" parameterType="java.util.List">
+		/*
+             SQL ID : AsmntProIndiDAO.updateScoreBatch
+             	설  명 : 과제 대상자 성적 일괄 수정
+         */
+		<foreach collection="list" item="item" separator=";">
+		UPDATE TB_LMS_ASMT_SBMSN
+		   SET MDFR_ID = #{item.mdfrId}
+			   , MOD_DTTM = FN_DTTM()
+			   , SCR = #{item.SCR}
+			   , EVLYN = 'Y'
+		 WHERE ASMT_ID = #{item.asmtId}
+	       AND STD_ID = #{item.stdNo}
+		</foreach>
+	</update>
+
+	<update id="updateScoreExcel" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.updateScoreExcel
+             	설  명 : 과제 대상자 성적 수정(엑셀)
+         */
+		UPDATE TB_LMS_ASMT_SBMSN
+		   SET MDFR_ID = #{userId}
+			   , MOD_DTTM = FN_DTTM()
+			   , SCR = ( SELECT CASE WHEN #{SCR} <![CDATA[<]]> 0 THEN 0
+			   			  			   WHEN #{SCR} <![CDATA[>]]> 100 THEN 100
+                       				   ELSE #{SCR}
+                                  END SCR
+			   			    FROM DUAL )
+			   , EVLYN = 'Y'
+		 WHERE ASMT_ID = #{asmtId}
+	 	   AND STD_ID = ( SELECT STD_ID
+    		     		    FROM TB_LMS_ATNDLC_SBJCT
+   						   WHERE USER_ID = #{stdNo}
+   							 AND ATNDLC_STSCD = 'S'
+   							 AND SBJCT_ID = #{crsCreCd})
+	</update>
+
+	<update id="updateMemo" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.updateMemo
+             	설  명 : 과제 대상자 메모 수정
+         */
+		UPDATE TB_LMS_ASMT_SBMSN
+		   SET MDFR_ID = #{userId}
+			   , MOD_DTTM = FN_DTTM()
+			   , SCR_MEMO = #{scrMemo}
+		 WHERE ASMT_ID = #{asmtId}
+	       AND STD_ID = #{stdNo}
+	</update>
+
+	<update id="updateBest" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.updateBest
+             	설  명 : 과제 대상자 우수과제 선정
+         */
+		UPDATE TB_LMS_ASMT_SBMSN
+		   SET MDFR_ID = #{userId}
+			   , MOD_DTTM = FN_DTTM()
+			   , EXLN_ASMTYN = #{exlnAsmtyn}
+		 WHERE ASMT_ID = #{asmtId}
+	       AND STD_ID = #{stdNo}
+	</update>
+
+	<update id="deleteResend" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.deleteResend
+             	설  명 : 제재출 대상자 제거
+         */
+		UPDATE TB_LMS_ASMT_SBMSN
+		   SET MDFR_ID = #{userId}
+			   , MOD_DTTM = FN_DTTM()
+			   , RESEND_YN = 'N'
+			   , SBMSN_STSCD = IF(SBMSN_STSCD = 'RE', 'NO', SBMSN_STSCD)
+		 WHERE ASMT_ID = #{asmtId}
+		 AND RESEND_YN = 'Y'
+		<if test="sqlForeach != null">
+             <if test="sqlForeach.length > 0">
+                 AND STD_ID NOT IN
+                 <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+                     #{item}
+                 </foreach>
+             </if>
+         </if>
+	</update>
+	
+	<update id="updateResend" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.updateResend
+             	설  명 : 제재출 대상자 수정
+         */
+		UPDATE TB_LMS_ASMT_SBMSN
+		   SET MDFR_ID = #{userId}
+			   , MOD_DTTM = FN_DTTM()
+			   , RESEND_YN = 'Y'
+			   , SCR = NULL
+		 WHERE ASMT_ID = #{asmtId}
+	       AND STD_ID = #{stdNo}
+	       AND RESEND_YN = 'N'
+	       AND SBMSN_STSCD = 'NO'
+	</update>
+
+	<delete id="deleteTargetByStdNo" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.deleteTargetByStdNo
+             	설  명 : 과제 대상자 단일 삭제
+         */
+		DELETE FROM TB_LMS_ASMT_SBMSN
+		 WHERE ASMT_ID = #{asmtId}
+		   AND STD_ID = #{stdNo}
+	</delete>
+
+	<delete id="deleteTargetFileByStdNo" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.deleteTargetFileByStdNo
+             	설  명 : 과제 대상자 파일 단일 삭
+         */
+		DELETE FROM TB_LMS_ASMNT_SBMT_FILE
+		 WHERE ASMT_ID = #{asmtId}
+		   AND ASMT_SBMSN_ID = #{asmtSbmsnId}
+	</delete>
+	
+	<delete id="deleteTargetHstyByStdNo" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.deleteTargetHstyByStdNo
+             	설  명 : 과제 대상자 히스토리 단일 삭제
+         */
+		DELETE FROM TB_LMS_ASMNT_JOIN_HSTY
+		 WHERE ASMT_ID = #{asmtId}
+		   AND STD_ID = #{stdNo}
+	</delete>
+
+	<delete id="deleteTargetFdbkByStdNo" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.deleteTargetFdbkByStdNo
+             	설  명 : 과제 대상자 피드백 단일 삭제
+         */
+		DELETE FROM TB_LMS_ASMNT_FDBK
+		 WHERE ASMT_ID = #{asmtId}
+		   AND STD_ID = #{stdNo}
+	</delete>
+	
+	<update id="canecelTargetMutScore" parameterType="asmtVO">
+		/*
+             SQL ID : AsmntProIndiDAO.canecelTargetMutScore
+             	설  명 : 과제 대상자 점수 부여 취소
+         */
+         UPDATE TB_LMS_ASMT_SBMSN
+         	SET MDFR_ID = #{userId}
+			  , MOD_DTTM = FN_DTTM()
+			  , SCR = NULL
+			  , EVLYN = 'N'
+		  WHERE ASMT_ID = #{asmtId}
+		    AND STD_ID = #{stdNo}
+	</update>
+
+</mapper>

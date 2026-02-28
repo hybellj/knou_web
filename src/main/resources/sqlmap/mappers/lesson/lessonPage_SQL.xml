@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.lesson.dao.LessonPageDAO">
+
+	<select id="list" parameterType="lessonPageVO" resultType="lessonPageVO">
+        /*
+             SQL ID : LessonPageDAO.list
+             설  명 :
+         */
+		SELECT
+			  A.SBJCT_LCTR_CONTS_ID
+			, A.PAGE_SEQNO
+			, A.ULD_GBNCD
+			, A.PAGENM
+			, A.URL
+			, A.VDO_MNTS
+			, A.ATNDC_RFLTYN
+			, A.OYN
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM SBJCT_LCTR_CONTS_PAGE A
+		WHERE A.SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+	</select>
+
+	<insert id="insert" parameterType="lessonPageVO">
+		/*
+             SQL ID : LessonPageDAO.insert
+             설  명 : 학습페이지 등록
+         */
+		<selectKey order="BEFORE" keyProperty="pageCnt" resultType="String">
+            SELECT IFNULL(MAX(PAGE_SEQNO), 0) + 1 FROM SBJCT_LCTR_CONTS_PAGE WHERE SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+        </selectKey>
+		INSERT INTO SBJCT_LCTR_CONTS_PAGE (
+			  SBJCT_LCTR_CONTS_ID
+			, PAGE_SEQNO
+			, ULD_GBNCD
+			, PAGENM
+			, URL
+			, VDO_MNTS
+			, ATNDC_RFLTYN
+			, OYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			  #{lessonCntsId}
+			, REPLACE(#{pageCnt}, '.0', '')
+			, #{uploadGbn}
+			, #{pageNm}
+			, #{url}
+			, #{videoTm}
+			, #{atndYn}
+			, #{openYn}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		)
+	</insert>
+	
+	<update id="update" parameterType="lessonPageVO">
+		/*
+             SQL ID : LessonPageDAO.update
+             설  명 : 학습페이지 수정
+         */
+		UPDATE SBJCT_LCTR_CONTS_PAGE
+		SET 
+			  MDFR_ID	= #{mdfrId}
+			, MOD_DTTM	= FN_DTTM()
+			<if test="uploadGbn != null and uploadGbn != ''">
+			, ULD_GBNCD = #{uploadGbn}
+			</if>
+			<if test="pageNm != null and pageNm != ''">
+			, PAGENM = #{pageNm}
+			</if>
+			<if test="url != null and url != ''">
+			, URL = #{url}
+			</if>
+			<if test="videoTm != null and videoTm != ''">
+			, VDO_MNTS = #{videoTm}
+			</if>
+			<if test="atndYn != null and atndYn != ''">
+			, ATNDC_RFLTYN = #{atndYn}
+			</if>
+			<if test="openYn != null and openYn != ''">
+			, OYN = #{openYn}
+			</if>
+		WHERE SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+		AND PAGE_SEQNO = #{pageCnt}
+	</update>
+	
+	<delete id="delete" parameterType="lessonPageVO">
+		/*
+             SQL ID : LessonPageDAO.delete
+             설  명 : 학습페이지 삭제
+         */
+		DELETE FROM SBJCT_LCTR_CONTS_PAGE
+		WHERE SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+		<if test="pageCnt != null and pageCnt != ''">
+			AND PAGE_SEQNO = #{pageCnt}
+		</if>
+	</delete>
+
+	<delete id="deleteLessonStudyPage" parameterType="lessonPageVO">
+		/*
+             SQL ID : LessonPageDAO.deleteLessonStudyPage
+             설  명 : 페이지 학습기록 삭제
+         */
+		DELETE FROM TB_LMS_LESSON_STUDY_PAGE
+		WHERE SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+		<if test="pageCnt != null and pageCnt != ''">
+			AND PAGE_SEQNO = #{pageCnt}
+		</if>
+	</delete>
+
+
+	<select id="listLessonCntsForTrans" parameterType="lessonPageVO" resultType="lessonPageVO">
+        /*
+             SQL ID : LessonPageDAO.listLessonCntsForTrans
+             설  명 : 페이지 목록(선수강과목 이관용)
+         */
+		SELECT A.* 
+		FROM SBJCT_LCTR_CONTS_PAGE A, TB_LMS_SBJCT_LCTR_CONTS B
+		WHERE 1=1
+			AND A.SBJCT_LCTR_CONTS_ID = B.SBJCT_LCTR_CONTS_ID 
+			AND B.SBJCT_ID = #{crsCreCd}
+	</select>
+	
+	<insert id="insertLessonPageListForTrans" parameterType="java.util.List" >
+        /*
+             SQL ID : insertLessonPageListForTrans
+             설  명 : 페이지 목록 저장(선수강과목 이관용)
+        */
+
+        INSERT IGNORE INTO SBJCT_LCTR_CONTS_PAGE (
+			  SBJCT_LCTR_CONTS_ID
+			, PAGE_SEQNO
+			, ULD_GBNCD
+			, PAGENM
+			, URL
+			, VDO_MNTS
+			, ATNDC_RFLTYN
+			, OYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES
+		<foreach collection="list" item="item" separator=",">
+		( 
+	          #{item.lessonCntsId}
+	        , #{item.pageCnt}
+	        , #{item.uploadGbn}
+	        , #{item.pageNm}
+	        , #{item.url}
+	        , #{item.videoTm}
+	        , #{item.atndYn}
+        	, #{item.openYn}
+			, #{item.rgtrId}
+			, #{item.regDttm}
+			, #{item.mdfrId}
+			, #{item.modDttm}
+		)
+    	</foreach>
+    </insert>
+    
+	<insert id="insertLessonPageList" parameterType="java.util.List" >
+        /*
+             SQL ID : insertLessonPageList
+             설  명 : 콘텐츠페이지정보 목록 저장
+        */
+        <foreach collection="list" item="item" separator=";">
+	        INSERT IGNORE INTO SBJCT_LCTR_CONTS_PAGE (
+				  SBJCT_LCTR_CONTS_ID
+				, PAGE_SEQNO
+				, ULD_GBNCD
+				, PAGENM
+				, URL
+				, VDO_MNTS
+				, ATNDC_RFLTYN
+				, OYN
+				, RGTR_ID
+				, FRST_INQ_DTTM
+				, MDFR_ID
+				, MOD_DTTM
+	        ) 
+	        SELECT
+			          #{item.lessonCntsId}
+			        , #{item.pageCnt}
+			        , #{item.uploadGbn}
+			        , #{item.pageNm}
+			        , #{item.url}
+			        , #{item.videoTm}
+			        , #{item.atndYn}
+		        	, #{item.openYn}
+			        , #{item.rgtrId}
+			        , FN_DTTM()
+			        , #{item.rgtrId}
+			        , FN_DTTM()
+		    FROM DUAL
+		    WHERE EXISTS (SELECT SBJCT_LCTR_CONTS_ID FROM TB_LMS_SBJCT_LCTR_CONTS WHERE SBJCT_LCTR_CONTS_ID = #{item.lessonCntsId})
+	    	ON DUPLICATE KEY UPDATE
+			      ULD_GBNCD = VALUES(ULD_GBNCD)
+			    , PAGENM = VALUES(PAGENM)
+			    , URL = VALUES(URL)
+			    , VDO_MNTS = VALUES(VDO_MNTS)
+			    , ATNDC_RFLTYN = VALUES(ATNDC_RFLTYN)
+		    	, OYN = VALUES(OYN)
+	    		, MDFR_ID = #{item.rgtrId}
+	    		, MOD_DTTM = FN_DTTM()
+    	</foreach>
+    </insert>    
+</mapper>

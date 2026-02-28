@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.org.dao.OrgAbsentRatioDAO">
+
+	<select id="list" parameterType="orgAbsentRatioVO" resultType="orgAbsentRatioVO">
+		/*
+             SQL ID : OrgAbsentRatioDAO.list
+            	 설  명 : 결시원 성적비율 리스트 조회
+         */
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY ABSNCE_GBNCD, EXAM_GBNCD) 	AS lineNo
+			, ORG_ID											AS orgId
+			, ABSNCE_GBNCD    									AS absentGbn
+			, (SELECT CDNM FROM TB_SYS_CODE WHERE CTGRCD = 'ABSENT_SCORE_GBN_CD' AND CD = ABSNCE_GBNCD) AS absentGbnNm
+			, EXAM_GBNCD      									AS examGbn
+			, (SELECT CDNM FROM TB_SYS_CODE WHERE CTGRCD = 'ABSENT_SCORE_EXAM_CD' AND CD = EXAM_GBNCD)  AS examGbnNm
+			, ABSNCE_RFLTRT    									AS scorRatio
+			, ABSNCE_EXPLN   									AS absentDesc
+			, RGTR_ID        									AS rgtrId
+			, FRST_INQ_DTTM      									AS regDttm
+			, MDFR_ID        									AS mdfrId
+			, MOD_DTTM      									AS modDttm
+		  FROM TB_LMS_MRK_ABSNCE_RFLTRT
+		 WHERE 1 = 1
+		 <if test='absentGbn != null and absentGbn != "" and absentGbn != "ALL"'>
+		   AND ABSNCE_GBNCD = #{absentGbn}
+		</if>
+		<if test='examGbn != null and examGbn != "" and examGbn != "ALL"'>
+		   AND EXAM_GBNCD = #{examGbn}
+		</if>
+		<if test="orgId != null and orgId != ''">
+		   AND ORG_ID = #{orgId}
+		</if>
+		 ORDER BY ABSNCE_GBNCD, EXAM_GBNCD
+	</select>
+	
+	<select id="select" parameterType="orgAbsentRatioVO" resultType="orgAbsentRatioVO">
+		/*
+             SQL ID : OrgAbsentRatioDAO.select
+            	 설  명 : 결시원 성적비율 정보 조회
+         */
+         SELECT
+			  ORG_ID									AS orgId
+			, ABSNCE_GBNCD    							AS absentGbn
+			, (SELECT CDNM FROM TB_SYS_CODE WHERE CTGRCD = 'ABSENT_SCORE_GBN_CD' AND CD = ABSNCE_GBNCD) AS absentGbnNm
+			, EXAM_GBNCD      							AS examGbn
+			, (SELECT CDNM FROM TB_SYS_CODE WHERE CTGRCD = 'ABSENT_SCORE_EXAM_CD' AND CD = EXAM_GBNCD)  AS examGbnNm
+			, ABSNCE_RFLTRT    							AS scorRatio
+			, ABSNCE_EXPLN   							AS absentDesc
+			, RGTR_ID        							AS rgtrId
+			, FRST_INQ_DTTM      							AS regDttm
+			, MDFR_ID        							AS mdfrId
+			, MOD_DTTM      							AS modDttm
+		  FROM TB_LMS_MRK_ABSNCE_RFLTRT
+		 WHERE 1 = 1
+		   AND ORG_ID = #{orgId}
+		   AND ABSNCE_GBNCD = #{absentGbn}
+		   AND EXAM_GBNCD = #{examGbn}
+	</select>
+	
+	<insert id="insert" parameterType="orgAbsentRatioVO">
+		/*
+             SQL ID : OrgAbsentRatioDAO.insert
+            	 설  명 : 결시원 성적비율 등록
+         */
+         INSERT INTO TB_LMS_MRK_ABSNCE_RFLTRT (
+         	  ORG_ID
+			, ABSNCE_GBNCD
+			, EXAM_GBNCD
+			, ABSNCE_RFLTRT
+			, ABSNCE_EXPLN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+         ) VALUES (
+         	  #{orgId}
+         	, #{absentGbn}
+         	, #{examGbn}
+         	, #{scorRatio}
+         	, #{absentDesc}
+         	, #{rgtrId}
+         	, FN_DTTM()
+         	, #{mdfrId}
+         	, FN_DTTM()
+         )
+         ON DUPLICATE KEY UPDATE
+        	   ABSNCE_RFLTRT = #{scorRatio}
+	 	   	 , ABSNCE_EXPLN = #{absentDesc}
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+	</insert>
+	
+	<delete id="delete" parameterType="orgAbsentRatioVO">
+		/*
+             SQL ID : OrgAbsentRatioDAO.delete
+            	 설  명 : 결시원 성적비율 삭제
+         */
+         DELETE FROM TB_LMS_MRK_ABSNCE_RFLTRT
+          WHERE ORG_ID = #{orgId}
+            AND ABSNCE_GBNCD = #{absentGbn}
+            AND EXAM_GBNCD = #{examGbn}
+	</delete>
+	
+</mapper>

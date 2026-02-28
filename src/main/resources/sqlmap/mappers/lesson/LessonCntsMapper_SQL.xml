@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.lesson.dao.LessonCntsDAO">
+
+	<select id="select" parameterType="lessonCntsVO" resultType="lessonCntsVO">
+		/*
+		   SQL ID : LessonCntsDAO.select
+			설  명 : 학습 콘텐츠 정보
+		*/
+		SELECT
+			  A.SBJCT_LCTR_CONTS_ID
+			, A.SBJCT_ID
+			, A.SBJCT_LCTR_CLASTM_ID
+			, (SELECT LCTR_CLASTM_SEQ FROM TB_LMS_SBJCT_LCTR_CLASTM WHERE SBJCT_LCTR_CLASTM_ID = A.SBJCT_LCTR_CLASTM_ID) AS LCTR_CLASTM_SEQ
+			, A.LCTR_SCHDL_ID
+			, (SELECT LCTR_SCHDL_SEQ FROM TB_LMS_SBJCT_LCTR_SCHDL WHERE LCTR_SCHDL_ID = A.LCTR_SCHDL_ID) AS LCTR_SCHDL_SEQ
+			, A.LESSON_TYPE_CD
+			, A.LCTR_CONTSNM
+			, A.LCTR_CONTS_SEQ
+			, A.LCTR_CONTS_GBNCD
+			, A.PRG_RFLTYN
+			, A.LCTR_SDTTM
+			, A.LCTR_EDTTM
+			, A.LESSON_CNTS_FILE_LOC_CD
+			, A.LESSON_CNTS_FILE_NM
+			, A.LESSON_CNTS_FILE_PATH
+			, A.LESSON_CNTS_URL
+			, A.LESSON_CNTS_FILE_LOC_CD_M
+			, A.LESSON_CNTS_FILE_NM_M
+			, A.LESSON_CNTS_FILE_PATH_M
+			, A.LESSON_CNTS_URL_M
+			, A.RCMD_ATNDLC_MNTS
+			, A.PRGRT_TYCD
+			, A.INQYN
+			, A.OTSDPRD_ATNDLCYN
+			, A.OTSDPRD_ATNDLC_DAY_CNT
+			, A.OTSDPRD_ATNDLC_RCG_STSCD
+			, A.ATNDLC_STS_CHKYN
+			, A.ATNDLC_NWIN_USEYN
+			, A.LESSON_DATA_FILE_YN
+			, A.LESSON_DATA_FILE_NM
+			, A.LESSON_DATA_FILE_PATH
+			, A.LESSON_DATA_FILE_URL
+			, A.ATNDLC_MNTS
+			, A.SKPLC_DIV_CD
+			, A.VDO_CLAS_SDTTM
+			, A.VDO_CLAS_EDTTM
+			, A.VDO_CLAS_RM_PSWD
+			, A.VDO_CLAS_EXPLN
+			, A.VDO_CLAS_RM_CNTN_ID
+			, A.CONTS_TXT
+			, A.SUBTIT_KO
+			, A.SUBTIT_EN
+			, A.SCRIPT_KO
+			, A.SCRIPT_EN
+			, A.DELYN
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_SBJCT_LCTR_CONTS A
+		WHERE A.SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+		<if test='crsCreCd != null and crsCreCd != ""'>
+			AND A.SBJCT_ID = #{crsCreCd}
+	    </if>
+		ORDER BY A.LCTR_CONTS_SEQ
+	</select>
+	
+	<select id="list" parameterType="lessonCntsVO" resultType="lessonCntsVO">
+		/*
+		   SQL ID : LessonCntsDAO.list
+			설  명 : 학습 콘텐츠 목록
+		*/
+		SELECT
+			  A.SBJCT_LCTR_CONTS_ID
+			, A.SBJCT_ID
+			, A.SBJCT_LCTR_CLASTM_ID
+			, A.LCTR_SCHDL_ID
+			, A.LESSON_TYPE_CD
+			, A.LCTR_CONTSNM
+			, A.LCTR_CONTS_SEQ
+			, A.LCTR_CONTS_GBNCD
+			, A.PRG_RFLTYN
+			, A.LCTR_SDTTM
+			, A.LCTR_EDTTM
+			, A.LESSON_CNTS_FILE_LOC_CD
+			, A.LESSON_CNTS_FILE_NM
+			, A.LESSON_CNTS_FILE_PATH
+			, A.LESSON_CNTS_URL
+			, A.LESSON_CNTS_FILE_LOC_CD_M
+			, A.LESSON_CNTS_FILE_NM_M
+			, A.LESSON_CNTS_FILE_PATH_M
+			, A.LESSON_CNTS_URL_M
+			, A.RCMD_ATNDLC_MNTS
+			, A.PRGRT_TYCD
+			, A.INQYN
+			, A.OTSDPRD_ATNDLCYN
+			, A.OTSDPRD_ATNDLC_DAY_CNT
+			, A.OTSDPRD_ATNDLC_RCG_STSCD
+			, A.ATNDLC_STS_CHKYN
+			, A.ATNDLC_NWIN_USEYN
+			, A.LESSON_DATA_FILE_YN
+			, A.LESSON_DATA_FILE_NM
+			, A.LESSON_DATA_FILE_PATH
+			, A.LESSON_DATA_FILE_URL
+			, A.ATNDLC_MNTS
+			, A.SKPLC_DIV_CD
+			, A.VDO_CLAS_SDTTM
+			, A.VDO_CLAS_EDTTM
+			, A.VDO_CLAS_RM_PSWD
+			, A.VDO_CLAS_EXPLN
+			, A.VDO_CLAS_RM_CNTN_ID
+			, A.DELYN
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_SBJCT_LCTR_CONTS A
+		<where>
+			<if test='lessonCntsId != null and lessonCntsId != ""'>
+				AND A.SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+		    </if>
+			<if test='crsCreCd != null and crsCreCd != ""'>
+				AND A.SBJCT_ID = #{crsCreCd}
+		    </if>
+		    <if test='lessonScheduleId != null and lessonScheduleId != ""'>
+				AND A.LCTR_SCHDL_ID = #{lessonScheduleId}
+		    </if>
+		    <if test='lessonTimeId != null and lessonTimeId != ""'>
+				AND A.SBJCT_LCTR_CLASTM_ID = #{lessonTimeId}
+		    </if>
+			<if test='delYn != null and delYn != ""'>
+				AND A.DELYN = #{delYn}
+		    </if>
+		    <if test='prgrYn != null and prgrYn != ""'>
+				AND A.PRG_RFLTYN = #{prgrYn}
+		    </if>
+		</where>
+		ORDER BY A.LCTR_CONTS_SEQ
+	</select>
+	
+	<insert id="insert" parameterType="lessonCntsVO">
+		/*
+		   SQL ID : LessonCntsDAO.insert
+			설  명 : 학습 콘텐츠 등록
+		*/
+		INSERT INTO TB_LMS_SBJCT_LCTR_CONTS (
+			  SBJCT_LCTR_CONTS_ID
+			, SBJCT_ID
+			, SBJCT_LCTR_CLASTM_ID
+			, LCTR_SCHDL_ID
+			, LESSON_TYPE_CD
+			, LCTR_CONTSNM
+			, LCTR_CONTS_SEQ
+			, LCTR_CONTS_GBNCD
+			, PRG_RFLTYN
+			, LCTR_SDTTM
+			, LCTR_EDTTM
+			, LESSON_CNTS_FILE_LOC_CD
+			, LESSON_CNTS_FILE_NM
+			, LESSON_CNTS_FILE_PATH
+			, LESSON_CNTS_URL
+			, LESSON_CNTS_FILE_LOC_CD_M
+			, LESSON_CNTS_FILE_NM_M
+			, LESSON_CNTS_FILE_PATH_M
+			, LESSON_CNTS_URL_M
+			, RCMD_ATNDLC_MNTS
+			, PRGRT_TYCD
+			, INQYN
+			, OTSDPRD_ATNDLCYN
+			, OTSDPRD_ATNDLC_DAY_CNT
+			, OTSDPRD_ATNDLC_RCG_STSCD
+			, ATNDLC_STS_CHKYN
+			, ATNDLC_NWIN_USEYN
+			, LESSON_DATA_FILE_YN
+			, LESSON_DATA_FILE_NM
+			, LESSON_DATA_FILE_PATH
+			, LESSON_DATA_FILE_URL
+			, ATNDLC_MNTS
+			, SKPLC_DIV_CD
+			, VDO_CLAS_SDTTM
+			, VDO_CLAS_EDTTM
+			, VDO_CLAS_RM_PSWD
+			, VDO_CLAS_EXPLN
+			, VDO_CLAS_RM_CNTN_ID
+			, CONTS_TXT
+			, SUBTIT_KO
+			, SUBTIT_EN
+			, SCRIPT_KO
+			, SCRIPT_EN
+			, DELYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		) VALUES (
+			  #{lessonCntsId}
+			, #{crsCreCd}
+			, #{lessonTimeId}
+			, #{lessonScheduleId}
+			, #{lessonTypeCd}
+			, #{lessonCntsNm}
+			, #{lessonCntsOrder}
+			, #{cntsGbn}
+			, #{prgrYn}
+			, #{lessonStartDttm}
+			, #{lessonEndDttm}
+			, #{lessonCntsFileLocCd}
+			, #{lessonCntsFileNm}
+			, #{lessonCntsFilePath}
+			, #{lessonCntsUrl}
+			, #{lessonCntsFileLocCdM}
+			, #{lessonCntsFileNmM}
+			, #{lessonCntsFilePathM}
+			, #{lessonCntsUrlM}
+			, #{recmmdStudyTime}
+			, #{prgrRatioTypeCd}
+			, #{viewYn}
+			, #{periodOutLearnYn}
+			, #{periodOutLearnDayCnt}
+			, #{periodOutLearnStatusCd}
+			, #{learnStatusCheckYn}
+			, #{newWindowLearnYn}
+			, #{lessonDataFileYn}
+			, #{lessonDataFileNm}
+			, #{lessonDataFilePath}
+			, #{lessonDataFileUrl}
+			, #{attplanTime}
+			, #{skplcDivCd}
+			, #{vcLearnStartDttm}
+			, #{vcLearnEndDttm}
+			, #{vcLearnRoomPwd}
+			, #{vcLearnDesc}
+			, #{vcRoomRelId}
+			, #{cntsText}
+			, #{subtitKo}
+			, #{subtitEn}
+			, #{scriptKo}
+			, #{scriptEn}
+			, 'N'
+			, #{rgtrId}
+			, FN_DTTM()
+		)
+	</insert>
+	
+	<update id="update" parameterType="lessonCntsVO">
+		/*
+		   SQL ID : LessonCntsDAO.update
+			설  명 : 학습 콘텐츠 수정
+		*/
+		UPDATE TB_LMS_SBJCT_LCTR_CONTS
+		SET
+			  LCTR_CONTSNM		= #{lessonCntsNm}
+			, LCTR_CONTS_SEQ		= #{lessonCntsOrder}
+			, LCTR_CONTS_GBNCD				= #{cntsGbn}
+			, PRG_RFLTYN				= #{prgrYn}
+			<if test="(cntsGbn == 'VIDEO' or cntsGbn == 'VIDEO_LINK') and recmmdStudyTime != null and recmmdStudyTime != ''">
+			, RCMD_ATNDLC_MNTS 	= #{recmmdStudyTime}
+			</if>
+			, LESSON_CNTS_FILE_NM	= #{lessonCntsFileNm}
+			, LESSON_CNTS_FILE_PATH = #{lessonCntsFilePath}
+			, LESSON_CNTS_URL		= #{lessonCntsUrl}
+			, CONTS_TXT				= #{cntsText}
+			, SUBTIT_KO				= #{subtitKo}
+			, SUBTIT_EN				= #{subtitEn}
+			, SCRIPT_KO				= #{scriptKo}
+			, SCRIPT_EN				= #{scriptEn}
+			, MDFR_ID				= #{mdfrId}
+			, MOD_DTTM				= FN_DTTM()
+		WHERE SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+	</update>
+	
+	<delete id="delete" parameterType="lessonCntsVO">
+		/*
+		   SQL ID : LessonCntsDAO.list
+			설  명 : 학습 콘텐츠 삭제
+		*/
+		DELETE FROM TB_LMS_SBJCT_LCTR_CONTS
+		WHERE SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+	</delete>
+	
+	<select id="selectLessonCntsOrderMax" parameterType="lessonTimeVO" resultType="Integer">
+		/*
+             SQL ID : LessonCntsDAO.selectLessonCntsOrderMax
+             설  명 : 학습 콘텐츠 순서 최대값
+         */
+		SELECT 
+			NVL(MAX(LCTR_CONTS_SEQ), 0) + 1 
+		  FROM TB_LMS_SBJCT_LCTR_CONTS 
+		 WHERE SBJCT_ID = #{crsCreCd} 
+		   AND SBJCT_LCTR_CLASTM_ID = #{lessonTimeId}
+	</select>
+	
+	<select id="countLessonCntsStudyRecord" parameterType="lessonTimeVO" resultType="Integer">
+		/*
+             SQL ID : LessonCntsDAO.countLessonCntsStudyRecord
+             설  명 : 학습 콘텐츠 학습자 수
+         */
+		SELECT COUNT(B.SBJCT_LCTR_CONTS_ID)
+		FROM TB_LMS_SBJCT_LCTR_CONTS A
+		LEFT JOIN TB_LMS_LESSON_STUDY_RECORD B
+		ON A.SBJCT_LCTR_CONTS_ID = B.SBJCT_LCTR_CONTS_ID
+		AND A.SBJCT_ID = B.SBJCT_ID
+		AND B.STD_ID IN (
+			SELECT STD_ID
+			FROM TB_LMS_ATNDLC_SBJCT
+			WHERE ATNDLC_STSCD = 'S'
+			AND SBJCT_ID = #{crsCreCd}
+			AND ORG_ID = #{orgId}
+		)
+		WHERE A.SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+	</select>
+	
+	<select id="selectStdEnterStatusList" parameterType="lessonCntsVO" resultType="egovMap">
+         /*
+			 SQL ID : LessonCntsDAO.selectStdEnterStatusList
+		                설  명 : 강의실 접속 현황
+	 	 */		
+		 WITH M1 AS(
+			   SELECT 'prevMonth' as LABEL, TO_CHAR(ADD_MONTHS(TO_DATE(#{searchTo} || '01', 'YYYYMMDD'), -1), 'YYYYMM') as YYYYMM FROM DUAL
+			   UNION ALL
+			   SELECT 'nowMonth'  as LABEL, #{searchTo} as YYYYMM FROM DUAL
+	     )
+		 , M2 AS (
+			   SELECT A.USER_ID 
+			   		, (SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE ORG_ID = #{orgId} AND SBJCT_ID = #{crsCreCd} AND ATNDLC_STSCD = 'S' AND USER_ID = A.USER_ID ) as STD_ID
+			        , SUBSTR(FRST_INQ_DTTM,1,8) as YYYYMMDD
+			        , COUNT(*)             as STD_DAY_CNT
+			        , SUM(COUNT(*)) OVER (PARTITION BY SUBSTR(FRST_INQ_DTTM,1,8)) as ALL_STD_DAY_CNT
+			     FROM TB_LOG_LESSON_ACTN_HSTY A
+			    WHERE ACTV_HSTRY_CD = 'LECTURE_HOME'
+			      AND SBJCT_ID = #{crsCreCd}
+			      AND SUBSTR(FRST_INQ_DTTM, 1, 6) BETWEEN 
+			      		    TO_CHAR(ADD_MONTHS(TO_DATE(#{searchTo} || '01', 'YYYYMMDD'), -1), 'YYYYMM')
+			      		AND CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') <![CDATA[ >= ]]> #{searchTo} THEN TO_CHAR(SYSDATE, 'YYYYMM') ELSE #{searchTo} END
+			    GROUP BY USER_ID, SUBSTR(FRST_INQ_DTTM,1,8)
+		 )
+		 , M3 AS (
+			  SELECT COUNT(*) as STD_CNT
+			    FROM TB_LMS_ATNDLC_SBJCT A
+			    JOIN TB_LMS_USER_ACNT B
+			      ON A.USER_ID = B.USER_ID
+			     AND B.ACNT_STSCD = 'U'
+			   WHERE A.ORG_ID = #{orgId}
+			     AND A.SBJCT_ID = #{crsCreCd}
+			     AND A.ATNDLC_STSCD = 'S'		   
+		 )
+		 SELECT M1.LABEL
+		      , M1.YYYYMM
+		      , SUBSTR(M2.yyyymmdd,7,2) as DAYS
+		      , M2.YYYYMMDD
+			  , M2.STD_ID
+			  , M2.STD_DAY_CNT
+			  , ROUND(NVL(M2.ALL_STD_DAY_CNT/M3.STD_CNT,0),2) AS AVG_STD_DAY_CNT
+		   FROM M1
+		   LEFT JOIN M2
+			 ON M1.yyyymm = SUBSTR(M2.yyyymmdd,1,6)
+		  CROSS JOIN M3
+		  WHERE 1=1
+		  	AND M2.USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE ORG_ID = #{orgId} AND SBJCT_ID = #{crsCreCd} AND STD_ID = #{stdNo}) 
+		  ORDER BY M1.YYYYMM, M2.STD_ID ,SUBSTR(M2.YYYYMMDD,7,2)
+    </select>
+    
+    <update id="updateSeqLessonCntsOrder" parameterType="lessonCntsVO">
+		/*
+		   SQL ID : LessonCntsDAO.updateSeqLessonCntsOrder
+			설  명 : 순차 학습 정렬순서 수정
+		*/
+		UPDATE TB_LMS_SBJCT_LCTR_CONTS A
+		JOIN (
+			SELECT
+				  ROW_NUMBER() OVER(ORDER BY A.LCTR_CONTS_SEQ, IF(A.SBJCT_LCTR_CONTS_ID = #{lessonCntsId}, 0, 1)) AS LCTR_CONTS_SEQ
+				, A.SBJCT_LCTR_CONTS_ID
+			FROM TB_LMS_SBJCT_LCTR_CONTS A
+			WHERE A.SBJCT_LCTR_CLASTM_ID = #{lessonTimeId}
+			AND A.DELYN = 'N'
+		) B
+		ON A.SBJCT_LCTR_CONTS_ID = B.SBJCT_LCTR_CONTS_ID
+		SET A.LCTR_CONTS_SEQ	= B.LCTR_CONTS_SEQ
+	</update>
+
+	<update id="updateCntsNm" parameterType="lessonCntsVO">
+		/*
+		   SQL ID : LessonCntsDAO.updateCntsNm
+			설  명 : 학습 콘텐츠 수정
+		*/
+		UPDATE TB_LMS_SBJCT_LCTR_CONTS
+		SET
+			  LCTR_CONTSNM		= #{lessonCntsNm}
+			, MDFR_ID				= #{mdfrId}
+			, MOD_DTTM				= FN_DTTM()
+		WHERE SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
+	</update>
+	
+	<insert id="copyLessonCnts" parameterType="lessonCntsVO">
+		/*
+		   SQL ID : LessonCntsDAO.copyLessonCnts
+			설  명 : 학습 콘텐츠 복사
+		*/
+		INSERT INTO TB_LMS_SBJCT_LCTR_CONTS (
+			  SBJCT_LCTR_CONTS_ID
+			, SBJCT_ID
+			, SBJCT_LCTR_CLASTM_ID
+			, LCTR_SCHDL_ID
+			, LESSON_TYPE_CD
+			, LCTR_CONTSNM
+			, LCTR_CONTS_SEQ
+			, LCTR_CONTS_GBNCD
+			, PRG_RFLTYN
+			, LCTR_SDTTM
+			, LCTR_EDTTM
+			, LESSON_CNTS_FILE_LOC_CD
+			, LESSON_CNTS_FILE_NM
+			, LESSON_CNTS_FILE_PATH
+			, LESSON_CNTS_URL
+			, LESSON_CNTS_FILE_LOC_CD_M
+			, LESSON_CNTS_FILE_NM_M
+			, LESSON_CNTS_FILE_PATH_M
+			, LESSON_CNTS_URL_M
+			, RCMD_ATNDLC_MNTS
+			, PRGRT_TYCD
+			, INQYN
+			, OTSDPRD_ATNDLCYN
+			, OTSDPRD_ATNDLC_DAY_CNT
+			, OTSDPRD_ATNDLC_RCG_STSCD
+			, ATNDLC_STS_CHKYN
+			, ATNDLC_NWIN_USEYN
+			, LESSON_DATA_FILE_YN
+			, LESSON_DATA_FILE_NM
+			, LESSON_DATA_FILE_PATH
+			, LESSON_DATA_FILE_URL
+			, ATNDLC_MNTS
+			, SKPLC_DIV_CD
+			, VDO_CLAS_SDTTM
+			, VDO_CLAS_EDTTM
+			, VDO_CLAS_RM_PSWD
+			, VDO_CLAS_EXPLN
+			, VDO_CLAS_RM_CNTN_ID
+			, CONTS_TXT
+			, DELYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		)
+		SELECT
+			  #{lessonCntsId}
+			, #{crsCreCd}
+			, #{lessonTimeId}
+			, #{lessonScheduleId}
+			, LESSON_TYPE_CD
+			, LCTR_CONTSNM
+			, LCTR_CONTS_SEQ
+			, LCTR_CONTS_GBNCD
+			, PRG_RFLTYN
+			, LCTR_SDTTM
+			, LCTR_EDTTM
+			, LESSON_CNTS_FILE_LOC_CD
+			, LESSON_CNTS_FILE_NM
+			, LESSON_CNTS_FILE_PATH
+			, LESSON_CNTS_URL
+			, LESSON_CNTS_FILE_LOC_CD_M
+			, LESSON_CNTS_FILE_NM_M
+			, LESSON_CNTS_FILE_PATH_M
+			, LESSON_CNTS_URL_M
+			, RCMD_ATNDLC_MNTS
+			, PRGRT_TYCD
+			, INQYN
+			, OTSDPRD_ATNDLCYN
+			, OTSDPRD_ATNDLC_DAY_CNT
+			, OTSDPRD_ATNDLC_RCG_STSCD
+			, ATNDLC_STS_CHKYN
+			, ATNDLC_NWIN_USEYN
+			, LESSON_DATA_FILE_YN
+			, LESSON_DATA_FILE_NM
+			, LESSON_DATA_FILE_PATH
+			, LESSON_DATA_FILE_URL
+			, ATNDLC_MNTS
+			, SKPLC_DIV_CD
+			, VDO_CLAS_SDTTM
+			, VDO_CLAS_EDTTM
+			, VDO_CLAS_RM_PSWD
+			, VDO_CLAS_EXPLN
+			, VDO_CLAS_RM_CNTN_ID
+			, CONTS_TXT
+			, DELYN
+			, #{rgtrId}
+			, FN_DTTM()
+		FROM TB_LMS_SBJCT_LCTR_CONTS
+		WHERE SBJCT_LCTR_CONTS_ID = #{copyLessonCntsId}
+	</insert>
+	
+	
+	<insert id="insertLessonCntsListForTrans" parameterType="java.util.List" >
+        /*
+             SQL ID : insertLessonCntsListForTrans
+             설  명 : 콘텐츠정보 목록 저장(선수강과목 이관용)
+        */
+        INSERT IGNORE INTO TB_LMS_SBJCT_LCTR_CONTS (
+			  SBJCT_LCTR_CONTS_ID
+			, SBJCT_ID
+			, SBJCT_LCTR_CLASTM_ID
+			, LCTR_SCHDL_ID
+			, LESSON_TYPE_CD
+			, LCTR_CONTSNM
+			, LCTR_CONTS_SEQ
+			, LCTR_CONTS_GBNCD
+			, PRG_RFLTYN
+			, LESSON_CNTS_URL
+			, RCMD_ATNDLC_MNTS
+			, INQYN
+			, DELYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+        ) VALUES
+		<foreach collection="list" item="item" separator=",">
+		(
+			  #{item.lessonCntsId}
+			, #{item.crsCreCd}
+			, #{item.lessonTimeId}
+			, #{item.lessonScheduleId}
+			, #{item.lessonTypeCd}
+			, #{item.lessonCntsNm}
+			, #{item.lessonCntsOrder}
+			, #{item.cntsGbn}
+			, #{item.prgrYn}
+			, #{item.lessonCntsUrl}
+			, #{item.recmmdStudyTime}
+			, #{item.viewYn}
+			, #{item.delYn}
+			, #{item.rgtrId}
+			, #{item.regDttm}
+			, #{item.mdfrId}
+			, #{item.modDttm}
+		)
+		</foreach>
+	</insert>
+</mapper>

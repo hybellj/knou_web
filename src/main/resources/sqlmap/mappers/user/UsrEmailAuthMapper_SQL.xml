@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.user.dao.UsrEmailAuthDAO">
+
+	<sql id="selectQuery">
+		SELECT
+			  USER_ONS_VRFCTN_ID	AS userEmailAuthId
+			, USEYN                AS useYn
+			, SENDER_NM             AS senderNm
+			, SENDER_EMAIL          AS senderEmail
+			, TTL                 AS TTL
+			, SND_CTS                   AS SND_CTS
+			, RGTR_ID                AS rgtrId
+			, FRST_INQ_DTTM              AS regDttm
+			, MDFR_ID                AS mdfrId
+			, MOD_DTTM              AS modDttm
+		  FROM USER_ONSLF_IDNTY
+		 WHERE 1 = 1
+		 <if test="userEmailAuthId != null and userEmailAuthId != ''">
+		   AND USER_ONS_VRFCTN_ID = #{userEmailAuthId}
+		 </if>
+	</sql>
+	
+	<select id="select" parameterType="usrEmailAuthVO" resultType="usrEmailAuthVO">
+		/*
+             SQL ID : UsrEmailAuthDAO.select
+             	설  명 : 이메일 인증 관리 정보 조회
+        */
+        <include refid="selectQuery" />
+	</select>
+	
+	<insert id="insert" parameterType="usrEmailAuthVO">
+		/*
+             SQL ID : UsrEmailAuthDAO.insert
+             	설  명 : 이메일 인증 관리 등록
+        */
+        INSERT INTO USER_ONSLF_IDNTY (
+        	  USER_ONS_VRFCTN_ID
+			, USEYN
+			, SENDER_NM
+			, SENDER_EMAIL
+			, TTL
+			, SND_CTS
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+        ) VALUES (
+        	  #{userEmailAuthId}
+        	, #{useYn}
+        	, #{senderNm}
+        	, #{senderEmail}
+        	, #{TTL}
+        	, #{SND_CTS}
+        	, #{rgtrId}
+        	, FN_DTTM()
+        	, #{mdfrId}
+        	, FN_DTTM()
+        )
+	</insert>
+	
+	<update id="update" parameterType="usrEmailAuthVO">
+		/*
+             SQL ID : UsrEmailAuthDAO.update
+             	설  명 : 이메일 인증 관리 수정
+        */
+        UPDATE USER_ONSLF_IDNTY SET
+        	  MDFR_ID = #{mdfrId}
+        	, MOD_DTTM = FN_DTTM()
+        	<if test="useYn != null and useYn != ''">
+        	, USEYN = #{useYn}
+        	</if>
+        	<if test="senderNm != null and senderNm != ''">
+        	, SENDER_NM = #{senderNm}
+        	</if>
+        	<if test="senderEmail != null and senderEmail != ''">
+        	, SENDER_EMAIL = #{senderEmail}
+        	</if>
+        	<if test="TTL != null and TTL != ''">
+        	, TTL = #{TTL}
+        	</if>
+        	<if test="SND_CTS != null and SND_CTS != ''">
+        	, SND_CTS = #{SND_CTS}
+        	</if>
+         WHERE USER_ONS_VRFCTN_ID = #{userEmailAuthId}
+	</update>
+
+</mapper>

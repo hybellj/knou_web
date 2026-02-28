@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.sys.dao.SysCodeLangDAO">
+
+	<sql id="selectQuery">
+		SELECT
+			  CTGRCD	AS codeCtgrCd
+			, CD       AS codeCd
+			, LANG_CD       AS langCd
+			, CDNM       AS codeNm
+			, CD_EXPLN     AS codeDesc
+		  FROM TB_SYS_CODE_LANG
+		 WHERE CTGRCD = #{codeCtgrCd}
+		   AND CD = #{codeCd}
+	</sql>
+	
+	<sql id="listQuery">
+		<include refid="selectQuery" />
+		ORDER BY LANG_CD
+	</sql>
+	
+	<select id="list" parameterType="sysCodeLangVO" resultType="sysCodeLangVO">
+		/*
+			 SQL ID : SysCodeLangDAO.list
+			 설  명 : 코드 언어의 전체 목록
+	 	*/
+		<include refid="listQuery" />
+	</select>
+
+</mapper>

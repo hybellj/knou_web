@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.crs.sbjct.dao.SbjctDAO">
+     <sql id="listQuery">
+        SELECT
+            A.SBJCT_MSTR_ID
+         ,  A.SBJCTNM
+         ,  A.SBJCT_YR
+         ,  A.SBJCT_SMSTR
+         ,  A.DEPT_ID
+         ,  A.SBJCT_GBNCD
+         ,  A.SBJCT_TYCD
+         ,  A.USEYN
+         ,  A.DELYN
+         ,  B.SMSTR_CHRT_ID
+         ,  B.ORG_ID
+         ,  B.DGRS_YR
+         ,  B.DGRS_SMSTR_CHRT
+         ,  ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
+         ,  COUNT(*) OVER() AS TOTAL_CNT
+        FROM DEV_LMS.TB_LMS_SBJCT_MSTR A
+            INNER JOIN DEV_LMS.TB_LMS_SMSTR_CHRT B
+            ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+        WHERE 1 = 1
+            AND A.DELYN = 'N'
+            <if test="orgId != null and orgId != ''">
+                AND B.ORG_ID = #{orgId}
+            </if>
+            <!-- 년도 -->
+            <if test="sbjctYr != null and sbjctYr != ''">
+                AND A.SBJCT_YR = #{sbjctYr}
+            </if>
+            <!-- 과목학기 -->
+            <if test="sbjctSmstr != null and sbjctSmstr != ''">
+                AND TRIM(A.SBJCT_SMSTR) = #{sbjctSmstr}
+            </if>
+            <!-- 과목분류 -->
+            <if test="sbjctTycd != null and sbjctTycd != 'all'">
+                AND A.SBJCT_TYCD = #{sbjctTycd}
+            </if>
+            <!-- 검색어 -->
+            <if test="searchValue != null and searchValue != ''">
+                AND A.SBJCTNM LIKE FN_LIKE_VAL(#{searchValue})
+            </if>
+         ORDER BY A.REG_DTTM DESC
+    </sql>
+
+    <!-- 과목목록조회(페이징) -->
+    <select id="selectSbjctList"
+            parameterType="knou.lms.crs.sbjct.vo.SbjctListVO"
+            resultType="knou.lms.crs.sbjct.vo.SbjctListVO">
+        /*
+            SQL ID : SbjctDAO.selectSbjctList
+            설명 : 과목목록조회(페이징)
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQuery" />
+        <include refid="CommonSQL.pageSubfix" />
+    </select>
+
+    <!-- 학위년도/학위차수 조회 -->
+    <select id="selectDgrsYrChrtList"
+            parameterType="map"
+            resultType="knou.lms.crs.sbjct.vo.DgrsYrChrtVO">
+        /*
+            SQL ID : SbjctDAO.selectDgrsYrChrtList
+            설  명 : 학위년도/학위차수 조회
+        */
+        SELECT * FROM (
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY A.REG_DTTM DESC) AS RNUM,
+                A.SMSTR_CHRT_ID,
+                A.ORG_ID,
+                A.DGRS_YR,
+                A.DGRS_SMSTR_CHRT,
+                A.SMSTR_CHRTNM,
+                A.NOW_SMSTRYN
+                FROM TB_LMS_SMSTR_CHRT A
+            WHERE 1=1
+                AND A.ORG_ID = #{orgId}
+                AND A.NOW_SMSTRYN = 'Y'
+        )
+        WHERE RNUM = 1
+        <!-- LIMIT 1 -->
+    </select>
+
+    <!-- 과목사용여부 수정 -->
+    <update id="updateSbjctUseYn"
+            parameterType="knou.lms.crs.sbjct.vo.SbjctListVO">
+        /* 
+            SQL ID : SbjctDAO.updateSbjctUseYn
+            설명 : 과목사용여부 수정
+        */
+
+        UPDATE TB_LMS_SBJCT_MSTR
+           SET USEYN    = #{useYn},
+               MDFR_ID  = #{mdfrId},
+               MOD_DTTM = #{modDttm}
+         WHERE SBJCT_MSTR_ID = #{sbjctMstrId}
+           AND DELYN = 'N'
+    </update>
+
+    <!-- 과목삭제 : 논리삭제(DELYN='Y') -->
+    <update id="deleteSbjct"
+            parameterType="knou.lms.crs.sbjct.vo.SbjctListVO">
+        /* 
+            SQL ID : SbjctDAO.ProcessVo
+            설명 : 과목삭제(논리삭제)
+        */
+
+        UPDATE TB_LMS_SBJCT_MSTR
+           SET DELYN    = 'Y',
+               MDFR_ID  = #{mdfrId},
+               MOD_DTTM = #{modDttm}
+         WHERE SBJCT_MSTR_ID = #{sbjctMstrId}
+           AND DELYN = 'N'
+    </update>
+
+
+
+</mapper>

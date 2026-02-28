@@ -1,0 +1,1428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.crs.term.dao.TermDAO">
+
+	<select id="selectListHomeTermStatus" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.selectListHomeTermStatus
+			 설  명 : 마이페이지 > 수강, 강의 리스트(학기부분에서 사용)
+		*/
+		SELECT ROW_NUMBER() OVER(ORDER BY DGRS_YR DESC, DGRS_SMSTR DESC, SMSTRNM) AS LINE_NO
+			   , CRS_SMSTR_ID
+			   , SMSTRNM
+			   , ORG_ID
+			   , DGRS_YR
+			   , DGRS_SMSTR
+			   , SMSTR_TYCD
+			   , SMSTR_STSCD
+		  FROM CRS_SMSTR A
+		 WHERE 1 = 1
+		   AND SMSTR_STSCD = #{termStatus}
+		<if test="termType != null and termType != ''">
+			AND SMSTR_TYCD = #{termType}
+		</if>
+	     ORDER BY LINE_NO DESC
+	</select>
+
+	<select id="listTermByProf" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.listTermByProf
+			 설  명 : 교수자의 개설과목이 있는 학기
+		*/
+		SELECT A.CRS_SMSTR_ID
+			   , MAX(A.SMSTRNM) AS SMSTRNM
+			   , MAX(A.DGRS_YR) AS DGRS_YR
+			   , MAX(A.DGRS_SMSTR) AS DGRS_SMSTR
+		  FROM CRS_SMSTR A
+		  JOIN TB_LMS_TERM_CRE_CRS_RLTN B
+			ON A.CRS_SMSTR_ID = B.CRS_SMSTR_ID
+		  JOIN TB_LMS_SBJCT C
+			ON B.SBJCT_ID = C.SBJCT_ID
+		   AND C.DELYN = 'N'
+		   AND C.USEYN = 'Y'
+		   AND ATNDLC_CERT_STSCD != 'CLOSE'
+		   AND C.SBJCT_ID IN ( SELECT SBJCT_ID
+								   FROM SBJCT_PROF
+								  WHERE PROF_TYCD = 'PROFESSOR'
+									AND USER_ID IN ( SELECT USER_ID FROM SBJCT_PROF WHERE RPRSYN = 'Y' AND SBJCT_ID = #{crsCreCd} )
+							   )
+		 WHERE A.SMSTR_STSCD != 'WAIT'
+		 GROUP BY A.CRS_SMSTR_ID
+		 ORDER BY A.DGRS_YR DESC,
+				CASE WHEN A.DGRS_SMSTR = 2 THEN 3
+					 WHEN A.DGRS_SMSTR = 3 THEN 2
+					 ELSE A.DGRS_SMSTR
+				END DESC
+	</select>
+
+	<select id="list" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.list
+			 설  명 : 학기 모든 목록 조회(비정규, 정규)
+		*/
+		SELECT ROW_NUMBER() OVER(ORDER BY TERM_ORDER, DGRS_YR DESC, DGRS_SMSTR DESC, TERM_ORDER2) AS LINE_NO
+			   , A.*
+		  FROM ( SELECT CRS_SMSTR_ID
+						, SMSTRNM
+						, ORG_ID
+						, DGRS_YR
+						, DGRS_SMSTR
+						, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'DGRS_SMSTR' AND CD = A.DGRS_SMSTR) AS HAKSA_TERM_NM
+						, SMSTR_TYCD
+						, OFLN_LRN_MNGYN
+						, SMSTR_STSCD
+						, SMSTR_DATA_LNKGYN
+						, OP_SDTTM
+						, OP_EDTTM
+						, ATNDLC_APLY_SDTTM
+						, ATNDLC_APLY_EDTTM
+						, ATNDLC_MOD_SDTTM
+						, ATNDLC_MOD_EDTTM
+						, ATNDLC_SDTTM
+						, ATNDLC_EDTTM
+						, SCR_EVL_SDTTM
+						, SCR_EVL_EDTTM
+						, SCR_OPEN_SDTTM
+						, SCR_OPEN_EDTTM
+						, SCR_CALC_CTGRCD
+						, MBL_ATNDC_USEYN
+						, NOW_SMSTRYN
+						, (CASE WHEN SMSTR_STSCD ='SERVICE' THEN 1
+								WHEN SMSTR_STSCD = 'WAIT' THEN 2
+								WHEN SMSTR_STSCD = 'FINISH' THEN 3
+								ELSE 4
+						  END) AS TERM_ORDER
+						, (CASE WHEN SMSTR_TYCD ='NORMAL' THEN 1
+								WHEN SMSTR_STSCD ='BNORMAL' THEN 2
+								WHEN SMSTR_STSCD = 'OPEN' THEN 3
+								ELSE 4
+						  END) AS TERM_ORDER2
+						, (SELECT COUNT(1) FROM TB_LMS_TERM_CRE_CRS_RLTN WHERE A.CRS_SMSTR_ID = CRS_SMSTR_ID) AS CRS_COUNT
+						, COUNT(1) OVER() AS TOTAL_CNT
+						, RGTR_ID
+						, FRST_INQ_DTTM
+						, MDFR_ID
+						, MOD_DTTM
+				   FROM CRS_SMSTR A
+				  WHERE ORG_ID = #{orgId}
+				  	AND DGRS_SMSTR IN ('10', '20', '11', '21')
+				<if test="termType != null and termType != ''">
+					AND SMSTR_TYCD = #{termType}
+				</if>
+			   ) A
+		 ORDER BY LINE_NO
+	</select>
+
+	<select id="listHaksaTerm" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.listHaksaTerm
+			 설  명 : 학기 모든 목록 조회
+		*/
+		SELECT A.DGRS_YR,
+			   A.DGRS_SMSTR,
+			   (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'DGRS_SMSTR' AND CD = A.DGRS_SMSTR) AS HAKSA_TERM_NM,
+			   A.NOW_SMSTRYN
+		  FROM CRS_SMSTR A
+		 WHERE ORG_ID = #{orgId}
+		<if test="haksaYear != null and haksaYear != ''">
+		   AND A.DGRS_YR = #{haksaYear}
+		</if>
+		 GROUP BY A.DGRS_YR, A.DGRS_SMSTR, A.NOW_SMSTRYN
+		 ORDER BY A.DGRS_YR DESC, A.DGRS_SMSTR
+	</select>
+
+	<select id="selectTermByCrsCreCd" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.selectTermByCrsCreCd
+			 설  명 :  강의실의 학기 조회
+		*/
+		SELECT A.CRS_SMSTR_ID
+			   , A.SMSTRNM
+			   , A.ORG_ID
+			   , A.GBNCD
+			   , A.DGRS_YR
+			   , A.DGRS_SMSTR
+			   , A.SMSTR_TYCD
+			   , A.OFLN_LRN_MNGYN
+			   , A.SMSTR_STSCD
+			   , A.SMSTR_DATA_LNKGYN
+			   , A.OP_SDTTM
+			   , A.OP_EDTTM
+			   , A.ATNDLC_APLY_SDTTM
+			   , A.ATNDLC_APLY_EDTTM
+			   , A.ATNDLC_MOD_SDTTM
+			   , A.ATNDLC_MOD_EDTTM
+			   , A.ATNDLC_SDTTM
+			   , A.ATNDLC_EDTTM
+			   , A.SCR_EVL_SDTTM
+			   , A.SCR_EVL_EDTTM
+			   , A.SCR_OPEN_SDTTM
+			   , A.SCR_OPEN_EDTTM
+			   , A.SCR_CALC_CTGRCD
+			   , A.MBL_ATNDC_USEYN
+			   , A.NOW_SMSTRYN
+			   , A.RGTR_ID
+			   , A.FRST_INQ_DTTM
+			   , A.MDFR_ID
+			   , A.MOD_DTTM
+			   -- 강의시작일 설정된경우만 날짜 체크
+			   , CASE WHEN A.OP_SDTTM IS NULL
+			   		  THEN 'Y'
+			   		  WHEN FN_DTTM() &gt;= A.OP_SDTTM
+			   		  THEN 'Y'
+			   		  ELSE 'N'
+			     END AS SVC_START_YN
+			   -- 복습기간 종료일 설정된경우만 날짜 체크
+			   , CASE WHEN A.OP_EDTTM IS NULL
+			   		  THEN 'N'
+			   		  WHEN FN_DTTM() &gt;= A.OP_EDTTM
+			   		  THEN 'Y'
+			   		  ELSE 'N'
+			     END AS SVC_END_YN
+		  FROM CRS_SMSTR A
+		  JOIN TB_LMS_TERM_CRE_CRS_RLTN B
+		    ON A.CRS_SMSTR_ID = B.CRS_SMSTR_ID
+		   AND B.SBJCT_ID = #{crsCreCd}
+	</select>
+
+	<select id="select" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.select
+			 설  명 : 학기 정보 조회
+		*/
+		SELECT A.CRS_SMSTR_ID
+			   , A.SMSTRNM
+			   , A.ORG_ID
+			   , A.GBNCD
+			   , A.DGRS_YR
+			   , A.DGRS_SMSTR
+			   , A.SMSTR_TYCD
+			   , A.OFLN_LRN_MNGYN
+			   , A.SMSTR_STSCD
+			   , A.SMSTR_DATA_LNKGYN
+			   , A.OP_SDTTM
+			   , A.OP_EDTTM
+			   , A.ATNDLC_APLY_SDTTM
+			   , A.ATNDLC_APLY_EDTTM
+			   , A.ATNDLC_MOD_SDTTM
+			   , A.ATNDLC_MOD_EDTTM
+			   , A.ATNDLC_SDTTM
+			   , A.ATNDLC_EDTTM
+			   , A.SCR_EVL_SDTTM
+			   , A.SCR_EVL_EDTTM
+			   , A.SCR_OPEN_SDTTM
+			   , A.SCR_OPEN_EDTTM
+			   , A.SCR_CALC_CTGRCD
+			   , A.MBL_ATNDC_USEYN
+			   , A.NOW_SMSTRYN
+			   , A.RGTR_ID
+			   , A.FRST_INQ_DTTM
+			   , A.MDFR_ID
+			   , A.MOD_DTTM
+		FROM CRS_SMSTR A
+		WHERE A.CRS_SMSTR_ID = #{termCd}
+	</select>
+
+	<select id="selectUniTermByTermLink" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.selectUniTermByTermLink
+			 설  명 : 오늘 날짜에 해당하는 학사연동 학기 정보 조회
+		*/
+		SELECT CRS_SMSTR_ID
+			   , SMSTRNM
+		  FROM CRS_SMSTR
+		 WHERE OP_SDTTM <![CDATA[ <= ]]> DATE(NOW())
+		   AND OP_EDTTM <![CDATA[ >= ]]> DATE(NOW())
+		   AND UPPER(GBNCD) = 'UNI'
+		   AND SMSTR_DATA_LNKGYN = 'Y'
+		   AND ORG_ID = #{orgId}
+		 ORDER BY OP_SDTTM DESC
+		 LIMIT 1
+	</select>
+
+	<select id="selectCurrentTerm" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.selectCurrentTerm
+			 설  명 : 현재 학기 조회
+		*/
+		 <![CDATA[
+		 SELECT * FROM (
+	    	SELECT
+		       SMSTR_CHRT_ID AS CRS_SMSTR_ID
+	           , ORG_ID
+	           , DGRS_YR AS HAKSA_YEAR
+	           , SMSTR_CHRTNM AS SMSTRNM
+	           , SMSTR_CHRT_GBNCD AS GBNCD
+	           , DGRS_SMSTR_CHRT AS DGRS_SMSTR
+	           , SMSTR_CHRT_TYCD AS SMSTR_TYCD
+	           , OFLN_LRN_MNGYN
+	           , SMSTR_CHRT_STSCD AS SMSTR_STSCD
+	           , SMSTR_CHRT_DATA_LNKGYN AS SMSTR_DATA_LNKGYN
+	           , MRK_OPEN_SDTTM AS OP_SDTTM
+	           , MRK_OPEN_EDTTM AS OP_EDTTM
+	           , ATNDLC_APLY_SDTTM
+	           , ATNDLC_APLY_EDTTM
+	           , ATNDLC_MOD_SDTTM
+	           , ATNDLC_MOD_EDTTM
+	           , ATNDLC_SDTTM
+	           , ATNDLC_EDTTM
+	           , MRK_EVL_SDTTM
+	           , MRK_EVL_EDTTM
+	     --    , MRK_CALC_CTGRCD
+	           , MBL_ATNDC_USEYN
+	           , NOW_SMSTRYN
+	           , RGTR_ID
+	           , REG_DTTM
+	           , MDFR_ID
+	           , MOD_DTTM
+		     FROM TB_LMS_SMSTR_CHRT
+		    WHERE NOW_SMSTRYN = 'Y'
+		      AND ORG_ID = #{orgId}
+			ORDER BY CRS_SMSTR_ID
+		) A
+		WHERE ROWNUM <= 1
+		]]>
+	</select>
+
+	<select id="selectTermListPage" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.selectTermListPage
+			 설  명 : 학기 모든 목록 조회(비정규, 정규)
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT ROW_NUMBER() OVER(ORDER BY TERM_ORDER, DGRS_YR DESC, DGRS_SMSTR DESC, TERM_ORDER2) AS LINE_NO
+			   , A.*
+		  FROM ( SELECT CRS_SMSTR_ID
+						, SMSTRNM
+						, ORG_ID
+						, DGRS_YR
+						, DGRS_SMSTR
+						, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'DGRS_SMSTR' AND CD = A.DGRS_SMSTR) AS HAKSA_TERM_NM
+						, SMSTR_TYCD
+						, OFLN_LRN_MNGYN
+						, SMSTR_STSCD
+						, SMSTR_DATA_LNKGYN
+						, OP_SDTTM
+						, OP_EDTTM
+						, ATNDLC_APLY_SDTTM
+						, ATNDLC_APLY_EDTTM
+						, ATNDLC_MOD_SDTTM
+						, ATNDLC_MOD_EDTTM
+						, ATNDLC_SDTTM
+						, ATNDLC_EDTTM
+						, SCR_EVL_SDTTM
+						, SCR_EVL_EDTTM
+						, SCR_OPEN_SDTTM
+						, SCR_OPEN_EDTTM
+						, SCR_CALC_CTGRCD
+						, MBL_ATNDC_USEYN
+						, NOW_SMSTRYN
+						, (CASE WHEN SMSTR_STSCD ='SERVICE' THEN 1
+								WHEN SMSTR_STSCD = 'WAIT' THEN 2
+								WHEN SMSTR_STSCD = 'FINISH' THEN 3
+								ELSE 4
+						   END) AS TERM_ORDER
+						, (CASE WHEN SMSTR_TYCD ='NORMAL' THEN 1
+								WHEN SMSTR_STSCD ='BNORMAL' THEN 2
+								WHEN SMSTR_STSCD ='OPEN' THEN 3
+								ELSE 4
+						   END) AS TERM_ORDER2
+						, RGTR_ID
+						, FRST_INQ_DTTM
+						, MDFR_ID
+						, MOD_DTTM
+				  FROM CRS_SMSTR A
+				  WHERE 1 = 1
+				  <if test="termType != null and termType != ''">
+				 	 AND SMSTR_TYCD = #{termType}
+				  </if>
+				  <if test="searchValue != null">
+				  	AND LOWER(SMSTRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				  </if>
+			   ) A
+		 ORDER BY LINE_NO
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="selectListStatus" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.selectListStatus
+			 설  명 : 법정교육, 공개강좌 학기 리스트
+		*/
+		SELECT ROW_NUMBER() OVER(ORDER BY DGRS_YR DESC, DGRS_SMSTR, TERM_ORDER, TERM_ORDER2) AS LINE_NO
+			   , A.*
+		  FROM ( SELECT CRS_SMSTR_ID
+						, SMSTRNM
+						, ORG_ID
+						, DGRS_YR
+						, DGRS_SMSTR
+						, SMSTR_TYCD
+						, SMSTR_STSCD
+						, ( CASE WHEN SMSTR_STSCD ='SERVICE' THEN 1
+								 WHEN SMSTR_STSCD = 'WAIT' THEN 2
+								 WHEN SMSTR_STSCD = 'FINISH' THEN 3
+								 ELSE 4
+							END ) AS TERM_ORDER
+						, ( CASE WHEN SMSTR_TYCD ='NORMAL' THEN 1
+								 WHEN SMSTR_STSCD ='BNORMAL' THEN 2
+								 WHEN SMSTR_STSCD = 'OPEN' THEN 3
+								 ELSE 4
+							END ) AS TERM_ORDER2
+				   FROM CRS_SMSTR A
+				  WHERE 1 = 1
+				    AND SMSTR_STSCD != 'FINISH'
+				<if test="termType != null and termType != ''">
+					AND SMSTR_TYCD = #{termType}
+				</if>
+				<if test="crsCreCd != null and crsCreCd != ''">
+					AND (DGRS_YR, DGRS_SMSTR) IN ( SELECT SBJCT_ID, CRS_ID
+														FROM TB_LMS_SBJCT
+													   WHERE SBJCT_ID =  #{crsCreCd} )
+				</if>
+				) A
+		 ORDER BY DGRS_YR DESC, DGRS_SMSTR, TERM_ORDER, TERM_ORDER2
+	</select>
+
+	<select id="selectListTermStatus" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.selectListTermStatus
+			 설  명 : 종료가 아닌 학기 리스트
+		*/
+		SELECT ROW_NUMBER() OVER(ORDER BY TERM_ORDER, DGRS_YR DESC, DGRS_SMSTR DESC, TERM_ORDER2) AS LINE_NO
+			   , A.*
+		  FROM ( SELECT ORG_SMSTR_COHORT_ID AS TERM_CD
+						, SMSTR_COHORTNM AS TERM_NM
+						, ORG_ID
+						, DGRS_YR AS HAKSA_YEAR
+						, DGRS_SMSTR_COHORT AS HAKSA_TERM
+						, SMSTR_COHORT_TYCD AS TERM_TYPE
+			 			, SMSTR_COHORT_STSCD AS TERM_STATUS
+						, (CASE WHEN SMSTR_COHORT_STSCD ='SERVICE' THEN 1
+								 WHEN SMSTR_COHORT_STSCD ='WAIT' THEN 2
+								 WHEN SMSTR_COHORT_STSCD ='FINISH' THEN 3
+								 ELSE 4
+							END) AS TERM_ORDER
+						 , (CASE WHEN SMSTR_COHORT_STSCD ='NORMAL' THEN 1
+								 WHEN SMSTR_COHORT_STSCD ='BNORMAL' THEN 2
+								 WHEN SMSTR_COHORT_STSCD ='OPEN' THEN 3
+								 ELSE 4
+							END) AS TERM_ORDER2
+				   FROM CRS_SMSTR A
+				  WHERE 1 = 1
+				    AND SMSTR_STSCD != 'FINISH'
+				<if test="termType != null and termType != ''">
+					AND SMSTR_TYCD = #{termType}
+				</if>
+				<if test="crsCreArray != null">
+					AND CRS_SMSTR_ID IN ( SELECT DISTINCT(CRS_SMSTR_ID)
+									   FROM TB_LMS_TERM_CRE_CRS_RLTN
+									  WHERE SBJCT_ID IN
+									<foreach collection="crsCreArray" item="item" index="index" separator="," open="(" close=")">
+										#{item}
+									</foreach>
+								   )
+				</if>
+				) A
+		 ORDER BY LINE_NO DESC
+	</select>
+
+	<select id="selectListTermRltn" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.selectListTermRltn
+			 설  명 : 학기 조인  목록
+		*/
+		SELECT A.CRS_SMSTR_ID
+			   , A.SMSTRNM
+			   , A.ORG_ID
+			   , A.DGRS_YR
+			   , A.DGRS_SMSTR
+			   , A.SMSTR_TYCD
+			   , A.OFLN_LRN_MNGYN
+			   , A.SMSTR_STSCD
+			   , A.OP_SDTTM
+			   , A.OP_EDTTM
+			   , A.ATNDLC_APLY_SDTTM
+			   , A.ATNDLC_APLY_EDTTM
+			   , A.ATNDLC_MOD_SDTTM
+			   , A.ATNDLC_MOD_EDTTM
+			   , A.ATNDLC_SDTTM
+			   , A.ATNDLC_EDTTM
+			   , A.SCR_EVL_SDTTM
+			   , A.SCR_EVL_EDTTM
+			   , A.SCR_OPEN_SDTTM
+			   , A.SCR_OPEN_EDTTM
+			   , A.SCR_CALC_CTGRCD
+			   , A.MBL_ATNDC_USEYN
+			   , A.NOW_SMSTRYN
+			   , (CASE WHEN A.SMSTR_STSCD ='SERVICE' THEN 1
+						WHEN A.SMSTR_STSCD = 'WAIT' THEN 2
+						WHEN A.SMSTR_STSCD='FINISH' THEN 3
+						ELSE 4
+				  END) AS TERM_ORDER
+			   , A.RGTR_ID
+			   , A.FRST_INQ_DTTM
+			   , A.MDFR_ID
+			   , A.MOD_DTTM
+		  FROM CRS_SMSTR A
+			   , TB_LMS_TERM_CRE_CRS_RLTN B
+		 WHERE A.CRS_SMSTR_ID = B.CRS_SMSTR_ID
+		<if test="crsCreCd != null and crsCreCd != ''">
+			AND B.SBJCT_ID = #{crsCreCd}
+		</if>
+		 ORDER BY TERM_ORDER, DGRS_YR DESC, DGRS_SMSTR  DESC
+	</select>
+
+	<select id="listPageing" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.listPageing
+			 설  명 : 학기 모든 목록 조회(비정규, 정규)
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT ROW_NUMBER() OVER(ORDER BY OP_SDTTM DESC ) AS LINE_NO
+			   , A.CRS_SMSTR_ID AS TERM_CD
+			   , A.SMSTRNM AS TERM_NM
+			   , A.ORG_ID
+			   , A.DGRS_YR AS HAKSA_YEAR
+			   , A.DGRS_SMSTR AS HAKSA_TERM
+			   , ( CASE WHEN A.DGRS_SMSTR = '10' THEN '1학기'
+						WHEN A.DGRS_SMSTR = '11' THEN '여름학기'
+						WHEN A.DGRS_SMSTR = '20' THEN '2학기'
+						WHEN A.DGRS_SMSTR = '21' THEN '겨울학기'
+						ELSE '-'
+					END ) AS HAKSA_TERM_NM
+			   , SMSTR_TYCD AS TERM_TYPE
+			   , A.OFLN_LRN_MNGYN AS OFF_LESSON_MGT_YN
+			   , A.SMSTR_STSCD AS TERM_STATUS
+			   , A.SMSTR_DATA_LNKGYN AS TERM_LINK_YN
+			   , A.OP_SDTTM AS SVC_START_DTTM
+			   , A.OP_EDTTM AS SVC_END_DTTM
+			   , A.ATNDLC_APLY_SDTTM AS ENRL_APLC_START_DTTM
+			   , A.ATNDLC_APLY_EDTTM AS ENRL_APLC_END_DTTM
+			   , A.ATNDLC_MOD_SDTTM AS ENRL_MOD_START_DTTM
+			   , A.ATNDLC_MOD_EDTTM AS ENRL_MOD_END_DTTM
+			   , A.ATNDLC_SDTTM AS ENRL_START_DTTM
+			   , A.ATNDLC_EDTTM AS ENRL_END_DTTM
+			   --, A.SCR_EVL_SDTTM
+			   --, A.SCR_EVL_EDTTM
+			   --, A.SCR_OPEN_SDTTM
+			   --, A.SCR_OPEN_EDTTM
+			   --, A.SCR_CALC_CTGRCD
+			   , A.MBL_ATNDC_USEYN AS MOBILE_ATTEND_YN
+			   , A.NOW_SMSTRYN AS CUR_TERM_YN
+			   , A.TERM_ORDER
+			   , A.TERM_ORDER2
+			   --, A.CRS_COUNT
+		  FROM (SELECT TLT.ORG_SMSTR_COHORT_ID AS CRS_SMSTR_ID
+		  			    , TLT.SMSTR_COHORTNM AS SMSTRNM
+		  			    , TLT.ORG_ID
+		  			    , TLT.DGRS_YR
+		  			    , TLT.DGRS_SMSTR_COHORT AS DGRS_SMSTR
+--						, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = 'ORG0000001' AND CTGRCD = 'DGRS_SMSTR' AND CD = TLT.DGRS_SMSTR) AS HAKSA_TERM_NM
+						, TLT.SMSTR_COHORT_TYCD AS SMSTR_TYCD
+						, TLT.OFLN_LRN_MNGYN
+						, TLT.SMSTR_COHORT_STSCD AS SMSTR_STSCD
+						, TLT.SMSTR_COHORT_DATA_LNKGYN AS SMSTR_DATA_LNKGYN
+						, TLT.MRK_OPEN_SDTTM AS OP_SDTTM
+						, TLT.MRK_OPEN_EDTTM AS OP_EDTTM
+						, TLT.ATNDLC_APLY_SDTTM
+						, TLT.ATNDLC_APLY_EDTTM
+						, TLT.ATNDLC_MOD_SDTTM
+						, TLT.ATNDLC_MOD_EDTTM
+						, TLT.ATNDLC_SDTTM
+						, TLT.ATNDLC_EDTTM
+						--, TLT.SCR_EVL_SDTTM
+						--, TLT.SCR_EVL_EDTTM
+						--, TLT.SCR_OPEN_SDTTM
+						--, TLT.SCR_OPEN_EDTTM
+						--, TLT.SCR_CALC_CTGRCD
+						, TLT.MBL_ATNDC_USEYN
+						, TLT.NOW_SMSTRYN
+						, ( CASE WHEN TLT.SMSTR_COHORT_STSCD ='SERVICE' THEN 1
+								 WHEN TLT.SMSTR_COHORT_STSCD ='WAIT' THEN 2
+								 WHEN TLT.SMSTR_COHORT_STSCD ='FINISH' THEN 3
+								 ELSE 4
+							END ) AS TERM_ORDER
+						, ( CASE WHEN TLT.SMSTR_COHORT_STSCD ='NORMAL' THEN 1
+								 WHEN TLT.SMSTR_COHORT_STSCD ='BNORMAL' THEN 2
+								 WHEN TLT.SMSTR_COHORT_STSCD ='OPEN' THEN 3
+								 ELSE 4
+							END ) AS TERM_ORDER2
+--						, (SELECT COUNT(*) FROM TB_LMS_TERM_CRE_CRS_RLTN WHERE TLT.CRS_SMSTR_ID = CRS_SMSTR_ID) AS CRS_COUNT
+				  FROM TB_LMS_ORG_SMSTR_COHORT TLT
+				 WHERE 1 = 1
+				<if test="termType != null and termType != ''">AND TLT.SMSTR_TYCD = #{termType}</if>
+				<if test="termStatus != null and termStatus != ''">AND TLT.SMSTR_STSCD = #{termStatus}</if>
+				<if test="haksaYear != null and haksaYear != ''">AND TLT.DGRS_YR = #{haksaYear}</if>
+				<if test='orgId != null and orgId != "" '>AND TLT.ORG_ID = #{orgId}</if>
+				<if test="searchValue != null">AND LOWER(TLT.SMSTRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))</if>
+			   ) A
+		 ORDER BY LINE_NO
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="countPageing" parameterType="knou.lms.crs.term.vo.TermVO" resultType="Integer">
+		/*
+			 SQL ID : TermDAO.countPageing
+			 설  명 : 학기 카운트 조회(비정규, 정규)
+		*/
+		SELECT COUNT(ORG_SMSTR_COHORT_ID)
+		  FROM TB_LMS_ORG_SMSTR_COHORT
+		 WHERE 1 = 1
+		<if test="termType != null and termType != ''">AND SMSTR_TYCD = #{termType}</if>
+		<if test="termStatus != null and termStatus != ''">AND SMSTR_STSCD = #{termStatus}</if>
+		<if test="haksaYear != null and haksaYear != ''">AND DGRS_YR = #{haksaYear}</if>
+		<if test='orgId != null and orgId != "" '>AND ORG_ID = #{orgId}</if>
+		<if test="searchValue != null">AND LOWER(SMSTRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))</if>
+	</select>
+
+	<update id="editCurTermYn" parameterType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.editCurTermYn
+			 설  명 :
+		*/
+		UPDATE CRS_SMSTR
+		   SET NOW_SMSTRYN = #{useYn}
+			   , MDFR_ID = #{mdfrId}
+			   , MOD_DTTM = FN_DTTM()
+		 WHERE CRS_SMSTR_ID = #{termCd}
+		 AND ORG_ID = #{orgId}
+	</update>
+
+	<update id="notEditCurTermYn" parameterType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.notEditCurTermYn
+			 설  명 :
+		*/
+		UPDATE CRS_SMSTR
+		   SET NOW_SMSTRYN = 'N'
+			   , MDFR_ID = #{mdfrId}
+			   , MOD_DTTM = FN_DTTM()
+		 WHERE ORG_ID = #{orgId}
+		 AND CRS_SMSTR_ID IN (SELECT CRS_SMSTR_ID
+							 FROM (SELECT CRS_SMSTR_ID FROM CRS_SMSTR WHERE CRS_SMSTR_ID != #{termCd} AND ORG_ID = #{orgId}) AS TB_LMS_TERM_TERM )
+	</update>
+
+	<delete id="deleteTermLesson" parameterType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.deleteTermLesson
+			 설  명 : 학기 정보 삭제 시 하위 학기 주차 삭제
+		*/
+		<![CDATA[
+			DELETE FROM CRS_SMSTR_WKNO WHERE CRS_SMSTR_ID = #{termCd}
+		]]>
+	</delete>
+
+	<delete id="delete" parameterType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.delete
+			 설  명 : 학기 정보 삭제
+		*/
+		<![CDATA[
+		DELETE FROM CRS_SMSTR WHERE CRS_SMSTR_ID = #{termCd}
+		]]>
+	</delete>
+
+	<select id="crsTermCheck" parameterType="knou.lms.crs.term.vo.TermVO" resultType="Integer">
+		/*
+			 SQL ID : TermDAO.crsTermCheck
+			 설  명 : 학기 정보 등록 하기 전에 중복 체크 (정규과정에 학사년도, 학기 비교)
+		*/
+		SELECT  COUNT(CRS_SMSTR_ID) AS COUNT
+		  FROM CRS_SMSTR
+		 WHERE SMSTR_TYCD = #{termType}
+		   AND DGRS_YR = #{haksaYear}
+		   AND DGRS_SMSTR = #{haksaTerm}
+	</select>
+
+	<select id="crsCurTermYnCheck" parameterType="knou.lms.crs.term.vo.TermVO" resultType="Integer">
+		/*
+			 SQL ID : TermDAO.crsCurTermYnCheck
+			 설  명 : 현재학기 변경 전에 이미 지정된 학기가 있는지 확인
+		*/
+		SELECT  COUNT(CRS_SMSTR_ID) AS COUNT
+		  FROM CRS_SMSTR
+		 WHERE NOW_SMSTRYN = 'Y'
+	</select>
+
+	<insert id="insert" parameterType="knou.lms.crs.term.vo.TermVO" >
+		/*
+			 SQL ID : TermDAO.insert
+			 설  명 : 학기 정보 등록
+		*/
+		INSERT INTO CRS_SMSTR (
+			CRS_SMSTR_ID
+			, SMSTRNM
+			, ORG_ID
+			, DGRS_YR
+			, DGRS_SMSTR
+			, SMSTR_TYCD
+			, OFLN_LRN_MNGYN
+			, SMSTR_STSCD
+			, SMSTR_DATA_LNKGYN
+		<if test='svcStartDttm != null and svcStartDttm != ""'>
+			, OP_SDTTM
+		</if>
+		<if test='svcEndDttm != null and svcEndDttm != ""'>
+			, OP_EDTTM
+		</if>
+		<if test='enrlAplcStartDttm != null and enrlAplcStartDttm != ""'>
+			, ATNDLC_APLY_SDTTM
+		</if>
+		<if test='enrlAplcEndDttm != null and enrlAplcEndDttm != ""'>
+			, ATNDLC_APLY_EDTTM
+		</if>
+		<if test='enrlModStartDttm != null and enrlModStartDttm != ""'>
+			, ATNDLC_MOD_SDTTM
+		</if>
+		<if test='enrlModEndDttm != null and enrlModEndDttm != ""'>
+			, ATNDLC_MOD_EDTTM
+		</if>
+		<if test='enrlStartDttm != null and enrlStartDttm != ""'>
+			, ATNDLC_SDTTM
+		</if>
+		<if test='enrlEndDttm != null and enrlEndDttm != ""'>
+			, ATNDLC_EDTTM
+		</if>
+		<if test='scoreEvalStartDttm != null and scoreEvalStartDttm != ""'>
+			, SCR_EVL_SDTTM
+		</if>
+		<if test='scoreEvalEndDttm != null and scoreEvalEndDttm != ""'>
+			, SCR_EVL_EDTTM
+		</if>
+		<if test='scoreOpenStartDttm != null and scoreOpenStartDttm != ""'>
+			, SCR_OPEN_SDTTM
+		</if>
+		<if test='scoreOpenEndDttm != null and scoreOpenEndDttm != ""'>
+			, SCR_OPEN_EDTTM
+		</if>
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			#{termCd}
+			, #{termNm}
+			, #{orgId}
+			, #{haksaYear}
+			, #{haksaTerm}
+			, 'NORMAL'
+			, 'N'
+			, #{termStatus}
+			, #{termLinkYn}
+		<if test='svcStartDttm != null and svcStartDttm != ""'>
+			, TO_CHAR(TO_DATE(#{svcStartDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='svcEndDttm != null and svcEndDttm != ""'>
+			, TO_CHAR(TO_DATE(#{svcEndDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='enrlAplcStartDttm != null and enrlAplcStartDttm != ""'>
+			, TO_CHAR(TO_DATE(#{enrlAplcStartDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='enrlAplcEndDttm != null and enrlAplcEndDttm != ""'>
+			, TO_CHAR(TO_DATE(#{enrlAplcEndDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='enrlModStartDttm != null and enrlModStartDttm != ""'>
+			, TO_CHAR(TO_DATE(#{enrlModStartDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='enrlModEndDttm != null and enrlModEndDttm != ""'>
+			, TO_CHAR(TO_DATE(#{enrlModEndDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='enrlStartDttm != null and enrlStartDttm != ""'>
+			, TO_CHAR(TO_DATE(#{enrlStartDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='enrlEndDttm != null and enrlEndDttm != ""'>
+			, TO_CHAR(TO_DATE(#{enrlEndDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='scoreEvalStartDttm != null and scoreEvalStartDttm != ""'>
+			, TO_CHAR(TO_DATE(#{scoreEvalStartDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='scoreEvalEndDttm != null and scoreEvalEndDttm != ""'>
+			, TO_CHAR(TO_DATE(#{scoreEvalEndDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='scoreOpenStartDttm != null and scoreOpenStartDttm != ""'>
+			, TO_CHAR(TO_DATE(#{scoreOpenStartDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+		<if test='scoreOpenEndDttm != null and scoreOpenEndDttm != ""'>
+			, TO_CHAR(TO_DATE(#{scoreOpenEndDttm}, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+		</if>
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		)
+	</insert>
+
+	<update id="update" parameterType="knou.lms.crs.term.vo.TermVO" >
+		/*
+			 SQL ID : TermDAO.update
+			 설  명 : 학기 정보 수정
+		*/
+		UPDATE CRS_SMSTR
+		   SET SMSTRNM = #{termNm}
+			<if test='haksaYear != null and haksaYear != ""'>
+				, DGRS_YR = #{haksaYear}
+			</if>
+			<if test='haksaTerm != null and haksaTerm != ""'>
+				, DGRS_SMSTR = #{haksaTerm}
+			</if>
+			<if test='termType != null and termType != ""'>
+				, SMSTR_TYCD  = #{termType}
+			</if>
+			<if test='offLessonMgtYn != null and offLessonMgtYn != ""'>
+				, OFLN_LRN_MNGYN = #{offLessonMgtYn}
+			</if>
+			<if test='termStatus != null and termStatus != ""'>
+				, SMSTR_STSCD =  #{termStatus}
+			</if>
+			<if test='termLinkYn != null and termLinkYn != ""'>
+				, SMSTR_DATA_LNKGYN = #{termLinkYn}
+			</if>
+			<if test='svcStartDttm != null and svcStartDttm != ""'>
+				, OP_SDTTM = TO_CHAR(TO_DATE(#{svcStartDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			<if test='svcEndDttm != null and svcEndDttm != ""'>
+				, OP_EDTTM = TO_CHAR(TO_DATE(#{svcEndDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			<if test='enrlAplcStartDttm != null and enrlAplcStartDttm != ""'>
+				, ATNDLC_APLY_SDTTM = TO_CHAR(TO_DATE(#{enrlAplcStartDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			<if test='enrlAplcEndDttm != null and enrlAplcEndDttm != ""'>
+				, ATNDLC_APLY_EDTTM = TO_CHAR(TO_DATE(#{enrlAplcEndDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			<if test='enrlModStartDttm != null and enrlModStartDttm != ""'>
+				, ATNDLC_MOD_SDTTM = TO_CHAR(TO_DATE(#{enrlModStartDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			<if test='enrlModEndDttm != null and enrlModEndDttm != ""'>
+				, ATNDLC_MOD_EDTTM = TO_CHAR(TO_DATE(#{enrlModEndDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			<if test='enrlStartDttm != null and enrlStartDttm != ""'>
+				, ATNDLC_SDTTM = TO_CHAR(TO_DATE(#{enrlStartDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+
+			</if>
+			<if test='enrlEndDttm != null and enrlEndDttm != ""'>
+				, ATNDLC_EDTTM = TO_CHAR(TO_DATE(#{enrlEndDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			<if test='scoreEvalStartDttm != null and scoreEvalStartDttm != ""'>
+				, SCR_EVL_SDTTM = TO_CHAR(TO_DATE(#{scoreEvalStartDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			<if test='scoreEvalEndDttm != null and scoreEvalEndDttm != ""'>
+				, SCR_EVL_EDTTM = TO_CHAR(TO_DATE(#{scoreEvalEndDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			<if test='scoreOpenStartDttm != null and scoreOpenStartDttm != ""'>
+				, SCR_OPEN_SDTTM = TO_CHAR(TO_DATE(#{scoreOpenStartDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			<if test='scoreOpenEndDttm != null and scoreOpenEndDttm != ""'>
+				, SCR_OPEN_EDTTM = TO_CHAR(TO_DATE(#{scoreOpenEndDttm},'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS')
+			</if>
+			 , MDFR_ID =  #{mdfrId}
+			 , MOD_DTTM =  FN_DTTM()
+		 WHERE CRS_SMSTR_ID = #{termCd}
+	</update>
+
+	<select id="termLessonSelect" parameterType="knou.lms.crs.term.vo.CrsTermLessonVO" resultType="knou.lms.crs.term.vo.CrsTermLessonVO">
+		/*
+			 SQL ID : TermDAO.termLessonSelect
+			 설  명 :
+		*/
+		<!-- SELECT CRS_SMSTR_ID
+			 , LCTR_TYCD
+			 , TOC_SEQ
+			 , SYMD
+			 , EYMD
+			 , LCTR_RCG_SYMD
+			 , LCTR_RCG_EYMD
+			 , RGTR_ID
+			 , FRST_INQ_DTTM
+			 , MDFR_ID
+			 , MOD_DTTM
+		  FROM CRS_SMSTR_WKNO
+		 WHERE CRS_SMSTR_ID =  #{termCd}
+		   AND LCTR_TYCD = #{enrlType}
+		 ORDER BY TOC_SEQ -->
+
+		SELECT SMSTR_COHORT_SCHDL_ID AS TERM_CD
+			 , ATNDLC_TYCD AS ENRL_TYPE
+			 , TOC_SEQ AS LSN_ODR
+			 , SYMD AS START_DT
+			 , EYMD AS END_DT
+			 , LCTR_RCG_SYMD AS LT_DETM_FR_DT
+			 , LCTR_RCG_EYMD AS LT_DETM_TO_DT
+			 , RGTR_ID
+			 , REG_DTTM
+			 , MDFR_ID
+			 , MOD_DTTM
+		  FROM TB_LMS_SMSTR_COHORT_SCHDL
+		 WHERE SMSTR_COHORT_SCHDL_ID = #{termCd}
+		   AND ATNDLC_TYCD = #{enrlType}
+		 ORDER BY TOC_SEQ
+	</select>
+
+	<insert id="mergeTermLessonList" parameterType="java.util.List">
+		/*
+			 SQL ID : TermDAO.mergeTermLessonList
+			 설  명 : 학기 주차 설정 저장
+		*/
+		<!-- INSERT INTO CRS_SMSTR_WKNO (
+			  CRS_SMSTR_ID
+			, LCTR_TYCD
+			, TOC_SEQ
+			, SYMD
+			, EYMD
+			, LCTR_RCG_SYMD
+			, LCTR_RCG_EYMD
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES
+		<foreach collection="list" item="item" separator=",">
+		(
+			  #{item.termCd}
+			, #{item.enrlType}
+			, #{item.lsnOdr}
+			, #{item.startDt}
+			, #{item.endDt}
+			, #{item.ltDetmFrDt}
+			, #{item.ltDetmToDt}
+			, #{item.rgtrId}
+			, FN_DTTM()
+			, #{item.mdfrId}
+			, FN_DTTM()
+		)
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		   	 LCTR_TYCD		= VALUES(LCTR_TYCD)
+		   , TOC_SEQ 		= VALUES(TOC_SEQ)
+		   , SYMD 		= VALUES(SYMD)
+		   , LCTR_RCG_SYMD 	= VALUES(LCTR_RCG_SYMD)
+		   , LCTR_RCG_EYMD 	= VALUES(LCTR_RCG_EYMD)
+		   , EYMD 		= VALUES(EYMD)
+		   , MDFR_ID 		= VALUES(MDFR_ID)
+		   , MOD_DTTM 		= FN_DTTM() -->
+
+		MERGE INTO TB_LMS_SMSTR_COHORT_SCHDL T
+		USING (
+			<foreach collection="list" item="item" separator=" UNION ALL ">
+		    SELECT
+				  #{item.termCd} AS SMSTR_COHORT_SCHDL_ID
+				, #{item.termCd} AS ORG_SMSTR_COHORT_ID
+				, #{item.enrlType} AS LCTR_TYCD
+				, #{item.lsnOdr} AS TOC_SEQ
+				, #{item.startDt} AS SYMD
+				, #{item.endDt} AS EYMD
+				, #{item.ltDetmFrDt} AS LCTR_RCG_SYMD
+				, #{item.ltDetmToDt} AS LCTR_RCG_EYMD
+				, #{item.rgtrId} AS RGTR_ID
+				, #{item.mdfrId} AS MDFR_ID
+		    FROM dual
+		  </foreach>
+		) S
+		ON (S.SMSTR_COHORT_SCHDL_ID = T.SMSTR_COHORT_SCHDL_ID AND S.TOC_SEQ = T.TOC_SEQ AND S.LCTR_TYCD = T.ATNDLC_TYCD)
+		WHEN MATCHED THEN
+			UPDATE SET
+			     SYMD 		= S.SYMD
+			   , EYMD 		= S.EYMD
+			   , LCTR_RCG_SYMD 	= S.LCTR_RCG_SYMD
+			   , LCTR_RCG_EYMD 	= S.LCTR_RCG_EYMD
+			   , MDFR_ID 		= S.MDFR_ID
+			   , MOD_DTTM 		= FN_DTTM()
+		WHEN NOT MATCHED THEN
+			INSERT (
+				  SMSTR_COHORT_SCHDL_ID
+				, ORG_SMSTR_COHORT_ID
+				, ATNDLC_TYCD
+				, TOC_SEQ
+				, SYMD
+				, EYMD
+				, LCTR_RCG_SYMD
+				, LCTR_RCG_EYMD
+				, RGTR_ID
+				, REG_DTTM
+				, MDFR_ID
+				, MOD_DTTM
+			) VALUES (
+				  S.SMSTR_COHORT_SCHDL_ID
+				, S.ORG_SMSTR_COHORT_ID
+				, S.LCTR_TYCD
+				, S.TOC_SEQ
+				, S.SYMD
+				, S.EYMD
+				, S.LCTR_RCG_SYMD
+				, S.LCTR_RCG_EYMD
+				, S.RGTR_ID
+				, FN_DTTM()
+				, S.MDFR_ID
+				, FN_DTTM()
+			)
+	</insert>
+
+	<insert id="deleteTermLessonNotInclude" parameterType="java.util.List">
+		/*
+			 SQL ID : TermDAO.deleteTermLessonNotInclude
+			 설  명 : 학기 주차 설정 미사용 목록 삭제
+		*/
+		DELETE FROM TB_LMS_SMSTR_COHORT_SCHDL
+		WHERE SMSTR_COHORT_SCHDL_ID = #{termCd}
+		AND ATNDLC_TYCD = #{enrlType}
+		AND TOC_SEQ NOT IN
+		<foreach collection="sqlForeach" item="item" separator="," open="(" close=")">
+			#{item}
+		</foreach>
+	</insert>
+
+	<select id="selectCurTermLesson" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.selectCurTermLesson
+			 설  명 : 학기 현재 주차 조회
+		*/
+		SELECT A.CRS_SMSTR_ID
+			 , A.UNI_GBN
+			 , A.TOC_SEQ
+			 , A.LCTR_TYCD
+			 , A.SYMD
+			 , A.EYMD
+			 , A.LCTR_RCG_SYMD
+			 , A.LCTR_RCG_EYMD
+			 , A.RGTR_ID
+			 , A.FRST_INQ_DTTM
+			 , A.MDFR_ID
+			 , A.MOD_DTTM
+		  FROM CRS_SMSTR_WKNO A
+		  JOIN CRS_SMSTR B
+			ON A.CRS_SMSTR_ID = B.CRS_SMSTR_ID
+		   AND B.ORG_ID = #{orgId}
+		 WHERE DATE_FORMAT(NOW(), '%Y%m%d') BETWEEN A.SYMD AND A.EYMD
+		   AND A.CRS_SMSTR_ID = #{termCd}
+		 ORDER BY A.CRS_SMSTR_ID, A.TOC_SEQ DESC
+		 LIMIT 1
+	</select>
+
+	<select id="view" parameterType="termVO" resultType="termVO">
+		/*
+			 SQL ID : TermDAO.view
+			 설  명 : 학기 조회
+		*/
+		<![CDATA[
+		SELECT CRS_SMSTR_ID
+			 , SMSTRNM
+			 , ORG_ID
+			 , DGRS_YR
+			 , DGRS_SMSTR
+			 , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'DGRS_SMSTR' AND CD = DGRS_SMSTR) AS HAKSA_TERM_NM
+			 , SMSTR_TYCD
+			 , OFLN_LRN_MNGYN
+			 , SMSTR_STSCD
+			 , SMSTR_DATA_LNKGYN
+			 , OP_SDTTM
+			 , OP_EDTTM
+			 , ATNDLC_APLY_SDTTM
+			 , ATNDLC_APLY_EDTTM
+			 , ATNDLC_MOD_SDTTM
+			 , ATNDLC_MOD_EDTTM
+			 , ATNDLC_SDTTM
+			 , ATNDLC_EDTTM
+			 , SCR_EVL_SDTTM
+			 , SCR_EVL_EDTTM
+			 , SCR_OPEN_SDTTM
+			 , SCR_OPEN_EDTTM
+			 , SCR_CALC_CTGRCD
+			 , MBL_ATNDC_USEYN
+			 , RGTR_ID
+			 , FRST_INQ_DTTM
+			 , MDFR_ID
+			 , MOD_DTTM
+		  FROM CRS_SMSTR
+		 WHERE CRS_SMSTR_ID = #{termCd}
+		]]>
+		<if test='orgId != null and orgId != "" '>
+			AND ORG_ID = #{orgId}
+		</if>
+	</select>
+
+	<select id="listTermStatus" parameterType="termVO" resultType="termVO">
+		/*
+			 SQL ID : TermDAO.listTermStatus
+			 설  명 : 종료가 아닌 학기 리스트
+		*/
+		SELECT ROW_NUMBER() OVER(ORDER BY DGRS_YR DESC, DGRS_SMSTR_COHORT DESC) AS LINE_NO
+			 , ORG_SMSTR_COHORT_ID AS TERM_CD
+			 , SMSTR_COHORTNM AS TERM_NM
+			 , ORG_ID
+			 , DGRS_YR AS HAKSA_YEAR
+			 , DGRS_SMSTR_COHORT AS HAKSA_TERM
+			 , SMSTR_COHORT_TYCD AS TERM_TYPE
+			 , SMSTR_COHORT_STSCD AS TERM_STATUS
+			 , (CASE WHEN SMSTR_COHORT_STSCD ='SERVICE' THEN 1
+					 WHEN SMSTR_COHORT_STSCD ='WAIT' THEN 2
+					 WHEN SMSTR_COHORT_STSCD ='FINISH' THEN 3
+					 ELSE 4
+				END) AS TERM_ORDER
+			 , (CASE WHEN SMSTR_COHORT_STSCD ='NORMAL' THEN 1
+					 WHEN SMSTR_COHORT_STSCD ='BNORMAL' THEN 2
+					 WHEN SMSTR_COHORT_STSCD ='OPEN' THEN 3
+					 ELSE 4
+				END) AS TERM_ORDER2
+			 --, FN_GET_ORG_CODE_NM(ORG_ID,'CRS_OPER_UNI_CD', SMSTR_COHORT_STSCD ) TERM_TYPE_NM
+		  FROM TB_LMS_ORG_SMSTR_COHORT A
+		 WHERE 1 = 1
+		   AND SMSTR_COHORT_STSCD != 'FINISH'
+		<if test="termType != null and termType != ''">
+			AND SMSTR_TYCD = #{termType}
+		</if>
+		<if test="sqlForeach != null">
+			AND CRS_SMSTR_ID IN (SELECT DISTINCT(CRS_SMSTR_ID)
+							  FROM TB_LMS_TERM_CRE_CRS_RLTN
+							 WHERE SBJCT_ID IN
+							 <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+								#{item}
+							 </foreach>
+							)
+		</if>
+		<if test="orgId != null and orgId != ''">
+			AND A.ORG_ID = #{orgId}
+		</if>
+		 ORDER BY LINE_NO <if test="searchSort != null and searchSort != ''">${searchSort}</if><if test="searchSort == null or searchSort == ''">DESC</if>
+	</select>
+
+	<select id="listTermRltn" parameterType="termVO" resultType="termVO">
+		/*
+			 SQL ID : TermDAO.listTermRltn
+			 설  명 : 학기 조인  목록
+		*/
+		SELECT A.CRS_SMSTR_ID
+			 , A.SMSTRNM
+			 , A.ORG_ID
+			 , A.DGRS_YR
+			 , A.DGRS_SMSTR
+			 , A.SMSTR_TYCD
+			 , A.OFLN_LRN_MNGYN
+			 , A.SMSTR_STSCD
+			 , A.OP_SDTTM
+			 , A.OP_EDTTM
+			 , A.ATNDLC_APLY_SDTTM
+			 , A.ATNDLC_APLY_EDTTM
+			 , A.ATNDLC_MOD_SDTTM
+			 , A.ATNDLC_MOD_EDTTM
+			 , A.ATNDLC_SDTTM
+			 , A.ATNDLC_EDTTM
+			 , A.SCR_EVL_SDTTM
+			 , A.SCR_EVL_EDTTM
+			 , A.SCR_OPEN_SDTTM
+			 , A.SCR_OPEN_EDTTM
+			 , A.SCR_CALC_CTGRCD
+			 , A.MBL_ATNDC_USEYN
+			 , A.RGTR_ID
+			 , A.FRST_INQ_DTTM
+			 , A.MDFR_ID
+			 , A.MOD_DTTM
+			 , (CASE WHEN A.SMSTR_STSCD ='SERVICE' THEN 1
+			 		 WHEN A.SMSTR_STSCD = 'WAIT' THEN 2
+			 		 WHEN A.SMSTR_STSCD='FINISH' THEN 3
+			 		 ELSE 4
+			 	END) AS TERM_ORDER,
+			 FN_GET_ORG_CODE_NM(A.ORG_ID,'CRS_OPER_UNI_CD', A.SMSTR_TYCD) TERM_TYPE_NM
+		  FROM TB_LMS_ORG_SMSTR_COHORT A, TB_LMS_TERM_CRE_CRS_RLTN B
+		 WHERE A.CRS_SMSTR_ID  = B.CRS_SMSTR_ID
+		<if test="crsCreCd != null and crsCreCd != ''">
+			AND B.SBJCT_ID = #{crsCreCd}
+		</if>
+		<if test='orgId != null and orgId != "" '>
+			AND A.ORG_ID = #{orgId}
+		</if>
+		 ORDER BY TERM_ORDER, DGRS_YR DESC, DGRS_SMSTR DESC
+	</select>
+
+	<update id="updateCreCrs" parameterType="termVO" >
+		/*
+			 SQL ID : TermDAO.updateCreCrs
+			 설  명 : 학기 정보 수정 시 개설과목에 관련 정보 반영
+		*/
+		<!-- UPDATE TB_LMS_SBJCT A
+		  JOIN ( SELECT B.SBJCT_ID
+						, A.ATNDLC_APLY_SDTTM							/* 수강 신청 시작 일시 */
+						, A.ATNDLC_APLY_EDTTM								/* 수강 신청 종료 일시 */
+						, A.ATNDLC_SDTTM									/* 수강 시작 일시 */
+						, A.ATNDLC_EDTTM									/* 수강 종료 일시 */
+						, A.SCR_EVL_SDTTM AS MRK_PROC_SDTTM	/* 성적처리시작일시 */
+						, A.SCR_EVL_EDTTM AS MRK_PROC_EDTTM		/* 성적처리종료일시 */
+						, #{mdfrId} AS MDFR_ID
+						, FN_DTTM() AS MOD_DTTM
+				   FROM CRS_SMSTR A
+						, TB_LMS_TERM_CRE_CRS_RLTN B
+				  WHERE A.CRS_SMSTR_ID = #{termCd}
+					AND A.CRS_SMSTR_ID = B.CRS_SMSTR_ID
+			   ) B
+			ON A.SBJCT_ID = B.SBJCT_ID
+		   SET A.ATNDLC_APLY_SDTTM = B.ATNDLC_APLY_SDTTM
+			 , A.ATNDLC_APLY_EDTTM = B.ATNDLC_APLY_EDTTM
+			 , A.ATNDLC_SDTTM = B.ATNDLC_SDTTM
+			 , A.ATNDLC_EDTTM = B.ATNDLC_EDTTM
+			 , A.MRK_PROC_SDTTM = B.MRK_PROC_SDTTM
+			 , A.MRK_PROC_EDTTM = B.MRK_PROC_EDTTM
+			 , A.MDFR_ID = B.MDFR_ID
+			 , A.MOD_DTTM = B.MOD_DTTM -->
+		 MERGE INTO TB_LMS_SBJCT T
+		 USING (
+		 	SELECT
+		 		  B.SBJCT_ID
+				, A.ATNDLC_APLY_SDTTM							/* 수강 신청 시작 일시 */
+				, A.ATNDLC_APLY_EDTTM								/* 수강 신청 종료 일시 */
+				, A.ATNDLC_SDTTM									/* 수강 시작 일시 */
+				, A.ATNDLC_EDTTM									/* 수강 종료 일시 */
+				, A.SCR_EVL_SDTTM AS MRK_PROC_SDTTM	/* 성적처리시작일시 */
+				, A.SCR_EVL_EDTTM AS MRK_PROC_EDTTM		/* 성적처리종료일시 */
+				, #{mdfrId} AS MDFR_ID
+				, FN_DTTM() AS MOD_DTTM
+		   	FROM CRS_SMSTR A
+			JOIN TB_LMS_TERM_CRE_CRS_RLTN B ON A.CRS_SMSTR_ID = B.CRS_SMSTR_ID
+		  WHERE A.CRS_SMSTR_ID = #{termCd}
+		 ) S
+		 ON (S.SBJCT_ID = T.SBJCT_ID)
+		 WHEN MATCHED THEN
+		 UPDATE SET
+		 	   T.ATNDLC_APLY_SDTTM	= S.ATNDLC_APLY_SDTTM
+			 , T.ATNDLC_APLY_EDTTM		= S.ATNDLC_APLY_EDTTM
+			 , T.ATNDLC_SDTTM		= S.ATNDLC_SDTTM
+			 , T.ATNDLC_EDTTM			= S.ATNDLC_EDTTM
+			 , T.MRK_PROC_SDTTM	= S.MRK_PROC_SDTTM
+			 , T.MRK_PROC_EDTTM	= S.MRK_PROC_EDTTM
+			 , T.MDFR_ID					= S.MDFR_ID
+			 , T.MOD_DTTM				= S.MOD_DTTM
+	</update>
+
+	<select id="listPaging" parameterType="termVO" resultType="termVO">
+		/*
+			 SQL ID : TermDAO.listPaging
+			 설  명 : 학기 모든 목록 조회(비정규, 정규)
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT ROW_NUMBER() OVER(ORDER BY TERM_ORDER, DGRS_YR DESC, DGRS_SMSTR DESC, TERM_ORDER2) AS LINE_NO
+			 , CRS_SMSTR_ID
+			 , SMSTRNM
+			 , ORG_ID
+			 , DGRS_YR
+			 , DGRS_SMSTR
+			 , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'DGRS_SMSTR' AND CD = A.DGRS_SMSTR) AS HAKSA_TERM_NM
+			 , SMSTR_TYCD
+			 , OFLN_LRN_MNGYN
+			 , SMSTR_STSCD
+			 , SMSTR_DATA_LNKGYN
+			 , OP_SDTTM
+			 , OP_EDTTM
+			 , ATNDLC_APLY_SDTTM
+			 , ATNDLC_APLY_EDTTM
+			 , ATNDLC_MOD_SDTTM
+			 , ATNDLC_MOD_EDTTM
+			 , ATNDLC_SDTTM
+			 , ATNDLC_EDTTM
+			 , SCR_EVL_SDTTM
+			 , SCR_EVL_EDTTM
+			 , SCR_OPEN_SDTTM
+			 , SCR_OPEN_EDTTM
+			 , SCR_CALC_CTGRCD
+			 , MBL_ATNDC_USEYN
+			 , RGTR_ID
+			 , FRST_INQ_DTTM
+			 , MDFR_ID
+			 , MOD_DTTM
+			 , (CASE WHEN SMSTR_STSCD ='SERVICE' THEN 1
+					 WHEN SMSTR_STSCD='WAIT' THEN 2
+					 WHEN SMSTR_STSCD='FINISH' THEN 3
+					 ELSE 4
+				END) AS TERM_ORDER
+			 , (CASE WHEN SMSTR_TYCD ='NORMAL' THEN 1
+					 WHEN SMSTR_TYCD='BNORMAL'  THEN 2
+					 WHEN SMSTR_TYCD='OPEN' THEN 3
+					 ELSE 4
+				END) AS TERM_ORDER2
+			 , (SELECT COUNT(*) FROM TB_LMS_TERM_CRE_CRS_RLTN WHERE A.CRS_SMSTR_ID = CRS_SMSTR_ID) AS COUNT
+			 , COUNT(1) OVER() AS TOTAL_CNT
+		FROM CRS_SMSTR A
+		WHERE 1 = 1
+		<if test="termType != null and termType != ''">
+			AND SMSTR_TYCD = #{termType}
+		</if>
+		<if test="termStatus != null and termStatus != ''">
+			AND SMSTR_STSCD = #{termStatus}
+		</if>
+		<if test="searchValue != null">
+			AND LOWER(SMSTRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		</if>
+		<if test='orgId != null and orgId != "" '>
+			AND ORG_ID = #{orgId}
+		</if>
+		 ORDER BY LINE_NO
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="listCreYearByProf" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.listCreYearByProf
+			 설  명 : 교수자의 개설과목이 있는 개설년도
+		*/
+		<!-- SELECT DISTINCT
+			   C.SBJCT_ID AS DGRS_YR
+		  FROM CRS_SMSTR A
+		  JOIN TB_LMS_TERM_CRE_CRS_RLTN B
+			ON A.CRS_SMSTR_ID = B.CRS_SMSTR_ID
+		  JOIN TB_LMS_SBJCT C
+			ON B.SBJCT_ID = C.SBJCT_ID
+		   AND C.DELYN = 'N'
+		   AND C.USEYN = 'Y'
+		   AND ATNDLC_CERT_STSCD != 'CLOSE'
+		   <if test="searchKey != null and searchKey != ''">
+		   AND C.SBJCT_ID IN ( SELECT SBJCT_ID
+								   FROM SBJCT_PROF
+								  WHERE USER_ID = #{userId}
+								   <choose>
+									   	<when test="searchKey == 'PROFESSOR'">
+									   		AND (  PROF_TYCD = 'PROFESSOR'
+									   			OR PROF_TYCD = 'ASSOCIATE'
+									   		)
+									   	</when>
+									   	<otherwise>
+									   		AND PROF_TYCD = 'ASSISTANT'
+									   	</otherwise>
+								   </choose>
+							   )
+		   </if>
+		 WHERE A.SMSTR_STSCD != 'WAIT'
+		 ORDER BY C.SBJCT_ID -->
+		 SELECT DISTINCT
+			   A.DGRS_YR
+		  FROM TB_LMS_SMSTR_CHRT A
+		  JOIN TB_LMS_SBJCT B
+			ON A.SMSTR_CHRT_ID = B.SMSTR_CHRT_ID
+		   AND B.DELYN = 'N'
+		   AND B.USEYN = 'Y'
+		   AND B.ATNDLC_CERT_STSCD = 'APRV'
+		   <if test="searchKey != null and searchKey != ''">
+		   AND B.SBJCT_ID IN ( SELECT SBJCT_ID
+								   FROM TB_LMS_SBJCT_ADM
+								  WHERE USER_ID = #{userId}
+								   <choose>
+									   	<when test="searchKey == 'PROFESSOR'">
+									   		AND (  SBJCT_ADM_TYCD = 'PROF'
+									   			OR SBJCT_ADM_TYCD = 'TUT'
+									   		)
+									   	</when>
+									   	<otherwise>
+									   		AND SBJCT_ADM_TYCD = 'ASSI'
+									   	</otherwise>
+								   </choose>
+							   )
+		   </if>
+		 WHERE A.SMSTR_CHRT_STSCD != 'WAIT'
+		 ORDER BY A.DGRS_YR
+	</select>
+
+	<select id="listCreYearByProfCourse" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.listCreYearByProfCourse
+			 설  명 : 교수자의 개설과목이 있는 개설년도
+		*/
+		SELECT DISTINCT
+			C.SBJCT_ID AS DGRS_YR
+		FROM CRS_SMSTR A
+		JOIN TB_LMS_TERM_CRE_CRS_RLTN B
+		ON A.CRS_SMSTR_ID = B.CRS_SMSTR_ID
+		JOIN TB_LMS_SBJCT C
+		ON B.SBJCT_ID = C.SBJCT_ID
+		AND C.DELYN = 'N'
+		AND C.USEYN = 'Y'
+		AND C.SBJCT_ID IN (
+			SELECT SBJCT_ID
+			FROM SBJCT_PROF
+			WHERE USER_ID IN (
+				SELECT USER_ID
+				FROM SBJCT_PROF
+				WHERE SBJCT_ID = #{crsCreCd}
+				AND PROF_TYCD = 'PROFESSOR'
+			)
+			AND PROF_TYCD = 'PROFESSOR'
+		)
+		ORDER BY C.SBJCT_ID DESC
+	</select>
+
+	<select id="listTermLesson" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.CrsTermLessonVO">
+		/*
+			 SQL ID : TermDAO.listTermLesson
+			 설  명 : 학기주차일정 목록
+		*/
+		SELECT
+			  A.ORG_SMSTR_COHORT_ID
+--			, A.UNI_GBN
+			, A.TOC_SEQ
+			, A.ATNDLC_TYCD
+			, A.SYMD
+			, A.EYMD
+			, A.LCTR_RCG_SYMD
+			, A.LCTR_RCG_EYMD
+			, A.RGTR_ID
+			, A.REG_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_SMSTR_COHORT_SCHDL A
+		JOIN TB_LMS_ORG_SMSTR_COHORT B
+		ON A.ORG_SMSTR_COHORT_ID = B.ORG_SMSTR_COHORT_ID
+		AND B.ORG_ID = #{orgId}
+		<if test="haksaYear != null and haksaYear != ''">
+			AND B.DGRS_YR = #{haksaYear}
+		</if>
+		<if test="haksaTerm != null and haksaTerm != ''">
+			AND B.DGRS_SMSTR = #{haksaTerm}
+		</if>
+		<if test="termCd != null and termCd != ''">
+			AND B.CRS_SMSTR_ID = #{termCd}
+		</if>
+		WHERE A.ATNDLC_TYCD = 'ONLINE'
+		ORDER BY A.TOC_SEQ
+	</select>
+
+	<select id="selectTermByHaksa" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
+		/*
+			 SQL ID : TermDAO.selectTermByHaksa
+			 설  명 : 학사년도, 학기별  학기 정보 조회
+	 	*/
+	 	SELECT * FROM (
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY A.CRS_SMSTR_ID) AS LINE_NO
+			, A.CRS_SMSTR_ID
+			, A.SMSTRNM
+			, A.ORG_ID
+			, A.GBNCD
+			, A.DGRS_YR
+			, A.DGRS_SMSTR
+			, A.SMSTR_TYCD
+			, A.OFLN_LRN_MNGYN
+			, A.SMSTR_STSCD
+			, A.SMSTR_DATA_LNKGYN
+			, A.OP_SDTTM
+			, A.OP_EDTTM
+			, A.ATNDLC_APLY_SDTTM
+			, A.ATNDLC_APLY_EDTTM
+			, A.ATNDLC_MOD_SDTTM
+			, A.ATNDLC_MOD_EDTTM
+			, A.ATNDLC_SDTTM
+			, A.ATNDLC_EDTTM
+			, A.SCR_EVL_SDTTM
+			, A.SCR_EVL_EDTTM
+			, A.SCR_OPEN_SDTTM
+			, A.SCR_OPEN_EDTTM
+			, A.SCR_CALC_CTGRCD
+			, A.MBL_ATNDC_USEYN
+			, A.NOW_SMSTRYN
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM CRS_SMSTR A
+		WHERE A.DGRS_YR = #{haksaYear}
+			AND A.DGRS_SMSTR = #{haksaTerm}
+			AND A.ORG_ID = #{orgId}
+		) A
+		WHERE LINE_NO = 1
+	</select>
+
+</mapper>

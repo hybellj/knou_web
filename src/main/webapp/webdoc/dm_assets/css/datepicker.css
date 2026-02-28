@@ -1,0 +1,51 @@
+/* ===== 기존 스타일 유지 ===== */
+.datepicker{
+	display: inline-flex;
+	position: relative;
+	width: 272px;
+}
+.datepicker::before{
+	content: "\e9a0";
+	position: absolute;
+	display: inline-flex;
+	height: 100%;
+	width: 36px;
+	color: var(--text-dark-2);
+	font-family: xeicon !important;
+	font-style: normal;
+	font-weight: 400 !important;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+	vertical-align: -.125em;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-size: calc(1em + 3px);
+	align-items: center;
+	justify-content: center;
+}
+.datepicker > input:not([type="checkbox"]):not([type="radio"]) {
+	padding-left: 36px;
+	flex: 1;
+}
+
+/* ===== datetimepicker 기본 UI 커스터마이징 ===== */
+.xdsoft_datetimepicker {
+	font-family: var(--bs-body-font-family);
+	box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+	border-radius: 6px;
+	overflow: hidden;
+}
+.xdsoft_datetimepicker .xdsoft_calendar td.xdsoft_today {
+	background-color: #caeaf4 !important;
+	color: #222 !important;
+}
+.xdsoft_datetimepicker .xdsoft_calendar td.xdsoft_current {
+	background-color: var(--primary-500, #007bff) !important;
+	color: #fff !important;
+	border-radius: 50%;
+}
+.xdsoft_datetimepicker .xdsoft_timepicker .xdsoft_time_box > div > div.xdsoft_current {
+	background: var(--primary-500, #007bff) !important;
+	color: #fff;
+}

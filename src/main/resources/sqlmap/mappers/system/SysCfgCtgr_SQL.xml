@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.system.config.dao.SysCfgCtgrDAO">
+
+	<sql id="selectQuery">
+		SELECT STNG_CTGRCD 												AS cfgCtgrCd
+		     		, CTGRNM 													AS ctgrNm
+		     		, CTGR_EXPLN 												AS ctgrDesc
+		     		, USEYN 														AS useYn
+		     		, RGTR_ID 														AS rgtrId
+		     		, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS regNm
+		     		, FRST_INQ_DTTM 													AS regDttm
+		     		, MDFR_ID 													AS mdfrId
+		     		, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS modNm
+		     		, MOD_DTTM 													AS modDttm
+		    FROM TB_SYS_CFG_CTGR
+	</sql>
+	
+	<sql id="listQuery">
+		<include refid="selectQuery"/>
+		<where>
+			<if test="useYn != null">
+			   AND USEYN = #{useYn}
+			</if>
+			<if test="searchValue != null and searchValue != ''">
+	            AND (
+	                LOWER(STNG_CTGRCD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	                OR LOWER(CTGRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	            )
+	        </if>
+	        <if test="cfgCtgrCd != null and cfgCtgrCd != ''">
+	            AND STNG_CTGRCD = #{cfgCtgrCd}
+	        </if>
+        </where>
+	</sql>		
+
+	<select id="list" parameterType="sysCfgCtgrVO" resultType="sysCfgCtgrVO">
+		/*
+			 SQL ID : SysCfgCtgrDAO.list
+			 설  명 : 설정 분류의 전체 목록
+	 	*/
+	 	<include refid="listQuery"/>
+	 	ORDER BY CTGRNM
+	</select>
+
+	<select id="listConfig" parameterType="sysCfgCtgrVO" resultType="sysCfgVO">
+		/*
+			 SQL ID : TbSysCfgDAO.listConfig
+			 설  명 : 설정 분류의 전체 목록
+	 	*/
+	 	<include refid="listQuery"/>
+	</select>
+
+	
+	<select id="listPageing" parameterType="sysCfgCtgrVO" resultType="sysCfgCtgrVO">
+		/*
+			 SQL ID : SysCfgCtgrDAO.listPageing
+			 설  명 : 설정 분류의 페이징 목록
+	 	*/
+		<include refid="CommonSQL.pagePrefix"/>
+	 	<include refid="listQuery"/>
+	 	<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="count" parameterType="sysCfgCtgrVO" resultType="Integer">
+		/*
+			 SQL ID : SysCfgCtgrDAO.count
+			 설  명 : 설정 분류의 전체 카운트
+	 	*/
+	 	SELECT COUNT(*) FROM (
+	 	<include refid="listQuery"/>
+	 	) T
+	</select>	
+	
+	<select id="select" parameterType="sysCfgCtgrVO" resultType="sysCfgCtgrVO">
+		/*
+			 SQL ID : SysCfgCtgrDAO.select
+			 설  명 : 설정 분류의 정보 조회
+	 	*/
+	 	<include refid="selectQuery"/>
+           WHERE STNG_CTGRCD = #{cfgCtgrCd}	 	
+	</select>	
+	
+	<insert id="insert" parameterType="sysCfgCtgrVO" >
+		/*
+			 SQL ID : SysCfgCtgrDAO.insert
+			 설  명 : 설정 분류의 정보 등록
+	 	*/
+		INSERT INTO TB_SYS_CFG_CTGR (
+		       STNG_CTGRCD
+		     , CTGRNM
+		     , CTGR_EXPLN
+		     , USEYN
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		) VALUES (
+		       #{cfgCtgrCd}
+		     , #{ctgrNm}
+		     , #{ctgrDesc}
+		     , #{useYn}
+			 , #{rgtrId}
+			 , FN_DTTM()
+			 , #{mdfrId}
+			 , FN_DTTM()
+		)
+	</insert>
+	
+	<update id="update" parameterType="sysCfgCtgrVO" >
+		/*
+			 SQL ID : SysCfgCtgrDAO.update
+			 설  명 : 설정 분류의 정보 수정
+	 	*/
+		UPDATE TB_SYS_CFG_CTGR
+		   SET CTGRNM 	= #{ctgrNm}
+		     , CTGR_EXPLN = #{ctgrDesc}
+		     , USEYN = #{useYn}
+		     , MOD_DTTM = FN_DTTM()
+		     , MDFR_ID = #{mdfrId}
+		 WHERE STNG_CTGRCD = #{cfgCtgrCd}
+	</update>	
+
+	<delete id="delete" parameterType="sysCfgCtgrVO" >
+		/*
+			 SQL ID : SysCfgCtgrDAO.delete
+			 설  명 : 설정 분류의 정보 삭제
+	 	*/
+		DELETE FROM TB_SYS_CFG_CTGR
+		 WHERE STNG_CTGRCD = #{cfgCtgrCd}
+	</delete>
+	
+	<insert id="insertOrg" parameterType="sysCfgCtgrVO" >
+		/*
+			 SQL ID : SysCfgCtgrDAO.insertOrg
+			 설  명 : 시스템 설정 관리 > 설정 관리 insert
+	 	*/
+	 	BEGIN;
+		INSERT INTO TB_ORG_CFG_CTGR ( 
+			ORG_ID
+			,STNG_CTGRCD
+			,CTGRNM
+			,CTGR_EXPLN
+			,USEYN
+			,RGTR_ID
+			,FRST_INQ_DTTM
+			,MDFR_ID
+			,MOD_DTTM
+		)      
+		SELECT 	#{orgId}			AS ORG_ID
+				,A.STNG_CTGRCD		AS STNG_CTGRCD
+				,A.CTGRNM				AS CTGRNM
+				,A.CTGR_EXPLN			AS CTGR_EXPLN
+				,A.USEYN				AS USEYN
+				,#{rgtrId}					AS RGTR_ID
+				,FN_DTTM()	AS FRST_INQ_DTTM
+				,#{mdfrId} AS MDFR_ID
+				,FN_DTTM() AS MOD_DTTM
+		 FROM TB_SYS_CFG_CTGR A
+		WHERE A.STNG_CTGRCD = #{cfgCtgrCd};
+		INSERT INTO TB_ORG_CFG (
+			ORG_ID
+			, STNG_CTGRCD
+			, STNG_CD
+			, STNGNM
+			, STNG_VL
+			, STNG_EXPLN
+			, USEYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		)
+		SELECT 	#{orgId}		AS ORG_ID
+				,B.STNG_CTGRCD	AS STNG_CTGRCD
+				,B.STNG_CD			AS STNG_CD
+				,B.STNGNM			AS STNGNM
+				,B.STNG_VL			AS STNG_VL
+				,B.STNG_EXPLN		AS STNG_EXPLN
+				,B.USEYN			AS USEYN
+				,#{rgtrId}				AS RGTR_ID
+				,FN_DTTM()	AS FRST_INQ_DTTM
+				,#{mdfrId}													AS MDFR_ID
+				,FN_DTTM() AS MOD_DTTM
+		 FROM TB_SYS_CFG B
+		WHERE B.STNG_CTGRCD = #{cfgCtgrCd};
+		COMMIT;
+	</insert>
+	
+</mapper>

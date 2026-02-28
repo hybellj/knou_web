@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.system.manager.dao.SysMgrErrDAO">
+
+	<sql id="listQuery">
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY TO_DATE(A.REG_DTTM, 'YYYYMMDDHH24MISS') DESC)	AS "LINE_NO"		/* Row Number */
+			, D.ORGNM 																	AS "ORGNM"			/* 기관 I */
+			, B.ORG_ID 																	AS "ORG_ID"			/* 기관 I ID (HIDDEN) */
+			, C.DEPTNM 																	AS "DEPTNM"			/* 학과 I */
+			, B.DEPT_ID																	AS "DEPT_ID"		/* 학과 I ID (HIDDEN) */
+			, TO_CHAR(TO_DATE(A.REG_DTTM, 'YYYYMMDDHH24MISS')
+					, 'YYYY.MM.DD HH24:MI')												AS "REG_DTTM"		/* 일시 */
+			, B.STDNT_NO																AS "STDNT_NO"		/* 학번/사번 */
+			, B.USERNM 																	AS "USERNM"			/* 등록자 명 */
+			, A.RGTR_ID 																AS "RGTR_ID"		/* 등록자 ID (HIDDEN) */
+			, A.SYS_ERR_PAGENM 															AS "SYS_ERR_PAGENM"	/* 오류페이지 */
+			, A.SYS_ERR_MSG_ID															AS "SYS_ERR_MSG_ID"	/* 에러메시지 ID (HIDDEN) */
+		FROM
+			TB_LMS_SYS_ERR_MSG A
+			JOIN TB_LMS_USER B
+				ON A.RGTR_ID = B.USER_ID
+			JOIN TB_LMS_DEPT C
+				ON B.DEPT_ID = C.DEPT_ID 
+			JOIN TB_LMS_ORG D
+				ON B.ORG_ID = D.ORG_ID 
+		WHERE
+			1=1		
+		<if test="orgId != null and orgId != ''" >
+			AND B.ORG_ID = #{orgId}
+		</if>
+		<if test="deptId != null and deptId != ''" >
+			AND B.DEPT_ID = #{deptId}
+		</if>
+		<if test="stdntNo != null and stdntNo != ''" >
+			AND B.STDNT_NO = #{stdntNo}
+		</if>
+		<if test="usernm != null and usernm != ''" >
+			AND B.USERNM LIKE '%' || #{usernm} || '%'
+		</if>
+	</sql>
+	
+	<!-- 시스템 오류현황 목록 카운트 -->
+	<select id="countSysErr" parameterType="sysMgrErrVO" resultType="Integer">
+		/*
+			SQL ID : SysMgrErrDAO.countSysErr
+			설명 : 시스템 오류현황 목록 카운트
+	 	*/		
+		SELECT
+			COUNT(1)
+		FROM
+			(<include refid="listQuery"/>) Z
+	</select>
+
+	<!-- 시스템 오류현황 목록 페이징 -->
+	<select id="listSysErrPaging" parameterType="sysMgrErrVO" resultType="sysMgrErrVO">
+		/*
+			SQL ID : SysMgrErrDAO.listSysErrPaging
+			설명 : 시스템 오류현황 목록 페이징
+	 	*/		
+		<include refid="CommonSQL.pagePrefix" />
+		<include refid="listQuery"/>
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
+
+	<!-- 시스템 오류현황 목록 조회 -->
+	<select id="listSysErr" parameterType="sysMgrErrVO" resultType="sysMgrErrVO">
+		/*
+			SQL ID : SysMgrErrDAO.listSysErr
+			설명 : 시스템 오류현황 목록 조회
+	 	*/		
+		<include refid="listQuery"/>
+		
+	</select>
+
+	<!-- 시스템 오류현황 상세 조회 -->
+	<select id="selectSysErrDtl" parameterType="sysMgrErrVO" resultType="sysMgrErrVO">
+		/*
+			SQL ID : SysMgrErrDAO.selectSysErrDtl
+			설명 : 시스템 오류현황 상세 조회
+	 	*/
+		WITH PATH_SPLIT AS ( SELECT 
+								A.SYS_ERR_MSG_ID
+								, M.MENU_ID
+								, M.MENUNM
+								, M.MENU_PATH
+								, LEVEL AS "PATH_LEVEL"
+								, TRIM(REGEXP_SUBSTR(M.MENU_PATH, '[^|]+', 1, LEVEL)) AS "PATH_MENU_ID"
+							FROM 
+								TB_LMS_SYS_ERR_MSG A
+								JOIN TB_LMS_MENU M
+									ON A.SYS_ERR_PAGENM = M.MENU_URL
+							WHERE 
+								A.SYS_ERR_MSG_ID = #{sysErrMsgId}
+<![CDATA[						CONNECT BY LEVEL <= REGEXP_COUNT(M.MENU_PATH, '\|')	]]>
+								AND PRIOR M.MENU_ID = M.MENU_ID
+								AND PRIOR A.SYS_ERR_MSG_ID = A.SYS_ERR_MSG_ID
+								AND PRIOR SYS_GUID() IS NOT NULL )
+		, LOCATION AS (SELECT 
+							PS.SYS_ERR_MSG_ID
+<![CDATA[					, LISTAGG(PM.MENUNM, ' > ') WITHIN GROUP (ORDER BY PS.PATH_LEVEL) AS "LOCATION_PATH"	]]>
+						FROM 
+							PATH_SPLIT PS
+							LEFT JOIN TB_LMS_MENU PM
+								ON PS.PATH_MENU_ID = PM.MENU_ID
+						WHERE 
+							PS.PATH_MENU_ID IS NOT NULL
+						GROUP BY 
+							PS.SYS_ERR_MSG_ID )
+		SELECT
+			L.LOCATION_PATH							AS "ERR_LOCATION"
+			, TO_CHAR(TO_DATE(A.REG_DTTM, 'YYYYMMDDHH24MISS')
+					, 'YYYY.MM.DD (HH24:MI:SS)')    AS "REG_DTTM"    
+			, '[' || A.SYS_ERR_MSG_TYCD || '] '
+				|| B.CDNM                           AS "ERR_TYPE"
+			, A.SYS_ERR_MSG_CTS                     AS "SYS_ERR_MSG_CTS"
+		FROM
+			TB_LMS_SYS_ERR_MSG A
+			JOIN TB_LMS_CMMN_CD B
+				ON A.SYS_ERR_MSG_TYCD = B.CD
+			JOIN TB_LMS_MENU C
+				ON A.SYS_ERR_PAGENM = C.MENU_URL
+			LEFT JOIN LOCATION L
+				ON A.SYS_ERR_MSG_ID = L.SYS_ERR_MSG_ID
+		WHERE
+			A.SYS_ERR_MSG_ID = #{sysErrMsgId}
+	</select>	
+</mapper>

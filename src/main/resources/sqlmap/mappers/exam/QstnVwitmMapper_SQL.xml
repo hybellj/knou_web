@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.exam.dao.QstnVwitmDAO">
+
+	<select id="qstnVwitmList" parameterType="qstnVwitmVO" resultType="qstnVwitmVO">
+		/*
+             SQL ID : QstnVwitmDAO.qstnVwitmList
+             설  명 : 문항보기항목목록조회
+         */
+         SELECT
+         	*
+           FROM TB_LMS_QSTN_VWITM
+          WHERE QSTN_ID = #{qstnId}
+          ORDER BY QSTN_VWITM_SEQNO
+	</select>
+
+	<insert id="qstnVwitmBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : QstnVwitmDAO.qstnVwitmBulkRegist
+             설  명 : 문항보기항목일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_QSTN_VWITM (
+	         	  QSTN_VWITM_ID
+				, QSTN_ID
+				, QSTN_VWITM_GBNCD
+				, QSTN_VWITM_CTS
+				, CRANS_YN
+				, QSTN_VWITM_SEQNO
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.qstnVwitmId}
+				, #{item.qstnId}
+				, #{item.qstnVwitmGbncd}
+				, #{item.qstnVwitmCts}
+				, #{item.cransYn}
+				, #{item.qstnVwitmSeqno}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<delete id="qstnVwitmDelete" parameterType="qstnVwitmVO">
+		/*
+             SQL ID : QstnVwitmDAO.qstnVwitmDelete
+             설  명 : 문항보기항목삭제
+         */
+         DELETE FROM TB_LMS_QSTN_VWITM
+          WHERE QSTN_ID = #{qstnId}
+	</delete>
+
+	<select id="qstnVwitmBulkList" parameterType="String" resultType="qstnVwitmVO">
+		/*
+             SQL ID : QstnVwitmDAO.qstnVwitmBulkList
+             설  명 : 문항보기항목일괄목록조회
+         */
+         SELECT
+			*
+		  FROM TB_LMS_QSTN_VWITM
+		 WHERE QSTN_ID IN (SELECT QSTN_ID FROM TB_LMS_QSTN WHERE DELYN = 'N' AND EXAM_DTL_ID = #{examDtlId})
+		 ORDER BY QSTN_ID, QSTN_VWITM_SEQNO
+	</select>
+
+</mapper>

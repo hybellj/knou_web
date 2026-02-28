@@ -1,0 +1,17 @@
+-- FN_GET_STD_USER_NM
+CREATE FUNCTION FN_GET_STD_USER_NM (
+		inStdNo varchar(30)
+	) RETURNS varchar(200)
+	READS SQL DATA
+	COMMENT '수강생명 조회'
+BEGIN
+	DECLARE userNm VARCHAR(200);
+
+	SELECT USR.USER_NM INTO userNm
+	FROM tb_home_user_info USR, tb_lms_std STD 
+	WHERE 1=1
+		AND USR.USER_ID = STD.USER_ID
+		AND STD.STD_NO = inStdNo;
+
+	RETURN userNm;
+END

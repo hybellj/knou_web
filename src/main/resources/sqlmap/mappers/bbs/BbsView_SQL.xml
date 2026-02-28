@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.bbs.dao.BbsViewDAO">
+
+	<select id="selectBbsView" parameterType="bbsViewVO" resultType="bbsViewVO">
+		/*
+             SQL ID : BbsViewDAO.selectBbsView
+             설  명 : 게시판 조회 정보
+         */
+		SELECT
+              VWER_ID
+			, ATCL_ID
+			, INQ_CNT
+			, LST_INQ_DTTM
+			, FRST_INQ_DTTM
+			<!-- , RGTRNM -->
+        FROM TB_LMS_BBS_ATCL_INQ_RCD
+        WHERE ATCL_ID = #{atclId}
+          AND VWER_ID = #{userId}
+	</select>
+	
+	<sql id="listQuery">
+		SELECT
+		      A.VWER_ID
+			, A.ATCL_ID
+			<!-- , A.INQ_CNT -->
+			, A.LST_INQ_DTTM
+			, A.FRST_INQ_DTTM
+		FROM TB_LMS_BBS_ATCL_INQ_RCD A
+		LEFT JOIN TB_LMS_USER_ACNT B
+			ON A.VWER_ID = B.USER_PRFIL_ID
+		LEFT JOIN TB_LMS_USER_PRFIL C
+			ON B.USER_ID = C.USER_PRFIL_ID
+        WHERE 1=1
+        	AND A.ATCL_ID = #{atclId}
+        	AND A.VWER_ID != 'tmpuser'
+	</sql>
+	
+	<select id="countBbsView" parameterType="bbsViewVO" resultType="Integer">
+		/*
+             SQL ID : BbsViewDAO.countBbsView
+             설  명 : 게시판 조회자 목록 수
+         */
+		SELECT COUNT(1) FROM (
+			<include refid="listQuery" />
+		) Z
+	</select>
+
+	<select id="listBbsView" parameterType="bbsViewVO" resultType="bbsViewVO">
+		/*
+             SQL ID : BbsViewDAO.listBbsView
+             설  명 : 게시판 조회자 목록
+         */
+<!-- 		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.FRST_INQ_DTTM DESC) AS LINE_NO
+			, A.*
+			, (SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE ORG_ID = #{orgId} AND DEPT_CD = A.DEPT_CD) AS DEPTNM
+			, IF(EXISTS((SELECT 1 FROM TB_LMS_USER_AUTHRT WHERE MENU_TYCD = 'STUDENT' AND USER_AUTHRT_ID = 'USR' AND USER_ID = A.USER_ID)), 'Y', 'N') AS STUDENT_YN 
+        FROM (
+			<include refid="listQuery" />
+		) A -->
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.FRST_INQ_DTTM DESC) AS LINE_NO
+			, A.*
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE ORG_ID = #{orgId} AND CD = A.DEPT_CD) AS DEPTNM
+			, CASE
+				WHEN EXISTS(SELECT 1 FROM TB_LMS_USER_AUTHRT WHERE MENU_TYCD = 'STUDENT' AND AUTHRT_GRP_ID = 'USR' AND USER_ID = A.VWER_ID) THEN 'Y'
+				ELSE 'N'
+			  END AS STUDENT_YN
+        FROM (
+			<include refid="listQuery" />
+		) A
+	</select>
+	
+	<select id="listBbsViewPaging" parameterType="bbsViewVO" resultType="bbsViewVO">
+		/*
+             SQL ID : BbsViewDAO.listBbsViewPaging
+             설  명 : 게시판 조회자 목록 페이징
+         */
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.FRST_INQ_DTTM DESC) AS LINE_NO
+			, A.*
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE ORG_ID = #{orgId} AND CD = A.DEPT_CD) AS DEPTNM
+        FROM (
+			<include refid="listQuery" />
+		) A
+        LIMIT #{firstIndex}, #{listScale}
+	</select>
+	
+	<insert id="insertBbsView" parameterType="bbsViewVO">
+		/*
+             SQL ID : BbsViewDAO.insertBbsView
+             설  명 : 게시판 조회자 정보 등록
+         */
+		INSERT INTO TB_LMS_BBS_ATCL_INQ_RCD (
+              VWER_ID
+			, ATCL_ID
+			<!-- , USER_ID -->
+			, INQ_CNT
+			, LST_INQ_DTTM
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, REG_DTTM
+        ) VALUES (
+        	  #{viewId}
+			, #{atclId}
+			<!-- , #{userId} -->
+			, 1
+			, FN_DTTM()
+			, #{userId}
+			, FN_DTTM()
+			, FN_DTTM()
+        )
+	</insert>
+	
+	<update id="updateBbsView" parameterType="bbsViewVO">
+        /*
+             SQL ID : BbsViewDAO.updateBbsView
+             설  명 : 게시판 조회자 정보 수정
+         */
+        UPDATE TB_LMS_BBS_ATCL_INQ_RCD
+        SET 
+        	  INQ_CNT = INQ_CNT + 1
+        	, LST_INQ_DTTM = FN_DTTM()
+        WHERE 1=1
+        	AND ATCL_ID = #{atclId}
+        	AND VWER_ID = #{userId}
+	</update>
+	
+	<sql id="listByStdQuery">
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
+			, C.USER_PRFIL_ID
+		    , B.USER_ACNT_ID
+			, B.USERNM
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD  WHERE CD = C.DEPT_CD) AS DEPTNM
+			, CASE WHEN D.INQ_CNT IS NOT NULL THEN D.INQ_CNT ELSE 0 END AS INQ_CNT
+			, D.FRST_INQ_DTTM
+		FROM TB_LMS_ATNDLC_SBJCT A
+		JOIN TB_LMS_USER_ACNT B
+			ON A.USER_ID = B.USER_PRFIL_ID
+			AND B.USER_ID_STSCD = 'U'
+		JOIN TB_LMS_USER_PRFIL C
+			ON B.USER_ID = C.USER_PRFIL_ID
+			AND C.ORG_ID = #{orgId}
+		LEFT JOIN TB_LMS_BBS_ATCL_INQ_RCD D
+			ON A.USER_ID  = D.VWER_ID 
+			AND D.ATCL_ID = #{atclId}
+		WHERE A.CMCRS_GBNCD = 'S'
+			AND A.SBJCT_ID = #{sbjctCd}
+	</sql>
+	
+	<select id="countBbsViewStd" parameterType="bbsViewVO" resultType="Integer">
+		/*
+             SQL ID : BbsViewDAO.countBbsViewStd
+             설  명 : 수강생별 조회자 목록 수
+         */
+		SELECT COUNT(1) FROM (
+			<include refid="listByStdQuery" />
+			AND D.VWER_ID IS NOT NULL
+		) Z
+	</select>
+	
+	<select id="listBbsViewStd" parameterType="bbsViewVO" resultType="bbsViewVO">
+		/*
+             SQL ID : BbsViewDAO.listBbsViewStd
+             설  명 : 수강생별 조회 목록
+         */
+		<include refid="listByStdQuery" />
+	</select>
+	
+</mapper>

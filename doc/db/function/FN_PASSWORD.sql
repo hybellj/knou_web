@@ -1,0 +1,9 @@
+-- FN_PASSWORD
+CREATE FUNCTION FN_PASSWORD (
+		inText varchar(256)
+	) RETURNS varchar(256)
+    DETERMINISTIC
+    COMMENT '비밀번호 암호화'
+BEGIN
+	RETURN SHA2(inText, 256);
+END

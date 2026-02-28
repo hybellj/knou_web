@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.mut.dao.MutEvalGradeDAO">
+
+	<select id="listMutEvalGrade" parameterType="mutEvalGradeVO" resultType="mutEvalGradeVO">
+    	/*
+             SQL ID : MutEvalGradeDAO.listMutEvalGrade
+             	설  명 : 평가 등급 목록 조회
+        */
+        SELECT
+        	  A.GRDCD		AS gradeCd
+			, A.ASMT_MTL_EVL_RSLT_ID         AS evalCd
+			, A.QSTN_ID         AS qstnCd
+			, A.MTL_EVL_GRD_TTL     AS gradeTitle
+			, A.MTL_EVL_GRD_CTS       AS gradeCts
+			, A.MTL_EVL_MRK_GRDCD     AS gradeScore
+			, A.RGTR_ID          AS rgtrId
+			, A.FRST_INQ_DTTM        AS regDttm
+			, A.MDFR_ID          AS mdfrId
+			, A.MOD_DTTM        AS modDttm
+        FROM MTL_EVL_GRD AS A
+        WHERE A.ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+          AND A.QSTN_ID IN
+          <foreach item="item" index="index" collection="qstnCds" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+	</select>
+
+	<!-- 평가등급 전체 삭제 -->
+	<delete id="deleteAllGrade" parameterType="mutEvalGradeVO">
+		DELETE FROM MTL_EVL_GRD
+		 WHERE ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+	</delete>
+
+	<delete id="delMutEvalGrade" parameterType="mutEvalGradeVO">
+		/*
+             SQL ID : MutEvalGradeDAO.delMutEvalGrade
+             	설  명 : 평가 등급 삭제
+        */
+		DELETE FROM MTL_EVL_GRD
+		WHERE ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+		AND QSTN_ID IN
+		<foreach item="item" index="index" collection="qstnCds" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+	</delete>
+
+	<insert id="insertMutEvalGrade" parameterType="mutEvalGradeVO">
+		/*
+             SQL ID : MutEvalGradeDAO.insertMutEvalGrade
+             	설  명 : 평가 등급 등록
+        */
+        INSERT INTO MTL_EVL_GRD (
+        	  GRDCD
+			, ASMT_MTL_EVL_RSLT_ID
+			, QSTN_ID
+			, MTL_EVL_GRD_TTL
+			, MTL_EVL_GRD_CTS
+			, MTL_EVL_MRK_GRDCD
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+        ) VALUES (
+        	  #{gradeCd}
+        	, #{evalCd}
+        	, #{qstnCd}
+        	, #{gradeTitle}
+        	, #{gradeCts}
+        	, #{gradeScore}
+        	, #{rgtrId}
+        	, FN_DTTM()
+        	, #{mdfrId}
+        	, FN_DTTM()
+        )
+	</insert>
+
+</mapper>

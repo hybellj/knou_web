@@ -1,0 +1,43 @@
+@charset "UTF-8";
+
+/* 덱스트 업로더 */
+.dext5-container {
+	position: relative;
+}
+.dext5-btn-area {
+	margin-top:-1px;
+	position: absolute;
+  	top: 6px;
+  	margin-left: 50px;
+  	display:none;
+}
+.dext5-btn-area.simple {
+	margin-top: auto;
+	position: relative;
+  	top: auto;
+  	margin-left: 0;
+}
+.dext5-btn-area button {
+	border: 1px solid #A7AEB3 !important;
+    border-radius: 0 !important;
+    line-height: 0.8em !important;
+    font-size:12px !important;
+    color:#666666 !important;
+    padding: 0 0.7em !important;
+    background: #E9E9E9 !important;
+    margin-left:3px !important;
+    height:2em;
+    vertical-align:bottom !important;
+}
+.dext5-btn-area.simple button {
+    margin-left:0 !important;
+    margin-right:-1px !important;
+    font-size:1em !important;
+    padding: 0 0.3em !important;
+}
+.dext5-btn-area button:hover {
+    background: #dfe1e2 !important;
+}
+.dext5-btn-area button:disabled {
+    opacity: 1 !important;
+}

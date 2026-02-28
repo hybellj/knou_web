@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.dashboard.dao.AcadSchDAO">
+
+	<select id="select" parameterType="acadSchVO" resultType="acadSchVO">
+		/*
+		 SQL ID : AcadSchDAO.select
+			 설  명 : 일정 관리 조회
+ 	   	*/
+ 	   	SELECT
+ 	   		  ACAD_SCH_SN			AS acadSchSn
+			, ORG_ID                AS orgId
+			, UNIV_CD                AS uniCd
+			, SYSJOB_SCHDL_TYCD         AS calendarCtgr
+			, CALENDAR_REF_CD       AS calendarRefCd
+			, SYSJOB_SCHDL_SYMD          AS schStartDt
+			, SYSJOB_SCHDL_EYMD            AS schEndDt
+			, ACAD_SCH_NM           AS acadSchNm
+			, SCH_CNTS              AS schCnts
+			, SCH_CNTS_TYPE         AS schCntsType
+			, USEYN                AS useYn
+			, RGTR_ID                AS rgtrId
+			, FRST_INQ_DTTM              AS regDttm
+			, MDFR_ID                AS mdfrId
+			, MOD_DTTM              AS modDttn
+ 	   	  FROM TB_HOME_ACAD_SCH
+ 	   	 WHERE ACAD_SCH_SN = #{acadSchSn}
+	</select>
+
+	<insert id="insert" parameterType="acadSchVO">
+		/*
+		 SQL ID : AcadSchDAO.insert
+			 설  명 : 일정 관리 등록
+ 	   	*/
+ 	   	INSERT INTO TB_HOME_ACAD_SCH (
+ 	   		  ACAD_SCH_SN
+			, ORG_ID
+			, UNIV_CD
+			, SYSJOB_SCHDL_TYCD
+			, CALENDAR_REF_CD
+			, SYSJOB_SCHDL_SYMD
+			, SYSJOB_SCHDL_EYMD
+			, ACAD_SCH_NM
+			, SCH_CNTS
+			, SCH_CNTS_TYPE
+			, USEYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+ 	   	) VALUES (
+ 	   		  #{acadSchSn}
+ 	   		, #{orgId}
+ 	   		, #{uniCd}
+ 	   		, #{calendarCtgr}
+ 	   		, #{calendarRefCd}
+ 	   		, #{schStartDt}
+ 	   		, #{schEndDt}
+ 	   		, #{acadSchNm}
+ 	   		, #{schCnts}
+ 	   		, #{schCntsType}
+ 	   		, NVL(#{useYn}, 'Y')
+ 	   		, #{rgtrId}
+ 	   		, FN_DTTM()
+ 	   		, #{mdfrId}
+ 	   		, FN_DTTM()
+ 	   	)
+	</insert>
+	
+	<update id="update" parameterType="acadSchVO">
+		/*
+		 SQL ID : AcadSchDAO.update
+			 설  명 : 일정 관리 수정
+ 	   	*/
+ 	   	UPDATE TB_HOME_ACAD_SCH SET
+ 	   		  MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+			<if test="orgId != null and orgId != ''">
+			, ORG_ID = #{orgId}
+			</if>
+			<if test="uniCd != null and uniCd != ''">
+			, UNIV_CD = #{uniCd}
+			</if>
+			<if test="calendarCtgr != null and calendarCtgr != ''">
+			, SYSJOB_SCHDL_TYCD = #{calendarCtgr}
+			</if>
+			<if test="calendarRefCd != null and calendarRefCd != ''">
+			, CALENDAR_REF_CD = #{calendarRefCd}
+			</if>
+			<if test="schStartDt != null and schStartDt != ''">
+			, SYSJOB_SCHDL_SYMD = #{schStartDt}
+			</if>
+			<if test="schEndDt != null and schEndDt != ''">
+			, SYSJOB_SCHDL_EYMD = #{schEndDt}
+			</if>
+			<if test="acadSchNm != null and acadSchNm != ''">
+			, ACAD_SCH_NM = #{acadSchNm}
+			</if>
+			<if test="schCnts != null and schCnts != ''">
+			, SCH_CNTS = #{schCnts}
+			</if>
+			<if test="schCntsType != null and schCntsType != ''">
+			, SCH_CNTS_TYPE = #{schCntsType}
+			</if>
+		 WHERE ACAD_SCH_SN = #{acadSchSn}
+	</update>
+	
+	<delete id="delete" parameterType="acadSchVO">
+		/*
+		 SQL ID : AcadSchDAO.delete
+			 설  명 : 일정 관리 삭제
+ 	   	*/
+ 	   	DELETE FROM TB_HOME_ACAD_SCH
+ 	   	 WHERE ACAD_SCH_SN = #{acadSchSn}
+	</delete>
+
+</mapper>

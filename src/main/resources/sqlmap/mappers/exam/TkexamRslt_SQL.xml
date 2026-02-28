@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.exam.dao.TkexamRsltDAO">
+
+	<select id="profMemoSelect" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : TkexamRsltDAO.profMemoSelect
+             설  명  : 교수메모조회
+         */
+		SELECT
+			  #{tkexamId} AS TKEXAM_ID
+			, #{userId} AS USER_ID
+			, (SELECT PROF_MEMO FROM TB_LMS_TKEXAM_RSLT WHERE TKEXAM_ID = #{tkexamId} AND USER_ID = #{userId}) AS PROF_MEMO
+		  FROM DUAL
+	</select>
+
+	<update id="profMemoModify" parameterType="map">
+		/*
+             SQL ID : TkexamRsltDAO.profMemoModify
+             설  명  : 교수메모수정
+         */
+        MERGE INTO TB_LMS_TKEXAM_RSLT TKEXAM_RSLT
+	    USING (
+	       SELECT
+	       		  #{tkexamRsltId} AS TKEXAM_RSLT_ID
+		       	, #{tkexamId} AS TKEXAM_ID
+		       	, #{userId} AS USER_ID
+		       	, #{profMemo} AS PROF_MEMO
+		       	, #{rgtrId}	AS RGTR_ID
+	         FROM DUAL
+	    ) USR
+	    ON (
+	    	    TKEXAM_RSLT.TKEXAM_ID = USR.TKEXAM_ID
+	     	AND TKEXAM_RSLT.USER_ID = USR.USER_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  TKEXAM_RSLT.PROF_MEMO = USR.PROF_MEMO
+	        	, TKEXAM_RSLT.MDFR_ID = USR.RGTR_ID
+				, TKEXAM_RSLT.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  TKEXAM_RSLT_ID
+				, TKEXAM_ID
+				, USER_ID
+				, PROF_MEMO
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  USR.TKEXAM_RSLT_ID
+				, USR.TKEXAM_ID
+				, USR.USER_ID
+				, USR.PROF_MEMO
+				, USR.RGTR_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+	<update id="userTkexamRsltInit" parameterType="map">
+		/*
+             SQL ID : TkexamRsltDAO.userTkexamRsltInit
+             설  명  : 사용자시험응시결과초기화
+         */
+        UPDATE TB_LMS_TKEXAM_RSLT SET
+        	  MDFR_ID = #{rgtrId}
+        	, MOD_DTTM = FN_DTTM()
+        	, PROF_MEMO = NULL
+			, ATCH_CTS = NULL
+			, FDBK_CTS = NULL
+			, FDBK_DTTM = NULL
+			, FDBKR_ID = NULL
+			, TOT_SCR = NULL
+         WHERE TKEXAM_ID = #{tkexamId}
+           AND USER_ID = #{userId}
+	</update>
+
+	<update id="userListEvlScrBulkModify" parameterType="java.util.List">
+		/*
+             SQL ID : TkexamRsltDAO.userListEvlScrBulkModify
+             설  명  : 사용자목록평가점수일괄수정
+         */
+        MERGE INTO TB_LMS_TKEXAM_RSLT TKEXAM_RSLT
+	    USING (
+	    	<foreach item="item" collection="list" separator="UNION ALL">
+	            SELECT
+		       		  #{item.tkexamRsltId} AS TKEXAM_RSLT_ID
+			       	, #{item.tkexamId} AS TKEXAM_ID
+			       	, #{item.userId} AS USER_ID
+			       	, TO_NUMBER(#{item.scr}) AS TOT_SCR
+			       	, #{item.scoreType} AS SCORE_TYPE
+			       	, #{item.rgtrId} AS RGTR_ID
+		         FROM DUAL
+	        </foreach>
+	    ) USR
+	    ON (
+	    	    TKEXAM_RSLT.TKEXAM_ID = USR.TKEXAM_ID
+	     	AND TKEXAM_RSLT.USER_ID = USR.USER_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  TKEXAM_RSLT.TOT_SCR =
+	        	  		CASE WHEN USR.SCORE_TYPE = 'addition'
+	        	  			 THEN CASE WHEN NVL(TKEXAM_RSLT.TOT_SCR, 0.0) + USR.TOT_SCR <![CDATA[ < ]]> 0.0 THEN 0.0
+	        	  			 		   WHEN NVL(TKEXAM_RSLT.TOT_SCR, 0.0) + USR.TOT_SCR <![CDATA[ > ]]> 100.0 THEN 100.0
+	        	  			 		   ELSE NVL(TKEXAM_RSLT.TOT_SCR, 0.0) + USR.TOT_SCR
+	        	  			 	  END
+	        	  			 ELSE USR.TOT_SCR
+	        	  		END
+	        	, TKEXAM_RSLT.EVLYN = 'Y'
+	        	, TKEXAM_RSLT.EVL_DTTM = FN_DTTM()
+	        	, TKEXAM_RSLT.MDFR_ID = USR.RGTR_ID
+				, TKEXAM_RSLT.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  TKEXAM_RSLT_ID
+				, TKEXAM_ID
+				, USER_ID
+				, TOT_SCR
+				, EVLYN
+				, EVL_DTTM
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  USR.TKEXAM_RSLT_ID
+				, USR.TKEXAM_ID
+				, USR.USER_ID
+				, CASE WHEN USR.TOT_SCR <![CDATA[ < ]]> 0 THEN 0 ELSE USR.TOT_SCR END
+				, 'Y'
+				, FN_DTTM()
+				, USR.RGTR_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+</mapper>

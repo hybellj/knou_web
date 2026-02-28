@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.menu.dao.ContentsDAO">
+
+	<sql id="contentsInfoQuery">
+		SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCTNM, TLLS.LCTR_SCHDLNM) AS LINE_NO
+		       , TLLS.SBJCT_ID
+			   , TLLC.LCTR_SCHDL_ID
+		       , TLLC.SBJCT_LCTR_CLASTM_ID
+		       , TLLC.LESSON_TYPE_CD
+		       , FN_GET_ORG_CODE_NM(TLC.ORG_ID, 'LESSON_TYPE_CD', TLLC.LESSON_TYPE_CD) AS LESSON_TYPE_NM
+		       , TLCC.SBJCT_OP_TYCD
+		       , FN_GET_ORG_CODE_NM(TLC.ORG_ID, 'LEARNING_TYPE', TLCC.SBJCT_OP_TYCD) AS CRS_OPER_TYPE_NM
+		       , TLCC.DEPT_CD 
+		       , FN_GET_DEPT_NM(TLC.ORG_ID, TLCC.DEPT_CD) AS DEPTNM
+		       , TLC.CRS_ID
+		       , TLCC.DVCLAS_NO
+		       , TLCC.SBJCTNM
+		       , TLLS.LCTR_SCHDLNM
+		       , TLLT.LCTR_CLASTMNM
+		       , TLLC.LCTR_CONTS_GBNCD
+		       , CASE WHEN TLLC.LCTR_CONTS_GBNCD = 'VIDEO' THEN '강의동영상'
+		                  WHEN TLLC.LCTR_CONTS_GBNCD = 'ETC' THEN '학습자료' 
+		                  ELSE ''
+		         END AS CNTS_GBN_NM
+		       , TLLC.LCTR_CONTSNM
+		       , TLLC.LESSON_CNTS_URL
+		       , TLLC.LESSON_CNTS_URL_M
+		       , TLLS.LCTR_NOTE
+		      FROM TB_LMS_SBJCT_LCTR_SCHDL TLLS
+		  JOIN TB_LMS_SBJCT_LCTR_CLASTM TLLT
+		    ON TLLS.LCTR_SCHDL_ID = TLLT.LCTR_SCHDL_ID
+		   AND TLLS.DELYN = 'N'
+		  JOIN TB_LMS_SBJCT_LCTR_CONTS TLLC
+		    ON TLLS.LCTR_SCHDL_ID = TLLC.LCTR_SCHDL_ID
+		   AND TLLT.SBJCT_LCTR_CLASTM_ID = TLLC.SBJCT_LCTR_CLASTM_ID
+		   AND TLLC.DELYN = 'N'
+		  JOIN TB_LMS_SBJCT TLCC
+		    ON TLLS.SBJCT_ID = TLCC.SBJCT_ID 
+		   AND TLLC.DELYN = 'N'
+		   AND TLCC.DELYN = 'N'
+		  JOIN TB_LMS_CRS TLC
+		    ON TLCC.CRS_ID = TLC.CRS_ID 
+		   AND TLC.DELYN = 'N'
+		   AND TLC.ORG_ID = #{orgId}
+	</sql>
+
+	<select id="listCreCrsUsage" parameterType="contentsVO" resultType="contentsVO">
+		/*
+			 SQL ID : ContentsDAO.listCreCrsUsage
+			 설  명 : 컨텐츠 사용현황 관련 과목정보
+		*/
+		SELECT ROW_NUMBER() OVER(ORDER BY TLCC.SBJCT_ID, TLCC.DVCLAS_NO) AS LINE_NO 
+		        , TLC.CRS_ID 
+				, TLCC.SBJCT_ID 
+				, TLC.CRSNM 
+				, TLCC.SBJCT_ID
+				, TLCC.CRS_ID
+				, CONCAT(TLCC.SBJCTNM, ' ( ', TLCC.DVCLAS_NO, '반 ) ') AS SBJCTNM
+				-- , TLCC.SBJCTNM
+				-- , TLCC.DVCLAS_NO
+				, TLCC.DEPT_CD
+				, (SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE ORG_ID = TLC.ORG_ID AND DEPT_CD = TLCC.DEPT_CD AND USEYN = 'Y') AS DEPTNM
+				, TLCC.UNIV_CD
+				, TLCC.CRDTS
+				, TLCC.CMCRS_GBNCD
+				, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = TLC.ORG_ID AND CTGRCD = 'CMCRS_GBNCD' AND CD = TLCC.CMCRS_GBNCD) AS COMP_DV_NM
+				, TLCC.USEYN 
+				, TLCCTR.USER_ID AS REP_USER_ID
+				, (CASE WHEN TLCCTR.USER_ID IS NULL THEN '-'
+						ELSE (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = TLCCTR.USER_ID)
+				   END) AS REP_USER_NM
+				, (SELECT COUNT(STD_ID) FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID = TLCC.SBJCT_ID AND ATNDLC_STSCD = 'S') AS STD_CNT
+		FROM TB_LMS_CRS TLC
+		INNER JOIN TB_LMS_SBJCT TLCC ON TLC.CRS_ID = TLCC.CRS_ID
+		INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+		LEFT JOIN SBJCT_PROF TLCCTR ON TLCC.SBJCT_ID = TLCCTR.SBJCT_ID AND TLCCTR.RPRSYN = 'Y'
+		WHERE TLCC.DELYN = 'N'
+		<if test="creYear != null and creYear != ''">
+			AND TLCC.SBJCT_ID = #{creYear}
+		</if>
+		<if test="termCd != null and termCd != ''">
+			AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+		</if>
+		<if test="uniCd != null and uniCd != ''">
+			AND TLCC.UNIV_CD = #{uniCd}
+		</if>
+		<if test="deptCd != null and deptCd != ''">
+			AND TLCC.DEPT_CD = #{deptCd}
+		</if>
+		<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+			AND TLC.SBJCT_TYCD IN
+			<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test='searchValue != null and searchValue != ""'>
+			AND (
+				   LOWER(TLC.CRS_ID LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				OR LOWER(TLCC.SBJCTNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				OR (CASE WHEN TLCCTR.USER_ID IS NULL THEN '-'
+						 ELSE (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = TLCCTR.USER_ID)
+					END) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			)
+		</if>
+		ORDER BY TLCC.SBJCT_ID, TLCC.DVCLAS_NO
+	</select>
+
+	<select id="countCreCrsUsage" parameterType="contentsVO" resultType="Integer">
+		/*
+			 SQL ID : ContentsDAO.countCreCrsUsage
+			 설  명 : 강의실 목록
+		*/
+		SELECT COUNT(1) AS TOTAL_CNT
+		FROM TB_LMS_CRS TLC
+		INNER JOIN TB_LMS_SBJCT TLCC ON TLC.CRS_ID = TLCC.CRS_ID
+		INNER JOIN TB_LMS_TERM_CRE_CRS_RLTN TLTCCR ON TLCC.SBJCT_ID = TLTCCR.SBJCT_ID
+		LEFT JOIN SBJCT_PROF TLCCTR ON TLCC.SBJCT_ID = TLCCTR.SBJCT_ID AND TLCCTR.RPRSYN = 'Y'
+		WHERE TLCC.DELYN = 'N'
+		<if test="creYear != null and creYear != ''">
+			AND TLCC.SBJCT_ID = #{creYear}
+		</if>
+		<if test="termCd != null and termCd != ''">
+			AND TLTCCR.CRS_SMSTR_ID = #{termCd}
+		</if>
+		<if test="uniCd != null and uniCd != ''">
+			AND TLCC.UNIV_CD = #{uniCd}
+		</if>
+		<if test="deptCd != null and deptCd != ''">
+			AND TLCC.DEPT_CD = #{deptCd}
+		</if>
+		<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+			AND TLC.SBJCT_TYCD IN
+			<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test='searchValue != null and searchValue != ""'>
+			AND (
+				   LOWER(TLC.CRS_ID LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				OR LOWER(TLCC.SBJCTNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				OR (CASE WHEN TLCCTR.USER_ID IS NULL THEN '-'
+						 ELSE (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = TLCCTR.USER_ID)
+					END) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			)
+		</if>
+		ORDER BY TLCC.SBJCT_ID, TLCC.DVCLAS_NO
+	</select>
+
+	<select id="listCntsUsagePageing" parameterType="contentsVO" resultType="contentsVO">
+	    /*
+	         SQL ID : ContentsDAO.listCntsUsagePageing
+	         설  명 : 콘텐츠 사용 현황 리스트
+	    */
+	    <include refid="CommonSQL.pagePrefix"/>
+	        SELECT ROW_NUMBER() OVER(ORDER BY AA.SBJCT_ID, AA.SBJCTNM, AA.LCTR_SCHDL_SEQ, AA.LCTR_CONTS_SEQ) AS LINE_NO 
+	               , AA.CRS_ID
+	               , AA.SBJCT_ID
+	               , AA.SBJCTNM
+	               , AA.LESSON_TYPE_CD
+	               , AA.LESSON_TYPE_NM
+	               , AA.DEPT_CD 
+	               , AA.DEPTNM
+	               , AA.USER_ID
+	               , (CASE AA.USERNM WHEN '' THEN '-' ELSE CONCAT(AA.USERNM, ' ( ', AA.USER_ID, ' ) ') END) AS USERNM
+	               , AA.LCTR_SCHDL_ID
+	               , AA.SBJCT_LCTR_CONTS_ID
+	               , AA.LCTR_SCHDLNM
+	               , AA.LCTR_SCHDL_SEQ
+	               , AA.LCTR_CLASTMNM
+	               , AA.LCTR_CLASTM_SEQ
+	               , AA.LCTR_CONTSNM
+	               , AA.LCTR_CONTS_SEQ
+	               , AA.LCTR_CONTS_GBNCD
+	               , AA.CNTS_GBN_NM
+	               , AA.LESSON_CNTS_FILE_LOC_CD
+	               , AA.LESSON_CNTS_FILE_NM
+	               , AA.LESSON_CNTS_FILE_PATH
+	               , AA.LESSON_CNTS_URL
+	               , AA.LESSON_CNTS_FILE_LOC_CD_M
+	               , AA.LESSON_CNTS_FILE_NM_M
+	               , AA.LESSON_CNTS_FILE_PATH_M
+	               , AA.LESSON_CNTS_URL_M
+	               , AA.RCMD_ATNDLC_MNTS
+	               , AA.LCTR_NOTE
+	               , AA.LCTR_NOTE_PVSNYN 
+	          FROM (SELECT TLCC.CRS_ID
+	                       , TLCC.SBJCT_ID 
+	                       , CONCAT(TLCC.SBJCTNM, ' ( ', TLCC.DVCLAS_NO, '반 ) ') AS SBJCTNM
+	                       , TLLC.LESSON_TYPE_CD
+	                       , (CASE WHEN TLLC.LESSON_TYPE_CD = 'ONLINE' THEN '온라인'
+	                               WHEN TLLC.LESSON_TYPE_CD = 'OFFLINE' THEN '오프라인'
+	                               WHEN TLLC.LESSON_TYPE_CD = 'VIRTUAL' THEN '화상'
+	                               WHEN TLLC.LESSON_TYPE_CD = 'MIX' THEN '혼합'
+	                               ELSE '' 
+	                          END) AS LESSON_TYPE_NM
+	                       , TLCC.DEPT_CD 
+	                       , (SELECT DEPTNM 
+	                            FROM TB_HOME_USER_DEPT_CD 
+	                           WHERE ORG_ID = #{orgId}
+	                             AND DEPT_CD = TLCC.DEPT_CD
+	                             AND USEYN = 'Y') AS DEPTNM 
+	                       , (SELECT USER_ID FROM TB_LMS_USER_ACNT WHERE USER_ID = TLCCTR.USER_ID) AS USER_ID
+	                       , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = TLCCTR.USER_ID) AS USERNM
+	                       , TLLS.LCTR_SCHDL_ID 
+	                       , TLLC.SBJCT_LCTR_CONTS_ID 
+	                       , TLLS.LCTR_SCHDLNM 
+	                       , TLLS.LCTR_SCHDL_SEQ 
+	                       , TLLT.LCTR_CLASTMNM
+	                       , TLLT.LCTR_CLASTM_SEQ
+	                       , TLLC.LCTR_CONTSNM 
+	                       , TLLC.LCTR_CONTS_SEQ
+	                       , TLLC.LCTR_CONTS_GBNCD
+	                       , CASE WHEN TLLC.LCTR_CONTS_GBNCD = 'VIDEO'      THEN '강의동영상'
+	                              WHEN TLLC.LCTR_CONTS_GBNCD = 'STDY'       THEN '학습콘텐츠'
+	                              WHEN TLLC.LCTR_CONTS_GBNCD = 'VIDEO'      THEN '동영상'
+	                              WHEN TLLC.LCTR_CONTS_GBNCD = 'PDF'        THEN 'PDF'
+	                              WHEN TLLC.LCTR_CONTS_GBNCD = 'FILE'       THEN '파일'
+	                              WHEN TLLC.LCTR_CONTS_GBNCD = 'LINK'       THEN '링크'
+	                              WHEN TLLC.LCTR_CONTS_GBNCD = 'TEXT'       THEN '텍스트'
+	                              WHEN TLLC.LCTR_CONTS_GBNCD = 'VIDEO_LINK' THEN 'LCDMS 동영상'
+	                              WHEN TLLC.LCTR_CONTS_GBNCD = 'YOUTUBE'    THEN '유투브'
+	                              WHEN TLLC.LCTR_CONTS_GBNCD = 'ETC'        THEN '기타'
+	                              ELSE ''
+	                         END AS CNTS_GBN_NM 
+	                       , TLLC.LESSON_CNTS_FILE_LOC_CD 
+	                       , TLLC.LESSON_CNTS_FILE_NM 
+	                       , TLLC.LESSON_CNTS_FILE_PATH 
+	                       , TLLC.LESSON_CNTS_URL 
+	                       , TLLC.LESSON_CNTS_FILE_LOC_CD_M 
+	                       , TLLC.LESSON_CNTS_FILE_NM_M 
+	                       , TLLC.LESSON_CNTS_FILE_PATH_M 
+	                       , TLLC.LESSON_CNTS_URL_M 
+	                       , TLLC.RCMD_ATNDLC_MNTS 
+	                       , TLLS.LCTR_NOTE
+	                       , TLLS.LCTR_NOTE_PVSNYN 
+					  FROM TB_LMS_CRS TLC
+					 INNER JOIN TB_LMS_SBJCT TLCC 
+					      ON TLC.CRS_ID = TLCC.CRS_ID
+	                 INNER JOIN SBJCT_PROF TLCCTR
+	                    ON TLCC.SBJCT_ID = TLCCTR.SBJCT_ID
+	                   AND TLCCTR.PROF_TYCD = 'PROFESSOR' 
+	                   AND TLCCTR.RPRSYN = 'Y'
+	                 INNER JOIN TB_LMS_SBJCT_LCTR_SCHDL TLLS
+	                    ON TLCC.SBJCT_ID  = TLLS.SBJCT_ID
+	                   AND TLCC.USEYN = 'Y'
+	                   AND TLCC.DELYN = 'N'
+	                   AND TLLS.DELYN = 'N'
+	                 INNER JOIN TB_LMS_SBJCT_LCTR_CLASTM TLLT
+	                    ON TLLT.LCTR_SCHDL_ID = TLLS.LCTR_SCHDL_ID
+	                   AND TLLT.SBJCT_ID = TLLS.SBJCT_ID
+	                 INNER JOIN TB_LMS_SBJCT_LCTR_CONTS TLLC
+	                    ON TLLC.SBJCT_ID = TLCC.SBJCT_ID
+	                   AND TLLC.SBJCT_ID = TLLS.SBJCT_ID
+	                   AND TLLC.SBJCT_ID = TLLT.SBJCT_ID 
+	                   AND TLLC.LCTR_SCHDL_ID = TLLS.LCTR_SCHDL_ID 
+	                   AND TLLC.LCTR_SCHDL_ID = TLLT.LCTR_SCHDL_ID 
+	                   AND TLLC.SBJCT_LCTR_CLASTM_ID = TLLT.SBJCT_LCTR_CLASTM_ID
+	                   AND TLLC.DELYN = 'N'
+	                 WHERE TLCC.SBJCT_ID IN
+	                 <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+	                     #{item}
+	                 </foreach>
+	                   AND TLLC.LCTR_SCHDL_ID IS NOT NULL
+					<if test='cntsSearchValue != null and cntsSearchValue != ""'>
+						AND (
+							   LOWER(TLC.CRS_ID LIKE FN_LIKE_VAL(LOWER(#{cntsSearchValue}))
+							OR LOWER(TLCC.SBJCTNM LIKE FN_LIKE_VAL(LOWER(#{cntsSearchValue}))
+							OR (CASE WHEN TLCCTR.USER_ID IS NULL THEN '-'
+									 ELSE (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = TLCCTR.USER_ID)
+								END) LIKE FN_LIKE_VAL(LOWER(#{cntsSearchValue}))
+						)
+					</if>
+	               ) AA
+	         ORDER BY LINE_NO
+	    <include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="countCntsUsage" parameterType="contentsVO" resultType="Integer">
+		/*
+			 SQL ID : ContentsDAO.countCntsUsage
+			 설  명 : 콘텐츠 사용 현황 리스트
+		*/
+		SELECT COUNT(1)
+            FROM TB_LMS_CRS TLC
+					 INNER JOIN TB_LMS_SBJCT TLCC 
+					      ON TLC.CRS_ID = TLCC.CRS_ID
+	                 INNER JOIN SBJCT_PROF TLCCTR
+	                    ON TLCC.SBJCT_ID = TLCCTR.SBJCT_ID
+	                   AND TLCCTR.PROF_TYCD = 'PROFESSOR' 
+	                   AND TLCCTR.RPRSYN = 'Y'
+	                 INNER JOIN TB_LMS_SBJCT_LCTR_SCHDL TLLS
+	                    ON TLCC.SBJCT_ID  = TLLS.SBJCT_ID
+	                   AND TLCC.USEYN = 'Y'
+	                   AND TLCC.DELYN = 'N'
+	                   AND TLLS.DELYN = 'N'
+	                 INNER JOIN TB_LMS_SBJCT_LCTR_CLASTM TLLT
+	                    ON TLLT.LCTR_SCHDL_ID = TLLS.LCTR_SCHDL_ID
+	                   AND TLLT.SBJCT_ID = TLLS.SBJCT_ID
+	                 INNER JOIN TB_LMS_SBJCT_LCTR_CONTS TLLC
+	                    ON TLLC.SBJCT_ID = TLCC.SBJCT_ID
+	                   AND TLLC.SBJCT_ID = TLLS.SBJCT_ID
+	                   AND TLLC.SBJCT_ID = TLLT.SBJCT_ID 
+	                   AND TLLC.LCTR_SCHDL_ID = TLLS.LCTR_SCHDL_ID 
+	                   AND TLLC.LCTR_SCHDL_ID = TLLT.LCTR_SCHDL_ID 
+	                   AND TLLC.SBJCT_LCTR_CLASTM_ID = TLLT.SBJCT_LCTR_CLASTM_ID
+	                   AND TLLC.DELYN = 'N'
+		   WHERE TLCC.SBJCT_ID IN
+			<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+		   AND TLLC.LCTR_SCHDL_ID IS NOT NULL
+			<if test='cntsSearchValue != null and cntsSearchValue != ""'>
+				AND (
+					   LOWER(TLC.CRS_ID LIKE FN_LIKE_VAL(LOWER(#{cntsSearchValue}))
+					OR LOWER(TLCC.SBJCTNM LIKE FN_LIKE_VAL(LOWER(#{cntsSearchValue}))
+					OR (CASE WHEN TLCCTR.USER_ID IS NULL THEN '-'
+							 ELSE (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = TLCCTR.USER_ID)
+						END) LIKE FN_LIKE_VAL(LOWER(#{cntsSearchValue}))
+				)
+			</if>
+	</select>
+	
+	
+	<select id="listContentsInfoExcel" parameterType="contentsVO" resultType="contentsVO">
+		/*
+             SQL ID : ContentsDAO.listContentsInfoExcel
+             설  명 : 컨텐츠 현황 > 컨텐츠 정보 엑셀 리스트
+         */
+		<include refid="contentsInfoQuery" />
+			<where>
+				<if test="crsCreCd != null and crsCreCd != ''">
+					AND TLCC.SBJCT_ID = #{crsCreCd}
+				</if>
+				<if test="creYear != null and creYear != ''">
+					AND TLCC.SBJCT_ID = #{creYear}
+				</if>
+				<if test="creTerm != null and creTerm != ''">
+					AND TLCC.CRS_ID = #{creTerm}
+				</if>
+				<if test="deptCd != null and deptCd != ''">
+					AND TLCC.DEPT_CD = #{deptCd}
+				</if>
+				<if test="useYn != null and useYn != ''">
+					AND TLCC.USEYN = #{useYn}
+				</if>
+				<if test="enrlCertStatus != null and enrlCertStatus != ''">
+					AND TLCC.ATNDLC_CERT_STSCD = #{enrlCertStatus}
+				</if>
+				<if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+					AND TLC.SBJCT_TYCD IN
+					<foreach collection="crsTypeCdList" item="item" index="index" separator="," open="(" close=")">
+			            #{item}
+			        </foreach>
+				</if>
+				<if test="searchValue != null and searchValue != ''">
+					AND (
+						   LOWER(TLCC.CRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue})) 
+						OR LOWER(TLCC.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue})) 
+					)
+				</if>
+			</where>		
+	</select>
+	
+</mapper>

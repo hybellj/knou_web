@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.statistics.dao.StatisticsDAO">
+
+	<sql id="contentStatisticsAllQuery">
+		SELECT
+			  A.SBJCT_ID
+			, A.CRS_ID
+			, A.USER_ID
+			, A.APLY_CRDTS
+			, A.CNTNDAY_CNT
+			, NVL(A.CNTN_MNTS_SUM, 0) AS CNTN_MNTS_SUM
+			, NVL(A.CNTN_MNTS_DAY_AVG, 0) AS CNTN_MNTS_DAY_AVG
+			, NVL(A.CNTN_MNTS_DAY_STND_DVTN, 0) AS CNTN_MNTS_DAY_STND_DVTN
+			, NVL(A.CNTNDAY_INTVL_AVG, 0) AS CNTNDAY_INTVL_AVG
+			, NVL(A.CNTNDAY_INTVL_STND_DVTN, 0) AS CNTNDAY_INTVL_STND_DVTN
+			, NVL(A.WKEND_CNTNRT, 0) AS WKEND_CNTNRT
+			, NVL(A.WKDAYS_CNTNRT, 0) AS WKDAYS_CNTNRT
+			, A.FRST_INQ_DTTM
+			, A.MOD_DTTM
+			, B.USERNM
+		FROM TB_LMS_STATS_SUM_ATNDLC A
+		JOIN TB_LMS_USR B
+		ON A.USER_ID = B.USER_ID
+		<if test="deptCd != null and deptCd != ''">
+		AND B.DEPT_CD = #{deptCd}
+		</if>
+		WHERE A.SBJCT_ID = #{creYear}
+		AND A.CRS_ID = #{creTerm}
+		<if test='searchValue != null and searchValue != ""'>
+		AND (
+			   LOWER(A.USER_ID) 	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			OR LOWER(B.USERNM) 	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		)
+		</if>
+	</sql>
+	
+	<select id="stdntlrnPrgrtStatusSelect" parameterType="knou.lms.subject2.vo.SubjectVO" resultType="egovMap">
+		/*
+			 SQL ID : statisticsDAO.stdntlrnPrgrtStatusSelect
+			 설  명 : 전체/운영과목 학습진도 현황(수강생수, 평균학습진도율)
+	 	*/
+		WITH SBJ_LIST AS (
+			SELECT
+				  A.SBJCT_YR
+				, A.SBJCT_SMSTR
+				, SMSTR.SMSTR_CHRT_ID
+				, SMSTR.ORG_ID
+				, A.DEPT_ID
+				, A.SBJCT_ID
+				, A.SBJCTNM
+				, A.PROF_ID
+				, A.DVCLAS_NO
+				, A.DELYN
+			FROM TB_LMS_SBJCT A
+			JOIN TB_LMS_SMSTR_CHRT SMSTR
+				ON A.SBJCT_REF_TYCD = 'SMSTR_CHRT'
+				AND A.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+			WHERE 1=1
+			AND DELYN = 'N'
+		),
+		WHOLE_STATUS AS (
+			SELECT
+				 COUNT(A.USER_ID) AS STD_CNT
+				, SUM(A.PRGRT) AS SUM_PRGRT
+			FROM TB_LMS_LRN_PRGRT A
+			JOIN SBJ_LIST B 
+				ON A.SBJCT_ID = B.SBJCT_ID
+			<if test="orgId != null and orgId != ''">
+				AND B.ORG_ID = #{orgId}
+			</if>
+		),
+		MY_SBJCT_STATUS AS (
+			SELECT
+				 COUNT(A.USER_ID) AS STD_CNT
+				, SUM(A.PRGRT) AS SUM_PRGRT
+			FROM TB_LMS_LRN_PRGRT A
+			JOIN SBJ_LIST B 
+				ON A.SBJCT_ID = B.SBJCT_ID
+			<if test="orgId != null and orgId != ''">
+				AND B.ORG_ID = #{orgId}
+			</if>
+				AND B.PROF_ID = #{userId}
+		)
+		SELECT
+			  A.STD_CNT AS WHOLE_STD_CNT
+			, NVL( ROUND(A.SUM_PRGRT / A.STD_CNT, 2),0) AS WHOLE_AVG_LRN_PRGRT
+			, B.STD_CNT AS MY_STD_CNT
+			, NVL( ROUND(B.SUM_PRGRT / B.STD_CNT, 2),0) AS MY_AVG_LRN_PRGRT
+		FROM WHOLE_STATUS A, MY_SBJCT_STATUS B
+	</select>
+	
+	<select id="stdntLrnPrgrtList" parameterType="knou.lms.subject2.vo.SubjectVO" resultType="egovMap">
+		/*
+			 SQL ID : statisticsDAO.stdntLrnPrgrtList
+			 설  명 : 학습자 학습진도 현황 목록 조회
+		*/
+		WITH SBJ_LIST AS (
+			SELECT
+				  A.SBJCT_YR
+				, A.SBJCT_SMSTR
+				, A.SMSTR_CHRT_ID
+				, SMSTR.ORG_ID
+				, A.DEPT_ID
+				, A.SBJCT_ID
+				, A.SBJCTNM
+				, A.DVCLAS_NO
+				, A.DELYN
+			FROM TB_LMS_SBJCT A
+			JOIN TB_LMS_SMSTR_CHRT SMSTR
+				ON A.SBJCT_REF_TYCD = 'SMSTR_CHRT'
+				AND A.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+			WHERE 1=1
+				AND DELYN = 'N'
+			<if test="sbjctYr != null and sbjctYr != ''">
+				AND SBJCT_YR = #{sbjctYr}
+			</if>
+			<if test="smstrChrtId != null and smstrChrtId != ''">
+				AND SMSTR_CHRT_ID = #{smstrChrtId}
+			</if>
+			<if test="orgId != null and orgId != ''">
+				AND ORG_ID = #{orgId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				AND DEPT_ID = #{deptId}
+			</if>
+			<if test="sbjctId != null and sbjctId != ''">
+				AND SBJCT_ID = #{sbjctId}
+			</if>
+		),
+		<!-- 과목별 오픈 주차 목록 -->
+		OPEN_WK_LIST AS (
+			SELECT
+				  ORG.ORGNM
+				, A.*
+				, B.LCTR_WKNO_SCHDL_ID
+			FROM SBJ_LIST A
+			JOIN TB_LMS_LCTR_WKNO_SCHDL B
+				ON A.SBJCT_ID = B.SBJCT_ID
+				AND B.DELYN = 'N'
+				AND (FN_DT() > B.LCTR_WKNO_EYMD <!-- 지난 주차 -->
+					OR
+					FN_DT() BETWEEN B.LCTR_WKNO_SYMD AND B.LCTR_WKNO_EYMD) <!-- 현재 진행주차 -->
+			LEFT JOIN TB_LMS_ORG ORG
+				ON A.ORG_ID = ORG.ORG_ID
+		),
+		<!-- 과목별 오픈 주차 수 -->
+		OPEN_WK_CNT AS (
+			SELECT
+		          SBJCT_ID
+		        , COUNT(*) AS OPEN_WK_CNT
+		    FROM OPEN_WK_LIST
+		    GROUP BY SBJCT_ID
+		),
+		<!-- 과목별 수강하는 학생 목록 -->
+		STD_LIST AS (
+			SELECT
+				  A.SBJCT_ID
+				, B.USER_ID
+				, USR.USERNM
+				, B.SCYR
+			FROM SBJ_LIST A
+			JOIN TB_LMS_ATNDLC B ON A.SBJCT_ID = B.SBJCT_ID
+			JOIN TB_LMS_USER USR ON B.USER_ID = USR.USER_ID
+			WHERE 1=1
+				AND B.AUDITYN = 'N'<!-- 청강여부 -->
+		)
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY A.SBJCT_YR ASC, A.SBJCT_SMSTR ASC, A.ORGNM DESC, A.DEPTNM ASC, A.SBJCTNM) AS LINE_NO
+			, A.*
+		FROM (
+			SELECT
+				<!--   OWL.SBJCT_ID -->
+				<!-- , OWL.ORG_ID -->
+				  OWL.SBJCT_YR
+				, OWL.SBJCT_SMSTR  
+				, OWL.ORGNM
+				<!-- , NVL(DEPT.DEPT_ID, '—') AS DEPT_ID -->
+				, NVL(DEPT.DEPTNM, '—') AS DEPTNM
+				, OWL.SBJCTNM
+				, OWL.DVCLAS_NO
+				, STS.USER_ID
+				, USR.USERNM
+				, USR.SCYR
+				, OWK.OPEN_WK_CNT
+				<!-- , CASE WHEN STS.PRGRT AS STUDY_YN -->
+				, COUNT(CASE WHEN NVL(STS.PRGRT,0) > 0 THEN STS.LCTR_WKNO_SCHDL_ID END ) AS LRN_WK_CNT <!-- 학습한 주차 수 (진도율 0 초과만 카운트)-->
+				, ROUND(
+					COUNT(CASE WHEN NVL(STS.PRGRT,0) > 0 THEN STS.LCTR_WKNO_SCHDL_ID END ) / NULLIF(OWK.OPEN_WK_CNT, 0) * 100
+				, 2) AS PRGRT <!-- 진도율 -->
+			FROM OPEN_WK_LIST OWL
+			JOIN OPEN_WK_CNT OWK
+				ON OWL.SBJCT_ID = OWK.SBJCT_ID
+			JOIN STD_LIST USR
+				ON OWL.SBJCT_ID = USR.SBJCT_ID
+			LEFT JOIN TB_LMS_BYWK_USER_LRN_STS STS
+				ON OWL.LCTR_WKNO_SCHDL_ID = STS.LCTR_WKNO_SCHDL_ID
+				AND USR.USER_ID = STS.USER_ID
+			LEFT JOIN TB_LMS_DEPT DEPT
+				ON OWL.DEPT_ID = DEPT.DEPT_ID
+			WHERE 1=1
+			<if test='searchKey == null or searchKey == ""'>
+				<!-- 미학습자 전체보기 -->
+				AND PRGRT > 0
+			</if>
+			<if test='searchKey != null and searchKey == "Y"'>
+				<!-- 미학습자 전체보기 -->
+				AND PRGRT >= 0
+			</if>
+			<if test="searchFrom != null and searchFrom != ''">
+				AND PRGRT <![CDATA[ >= ]]> #{searchFrom}
+			</if>
+			<if test="searchTo != null and searchTo != ''">
+				AND PRGRT <![CDATA[ < ]]> #{searchTo}
+			</if>
+			GROUP BY
+				  OWL.SBJCT_ID
+				, OWL.ORG_ID
+				, OWL.SBJCT_YR
+				, OWL.SBJCT_SMSTR  
+				, OWL.ORGNM
+				, DEPT.DEPT_ID
+				, DEPTNM
+				, OWL.SBJCTNM
+				, OWL.DVCLAS_NO
+				, STS.USER_ID
+				, USR.USERNM
+				, USR.SCYR
+				, OWK.OPEN_WK_CNT
+		) A
+		ORDER BY LINE_NO DESC
+	</select>
+	
+	<select id="listLrnPrgrtStatusByDept" parameterType="knou.lms.subject2.vo.SubjectVO" resultType="egovMap">
+		/*
+			 SQL ID : statisticsDAO.listLrnPrgrtStatusByDept
+			  설       명 : 학습진도관리 > 학과별 학습진도율 목록 조회
+		*/
+		WITH DEPT_LIST AS (
+			SELECT
+				SMSTR.ORG_ID
+				, ORG.ORGNM
+				, PRGRT.SBJCT_ID
+				, SBJ.DEPT_ID
+				, DEPT.DEPTNM
+				, SBJ.SBJCT_YR
+				, SBJ.SBJCT_SMSTR
+				, SMSTR.SMSTR_CHRT_ID
+				, SBJ.DELYN
+				, PRGRT.PRGRT
+				, PRGRT.USER_ID
+			FROM TB_LMS_LRN_PRGRT PRGRT
+			JOIN TB_LMS_SBJCT SBJ
+				ON SBJ.SBJCT_REF_TYCD = 'SMSTR_CHRT'
+				AND PRGRT.SBJCT_ID = SBJ.SBJCT_ID
+			JOIN TB_LMS_SMSTR_CHRT SMSTR
+				ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+			JOIN TB_LMS_ORG ORG
+				ON SMSTR.ORG_ID = ORG.ORG_ID
+			LEFT JOIN TB_LMS_DEPT DEPT
+				ON SBJ.DEPT_ID = DEPT.DEPT_ID
+			WHERE 1=1
+				AND SBJ.DELYN = 'N'
+			<if test="sbjctYr != null and sbjctYr != ''">
+				AND SBJ.SBJCT_YR = #{sbjctYr}
+			</if>
+			<if test="smstrChrtId != null and smstrChrtId != ''">
+				AND SBJ.SMSTR_CHRT_ID = #{smstrChrtId}
+			</if>
+			<if test="orgId != null and orgId != ''">
+				AND ORG.ORG_ID = #{orgId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				AND DEPT.DEPT_ID = #{deptId}
+			</if>
+			<if test="sbjctId != null and sbjctId != ''">
+				AND SBJ.SBJCT_ID = #{sbjctId}
+			</if>
+		)
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.SBJCT_YR, A.SBJCT_SMSTR, A.DEPTNM) AS LINE_NO
+			, A.*
+		FROM (
+			SELECT
+				ORG_ID
+				, ORGNM
+				, DEPT_ID
+				, DEPTNM
+				, SBJCT_YR
+				, SBJCT_SMSTR
+				, COUNT(USER_ID) AS ALL_USER_CNT	<!-- 학과별 전체 학생 수 -->
+				, AVG(PRGRT) AS AVG_PRGRT_BY_DEPT	<!-- 학과별 평균 학습 진도율 -->
+			FROM DEPT_LIST
+			GROUP BY ORG_ID, ORGNM, DEPT_ID, DEPTNM, SBJCT_YR , SBJCT_SMSTR
+		)A	
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="listContentStatisticsAll" parameterType="statisticsVO" resultType="statisticsVO">
+		/*
+			 SQL ID : StatisticsDAO.listContentStatisticsAll
+			 설  명 : 학습자 수강 통계 주차별 목록
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT
+	 		  ROW_NUMBER() OVER(ORDER BY A.USERNM) AS LINE_NO
+	 		, A.*
+	 	FROM (
+ 			<include refid="contentStatisticsAllQuery"/>
+ 		) A
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="countContentStatisticsAll" parameterType="statisticsVO" resultType="Integer">
+		/*
+			 SQL ID : StatisticsDAO.countContentStatisticsAll
+			 설  명 : 학습자 수강 통계 주차별 카운터
+		*/
+		SELECT COUNT(1)
+		FROM (
+			<include refid="contentStatisticsAllQuery" />
+		) Z
+	</select>
+	
+	<sql id="contentStatisticsByWeekQuery">
+		SELECT
+			  A.SBJCT_ID
+			, A.CRS_ID
+			, A.USER_ID
+			, A.SBJCT_LCTR_WKNO
+			, A.APLY_CRDTS
+			, A.CNTNDAY_CNT
+			, A.CONN_DAY_SUM
+			, A.CONN_TM
+			, NVL(A.CNTN_MNTS_SUM, 0) AS CNTN_MNTS_SUM
+			, NVL(A.CNTN_MNTS_DAY_AVG, 0) AS CNTN_MNTS_DAY_AVG
+			, NVL(A.CNTN_MNTS_DAY_STND_DVTN, 0) AS CNTN_MNTS_DAY_STND_DVTN
+			, NVL(A.CNTNDAY_INTVL_AVG, 0) AS CNTNDAY_INTVL_AVG
+			, NVL(A.CNTNDAY_INTVL_STND_DVTN, 0) AS CNTNDAY_INTVL_STND_DVTN
+			, NVL(A.WKEND_CNTNRT, 0) AS WKEND_CNTNRT
+			, NVL(A.WKDAYS_CNTNRT, 0) AS WKDAYS_CNTNRT
+			, A.FRST_INQ_DTTM
+			, A.MOD_DTTM
+			, B.USERNM
+		FROM TB_STAT_STDY_WEEKSUM A
+		JOIN TB_LMS_USR B
+		ON A.USER_ID = B.USER_ID
+		<if test="deptCd != null and deptCd != ''">
+		AND B.DEPT_CD = #{deptCd}
+		</if>
+		WHERE A.SBJCT_ID = #{creYear}
+		AND A.CRS_ID = #{creTerm}
+		<if test='searchValue != null and searchValue != ""'>
+		AND (
+			   LOWER(A.USER_ID) 	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			OR LOWER(B.USERNM) 	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		)
+		</if>
+	</sql>
+	
+	<select id="listContentStatisticsByWeek" parameterType="statisticsVO" resultType="statisticsVO">
+		/*
+			 SQL ID : StatisticsDAO.listContentStatisticsByWeek
+			 설  명 : 학습자 수강 통계 주차별 목록
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT
+	 		  ROW_NUMBER() OVER(ORDER BY A.USERNM, A.SBJCT_LCTR_WKNO) AS LINE_NO
+	 		, A.*
+	 	FROM (
+ 			<include refid="contentStatisticsByWeekQuery"/>
+ 		) A
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="countContentStatisticsByWeek" parameterType="statisticsVO" resultType="Integer">
+		/*
+			 SQL ID : StatisticsDAO.countContentStatisticsByWeek
+			 설  명 : 학습자 수강 통계 주차별 카운터
+		*/
+		SELECT COUNT(1)
+		FROM (
+			<include refid="contentStatisticsByWeekQuery" />
+		) Z
+	</select>
+
+	<sql id="contentStatisticsByCourseQuery">
+		SELECT
+			  A.SBJCT_ID
+			, A.CRS_ID
+			, A.CRS_ID
+			, A.DVCLAS_NO
+			, A.USER_ID
+			, A.SBJCT_ID
+			, A.SBJCTNM
+			, A.APLY_CRDTS
+			, A.CNTNDAY_CNT
+			, NVL(A.CNTN_MNTS_SUM, 0) AS CNTN_MNTS_SUM
+			, NVL(A.CNTN_MNTS_DAY_AVG, 0) AS CNTN_MNTS_DAY_AVG
+			, NVL(A.CNTN_MNTS_DAY_STND_DVTN, 0) AS CNTN_MNTS_DAY_STND_DVTN
+			, NVL(A.CNTNDAY_INTVL_AVG, 0) AS CNTNDAY_INTVL_AVG
+			, NVL(A.CNTNDAY_INTVL_STND_DVTN, 0) AS CNTNDAY_INTVL_STND_DVTN
+			, NVL(A.WKEND_CNTNRT, 0) AS WKEND_CNTNRT
+			, NVL(A.WKDAYS_CNTNRT, 0) AS WKDAYS_CNTNRT
+			, A.FRST_INQ_DTTM
+			, A.MOD_DTTM
+			, B.USERNM
+		FROM STATS_BYSBJCT A
+		JOIN TB_LMS_USR B
+		ON A.USER_ID = B.USER_ID
+		<if test="deptCd != null and deptCd != ''">
+		AND B.DEPT_CD = #{deptCd}
+		</if>
+		JOIN TB_LMS_SBJCT C
+		ON A.SBJCT_ID = C.SBJCT_ID
+		<if test="uniCd != null and uniCd != ''">
+		AND C.UNIV_CD = #{uniCd}
+		</if>
+		<if test="univGbn != null and univGbn != ''">
+		AND C.UNIV_GBNCD = #{univGbn}
+		</if>
+		<if test="crsCreCd != null and crsCreCd != ''">
+		AND C.SBJCT_ID = #{crsCreCd}
+		</if>
+		LEFT JOIN SBJCT_PROF D
+		ON A.SBJCT_ID = D.SBJCT_ID
+		AND D.PROF_TYCD = 'PROFESSOR'
+		AND D.RPRSYN = 'Y'
+		WHERE A.SBJCT_ID = #{creYear}
+		AND A.CRS_ID = #{creTerm}
+		<if test='searchValue != null and searchValue != ""'>
+		AND (
+			   LOWER(A.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			OR LOWER(A.CRS_ID) 	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			OR LOWER((SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = D.USER_ID)) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		)
+		</if>
+	</sql>
+	
+	<select id="listContentStatisticsByCourse" parameterType="statisticsVO" resultType="statisticsVO">
+		/*
+			 SQL ID : StatisticsDAO.listContentStatisticsByCourse
+			 설  명 : 학습자 수강 통계 과목별 목록
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT
+	 		  ROW_NUMBER() OVER(ORDER BY A.SBJCTNM, A.SBJCT_ID, A.USERNM) AS LINE_NO
+	 		, A.*
+	 	FROM (
+ 			<include refid="contentStatisticsByCourseQuery"/>
+ 		) A
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="countContentStatisticsByCourse" parameterType="statisticsVO" resultType="Integer">
+		/*
+			 SQL ID : StatisticsDAO.countContentStatisticsByCourse
+			 설  명 : 학습자 수강 통계 과목별 카운터
+		*/
+		SELECT COUNT(1)
+		FROM (
+			<include refid="contentStatisticsByCourseQuery" />
+		) Z
+	</select>
+
+</mapper>

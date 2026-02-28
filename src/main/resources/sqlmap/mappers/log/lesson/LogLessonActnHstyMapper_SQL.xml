@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.log.lesson.dao.LogLessonActnHstyDAO">
+	
+	<sql id="selectQuery">
+		SELECT
+			  COUNT(1) OVER()				AS TOTAL_CNT
+			, COUNT(1) OVER() - ROW_NUMBER() OVER(ORDER BY A.ACTN_HSTY_SN DESC) + 1 AS LINE_NO 
+			, A.ACTN_HSTY_SN				
+			, A.SBJCT_ID					
+			, A.USER_ID						
+			, A.ACTV_HSTRY_CD				
+			, A.ACTV_HSTRY_CTS				
+			, A.CNTN_DVC_TYCD				
+			, A.RGTR_IP						
+			, A.RGTR_ID						
+			, A.FRST_INQ_DTTM					
+		FROM TB_LOG_LESSON_ACTN_HSTY A
+		WHERE A.SBJCT_ID = #{crsCreCd}
+		<if test='actnHstySn != null and actnHstySn != ""'>
+			AND A.ACTN_HSTY_SN = #{actnHstySn}
+		</if>
+		<if test='userId != null and userId != ""'>
+			AND A.USER_ID = #{userId}
+		</if>
+		<if test='actnHstyCd != null and actnHstyCd != ""'>
+			AND A.ACTV_HSTRY_CD = #{actnHstyCd}
+		</if>
+		<if test='deviceTypeCd != null and deviceTypeCd != ""'>
+			AND A.CNTN_DVC_TYCD = #{deviceTypeCd}
+		</if>
+		<if test='regIp != null and regIp != ""'>
+			AND A.RGTR_IP = #{regIp}
+		</if>
+	</sql>
+	
+	<select id="listLessonActnHsty" parameterType="logLessonActnHstyVO" resultType="logLessonActnHstyVO">
+		/*
+			 SQL ID : LogLessonActnHstyDAO.listLessonActnHsty
+			 설  명 : 강의실 활동 로그 목록
+	 	*/
+		<include refid="selectQuery" />
+	</select>
+	
+	<select id="listLessonActnHstyPaging" parameterType="logLessonActnHstyVO" resultType="logLessonActnHstyVO">
+		/*
+			 SQL ID : LogLessonActnHstyDAO.listLessonActnHstyPaging
+			 설  명 : 강의실 활동 로그 목록 페이징
+	 	*/
+	 	<include refid="CommonSQL.pagePrefix" />
+		<include refid="selectQuery" />
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
+	
+	<insert id="insertLessonActnHsty" parameterType="logLessonActnHstyVO">
+		/*
+			 SQL ID : LogLessonActnHstyDAO.insertLessonActnHsty
+			 설  명 : 강의실 활동 로그 등록
+	 	*/
+		INSERT INTO TB_LOG_LESSON_ACTN_HSTY (
+			  ACTN_HSTY_SN
+			, SBJCT_ID
+			, USER_ID  
+			, ACTV_HSTRY_CD
+			, ACTV_HSTRY_CTS
+			, CNTN_DVC_TYCD
+			, RGTR_IP
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		) VALUES (
+			  #{actnHstySn}
+		    , #{crsCreCd}
+			, #{userId}
+			, #{actnHstyCd}
+			, #{actnHstyCts}
+			, #{deviceTypeCd}
+			, #{regIp}
+			, #{rgtrId}
+			, FN_DTTM()
+		)
+	</insert>
+</mapper>

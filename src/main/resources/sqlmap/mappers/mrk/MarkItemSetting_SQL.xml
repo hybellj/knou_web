@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.mrk.dao.MarkItemSettingDAO">
+
+    <select id="mrkItmStngList" resultType="egovMap" parameterType="markItemSettingVO">
+        /*
+             SQL ID : MarkItemSettingDAO.mrkItmStngList
+             설  명  : 성적항목설정 목록 조회(공통코드 기준 + 과목별 설정값)
+         */
+
+        SELECT
+              CD.CD                               AS MRK_ITM_TYCD
+            , CD.CDNM                             AS MRK_ITM_TYNM
+            , STNG.MRK_RFLTRT
+            , STNG.MRK_OYN
+            , NVL(STNG.MRK_ITM_USEYN, 'N')  AS MRK_ITM_USEYN
+        FROM TB_LMS_CMMN_CD CD
+        LEFT JOIN TB_LMS_MRK_ITM_STNG STNG
+          ON STNG.SBJCT_ID     = #{sbjctId}
+         AND STNG.MRK_ITM_TYCD = CD.CD
+        WHERE CD.UP_CD   = 'MRK_ITM_TYCD'
+          AND CD.UP_CD != CD.CD
+          AND CD.ORG_ID  = #{orgId}
+          AND CD.LANG_CD = NVL(#{langCd}, 'ko')
+        ORDER BY
+              CD.CD_SEQNO
+    </select>
+
+    <update id="mrkItmStngForProfModify" parameterType="markItemSettingVO">
+        /*
+             SQL ID : MarkItemSettingDAO.mrkItmStngForProfModify
+             설  명  : 성적항목설정 수정 - 교수
+        */
+        UPDATE TB_LMS_MRK_ITM_STNG
+        SET
+            MRK_RFLTRT = #{mrkRfltrt}
+            , MRK_OYN    = #{mrkOyn}
+            , MDFR_ID    = #{mdfrId}
+            , MOD_DTTM   = FN_DTTM()
+        WHERE SBJCT_ID = #{sbjctId}
+            AND MRK_ITM_TYCD = #{mrkItmTycd}
+            AND MRK_ITM_USEYN = 'Y'
+    </update>
+
+</mapper>

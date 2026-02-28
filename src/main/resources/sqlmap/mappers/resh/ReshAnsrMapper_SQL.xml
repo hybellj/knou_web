@@ -1,0 +1,1022 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.resh.dao.ReshAnsrDAO">
+
+	<select id="listReshJoinDeviceStatus" parameterType="reshVO" resultType="egovMap">
+        /*
+             SQL ID : ReshAnsrDAO.listReshJoinDeviceStatus
+            	 설  명 : 설문 참여 장치별 현황 조회
+         */
+        <!-- SELECT A.CD 		AS deviceTypeCd
+             , A.CDNM 		AS deviceTypeNm
+             , COUNT(B.STD_ID) 	AS reshFinCnt
+          FROM TB_ORG_CODE A
+          LEFT JOIN TB_LMS_SRVY_PTCP B
+            ON A.CD = B.CNTN_DVC_TYCD
+           AND B.SRVY_ID = #{reschCd}
+           AND B.USER_ID != ''
+          LEFT JOIN TB_LMS_USER_ACNT C
+            ON B.USER_ID = C.USER_ID
+           AND C.ACNT_STSCD = 'U'
+         <if test='reschTypeCd == null or reschTypeCd != "HOME"'>
+          LEFT JOIN TB_LMS_ATNDLC_SBJCT D
+            ON B.STD_ID = D.STD_ID
+           AND C.USER_ID = D.USER_ID
+           AND D.ATNDLC_STSCD = 'S'
+           AND D.SBJCT_ID = (SELECT SBJCT_ID FROM TB_LMS_RESCH_CRE_CRS_RLTN WHERE SRVY_ID = #{reschCd})
+         </if>
+         WHERE A.CTGRCD = 'CNTN_DVC_TYCD'
+           AND A.ORG_ID = #{orgId}
+           AND A.USEYN = 'Y'
+         GROUP BY A.CD
+         ORDER BY A.CD_SEQ -->
+         
+         WITH CRS_CRE AS (
+		    SELECT SBJCT_ID
+		    FROM TB_LMS_RESCH_CRE_CRS_RLTN
+		    WHERE SRVY_ID = #{reschCd}
+		)
+		SELECT  
+		    A.CD       AS deviceTypeCd,
+		    A.CDNM       AS deviceTypeNm,
+		    COUNT(B.STD_ID) AS reshFinCnt
+		FROM TB_ORG_CODE A
+		LEFT JOIN TB_LMS_SRVY_PTCP B
+		    ON A.CD = B.CNTN_DVC_TYCD
+		   AND B.SRVY_ID = #{reschCd}
+		   AND B.USER_ID IS NOT NULL
+		   AND B.USER_ID != ''
+		LEFT JOIN TB_LMS_USER_ACNT C
+		    ON B.USER_ID = C.USER_ID
+		   AND C.ACNT_STSCD = 'U'
+		<if test='reschTypeCd == null or reschTypeCd != "HOME"'>
+		LEFT JOIN TB_LMS_ATNDLC_SBJCT D
+		    ON B.STD_ID = D.STD_ID
+		   AND C.USER_ID = D.USER_ID
+		   AND D.ATNDLC_STSCD = 'S'
+		</if>
+		LEFT JOIN CRS_CRE E
+		    ON D.SBJCT_ID = E.SBJCT_ID
+		WHERE A.CTGRCD = 'CNTN_DVC_TYCD'
+		  AND A.ORG_ID = #{orgId}
+		  AND A.USEYN = 'Y'
+		GROUP BY A.CD, A.CDNM, A.CD_SEQ
+		ORDER BY A.CD_SEQ
+    </select>
+
+    <select id="listReshQstnItemAnswerStatus" parameterType="reshQstnVO" resultType="egovMap">
+        /*
+             SQL ID : ReshAnsrDAO.listReshQstnItemAnswerStatus
+             	설  명 : 설문 문항별 선택지 응답현황
+         */
+        SELECT A.SRVY_VWITM_ID
+             , A.RESCH_QSTN_ITEM_TITLE
+             , A.VWITM_SEQ
+             , A.ETC_INPT_USEYN
+             , A.JOIN_CNT
+             , A.TOT_JOIN_CNT
+             <!-- , REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', '') AS RATIO -->
+             , REPLACE(TO_CHAR(CASE WHEN A.RNUM = 1 THEN 100 - ACUM_RATIO ELSE A.RATIO END), '.0', '') AS RATIO
+          FROM (
+                SELECT A.SRVY_VWITM_ID
+                     , A.RESCH_QSTN_ITEM_TITLE
+                     , A.VWITM_SEQ
+                     , A.ETC_INPT_USEYN
+                     , A.JOIN_CNT
+                     , A.TOT_JOIN_CNT
+                     , ROW_NUMBER() OVER(ORDER BY A.JOIN_CNT DESC, A.VWITM_SEQ DESC) RNUM
+                     , ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS RATIO
+                     , SUM(ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1)) OVER(ORDER BY A.JOIN_CNT)
+                       - ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS ACUM_RATIO
+                  FROM (
+                        SELECT D.SRVY_VWITM_ID
+                             , D.RESCH_QSTN_ITEM_TITLE
+                             , D.VWITM_SEQ
+                             , D.ETC_INPT_USEYN
+                             , COUNT(E.SRVY_RSPNS_ID) OVER(PARTITION BY D.SRVY_QSTN_ID, D.SRVY_VWITM_ID) JOIN_CNT
+                             , COUNT(E.SRVY_RSPNS_ID) OVER(PARTITION BY D.SRVY_QSTN_ID) TOT_JOIN_CNT
+                          FROM SRVY_VWITM D
+                          LEFT JOIN TB_LMS_SRVY_RSPNS E
+                            ON D.SRVY_QSTN_ID = E.SRVY_QSTN_ID
+                           AND D.SRVY_VWITM_ID = E.SRVY_VWITM_ID
+                           AND E.USER_ID != ''
+                           <if test="crsCreCd != null and crsCreCd != ''">
+                           AND E.USER_ID IN (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID = #{crsCreCd} AND ATNDLC_STSCD = 'S' AND AUDITYN = 'N')
+                           </if>
+                         WHERE D.SRVY_QSTN_ID = #{reschQstnCd}
+                       ) A
+                 GROUP BY
+                       A.SRVY_VWITM_ID
+                     , A.RESCH_QSTN_ITEM_TITLE
+                     , A.VWITM_SEQ
+                     , A.ETC_INPT_USEYN
+                     , A.JOIN_CNT
+                     , A.TOT_JOIN_CNT
+               ) A
+         ORDER BY A.VWITM_SEQ
+    </select>
+
+    <select id="listReshTextQstnAnswer" parameterType="reshQstnVO" resultType="egovMap">
+        /*
+             SQL ID : ReshAnsrDAO.listReshTextQstnAnswer
+             	설  명 : 설문 문항별 서술형 응답 리스트 조회
+         */
+        SELECT A.ETC_OPNN
+        	 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.USER_ID) AS USERNM
+             , ROW_NUMBER() OVER () AS RNUM
+          FROM TB_LMS_SRVY_RSPNS A
+         WHERE A.SRVY_QSTN_ID = #{reschQstnCd}
+           AND A.USER_ID != ''
+           <if test="crsCreCd != null and crsCreCd != ''">
+           AND A.USER_ID IN (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID = #{crsCreCd} AND ATNDLC_STSCD = 'S' AND AUDITYN = 'N')
+           </if>
+         GROUP BY A.ETC_OPNN, A.USER_ID
+    </select>
+
+    <select id="listReshQstnScaleAnswerStatus" parameterType="reshQstnVO" resultType="egovMap">
+        /*
+             SQL ID : ReshAnsrDAO.listReshQstnScaleAnswerStatus
+             	설  명 : 설문 문항별 척도형 응답현황
+         */
+        SELECT A.SRVY_QSTN_ID
+             , A.SRVY_VWITM_ID
+             , A.RESCH_QSTN_ITEM_TITLE
+             , MAX(IF(A.SCALE_ODR = 1, A.EVL_TTL, NULL)) AS SCALE_TITLE_1
+             , MAX(IF(A.SCALE_ODR = 1, REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', ''), NULL)) AS RATIO_1
+             , MAX(IF(A.SCALE_ODR = 1, A.JOIN_CNT, NULL)) AS JOIN_CNT_1
+             , MAX(IF(A.SCALE_ODR = 1, A.TOT_JOIN_CNT, NULL)) AS TOT_JOIN_CNT_1
+             , MAX(IF(A.SCALE_ODR = 2, A.EVL_TTL, NULL)) AS SCALE_TITLE_2
+             , MAX(IF(A.SCALE_ODR = 2, REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', ''), NULL)) AS RATIO_2
+             , MAX(IF(A.SCALE_ODR = 2, A.JOIN_CNT, NULL)) AS JOIN_CNT_2
+             , MAX(IF(A.SCALE_ODR = 2, A.TOT_JOIN_CNT, NULL)) AS TOT_JOIN_CNT_2
+             , MAX(IF(A.SCALE_ODR = 3, A.EVL_TTL, NULL)) AS SCALE_TITLE_3
+             , MAX(IF(A.SCALE_ODR = 3, REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', ''), NULL)) AS RATIO_3
+             , MAX(IF(A.SCALE_ODR = 3, A.JOIN_CNT, NULL)) AS JOIN_CNT_3
+             , MAX(IF(A.SCALE_ODR = 3, A.TOT_JOIN_CNT, NULL)) AS TOT_JOIN_CNT_3
+             , MAX(IF(A.SCALE_ODR = 4, A.EVL_TTL, NULL)) AS SCALE_TITLE_4
+             , MAX(IF(A.SCALE_ODR = 4, REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', ''), NULL)) AS RATIO_4
+             , MAX(IF(A.SCALE_ODR = 4, A.JOIN_CNT, NULL)) AS JOIN_CNT_4
+             , MAX(IF(A.SCALE_ODR = 4, A.TOT_JOIN_CNT, NULL)) AS TOT_JOIN_CNT_4
+             , MAX(IF(A.SCALE_ODR = 5, A.EVL_TTL, NULL)) AS SCALE_TITLE_5
+             , MAX(IF(A.SCALE_ODR = 5, REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', ''), NULL)) AS RATIO_5
+             , MAX(IF(A.SCALE_ODR = 5, A.JOIN_CNT, NULL)) AS JOIN_CNT_5
+             , MAX(IF(A.SCALE_ODR = 5, A.TOT_JOIN_CNT, NULL)) AS TOT_JOIN_CNT_5
+             , MAX(IF(A.SCALE_ODR = 6, A.EVL_TTL, NULL)) AS SCALE_TITLE_6
+             , MAX(IF(A.SCALE_ODR = 6, REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', ''), NULL)) AS RATIO_6
+             , MAX(IF(A.SCALE_ODR = 6, A.JOIN_CNT, NULL)) AS JOIN_CNT_6
+             , MAX(IF(A.SCALE_ODR = 6, A.TOT_JOIN_CNT, NULL)) AS TOT_JOIN_CNT_6
+             , MAX(IF(A.SCALE_ODR = 7, A.EVL_TTL, NULL)) AS SCALE_TITLE_7
+             , MAX(IF(A.SCALE_ODR = 7, REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', ''), NULL)) AS RATIO_7
+             , MAX(IF(A.SCALE_ODR = 7, A.JOIN_CNT, NULL)) AS JOIN_CNT_7
+             , MAX(IF(A.SCALE_ODR = 7, A.TOT_JOIN_CNT, NULL)) AS TOT_JOIN_CNT_7
+             , MAX(IF(A.SCALE_ODR = 8, A.EVL_TTL, NULL)) AS SCALE_TITLE_8
+             , MAX(IF(A.SCALE_ODR = 8, REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', ''), NULL)) AS RATIO_8
+             , MAX(IF(A.SCALE_ODR = 8, A.JOIN_CNT, NULL)) AS JOIN_CNT_8
+             , MAX(IF(A.SCALE_ODR = 8, A.TOT_JOIN_CNT, NULL)) AS TOT_JOIN_CNT_8
+             , MAX(IF(A.SCALE_ODR = 9, A.EVL_TTL, NULL)) AS SCALE_TITLE_9
+             , MAX(IF(A.SCALE_ODR = 9, REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', ''), NULL)) AS RATIO_9
+             , MAX(IF(A.SCALE_ODR = 9, A.JOIN_CNT, NULL)) AS JOIN_CNT_9
+             , MAX(IF(A.SCALE_ODR = 9, A.TOT_JOIN_CNT, NULL)) AS TOT_JOIN_CNT_9
+             , MAX(IF(A.SCALE_ODR = 10, A.EVL_TTL, NULL)) AS SCALE_TITLE_10
+             , MAX(IF(A.SCALE_ODR = 10, REPLACE(CONVERT(IF(A.RNUM = 1, 100 - ACUM_RATIO, A.RATIO), CHAR), '.0', ''), NULL)) AS RATIO_10
+             , MAX(IF(A.SCALE_ODR = 10, A.JOIN_CNT, NULL)) AS JOIN_CNT_10
+             , MAX(IF(A.SCALE_ODR = 10, A.TOT_JOIN_CNT, NULL)) AS TOT_JOIN_CNT_10
+          FROM (
+                SELECT A.SRVY_QSTN_ID
+                     , A.SRVY_VWITM_ID
+                     , A.RESCH_QSTN_ITEM_TITLE
+                     , A.VWITM_SEQ
+                     , A.SRVY_SCALE_CD
+                     , A.EVL_TTL
+                     , A.JOIN_CNT
+                     , A.TOT_JOIN_CNT
+                     , A.SCALE_ODR
+                     , ROW_NUMBER() OVER(PARTITION BY A.SRVY_QSTN_ID, A.SRVY_VWITM_ID ORDER BY A.JOIN_CNT DESC, A.SCALE_ODR DESC) RNUM
+                     , ROUND(A.JOIN_CNT / IF(A.TOT_JOIN_CNT=0,1,A.TOT_JOIN_CNT) * 100, 1) AS RATIO
+                     , SUM(ROUND(A.JOIN_CNT / IF(A.TOT_JOIN_CNT=0,1,A.TOT_JOIN_CNT) * 100, 1)) OVER(PARTITION BY A.SRVY_QSTN_ID, A.SRVY_VWITM_ID ORDER BY A.JOIN_CNT)
+                               - ROUND(A.JOIN_CNT / IF(A.TOT_JOIN_CNT=0,1,A.TOT_JOIN_CNT) * 100, 1) AS ACUM_RATIO
+                  FROM (
+                        SELECT D.SRVY_QSTN_ID
+                             , D.SRVY_VWITM_ID
+                             , D.RESCH_QSTN_ITEM_TITLE
+                             , D.VWITM_SEQ
+                             , E.SRVY_SCALE_CD
+                             , E.EVL_TTL
+                             , COUNT(F.SRVY_RSPNS_ID) OVER(PARTITION BY D.SRVY_QSTN_ID, D.SRVY_VWITM_ID, E.SRVY_SCALE_CD) JOIN_CNT
+                             , COUNT(F.SRVY_RSPNS_ID) OVER(PARTITION BY D.SRVY_QSTN_ID, D.SRVY_VWITM_ID) TOT_JOIN_CNT
+                             , E.SCALE_ODR
+                          FROM SRVY_VWITM D
+                          JOIN TB_LMS_RESCH_SCALE E
+                            ON D.SRVY_QSTN_ID = E.SRVY_QSTN_ID
+                          LEFT JOIN TB_LMS_SRVY_RSPNS F
+                            ON D.SRVY_QSTN_ID = F.SRVY_QSTN_ID
+                           AND D.SRVY_VWITM_ID = F.SRVY_VWITM_ID
+                           AND E.SRVY_SCALE_CD = F.SRVY_SCALE_CD
+                           AND F.USER_ID != ''
+                           <if test="crsCreCd != null and crsCreCd != ''">
+                           AND F.USER_ID IN (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID = #{crsCreCd} AND ATNDLC_STSCD = 'S' AND AUDITYN = 'N')
+                           </if>
+                         WHERE D.SRVY_QSTN_ID = #{reschQstnCd}
+                       ) A
+                 GROUP BY
+                       A.SRVY_QSTN_ID
+                     , A.SRVY_VWITM_ID
+                     , A.RESCH_QSTN_ITEM_TITLE
+                     , A.VWITM_SEQ
+                     , A.SRVY_SCALE_CD
+                     , A.EVL_TTL
+                     , A.JOIN_CNT
+                     , A.TOT_JOIN_CNT
+                     , A.SCALE_ODR
+               ) A
+         GROUP BY
+               A.SRVY_QSTN_ID
+             , A.SRVY_VWITM_ID
+             , A.RESCH_QSTN_ITEM_TITLE
+             , A.VWITM_SEQ
+         ORDER BY A.VWITM_SEQ
+    </select>
+
+    <select id="listReshJoinUser" parameterType="reshVO" resultType="egovMap">
+    	/*
+             SQL ID : ReshAnsrDAO.listReshJoinUser
+             	설  명 : 설문 참여자 리스트 조회
+         */
+    	SELECT
+    		   ROW_NUMBER() OVER(ORDER BY C.USERNM) 										AS lineNo
+			 , A.SRVY_ID 																	AS reschCd
+             , B.USER_ID 																	AS userId
+             , B.STD_ID 																	AS stdNo
+             , B.GDSC_DGRS_CRS_GBNCD
+             , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = B.ORG_ID AND CTGRCD = 'GDSC_DGRS_CRS_GBNCD' AND CD = B.GDSC_DGRS_CRS_GBNCD) AS GRSC_DEGR_CORS_GBN_NM
+             , E.CNTN_DVC_TYCD 															AS deviceTypeCd
+             , (SELECT MAX(AA.CDNM) FROM TB_ORG_CODE AA WHERE AA.CTGRCD = 'CNTN_DVC_TYCD' AND AA.CD = E.CNTN_DVC_TYCD) AS deviceTypeNm
+             , C.DEPT_CD 																	AS deptCd
+             , C.DEPTNM 																	AS deptNm
+             , C.USERNM 																	AS userNm
+             , D.USER_ID 																	AS userId
+             , C.USER_GRADE 																AS grade
+             , (SELECT MAX(FRST_INQ_DTTM) FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID AND USER_ID = B.USER_ID GROUP BY USER_ID) 		AS regDttm
+             , C.MOBILE_NO																	AS mobileNo
+             , C.EMAIL																		AS email
+             , NVL(E.SCR, 0)															AS SCR
+             , NVL((SELECT 'Y' FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID AND USER_ID = B.USER_ID GROUP BY USER_ID), 'N') 	AS joinYn
+             , COUNT(1) OVER() 																AS totalCnt
+			 , NVL(B.SCYR,'-') SCYR
+			 , NVL(C.ENTR_YY,'-') ENTR_YY
+			 , NVL(C.ENTR_HY,'-') ENTR_HY
+			 , NVL(C.ENTR_GBN,'-') ENTR_GBN
+			 , NVL(C.ENTR_GBN_NM,'-') ENTR_GBN_NM
+          FROM TB_LMS_RESCH_CRE_CRS_RLTN A
+          JOIN TB_LMS_ATNDLC_SBJCT B
+            ON A.SBJCT_ID = B.SBJCT_ID
+           AND B.ATNDLC_STSCD = 'S'
+          JOIN TB_LMS_USR C
+            ON B.USER_ID = C.USER_ID
+          JOIN TB_LMS_USER_ACNT D
+            ON C.USER_ID = D.USER_ID
+           AND B.USER_ID = D.USER_ID
+           AND D.ACNT_STSCD = 'U'
+          LEFT JOIN TB_LMS_SRVY_PTCP E
+            ON B.USER_ID = E.USER_ID
+           AND A.SRVY_ID = E.SRVY_ID
+         WHERE A.SRVY_ID = #{reschCd}
+           AND B.AUDITYN = 'N'
+         <if test="searchValue != null and searchValue != ''">
+           AND (
+           	    	LOWER(C.DEPT_CD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	    	OR LOWER(C.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	    	OR LOWER(B.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	    	OR LOWER(C.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	   )
+         </if>
+         <if test="searchKey != null and searchKey != ''">
+         	<if test="searchKey == 'submit'">
+         		AND B.USER_ID IN (SELECT USER_ID FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID AND USER_ID = B.USER_ID GROUP BY USER_ID)
+         	</if>
+         	<if test="searchKey == 'noSubmit'">
+         		AND B.USER_ID NOT IN (SELECT USER_ID FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID AND USER_ID = B.USER_ID GROUP BY USER_ID)
+         	</if>
+         </if>
+         <if test="searchType != null and searchType != ''">
+         	<if test="searchType == 'eval'">
+         		AND E.EVLYN = 'Y'
+         	</if>
+         	<if test="searchType == 'noEval'">
+         		AND (E.EVLYN != 'Y' OR E.EVLYN IS NULL)
+         	</if>
+         </if>
+         ORDER BY C.USERNM
+         <if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
+         LIMIT #{firstIndex}, #{listScale}
+         </if>
+    </select>
+
+    <select id="reshJoinUserCnt" parameterType="reshVO" resultType="int">
+    	/*
+             SQL ID : ReshAnsrDAO.reshJoinUserCnt
+             	설  명 : 설문 참여자 수 조회
+         */
+        SELECT * FROM (
+    	SELECT
+             NVL(COUNT(A.SRVY_ID), 0)
+          FROM TB_LMS_RESCH_CRE_CRS_RLTN A
+          JOIN TB_LMS_ATNDLC_SBJCT B
+            ON A.SBJCT_ID = B.SBJCT_ID
+          JOIN TB_LMS_USR C
+            ON B.USER_ID = C.USER_ID
+          JOIN TB_LMS_USER_ACNT D
+            ON C.USER_ID = D.USER_ID
+          LEFT JOIN TB_LMS_SRVY_PTCP E
+            ON B.USER_ID = E.USER_ID
+           AND A.SRVY_ID = E.SRVY_ID
+         WHERE A.SRVY_ID = #{reschCd}
+           AND B.AUDITYN = 'N'
+         <if test="searchValue != null and searchValue != ''">
+           AND (
+           	    	LOWER(C.DEPT_CD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	    	OR LOWER(C.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	    	OR LOWER(B.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	    	OR LOWER(C.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	   )
+         </if>
+         <if test="searchKey != null and searchKey != ''">
+         	<if test="searchKey == 'submit'">
+         		AND B.USER_ID IN (SELECT USER_ID FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID AND USER_ID = B.USER_ID GROUP BY USER_ID)
+         	</if>
+         	<if test="searchKey == 'noSubmit'">
+         		AND B.USER_ID NOT IN (SELECT USER_ID FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID AND USER_ID = B.USER_ID GROUP BY USER_ID)
+         	</if>
+         </if>
+         <if test="searchType != null and searchType != ''">
+         	<if test="searchType == 'eval'">
+         		AND E.EVLYN = 'Y'
+         	</if>
+         	<if test="searchType == 'noEval'">
+         		AND (E.EVLYN != 'Y' OR E.EVLYN IS NULL)
+         	</if>
+         </if>
+         GROUP BY A.SRVY_ID
+         UNION
+         SELECT 0 FROM DUAL
+         )
+         WHERE ROWNUM = 1
+         <!-- LIMIT 1 -->
+    </select>
+
+    <insert id="insertReshAnsr" parameterType="reshAnsrVO">
+    	/*
+             SQL ID : ReshAnsrDAO.insertReshAnsr
+             	설  명 : 설문 응답 등록
+         */
+         INSERT INTO TB_LMS_SRVY_RSPNS (
+         	  SRVY_RSPNS_ID
+			, USER_ID
+			, SRVY_ID
+			, SRVY_QSTN_ID
+			, SRVY_VWITM_ID
+			, SRVY_SCALE_CD
+			, ETC_OPNN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+         )
+         VALUES (
+         	  #{reschAnsrCd}
+         	, #{userId}
+         	, #{reschCd}
+         	, #{reschQstnCd}
+         	, #{reschQstnItemCd}
+         	, #{reschScaleCd}
+         	, #{etcOpinion}
+         	, #{rgtrId}
+         	, FN_DTTM()
+         	, #{mdfrId}
+         	, FN_DTTM()
+         )
+    </insert>
+
+    <delete id="delReshAnsr" parameterType="reshAnsrVO">
+    	/*
+             SQL ID : ReshAnsrDAO.delReshAnsr
+             	설  명 : 설문 응답 삭제
+         */
+    	DELETE FROM TB_LMS_SRVY_RSPNS
+    	 WHERE 1=1
+    	<if test="reschAnsrCd != null and reschAnsrCd != ''">
+    	   AND SRVY_RSPNS_ID = #{reschAnsrCd}
+    	</if>
+    	<if test="reschCd != null and reschCd != ''">
+    	   AND SRVY_ID = #{reschCd}
+    	</if>
+    	<if test="reschQstnCd != null and reschQstnCd != ''">
+    	   AND SRVY_QSTN_ID = #{reschQstnCd}
+    	</if>
+    	<if test="userId != null and userId != ''">
+    	   AND USER_ID = #{userId}
+    	</if>
+    </delete>
+
+    <insert id="insertReshJoinUser" parameterType="reshAnsrVO">
+    	/*
+             SQL ID : ReshAnsrDAO.insertReshJoinUser
+             	설  명 : 설문 참여자 등록
+         */
+         <!-- INSERT INTO TB_LMS_SRVY_PTCP (
+         	  SRVY_ID
+			, USER_ID
+			, STD_ID
+			, CNTN_DVC_TYCD
+			, CNTN_IP
+			, SCR
+			, EVLYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+         )
+         VALUES (
+         	  #{reschCd}
+         	, #{userId}
+         	, #{stdNo}
+         	, #{deviceTypeCd}
+         	, #{connIp}
+         	, NVL(#{SCR}, 0)
+         	, NVL(#{evalYn}, 'N')
+         	, #{rgtrId}
+         	, FN_DTTM()
+         	, #{mdfrId}
+         	, FN_DTTM()
+         ) ON DUPLICATE KEY
+         UPDATE
+        	  MDFR_ID = #{mdfrId}
+        	, MOD_DTTM = FN_DTTM()
+        	<if test="stdNo != null and stdNo != ''">
+        	, STD_ID = #{stdNo}
+        	</if>
+        	<if test="deviceTypeCd != null and deviceTypeCd != ''">
+        	, CNTN_DVC_TYCD = #{deviceTypeCd}
+        	</if>
+        	<if test="connIp != null and connIp != ''">
+        	, CNTN_IP = #{connIp}
+        	</if>
+        	<if test="SCR != null">
+        	, SCR = IFNULL(#{SCR}, 0)
+        	</if>
+        	<if test="evalYn != null and evalYn != ''">
+        	, EVLYN = IFNULL(#{evalYn}, 'N')
+        	</if> -->
+    	MERGE INTO TB_LMS_SRVY_PTCP T
+	    USING (
+	        SELECT 
+	            #{reschCd} AS SRVY_ID,
+	            #{userId} AS USER_ID,
+	            #{stdNo} AS STD_ID,
+	            #{deviceTypeCd} AS CNTN_DVC_TYCD,
+	            #{connIp} AS CNTN_IP,
+	            NVL(#{SCR}, 0) AS SCR,
+	            NVL(#{evalYn}, 'N') AS EVLYN,
+	            #{rgtrId} AS RGTR_ID,
+	            #{mdfrId} AS MDFR_ID
+	        FROM DUAL
+	    ) S
+	    ON (
+	        T.SRVY_ID = S.SRVY_ID
+	        AND T.USER_ID = S.USER_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	            T.MDFR_ID = S.MDFR_ID,
+	            T.MOD_DTTM = FN_DTTM()
+	            <if test="stdNo != null and stdNo != ''">
+	                , T.STD_ID = S.STD_ID
+	            </if>
+	            <if test="deviceTypeCd != null and deviceTypeCd != ''">
+	                , T.CNTN_DVC_TYCD = S.CNTN_DVC_TYCD
+	            </if>
+	            <if test="connIp != null and connIp != ''">
+	                , T.CNTN_IP = S.CNTN_IP
+	            </if>
+	            <if test="SCR != null">
+	                , T.SCR = S.SCR
+	            </if>
+	            <if test="evalYn != null and evalYn != ''">
+	                , T.EVLYN = S.EVLYN
+	            </if>
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	            SRVY_ID,
+	            USER_ID,
+	            STD_ID,
+	            CNTN_DVC_TYCD,
+	            CNTN_IP,
+	            SCR,
+	            EVLYN,
+	            RGTR_ID,
+	            FRST_INQ_DTTM,
+	            MDFR_ID,
+	            MOD_DTTM
+	        ) VALUES (
+	            S.SRVY_ID,
+	            S.USER_ID,
+	            S.STD_ID,
+	            S.CNTN_DVC_TYCD,
+	            S.CNTN_IP,
+	            S.SCR,
+	            S.EVLYN,
+	            S.RGTR_ID,
+	            FN_DTTM(),
+	            S.MDFR_ID,
+	            FN_DTTM()
+	        )
+    </insert>
+
+    <delete id="delReshJoinUser" parameterType="reshAnsrVO">
+    	/*
+             SQL ID : ReshAnsrDAO.delReshJoinUser
+             	설  명 : 설문 참여자 삭제
+         */
+         DELETE FROM TB_LMS_SRVY_PTCP
+          WHERE 1= 1
+            AND SRVY_ID = #{reschCd}
+         <if test="userId != null and userId != ''">
+            AND USER_ID = #{userId}
+         </if>
+    </delete>
+
+    <select id="reshQstnJoinUserCnt" parameterType="reshAnsrVO" resultType="int">
+    	/*
+             SQL ID : ReshAnsrDAO.reshQstnJoinUserCnt
+             	설  명 : 설문 문항 참여자 수 조회
+         */
+    	SELECT
+    		NVL(COUNT(A.SRVY_RSPNS_ID), 0)
+    	FROM TB_LMS_SRVY_RSPNS A
+    	WHERE 1 = 1
+    	  AND A.SRVY_QSTN_ID IN
+    	<foreach item="item" index="index" collection="reschQstnCds" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="listHomeReshJoinUser" parameterType="reshAnsrVO" resultType="egovMap">
+        /*
+             SQL ID : ReshAnsrDAO.listHomeReshJoinUser
+             	설  명 : 홈페이지 설문 참여자 목록 조회(미참여자 포함)
+         */
+        SELECT A.SRVY_ID 																	AS reschCd
+             , B.USER_ID 																	AS userId
+             , E.CNTN_DVC_TYCD 															AS deviceTypeCd
+             , IFNULL((SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'CNTN_DVC_TYCD' AND CD = E.CNTN_DVC_TYCD), '') AS deviceTypeNm
+             , E.FRST_INQ_DTTM 																	AS regDttm
+             , C.DEPT_CD 																	AS deptCd
+             , C.DEPTNM 																	AS deptNm
+             , C.USERNM 																	AS userNm
+             , D.USER_ID 																	AS userId
+             , IF(E.USER_ID IS NULL, 'N', 'Y') 												AS joinYn
+             , ROW_NUMBER() OVER (ORDER BY C.USERNM) 										AS lineNo
+             , COUNT(1) OVER()																AS totalCnt
+          FROM TB_LMS_SRVY A
+          JOIN TB_LMS_USER_AUTHRT B
+            ON A.JOIN_TRGT REGEXP B.USER_AUTHRT_ID
+          JOIN TB_LMS_USR C
+            ON B.USER_ID = C.USER_ID
+          JOIN TB_LMS_USER_ACNT D
+            ON C.USER_ID = D.USER_ID
+           AND D.ACNT_STSCD = 'U'
+          LEFT JOIN TB_LMS_SRVY_PTCP E
+            ON E.SRVY_ID = A.SRVY_ID
+           AND E.USER_ID = D.USER_ID
+         WHERE A.SRVY_ID = #{reschCd}
+         <if test="searchValue != null and searchValue != ''">
+           AND (
+           	    	LOWER(C.DEPT_CD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	    	OR LOWER(C.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	    	OR LOWER(B.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	    	OR LOWER(C.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           	   )
+         </if>
+         <if test="searchKey != null and searchKey != ''">
+         	<if test="searchKey == 'submit'">
+         		AND E.USER_ID IS NOT NULL
+         	</if>
+         	<if test="searchKey == 'noSubmit'">
+         		AND E.USER_ID IS NULL
+         	</if>
+         </if>
+         GROUP BY
+               A.SRVY_ID
+             , B.USER_ID
+             , E.CNTN_DVC_TYCD
+             , E.FRST_INQ_DTTM
+             , C.DEPT_CD
+             , C.DEPTNM
+             , C.USERNM
+             , D.USER_ID
+             , E.USER_ID
+         ORDER BY C.USERNM
+         LIMIT #{firstIndex}, #{listScale}
+    </select>
+
+    <select id="selectHomeReshJoinUserStatus" parameterType="reshVO" resultType="egovMap">
+        /*
+             SQL ID : ReshAnsrDAO.selectHomeReshJoinUserStatus
+            	 설  명 : 홈페이지 설문 참여 현황 조회
+         */
+        SELECT (
+                 SELECT COUNT(1)
+                   FROM TB_LMS_USER_AUTHRT AA
+                   JOIN TB_LMS_USER_ACNT BB
+                     ON AA.USER_ID = BB.USER_ID
+                    AND BB.ACNT_STSCD = 'U'
+                  WHERE A.JOIN_TRGT REGEXP AA.USER_AUTHRT_ID
+                    AND AA.MENU_TYCD = 'HOME'
+               ) AS reshApplicantCnt
+             , (
+                 SELECT COUNT(1)
+                   FROM TB_LMS_SRVY_PTCP AA
+                  WHERE AA.SRVY_ID = A.SRVY_ID
+               ) AS reshFinCnt
+          FROM TB_LMS_SRVY A
+         WHERE A.SRVY_ID = #{reschCd}
+    </select>
+
+    <resultMap id="joinUserMap" type="egovmap">
+        <result property="reschCd" column="SRVY_ID" />
+        <result property="userId" column="USER_ID" />
+        <result property="userNm" column="USERNM" />
+        <collection property="answerList" javaType="java.util.List" resultMap="answerMap" />
+    </resultMap>
+
+    <resultMap id="answerMap" type="egovmap">
+        <result property="reschPageCd" column="RESCH_PAGE_CD" />
+        <result property="reschQstnCd" column="SRVY_QSTN_ID" />
+        <result property="reschQstnItemCd" column="SRVY_VWITM_ID" />
+        <result property="reschQstnItemTitle" column="RESCH_QSTN_ITEM_TITLE" />
+        <result property="scaleTitle" column="EVL_TTL" />
+        <result property="reschScaleCd" column="SRVY_SCALE_CD" />
+    </resultMap>
+    <select id="listReshAnswer" parameterType="reshVO" resultMap="joinUserMap">
+        /*
+             SQL ID : ReshAnsrDAO.listReshAnswer
+             	설  명 : 설문 답변 목록
+         */
+        SELECT A.SRVY_ID
+             , A.USER_ID
+             , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.USER_ID) AS USERNM
+             , D.RESCH_PAGE_CD
+             , B.SRVY_QSTN_ID
+             , B.SRVY_VWITM_ID
+             , NVL(B.ETC_OPNN, E.RESCH_QSTN_ITEM_TITLE) AS RESCH_QSTN_ITEM_TITLE
+             , F.EVL_TTL
+             , F.SRVY_SCALE_CD
+          FROM TB_LMS_SRVY_PTCP A
+          JOIN TB_LMS_SRVY_RSPNS B
+            ON A.SRVY_ID = B.SRVY_ID
+           AND A.USER_ID = B.USER_ID
+          JOIN TB_LMS_SRVY_QSTN C
+            ON B.SRVY_QSTN_ID = C.SRVY_QSTN_ID
+          JOIN TB_LMS_RESCH_PAGE D
+            ON C.RESCH_PAGE_CD = D.RESCH_PAGE_CD
+          LEFT JOIN SRVY_VWITM E
+            ON B.SRVY_QSTN_ID = E.SRVY_QSTN_ID
+           AND B.SRVY_VWITM_ID = E.SRVY_VWITM_ID
+          LEFT JOIN TB_LMS_RESCH_SCALE F
+            ON F.SRVY_QSTN_ID = B.SRVY_QSTN_ID
+           AND F.SRVY_SCALE_CD = B.SRVY_SCALE_CD
+         WHERE A.SRVY_ID = #{reschCd}
+           AND A.USER_ID != ''
+         <if test="userId != null and userId != ''">
+           AND A.USER_ID = #{userId}
+		</if>
+         ORDER BY A.USER_ID, D.RESCH_PAGE_ODR, C.RESCH_QSTN_ODR
+    </select>
+
+    <select id="listReshQstnAndScale" parameterType="reshVO" resultType="egovMap">
+        /*
+             SQL ID : ReshAnsrDAO.listReshQstnAndScale
+             	설  명 : 설문 문항 및 척도 목록
+         */
+        SELECT A.SRVY_ID
+             , A.RESCH_PAGE_CD
+             , A.RESCH_PAGE_ODR
+             , B.SRVY_QSTN_ID
+             , B.RESCH_QSTN_TITLE
+             , B.RESCH_QSTN_ODR
+             , B.RESCH_QSTN_TYPE_CD
+             , C.SRVY_VWITM_ID
+             , C.RESCH_QSTN_ITEM_TITLE
+             , C.VWITM_SEQ
+          FROM TB_LMS_RESCH_PAGE A
+          JOIN TB_LMS_SRVY_QSTN B
+            ON A.RESCH_PAGE_CD = B.RESCH_PAGE_CD
+          LEFT JOIN SRVY_VWITM C
+            ON C.SRVY_QSTN_ID = B.SRVY_QSTN_ID
+           AND B.RESCH_QSTN_TYPE_CD = 'SCALE'
+         WHERE A.SRVY_ID = #{reschCd}
+         ORDER BY A.RESCH_PAGE_ODR, B.RESCH_QSTN_ODR, C.VWITM_SEQ
+    </select>
+
+    <select id="selectReshJoinUserInfo" parameterType="reshAnsrVO" resultType="reshAnsrVO">
+        /*
+             SQL ID : ReshAnsrDAO.selectReshJoinUserInfo
+             	설  명 : 설문 참여자 정보 조회
+         */
+        SELECT A.SRVY_ID 		AS reschCd
+             , A.USER_ID 		AS userId
+             , A.STD_ID 		AS stdNo
+             , A.CNTN_DVC_TYCD AS deviceTypeCd
+             , NVL((SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = B.ORG_ID AND CTGRCD = 'CNTN_DVC_TYCD' AND CD = A.CNTN_DVC_TYCD), '') AS deviceTypeNm
+             , B.DEPT_CD 		AS deptCd
+             , B.DEPTNM 		AS deptNm
+             , B.USERNM 		AS userNm
+             , C.USER_ID 		AS userId
+             , A.SCR			AS SCR
+             , A.SCR_MEMO		AS profMemo
+          FROM TB_LMS_SRVY_PTCP A
+          JOIN TB_LMS_USR B
+            ON A.USER_ID = B.USER_ID
+          JOIN TB_LMS_USER_ACNT C
+            ON B.USER_ID = C.USER_ID
+         WHERE A.SRVY_ID = #{reschCd}
+           AND A.USER_ID = #{rgtrId}
+           <if test="stdNo != null and stdNo != ''">
+           AND A.STD_ID = #{stdNo}
+           </if>
+    </select>
+
+    <select id="listReshMyAnswer" parameterType="reshAnsrVO" resultType="egovMap">
+    	/*
+             SQL ID : ReshAnsrDAO.listReshMyAnswer
+             	설  명 : 나의 설문 답변 목록
+         */
+         SELECT
+         	   A.SRVY_ID																AS reschCd
+             , A.USER_ID																AS userId
+             , D.RESCH_PAGE_CD															AS reschPageCd
+             , B.SRVY_QSTN_ID															AS reschQstnCd
+             , CASE WHEN E.ETC_INPT_USEYN = 'Y' THEN 'ETC' ELSE B.SRVY_VWITM_ID END 	AS reschQstnItemCd
+             , NVL(B.ETC_OPNN, E.RESCH_QSTN_ITEM_TITLE) 							AS reschQstnItemTitle
+             , F.SRVY_SCALE_CD															AS reschScaleCd
+             , F.EVL_TTL															AS scaleTitle
+             , B.SRVY_RSPNS_ID															AS reschAnsrCd
+          FROM TB_LMS_SRVY R
+          JOIN TB_LMS_SRVY_PTCP A
+            ON R.SRVY_ID = A.SRVY_ID
+          JOIN TB_LMS_SRVY_RSPNS B
+            ON A.SRVY_ID = B.SRVY_ID
+           AND A.USER_ID = B.USER_ID
+          JOIN TB_LMS_SRVY_QSTN C
+            ON B.SRVY_QSTN_ID = C.SRVY_QSTN_ID
+          JOIN TB_LMS_RESCH_PAGE D
+            ON C.RESCH_PAGE_CD = D.RESCH_PAGE_CD
+          LEFT JOIN SRVY_VWITM E
+            ON B.SRVY_QSTN_ID = E.SRVY_QSTN_ID
+           AND B.SRVY_VWITM_ID = E.SRVY_VWITM_ID
+          LEFT JOIN TB_LMS_RESCH_SCALE F
+            ON F.SRVY_QSTN_ID = B.SRVY_QSTN_ID
+           AND F.SRVY_SCALE_CD = B.SRVY_SCALE_CD
+         WHERE R.SRVY_ID = #{reschCd}
+           AND A.USER_ID = #{userId}
+         ORDER BY A.USER_ID, D.RESCH_PAGE_ODR, C.RESCH_QSTN_ODR
+    </select>
+
+    <update id="updateReshScore" parameterType="reshAnsrVO">
+    	/*
+             SQL ID : ReshAnsrDAO.updateReshScore
+             	설  명 : 설문 점수 수정
+         */
+    	<!-- INSERT INTO TB_LMS_SRVY_PTCP (
+              SRVY_ID
+			, USER_ID
+			, STD_ID
+			, SCR
+			, EVLYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			  #{reschCd}
+			, #{userId}
+			, #{stdNo}
+			,
+			<choose>
+				<when test="scoreType == 'addition'">
+					(SELECT SCR FROM
+						(SELECT CASE WHEN #{SCR} <![CDATA[ < ]]> 0   THEN 0
+									 WHEN #{SCR} <![CDATA[ > ]]> 100 THEN 100
+									 ELSE #{SCR}
+								END SCR) TMP)
+				</when>
+				<otherwise>
+					#{SCR}
+				</otherwise>
+			</choose>
+			, 'Y'
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+        )
+        ON DUPLICATE KEY
+        UPDATE
+        	  EVLYN = 'Y'
+        	, SCR =
+			<choose>
+	            <when test="scoreType == 'addition'">
+	            	(SELECT SCR FROM
+	            		(SELECT CASE WHEN A.SCR + #{SCR} <![CDATA[ < ]]> 0   THEN 0
+	            					 WHEN A.SCR + #{SCR} <![CDATA[ > ]]> 100 THEN 100
+	            					 ELSE A.SCR + #{SCR}
+	            				END SCR
+	            		  FROM TB_LMS_SRVY_PTCP AS A
+	            		 WHERE A.SRVY_ID = #{reschCd}
+	            		   AND A.USER_ID = #{userId}) AS TMP)
+	            </when>
+	            <otherwise>
+	            	#{SCR}
+	            </otherwise>
+            </choose> -->
+            
+	    MERGE INTO TB_LMS_SRVY_PTCP T
+	    USING (
+	        SELECT 
+	            #{reschCd} AS SRVY_ID,
+	            #{userId} AS USER_ID,
+	            #{stdNo} AS STD_ID,
+	            <choose>
+	                <when test="scoreType == 'addition'">
+	                    (SELECT CASE 
+	                        WHEN #{SCR} &lt; 0 THEN 0
+	                        WHEN #{SCR} &gt; 100 THEN 100
+	                        ELSE #{SCR}
+	                    END FROM DUAL)
+	                </when>
+	                <otherwise>
+	                    #{SCR}
+	                </otherwise>
+	            </choose> AS SCR,
+	            'Y' AS EVLYN,
+	            #{rgtrId} AS RGTR_ID,
+	            #{mdfrId} AS MDFR_ID
+	        FROM DUAL
+	    ) S
+	    ON (
+	        T.SRVY_ID = S.SRVY_ID
+	        AND T.USER_ID = S.USER_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	            T.EVLYN = 'Y',
+	            T.MDFR_ID = S.MDFR_ID,
+	            T.MOD_DTTM = FN_DTTM(),
+	            T.SCR = 
+	            <choose>
+	                <when test="scoreType == 'addition'">
+	                    (SELECT CASE 
+	                        WHEN NVL(T.SCR, 0) + #{SCR} &lt; 0 THEN 0
+	                        WHEN NVL(T.SCR, 0) + #{SCR} &gt; 100 THEN 100
+	                        ELSE NVL(T.SCR, 0) + #{SCR}
+	                    END FROM DUAL)
+	                </when>
+	                <otherwise>
+	                    S.SCR
+	                </otherwise>
+	            </choose>
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	            SRVY_ID,
+	            USER_ID,
+	            STD_ID,
+	            SCR,
+	            EVLYN,
+	            RGTR_ID,
+	            FRST_INQ_DTTM,
+	            MDFR_ID,
+	            MOD_DTTM
+	        ) VALUES (
+	            S.SRVY_ID,
+	            S.USER_ID,
+	            S.STD_ID,
+	            S.SCR,
+	            S.EVLYN,
+	            S.RGTR_ID,
+	            FN_DTTM(),
+	            S.MDFR_ID,
+	            FN_DTTM()
+	        )
+    </update>
+
+    <update id="updateReshUserMemo" parameterType="reshAnsrVO">
+    	/*
+             SQL ID : ReshAnsrDAO.updateReshUserMemo
+             	설  명 : 설문 메모 수정
+         */
+         INSERT INTO TB_LMS_SRVY_PTCP (
+         	  SRVY_ID
+			, USER_ID
+			, STD_ID
+			, EVLYN
+			, SCR_MEMO
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+         ) VALUES (
+         	  #{reschCd}
+         	, #{userId}
+         	, #{stdNo}
+         	, 'N'
+         	, #{profMemo}
+         	, #{rgtrId}
+         	, FN_DTTM()
+         	, #{mdfrId}
+         	, FN_DTTM()
+         )
+         ON DUPLICATE KEY
+         UPDATE
+         	SCR_MEMO = #{profMemo}
+    </update>
+
+    <select id="selectProfMemo" parameterType="reshAnsrVO" resultType="reshAnsrVO">
+    	/*
+             SQL ID : ReshAnsrDAO.selectProfMemo
+             	설  명 : 설문 메모 조회
+         */
+         SELECT
+         	  #{reschCd}		AS reschCd
+         	, A.USER_ID			AS userId
+         	, C.STD_ID			AS stdNo
+         	, D.CNTN_DVC_TYCD 	AS deviceTypeCd
+         	, IFNULL((SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'CNTN_DVC_TYCD' AND CD = D.CNTN_DVC_TYCD), '') AS deviceTypeNm
+         	, A.DEPT_CD			AS deptCd
+         	, A.DEPTNM			AS deptNm
+         	, A.USERNM			AS userNm
+         	, B.USER_ID			AS userId
+         	, D.SCR			AS SCR
+         	, D.SCR_MEMO		AS profMemo
+           FROM TB_LMS_USR AS A
+           JOIN TB_LMS_USER_ACNT AS B
+             ON A.USER_ID = B.USER_ID
+            AND B.ACNT_STSCD = 'U'
+           JOIN TB_LMS_ATNDLC_SBJCT AS C
+             ON A.USER_ID = C.USER_ID
+            AND C.ATNDLC_STSCD = 'S'
+            AND C.SBJCT_ID = #{crsCreCd}
+           LEFT JOIN TB_LMS_SRVY_PTCP AS D
+             ON A.USER_ID = D.USER_ID
+            AND D.SRVY_ID = #{reschCd}
+           WHERE A.USER_ID = #{userId}
+    </select>
+
+    <select id="listReshJoinUserByEzGrader" parameterType="reshVO" resultType="egovMap">
+    	/*
+             SQL ID : ReshAnsrDAO.listReshJoinUserByEzGrader
+             	설  명 : 설문 참여자 리스트 조회(EZ-Grader)
+         */
+        SELECT * FROM (
+	    	SELECT
+				   A.SRVY_ID 																	AS reschCd
+	             , B.USER_ID 																	AS userId
+	             , B.STD_ID 																	AS stdNo
+	             , C.DEPTNM 																	AS deptNm
+	             , C.USERNM 																	AS userNm
+	             , D.USER_ID 																	AS userId
+	             , (SELECT MAX(FRST_INQ_DTTM) FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID AND USER_ID = B.USER_ID GROUP BY USER_ID) 		AS regDttm
+	             , IFNULL(E.SCR, 0)															AS SCR
+	             , E.SCR_MEMO																	AS profMemo
+	             , IFNULL((SELECT 'Y' FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID AND USER_ID = B.USER_ID GROUP BY USER_ID), 'N') 	AS joinYn
+	             , IFNULL((SELECT IF(MAX(FRST_INQ_DTTM) > (SELECT RESCH_END_DTTM FROM TB_LMS_SRVY WHERE SRVY_ID = A.SRVY_ID), 'AFTER', 'JOIN') FROM TB_LMS_SRVY_RSPNS WHERE SRVY_ID = A.SRVY_ID AND USER_ID = B.USER_ID GROUP BY USER_ID), 'NOTJOIN') AS submitType
+	             , COUNT(1) OVER() 																AS totalCnt
+	          FROM TB_LMS_RESCH_CRE_CRS_RLTN A
+	          JOIN TB_LMS_ATNDLC_SBJCT B
+	            ON A.SBJCT_ID = B.SBJCT_ID
+	           AND B.ATNDLC_STSCD = 'S'
+	          JOIN TB_LMS_USR C
+	            ON B.USER_ID = C.USER_ID
+	          JOIN TB_LMS_USER_ACNT D
+	            ON C.USER_ID = D.USER_ID
+	           AND B.USER_ID = D.USER_ID
+	           AND D.ACNT_STSCD = 'U'
+	          LEFT JOIN TB_LMS_SRVY_PTCP E
+	            ON B.USER_ID = E.USER_ID
+	           AND A.SRVY_ID = E.SRVY_ID
+	         WHERE A.SRVY_ID = #{reschCd}
+	     ) AA
+	     <if test="searchKey != null and searchKey != '' and searchKey != 'SEL_ALL'">
+	     	WHERE AA.submitType = #{searchKey}
+	     </if>
+         <if test="searchSort != null and searchSort == 'USER_ID'">
+         	ORDER BY AA.userId
+         </if>
+         <if test="searchSort != null and searchSort == 'USERNM'">
+         	ORDER BY AA.userNm
+         </if>
+         <if test="searchSort != null and searchSort == 'SUBMIT_DT'">
+         	ORDER BY AA.joinYn DESC, AA.regDttm
+         </if>
+    </select>
+
+</mapper>

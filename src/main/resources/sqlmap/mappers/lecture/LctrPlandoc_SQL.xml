@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.lecture2.dao.LctrPlandocDAO">
+
+	<sql id="lctrPlandocListQuery">
+		SELECT
+			  SBJCT.SBJCT_ID
+			, SBJCT.SBJCT_YR
+			, SBJCT.SBJCT_SMSTR
+		    , ORG.ORG_ID
+			, ORG.ORGNM
+			 , NVL(DEPT.DEPTNM, '-') AS DEPTNM
+			, SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+			, SBJCT.CRDTS
+			, '-' AS SBJCT_CD-- 과목코드
+			, NVL(SBJCT_ADM.COPROF_USERNM, '-') AS COPROF_USERNM   /* 공동교수 */
+			, NVL(SBJCT_ADM.ASSI_USERNM, '-') AS ASSI_USERNM   /* 조교 */
+			, NVL(SBJCT_ADM.TUT_USERNM,  '-') AS TUT_USERNM    /* 튜터 */
+			, (CASE
+				  WHEN PLANDOC.LCTR_PLANDOC_ID IS NULL THEN 'N'
+				  ELSE 'Y'
+			  END) AS LSNPLANYN
+			, ROW_NUMBER() OVER(ORDER BY SBJCT.SBJCT_YR DESC, SBJCT.SBJCT_SMSTR DESC, ORG.ORG_ID, SBJCT.SBJCT_ID) AS LINE_NO
+			, COUNT(*) OVER() AS TOTAL_CNT
+		FROM TB_LMS_SBJCT SBJCT
+		JOIN TB_LMS_SMSTR_CHRT CHRT ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+		JOIN TB_LMS_ORG ORG ON ORG.ORG_ID = CHRT.ORG_ID
+		JOIN TB_LMS_DEPT DEPT ON DEPT.DEPT_ID = SBJCT.DEPT_ID
+		LEFT JOIN TB_LMS_LCTR_PLANDOC PLANDOC ON PLANDOC.SBJCT_ID = SBJCT.SBJCT_ID
+		LEFT JOIN (
+			SELECT
+				  T1.SBJCT_ID
+				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'PROF' THEN T2.USERNM END) AS PROF_USERNM
+				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'COPROF' THEN T2.USERNM END) AS COPROF_USERNM
+				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'ASSI' THEN T2.USERNM END) AS ASSI_USERNM
+				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'TUT'  THEN T2.USERNM END) AS TUT_USERNM
+			FROM TB_LMS_SBJCT_ADM T1
+			JOIN TB_LMS_USER T2 ON T2.USER_ID = T1.USER_ID
+			GROUP BY T1.SBJCT_ID
+		) SBJCT_ADM ON SBJCT_ADM.SBJCT_ID = SBJCT.SBJCT_ID
+		WHERE 1=1
+			AND SBJCT.USEYN = 'Y'
+			AND SBJCT.DELYN = 'N'
+			AND SBJCT.PROF_ID = #{userId}
+			AND SBJCT.SBJCT_YR = #{sbjctYr}
+			AND TRIM(SBJCT.SBJCT_SMSTR) = TRIM(#{sbjctSmstr})
+		<if test="orgId != null and orgId != ''">
+			AND ORG.ORG_ID = #{orgId}
+		</if>
+		<if test="deptId != null and deptId != ''">
+			AND SBJCT.DEPT_ID = #{deptId}
+		</if>
+		<if test="sbjctId != null and sbjctId != ''">
+			AND SBJCT.SBJCT_ID = #{sbjctId}
+		</if>
+		ORDER BY
+			SBJCT.SBJCT_YR DESC, SBJCT.SBJCT_SMSTR DESC, ORG.ORG_ID, SBJCT.SBJCT_ID
+	</sql>
+
+
+	<select id="lctrPlandocList" parameterType="lctrPlandocVO" resultType="egovMap">
+		/*
+			 SQL ID : LctrPlandocDAO.lctrPlandocList
+			 설  명  : 강의계획서 목록
+		 */
+		<include refid="lctrPlandocListQuery"/>
+	</select>
+
+	<select id="lctrPlandocListPaging" parameterType="lctrPlandocVO" resultType="egovMap">
+		/*
+			 SQL ID : LctrPlandocDAO.lctrPlandocListPaging
+			 설  명  : 강의계획서 목록 페이징
+		 */
+		<include refid="CommonSQL.pagePrefix" />
+			<include refid="lctrPlandocListQuery"/>
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
+
+
+	<select id="lctrPlandocSelect" resultType="lctrPlandocVO" parameterType="string">
+		/*
+			 SQL ID : LctrPlandocDAO.lctrPlandocSelect
+			 설  명  : 강의계획서 조회
+		 */
+		SELECT
+		    LCTR_PLANDOC_ID
+			, SBJCT_ID
+			, CRCLMN_OTLN                            -- 교과목개요
+			, LCTR_GOAL                              -- 강의목표
+			, LCTR_OP_GDLN                           -- 운영방침
+			, LCTR_OP_PLAN                           -- 운영계획
+			, RLTD_SBJCT_CTS                         -- 관련과목내용
+			, REMAKRS                                -- 참고사항
+			, PLYR_SHRTCT_KEY_PVSNYN                 -- 장애인/고령자 지원(플레이어 단축키)
+			, SCRPT_PVSNYN                           -- 스크립트 제공
+			, SBTTLS_PVSNYN                          -- 자막 제공
+			, PLYR_SPD_ADJST_PVSNYN                  -- 재생속도조절 제공
+		FROM TB_LMS_LCTR_PLANDOC
+		WHERE SBJCT_ID = #{sbjctId}
+
+	</select>
+
+	<update id="lctrPlandocModify" parameterType="lctrPlandocVO">
+		/*
+		SQL ID : LctrPlandocDAO.lctrPlandocModify
+		설  명  : 강의계획서 수정
+		*/
+		UPDATE TB_LMS_LCTR_PLANDOC
+		SET
+			MDFR_ID   = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+			<if test="crclmnOtln != null and crclmnOtln != ''">
+				, CRCLMN_OTLN = #{crclmnOtln}
+			</if>
+			<if test="lctrGoal != null and lctrGoal != ''">
+				, LCTR_GOAL = #{lctrGoal}
+			</if>
+			<if test="lctrOpGdln != null and lctrOpGdln != ''">
+				, LCTR_OP_GDLN = #{lctrOpGdln}
+			</if>
+			<if test="lctrOpPlan != null and lctrOpPlan != ''">
+				, LCTR_OP_PLAN = #{lctrOpPlan}
+			</if>
+			<if test="rltdSbjctCts != null and rltdSbjctCts != ''">
+				, RLTD_SBJCT_CTS = #{rltdSbjctCts}
+			</if>
+			<if test="remakrs != null and remakrs != ''">
+				, REMAKRS = #{remakrs}
+			</if>
+			<if test="plyrShrtctKeyPvsnyn != null and plyrShrtctKeyPvsnyn != ''">
+				, PLYR_SHRTCT_KEY_PVSNYN = #{plyrShrtctKeyPvsnyn}
+			</if>
+			<if test="scrptPvsnyn != null and scrptPvsnyn != ''">
+				, SCRPT_PVSNYN = #{scrptPvsnyn}
+			</if>
+			<if test="sbttlsPvsnyn != null and sbttlsPvsnyn != ''">
+				, SBTTLS_PVSNYN = #{sbttlsPvsnyn}
+			</if>
+			<if test="plyrSpdAdjstPvsnyn != null and plyrSpdAdjstPvsnyn != ''">
+				, PLYR_SPD_ADJST_PVSNYN = #{plyrSpdAdjstPvsnyn}
+			</if>
+		WHERE SBJCT_ID = #{sbjctId}
+	</update>
+
+	<select id="txtbkList" resultType="knou.lms.lecture2.vo.TxtbkVO" parameterType="string">
+		/*
+			 SQL ID : LctrPlandocDAO.txtbkList
+			 설  명  : 교재 목록
+		 */
+		SELECT
+		      TXTBK.TXTBK_ID
+		    , TXTBK.SBJCT_ID
+		    , TXTBK.TXTBK_GBNCD
+		    , CD.CDNM AS TXTBK_GBNNM
+		    , TXTBK.TXTBKNM
+		    , TXTBK.ISBN
+		    , TXTBK.WRTR
+		    , TXTBK.PBLSHR
+		FROM TB_LMS_TXTBK TXTBK
+		LEFT JOIN TB_LMS_CMMN_CD CD
+		    ON CD.UP_CD = 'TXTBK_GBNCD'
+		    AND CD.CD = TXTBK.TXTBK_GBNCD
+		    AND CD.USEYN = 'Y'
+		WHERE TXTBK.SBJCT_ID = #{sbjctId}
+	</select>
+
+	<insert id="txtbkRegist" parameterType="txtbkVO">
+		/*
+			 SQL ID : LctrPlandocDAO.txtbkRegist
+			 설  명  : 교재 등록
+		*/
+		INSERT INTO TB_LMS_TXTBK
+		(
+			TXTBK_ID
+			, SBJCT_ID
+			, TXTBK_GBNCD
+			, TXTBKNM
+			, ISBN
+			, WRTR
+			, PBLSHR
+		)
+		VALUES
+		(
+			 #{txtbkId}
+			, #{sbjctId}
+			, #{txtbkGbncd}
+			, #{txtbknm}
+			, #{isbn}
+			, #{wrtr}
+			, #{pblshr}
+		)
+	</insert>
+
+	<delete id="allTxtbkDelete" parameterType="string">
+		/*
+			 SQL ID : LctrPlandocDAO.allTxtbkDelete
+			 설  명  : 교재 전체 삭제
+		*/
+		DELETE FROM TB_LMS_TXTBK
+		WHERE SBJCT_ID = #{sbjctId}
+	</delete>
+</mapper>

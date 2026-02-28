@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+
+	<!-- SqlSession setup for MyBatis Database Layer -->
+	<!--<bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">-->
+	<bean id="sqlSession" class="knou.framework.util.RefreshableSqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="configLocation" value="classpath:/sqlmap/sql-mapper-config.xml" />
+		<property name="mapperLocations" value="classpath:/sqlmap/mappers/**/*.xml" />
+	</bean>
+
+	<!-- MapperConfigurer setup for MyBatis Database Layer -->
+ 	<bean class="org.egovframe.rte.psl.dataaccess.mapper.MapperConfigurer">
+		<property name="basePackage" value="knou.**.dao" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSession" />
+	</bean>
+
+
+	<!-- ERP Database -->
+	<!--<bean id="sqlSessionErp" class="org.mybatis.spring.SqlSessionFactoryBean">-->
+ 	<bean id="sqlSessionErp" class="knou.framework.util.RefreshableSqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSourceErp" />
+		<property name="configLocation" value="classpath:/sqlmap/sql-mapper-config.xml" />
+		<property name="mapperLocations" value="classpath:/sqlmap/mappersErp/**/*.xml" />
+	</bean>
+ 
+ 	<bean class="org.egovframe.rte.psl.dataaccess.mapper.MapperConfigurer">
+		<property name="basePackage" value="knou.**.daoErp" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionErp" />
+	</bean>
+
+</beans>

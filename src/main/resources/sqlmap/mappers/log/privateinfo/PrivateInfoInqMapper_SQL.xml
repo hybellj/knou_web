@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.log.privateinfo.dao.PrivateInfoInqDAO">
+
+	<insert id="insert" parameterType="privateInfoInqVO">
+		/*
+			 SQL ID : insert
+			 설  명 : 개인정보조회 로그 등록
+	 	*/
+		INSERT INTO LOG_PRVC_INQ (
+			   INQ_LOG_ID
+		     , ORG_ID
+		     , INQ_LOG_DTTM
+		     , MENU_ID
+             , GBNCD
+             , USER_ID
+		     , USERNM
+		     , INQ_CTS
+		) VALUES (
+			   FN_NEW_ID('INQL')
+		     , #{orgId}
+		     , FN_DTTM()
+		     , #{menuCd}
+             , #{divCd}
+             , #{userId}
+		     , #{userNm}
+		     , #{inqCts}
+		)
+	</insert>
+
+</mapper>

@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.sch.dao.PopupNoticeDAO">
+
+	<sql id="selectQuery">
+		SELECT
+			  A.POPUP_NTC_ID
+			, A.ORG_ID
+			, A.POPUP_NTC_TTL
+			, A.POPUP_NTC_CTS
+			, A.POPUP_NTC_TYCD
+			, A.POPUP_NTC_TRGT_CD
+			, A.USEYN
+			, A.POPUP_NTC_TDSTOP_USEYN
+			, A.POPUP_NTC_TDSTOP_DAY_CNT
+			, B.POPUP_WIN_WDTHSZ
+			, B.POPUP_WIN_HGHT
+			, B.POPUP_WIN_XCRD
+			, B.POPUP_WIN_YCRD
+			, B.POPUP_WIN_WDTH_RATIO
+			, A.POPUP_NTC_SDTTM
+			, A.POPUP_NTC_EDTTM
+			, A.STTYEDU_ATNDLC_TRGTYN
+			, A.SNGL_SESS_USEYN
+			, A.RGTR_ID
+			<!-- , A.FRST_INQ_DTTM -->
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_POPUP_NTC A
+		LEFT JOIN TB_LMS_POPUP_NTC_PSTN_SIZE B
+			ON A.POPUP_NTC_ID = B.POPUP_NTC_ID
+		WHERE A.ORG_ID = #{orgId}
+		<if test='useyn != null and useyn != ""'>
+		AND A.USEYN = #{useyn}
+		</if>
+		<if test='useyn == "Y"'>
+		AND A.USEYN = 'Y'
+		AND FN_DTTM() BETWEEN A.POPUP_NTC_SDTTM AND A.POPUP_NTC_EDTTM
+		</if>
+		<if test='popupNtcTycd != null and popupNtcTycd != ""'>
+		AND A.POPUP_NTC_TYCD = #{popupNtcTycd}
+		</if>
+		<if test='popupNtcTrgtCdList != null'>
+            <foreach collection="popupNtcTrgtCdList" item="item" index="index" separator="" open="" close="">
+		AND LOWER(A.POPUP_NTC_TRGT_CD) LIKE '%' || LOWER(#{item}) || '%'
+            </foreach>
+        </if>
+        <if test='popupNtcSdttm != null and popupNtcSdttm != ""'>
+        AND SUBSTR(A.POPUP_NTC_SDTTM,1, 8) >= ${popupNtcSdttm}
+        </if>
+        <if test='popupNtcEdttm != null and popupNtcEdttm != ""'>
+        <![CDATA[
+        AND SUBSTR(A.POPUP_NTC_EDTTM, 1, 8) <= ${popupNtcEdttm}
+        ]]>
+        </if>
+		<if test='searchValue != null and searchValue != ""'>
+		AND LOWER(A.POPUP_NTC_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		</if>
+	</sql>
+	
+	<select id="select" parameterType="popupNoticeVO" resultType="popupNoticeVO">
+		/*
+			SQL ID : PopupManageDAO.select
+			설  명 : 팝업공지 정보 조회
+		*/
+		<include refid="selectQuery" />
+		 AND A.POPUP_NTC_ID = #{popupNtcId} 
+	</select>
+	
+	<select id="list" parameterType="popupNoticeVO" resultType="popupNoticeVO">
+		/*
+			SQL ID : PopupManageDAO.list
+			설  명 : 팝업공지 목록
+		*/
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.POPUP_NTC_SDTTM DESC) AS LINE_NO
+			, A.*
+		FROM (
+			<include refid="selectQuery" />
+		) A
+	</select>
+
+	<select id="listPaging" parameterType="popupNoticeVO" resultType="popupNoticeVO">
+		/*
+			SQL ID : PopupManageDAO.listPaging
+			설  명 : 팝업공지 페이징 목록
+		*/
+		<include refid="CommonSQL.pagePrefix"/>
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.POPUP_NTC_SDTTM DESC) AS LINE_NO
+			, A.*
+		FROM (
+		<include refid="selectQuery" />
+		) A
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="count" parameterType="popupNoticeVO" resultType="int">
+		/*
+			SQL ID : PopupManageDAO.count
+			설  명 : 팝업공지 목록 수
+		*/
+		SELECT COUNT(1)
+		FROM (
+			<include refid="selectQuery" />
+		) A
+	</select>
+
+	<select id="selectAcitvePop" parameterType="popupNoticeVO" resultType="popupNoticeVO">
+		/*
+			SQL ID : PopupManageDAO.selectAcitvePop
+			설  명 : 활성 팝업공지 정보 조회
+		*/
+		SELECT	1
+		FROM	DUAL
+		WHERE	1 = 1
+				AND ROWNUM &lt;= 1
+		<!--SELECT * 
+		FROM (
+			SELECT
+				  ROW_NUMBER() OVER ( ORDER BY CASE WHEN A.POPUP_NTC_TYCD = 'EVAL' THEN 0 ELSE 1 END , A.POPUP_NTC_SDTTM DESC, A.REG_DTTM DESC ) LINE_NO
+				, A.POPUP_NTC_ID
+				, A.POPUP_NTC_TTL
+				, A.POPUP_NTC_TYCD
+				, A.POPUP_NTC_TDSTOP_USEYN
+				, A.POPUP_NTC_TDSTOP_DAY_CNT
+				, A.POPUP_WIN_WDTH_RATIO
+				, A.STTYEDU_ATNDLC_TRGTYN
+				, A.SNGL_SESS_USEYN
+			FROM TB_LMS_POPUP_NTC A
+			WHERE A.ORG_ID = #{orgId}
+			AND A.USEYN = 'Y'
+			AND FN_DTTM() BETWEEN A.POPUP_NTC_SDTTM AND A.POPUP_NTC_EDTTM
+			<if test='popupNtcTycd != null and popupNtcTycd != ""'>
+			AND A.POPUP_NTC_TYCD = #{popupNtcTycd}
+			</if>
+			AND (
+				   A.POPUP_NTC_TRGT_CD IS NULL
+				<foreach collection="popupNtcIdList" item="item" index="index" separator="" open="" close="">
+				OR A.POPUP_NTC_TRGT_CD LIKE '%' || LOWER(#{item}) || '%'
+				</foreach>
+			)
+		)
+		WHERE LINE_NO = 1  -->
+	</select>
+
+	<insert id="insert" parameterType="popupNoticeVO" >
+		/*
+			SQL ID : PopupManageDAO.insert
+			설  명 : 팝업공지 등록
+		*/
+		INSERT INTO TB_LMS_POPUP_NTC (
+			  POPUP_NTC_ID
+			, ORG_ID
+			, POPUP_NTC_TTL
+			, POPUP_NTC_CTS
+			, POPUP_NTC_TYCD
+			, POPUP_NTC_TRGT_CD
+			, USEYN
+			, POPUP_NTC_TDSTOP_USEYN
+			, POPUP_NTC_TDSTOP_DAY_CNT
+			, POPUP_NTC_SDTTM
+			, POPUP_NTC_EDTTM
+			, STTYEDU_ATNDLC_TRGTYN
+			, SNGL_SESS_USEYN
+			, RGTR_ID
+			, REG_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			  #{popupNtcId}
+			, #{orgId}
+			, #{popupNtcTtl}
+			, #{popupNtcCts}
+			, #{popupNtcTycd}
+			, #{popupNtcTrgtCd}
+			, #{useyn}
+			, #{popupNtcTdstopUseyn}
+			, #{popupNtcTdstopDayCnt}
+			, #{popupNtcSdttm}
+			, #{popupNtcEdttm}
+			, #{sttyeduAtndlcTrgtyn}
+			, #{snglSessUseyn}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		)
+	</insert>
+	
+	<insert id="insertPstnSize" parameterType="popupNoticeVO" >
+		/*
+			SQL ID : PopupManageDAO.insertPstnSize
+			설  명 : 팝업공지 위치 크기 등록
+		*/
+		INSERT INTO TB_LMS_POPUP_NTC_PSTN_SIZE (
+			  POPUP_NTC_ID
+			, POPUP_WIN_WDTHSZ
+			, POPUP_WIN_HGHT
+			, POPUP_WIN_XCRD
+			, POPUP_WIN_YCRD
+			, POPUP_WIN_WDTH_RATIO
+			, POPUP_WIN_HGHT_RATIO
+			, RGTR_ID
+			, REG_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES (
+			  #{popupNtcId}
+			, 0
+			, 0
+			, 0
+			, 0
+			, #{popupWinWdthRatio}
+			, #{popupWinHghtRatio}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		)
+	</insert>
+
+	<update id="update" parameterType="popupNoticeVO" >
+		/*
+			SQL ID : PopupManageDAO.update
+			설  명 : 팝업공지 수정
+		*/
+		UPDATE TB_LMS_POPUP_NTC
+		SET 
+		
+			  POPUP_NTC_TTL = #{popupNtcTtl}
+			, POPUP_NTC_CTS = #{popupNtcCts}
+			, POPUP_NTC_TRGT_CD = #{popupNtcTrgtCd}
+			, POPUP_NTC_SDTTM = #{popupNtcSdttm}
+			, POPUP_NTC_EDTTM = #{popupNtcEdttm}
+			, POPUP_NTC_TDSTOP_USEYN = #{popupNtcTdstopUseyn}
+			, POPUP_NTC_TDSTOP_DAY_CNT = #{popupNtcTdstopDayCnt}
+			, STTYEDU_ATNDLC_TRGTYN = #{sttyeduAtndlcTrgtyn}
+			, SNGL_SESS_USEYN = #{snglSessUseyn}
+			, USEYN = #{useyn}
+			, MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+		WHERE POPUP_NTC_ID = #{popupNtcId}
+		AND ORG_ID = #{orgId}
+	</update>
+
+	<update id="updatePstnSize" parameterType="popupNoticeVO" >
+		/*
+			SQL ID : PopupManageDAO.updatePstnSize
+			설  명 : 팝업공지 위치크기 수정
+		*/
+		UPDATE TB_LMS_POPUP_NTC_PSTN_SIZE
+		SET 
+			  POPUP_WIN_WDTHSZ		=#{popupWinWdthsz}
+			, POPUP_WIN_HGHT		=#{popupWinHght}
+			, POPUP_WIN_WDTH_RATIO	=#{popupWinWdthRatio}
+			, POPUP_WIN_HGHT_RATIO	=#{popupWinHghtRatio}
+			, POPUP_WIN_XCRD		=#{popupWinXcrd}
+			, POPUP_WIN_YCRD		=#{popupWinYcrd}
+			, MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+		WHERE POPUP_NTC_ID = #{popupNtcId}
+	</update>
+	
+	<update id="updateUseYn" parameterType="popupNoticeVO" >
+		/*
+			SQL ID : PopupManageDAO.updateUseYn
+			설  명 : 팝업공지 사용여부 수정
+		*/
+		UPDATE TB_LMS_POPUP_NTC
+		SET 
+			  MDFR_ID = #{mdfrId}
+			, USEYN = #{useyn}
+		WHERE POPUP_NTC_ID = #{popupNtcId}
+		AND ORG_ID = #{orgId}
+	</update>
+
+	<delete id="delete" parameterType="popupNoticeVO" >
+		/*
+			SQL ID : PopupManageDAO.delete
+			설  명 : 팝업공지 삭제
+		*/
+		DELETE FROM TB_LMS_POPUP_NTC
+		WHERE POPUP_NTC_ID = #{popupNtcId}
+		AND ORG_ID = #{orgId}
+	</delete>
+
+</mapper>

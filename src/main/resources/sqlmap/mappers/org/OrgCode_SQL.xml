@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.org.dao.OrgCodeDAO">
+
+	<select id="selectOrgCodeList" parameterType="orgCodeVO" resultType="orgCodeVO">
+		/*
+            SQL ID : orgCodeDAO.selectOrgCodeList
+            설  명 : 리스트
+	 	*/
+		SELECT ORG_ID
+             		<!-- , CTGRCD -->
+             		, CMMN_CD_ID
+             		<!-- , (SELECT CODE_CTGR_NM FROM TB_LMS_CMMN_CTGR WHERE ORG_ID = A.ORG_ID AND CTGRCD = A.CTGRCD) AS CODE_CTGR_CD_NM -->
+             		, CD
+             		, ORG_ID
+             		, UP_CD
+             		, CD_SEQNO
+             		, CDNM
+             		, CD_EXPLN
+             		<!-- , CD_OPTN -->
+             		, USEYN
+             		, RGTR_ID
+             		, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = RGTR_ID) AS RGTRNM
+             		, REG_DTTM
+             		, MDFR_ID
+             		, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = MDFR_ID) AS MOD_NM
+             		, MOD_DTTM
+          <!-- FROM TB_ORG_CODE A -->
+          FROM TB_LMS_CMMN_CD A
+         WHERE 1 = 1
+             AND UP_CD = #{upCd}
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+                LOWER(CD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(CDNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <if test="useYn != null and useYn != ''">
+           AND USEYN = #{useYn}
+        </if>
+        <if test="orgId != null and orgId != ''">
+           AND ORG_ID = #{orgId}
+        </if>
+		<!--
+		<if test="codeCtgrCd != null and codeCtgrCd != ''">
+           AND CTGRCD = #{codeCtgrCd}
+        </if>
+        -->
+        <if test="cd != null and cd != ''">
+           AND CD = #{cd}
+        </if>
+         ORDER BY CD_SEQNO ASC
+	</select>
+
+    <sql id="selectQuery">
+        SELECT
+        	ROW_NUMBER() OVER(ORDER BY CD_SEQNO ASC) AS LINE_NO
+        	, ORG_ID
+        	, UP_CD
+           	, CD
+           	, CDNM
+           	, CD_VL
+           	, CD_SEQNO
+           	, CD_EXPLN
+           	, USEYN
+           	, RGTR_ID
+           	, (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = RGTR_ID) AS RGTRNM
+           	, REG_DTTM
+           	, MDFR_ID
+           	, (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = MDFR_ID) AS MOD_NM
+           	, MOD_DTTM
+          FROM TB_LMS_CMMN_CD A
+        WHERE 1 = 1
+    </sql>
+
+    <sql id="listQuery">
+        <include refid="selectQuery"/>
+	        <if test="searchValue != null and searchValue != ''">
+	            AND (
+	                LOWER(CD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	                OR LOWER(CDNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	            )
+	        </if>
+	        <if test="useYn != null and useYn != ''">
+	           AND USEYN = #{useYn}
+	        </if>
+	        <if test="orgId != null and orgId != ''">
+	           AND ORG_ID = #{orgId}
+	        </if>
+	        <if test="upCd != null and upCd != ''">
+	           AND UP_CD = #{upCd}
+	        </if>
+	        <if test="cd != null and cd != ''">
+	           AND CD = #{cd}
+	        </if>
+    </sql>
+
+    <select id="list" parameterType="orgCodeVO" resultType="orgCodeVO">
+        /*
+            SQL ID : orgCodeDAO.list
+            설  명 : 리스트
+        */
+        <include refid="listQuery"/>
+    </select>
+
+    <select id="listPageing" parameterType="orgCodeVO" resultType="orgCodeVO">
+        /*
+             SQL ID : OrgCodeDAO.listPageing
+             설  명 : 코드의 페이징 목록
+        */
+	 	<!-- <include refid="CommonSQL.pagePrefix"/>
+	 	<include refid="listQuery"/>
+	 	<include refid="CommonSQL.pageSubfix"/> -->
+
+	 	<include refid="CommonSQL.pagePrefix"/>
+	 	<include refid="listQuery"/>
+	 	<include refid="CommonSQL.pageSubfix"/>
+    </select>
+
+    <select id="count" parameterType="orgCodeVO" resultType="Integer">
+        /*
+             SQL ID : OrgCodeDAO.count
+             설  명 : 코드의 전체 카운트 수
+        */
+        SELECT COUNT(*) FROM (
+        <include refid="listQuery"/>
+        ) T
+    </select>
+
+    <select id="select" parameterType="orgCodeVO" resultType="orgCodeVO">
+        /*
+            SQL ID : orgCodeDAO.select
+            설  명 : 코드의 정보 조회
+        */
+        <include refid="selectQuery"/>
+        AND CD = #{cd}
+        <if test="upCd != null and upCd != ''">
+        AND UP_CD = #{upCd}
+        </if>
+        <if test="orgId != null and orgId != ''">
+        AND ORG_ID = #{orgId}
+        </if>
+	</select>
+
+    <delete id="deleteAll" parameterType="orgCodeVO" >
+        /*
+             SQL ID : OrgCodeDAO.deleteAll
+             설  명 : 분류 하위의 전체 코드 정보를 삭제
+        */
+        DELETE FROM TB_ORG_CODE
+         WHERE ORG_ID = #{orgId}
+           AND UP_CD = #{upCd}
+    </delete>
+
+    <select id="selectKey" resultType="String" parameterType="orgCodeVO">
+        /*
+             SQL ID : OrgCodeDAO.selectKey
+             설  명 : 키를 가져옴
+        */
+        SELECT #{upCd}||LPAD(SQ_ORG_CODE.nextVal,6,'0') AS CD
+    </select>
+
+	<insert id="insert" parameterType="orgCodeVO" >
+        <selectKey order="BEFORE" keyProperty="codeOdr" resultType="Integer">
+            SELECT NVL(MAX(CD_SEQNO),0)+1 FROM TB_ORG_CODE WHERE UP_CD = #{upCd}
+        </selectKey>
+        /*
+             SQL ID : OrgCodeDAO.insert
+             설  명 : 코드의 정보 등록
+        */
+        INSERT INTO TB_ORG_CODE (
+               ORG_ID
+             , UP_CD
+             , CD
+             , CDNM
+             , CD_SEQNO
+             , CD_EXPLN
+             , CD_OPTN
+             , USEYN
+             , RGTR_ID
+             , FRST_INQ_DTTM
+             , MDFR_ID
+             , MOD_DTTM
+        ) VALUES (
+               #{orgId}
+             , #{upCd}
+             , #{cd}
+             , #{cdnm}
+             , #{cdSeq}
+             , #{cdExpln}
+             , #{codeOptn}
+             , #{useYn}
+             , #{rgtrId}
+             , FN_DTTM()
+             , #{mdfrId}
+             , FN_DTTM()
+        )
+    </insert>
+
+	<update id="update" parameterType="orgCodeVO" >
+        /*
+             SQL ID : OrgCodeDAO.update
+             설  명 : 코드의 정보 수정
+        */
+        UPDATE TB_ORG_CODE
+           SET
+             <if test='orgId != null and orgId != "" '>
+               ORG_ID = #{orgId}
+             </if>
+             <if test='cdnm != null and cdnm != "" '>
+             , CDNM = #{cdnm}
+             </if>
+             <if test='cdSeq != null and cdSeq != "" '>
+             , CD_SEQNO = #{cdSeq}
+             </if>
+             <if test='cdExpln != null and cdExpln != "" '>
+             , CD_EXPLN = #{cdExpln}
+             </if>
+             <if test='codeOptn != null and codeOptn != "" '>
+             , CD_OPTN = #{codeOptn}
+             </if>
+             <if test='useYn != null and useYn != "" '>
+             , USEYN = #{useYn}
+             </if>
+             , MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+         WHERE ORG_ID = #{orgId}
+           AND UP_CD = #{upCd}
+           AND CD = #{cd}
+    </update>
+
+	<delete id="delete" parameterType="orgCodeVO" >
+        /*
+             SQL ID : OrgCodeDAO.delete
+             설  명 : 코드의 정보 삭제
+        */
+        DELETE FROM TB_ORG_CODE
+         WHERE ORG_ID = #{orgId}
+           AND UP_CD = #{upCd}
+           AND CD = #{cd}
+    </delete>
+
+</mapper>

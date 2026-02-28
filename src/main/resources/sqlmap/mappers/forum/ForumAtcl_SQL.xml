@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.forum.dao.ForumAtclDAO">
+
+	<select id="forumAtclCount" parameterType="forumAtclVO" resultType="Integer">
+		/*
+			 토론 게시글 수 카운팅
+			 ForumAtclDAO.forumAtclCount
+		*/
+		SELECT COUNT(*)
+		  FROM TB_LMS_DSCS_ATCL
+		 WHERE RGTR_ID = #{rgtrId}
+		   AND DSCS_ID = #{forumCd}
+		   AND DELYN = 'N'
+	</select>
+
+	<select id="myAtclCnt" parameterType="forumAtclVO" resultType="Integer">
+		/*
+			 본인의 토론글 등록 갯수
+			 ForumAtclDAO.myAtclCnt
+		*/
+		SELECT COUNT(*)
+		  FROM TB_LMS_DSCS_ATCL
+		 WHERE 1 = 1
+		   AND DSCS_ID = #{forumCd}
+		   AND DELYN = 'N'
+		   AND STD_ID = ( SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE SBJCT_ID= #{crsCreCd} AND USER_ID = #{userId} AND ATNDLC_STSCD = 'S' )
+	</select>
+
+	<select id="count" parameterType="forumAtclVO" resultType="Integer">
+		/*
+			 토론 게시글의 검색된 수를 카운팅
+			 ForumAtclDAO.count
+		*/
+		SELECT COUNT(*) 
+		  FROM (SELECT A.ATCL_ID				AS AtclSn
+					   , A.DSCS_ID				AS forumCd
+					   , A.UP_ATCL_ID			AS parAtclSn
+					   , A.ATCL_LV				AS atclLvl
+					   , A.ATCL_SEQ				AS atclOdr
+					   , A.ATCL_TYCD			AS atclTypeCd
+					   , A.OKNOK_TYCD	AS prosConsTypeCd
+					   , A.TTL				AS TTL
+					   , A.SND_CTS					AS SND_CTS
+					   , A.INQ_CNT					AS INQ_CNT
+					   , A.RGTRNM				AS regNm
+					   , A.RGTR_ID				AS rgtrId
+					   , A.FRST_INQ_DTTM				AS regDttm
+					   , A.MDFR_ID				AS mdfrId
+					   , A.MOD_DTTM				AS modDttm
+					   , A.EDTRYN			AS editorYn
+					   , A.DELYN				AS delYn
+					   , ( SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B WHERE B.ATCL_ID = A.ATCL_ID AND B.DELYN = 'N' ) AS cmntCount
+					   , ( SELECT MAX(B.ATCL_SEQ) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' ) AS maxOdr
+					   , A.STD_ID AS stdNo
+					   , ( SELECT USER_ID FROM TB_LMS_USER_ACNT WHERE USER_ID = A.RGTR_ID ) AS userId
+				  FROM TB_LMS_DSCS_ATCL A
+				 WHERE 1 = 1
+				   AND A.DSCS_ID = #{forumCd}
+				<if test="sqlForeach !=null and sqlForeach !=''">
+					AND (A.STD_ID IN
+					<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+					OR A.OKNOK_TYCD IN ('F')
+					)
+				</if>
+				AND A.DELYN ='N'
+				<if test="searchValue != null and searchValue != ''">
+				AND (
+					LOWER(A.STD_ID) = (
+						SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_USER_ACNT WHERE USER_ID = #{searchValue}) 
+							AND SBJCT_ID = #{crsCreCd}
+							AND ATNDLC_STSCD = 'S'
+					)
+				)
+				 UNION ALL
+				SELECT A.ATCL_ID				AS atclSn
+					   , A.UP_ATCL_ID			AS parAtclSn
+					   , A.DSCS_ID				AS forumCd
+					   , A.ATCL_LV				AS atclLvl
+					   , A.ATCL_SEQ				AS atclOdr
+					   , A.ATCL_TYCD			AS atclTypeCd
+					   , A.OKNOK_TYCD	AS prosConsTypeCd
+					   , A.TTL				AS TTL
+					   , A.SND_CTS					AS SND_CTS
+					   , A.INQ_CNT					AS INQ_CNT
+					   , A.RGTRNM				AS regNm
+					   , A.RGTR_ID				AS rgtrId
+					   , A.FRST_INQ_DTTM				AS regDttm
+					   , A.MDFR_ID				AS mdfrId
+					   , A.MOD_DTTM				AS modDttm
+					   , A.EDTRYN			AS editorYn
+					   , A.DELYN				AS delYn
+					   , ( SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.ATCL_ID = A.ATCL_ID AND B.DELYN = 'N' ) AS cmntCount
+					   , ( SELECT MAX(B.ATCL_SEQ) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' ) AS maxOdr
+					   , A.STD_ID AS stdNo
+					   , ( SELECT IFNULL(USER_ID, A.RGTR_ID) FROM TB_LMS_USER_ACNT WHERE USER_ID = A.RGTR_ID ) AS userId
+				  FROM TB_LMS_DSCS_ATCL A
+				 WHERE 1 = 1
+				   AND A.DSCS_ID = #{forumCd}
+				   AND A.STD_ID != ( SELECT STD_ID
+									   FROM TB_LMS_ATNDLC_SBJCT
+									  WHERE USER_ID = ( SELECT USER_ID
+														  FROM TB_LMS_USER_ACNT
+														 WHERE USER_ID = #{searchValue})
+														   AND SBJCT_ID = #{crsCreCd}
+														   AND ATNDLC_STSCD = 'S' )
+				   AND EXISTS ( SELECT 1
+								  FROM TB_LMS_DSCS_CMNT C 
+								 WHERE C.DSCS_ID = A.DSCS_ID
+								   AND C.ATCL_ID = A.ATCL_ID
+								   AND C.STD_ID = ( SELECT STD_ID
+													  FROM TB_LMS_ATNDLC_SBJCT
+													 WHERE USER_ID = ( SELECT USER_ID
+																		 FROM TB_LMS_USER_ACNT
+																		WHERE USER_ID = #{searchValue} )
+													   AND SBJCT_ID = #{crsCreCd}
+													   AND ATNDLC_STSCD = 'S' ) )
+				</if>
+				 ORDER BY atclOdr ASC , regDttm DESC
+				) T
+		 WHERE (T.delYn ='N' OR T.cmntCount > 0) 
+	</select>
+
+	<select id="listPageing" parameterType="forumAtclVO" resultType="forumAtclVO">
+		/*
+			 토론 게시글 페이징 목록을 조회
+			 ForumAtclDAO.listPageing
+		*/
+		<include refid="CommonSQL.pagePrefix" />
+		SELECT 
+			 ROW_NUMBER() OVER(ORDER BY regSort ASC, atclOdr ASC, regDttm DESC) AS LINE_NO
+			 , atclSn
+			 , forumCd
+			 , parAtclSn
+			 , atclLvl
+			 , atclOdr
+			 , atclTypeCd
+			 , prosConsTypeCd
+			 , TTL
+			 , (SELECT SND_CTS FROM TB_LMS_DSCS_ATCL WHERE ATCL_ID = A.atclSn) AS SND_CTS
+			 , ctsLen
+			 , INQ_CNT
+			 , regNm
+			 , rgtrId
+			 , regDttm
+			 , mdfrId
+			 , modDttm
+			 , editorYn
+			 , delYn
+			 , konanMaxCopyRate
+			 , (SELECT COUNT(1) FROM TB_LMS_DSCS_CMNT WHERE ATCL_ID = A.atclSn AND DELYN = 'N') AS cmntCount
+			 , (SELECT MAX(ATCL_SEQ) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.forumCd AND DELYN = 'N') AS maxOdr
+			 , stdNo
+			 , (SELECT USER_ID FROM TB_LMS_USER_ACNT WHERE USER_ID = A.rgtrId) AS userId
+			 , afterAtclCnt
+			 , (SELECT PHT_FILE FROM TB_LMS_USR WHERE USER_ID = A.rgtrId) AS PTH_FILE_BYTE
+			 , NVL((SELECT APLY_CMNT_RSPNSYN FROM TB_LMS_DSCS WHERE DSCS_ID = A.forumCd), 'N') AS aplyAsnYn
+		FROM (
+			SELECT 
+				   atclSn
+				 , forumCd
+				 , parAtclSn
+				 , atclLvl
+				 , atclOdr
+				 , atclTypeCd
+				 , prosConsTypeCd
+				 , TTL
+				 , ctsLen
+				 , INQ_CNT
+				 , regNm
+				 , rgtrId
+				 , regDttm
+				 , mdfrId
+				 , modDttm
+				 , editorYn
+				 , delYn
+				 , konanMaxCopyRate
+				 , stdNo
+				 , afterAtclCnt
+				 , regSort
+			  FROM (SELECT A.ATCL_ID				AS atclSn
+						   , A.DSCS_ID				AS forumCd
+						   , A.UP_ATCL_ID			AS parAtclSn
+						   , A.ATCL_LV				AS atclLvl
+						   , A.ATCL_SEQ				AS atclOdr
+						   , A.ATCL_TYCD			AS atclTypeCd
+						   , A.OKNOK_TYCD	AS prosConsTypeCd
+						   , A.TTL				AS TTL
+						   , A.ATCL_CTS_LEN				AS ctsLen
+						   , A.INQ_CNT					AS INQ_CNT
+						   , A.RGTRNM				AS regNm
+						   , A.RGTR_ID				AS rgtrId
+						   , A.FRST_INQ_DTTM				AS regDttm
+						   , A.MDFR_ID				AS mdfrId
+						   , A.MOD_DTTM				AS modDttm
+						   , A.EDTRYN			AS editorYn
+						   , A.DELYN				AS delYn
+						   , A.KONAN_MAX_MOSART	AS konanMaxCopyRate
+						   , A.STD_ID AS stdNo
+						   , (SELECT COUNT(1)
+								FROM TB_LMS_DSCS AA
+							   WHERE 1 = 1
+								 AND A.FRST_INQ_DTTM BETWEEN AA.DSCS_EDTTM AND AA.EXTD_EDTTM
+								 AND AA.DSCS_ID = A.DSCS_ID
+								 AND AA.DELYN = 'N') AS afterAtclCnt
+						   , 1 AS regSort
+					  FROM TB_LMS_DSCS_ATCL A
+					 WHERE 1 = 1
+					   AND A.DSCS_ID = #{forumCd}
+					   AND A.DELYN = 'N'
+					<if test="sqlForeach !=null and sqlForeach !=''">
+						AND (A.STD_ID IN
+						<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+							#{item}
+						</foreach>
+						<!-- OR A.OKNOK_TYCD IN ('F') -->
+						)
+					</if>
+					) T
+			 WHERE 1 = 1
+			<if test="searchKey == 'AFTER'">
+				AND T.afterAtclCnt > 0
+			</if>
+			<!-- AND A.DELYN ='N' -->
+			<if test="searchValue != null and searchValue != ''">
+				AND (
+					LOWER(T.stdNo) = (SELECT STD_ID FROM TB_LMS_ATNDLC_SBJCT WHERE USER_ID = #{searchValue} AND SBJCT_ID = #{crsCreCd} AND ATNDLC_STSCD = 'S')
+					OR T.regNm LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				)
+			 UNION ALL
+			SELECT A.ATCL_ID				AS atclSn
+				   , A.DSCS_ID				AS forumCd
+				   , A.UP_ATCL_ID			AS parAtclSn
+				   , A.ATCL_LV				AS atclLvl
+				   , A.ATCL_SEQ				AS atclOdr
+				   , A.ATCL_TYCD			AS atclTypeCd
+				   , A.OKNOK_TYCD	AS prosConsTypeCd
+				   , A.TTL				AS TTL
+				   , A.ATCL_CTS_LEN				AS ctsLen
+				   , A.INQ_CNT					AS INQ_CNT
+				   , A.RGTRNM				AS regNm
+				   , A.RGTR_ID				AS rgtrId
+				   , A.FRST_INQ_DTTM				AS regDttm
+				   , A.MDFR_ID				AS mdfrId
+				   , A.MOD_DTTM				AS modDttm
+				   , A.EDTRYN			AS editorYn
+				   , A.DELYN				AS delYn
+				   , A.KONAN_MAX_MOSART	AS konanMaxCopyRate
+				   , A.STD_ID AS stdNo
+				   , (SELECT COUNT(1)
+						FROM TB_LMS_DSCS AA
+					   WHERE 1 = 1
+					     AND A.FRST_INQ_DTTM BETWEEN AA.DSCS_EDTTM AND AA.EXTD_EDTTM
+					     AND AA.DSCS_ID = A.DSCS_ID
+					     AND AA.DELYN = 'N') AS afterAtclCnt
+				   , 2 AS regSort
+			  FROM TB_LMS_DSCS_ATCL A
+			 WHERE 1 = 1
+			   AND A.DSCS_ID = #{forumCd}
+			   AND (A.STD_ID != (SELECT STD_ID
+								   FROM TB_LMS_ATNDLC_SBJCT
+								  WHERE USER_ID = #{searchValue}
+								    AND SBJCT_ID = #{crsCreCd}
+								    AND ATNDLC_STSCD = 'S')
+						OR A.RGTR_ID LIKE FN_LIKE_VAL(LOWER(#{searchValue})))
+			   AND EXISTS (SELECT 1 
+							 FROM TB_LMS_DSCS_CMNT C
+							WHERE C.DSCS_ID = A.DSCS_ID
+							  AND C.ATCL_ID = A.ATCL_ID
+							  AND ( C.STD_ID = (SELECT STD_ID 
+												  FROM TB_LMS_ATNDLC_SBJCT
+												 WHERE USER_ID = #{searchValue}
+												   AND SBJCT_ID = #{crsCreCd}
+												   AND ATNDLC_STSCD = 'S')
+										OR C.RGTR_ID LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+								  )
+						  )
+			</if>
+		) A
+		 ORDER BY regSort ASC, atclOdr ASC, regDttm DESC, cmntCount DESC
+		<!-- <if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
+		<![CDATA[
+			LIMIT #{firstIndex}, #{listScale}
+		]]>
+		</if> -->
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
+
+	<insert id="insertAtcl" parameterType="forumAtclVO">
+		/*
+			 토론글 등록
+			 ForumAtclVO.insertAtcl
+		*/
+		INSERT INTO TB_LMS_DSCS_ATCL (
+			ATCL_ID
+			, DSCS_ID
+			, UP_ATCL_ID
+			, ATCL_LV
+			, ATCL_SEQ
+			, ATCL_TYCD
+			, OKNOK_TYCD
+			, TTL
+			, SND_CTS
+			, INQ_CNT
+			, STD_ID 
+			, RGTRNM
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+			, EDTRYN
+			, DELYN
+			, ATCL_CTS_LEN
+		) VALUES (
+			#{atclSn}
+			, #{forumCd}
+			, #{parAtclSn}
+			, 0
+			, #{atclOdr}
+			, #{atclTypeCd}
+			, #{prosConsTypeCd}
+			, #{TTL}
+			, #{SND_CTS}
+			, #{INQ_CNT}
+			, IFNULL(FN_GET_STD_NO(#{userId}, #{crsCreCd}),'') 
+			, #{regNm}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+			, 'N'
+			, 'N'
+			, #{ctsLen}
+		)
+	</insert>
+
+	<select id="selectAtcl" parameterType="forumAtclVO" resultType="forumAtclVO">
+		/*
+			 토론 게시글 조회
+			 ForumAtclDAO.selectAtcl
+		*/
+		SELECT A.ATCL_ID				AS atclSn
+			   , A.DSCS_ID				AS forumCd
+			   , A.UP_ATCL_ID			AS parAtclSn
+			   , A.ATCL_LV				AS atclLvl
+			   , A.ATCL_SEQ				AS atclOdr
+			   , A.ATCL_TYCD			AS atclTypeCd
+			   , A.OKNOK_TYCD	AS prosConsTypeCd
+			   , A.TTL				AS TTL
+			   , A.SND_CTS					AS SND_CTS
+			   , A.INQ_CNT					AS INQ_CNT
+			   , A.STD_ID				AS stdNo
+			   , A.RGTRNM				AS regNm
+			   , A.RGTR_ID				AS rgtrId
+			   , A.FRST_INQ_DTTM				AS regDttm
+			   , A.MDFR_ID				AS mdfrId
+			   , A.MOD_DTTM				AS modDttm
+			   , A.EDTRYN			AS editorYn
+			   , A.DELYN				AS delYn
+		  FROM TB_LMS_DSCS_ATCL A
+		 WHERE A.ATCL_ID = #{atclSn}
+	</select>
+
+	<update id="updateAtcl" parameterType="forumAtclVO">
+		/*
+			 토론 게시글 수정
+			 ForumAtclDAO.updateAtcl
+		*/
+		UPDATE TB_LMS_DSCS_ATCL
+		   SET MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+			<if test='parAtclSn != null and parAtclSn != ""'>
+			, UP_ATCL_ID = #{parAtclSn}
+			</if>
+			<if test='atclLvl != null and atclLvl != ""'>
+			, ATCL_LV = #{atclLvl}
+			</if>
+			<if test='atclOdr != null and atclOdr != ""'>
+			, ATCL_SEQ = #{atclOdr}
+			</if>
+			<if test='atclTypeCd != null and atclTypeCd != ""'>
+			, ATCL_TYCD = #{atclTypeCd}
+			</if>
+			<if test='prosConsTypeCd != null and prosConsTypeCd != ""'>
+			, OKNOK_TYCD = #{prosConsTypeCd}
+			</if>
+			<if test='TTL != null and TTL != ""'>
+			, TTL = #{TTL}
+			</if>
+			<if test='SND_CTS != null and SND_CTS != ""'>
+			, SND_CTS = #{SND_CTS}
+			, ATCL_CTS_LEN = #{ctsLen}
+			</if>
+			<if test='inqCnt != null and inqCnt != ""'>
+			, INQ_CNT = #{inqCnt}
+			</if>
+			<if test='editorYn != null and editorYn != ""'>
+			, EDTRYN = #{editorYn}
+			</if>
+			<if test='delYn != null and delYn != ""'>
+			, DELYN = #{delYn}
+			</if>
+		 WHERE ATCL_ID = #{atclSn}
+		   AND DSCS_ID = #{forumCd}
+	</update>
+
+	<update id="deleteAtcl" parameterType="forumAtclVO">
+		/*
+			 토론 게시글 삭제
+			 ForumAtclDAO.deleteAtcl
+		*/
+		UPDATE TB_LMS_DSCS_ATCL
+		   SET DELYN = 'Y'
+			   , MDFR_ID = #{mdfrId}
+			   , MOD_DTTM = FN_DTTM()
+		 WHERE ATCL_ID = #{atclSn}
+		   AND DSCS_ID = #{forumCd}
+	</update>
+
+	<select id="selectAtclUserList" parameterType="forumAtclVO" resultType="egovMap">
+		/*
+			 특정 수강생의 토론 게시글 조회
+			 ForumAtcl.selectAtclUserList
+		*/
+		SELECT A.ATCL_ID				AS atclSn
+			   , A.DSCS_ID				AS forumCd
+			   , A.UP_ATCL_ID			AS parAtclSn
+			   , A.ATCL_LV				AS atclLvl
+			   , A.ATCL_SEQ				AS atclOdr
+			   , A.ATCL_TYCD			AS atclTypeCd
+			   , A.OKNOK_TYCD	AS prosConsTypeCd
+			   , A.TTL				AS TTL
+			   , A.SND_CTS					AS SND_CTS
+			   , A.INQ_CNT					AS INQ_CNT
+			   , A.STD_ID				AS stdNo
+			   , A.RGTRNM				AS regNm
+			   , A.RGTR_ID				AS rgtrId
+			   , A.FRST_INQ_DTTM				AS regDttm
+			   , A.MDFR_ID				AS mdfrId
+			   , A.MOD_DTTM				AS modDttm
+			   , A.EDTRYN			AS editorYn
+			   , A.DELYN				AS delYn
+			   , A.ATCL_CTS_LEN				AS ctsLen
+		  FROM TB_LMS_DSCS_ATCL A
+		 WHERE A.DSCS_ID = #{forumCd}
+		   AND STD_ID = #{stdNo}
+		   AND DELYN = 'N'
+	</select>
+
+	<select id="forumAtclList" parameterType="forumAtclVO" resultType="forumAtclVO">
+		/*
+			 토론 게시글 목록 조회
+			 ForumAtclDAO.forumAtclList
+		*/
+		SELECT R.* 
+		  FROM (SELECT A.ATCL_ID
+					, A.DSCS_ID
+					, A.UP_ATCL_ID
+					, A.ATCL_LV
+					, A.ATCL_SEQ
+					, A.ATCL_TYCD
+					, A.OKNOK_TYCD
+					, A.TTL
+					, A.SND_CTS
+					, A.INQ_CNT
+					, A.RGTRNM
+					, A.RGTR_ID
+					, A.FRST_INQ_DTTM
+					, A.MDFR_ID
+					, A.MOD_DTTM
+					, A.EDTRYN
+					, A.DELYN
+					, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B WHERE B.ATCL_ID = A.ATCL_ID AND B.DELYN = 'N') AS CMNT_COUNT 
+					, (SELECT MAX(B.ATCL_SEQ) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS MAX_ODR
+					, (SELECT COUNT(*) FROM TB_LMS_USER_CONTS_REACT B WHERE B.LINK_CD = A.ATCL_ID) AS LIKES
+					, (SELECT CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END  FROM TB_LMS_USER_CONTS_REACT B WHERE B.LINK_CD = A.ATCL_ID AND B.RGTR_ID = #{stdNo}) AS RECOM_STATUS
+					, A.STD_ID
+					, (SELECT USER_ID FROM TB_LMS_USER_ACNT WHERE USER_ID = A.RGTR_ID) AS USER_ID
+				  FROM TB_LMS_DSCS_ATCL A
+				 WHERE 1 = 1
+				   AND A.DSCS_ID = #{forumCd}
+				<if test='rgtrId != null and rgtrId != ""'>
+					<!-- AND RGTR_ID = #{rgtrId} -->
+				</if>
+				 ORDER BY A.ATCL_SEQ ASC, A.FRST_INQ_DTTM DESC
+			) R
+		 WHERE (R.DELYN ='N' OR R.CMNT_COUNT > 0)
+	</select>
+	
+	<select id="forumAtclExcalList" parameterType="forumAtclVO" resultType="egovMap">
+		/*
+			 토론 게시글 엑셀목록 조회
+			 ForumAtclDAO.forumAtclExcalList
+		*/
+		SELECT
+		    ROW_NUMBER() OVER (ORDER BY B.FRST_INQ_DTTM DESC) AS LINE_NO,
+		    A.DSCS_ID,
+		    A.DSCS_TTL,
+		    C.SBJCTNM,
+		    C.DVCLAS_NO,
+		    B.RGTR_ID,
+		    U.USERNM,
+		    B.TTL,
+		    CHR(10) || B.SND_CTS || CHR(10) AS SND_CTS,
+		    B.ATCL_CTS_LEN,
+		    B.FRST_INQ_DTTM,
+		    B.MOD_DTTM,
+		    (
+		      SELECT LISTAGG(F.FILENM, CHR(10)) WITHIN GROUP (ORDER BY F.FILENM)
+		      FROM TB_LMS_ATFL F
+		      WHERE F.ATFL_REPO_ID = 'FORUM'
+		        AND F.ATCL_ID = B.ATCL_ID
+		    ) AS FILENM
+		FROM TB_LMS_DSCS A
+		JOIN TB_LMS_DSCS_ATCL B
+		  ON A.DSCS_ID = B.DSCS_ID
+		 AND B.DELYN = 'N'
+		LEFT JOIN TB_LMS_SBJCT C
+		  ON C.SBJCT_ID = A.SBJCT_ID
+		LEFT JOIN TB_LMS_USR U
+		  ON U.USER_ID = B.RGTR_ID
+		WHERE A.DSCS_ID = #{forumCd}
+	</select>
+
+</mapper>

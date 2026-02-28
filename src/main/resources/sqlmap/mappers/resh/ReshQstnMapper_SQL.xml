@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.resh.dao.ReshQstnDAO">
+
+	<select id="listReshPage" parameterType="reshPageVO" resultType="reshPageVO">
+		/*
+             SQL ID : ReshQstnDAO.listReshPage
+            	 설  명 : 설문 페이지 리스트 조회
+         */
+		SELECT 
+			  A.RESCH_PAGE_CD		AS reschPageCd
+			, A.SRVY_ID			AS reschCd
+			, A.RESCH_PAGE_TITLE	AS reschPageTitle
+			, A.RESCH_PAGE_ARTL		AS reschPageArtl
+			, A.RESCH_PAGE_ODR		AS reschPageOdr
+		FROM TB_LMS_RESCH_PAGE A
+		WHERE A.SRVY_ID = #{reschCd}
+		ORDER BY RESCH_PAGE_ODR
+	</select>
+	
+	<select id="listReshQstn" parameterType="reshPageVO" resultType="reshQstnVO">
+		/*
+             SQL ID : ReshQstnDAO.listReshQstn
+            	 설  명 : 설문 페이지별 문항 리스트 조회
+         */
+		SELECT A.RESCH_PAGE_CD 																			AS reschPageCd
+             , A.SRVY_QSTN_ID 																			AS reschQstnCd
+             , A.RESCH_QSTN_TYPE_CD 																	AS reschQstnTypeCd
+             , (SELECT MAX(AA.CDNM) FROM TB_ORG_CODE AA WHERE AA.CTGRCD = 'RESCH_QSTN_TYPE_CD' AND AA.CD = A.RESCH_QSTN_TYPE_CD) 	AS reschQstnTypeNm
+             , A.RESCH_QSTN_TITLE 																		AS reschQstnTitle
+             , A.RESCH_QSTN_CTS 																		AS reschQstnCts
+             , A.REQ_CHOICE_YN 																			AS reqChoiceYn
+             , A.ETC_OPNNYN 																		AS etcOpinionYn
+             , A.MVMN_CHCYN 																		AS jumpChoiceYn
+             , A.RESCH_SCALE_LVL 																		AS reschScaleLvl
+             , A.RESCH_QSTN_ODR 																		AS reschQstnOdr
+             , B.RESCH_PAGE_ODR 																		AS reschPageOdr
+             , (
+                 SELECT AA.MVMN_PAGE
+                   FROM SRVY_VWITM AA
+                  WHERE AA.SRVY_QSTN_ID = A.SRVY_QSTN_ID
+                    AND AA.ETC_INPT_USEYN = 'Y' 
+               ) 																						AS etcJumpPage
+             , (
+                 SELECT AA.SRVY_VWITM_ID
+                   FROM SRVY_VWITM AA
+                  WHERE AA.SRVY_QSTN_ID = A.SRVY_QSTN_ID
+                    AND AA.ETC_INPT_USEYN = 'Y' 
+               ) 																						AS etcItemCd
+          FROM TB_LMS_SRVY_QSTN A
+          JOIN TB_LMS_RESCH_PAGE B
+            ON A.RESCH_PAGE_CD = B.RESCH_PAGE_CD
+         WHERE A.RESCH_PAGE_CD = #{reschPageCd}
+         ORDER BY A.RESCH_QSTN_ODR
+	</select>
+	
+	<select id="listReshQstnItem" parameterType="reshQstnVO" resultType="reshQstnItemVO">
+		/*
+             SQL ID : ReshQstnDAO.listReshQstnItem
+            	 설  명 : 설문 문항 아이템 리스트 조회
+         */
+		SELECT A.SRVY_QSTN_ID 			AS reschQstnCd
+             , A.SRVY_VWITM_ID 	AS reschQstnItemCd
+             , A.RESCH_QSTN_ITEM_TITLE 	AS reschQstnItemTitle
+             , A.MVMN_PAGE 				AS jumpPage
+             , A.VWITM_SEQ 				AS itemOdr
+             , A.ETC_INPT_USEYN 			AS etcItemYn
+          FROM SRVY_VWITM A
+         WHERE A.SRVY_QSTN_ID = #{reschQstnCd}
+         ORDER BY A.VWITM_SEQ
+	</select>
+	
+	<select id="listReshScale" parameterType="reshQstnVO" resultType="reshScaleVO">
+		/*
+             SQL ID : ReshQstnDAO.listReshScale
+            	 설  명 : 설문 문항 척도 리스트 조회
+         */
+		SELECT A.SRVY_QSTN_ID 		AS reschQstnCd
+             , A.SRVY_SCALE_CD 	AS reschScaleCd
+             , A.EVL_TTL 		AS scaleTitle
+             , A.EVL_SCR 		AS scaleScore
+             , A.SCALE_ODR 			AS scaleOdr
+          FROM TB_LMS_RESCH_SCALE A
+         WHERE A.SRVY_QSTN_ID = #{reschQstnCd}
+         ORDER BY A.SCALE_ODR
+	</select>
+	
+	<select id="selectReshQstn" parameterType="reshQstnVO" resultType="reshQstnVO">
+		/*
+             SQL ID : ReshQstnDAO.selectReshQstn
+            	 설  명 : 설문 문항 정보 조회
+         */
+		SELECT 
+			  A.SRVY_QSTN_ID			AS reschQstnCd
+			, A.RESCH_PAGE_CD			AS reschPageCd
+			, A.RESCH_QSTN_TYPE_CD		AS reschQstnTypeCd
+			, A.RESCH_QSTN_TITLE		AS reschQstnTitle
+			, A.RESCH_QSTN_CTS			AS reschQstnCts
+			, A.RESCH_QSTN_ODR			AS reschQstnOdr
+			, A.REQ_CHOICE_YN			AS reqChoiceYn
+			, A.ETC_OPNNYN			AS etcOpinionYn
+			, A.MVMN_CHCYN			AS jumpChoiceYn
+			, A.RESCH_SCALE_LVL			AS reschScaleLvl
+			, A.RGTR_ID					AS rgtrId
+			, A.FRST_INQ_DTTM				AS regDttm
+			, A.MDFR_ID					AS mdfrId
+			, A.MOD_DTTM				AS modDttm
+			, (
+                 SELECT AA.MVMN_PAGE
+                   FROM SRVY_VWITM AA
+                  WHERE AA.SRVY_QSTN_ID = A.SRVY_QSTN_ID
+                    AND AA.ETC_INPT_USEYN = 'Y' 
+               ) 																						AS etcJumpPage
+             , (
+                 SELECT AA.SRVY_VWITM_ID
+                   FROM SRVY_VWITM AA
+                  WHERE AA.SRVY_QSTN_ID = A.SRVY_QSTN_ID
+                    AND AA.ETC_INPT_USEYN = 'Y' 
+               ) 																						AS etcItemCd
+		 FROM TB_LMS_SRVY_QSTN A
+		WHERE A.SRVY_QSTN_ID = #{reschQstnCd}
+	</select>
+	
+	<select id="selectReshPage" parameterType="reshPageVO" resultType="reshPageVO">
+		/*
+             SQL ID : ReshQstnDAO.selectReshPage
+            	 설  명 : 설문 페이지 조회
+         */
+		SELECT 
+			  A.RESCH_PAGE_CD		AS reschPageCd
+			, A.SRVY_ID			AS reschCd
+			, A.RESCH_PAGE_TITLE	AS reschPageTitle
+			, A.RESCH_PAGE_ARTL		AS reschPageArtl
+			, A.RESCH_PAGE_ODR		AS reschPageOdr
+		FROM TB_LMS_RESCH_PAGE A
+		WHERE A.RESCH_PAGE_CD = #{reschPageCd}
+	</select>
+	
+	<insert id="insertReshPage" parameterType="reshPageVO">
+		/*
+             SQL ID : ReshQstnDAO.insertReshPage
+            	 설  명 : 설문 페이지 등록
+         */
+    	INSERT INTO TB_LMS_RESCH_PAGE (
+    		  RESCH_PAGE_CD
+			, SRVY_ID
+			, RESCH_PAGE_TITLE
+			, RESCH_PAGE_ARTL
+			, RESCH_PAGE_ODR
+			, RGTR_ID
+			, FRST_INQ_DTTM
+    	) VALUES (
+    		  #{reschPageCd}
+    		, #{reschCd}
+    		, #{reschPageTitle}
+    		, #{reschPageArtl}
+    		, NVL((SELECT MAX(AA.RESCH_PAGE_ODR) + 1 FROM TB_LMS_RESCH_PAGE AA WHERE AA.SRVY_ID = #{reschCd}), 1)
+    		, #{rgtrId}
+    		, FN_DTTM()
+    	)
+	</insert>
+	
+	<update id="updateReshPage" parameterType="reshPageVO">
+		/*
+             SQL ID : ReshQstnDAO.updateReshPage
+            	 설  명 : 설문 페이지 수정
+         */
+    	UPDATE TB_LMS_RESCH_PAGE SET
+    		  MDFR_ID 		   = #{mdfrId}
+    		, MOD_DTTM 		   = FN_DTTM()
+    		<if test="reschPageTitle != null and reschPageTitle != ''">
+    		, RESCH_PAGE_TITLE = #{reschPageTitle}
+    		</if>
+    		<if test="reschPageArtl != null and reschPageArtl != ''">
+    		, RESCH_PAGE_ARTL  = #{reschPageArtl}
+    		</if>
+    	WHERE RESCH_PAGE_CD = #{reschPageCd}
+	</update>
+	
+	<delete id="delReshPage" parameterType="reshPageVO">
+		/*
+             SQL ID : ReshQstnDAO.delReshPage
+            	 설  명 : 설문 페이지 삭제
+         */
+    	DELETE FROM TB_LMS_RESCH_PAGE
+    	 WHERE 1=1
+    	 <if test="reschPageCd != null and reschPageCd != ''">
+    	   AND RESCH_PAGE_CD = #{reschPageCd}
+    	 </if>
+    	 <if test="reschCd != null and reschCd != ''">
+    	   AND SRVY_ID = #{reschCd}
+    	 </if>
+	</delete>
+	
+	<insert id="insertReshQstn" parameterType="reshQstnVO">
+		/*
+             SQL ID : ReshQstnDAO.insertReshQstn
+            	 설  명 : 설문 항목 등록
+         */
+    	INSERT INTO TB_LMS_SRVY_QSTN (
+    		  SRVY_QSTN_ID
+			, RESCH_PAGE_CD
+			, RESCH_QSTN_TYPE_CD
+			, RESCH_QSTN_TITLE
+			, RESCH_QSTN_CTS
+			, RESCH_QSTN_ODR
+			, REQ_CHOICE_YN
+			, ETC_OPNNYN
+			, MVMN_CHCYN
+			, RESCH_SCALE_LVL
+			, RGTR_ID
+			, FRST_INQ_DTTM
+    	) VALUES (
+    		  #{reschQstnCd}
+    		, #{reschPageCd}
+    		, #{reschQstnTypeCd}
+    		, #{reschQstnTitle}
+    		, #{reschQstnCts}
+    		, NVL((SELECT MAX(AA.RESCH_QSTN_ODR) + 1 FROM TB_LMS_SRVY_QSTN AA WHERE AA.RESCH_PAGE_CD = #{reschPageCd}), 1)
+    		, #{reqChoiceYn}
+    		, #{etcOpinionYn}
+    		, #{jumpChoiceYn}
+    		, #{reschScaleLvl}
+    		, #{rgtrId}
+    		, FN_DTTM()
+    	)
+	</insert>
+	
+	<update id="updateReshQstn" parameterType="reshQstnVO">
+		/*
+             SQL ID : ReshQstnDAO.updateReshQstn
+            	 설  명 : 설문 항목 수정
+         */
+    	UPDATE TB_LMS_SRVY_QSTN SET
+    		  MDFR_ID 			 = #{mdfrId}
+    		, MOD_DTTM 			 = FN_DTTM()
+    		, RESCH_QSTN_TYPE_CD = #{reschQstnTypeCd}
+    		, RESCH_QSTN_TITLE 	 = #{reschQstnTitle}
+    		, RESCH_QSTN_CTS 	 = #{reschQstnCts}
+    		, REQ_CHOICE_YN 	 = #{reqChoiceYn}
+    		, ETC_OPNNYN 	 = #{etcOpinionYn}
+    		, MVMN_CHCYN 	 = #{jumpChoiceYn}
+    		, RESCH_SCALE_LVL 	 = #{reschScaleLvl}
+    	WHERE SRVY_QSTN_ID = #{reschQstnCd}
+    		
+	</update>
+	
+	<delete id="delReshQstn" parameterType="reshQstnVO">
+		/*
+             SQL ID : ReshQstnDAO.delReshQstn
+            	 설  명 : 설문 항목 삭제
+         */
+    	DELETE FROM TB_LMS_SRVY_QSTN
+    	 WHERE 1=1
+    	 <if test="reschQstnCd != null and reschQstnCd != ''">
+    	   AND SRVY_QSTN_ID = #{reschQstnCd}
+    	 </if>
+    	 <if test="reschPageCd != null and reschPageCd != ''">
+    	   AND RESCH_PAGE_CD = #{reschPageCd}
+    	 </if>
+	</delete>
+	
+	<insert id="insertReshQstnItem" parameterType="reshQstnItemVO">
+		/*
+             SQL ID : ReshQstnDAO.insertReshQstnItem
+            	 설  명 : 설문 항목 아이템 등록
+         */
+    	INSERT INTO SRVY_VWITM (
+    		  SRVY_VWITM_ID
+			, SRVY_QSTN_ID
+			, RESCH_QSTN_ITEM_TITLE
+			, VWITM_SEQ
+			, MVMN_PAGE
+			, ETC_INPT_USEYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+    	) VALUES (
+    		  #{reschQstnItemCd}
+    		, #{reschQstnCd}
+    		, #{reschQstnItemTitle}
+    		, #{itemOdr}
+    		, #{jumpPage}
+    		, #{etcItemYn}
+    		, #{rgtrId}
+    		, FN_DTTM()
+    	)
+	</insert>
+	
+	<update id="updateReshQstnItem" parameterType="reshQstnItemVO">
+		/*
+             SQL ID : ReshQstnDAO.updateReshQstnItem
+            	 설  명 : 설문 항목 아이템 수정
+         */
+    	UPDATE SRVY_VWITM SET
+    		  RESCH_QSTN_ITEM_TITLE = #{reschQstnItemTitle}
+    		, VWITM_SEQ 				= #{itemOdr}
+    		, MVMN_PAGE 			= #{jumpPage}
+    		, ETC_INPT_USEYN 			= #{etcItemYn}
+    		, MDFR_ID 				= #{mdfrId}
+    		, MOD_DTTM 				= FN_DTTM()
+    	WHERE SRVY_VWITM_ID = #{reschQstnItemCd}
+	</update>
+	
+	<delete id="delReshQstnItem" parameterType="reshQstnItemVO">
+		/*
+             SQL ID : ReshQstnDAO.delReshQstnItem
+            	 설  명 : 설문 항목 아이템 삭제
+         */
+    	<!-- DELETE A
+    	  FROM SRVY_VWITM A
+    	  JOIN TB_LMS_SRVY_QSTN AS B
+    	    ON A.SRVY_QSTN_ID = B.SRVY_QSTN_ID
+    	 WHERE 1=1
+    	 <if test="reschQstnItemCd != null and reschQstnItemCd != ''">
+    	   AND A.SRVY_VWITM_ID = #{reschQstnItemCd}
+    	 </if>
+    	 <if test="reschQstnCd != null and reschQstnCd != ''">
+    	   AND B.SRVY_QSTN_ID = #{reschQstnCd}
+    	 </if>
+    	 <if test="reschPageCd != null and reschPageCd != ''">
+    	   AND B.RESCH_PAGE_CD = #{reschPageCd}
+    	 </if> -->
+    	 
+    	DELETE FROM SRVY_VWITM A
+	    WHERE EXISTS (
+	        SELECT 1
+	        FROM TB_LMS_SRVY_QSTN B
+	        WHERE A.SRVY_QSTN_ID = B.SRVY_QSTN_ID
+	        <if test="reschQstnCd != null and reschQstnCd != ''">
+	            AND B.SRVY_QSTN_ID = #{reschQstnCd}
+	        </if>
+	        <if test="reschPageCd != null and reschPageCd != ''">
+	            AND B.RESCH_PAGE_CD = #{reschPageCd}
+	        </if>
+	    )
+	    <if test="reschQstnItemCd != null and reschQstnItemCd != ''">
+    	   AND A.SRVY_VWITM_ID = #{reschQstnItemCd}
+    	 </if>
+	</delete>
+	
+	<insert id="insertReshScale" parameterType="reshScaleVO">
+		/*
+             SQL ID : ReshQstnDAO.insertReshScale
+            	 설  명 : 설문 평가 척도 등록
+         */
+    	INSERT INTO TB_LMS_RESCH_SCALE (
+    		  SRVY_SCALE_CD
+			, SRVY_QSTN_ID
+			, SCALE_ODR
+			, EVL_TTL
+			, EVL_SCR
+			, RGTR_ID
+			, FRST_INQ_DTTM
+    	) VALUES (
+    		  #{reschScaleCd}
+    		, #{reschQstnCd}
+    		, #{scaleOdr}
+    		, #{scaleTitle}
+    		, #{scaleScore}
+    		, #{rgtrId}
+    		, FN_DTTM()
+    	)
+	</insert>
+	
+	<update id="updateReshScale" parameterType="reshScaleVO">
+		/*
+             SQL ID : ReshQstnDAO.updateReshScale
+            	 설  명 : 설문 평가 척도 수정
+         */
+    	UPDATE TB_LMS_RESCH_SCALE SET
+    		  SCALE_ODR 	= #{scaleOdr}
+    		, EVL_TTL 	= #{scaleTitle}
+    		, EVL_SCR 	= #{scaleScore}
+    		, MDFR_ID 		= #{mdfrId}
+    		, MOD_DTTM 		= FN_DTTM()
+    	WHERE SRVY_SCALE_CD = #{reschScaleCd}
+	</update>
+	
+	<delete id="delReshScale" parameterType="reshScaleVO">
+		/*
+             SQL ID : ReshQstnDAO.delReshScale
+            	 설  명 : 설문 평가 척도 삭제
+         */
+    	<!-- DELETE A
+    	 FROM TB_LMS_RESCH_SCALE A
+    	 JOIN TB_LMS_SRVY_QSTN B
+    	   ON A.SRVY_QSTN_ID = B.SRVY_QSTN_ID
+    	 WHERE 1=1
+    	 <if test="reschScaleCd != null and reschScaleCd != ''">
+    	   AND A.SRVY_SCALE_CD = #{reschScaleCd}
+    	 </if>
+    	 <if test="reschQstnCd != null and reschQstnCd != ''">
+    	   AND B.SRVY_QSTN_ID = #{reschQstnCd}
+    	 </if>
+    	 <if test="reschPageCd != null and reschPageCd != ''">
+    	   AND B.RESCH_PAGE_CD = #{reschPageCd}
+    	 </if> -->
+	    DELETE FROM TB_LMS_RESCH_SCALE A
+	    WHERE EXISTS (
+	        SELECT 1
+	        FROM TB_LMS_SRVY_QSTN B
+	        WHERE A.SRVY_QSTN_ID = B.SRVY_QSTN_ID
+	        <if test="reschQstnCd != null and reschQstnCd != ''">
+	            AND B.SRVY_QSTN_ID = #{reschQstnCd}
+	        </if>
+	        <if test="reschPageCd != null and reschPageCd != ''">
+	            AND B.RESCH_PAGE_CD = #{reschPageCd}
+	        </if>
+	    )
+	    <if test="reschScaleCd != null and reschScaleCd != ''">
+	        AND A.SRVY_SCALE_CD = #{reschScaleCd}
+	    </if>
+	</delete>
+	
+	<update id="updateReshPageOdr" parameterType="reshPageVO">
+		/*
+             SQL ID : ReshQstnDAO.updateReshPageOdr
+            	 설  명 : 설문 페이지 순서 변경
+         */
+    	UPDATE TB_LMS_RESCH_PAGE SET
+    	<if test="searchKey == 'UP'">
+    		RESCH_PAGE_ODR = RESCH_PAGE_ODR + 1
+    	</if>
+    	<if test="searchKey == 'DOWN'">
+    		RESCH_PAGE_ODR = RESCH_PAGE_ODR - 1
+    	</if>
+    	 WHERE SRVY_ID = #{reschCd}
+    	<if test="searchKey == 'UP'">
+    	   AND RESCH_PAGE_ODR BETWEEN #{newReschPageOdr} AND #{reschPageOdr}
+    	</if>
+    	<if test="searchKey == 'DOWN'">
+    	   AND RESCH_PAGE_ODR BETWEEN #{reschPageOdr} AND #{newReschPageOdr}
+    	</if>
+	</update>
+	
+	<update id="updateReshPageOdrToNo" parameterType="reshPageVO">
+		/*
+             SQL ID : ReshQstnDAO.updateReshPageOdrToNo
+            	 설  명 : 설문 페이지 순서 특정 번호로 변경
+         */
+    	UPDATE TB_LMS_RESCH_PAGE SET
+    		RESCH_PAGE_ODR = #{newReschPageOdr}
+    	 WHERE SRVY_ID = #{reschCd}
+    	   AND RESCH_PAGE_CD = #{reschPageCd}
+	</update>
+	
+	<update id="updateReshQstnOdr" parameterType="reshQstnVO">
+		/*
+             SQL ID : ReshQstnDAO.updateReshQstnOdr
+            	 설  명 : 설문 페이지별 항목 순서 변경
+         */
+    	UPDATE TB_LMS_SRVY_QSTN SET
+    	<if test="searchKey == 'UP'">
+    		RESCH_QSTN_ODR = RESCH_QSTN_ODR + 1
+    	</if>
+    	<if test="searchKey == 'DOWN'">
+    		RESCH_QSTN_ODR = RESCH_QSTN_ODR - 1
+    	</if>
+    	 WHERE RESCH_PAGE_CD = #{reschPageCd}
+    	<if test="searchKey == 'UP'">
+    	   AND RESCH_QSTN_ODR BETWEEN #{newReschQstnOdr} AND #{reschQstnOdr}
+    	</if>
+    	<if test="searchKey == 'DOWN'">
+    	   AND RESCH_QSTN_ODR BETWEEN #{reschQstnOdr} AND #{newReschQstnOdr}
+    	</if>
+	</update>
+	
+	<update id="updateReshQstnOdrToNo" parameterType="reshQstnVO">
+		/*
+             SQL ID : ReshQstnDAO.updateReshQstnOdrToNo
+            	 설  명 : 설문 페이지별 항목 순서 특정 번호로 변경
+         */
+    	UPDATE TB_LMS_SRVY_QSTN SET
+    		RESCH_QSTN_ODR = #{newReschQstnOdr}
+    	 WHERE RESCH_PAGE_CD = #{reschPageCd}
+    	   AND SRVY_QSTN_ID = #{reschQstnCd}
+	</update>
+	
+</mapper>

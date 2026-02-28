@@ -1,0 +1,19 @@
+-- FN_GET_ORG_CODE_NM
+CREATE FUNCTION FN_GET_ORG_CODE_NM (
+		inOrgId VARCHAR(30), 
+		inCodeCtgrCd VARCHAR(30), 
+		inCodeCd VARCHAR(30)
+	) RETURNS varchar(200)
+	READS SQL DATA
+	COMMENT '기관 코드명 조회'
+BEGIN
+	DECLARE codeNm varchar(200) DEFAULT '';
+
+	SELECT CODE_NM INTO codeNm
+	FROM TB_ORG_CODE
+    WHERE ORG_ID = inOrgId
+		AND CODE_CTGR_CD = inCodeCtgrCd
+		AND CODE_CD = inCodeCd;
+
+	RETURN codeNm;
+END

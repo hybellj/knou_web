@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.log.sysjobsch.dao.LogSysJobSchExcDAO">
+
+	<select id="list" parameterType="logSysJobSchExcVO" resultType="logSysJobSchExcVO">
+		/*
+             SQL ID : LogSysJobSchExcDAO.list
+            	 설  명 : 업무일정 예외 로그 목록 조회
+         */
+         SELECT
+         	  ROW_NUMBER() OVER(ORDER BY Z.FRST_INQ_DTTM) AS LINE_NO
+         	, Z.*
+           FROM (
+	         SELECT
+	         	  (SELECT DEPTNM FROM TB_HOME_USER_DEPT_CD WHERE DEPT_CD = B.MNGT_DEPT_CD) AS DEPTNM
+				, B.SBJCTNM
+				, B.CRS_ID
+				, B.DVCLAS_NO
+				, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = (SELECT USER_ID FROM SBJCT_PROF WHERE RPRSYN = 'Y' AND PROF_TYCD = 'PROFESSOR' AND SBJCT_ID = B.SBJCT_ID)) AS TCH_NM
+				, (SELECT USER_ID FROM SBJCT_PROF WHERE RPRSYN = 'Y' AND PROF_TYCD = 'PROFESSOR' AND SBJCT_ID = B.SBJCT_ID) AS TCH_NO
+				, A.EXCP_LOG_CTS
+				, A.RGTR_ID
+				, A.FRST_INQ_DTTM
+			  FROM SYSJOB_SCHDL_EXCP_RCD A
+			  JOIN TB_LMS_SBJCT B
+			    ON A.SBJCT_ID = B.SBJCT_ID
+			   AND B.DELYN = 'N'
+			 WHERE 1 = 1
+			 <if test="creYear != null and creYear != ''">
+			   AND B.SBJCT_ID = #{creYear}
+			 </if>
+			 <if test="creTerm != null and creTerm != ''">
+			   AND B.CRS_ID = #{creTerm}
+			 </if>
+			 <if test="uniCd != null and uniCd != '' and uniCd != 'ALL'">
+			   AND B.UNIV_CD = #{uniCd}
+			 </if>
+			 <if test="univGbn != null and univGbn != '' and univGbn != 'ALL'">
+			   AND B.UNIV_GBNCD = #{univGbn}
+			 </if>
+			 <if test="mngtDeptCd != null and mngtDeptCd != '' and mngtDeptCd != 'ALL'">
+			   AND B.MNGT_DEPT_CD = #{mngtDeptCd}
+			 </if>
+			 ORDER BY A.FRST_INQ_DTTM DESC) Z
+		 WHERE 1 = 1
+		 <if test="searchValue != null and searchValue != ''">
+		   AND (
+		   		LOWER(Z.SBJCTNM) LIKE '%' || LOWER(#{searchValue}) || '%'
+		   	 OR LOWER(Z.CRS_ID) LIKE '%' || LOWER(#{searchValue}) || '%'
+		   	 OR LOWER(Z.TCH_NM) LIKE '%' || LOWER(#{searchValue}) || '%'
+		   )
+		 </if>
+	</select>
+	
+	<insert id="insert" parameterType="logSysJobSchExcVO">
+		/*
+             SQL ID : LogSysJobSchExcDAO.insert
+            	 설  명 : 업무일정 예외 로그 등록
+         */
+         INSERT INTO SYSJOB_SCHDL_EXCP_RCD (
+         	  EXCP_LOG_ID
+			, SBJCT_ID
+			, EXCP_LOG_CTS
+			, RGTR_ID
+			, FRST_INQ_DTTM
+         ) VALUES (
+         	  #{excLogSn}
+         	, #{crsCreCd}
+         	, #{excLogCts}
+         	, #{rgtrId}
+         	, FN_DTTM()
+         )
+	</insert>
+	
+</mapper>

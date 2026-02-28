@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.msg.dao.PopupNtcDAO">
+
+    <select id="selectPopupNtcCnt" parameterType="PopupNtcVO" resultType="int">
+        /*
+             SQL ID : PopupNtcDAO.selectPopupNtcCnt
+             설  명 : 팝업공지 목록 건수 조회
+         */
+        SELECT COUNT(*)
+        FROM TB_LMS_POPUP_NTC A
+        WHERE 1 = 1
+        <if test="orgId != null and orgId != ''">
+            AND A.ORG_ID = #{orgId}
+        </if>
+        <if test="searchText != null and searchText != ''">
+            AND A.POPUP_NTC_TTL LIKE '%' || #{searchText} || '%'
+        </if>
+    </select>
+
+    <select id="selectPopupNtcList" parameterType="PopupNtcVO" resultType="PopupNtcVO">
+        /*
+             SQL ID : PopupNtcDAO.selectPopupNtcList
+             설  명 : 팝업공지 목록 조회
+         */
+        SELECT *
+        FROM (
+            SELECT ROWNUM AS RNUM, T.*
+            FROM (
+                SELECT A.POPUP_NTC_ID
+                     , A.ORG_ID
+                     , B.ORGNM AS ORG_NM
+                     , A.POPUP_NTC_TTL
+                     , A.POPUP_NTC_SDTTM
+                     , A.POPUP_NTC_EDTTM
+                     , A.POPUP_NTC_TRGT
+                     , A.POPUP_PNTTIME_GBNCD
+                     , A.USEYN
+                     , A.RGTR_ID
+                     , A.REG_DTTM
+                FROM TB_LMS_POPUP_NTC A
+                LEFT JOIN TB_LMS_ORG B ON A.ORG_ID = B.ORG_ID
+                WHERE 1 = 1
+                <if test="orgId != null and orgId != ''">
+                    AND A.ORG_ID = #{orgId}
+                </if>
+                <if test="searchText != null and searchText != ''">
+                    AND A.POPUP_NTC_TTL LIKE '%' || #{searchText} || '%'
+                </if>
+                ORDER BY A.REG_DTTM DESC
+            ) T
+            WHERE ROWNUM <![CDATA[<=]]> #{lastIndex}
+        )
+        WHERE RNUM <![CDATA[>=]]> #{firstIndex}
+    </select>
+
+    <select id="selectPopupNtc" parameterType="PopupNtcVO" resultType="PopupNtcVO">
+        /*
+             SQL ID : PopupNtcDAO.selectPopupNtc
+             설  명 : 팝업공지 단건 조회
+         */
+        SELECT A.POPUP_NTC_ID
+             , A.ORG_ID
+             , C.ORGNM AS ORG_NM
+             , A.POPUP_NTC_TTL
+             , A.POPUP_NTC_CTS
+             , A.POPUP_NTC_SDTTM
+             , A.POPUP_NTC_EDTTM
+             , A.POPUP_NTC_TDSTOP_USEYN
+             , A.USEYN
+             , A.POPUP_NTC_TRGT
+             , A.POPUP_PNTTIME_GBNCD
+             , A.RGTR_ID
+             , A.REG_DTTM
+             , A.MDFR_ID
+             , A.MOD_DTTM
+             , B.POPUP_WIN_WDTHSZ
+             , B.POPUP_WIN_HGHT
+             , B.POPUP_WIN_XCRD
+             , B.POPUP_WIN_YCRD
+        FROM TB_LMS_POPUP_NTC A
+        LEFT JOIN TB_LMS_POPUP_NTC_PSTN_SIZE B ON A.POPUP_NTC_ID = B.POPUP_NTC_ID
+        LEFT JOIN TB_LMS_ORG C ON A.ORG_ID = C.ORG_ID
+        WHERE A.POPUP_NTC_ID = #{popupNtcId}
+    </select>
+
+    <insert id="registPopupNtc" parameterType="PopupNtcVO">
+        /*
+             SQL ID : PopupNtcDAO.registPopupNtc
+             설  명 : 팝업공지 등록
+         */
+        INSERT INTO TB_LMS_POPUP_NTC (
+              POPUP_NTC_ID
+            , ORG_ID
+            , POPUP_NTC_TTL
+            , POPUP_NTC_CTS
+            , POPUP_NTC_SDTTM
+            , POPUP_NTC_EDTTM
+            , POPUP_NTC_TDSTOP_USEYN
+            , USEYN
+            , POPUP_NTC_TRGT
+            , POPUP_PNTTIME_GBNCD
+            , RGTR_ID
+            , REG_DTTM
+        ) VALUES (
+              #{popupNtcId}
+            , #{orgId}
+            , #{popupNtcTtl}
+            , #{popupNtcCts}
+            , #{popupNtcSdttm}
+            , #{popupNtcEdttm}
+            , #{popupNtcTdstopUseyn}
+            , 'Y'
+            , #{popupNtcTrgt}
+            , #{popupPnttimeGbncd}
+            , #{rgtrId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        )
+    </insert>
+
+    <insert id="registPopupNtcPstnSize" parameterType="PopupNtcVO">
+        /*
+             SQL ID : PopupNtcDAO.registPopupNtcPstnSize
+             설  명 : 팝업공지 위치크기 등록
+         */
+        INSERT INTO TB_LMS_POPUP_NTC_PSTN_SIZE (
+              POPUP_NTC_ID
+            , POPUP_WIN_WDTHSZ
+            , POPUP_WIN_HGHT
+            , POPUP_WIN_XCRD
+            , POPUP_WIN_YCRD
+            , RGTR_ID
+            , REG_DTTM
+        ) VALUES (
+              #{popupNtcId}
+            , #{popupWinWdthsz}
+            , #{popupWinHght}
+            , #{popupWinXcrd}
+            , #{popupWinYcrd}
+            , #{rgtrId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        )
+    </insert>
+
+    <update id="modifyPopupNtc" parameterType="PopupNtcVO">
+        /*
+             SQL ID : PopupNtcDAO.modifyPopupNtc
+             설  명 : 팝업공지 수정
+         */
+        UPDATE TB_LMS_POPUP_NTC
+        SET POPUP_NTC_TTL = #{popupNtcTtl}
+          , POPUP_NTC_CTS = #{popupNtcCts}
+          , POPUP_NTC_SDTTM = #{popupNtcSdttm}
+          , POPUP_NTC_EDTTM = #{popupNtcEdttm}
+          , POPUP_NTC_TDSTOP_USEYN = #{popupNtcTdstopUseyn}
+          , POPUP_NTC_TRGT = #{popupNtcTrgt}
+          , POPUP_PNTTIME_GBNCD = #{popupPnttimeGbncd}
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        WHERE POPUP_NTC_ID = #{popupNtcId}
+    </update>
+
+    <update id="modifyPopupNtcPstnSize" parameterType="PopupNtcVO">
+        /*
+             SQL ID : PopupNtcDAO.modifyPopupNtcPstnSize
+             설  명 : 팝업공지 위치크기 수정
+         */
+        UPDATE TB_LMS_POPUP_NTC_PSTN_SIZE
+        SET POPUP_WIN_WDTHSZ = #{popupWinWdthsz}
+          , POPUP_WIN_HGHT = #{popupWinHght}
+          , POPUP_WIN_XCRD = #{popupWinXcrd}
+          , POPUP_WIN_YCRD = #{popupWinYcrd}
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        WHERE POPUP_NTC_ID = #{popupNtcId}
+    </update>
+
+    <update id="modifyPopupNtcUseyn" parameterType="PopupNtcVO">
+        /*
+             SQL ID : PopupNtcDAO.modifyPopupNtcUseyn
+             설  명 : 팝업공지 전시여부 수정
+         */
+        UPDATE TB_LMS_POPUP_NTC
+        SET USEYN = #{useyn}
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        WHERE POPUP_NTC_ID = #{popupNtcId}
+    </update>
+
+    <delete id="deletePopupNtcPstnSize" parameterType="PopupNtcVO">
+        /*
+             SQL ID : PopupNtcDAO.deletePopupNtcPstnSize
+             설  명 : 팝업공지 위치크기 삭제
+         */
+        DELETE FROM TB_LMS_POPUP_NTC_PSTN_SIZE
+        WHERE POPUP_NTC_ID = #{popupNtcId}
+    </delete>
+
+    <delete id="deletePopupNtc" parameterType="PopupNtcVO">
+        /*
+             SQL ID : PopupNtcDAO.deletePopupNtc
+             설  명 : 팝업공지 삭제
+         */
+        DELETE FROM TB_LMS_POPUP_NTC
+        WHERE POPUP_NTC_ID = #{popupNtcId}
+    </delete>
+
+    <select id="selectOrgList" parameterType="PopupNtcVO" resultType="PopupNtcVO">
+        /*
+             SQL ID : PopupNtcDAO.selectOrgList
+             설  명 : 기관 목록 조회
+         */
+        SELECT ORG_ID
+             , ORGNM AS ORG_NM
+        FROM TB_LMS_ORG
+        WHERE USEYN = 'Y'
+        ORDER BY ORGNM
+    </select>
+
+</mapper>

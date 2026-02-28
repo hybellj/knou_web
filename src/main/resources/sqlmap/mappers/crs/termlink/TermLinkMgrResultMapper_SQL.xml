@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.crs.termlink.dao.TermLinkMgrResultDAO">
+	
+	<sql id="selectQuery">
+		SELECT  DATA_LNKG_ID  	AS	linkLogSn
+			  ,	DATA_LNKG_TYCD 	AS	linkTypeCd
+			  ,	DATA_LNKG_SCSYN  	AS	linkSucYn
+			  ,	DATA_LNKG_RSLT_CD 	AS	linkRsltCd
+			  ,	DATA_LNKG_RSLT_CTS	AS	linkRsltCts
+			  ,	ADD_CNT      	AS	addCnt
+			  ,	MOD_CNT      	AS	modCnt
+			  ,	DEL_CNT      	AS	delCnt
+			  ,	DATA_LNKG_DTTM    	AS	linkDttm
+		FROM LOG_AIS_SMSTR_DATA_LNKG
+	</sql>
+	
+	<sql id="listQuery">
+		<include refid="selectQuery" />
+		ORDER BY LINK_LOG_SN DESC
+	</sql>
+	
+	<select id="list" parameterType="termLinkMgrResultVO" resultType="termLinkMgrResultVO">
+		/*
+			 SQL ID : TermLinkMgrResultDAO.list
+			 설  명 : 학사연동 로그 목록
+	 	*/
+		<include refid="listQuery" />
+	</select>
+	
+	<select id="listPaging" parameterType="termLinkMgrResultVO" resultType="termLinkMgrResultVO">
+		/*
+			 SQL ID : TermLinkMgrResultDAO.listPaging
+			 설  명 : 학사연동 로그 목록 페이징
+	 	*/
+		<include refid="listQuery" />
+		LIMIT #{firstIndex}, #{listScale}
+	</select>
+	
+	<select id="count" parameterType="termLinkMgrResultVO" resultType="Integer">
+		/*
+			 SQL ID : TermLinkMgrResultDAO.count
+			 설  명 : 학사연동 로그 목록 개수
+	 	*/
+	 	SELECT COUNT(*) FROM (
+	 		<include refid="listQuery" />
+	 	) AS A
+	</select>
+	
+</mapper>

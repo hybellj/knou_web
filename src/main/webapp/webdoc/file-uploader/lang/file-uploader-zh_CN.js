@@ -1,0 +1,25 @@
+var UiFileUploader_language = "cn";
+var UiFileUploader_lang = {
+	dragDropStr:			"这里拖动文件。",
+	uploadStr:				"选择文件",
+	//extErrorStr:			"分机[{0}]的文件不能被上传。",
+	extErrorStr:			"该文件格式无法上传。",
+	allowTypeStr:			"您只能上传扩展名为[{0}]的文件。",
+	notAllowTypeStr:		"不允许扩展",
+	sizeErrorStr:			"您已经超出了文件大小限制：{0}。",
+	allowSizeStr:			"允许大小",
+	maxFileCountErrorStr:	"可以附加到{0}的文件的最大数量为狗。",
+	allowFileCountStr:		"允许的文件编号",
+	flashVersion:			"请确保闪存版本,\n可从Flash版本8或以上。",
+	networkError:			"发生错误的网络，\n请过一段时间后再试。",
+	ioError:				"文件I /发生O错误。",
+	oneLimitError:			"您已经超出了一个{0}的文件大小限制。",
+	selectFileStr:			"请选择该文件。",
+	totalStr:				"共",
+	countStr:				"件",
+	uploadCountStr:			"传输",
+	completeStr:			"完成",
+	uploadErrorStr:			"文件上传过程中出现的错误。",
+	fileBox:				"档案盒",
+	addFromFileBox:			"从文件导入"
+};

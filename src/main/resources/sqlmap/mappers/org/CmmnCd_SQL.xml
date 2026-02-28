@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.cmmn.dao.CmmnCdDAO">
+
+	<sql id="searchUpCdCondition">
+	    <choose>
+	        <when test="upCd != null and upCd != ''">
+	            AND UP_CD = #{upCd}
+	        </when>
+	        <when test="isRoot == true">
+	            <!-- 최상위 조회 -->
+	            AND UP_CD IS NULL
+	        </when>
+        	<!-- 전체 조회 -->
+	        <otherwise>
+	        </otherwise>
+	    </choose>
+	</sql>
+
+
+	<select id="selectCmmnCdList" parameterType="cmmnCdVO" resultType="cmmnCdVO">
+		/*
+            SQL ID : cmmnCdDAO.selectCmmnCdList
+            설  명 : 리스트
+	 	*/
+		SELECT
+            CMMN_CD_ID
+            , CD
+            , ORG_ID
+            , UP_CD
+            , (SELECT CDNM FROM TB_LMS_CMMN_CD P WHERE P.CD = CMCD.UP_CD AND P.ORG_ID = CMCD.ORG_ID) AS UP_CDNM
+            , CD_SEQNO
+            , CDNM
+            , CD_VL
+            , CD_ENNM
+            , CD_EXPLN
+            , GRPCD
+            , USEYN
+            , RGTR_ID
+            , (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = CMCD.RGTR_ID) AS RGTR_NM
+            , REG_DTTM
+            , MDFR_ID
+            , (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = CMCD.MDFR_ID) AS MOD_NM
+            , MOD_DTTM
+        FROM TB_LMS_CMMN_CD CMCD
+        WHERE 1 = 1
+       	<if test="cmmnCdId != null and cmmnCdId != ''">
+           AND CMMN_CD_ID = #{cmmnCdId}
+        </if>
+       	<if test="orgId != null and orgId != ''">
+           AND ORG_ID = #{orgId}
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+           AND (
+                LOWER(CD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(CDNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <if test="useyn != null and useyn != ''">
+           AND USEYN = #{useyn}
+        </if>
+        <if test="cd != null and cd != ''">
+           AND CD = #{cd}
+        </if>
+        <if test="grpcd != null and grpcd != ''">
+        	AND GRPCD = #{grpcd}
+        </if>
+        <include refid="searchUpCdCondition"/>
+         ORDER BY CD_SEQNO ASC
+	</select>
+
+    <sql id="selectQuery">
+
+    	SELECT
+    		ROW_NUMBER() OVER(ORDER BY CD_SEQNO ASC) AS LINE_NO
+            , CMMN_CD_ID
+            , CD
+            , ORG_ID
+            , UP_CD
+            , (SELECT CDNM FROM TB_LMS_CMMN_CD P WHERE P.CD = CMCD.UP_CD AND P.ORG_ID = CMCD.ORG_ID) AS UP_CDNM
+            , CD_SEQNO
+            , CDNM
+            , CD_VL
+            , CD_ENNM
+            , CD_EXPLN
+            , GRPCD
+            , USEYN
+            , RGTR_ID
+            , (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = CMCD.RGTR_ID) AS RGTR_NM
+            , REG_DTTM
+            , MDFR_ID
+            , (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = CMCD.MDFR_ID) AS MOD_NM
+            , MOD_DTTM
+        FROM TB_LMS_CMMN_CD CMCD
+        WHERE 1 = 1
+    </sql>
+
+    <sql id="listQuery">
+        <include refid="selectQuery"/>
+	        <if test="searchValue != null and searchValue != ''">
+	            AND (
+	                LOWER(CD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	                OR LOWER(CDNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+	            )
+	        </if>
+	        <if test="cmmnCdId != null and cmmnCdId != ''">
+	           AND CMMN_CD_ID = #{cmmnCdId}
+	        </if>
+	        <if test="useyn != null and useyn != ''">
+	           AND USEYN = #{useyn}
+	        </if>
+	        <if test="orgId != null and orgId != ''">
+	           AND ORG_ID = #{orgId}
+	        </if>
+	        <if test="cd != null and cd != ''">
+	           AND CD = #{cd}
+	        </if>
+	        <if test="grpcd != null and grpcd != ''">
+	        	AND GRPCD = #{grpcd}
+	        </if>
+	        <include refid="searchUpCdCondition"/>
+	        ORDER BY CD_SEQNO ASC
+    </sql>
+
+    <select id="list" parameterType="cmmnCdVO" resultType="cmmnCdVO">
+        /*
+            SQL ID : cmmnCdDAO.list
+            설  명 : 리스트
+        */
+        <include refid="listQuery"/>
+    </select>
+
+    <select id="listPageing" parameterType="cmmnCdVO" resultType="cmmnCdVO">
+        /*
+             SQL ID : CmmnCdDAO.listPageing
+             설  명 : 코드의 페이징 목록
+        */
+	 	<include refid="CommonSQL.pagePrefix"/>
+	 	<include refid="listQuery"/>
+	 	<include refid="CommonSQL.pageSubfix"/>
+    </select>
+
+    <select id="count" parameterType="cmmnCdVO" resultType="Integer">
+        /*
+             SQL ID : CmmnCdDAO.count
+             설  명 : 코드의 전체 카운트 수
+        */
+        SELECT COUNT(*) FROM (
+        <include refid="listQuery"/>
+        ) T
+    </select>
+
+    <select id="select" parameterType="cmmnCdVO" resultType="cmmnCdVO">
+        /*
+            SQL ID : cmmnCdDAO.select
+            설  명 : 코드의 정보 조회
+        */
+        <include refid="selectQuery"/>
+        <include refid="searchUpCdCondition"/>
+        <if test="cmmnCdId != null and cmmnCdId != ''">
+           AND CMMN_CD_ID = #{cmmnCdId}
+        </if>
+        <if test="orgId != null and orgId != ''">
+           AND ORG_ID = #{orgId}
+        </if>
+        <if test="cd != null and cd != ''">
+           AND CD = #{cd}
+        </if>
+        ORDER BY CD_SEQNO ASC
+	</select>
+
+    <delete id="deleteAll" parameterType="cmmnCdVO" >
+        /*
+             SQL ID : CmmnCdDAO.deleteAll
+             설  명 : 분류 하위의 전체 코드 정보를 삭제
+        */
+        DELETE FROM TB_LMS_CMMN_CD
+         WHERE UP_CD = #{cd}
+           AND ORG_ID = #{orgId}
+    </delete>
+
+    <!-- <select id="selectKey" resultType="String" parameterType="cmmnCdVO">
+        /*
+             SQL ID : CmmnCdDAO.selectKey
+             설  명 : 키를 가져옴
+        */
+        SELECT 'CMCD' || LPAD(TO_CHAR(TO_NUMBER(SUBSTR(MAX(CMMN_CD_ID), 5)) + 1), 6, '0') AS CMMN_CD_ID
+    </select> -->
+
+	<insert id="insert" parameterType="cmmnCdVO" >
+        <selectKey order="BEFORE" keyProperty="cdSeqno" resultType="Integer">
+            SELECT NVL(MAX(CD_SEQNO),0)+1 FROM TB_LMS_CMMN_CD WHERE UP_CD = #{upCd} AND ORG_ID = #{orgId}
+        </selectKey>
+        /*
+             SQL ID : CmmnCdDAO.insert
+             설  명 : 코드의 정보 등록
+        */
+        INSERT INTO TB_LMS_CMMN_CD (
+        	CMMN_CD_ID
+             , CD
+             , ORG_ID
+             , UP_CD
+             , CD_SEQNO
+             , CDNM
+             , CD_VL
+             , CD_ENNM
+             , CD_EXPLN
+             , GRPCD
+             , USEYN
+             , RGTR_ID
+             , REG_DTTM
+             , MDFR_ID
+             , MOD_DTTM
+        ) VALUES (
+               #{cmmnCdId}
+             , #{cd}
+             , #{orgId}
+             , #{upCd}
+             , #{cdSeqno}
+             , #{cdnm}
+             , #{cdVl}
+             , #{cdEnnm}
+             , #{cdExpln}
+             , #{grpcd}
+             , #{useyn}
+             , #{rgtrId}
+             , FN_DTTM()
+             , #{mdfrId}
+             , FN_DTTM()
+        )
+    </insert>
+
+	<update id="update" parameterType="cmmnCdVO" >
+        /*
+             SQL ID : CmmnCdDAO.update
+             설  명 : 코드의 정보 수정
+        */
+       	UPDATE TB_LMS_CMMN_CD
+       	SET
+           	MDFR_ID = #{mdfrId}
+		    , MOD_DTTM = FN_DTTM()
+		  <if test='upCd != null and upCd != ""'>
+		    , UP_CD = #{upCd}
+		  </if>
+		  <if test='cdSeqno != null and cdSeqno != ""'>
+		    , CD_SEQNO = #{cdSeqno}
+		  </if>
+		  <if test='cdnm != null and cdnm != ""'>
+		    , CDNM = #{cdnm}
+		  </if>
+		  <if test='cdVl != null and cdVl != ""'>
+		    , CD_VL = #{cdVl}
+		  </if>
+		  <if test='cdEnnm != null and cdEnnm != ""'>
+		    , CD_ENNM = #{cdEnnm}
+		  </if>
+		  <if test='cdExpln != null and cdExpln != ""'>
+		    , CD_EXPLN = #{cdExpln}
+		  </if>
+		  <if test='grpcd != null and grpcd != ""'>
+		    , GRPCD = #{grpcd}
+		  </if>
+		  <if test='useyn != null and useyn != ""'>
+		    , USEYN = #{useyn}
+		  </if>
+	 	 WHERE CMMN_CD_ID = #{cmmnCdId}
+	 	 	<!-- AND CD = #{cd} -->
+	 	 	<!-- AND ORG_ID = #{orgId} -->
+    </update>
+
+	<delete id="delete" parameterType="cmmnCdVO" >
+        /*
+             SQL ID : CmmnCdDAO.delete
+             설  명 : 코드의 정보 삭제
+        */
+        DELETE FROM TB_LMS_CMMN_CD
+         WHERE CMMN_CD_ID = #{cmmnCdId}
+            <!-- AND CD = #{cd}
+         	AND ORG_ID = #{orgId} -->
+    </delete>
+
+
+
+</mapper>

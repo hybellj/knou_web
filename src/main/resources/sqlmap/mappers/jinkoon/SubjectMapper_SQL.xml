@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.subject2.dao.SubjectDAO">
+
+	<select id="middleLastExamSelect" parameterType="string" resultType="eGovMap">
+		/*	설	명 	: 중간고사기말고사조회		*/		
+		SELECT 	SO.SBJCT_ID
+				, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_MID'	THEN ED.EXAM_PSBL_SDTTM END) 	AS MID_EXAM_SDTTM
+		    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_MID'	THEN ED.EXAM_MNTS END) 			AS MID_EXAM_MNTS	    	
+		    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_LST'	THEN ED.EXAM_PSBL_SDTTM END) 	AS LST_EXAM_SDTTM
+		    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_LST'	THEN ED.EXAM_MNTS END) 			AS LST_EXAM_MNTS
+		FROM	TB_LMS_SBJCT SO
+				JOIN	TB_LMS_EXAM_BSC EB ON EB.SBJCT_ID = SO.SBJCT_ID AND EB.DELYN = 'N' AND EB.USEYN = 'Y'
+											AND ( EB.EXAM_GBNCD = 'EXAM_MID' OR EB.EXAM_GBNCD = 'EXAM_LST')
+				JOIN	TB_LMS_EXAM_DTL	ED ON EB.EXAM_BSC_ID = ED.EXAM_BSC_ID AND ED.DELYN = 'N' AND ED.USEYN = 'Y'
+		WHERE 	1 = 1
+				AND SO.SBJCT_ID = #{subjectId}
+		GROUP 	BY SO.SBJCT_ID
+	</select>
+
+
+	<select id="subjectSelect" parameterType="string" resultType="knou.lms.subject2.vo.SubjectVO">
+		/*	설	명 	: 과목조회		*/		
+		SELECT	SBJCT.*
+				, DEPT.DEPTNM
+		FROM 	TB_LMS_SBJCT SBJCT
+				JOIN TB_LMS_DEPT DEPT ON DEPT.DEPT_ID = SBJCT.DEPT_ID
+		WHERE 	SBJCT.SBJCT_ID = #{subjectId}
+	</select>
+	
+	<select id="subjectBbsIdsSelect" parameterType="string" resultType="egovMap">
+		/*	설	명 	: 과목게시판아이디조회*/
+		SELECT	MAX(CASE WHEN BBS.BBS_TYCD = 'NTC'	THEN BBS.BBS_ID END) AS NTC_BBS_ID,
+				MAX(CASE WHEN BBS.BBS_TYCD = '1ON1'	THEN BBS.BBS_ID END) AS ONE_ON_ONE_BBS_ID,
+				MAX(CASE WHEN BBS.BBS_TYCD = 'QNA'	THEN BBS.BBS_ID END) AS QNA_BBS_ID
+				MAX(CASE WHEN BBS.BBS_TYCD = 'DATA'	THEN BBS.BBS_ID END) AS DATA_BBS_ID
+		FROM 	TB_LMS_SBJCT SBJCT
+				JOIN TB_LMS_BBS BBS ON SBJCT.SBJCT_ID = BBS.SBJCT_ID AND BBS.DELYN = 'N'
+		WHERE 	SBJCT.SBJCT_ID = #{subjectId}
+	</select>
+
+	<select id="sbjctAdmSelect" parameterType="string" resultType="egovMap">
+		/*		설  명 : 과목관리자조회			*/
+	 	SELECT	A.SBJCT_ID,
+		    	MAX(CASE WHEN A.SBJCT_ADM_TYCD = 'PROF'	THEN U.USERNM END) AS PROFNM,
+			  	MAX(CASE WHEN A.SBJCT_ADM_TYCD = 'COPROF'	THEN U.USERNM END) AS COPROFNM,
+		    	MAX(CASE WHEN A.SBJCT_ADM_TYCD = 'TUT'	THEN U.USERNM END) AS TUTNM,
+		    	MAX(CASE WHEN A.SBJCT_ADM_TYCD = 'ASSI'	THEN U.USERNM END) AS ASSINM		    	
+		FROM 	DEV_LMS.TB_LMS_SBJCT_ADM A
+		JOIN 	DEV_LMS.TB_LMS_USER U ON A.USER_ID = U.USER_ID
+		WHERE 	A.SBJCT_ID = #{subjectId}
+				AND A.SBJCT_ADM_SEQNO = 1
+		GROUP 	BY A.SBJCT_ID
+		ORDER 	BY A.SBJCT_ID
+	</select>
+	<select id="sbjctAdmList" parameterType="string" resultType="egovMap">
+		/*
+			 SQL ID : SubjectDAO.sbjctAdmList
+			 설  명  : 과목관리자목록조회
+		 */
+		SELECT
+		      ADM.SBJCT_ID
+		    , ADM.SBJCT_ADM_TYCD
+		    , ADM.USER_ID
+		    , USR.USERNM
+			, DEPT.DEPTNM
+		    , NVL(CNTCT.HOME_PHN, '-') AS HOME_PHN
+		    , NVL(CNTCT.MBL_PHN , '-') AS MBL_PHN
+		    , NVL(CNTCT.OFFI_PHN, '-') AS OFFI_PHN
+		    , NVL(
+		          CASE
+		              WHEN USR.USE_EML_GBNCD = 'INDV' THEN CNTCT.INDV_EML
+		              WHEN USR.USE_EML_GBNCD = 'LNKG' THEN CNTCT.LNKG_EML
+		          END
+		        , '-') AS EML
+		FROM TB_LMS_SBJCT_ADM ADM
+		JOIN TB_LMS_USER USR ON USR.USER_ID = ADM.USER_ID
+		LEFT JOIN TB_LMS_DEPT DEPT ON DEPT.DEPT_ID = USR.DEPT_ID
+		LEFT JOIN (
+		    SELECT
+		          USER_ID
+		        , MAX(CASE WHEN CNTCT_TYCD = 'HOME_PHN' THEN CNTCT END) AS HOME_PHN
+		        , MAX(CASE WHEN CNTCT_TYCD = 'MBL_PHN'  THEN CNTCT END) AS MBL_PHN
+		        , MAX(CASE WHEN CNTCT_TYCD = 'OFFI_PHN' THEN CNTCT END) AS OFFI_PHN
+		        , MAX(CASE WHEN CNTCT_TYCD = 'INDV_EML' THEN CNTCT END) AS INDV_EML
+		        , MAX(CASE WHEN CNTCT_TYCD = 'LNKG_EML' THEN CNTCT END) AS LNKG_EML
+		    FROM TB_LMS_USER_CNTCT CNTCT
+		    GROUP BY
+		          USER_ID
+		) CNTCT
+		  ON CNTCT.USER_ID = USR.USER_ID
+		WHERE ADM.SBJCT_ID = #{subjectId}
+		ORDER BY
+		      ADM.SBJCT_ADM_TYCD
+		    , USR.USERNM
+	</select>
+
+	<select id="subjectLearningActvList" parameterType="map" resultType="egovMap">
+		/* 	설  명 	: 과목학습활동조회 */
+		SELECT
+			  ACTVNM, TTL_KO, TTL_EN, CNT, SEQNO, HREF
+		FROM (		
+			-- 공지
+			SELECT 	'NTC' ACTVNM, '공지' TTL_KO, 'Notice' TTL_EN, COUNT(BA.ATCL_ID) CNT, 1 SEQNO, '#0' HREF
+			FROM	TB_LMS_BBS_ATCL BA
+					JOIN TB_LMS_BBS BBS ON BA.BBS_ID = BBS.BBS_ID 
+										AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'NTC'
+										AND BBS.SBJCT_ID = #{subjectId}
+			WHERE	1 = 1
+					AND BA.DELYN = 'N'
+			GROUP 	BY 	BBS.SBJCT_ID
+			
+			-- QNA
+			UNION ALL			
+			SELECT 	'QNA' ACTVNM,  'Q&amp;A' TTL_KO, 'Q&amp;A' TTL_EN, COUNT(BA.ATCL_ID) CNT, 2 SEQNO, '#0' HREF
+			FROM	TB_LMS_BBS_ATCL BA
+					JOIN TB_LMS_BBS BBS ON BA.BBS_ID = BBS.BBS_ID 
+										AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'QNA'
+										AND BBS.SBJCT_ID = #{subjectId}
+					JOIN TB_LMS_USER U 	ON BA.USER_ID = U.USER_ID
+					LEFT JOIN TB_LMS_BBS_ATCL BA2 ON BA.ATCL_ID = BA2.UP_ATCL_ID
+			WHERE	1 = 1
+					AND BA.DELYN = 'N'
+			GROUP 	BY 	BBS.SBJCT_ID		
+			
+			-- 1ON1
+			UNION ALL
+			SELECT 	'1ON1' ACTVNM, '1:1' TTL_KO, '1:1' TTL_EN, COUNT(BA.ATCL_ID) CNT, 3 SEQNO, '#0' HREF
+			FROM	TB_LMS_BBS_ATCL BA
+					JOIN TB_LMS_BBS BBS ON BA.BBS_ID = BBS.BBS_ID 
+										AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = '1ON1'
+										AND BBS.SBJCT_ID = #{subjectId}
+					JOIN TB_LMS_USER U 	ON BA.USER_ID = U.USER_ID
+					LEFT JOIN TB_LMS_BBS_ATCL BA2 ON BA.ATCL_ID = BA2.UP_ATCL_ID
+			WHERE	1 = 1
+					AND BA.DELYN = 'N'
+			GROUP 	BY 	BBS.SBJCT_ID	
+			
+			-- 과제
+			UNION ALL
+			SELECT 	'ASMT' ACTVNM,  '과제' TTL_KO, 'Assignment' TTL_EN, COUNT(A.ASMT_ID) CNT, 4 SEQNO, '#0' HREF
+			FROM 	TB_LMS_ASMT	A 
+					JOIN TB_LMS_SBJCT C ON A.SBJCT_ID = C.SBJCT_ID AND C.SBJCT_ID = #{subjectId}
+			WHERE 	A.DELYN = 'N'
+					AND A.ASMT_GBNCD = 'ASMT'
+			GROUP 	BY A.SBJCT_ID
+
+			-- 토론
+			UNION ALL
+			SELECT 	'DSCS' ACTVNM, '토론' TTL_KO, 'Discussion' TTL_EN, COUNT(A.DSCS_ID) CNT, 5 SEQNO, '#0' HREF
+			FROM 	TB_LMS_DSCS A
+					JOIN TB_LMS_SBJCT C ON A.SBJCT_ID = C.SBJCT_ID AND C.SBJCT_ID = #{subjectId} 
+			WHERE 	A.DELYN = 'N' AND A.DSCS_GBNCD NOT IN ('DSCS_SBST_EXAM_MID', 'DSCS_SBST_EXAM_LST')
+			GROUP 	BY A.SBJCT_ID
+			
+			-- 세미나
+			UNION ALL
+			SELECT 	'SMNR' ACTVNM,  '세미나' TTL_KO, 'Seminar' TTL_EN, COUNT(A.SMNR_ID) CNT, 6 SEQNO, '#0' HREF
+			FROM 	TB_LMS_SMNR A
+					JOIN TB_LMS_SBJCT C ON A.SBJCT_ID = C.SBJCT_ID AND C.SBJCT_ID = #{subjectId} 
+			WHERE 	A.DELYN = 'N'
+			GROUP 	BY 	A.SBJCT_ID			
+						
+			-- 퀴즈
+			UNION ALL
+			SELECT	'QUIZ' ACTVNM, '퀴즈' TTL_KO, 'Quiz' TTL_EN, COUNT(A.EXAM_BSC_ID) CNT, 7 SEQNO, '#0' HREF
+			FROM	TB_LMS_EXAM_BSC A 
+					JOIN TB_LMS_SBJCT C ON A.SBJCT_ID = C.SBJCT_ID AND C.SBJCT_ID = #{subjectId} 
+			WHERE 	A.DELYN = 'N' AND A.USEYN = 'Y'
+					AND A.EXAM_GBNCD IN  ('QUIZ', 'QUIZ_TEAM')
+			GROUP 	BY A.SBJCT_ID
+
+			-- 설문
+			UNION ALL
+			SELECT	'SRVY' ACTVNM,  '설문' TTL_KO, 'Survey' TTL_EN, COUNT(A.SRVY_ID) CNT, 8 SEQNO, '#0' HREF
+			FROM 	TB_LMS_SRVY A
+					JOIN TB_LMS_SBJCT C ON A.SBJCT_ID = C.SBJCT_ID AND C.SBJCT_ID = #{subjectId} 
+			WHERE 	A.DELYN = 'N' AND A.USEYN = 'Y'
+			GROUP 	BY A.SBJCT_ID
+			
+			-- 시험
+			UNION ALL
+			SELECT	'EXAM' ACTVNM,  '시험' TTL_KO, 'Exam' TTL_EN, COUNT(A.EXAM_BSC_ID) CNT, 9 SEQNO, '#0' HREF
+			FROM 	TB_LMS_EXAM_BSC A 
+					JOIN TB_LMS_SBJCT C ON A.SBJCT_ID = C.SBJCT_ID AND C.SBJCT_ID = #{subjectId}
+			WHERE 	A.USEYN = 'Y' AND A.EXAM_TYCD = 'EXAM' AND A.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_LST')
+					AND A.EXAM_GBNCD NOT IN  ('QUIZ', 'QUIZ_TEAM')
+			GROUP BY A.SBJCT_ID
+		) 
+		WHERE	1 = 1
+		ORDER 	BY 	SEQNO 	ASC
+	</select>
+
+</mapper>

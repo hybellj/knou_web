@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.common.dao.FileUploadPanelDAO">
+
+    <select id="selectRepoInfo" parameterType="fileUploadPanelVO" resultType="fileUploadPanelVO">
+        <![CDATA[
+        /*
+             SQL ID : FileUploadPanelDAO.selectRepoInfo
+             설  명 : 리파지터리 정보를 조회
+         */
+        SELECT A.ATFL_REPO_ID AS repoCd
+             , IF(B.MAXSZ = 0, 999999999, B.MAXSZ) AS limitSize
+          FROM TB_LMS_ATFL_REPO A
+          LEFT JOIN TB_LMS_ATFL_MAXSZ B
+            ON A.ATFL_REPO_ID = B.MAXSZ_DTL_TYCD
+         WHERE A.ATFL_REPO_ID = #{repoCd}
+        ]]>
+    </select>
+
+    <select id="selectFileBoxLimitSize" parameterType="fileUploadPanelVO" resultType="fileUploadPanelVO">
+        <![CDATA[
+        /*
+             SQL ID : FileUploadPanelDAO.selectFileBoxLimitSize
+             설  명 : 파일함의 남은 용량 조회
+         */
+        SELECT A.ATFL_MAXSZ - IF(A.ATFL_MAXSZ = 999999999, 0, IFNULL(A.FILE_USE_SIZE, 0)) AS limitSize
+          FROM (
+                     SELECT MAX(IFNULL(IF(A.ATFL_MAXSZ = 0, 999999999, A.ATFL_MAXSZ), IF(B.ATFL_MAXSZ = 0, 999999999, B.ATFL_MAXSZ))) AS ATFL_MAXSZ
+                       , (
+                           SELECT ROUND(SUM(BB.FILE_SIZE) / 1024 / 1024) 
+                             FROM TB_LMS_ATFL_BOX AA
+                             JOIN TB_LMS_ATFL BB
+                               ON AA.FILE_ID = BB.FILE_ID
+                            WHERE AA.RGTR_ID = A.USER_ID
+                              AND BB.ATFL_REPO_PATH != 'TRANSFER'
+                          ) AS FILE_USE_SIZE
+                    FROM TB_LMS_USER_AUTHRT A
+                    JOIN TB_LMS_AUTHRT_GRP B
+                      ON A.MENU_TYCD = B.MENU_TYCD
+                     AND A.USER_AUTHRT_ID = B.USER_AUTHRT_ID
+                     AND B.USEYN = 'Y' 
+                   WHERE A.USER_ID = #{rgtrId}
+                     AND B.ORG_ID = #{userOrgId}
+               ) A   
+        ]]>
+    </select>
+
+    <select id="selectCreCrsLimitSize" parameterType="fileUploadPanelVO" resultType="fileUploadPanelVO">
+        <![CDATA[
+        /*
+             SQL ID : FileUploadPanelDAO.selectCreCrsLimitSize
+             설  명 : 개설과목의 제한 용량 조회
+         */
+        SELECT CASE WHEN 'BBS' = #{repoCd} THEN IF(BBS_ATFL_MAXSZ = 0, 999999999, BBS_ATFL_MAXSZ) 
+                    WHEN 'FORUM' = #{repoCd} THEN IF(DSCS_ATFL_MAXSZ = 0, 999999999, DSCS_ATFL_MAXSZ) 
+                    WHEN 'ASMNT' = #{repoCd} THEN IF(ASMT_ATFL_MAXSZ = 0, 999999999, ASMT_ATFL_MAXSZ) 
+                    WHEN 'EXAM_ID' = #{repoCd} THEN IF(EXAM_ATFL_MAXSZ = 0, 999999999, EXAM_ATFL_MAXSZ) 
+                    WHEN 'PROJECT' = #{repoCd} THEN IF(TEAM_ACTV_ATFL_MAXSZ = 0, 999999999, TEAM_ACTV_ATFL_MAXSZ) 
+                END AS limitSize
+          FROM TB_LMS_SBJCT_ATFL_MAXSZ
+         WHERE SBJCT_ID = #{crsCreCd}
+        ]]>
+    </select>
+
+    <select id="selectBoardLimitSize" parameterType="fileUploadPanelVO" resultType="fileUploadPanelVO">
+        <![CDATA[
+        /*
+             SQL ID : FileUploadPanelDAO.selectBoardLimitSize
+             설  명 : 게시판의 제한 용량 조회
+         */
+        SELECT ATFL_MAX_CNT AS maxCnt
+             , ATFL_MAXSZ AS maxSize
+             , ATFL_MAX_CNT * ATFL_MAXSZ AS limitSize
+          FROM TB_LMS_BBS
+         WHERE BBS_ID = #{bbsId}
+           AND USEYN = 'Y'
+        ]]>
+    </select>
+
+</mapper>

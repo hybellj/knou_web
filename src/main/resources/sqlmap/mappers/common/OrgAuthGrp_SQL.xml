@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.common.dao.OrgAuthGrpDAO">
+	
+	<select id="list" parameterType="orgAuthGrpVO" resultType="orgAuthGrpVO">
+		/*
+			 SQL ID : OrgAuthGrpDAO.list
+			 설  명 : 기관 권한의 전체 목록
+		*/
+		SELECT MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , AUTHRT_GRPNM
+		     , ORG_ID
+		     , USEYN
+		     , LANG_CD
+		     , AUTHRT_GRP_EXPLN
+		     , AUTHRT_GRP_SEQ
+		     , RGTR_ID
+			 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS RGTRNM
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS MOD_NM
+		     , MOD_DTTM
+		  FROM TB_LMS_AUTHRT_GRP
+		 WHERE 1 = 1
+		<if test="menuType != null">
+			AND MENU_TYCD = #{menuType}
+		</if>
+		<if test="useYn != null">
+			AND USEYN = #{useYn}
+		</if>
+		<if test="orgId != null and orgId != ''">
+			AND ORG_ID = #{orgId}
+		</if>
+		<if test="langCd != null and langCd != ''">
+			AND LANG_CD = #{langCd}
+		</if>
+		 ORDER BY AUTHRT_GRP_SEQ, MOD_DTTM DESC
+	</select>
+
+	<select id="listFile" parameterType="orgAuthGrpVO" resultType="orgAuthGrpVO">
+		/*
+			 SQL ID : OrgAuthGrpDAO.listFile
+			 설  명 : 기관 권한의 파일사용자 목록
+		*/
+		SELECT MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , AUTHRT_GRPNM
+		     , ORG_ID
+		     , USEYN
+		     , LANG_CD
+		     , AUTHRT_GRP_EXPLN
+		     , AUTHRT_GRP_SEQ
+		     , RGTR_ID
+			 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS RGTRNM
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS MOD_NM
+		     , MOD_DTTM
+		  FROM TB_LMS_AUTHRT_GRP
+		 WHERE 1 = 1
+			AND MENU_TYCD = 'HOME'
+			<!-- AND USER_AUTHRT_ID IN ('PROFESSOR', 'ASSISTANT', 'LEARNER') -->
+			AND SYS_TYCD IN ('PROFESSOR', 'ASSISTANT', 'STUDENT')
+		<if test="useYn != null">
+			AND USEYN = #{useYn}
+		</if>
+		<if test="orgId != null and orgId != ''">
+			AND ORG_ID = #{orgId}
+		</if>
+		<if test="langCd != null and langCd != ''">
+			AND LANG_CD = #{langCd}
+		</if>
+		 ORDER BY AUTHRT_GRP_SEQ, MOD_DTTM DESC
+	</select>
+
+	<select id="listInUser" parameterType="orgAuthGrpVO" resultType="orgAuthGrpVO">
+		/*
+			 SQL ID : OrgAuthGrpDAO.listInUser
+			 설  명 : 해당 사용자가 부여 받은 권한 목록
+		*/
+		SELECT MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , AUTHRT_GRPNM
+		     , ORG_ID
+		     , USEYN
+		     , AUTHRT_GRP_EXPLN
+		     , AUTHRT_GRP_SEQ
+		     , RGTR_ID
+			 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS RGTRNM
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS MOD_NM
+		     , MOD_DTTM
+		  FROM TB_LMS_AUTHRT_GRP
+		 WHERE 1 = 1
+		<if test="menuType != null">
+			AND MENU_TYCD = #{menuType}
+		</if>
+			AND USEYN = 'Y'
+			AND USER_AUTHRT_ID IN (SELECT USER_AUTHRT_ID FROM TB_LMS_USER_AUTHRT WHERE USER_ID = #{userId} )
+		<if test="orgId != null and orgId != ''">
+			AND ORG_ID = #{orgId}
+		</if>
+		 ORDER BY AUTHRT_GRP_SEQ
+	</select>
+	
+	<select id="listNotInUser" parameterType="orgAuthGrpVO" resultType="orgAuthGrpVO">
+		/*
+			 SQL ID : OrgAuthGrpDAO.listNotInUser
+			 설  명 : 해당 사용자가 부여 받지 않은 권한 목록
+		*/
+		SELECT MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , AUTHRT_GRPNM
+		     , ORG_ID
+		     , USEYN
+		     , AUTHRT_GRP_EXPLN
+		     , AUTHRT_GRP_SEQ
+		     , RGTR_ID
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS RGTRNM
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS MOD_NM
+		     , MOD_DTTM
+		  FROM TB_LMS_AUTHRT_GRP
+		 WHERE 1 = 1
+		<if test="menuType != null">
+			AND MENU_TYCD = #{menuType}
+		</if>
+			AND USEYN = 'Y'
+			AND USER_AUTHRT_ID NOT IN (SELECT USER_AUTHRT_ID FROM TB_LMS_USER_AUTHRT WHERE USER_ID = #{userId} )
+		<if test="orgId != null and orgId != ''">
+			AND ORG_ID = #{orgId}
+		</if>
+		 ORDER BY AUTHRT_GRP_SEQ
+	</select>
+	
+	<select id="select" parameterType="orgAuthGrpVO" resultType="orgAuthGrpVO">
+		/*
+			 SQL ID : OrgAuthGrpDAO.select
+			 설  명 : 기관 권한의 정보 조회
+		*/
+		SELECT MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , AUTHRT_GRPNM
+		     , ORG_ID
+		     , USEYN
+		     , LANG_CD
+		     , AUTHRT_GRP_EXPLN
+		     , AUTHRT_GRP_SEQ
+		     , RGTR_ID
+			 , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = RGTR_ID) AS RGTRNM
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = MDFR_ID) AS MOD_NM
+		     , MOD_DTTM
+		  FROM TB_LMS_AUTHRT_GRP
+		 WHERE 1 = 1
+		<if test="menuType != null">
+			AND MENU_TYCD = #{menuType}
+		</if>
+<!-- 			AND #{authGrpCd} LIKE CONCAT('%',USER_AUTHRT_ID,'%') -->
+			AND #{authGrpCd} LIKE CONCAT('%',AUTHRT_GRPCD,'%')
+		<if test="orgId != null and orgId != ''">
+			AND ORG_ID = #{orgId}
+		</if>
+		<if test="langCd != null and langCd != ''">
+			AND LANG_CD = #{langCd}
+		</if>
+	</select>
+	
+	<insert id="insert" parameterType="orgAuthGrpVO" >
+		/*
+			 SQL ID : OrgAuthGrpDAO.insert
+			 설  명 : 기관 권한의 정보 등록
+		*/
+		INSERT INTO TB_LMS_AUTHRT_GRP (
+		    MENU_TYCD
+		    , USER_AUTHRT_ID
+		    , AUTHRT_GRPNM
+		    , ORG_ID
+		    , USEYN
+		    , LANG_CD
+		    , AUTHRT_GRP_EXPLN
+		    , AUTHRT_GRP_SEQ
+		    , RGTR_ID
+		    , FRST_INQ_DTTM
+		    , MDFR_ID
+		    , MOD_DTTM
+		) VALUES (
+		    #{menuType}
+		    , #{authGrpCd}
+		    , #{authGrpNm}
+		    , #{orgId}
+		    , #{useYn}
+		    , #{authGrpDesc}
+		    , ( SELECT IFNULL(MAX(A.AUTHRT_GRP_SEQ),0)+1
+		          FROM TB_LMS_AUTHRT_GRP A
+		         WHERE A.MENU_TYCD = #{menuType} )
+		    , #{rgtrId}
+		    , FN_DTTM()
+		    , #{mdfrId}
+		    , FN_DTTM()
+		)
+	</insert>
+	
+	<update id="update" parameterType="orgAuthGrpVO" >
+		/*
+			 SQL ID : OrgAuthGrpDAO.update
+			 설  명 : 기관 권한의 정보 수정
+	 	*/
+		UPDATE TB_LMS_AUTHRT_GRP
+		   SET USEYN = #{useYn}
+		   <if test="authGrpNm != null">
+		   	 ,AUTHRT_GRPNM = #{authGrpNm} 
+		   </if>
+		   <if test="authGrpDesc != null">
+		     , AUTHRT_GRP_EXPLN = #{authGrpDesc}
+		   </if>
+		   <if test="authGrpOdr != null">
+		     , AUTHRT_GRP_SEQ = #{authGrpOdr}
+		   </if>
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+		   <if test="orgId != null and orgId != ''">
+		   AND ORG_ID = #{orgId}
+		   </if>
+		   <if test="langCd != null and langCd != ''">
+			AND LANG_CD = #{langCd}
+		</if>
+	</update>
+
+	<delete id="delete" parameterType="orgAuthGrpVO" >
+		/*
+			 SQL ID : OrgAuthGrpDAO.delete
+			 설  명 : 기관 권한의 정보 삭제
+		*/
+		DELETE FROM TB_LMS_AUTHRT_GRP
+		WHERE MENU_TYCD = #{menuType}
+			AND USER_AUTHRT_ID = #{authGrpCd}
+			AND ORG_ID = #{orgId}
+			<if test="langCd != null and langCd != ''">
+			AND LANG_CD = #{langCd}
+			</if>
+	</delete>
+
+</mapper>

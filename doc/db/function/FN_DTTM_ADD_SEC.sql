@@ -1,0 +1,9 @@
+-- FN_DTTM_ADD_SEC
+CREATE FUNCTION FN_DTTM_ADD_SEC (
+	sec int
+) RETURNS varchar(14)
+	READS SQL DATA
+	COMMENT '현재일시에 초를 더하여 문자열 가져오기'
+BEGIN
+    RETURN DATE_FORMAT(NOW() + INTERVAL sec SECOND, '%Y%m%d%H%i%s');
+END

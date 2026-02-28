@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.sys.dao.SysJobSchDAO">
+
+	<sql id="selectQuery">
+		SELECT 
+		    ROW_NUMBER() OVER(ORDER BY A.SYSJOB_SCHDL_TYCD, A.DGRS_YR, A.DGRS_SMSTR) AS LINE_NO
+		    , A.SYSJOB_SCHDL_ID 
+		    , A.ORG_ID 
+		    , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
+		    , A.DGRS_YR 
+		    , A.DGRS_SMSTR 
+		    <!-- , NVL((SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'DGRS_SMSTR' AND CD = A.DGRS_SMSTR), '') AS HAKSA_TERM_NM -->
+		    <!-- , NVL((SELECT CDNM FROM TB_LMS_CMMN_CD WHERE ORG_ID = A.ORG_ID AND UP_CD = 'DGRS_SMSTR' AND CD = A.DGRS_SMSTR), '') AS HAKSA_TERM_NM -->
+		    , A.SYSJOB_SCHDL_TYCD 
+		    <!-- , NVL((SELECT CDNM FROM TB_SYS_CODE WHERE CTGRCD = 'SYSJOB_SCHDL_TYCD' AND CD = A.SYSJOB_SCHDL_TYCD), '') AS CALENDAR_CTGR_NM
+		    , (SELECT CD_OPTN FROM TB_SYS_CODE WHERE CTGRCD = 'SYSJOB_SCHDL_TYCD' AND CD = A.SYSJOB_SCHDL_TYCD) AS CD_OPTN -->
+		    <!-- , NVL((SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'SYSJOB_SCHDL_TYCD' AND CD = A.SYSJOB_SCHDL_TYCD), '') AS CALENDAR_CTGR_NM -->
+		    <!-- , (SELECT CD_OPTN FROM TB_LMS_CMMN_OPTN WHERE OPTN_TYCD = 'SYSJOB_SCHDL_TYCD' AND CD = A.SYSJOB_SCHDL_TYCD) AS CD_OPTN -->
+		    , A.SYSJOB_SCHDL_SYMD 
+		    , A.SYSJOB_SCHDL_EYMD 
+		    , A.SYSJOB_SCHDLNM 
+		    , A.SYSJOB_SCHDL_CMNT 
+		    , A.USEYN 
+		    , A.RGTR_ID 
+		    , A.REG_DTTM 
+		    , A.MDFR_ID 
+		    , A.MOD_DTTM 
+		    <if test="crsCreCd != null and crsCreCd != ''">
+			, (SELECT SYSJOB_SCHDL_SYMD FROM TB_LMS_SYSJOB_SCHDL_EXCP WHERE SYSJOB_SCHDL_ID = A.SYSJOB_SCHDL_ID AND SBJCT_ID = #{crsCreCd}) AS EXC_SCH_START_DT
+			, (SELECT SYSJOB_SCHDL_EYMD FROM TB_LMS_SYSJOB_SCHDL_EXCP WHERE SYSJOB_SCHDL_ID = A.SYSJOB_SCHDL_ID AND SBJCT_ID = #{crsCreCd}) 	 AS EXC_SCH_END_DT
+			</if>
+		    , COUNT(1) OVER() AS TOTAL_CNT
+		    , CASE WHEN FN_DTTM() BETWEEN A.SYSJOB_SCHDL_SYMD AND A.SYSJOB_SCHDL_EYMD OR A.SYSJOB_SCHDL_SYMD IS NULL THEN 'Y' ELSE 'N' END AS JOB_SCH_PERIOD_YN
+		    , CASE WHEN FN_DTTM() >= A.SYSJOB_SCHDL_SYMD THEN 'Y' ELSE 'N' END AS JOB_SCH_START_YN
+		    , CASE WHEN FN_DTTM() > A.SYSJOB_SCHDL_EYMD THEN 'Y' ELSE 'N' END AS JOB_SCH_END_YN
+		    , CASE WHEN EXISTS (
+		        SELECT 1 
+		        FROM TB_LMS_SYSJOB_SCHDL_EXCP X
+		        WHERE X.SYSJOB_SCHDL_ID = A.SYSJOB_SCHDL_ID 
+		        <!-- AND X.SBJCT_ID = '' -->
+		        AND FN_DTTM() BETWEEN X.SYSJOB_SCHDL_SYMD AND X.SYSJOB_SCHDL_EYMD
+		    ) THEN 'Y' ELSE 'N' END AS jobSchExcPeriodYn
+		FROM TB_LMS_SYSJOB_SCHDL A
+		JOIN TB_LMS_CMMN_CD B 
+		ON A.SYSJOB_SCHDL_TYCD = B.CD 
+		AND B.USEYN = 'Y'
+		WHERE A.ORG_ID = #{orgId}
+			<if test="sysjobSchdlId != null and sysjobSchdlId != ''">
+			AND A.SYSJOB_SCHDL_ID = #{sysjobSchdlId}
+		</if>
+		<!-- <if test='codeOptn != null and codeOptn != "" and codeOptn != "all"'>
+			AND B.CD_OPTN = #{codeOptn}
+		</if>
+
+		<if test='codeOptn == null or codeOptn == "" or codeOptn == "all"'>
+			AND B.CD_OPTN IS NOT NULL
+		</if> -->
+
+		<if test="calendarCtgr != null and calendarCtgr != ''">
+			AND A.SYSJOB_SCHDL_TYCD = #{calendarCtgr}
+		</if>
+		<if test="haksaYear != null and haksaYear != ''">
+			AND A.DGRS_YR = #{haksaYear}
+		</if>
+		<if test='haksaTerm != null and haksaTerm != "" and haksaTerm != "all"'>
+			AND A.DGRS_SMSTR = #{haksaTerm}
+		</if>
+		<if test="useYn != null and useYn != ''">
+			AND A.USEYN = #{useYn}
+		</if>
+		<if test="termCd != null and termCd != ''">
+			AND EXISTS (
+				SELECT 1
+				FROM CRS_SMSTR
+				WHERE ORG_ID = A.ORG_ID
+					AND DGRS_YR = A.DGRS_YR
+					AND DGRS_SMSTR = A.DGRS_SMSTR
+					AND CRS_SMSTR_ID = #{termCd}
+			)
+		</if>
+		<if test="searchValue != null and searchValue != ''">
+			AND (
+				LOWER(A.SYSJOB_SCHDL_TYCD) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				OR LOWER(A.SYSJOB_SCHDLNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			)
+		</if>
+		<if test="sqlForeach != null and sqlForeach != ''">
+		AND A.SYSJOB_SCHDL_TYCD IN 
+			<foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+	</sql>
+	
+	<select id="select" parameterType="sysJobSchVO" resultType="sysJobSchVO">
+		/*
+             SQL ID : SysJobSchDAO.select
+            	 설  명 : 업무일정 조회
+         */
+        SELECT * FROM (
+		<include refid="selectQuery" />
+		<!-- LIMIT 1 -->
+		) A
+		WHERE ROWNUM = 1
+	</select>
+	
+	<select id="list" parameterType="sysJobSchVO" resultType="sysJobSchVO">
+		/*
+             SQL ID : SysJobSchDAO.list
+            	 설  명 : 업무일정 목록 조회
+         */
+		<include refid="selectQuery" />
+		ORDER BY A.SYSJOB_SCHDL_TYCD, A.DGRS_YR, A.DGRS_SMSTR
+	</select>
+	
+	<select id="listPaging" parameterType="sysJobSchVO" resultType="sysJobSchVO">
+		/*
+             SQL ID : SysJobSchDAO.listPaging
+            	 설  명 : 업무일정 목록 조회 페이징	
+         */
+         <include refid="selectQuery" />
+		ORDER BY A.SYSJOB_SCHDL_TYCD, A.DGRS_YR, A.DGRS_SMSTR
+		<!-- LIMIT #{firstIndex}, #{listScale} -->
+	</select>
+	
+	<insert id="insert" parameterType="sysJobSchVO">
+		/*
+             SQL ID : SysJobSchDAO.insert
+            	 설  명 : 업무일정 등록
+         */
+         INSERT INTO TB_LMS_SYSJOB_SCHDL (
+         	  SYSJOB_SCHDL_ID
+			, ORG_ID
+			, DGRS_YR
+			, DGRS_SMSTR
+			, SYSJOB_SCHDL_TYCD
+			, SYSJOB_SCHDL_SYMD
+			, SYSJOB_SCHDL_EYMD
+			, SYSJOB_SCHDLNM
+			, SYSJOB_SCHDL_CMNT
+			, USEYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+         ) VALUES (
+         	  #{jobSchSn}
+         	, #{orgId}
+         	, #{haksaYear}
+         	, #{haksaTerm}
+         	, #{calendarCtgr}
+         	, #{schStartDt}
+         	, #{schEndDt}
+         	, #{jobSchNm}
+         	, #{schCmnt}
+         	, IFNULL(#{useYn}, 'Y')
+         	, #{rgtrId}
+         	, FN_DTTM()
+         	, #{mdfrId}
+         	, FN_DTTM()
+         )
+	</insert>
+	
+	<update id="update" parameterType="sysJobSchVO">
+		/*
+             SQL ID : SysJobSchDAO.update
+            	 설  명 : 업무일정 수정
+         */
+         UPDATE TB_LMS_SYSJOB_SCHDL SET
+         	  MDFR_ID = #{mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	<if test="calendarCtgr != null and calendarCtgr != ''">
+         	, SYSJOB_SCHDL_TYCD = #{calendarCtgr}
+         	</if>
+         	<if test="orgId != null and orgId != ''">
+         	, ORG_ID = #{orgId}
+         	</if>
+         	<if test="jobSchNm != null and jobSchNm != ''">
+         	, SYSJOB_SCHDLNM = #{jobSchNm}
+         	</if>
+         	<if test="haksaYear != null and haksaYear != ''">
+         	, DGRS_YR = #{haksaYear}
+         	</if>
+         	<if test="haksaTerm != null and haksaTerm != ''">
+         	, DGRS_SMSTR = #{haksaTerm}
+         	</if>
+         	<if test="schStartDt != null">
+         	, SYSJOB_SCHDL_SYMD = #{schStartDt}
+         	</if>
+         	<if test="schEndDt != null">
+         	, SYSJOB_SCHDL_EYMD = #{schEndDt}
+         	</if>
+         	<if test="schCmnt != null and schCmnt != ''">
+         	, SYSJOB_SCHDL_CMNT = #{schCmnt}
+         	</if>
+          WHERE SYSJOB_SCHDL_ID = #{jobSchSn}
+	</update>
+	
+	<delete id="delete" parameterType="sysJobSchVO">
+		/*
+             SQL ID : SysJobSchDAO.delete
+            	 설  명 : 업무일정 삭제
+         */
+         DELETE FROM TB_LMS_SYSJOB_SCHDL
+          WHERE SYSJOB_SCHDL_ID = #{sysjobSchdlId}
+	</delete>
+	
+	<select id="selectByEndDt" parameterType="sysJobSchVO" resultType="sysJobSchVO">
+		/*
+             SQL ID : SysJobSchDAO.selectByEndDt
+            	 설  명 : 업무일정 마지막 종료일시 정보 조회
+         */
+         SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.SYSJOB_SCHDL_TYCD, A.DGRS_YR, A.DGRS_SMSTR) AS lineNo
+			, A.SYSJOB_SCHDL_ID			  													AS jobSchSn
+			, A.ORG_ID                													AS orgId
+			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) 				AS orgNm
+			, A.DGRS_YR			  													AS haksaYear
+			, A.DGRS_SMSTR																AS haksaTerm
+			, IFNULL((SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'DGRS_SMSTR' AND CD = A.DGRS_SMSTR), '') AS haksaTermNm
+			, A.SYSJOB_SCHDL_TYCD         													AS calendarCtgr
+			, IFNULL((SELECT CDNM FROM TB_SYS_CODE AS AA WHERE AA.CTGRCD = 'SYSJOB_SCHDL_TYCD' AND AA.CD = A.SYSJOB_SCHDL_TYCD), '') AS calendarCtgrNm
+			, (SELECT CD_OPTN FROM TB_SYS_CODE AS AA WHERE AA.CTGRCD = 'SYSJOB_SCHDL_TYCD' AND AA.CD = A.SYSJOB_SCHDL_TYCD) AS codeOptn
+			, A.SYSJOB_SCHDL_SYMD          													AS schStartDt
+			, A.SYSJOB_SCHDL_EYMD            													AS schEndDt
+			, A.SYSJOB_SCHDLNM            													AS jobSchNm
+			, A.SYSJOB_SCHDL_CMNT              													AS schCmnt
+			, A.USEYN                													AS useYn
+			, A.RGTR_ID                													AS rgtrId
+			, A.FRST_INQ_DTTM              													AS regDttm
+			, A.MDFR_ID                													AS mdfrId
+			, A.MOD_DTTM              													AS modDttm
+			<if test="crsCreCd != null and crsCreCd != ''">
+			, (SELECT SYSJOB_SCHDL_SYMD FROM TB_LMS_SYSJOB_SCHDL_EXCP WHERE SYSJOB_SCHDL_ID = A.SYSJOB_SCHDL_ID AND SBJCT_ID = #{crsCreCd}) AS excSchStartDt
+			, (SELECT SYSJOB_SCHDL_EYMD FROM TB_LMS_SYSJOB_SCHDL_EXCP WHERE SYSJOB_SCHDL_ID = A.SYSJOB_SCHDL_ID AND SBJCT_ID = #{crsCreCd}) 	 AS excSchEndDt
+			</if>
+			, COUNT(1) OVER()		  													AS totalCnt
+			, IF(FN_DTTM() BETWEEN A.SYSJOB_SCHDL_SYMD AND A.SYSJOB_SCHDL_EYMD, 'Y', 'N') AS jobSchPeriodYn
+			, IF(EXISTS(
+				SELECT 1 
+				FROM TB_LMS_SYSJOB_SCHDL_EXCP X
+				WHERE X.SYSJOB_SCHDL_ID = A.SYSJOB_SCHDL_ID 
+				AND X.SBJCT_ID = #{crsCreCd}
+				AND FN_DTTM() BETWEEN X.SYSJOB_SCHDL_SYMD AND X.SYSJOB_SCHDL_EYMD
+			) , 'Y', 'N') AS jobSchExcPeriodYn
+		FROM TB_LMS_SYSJOB_SCHDL AS A
+			LEFT JOIN TB_SYS_CODE AS B
+			ON A.SYSJOB_SCHDL_TYCD = B.CD
+		WHERE A.ORG_ID = #{orgId}
+		  AND A.USEYN = 'Y'
+		  <if test="calendarCtgr != null and calendarCtgr != ''">
+			AND A.SYSJOB_SCHDL_TYCD = #{calendarCtgr}
+		  </if>
+		ORDER BY A.SYSJOB_SCHDL_EYMD DESC
+		LIMIT 1
+	</select>
+	
+</mapper>

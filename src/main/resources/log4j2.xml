@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %5p [%c] %m%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="egovframework" level="INFO" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="org.springframework" level="INFO" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <logger name="log4jdbc.log4j2" level="ERROR" additivity="false">
+            <appender-ref ref="console"/>
+        </logger>
+
+        <Logger name="jdbc.connection" level="OFF"/>
+        <Logger name="log4jdbc.debug" level="OFF"/>
+        <Logger name="jdbc.sqlonly" level="OFF"/>
+        <Logger name="jdbc.audit" level="OFF"/>
+        <Logger name="jdbc.resultset" level="OFF"/>
+
+        <Logger name="jdbc.sqltiming" additivity="false">
+            <level value="INFO"/>
+            <appender-ref ref="console"/>
+        </Logger>
+
+        <Logger name="jdbc.resultsettable" additivity="false">
+            <level value="DEBUG"/>
+            <appender-ref ref="console"/>
+        </Logger>
+        
+        <Logger name="org.apache.http.impl.conn.PoolingHttpClientConnectionManager" level="ERROR" additivity="false">
+            <appender-ref ref="console"/>
+        </Logger>
+        
+        <Logger name="org.apache.http.wire" level="ERROR" additivity="false">
+            <appender-ref ref="console"/>
+        </Logger>
+
+        <Root level="DEBUG">
+            <AppenderRef ref="console"/>
+        </Root>
+    </Loggers>
+</Configuration>

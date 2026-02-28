@@ -1,0 +1,9 @@
+-- FN_DTTM_FORMAT
+CREATE FUNCTION FN_DTTM_FORMAT (
+		dateStr varchar(20)
+	) RETURNS datetime
+	DETERMINISTIC
+	COMMENT '날짜형식의 문자열을 DTTM 형식으로 변환'
+BEGIN
+	RETURN DATE_FORMAT(dateStr,'%Y%m%d%H%i%s');
+END

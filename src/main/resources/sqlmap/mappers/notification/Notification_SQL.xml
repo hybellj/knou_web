@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.notification.dao.NotificationDAO">
+
+	<!-- Mapper XML 예시 -->
+	<sql id="CommonNotificationData">
+		SELECT 'S' AS noti_type
+		     , 'SMS' AS noti_type_nm
+		     , 'N'   AS read_yn
+		     , 'SMS 내용 예시 1' AS contents
+		FROM dual
+		UNION ALL
+		SELECT 'P', 'PUSH', 'N', 'PUSH 알림 예시 1' FROM dual
+		UNION ALL
+		SELECT 'T', 'TALK', 'Y', 'TALK 알림 예시 1' FROM dual
+		UNION ALL
+		SELECT 'M', '쪽지', 'Y', '쪽지 내용 예시 1' FROM dual
+		UNION ALL
+		SELECT 'S', 'SMS', 'N', 'SMS 내용 예시 2' FROM dual
+		UNION ALL
+		SELECT 'P', 'PUSH', 'N', 'PUSH 알림 예시 2' FROM dual
+		UNION ALL
+		SELECT 'T', 'TALK', 'Y', 'TALK 알림 예시 2' FROM dual
+		UNION ALL
+		SELECT 'M', '쪽지', 'N', '쪽지 내용 예시 2' FROM dual
+	</sql>
+
+	<select id="listNotification" parameterType="notificationVO" resultType="notificationVO">
+		SELECT *
+		FROM (
+		<include refid="CommonNotificationData"/>
+		)
+		WHERE 1=1
+		<if test='notiType != null and notiType != ""'>
+			AND NOTI_TYPE = #{notiType}
+		</if>
+	</select>
+</mapper>

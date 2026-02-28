@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.common.dao.OrgMenuDAO">
+
+	<select id="list" parameterType="orgMenuVO" resultType="orgMenuVO">
+		/*
+			 SQL ID : OrgMenuDAO.list
+			 설  명 : 기관 메뉴의 전체 목록
+	 	*/
+	 	<![CDATA[
+			SELECT A.ORG_ID
+				 , A.MENU_ID
+				 , A.MENU_TYCD
+				 , A.MENUNM
+				 , A.UP_MENU_ID
+				 , NVL(( SELECT MENUNM
+						   FROM TB_LMS_MENU
+						  WHERE MENU_ID = A.UP_MENU_ID
+						  GROUP BY MENUNM),'ROOT') AS PAR_MENU_NM
+				 , A.MENU_LV
+				 , CASE WHEN (A.MENU_LV -1) < 0 THEN 0 ELSE (A.MENU_LV -1) END AS PAR_MENU_LVL
+				 , A.MENU_SEQ
+				 , A.MENU_URL
+				 , A.MENU_PATH
+				 , A.MENU_EXPLN
+				 , A.USEYN
+				 , A.UPEND_MENUYN
+				 , A.TOP_MENU_IMG
+				 , A.LEFT_SIDE_MENU_IMG
+				 , A.LEFT_SIDE_MENU_TTL
+				 , A.MENU_TTL
+				 , A.BRDRLN_USEYN
+				 , A.OPTN_CTGR_CD_1
+				 , A.OPTN_CD_1
+				 , A.OPTN_CTGR_CD_2
+				 , A.OPTN_CD_2
+				 , A.OPTN_CTGR_CD_3
+				 , A.OPTN_CD_3
+				 , A.OPTN_CTGR_CD_4
+				 , A.OPTN_CD_4
+				 , A.OPTN_CTGR_CD_5
+				 , A.OPTN_CD_5
+				 , A.SSL_USEYN
+				 , A.RGTR_ID
+				 , '' AS RGTRNM
+				 , A.FRST_INQ_DTTM
+				 , A.MDFR_ID
+				 , '' AS MOD_NM
+				 , A.MOD_DTTM
+				 , NVL(B.VIEW_AUTH,'N') AS VIEW_AUTH
+				 , NVL(B.REG_AUTHRTYN,'N')  AS REG_AUTHRTYN
+				 , NVL(B.MOD_AUTHRTYN,'N')  AS MOD_AUTHRTYN
+				 , NVL(B.DEL_AUTH,'N')  AS DEL_AUTH
+				 , ( SELECT COUNT(*)
+					   FROM TB_LMS_MENU
+					  WHERE MENU_TYCD = A.MENU_TYCD
+						AND UP_MENU_ID = A.MENU_ID ) AS SUB_CNT
+			  FROM TB_LMS_MENU A 
+			   LEFT OUTER JOIN TB_LMS_AUTHRT B
+			      ON A.MENU_TYCD = B.MENU_TYCD AND A.MENU_ID = B.MENU_ID AND #{authGrpCd} LIKE '%' || B.USER_AUTHRT_ID || '%'
+			 WHERE A.ORG_ID = #{orgId}	
+			 ]]>
+			   AND A.MENU_TYCD = #{menuType}
+			<if test="parMenuCd != null and parMenuCd != ''">
+			   AND A.UP_MENU_ID = #{parMenuCd}
+			</if>
+		 	ORDER BY MENU_LV, MENU_SEQ	
+	</select>
+	
+	<select id="select" parameterType="orgMenuVO" resultType="orgMenuVO">
+		/*
+			 SQL ID : OrgMenuDAO.select
+			 설  명 : 기관 메뉴의 정보 조회
+	 	*/
+	 	<![CDATA[
+			SELECT A.ORG_ID
+				 , A.MENU_ID
+				 , A.MENU_TYCD
+				 , A.MENUNM
+				 , A.UP_MENU_ID
+				 , IFNULL(( SELECT MENUNM
+						   FROM TB_LMS_MENU
+						  WHERE MENU_ID = A.UP_MENU_ID),'ROOT') AS PAR_MENU_NM
+				 , A.MENU_LV as menuLvl
+				 , CASE WHEN (A.MENU_LV -1) < 0 THEN 0 ELSE (A.MENU_LV -1) END AS PAR_MENU_LVL
+				 , A.MENU_SEQ
+				 , A.MENU_URL
+				 , A.MENU_PATH
+				 , A.MENU_EXPLN
+				 , A.USEYN
+				 , A.UPEND_MENUYN
+				 , A.TOP_MENU_IMG
+				 , A.LEFT_SIDE_MENU_IMG
+				 , A.LEFT_SIDE_MENU_TTL
+				 , A.MENU_TTL
+				 , A.BRDRLN_USEYN
+				 , A.OPTN_CTGR_CD_1
+				 , A.OPTN_CD_1
+				 , A.OPTN_CTGR_CD_2
+				 , A.OPTN_CD_2
+				 , A.OPTN_CTGR_CD_3
+				 , A.OPTN_CD_3
+				 , A.OPTN_CTGR_CD_4
+				 , A.OPTN_CD_4
+				 , A.OPTN_CTGR_CD_5
+				 , A.OPTN_CD_5
+				 , A.SSL_USEYN
+				 , A.RGTR_ID
+				 , '' AS RGTRNM
+				 , A.FRST_INQ_DTTM 
+				 , A.MDFR_ID 
+				 , '' AS MOD_NM
+				 , A.MOD_DTTM as modDttm
+				 , ( SELECT COUNT(*)
+					   FROM TB_LMS_MENU
+					  WHERE MENU_TYCD = A.MENU_TYCD
+						AND UP_MENU_ID = A.MENU_ID ) AS SUB_CNT
+			  FROM TB_LMS_MENU A 
+			 WHERE A.ORG_ID = #{orgId}	
+			 ]]>
+		 	<if test="menuType != null">
+			   AND A.MENU_TYCD = #{menuType}
+			</if>
+			   AND A.MENU_ID = #{menuCd}
+	</select>
+	
+	<select id="selectAuthorizeByMenu" parameterType="orgMenuVO" resultType="orgMenuVO">
+		/*
+			 SQL ID : OrgMenuDAO.selectAuthorizeByMenu
+			 설  명 : 메뉴 코드 및 사용자 권한으로 메뉴의 권한
+	 	*/
+		SELECT MENU_ID
+		           , MAX(VIEW_AUTH) AS VIEW_AUTH
+		           , MAX(REG_AUTHRTYN) AS REG_AUTHRTYN
+		    FROM TB_LMS_AUTHRT
+		  WHERE ORG_ID = #{orgId}
+		       AND MENU_TYCD = IFNULL(#{menuType}, MENU_TYCD)
+		       AND MENU_ID = #{menuCd}
+		       AND #{authGrpCd} LIKE CONCAT('%',USER_AUTHRT_ID,'%') COLLATE utf8mb4_general_ci
+		   GROUP BY MENU_ID	 	
+	</select>	
+	
+	<select id="listAuthGrpMenu" parameterType="orgMenuVO" resultType="orgMenuVO">
+		/*
+			 SQL ID : OrgMenuDAO.listAuthGrpMenu
+			 설  명 : 입력된 권한 그룹의 전체 메뉴 목록
+	 	*/
+	 	<![CDATA[
+	 	SELECT DISTINCT A.ORG_ID
+		         , A.MENU_ID
+				 , A.MENU_TYCD
+				 , A.MENUNM
+				 , A.UP_MENU_ID
+				 , IFNULL(( SELECT MENUNM
+						   FROM TB_LMS_MENU
+						  WHERE MENU_ID = A.UP_MENU_ID),'ROOT') AS PAR_MENU_NM
+				 , A.MENU_LV
+				 , CASE WHEN (A.MENU_LV -1) < 0 THEN 0 ELSE (A.MENU_LV -1) END AS PAR_MENU_LVL
+				 , A.MENU_SEQ
+				 , A.MENU_URL
+				 , A.MENU_PATH
+				 , A.MENU_EXPLN
+				 , A.USEYN
+				 , A.UPEND_MENUYN
+				 , A.TOP_MENU_IMG
+				 , A.LEFT_SIDE_MENU_IMG
+				 , A.LEFT_SIDE_MENU_TTL
+				 , A.MENU_TTL
+				 , A.BRDRLN_USEYN
+				 , A.OPTN_CTGR_CD_1
+				 , A.OPTN_CD_1
+				 , A.OPTN_CTGR_CD_2
+				 , A.OPTN_CD_2
+				 , A.OPTN_CTGR_CD_3
+				 , A.OPTN_CD_3
+				 , A.OPTN_CTGR_CD_4
+				 , A.OPTN_CD_4
+				 , A.OPTN_CTGR_CD_5
+				 , A.OPTN_CD_5
+				 , A.SSL_USEYN
+				 , A.RGTR_ID
+				 , '' AS RGTRNM
+				 , A.FRST_INQ_DTTM
+				 , A.MDFR_ID
+				 , '' AS MOD_NM
+				 , A.MOD_DTTM
+				 , IFNULL(B.VIEW_AUTH,'N') AS VIEW_AUTH
+				 , IFNULL(B.REG_AUTHRTYN,'N') AS REG_AUTHRTYN
+				 , IFNULL(B.MOD_AUTHRTYN,'N') AS MOD_AUTHRTYN
+				 , IFNULL(B.DEL_AUTH,'N') AS DEL_AUTH
+				 , ( SELECT COUNT(*)
+					   FROM TB_LMS_MENU
+					  WHERE MENU_TYCD = A.MENU_TYCD
+						AND UP_MENU_ID = A.MENU_ID ) AS SUB_CNT
+			  FROM TB_LMS_MENU A LEFT OUTER JOIN TB_LMS_AUTHRT B
+			  ON A.MENU_TYCD = B.MENU_TYCD AND A.MENU_ID = B.MENU_ID AND #{authGrpCd} LIKE CONCAT('%',B.USER_AUTHRT_ID,'%') COLLATE utf8mb4_general_ci
+			 WHERE A.ORG_ID = #{orgId}	
+		    ]]>
+		   AND A.USEYN = 'Y'
+		   AND A.MENU_TYCD = #{menuType}
+			<if test="parMenuCd != null and parMenuCd != ''">
+			   AND A.UP_MENU_ID = #{parMenuCd}
+			</if>
+			ORDER BY MENU_LV, MENU_SEQ
+	</select>
+	
+	<select id="selectKey" resultType="String">
+		/*
+			 SQL ID : OrgMenuDAO.selectKey
+			 설  명 : 메뉴 코드의 키 생성
+	 	*/
+	 	SELECT 'MC'||LPAD(SQ_ORG_MENU.nextVal, 8, '0') 
+	</select>	
+	
+	<insert id="insert" parameterType="orgMenuVO" >
+		/*
+			 SQL ID : OrgMenuDAO.insert
+			 설  명 : 기관 메뉴의 정보 등록
+	 	*/
+		INSERT INTO TB_LMS_MENU (
+		       ORG_ID
+		     , MENU_ID
+		     , UP_MENU_ID
+		     , MENU_TYCD
+		     , MENUNM
+		     , MENU_LV
+		     , MENU_SEQ
+		     , MENU_URL
+		     , MENU_PATH
+		     , MENU_EXPLN
+		     , USEYN
+			 , LEFT_SIDE_MENU_IMG
+		     , MENU_TTL
+		     , OPTN_CTGR_CD_1
+		     , OPTN_CD_1
+		     , OPTN_CTGR_CD_2
+		     , OPTN_CD_2
+		     , OPTN_CTGR_CD_3
+		     , OPTN_CD_3
+		     , OPTN_CTGR_CD_4
+		     , OPTN_CD_4
+		     , OPTN_CTGR_CD_5
+		     , OPTN_CD_5
+		     , SSL_USEYN
+		     , BRDRLN_USEYN
+		     , BSCYN
+		     , MENU_INQYN
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		) VALUES (     
+		       #{orgId}
+		     , #{menuCd}
+		     , #{parMenuCd}
+		     , #{menuType}
+		     , #{menuNm}
+		     , #{menuLvl}
+		     , ( SELECT MAX(IFNULL(A.MENU_SEQ,0)) + 1
+		           FROM TB_LMS_MENU A
+		          WHERE A.ORG_ID = #{orgId}
+		            AND A.MENU_TYCD = #{menuType}
+		            AND IFNULL(A.UP_MENU_ID,'1') = IFNULL(#{parMenuCd},'1') )
+		     , #{menuUrl}
+		     , #{menuPath}
+		     , #{menuDesc}
+		     , #{useYn}
+		     , #{leftMenuImg}
+		     , #{menuTitle}
+		     , #{optnCtgrCd1}
+		     , #{optnCd1}
+		     , #{optnCtgrCd2}
+		     , #{optnCd2}
+		     , #{optnCtgrCd3}
+		     , #{optnCd3}
+		     , #{optnCtgrCd4}
+		     , #{optnCd4}
+		     , #{optnCtgrCd5}
+		     , #{optnCd5}
+		     , #{sslYn}
+		     , #{divLineUseYn}
+		     , 'N' 
+		     , #{menuViewYn}
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		)
+	</insert>
+	
+	<update id="update" parameterType="orgMenuVO" >
+		/*
+			 SQL ID : OrgMenuDAO.update
+			 설  명 : 기관 메뉴의 정보 수정
+	 	*/
+		UPDATE TB_LMS_MENU
+		   SET MENUNM = #{menuNm}
+		     <if test="parMenuCd != null and parMenuCd != ''">
+		     , UP_MENU_ID = #{parMenuCd}
+		     </if>
+		     <if test="menuLvl != null and menuLvl != ''">
+		     , MENU_LV = #{menuLvl}
+		     </if>
+		     <if test="menuOdr != null and menuOdr != ''">
+		     , MENU_SEQ = #{menuOdr}
+		     </if>
+		     <if test="menuUrl != null and menuUrl != ''">
+		     , MENU_URL = #{menuUrl}
+		     </if>
+		     <if test="menuPath != null and menuPath != ''">
+		     , MENU_PATH = #{menuPath}
+		     </if>
+		     <if test="menuDesc != null and menuDesc != ''">
+		     , MENU_EXPLN = #{menuDesc}
+		     </if>
+		     <if test="useYn != null and useYn != ''">
+		     , USEYN = #{useYn}
+		     </if>
+		     <if test="leftMenuImg != null and leftMenuImg != ''">
+		     , LEFT_SIDE_MENU_IMG = #{leftMenuImg}
+		     </if>
+		     <if test="menuTitle != null and menuTitle != ''">
+		     , MENU_TTL = #{menuTitle}
+		     </if>
+		     <if test="optnCtgrCd1 != null and optnCtgrCd1 != ''">
+		     , OPTN_CTGR_CD_1 = #{optnCtgrCd1}
+		     </if>
+		     <if test="optnCd1 != null and optnCd1 != ''">
+		     , OPTN_CD_1 = #{optnCd1}
+		     </if>
+		     <if test="optnCtgrCd2 != null and optnCtgrCd2 != ''">
+		     , OPTN_CTGR_CD_2 = #{optnCtgrCd2}
+		     </if>
+		     <if test="optnCd2 != null and optnCd2 != ''">
+		     , OPTN_CD_2 = #{optnCd2}
+		     </if>
+		     <if test="optnCtgrCd3 != null and optnCtgrCd3 != ''">
+		     , OPTN_CTGR_CD_3 = #{optnCtgrCd3}
+		     </if>
+		     <if test="optnCd3 != null and optnCd3 != ''">
+		     , OPTN_CD_3 = #{optnCd3}
+		     </if>
+		     <if test="optnCtgrCd4 != null and optnCtgrCd4 != ''">
+		     , OPTN_CTGR_CD_4 = #{optnCtgrCd4}
+		     </if>
+		     <if test="optnCd4 != null and optnCd4 != ''">
+		     , OPTN_CD_4 = #{optnCd4}
+		     </if>
+		     <if test="optnCtgrCd5 != null and optnCtgrCd5 != ''">
+		     , OPTN_CTGR_CD_5 = #{optnCtgrCd5}
+		     </if>
+		     <if test="optnCd5 != null and optnCd5 != ''">
+		     , OPTN_CD_5 = #{optnCd5}
+		     </if>
+		     <if test="sslYn != null and sslYn != ''">
+		     , SSL_USEYN = #{sslYn}
+		     </if>
+		     <if test="divLineUseYn != null and divLineUseYn != ''">
+		     , BRDRLN_USEYN = #{divLineUseYn}
+		     </if>
+		     <if test="menuViewYn != null and menuViewYn != ''">
+		     , MENU_INQYN = #{menuViewYn}
+		     </if>
+		     , MDFR_ID = #{mdfrId}
+		     , MOD_DTTM = FN_DTTM()
+		 WHERE ORG_ID = #{orgId}
+		   AND MENU_TYCD = #{menuType}
+		   AND MENU_ID = #{menuCd}
+	</update>	
+
+	<delete id="delete" parameterType="orgMenuVO" >
+		/*
+			 SQL ID : OrgMenuDAO.delete
+			 설  명 : 기관 메뉴의 정보 삭제
+	 	*/
+		DELETE FROM TB_LMS_MENU
+		 WHERE ORG_ID = #{orgId}
+		   AND MENU_TYCD = #{menuType}
+		   AND MENU_ID = #{menuCd}
+	</delete>
+
+	<insert id="insertInit" parameterType="orgMenuVO" >
+		/*
+			 SQL ID : OrgMenuDAO.insertInit
+			 설  명 : 기관 메뉴의 초기화 등록
+	 	*/
+		INSERT INTO TB_LMS_MENU (
+		       ORG_ID
+		     , MENU_ID
+		     , UP_MENU_ID
+		     , MENU_TYCD
+		     , MENUNM
+		     , MENU_LV
+		     , MENU_SEQ
+		     , MENU_URL
+		     , MENU_PATH
+		     , MENU_EXPLN
+		     , USEYN
+		     , LEFT_SIDE_MENU_IMG
+		     , MENU_TTL
+		     , OPTN_CTGR_CD_1
+		     , OPTN_CD_1
+		     , OPTN_CTGR_CD_2
+		     , OPTN_CD_2
+		     , OPTN_CTGR_CD_3
+		     , OPTN_CD_3
+		     , OPTN_CTGR_CD_4
+		     , OPTN_CD_4
+		     , OPTN_CTGR_CD_5
+		     , OPTN_CD_5
+		     , SSL_USEYN
+		     , BRDRLN_USEYN
+		     , BSCYN
+		     , MENU_INQYN
+		     , RGTR_ID
+		     , FRST_INQ_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		)
+		SELECT #{orgId}
+		     , MENU_ID
+		     , UP_MENU_ID
+		     , MENU_TYCD
+		     , MENUNM
+		     , MENU_LV
+		     , MENU_SEQ
+		     , MENU_URL
+		     , MENU_PATH
+		     , MENU_EXPLN
+		     , USEYN
+		     , LEFT_SIDE_MENU_IMG
+		     , MENU_TTL
+		     , OPTN_CTGR_CD_1
+		     , OPTN_CD_1
+		     , OPTN_CTGR_CD_2
+		     , OPTN_CD_2
+		     , OPTN_CTGR_CD_3
+		     , OPTN_CD_3
+		     , OPTN_CTGR_CD_4
+		     , OPTN_CD_4
+		     , OPTN_CTGR_CD_5
+		     , OPTN_CD_5
+		     , SSL_USEYN
+		     , BRDRLN_USEYN
+		     , 'Y' 
+		     , 'Y'
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		  FROM TB_LMS_MENU
+		 WHERE MENU_TYCD = #{menuType}
+	</insert>
+	
+	<delete id="deleteByMenuLvl" parameterType="orgMenuVO" >
+		/*
+			 SQL ID : OrgMenuDAO.deleteByMenuLvl
+			 설  명 : 기관 메뉴의 초기화 삭제 (레벨별로 삭제)
+	 	*/
+	 	DELETE FROM TB_LMS_MENU
+		 WHERE ORG_ID = #{orgId}
+		   AND MENU_TYCD = #{menuType}
+		   AND MENU_LV = #{menuLvl}
+	</delete>
+	
+	<select id="selectMenuSimpleInfo" parameterType="orgMenuVO" resultType="orgMenuVO">
+        /*
+             SQL ID : OrgMenuDAO.selectMenuSimpleInfo
+             	설  명 : 메뉴 의 간략 정보 조회
+        */
+        <!-- SELECT A.MENU_ID
+             , A.MENU_TYCD
+             , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'MENU_TYCD' AND CD = A.MENU_TYCD) AS MENU_TYPE_NM 
+             , IFNULL(B.MENUNM, A.MENUNM) AS MENUNM
+          FROM TB_LMS_MENU A
+          LEFT JOIN TB_ORG_MENU_LANG B
+            ON A.ORG_ID = B.ORG_ID
+           AND A.MENU_ID = B.MENU_ID 
+           AND B.LANG_CD = #{langCd}
+         WHERE A.MENU_ID = #{menuCd}
+           AND A.ORG_ID = #{orgId} -->
+        SELECT A.MENU_ID
+             , A.MENU_TYCD
+             , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'MENU_TYCD' AND CD = A.MENU_TYCD) AS MENU_TYPE_NM 
+             , NVL(A.MENUNM, '') AS MENUNM
+          FROM TB_LMS_MENU A
+          <!--   LEFT JOIN TB_ORG_MENU_LANG B
+          ON A.ORG_ID = B.ORG_ID
+           AND A.MENU_ID = B.MENU_ID 
+           AND B.LANG_CD = #{langCd} -->
+         WHERE A.MENU_ID = #{menuCd}
+           AND A.ORG_ID = #{orgId}
+    </select>
+	
+</mapper>

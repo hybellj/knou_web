@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.connip.dao.OrgConnIpDAO">
+
+	<select id="list" parameterType="orgConnIpVO" resultType="orgConnIpVO">
+		/*
+			 SQL ID : OrgConnIpDAO.list
+			 설  명 : 접속 IP의 전체 목록
+	 	*/
+	 	SELECT ROW_NUMBER() OVER(ORDER BY BAND_CHKYN, CNTN_PRM_IP) AS LINE_NO
+	 		 , ORG_ID 	
+		     , CNTN_PRM_IP 	
+		     , USEYN 	
+		     , BAND_CHKYN 	
+		     , RGTR_ID 	
+		     , (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = RGTR_ID) AS RGTRNM
+		     , REG_DTTM 
+		     , MDFR_ID 
+		     , (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = MDFR_ID) AS MOD_NM
+		     , MOD_DTTM AS MODDTTM
+		  FROM TB_LMS_ORG_CNTN_PRM_IP
+		 WHERE ORG_ID = #{orgId}
+		<if test="useYn != null">  
+		   AND USEYN = #{useYn}
+		</if>
+		 ORDER BY BAND_CHKYN, CNTN_PRM_IP
+	</select>
+	
+	<select id="listPageing" parameterType="orgConnIpVO" resultType="orgConnIpVO">
+		/*
+			 SQL ID : OrgConnIpDAO.listPageing
+			 설  명 : 접속 IP의 페이징 목록
+	 	*/	 	
+	 	<include refid="CommonSQL.pagePrefix"/>
+	 	SELECT ROW_NUMBER() OVER(ORDER BY BAND_CHKYN, CNTN_PRM_IP) AS LINE_NO
+	 		 , ORG_ID 	
+		     , CNTN_PRM_IP 	
+		     , USEYN 	
+		     , BAND_CHKYN 	
+		     , RGTR_ID 	
+		     , (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = RGTR_ID) AS RGTRNM
+		     , REG_DTTM 
+		     , MDFR_ID 
+		     , (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = MDFR_ID) AS MOD_NM
+		     , MOD_DTTM 
+		  FROM TB_LMS_ORG_CNTN_PRM_IP
+		 WHERE ORG_ID = #{orgId}
+		<if test="useYn != null">  
+		   AND USEYN = #{useYn}
+		</if>
+		 ORDER BY BAND_CHKYN, CNTN_PRM_IP
+	 	<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="count" parameterType="orgConnIpVO" resultType="Integer">
+		/*
+			 SQL ID : OrgConnIpDAO.count
+			 설  명 : 접속 IP의 전체 카운트
+	 	*/
+	 	SELECT COUNT(*) FROM (
+	 	SELECT ORG_ID 	
+		     , CNTN_PRM_IP 	
+		     , USEYN 	
+		     , BAND_CHKYN 	
+		     , RGTR_ID 	
+		     , (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = RGTR_ID) AS RGTRNM
+		     , REG_DTTM 
+		     , MDFR_ID 
+		     , (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = MDFR_ID) AS MOD_NM
+		     , MOD_DTTM
+		  FROM TB_LMS_ORG_CNTN_PRM_IP
+		 WHERE ORG_ID = #{orgId}
+		<if test="useYn != null">  
+		   AND USEYN = #{useYn}
+		</if>
+		 ORDER BY BAND_CHKYN, CNTN_PRM_IP
+	 	) T
+	</select>
+	
+	<select id="select" parameterType="orgConnIpVO" resultType="orgConnIpVO">
+		/*
+			 SQL ID : OrgConnIpDAO.select
+			 설  명 : 접속 IP의 정보 조회
+	 	*/
+	 	SELECT ORG_ID 
+		     , CNTN_PRM_IP 	
+		     , USEYN 	
+		     , BAND_CHKYN 	
+		     , RGTR_ID 	
+		     , (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = RGTR_ID) AS RGTRNM
+		     , REG_DTTM 
+		     , MDFR_ID 
+		     , (SELECT USERNM FROM TB_LMS_USER_PRFIL WHERE USER_PRFIL_ID = MDFR_ID) AS MOD_NM
+		     , MOD_DTTM 
+		  FROM TB_LMS_ORG_CNTN_PRM_IP
+		 WHERE ORG_ID = #{orgId}
+           AND CNTN_PRM_IP = #{connIp}	
+	</select>	
+	
+	<insert id="insert" parameterType="orgConnIpVO" >
+		/*
+			 SQL ID : OrgConnIpDAO.insert
+			 설  명 : 접속 IP의 정보 등록
+	 	*/
+		INSERT INTO TB_LMS_ORG_CNTN_PRM_IP (
+		       ORG_ID
+		     , CNTN_PRM_IP
+		     , USEYN
+		     , BAND_CHKYN
+		     , RGTR_ID
+		     , REG_DTTM
+		     , MDFR_ID
+		     , MOD_DTTM
+		) VALUES (
+		       #{orgId}
+		     , #{connIp}
+		     , #{useYn}
+		     , #{bandVal}
+		     , #{rgtrId}
+		     , FN_DTTM()
+		     , #{mdfrId}
+		     , FN_DTTM()
+		)	
+	</insert>
+	
+	<delete id="delete" parameterType="orgConnIpVO" >
+		/*
+			 SQL ID : OrgConnIpDAO.delete
+			 설  명 : 접속 IP의 정보 삭제
+	 	*/
+		DELETE FROM TB_LMS_ORG_CNTN_PRM_IP 
+		 WHERE ORG_ID = #{orgId} 
+		   AND CNTN_PRM_IP = #{connIp}
+	</delete>
+	 
+</mapper>

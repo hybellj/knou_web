@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.exam.dao.TkexamHstryDAO">
+
+	<select id="profQuizTkexamHstryList" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : TkexamHstryDAO.profQuizTkexamHstryList
+             설  명  : 교수퀴즈응시이력목록조회
+         */
+         SELECT
+         	  ROW_NUMBER() OVER(ORDER BY TKEXAM_HSTRY.REG_DTTM DESC) AS LINE_NO
+			, NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE ORG_ID = USR.ORG_ID AND DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
+			, USR.USER_RPRS_ID
+			, USR.STDNT_NO
+			, USR.USERNM
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'HSTRY_GBNCD' AND CD = TKEXAM_HSTRY.HSTRY_GBNCD) AS HSTRY_GBNNM
+			, TKEXAM_HSTRY.REG_DTTM
+			, TKEXAM_HSTRY.TKEXAM_IP
+		  FROM TB_LMS_TKEXAM_HSTRY TKEXAM_HSTRY
+		  JOIN TB_LMS_USER USR
+		    ON TKEXAM_HSTRY.USER_ID = USR.USER_ID
+		   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+		 WHERE TKEXAM_HSTRY.EXAM_DTL_ID = #{examDtlId}
+		   AND TKEXAM_HSTRY.USER_ID = #{userId}
+		 ORDER BY TKEXAM_HSTRY.REG_DTTM DESC
+	</select>
+
+	<insert id="userListRetkexamHstryRegist" parameterType="java.util.List">
+		/*
+             SQL ID : TkexamHstryDAO.userListRetkexamHstryRegist
+             설  명  : 사용자목록재응시이력등록
+         */
+        INSERT INTO TB_LMS_TKEXAM_HSTRY (
+        	  TKEXAM_HSTRY_ID
+			, USER_ID
+			, EXAM_DTL_ID
+			, HSTRY_GBNCD
+			, TKEXAM_CNT
+			, TOT_SCR
+			, TKEXAM_MNTS
+			, TKEXAM_SDTTM
+			, TKEXAM_EDTTM
+			, EVLYN
+			, EVL_DTTM
+			, RGTR_ID
+			, REG_DTTM
+			, TKEXAM_IP
+        )
+        <foreach item="item" collection="list" separator="UNION ALL">
+        	SELECT
+        		  #{item.subParam} AS TKEXAM_HSTRY_ID
+				, TKEXAM.USER_ID
+				, TKEXAM.EXAM_DTL_ID
+				, 'REEXAM_STNG' AS HSTRY_GBNCD
+				, TKEXAM.TKEXAM_CNT
+				, NVL(SCR.TOT_SCR, 0) AS TOT_SCR
+				, TKEXAM.TKEXAM_MNTS
+				, TKEXAM.TKEXAM_SDTTM
+				, TKEXAM.TKEXAM_EDTTM
+				, TKEXAM_RSLT.EVLYN
+				, TKEXAM_RSLT.EVL_DTTM
+				, #{item.rgtrId} AS RGTR_ID
+	        	, FN_DTTM()
+				, HSTRY.TKEXAM_IP
+			  FROM TB_LMS_TKEXAM TKEXAM
+			  LEFT JOIN (
+			  	SELECT
+					  ANSW.USER_ID
+					, EXAMPPR.TKEXAM_ID
+					, SUM(ANSW.SCR) AS TOT_SCR
+				 FROM TB_LMS_TKEXAM_ANSW_SHT ANSW
+				 JOIN TB_LMS_EXAMPPR EXAMPPR
+				   ON ANSW.EXAMPPR_ID = EXAMPPR.EXAMPPR_ID
+				  AND ANSW.USER_ID = EXAMPPR.USER_ID
+				GROUP BY ANSW.USER_ID, EXAMPPR.TKEXAM_ID
+			  ) SCR
+			    ON SCR.USER_ID = TKEXAM.USER_ID
+			   AND SCR.TKEXAM_ID = TKEXAM.TKEXAM_ID
+			  LEFT JOIN TB_LMS_TKEXAM_RSLT TKEXAM_RSLT
+			    ON TKEXAM_RSLT.TKEXAM_ID = TKEXAM.TKEXAM_ID
+			   AND TKEXAM_RSLT.USER_ID = TKEXAM.USER_ID
+			  LEFT JOIN (
+			  	SELECT
+					  USER_ID
+					, EXAM_DTL_ID
+					, TKEXAM_IP
+					, ROW_NUMBER() OVER(PARTITION BY USER_ID, EXAM_DTL_ID ORDER BY REG_DTTM DESC) AS RNUM
+				  FROM TB_LMS_TKEXAM_HSTRY
+			  ) HSTRY
+			    ON HSTRY.EXAM_DTL_ID = TKEXAM.EXAM_DTL_ID
+			   AND HSTRY.USER_ID = TKEXAM.USER_ID
+			   AND HSTRY.RNUM = 1
+			 WHERE TKEXAM.EXAM_DTL_ID = #{item.examDtlId}
+			   AND TKEXAM.USER_ID = #{item.userId}
+	    </foreach>
+	</insert>
+
+	<insert id="userTkexamHstryRegist" parameterType="tkexamHstryVO">
+		/*
+             SQL ID : TkexamHstryDAO.userTkexamHstryRegist
+             설  명  : 사용자시험응시이력등록
+         */
+        INSERT INTO TB_LMS_TKEXAM_HSTRY (
+        	  TKEXAM_HSTRY_ID
+			, USER_ID
+			, EXAM_DTL_ID
+			, HSTRY_GBNCD
+			, TKEXAM_CNT
+			, TOT_SCR
+			, TKEXAM_MNTS
+			, TKEXAM_SDTTM
+			, TKEXAM_EDTTM
+			, EVLYN
+			, EVL_DTTM
+			, RGTR_ID
+			, REG_DTTM
+			, TKEXAM_IP
+        ) VALUES (
+        	  #{tkexamHstryId}
+			, #{userId}
+			, #{examDtlId}
+			, #{hstryGbncd}
+			, #{tkexamCnt}
+			, #{totScr}
+			, #{tkexamMnts}
+			, #{tkexamSdttm}
+			, #{tkexamEdttm}
+			, #{evlyn}
+			, #{evlDttm}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{tkexamIp}
+        )
+	</insert>
+
+	<select id="userTkexamInfoSelect" parameterType="map" resultType="tkexamHstryVO">
+		/*
+             SQL ID : TkexamHstryDAO.userTkexamInfoSelect
+             설  명  : 사용자시험응시정보조회
+         */
+         SELECT
+			  TKEXAM.USER_ID
+			, TKEXAM.EXAM_DTL_ID
+			, 'EXAMPPR_GRNT' AS HSTRY_GBNCD
+			, TKEXAM.TKEXAM_CNT
+			, NVL(SCR.TOT_SCR, 0) AS TOT_SCR
+			, TKEXAM.TKEXAM_MNTS
+			, TKEXAM.TKEXAM_SDTTM
+			, TKEXAM.TKEXAM_EDTTM
+			, TKEXAM_RSLT.EVLYN
+			, TKEXAM_RSLT.EVL_DTTM
+			, HSTRY.TKEXAM_IP
+		  FROM TB_LMS_TKEXAM TKEXAM
+		  LEFT JOIN (
+		  	SELECT
+				  ANSW.USER_ID
+				, EXAMPPR.TKEXAM_ID
+				, SUM(ANSW.SCR) AS TOT_SCR
+			 FROM TB_LMS_TKEXAM_ANSW_SHT ANSW
+			 JOIN TB_LMS_EXAMPPR EXAMPPR
+			   ON ANSW.EXAMPPR_ID = EXAMPPR.EXAMPPR_ID
+			  AND ANSW.USER_ID = EXAMPPR.USER_ID
+			GROUP BY ANSW.USER_ID, EXAMPPR.TKEXAM_ID
+		  ) SCR
+		    ON SCR.USER_ID = TKEXAM.USER_ID
+		   AND SCR.TKEXAM_ID = TKEXAM.TKEXAM_ID
+		  LEFT JOIN TB_LMS_TKEXAM_RSLT TKEXAM_RSLT
+		    ON TKEXAM_RSLT.TKEXAM_ID = TKEXAM.TKEXAM_ID
+		   AND TKEXAM_RSLT.USER_ID = TKEXAM.USER_ID
+		  LEFT JOIN (
+		  	SELECT
+				  USER_ID
+				, EXAM_DTL_ID
+				, TKEXAM_IP
+				, ROW_NUMBER() OVER(PARTITION BY USER_ID, EXAM_DTL_ID ORDER BY REG_DTTM DESC) AS RNUM
+			  FROM TB_LMS_TKEXAM_HSTRY
+		  ) HSTRY
+		    ON HSTRY.EXAM_DTL_ID = TKEXAM.EXAM_DTL_ID
+		   AND HSTRY.USER_ID = TKEXAM.USER_ID
+		   AND HSTRY.RNUM = 1
+		 WHERE TKEXAM.TKEXAM_ID = #{tkexamId}
+		   AND TKEXAM.EXAM_DTL_ID = #{examDtlId}
+		   AND TKEXAM.USER_ID = #{userId}
+	</select>
+
+</mapper>

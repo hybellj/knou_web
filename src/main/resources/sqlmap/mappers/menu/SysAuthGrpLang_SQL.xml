@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.menu.dao.SysAuthGrpLangDAO">
+	
+	<select id="list" parameterType="sysAuthGrpLangVO" resultType="sysAuthGrpLangVO">
+		/*
+			 SQL ID : SysAuthGrpLangMapper.list
+			 설  명 : 시스템 권한 언어의 전체 목록
+	 	*/
+	 	SELECT MENU_TYCD as menuType
+		     , USER_AUTHRT_ID as authGrpCd
+		     , LANG_CD as langCd
+		     , AUTHRT_GRPNM as authGrpNm
+		     , AUTHRT_GRP_EXPLN as authGrpDesc
+		  FROM TB_SYS_AUTH_GRP_LANG
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+		 ORDER BY LANG_CD
+	</select>
+
+	<select id="select" parameterType="sysAuthGrpLangVO" resultType="sysAuthGrpLangVO">
+		/*
+			 SQL ID : SysAuthGrpLangMapper.select
+			 설  명 : 시스템 권한 언어의 정보 조회
+	 	*/
+	 	SELECT MENU_TYCD as menuType
+		     , USER_AUTHRT_ID as authGrpCd
+		     , LANG_CD as langCd
+		     , AUTHRT_GRPNM as authGrpNm
+		     , AUTHRT_GRP_EXPLN as authGrpDesc
+		  FROM TB_SYS_AUTH_GRP_LANG
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+		   AND LANG_CD = #{langCd}	 	
+	</select>	
+	
+	<insert id="insert" parameterType="sysAuthGrpLangVO" >
+		/*
+			 SQL ID : SysAuthGrpLangMapper.insert
+			 설  명 : 시스템 권한 언어의 정보 등록
+	 	*/
+		INSERT INTO TB_SYS_AUTH_GRP_LANG (
+		       MENU_TYCD
+		     , USER_AUTHRT_ID
+		     , LANG_CD
+		     , AUTHRT_GRPNM
+		     , AUTHRT_GRP_EXPLN
+		) VALUES (
+		       #{menuType}
+		     , #{authGrpCd}
+		     , #{langCd}
+		     , #{authGrpNm}
+		     , #{authGrpDesc}
+		)	 	
+	</insert>
+	
+	<update id="update" parameterType="sysAuthGrpLangVO" >
+		/*
+			 SQL ID : SysAuthGrpLangMapper.update
+			 설  명 : 시스템 권한 언어의 정보 수정
+	 	*/
+		UPDATE TB_SYS_AUTH_GRP_LANG
+		   SET AUTHRT_GRPNM = #{authGrpNm}
+		     , AUTHRT_GRP_EXPLN = #{authGrpDesc}
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+		   AND LANG_CD = #{langCd}	 	
+	</update>	
+
+	<delete id="delete" parameterType="sysAuthGrpLangVO" >
+		/*
+			 SQL ID : SysAuthGrpLangMapper.delete
+			 설  명 : 시스템 권한 언어의 정보 삭제
+	 	*/
+		DELETE FROM TB_SYS_AUTH_GRP_LANG
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+		   AND LANG_CD = #{langCd}
+	</delete>
+
+	<delete id="deleteAll" parameterType="sysAuthGrpLangVO" >
+		/*
+			 SQL ID : SysAuthGrpLangMapper.delete
+			 설  명 : 시스템 권한 언어의 전체 정보 삭제
+	 	*/
+		DELETE FROM TB_SYS_AUTH_GRP_LANG
+		 WHERE MENU_TYCD = #{menuType}
+		   AND USER_AUTHRT_ID = #{authGrpCd}
+	</delete>	
+	
+	<insert id="merge" parameterType="sysAuthGrpLangVO" >
+		/*
+			 SQL ID : SysAuthGrpLangMapper.merge
+			 설  명 : 시스템 권한 언어의 정보 등록
+		*/
+			INSERT INTO TB_SYS_AUTH_GRP_LANG
+							(  MENU_TYCD
+						     , USER_AUTHRT_ID
+						     , LANG_CD
+						     , AUTHRT_GRPNM
+						     , AUTHRT_GRP_EXPLN )
+						VALUES (
+							   #{menuType}
+						     , #{authGrpCd}
+						     , #{langCd}
+						     , #{authGrpNm}
+						     , #{authGrpDesc}
+						) 
+						ON DUPLICATE KEY 
+						UPDATE  AUTHRT_GRPNM = #{authGrpNm}
+		     					, AUTHRT_GRP_EXPLN = #{authGrpDesc} 
+	</insert>
+	 
+</mapper>

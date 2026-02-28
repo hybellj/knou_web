@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.file.dao.AttachFileDAO">
+
+    <select id="selectAtfl" parameterType="atflVO" resultType="atflVO">
+    	/*
+             SQL ID : AttachFileDAO.selectAtflByAtflId
+             설  명 : 첨부파일조회 (by AtflId)
+         */
+		SELECT
+			*
+		FROM TB_LMS_ATFL
+		WHERE ATFL_ID = #{atflId}
+    </select>
+
+
+    <select id="selectAtflListByRefId" parameterType="atflVO" resultType="atflVO">
+    	/*
+             SQL ID : AttachFileDAO.selectAtflListByAtflId
+             설  명 : 첨부파일목록조회 (by RefId)
+         */
+		SELECT
+			*
+		FROM TB_LMS_ATFL
+		WHERE REF_ID = #{refId}
+		ORDER BY ATFL_SEQNO
+    </select>
+
+
+    <insert id="insertAtflList" parameterType="java.util.List">
+        /*
+             SQL ID : insertAtflList
+             설  명 : 첨부파일목록 저장
+        */
+		INSERT INTO TB_LMS_ATFL (
+			  ATFL_ID
+			, REF_ID
+			, ATFL_REPO_ID
+			, ATFL_SEQNO
+			, FILENM
+			, FILE_EXT
+			, FILE_PATH
+			, FILE_SAVNM
+			, FILE_SIZE
+			, FILE_TYCD
+			, CNVSN_FILE
+			, ETC_INFO1
+			, ETC_INFO2
+			, ETC_INFO3
+			, MIME_TYCD
+			, THMB_FILE_PATH
+			, THMB_FILENM
+			, DWLD_CNT
+			, DELYN
+			, RGTR_ID
+			, REG_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+        )
+		<foreach collection="list" item="item" open="" close="" separator="UNION ALL">
+			SELECT
+				  #{item.atflId}
+				, #{item.refId}
+				, #{item.atflRepoId}
+				, #{item.atflSeqno}
+				, #{item.filenm}
+				, #{item.fileExt}
+				, #{item.filePath}
+				, #{item.fileSavnm}
+				, #{item.fileSize}
+				, #{item.fileTycd}
+				, #{item.cnvsnFile}
+				, #{item.etcInfo1}
+				, #{item.etcInfo2}
+				, #{item.etcInfo3}
+				, #{item.mimeTycd}
+				, #{item.thmbFilePath}
+				, #{item.thmbFilenm}
+				, #{item.dwldCnt}
+				, #{item.delyn}
+				, #{item.rgtrId}
+				, FN_DTTM()
+				, #{item.mdfrId}
+				, FN_DTTM()
+			FROM DUAL
+		</foreach>
+	</insert>
+</mapper>

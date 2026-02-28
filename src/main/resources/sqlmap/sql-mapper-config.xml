@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+
+	<settings>
+	  	<setting name="mapUnderscoreToCamelCase" value="true"/>
+		<setting name="callSettersOnNulls" value="true"/>
+		<setting name="jdbcTypeForNull" value="NULL"/>
+		<setting name="defaultExecutorType" value="REUSE"/>
+	</settings>
+
+    <typeAliases>
+		<typeAlias alias="egovMap" type="org.egovframe.rte.psl.dataaccess.util.EgovMap"/>
+		
+		<!-- VO Alias -->
+
+		<!-- framework 공통 -->
+		<package name="knou.framework.vo" />
+
+		<!-- 공통 -->
+		<package name="knou.lms.common.vo" />
+		<package name="knou.lms.cmmn.vo" />
+
+		<!-- 과제 -->
+		<package name="knou.lms.asmt.vo" />
+
+		<!-- 게시판 -->
+		<package name="knou.lms.bbs.vo" />
+
+		<!-- 관리자IP관리 -->
+		<package name="knou.lms.connip.vo" />
+
+		<!-- 강좌/강의 -->
+		<package name="knou.lms.crs.crecrs.vo" />
+		<package name="knou.lms.crs.crs.vo" />
+		<package name="knou.lms.crs.crsCtgr.vo" />
+		<package name="knou.lms.crs.home.vo" />
+		<package name="knou.lms.crs.score.vo" />
+		<package name="knou.lms.crs.term.vo" /> 	<!-- 변경됨 삭제예정 -->
+		<package name="knou.lms.crs.termlink.vo" />	<!-- 변경됨 삭제예정 -->
+
+		<package name="knou.lms.crs.semester.vo" />
+		<package name="knou.lms.crs.sbjct.vo" />	<!-- Add 관리자 과목 등록(신규) -->
+
+		<!-- 대시보드 -->
+		<package name="knou.lms.dashboard.vo" />
+
+		<!-- 시험 -->
+		<package name="knou.lms.exam.vo" />
+
+		<!-- 파일박스 -->
+		<package name="knou.lms.file.vo" />
+
+		<!-- 토론 -->
+		<package name="knou.lms.forum.vo" />	<!-- TODO : 삭제예정(구 토론) -->
+		<package name="knou.lms.forum2.vo" />	<!-- Add 관리자 과목 등록(신규) -->
+
+		<!-- 학습 -->
+		<package name="knou.lms.lesson.vo" />
+
+		<!-- 로그 -->
+		<package name="knou.lms.log.adminconnlog.vo" />
+		<package name="knou.lms.log.lesson.vo" />
+		<package name="knou.lms.log.logintry.vo" />
+		<package name="knou.lms.log.privateinfo.vo" />
+		<package name="knou.lms.log.recom.vo" />
+		<package name="knou.lms.log.sysjobsch.vo" />
+		<package name="knou.lms.log.userconn.vo" />
+
+		<!-- 로그인 -->
+		<package name="knou.lms.login.vo" />
+
+		<!-- 메뉴 -->
+		<package name="knou.lms.menu.vo" />
+
+		<!-- 메시지 -->
+		<package name="knou.lms.msg.vo" />
+
+		<!-- 루브릭 -->
+		<package name="knou.lms.mut.vo" />
+
+		<!-- 기관 -->
+		<package name="knou.lms.org.vo" />
+
+		<!-- 팝업 -->
+		<package name="knou.lms.popup.vo" />
+
+		<!-- 설문 -->
+		<package name="knou.lms.resh.vo" />
+
+		<!-- 복습기간 -->
+		<package name="knou.lms.review.vo" />
+
+		<!-- 성적 -->
+		<package name="knou.lms.score.vo" />
+
+		<!-- 컨텐츠 -->
+		<package name="knou.lms.contents.vo" />
+
+		<!-- 수강생 -->
+		<package name="knou.lms.std.vo" />
+
+		<!-- 시스템 -->
+		<package name="knou.lms.sys.vo" />
+
+		<!-- 팀활동 -->
+		<package name="knou.lms.team.vo" />
+
+		<!-- 사용자 -->
+		<package name="knou.lms.user.vo" />
+
+		<!-- 일정 -->
+		<package name="knou.lms.sch.vo" />
+
+		<!-- 세미나 -->
+		<package name="knou.lms.seminar.vo" />
+
+		<!-- 시스템설정 -->
+		<package name="knou.lms.system.config.vo" />
+
+		<!-- 시스템관리 -->
+		<package name="knou.lms.system.manager.vo" />
+		
+		<!-- 시스템 공통코드 관리 -->
+		<package name="knou.lms.system.code.vo" />
+		
+		<!-- 성적등급 -->
+		<package name="knou.lms.grade.vo" />
+
+		<!-- 통계 -->
+		<package name="knou.lms.statistics.vo" />
+
+		<!-- ERP -->
+		<package name="knou.lms.erp.vo" />
+
+		<!-- 알림 -->
+		<package name="knou.lms.notification.vo" />
+
+		<!-- 문제은행 -->
+		<package name="knou.lms.qbnk.vo" />
+
+		<package name="knou.lms.lecture2.vo" />
+		<package name="knou.lms.mrk.vo" />
+
+
+
+    </typeAliases>
+
+</configuration>

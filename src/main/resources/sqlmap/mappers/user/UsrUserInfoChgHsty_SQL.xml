@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.user.dao.UsrUserInfoChgHstyDAO">
+	
+	<select id="list" parameterType="usrUserInfoChgHstyVO" resultType="usrUserInfoChgHstyVO">
+		/*
+			 SQL ID : list
+			 설  명 : 사용자 정보 변경 로그 목록 조회
+	 	*/
+	 	SELECT ROW_NUMBER() OVER(ORDER BY A.FRST_INQ_DTTM ASC) as lineNo
+	 	<![CDATA[
+			 , A.FRST_INQ_DTTM as regDttm
+		     , A.USER_ID as userId
+		     , A.CHG_GBNCD as userInfoChgDivCd
+		     , A.CHGBFR_CTS as userInfoCts
+		     , A.CHGAFT_CTS as chgTarget
+		     , A.CNTN_IP as connIp
+		     , A.RGTR_ID as rgtrId
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS regNm
+		  FROM TB_LMS_USER_INFO_CHG_HSTRY AS A
+		 WHERE A.USER_ID = #{userId}
+		]]>
+		 ORDER BY A.FRST_INQ_DTTM DESC		
+	</select>
+	
+	<select id="listPageing" parameterType="usrUserInfoChgHstyVO" resultType="usrUserInfoChgHstyVO">
+		/*
+			 SQL ID : listPageing
+			 설  명 : 사용자 정보 변경 로그 페이징 목록
+	 	*/
+		<!-- SELECT ROW_NUMBER() OVER(ORDER BY A.FRST_INQ_DTTM ASC) as lineNo
+			 , A.FRST_INQ_DTTM as regDttm
+		     , A.USER_ID as userId
+		     , A.CHG_GBNCD as userInfoChgDivCd
+		     , A.CHGBFR_CTS as userInfoCts
+		     , A.CHGAFT_CTS as chgTarget
+		     , A.CNTN_IP as connIp
+		     , A.RGTR_ID as rgtrId
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS regNm
+		  FROM TB_LMS_USER_INFO_CHG_HSTRY AS A
+		 WHERE A.USER_ID = #{userId}
+		 ORDER BY A.FRST_INQ_DTTM DESC		
+	     LIMIT #{firstIndex}, #{listScale} -->
+			SELECT T.*
+			FROM (
+				SELECT
+					ROW_NUMBER() OVER(ORDER BY A.FRST_INQ_DTTM ASC) AS LINE_NO
+					,A.FRST_INQ_DTTM
+					,A.USER_ID
+					,A.CHG_GBNCD
+					,A.CHGBFR_CTS
+					,A.CHGAFT_CTS
+					,A.CNTN_IP
+					,A.RGTR_ID
+					,( SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS RGTRNM
+				FROM TB_LMS_USER_INFO_CHG_HSTRY A
+				WHERE A.USER_ID = #{userId}
+			) T
+			WHERE T.LINE_NO BETWEEN #{firstIndex} AND #{listScale}
+	</select>
+	
+	<select id="count" parameterType="usrUserInfoChgHstyVO" resultType="Integer">
+		/*
+			 SQL ID : count
+			 설  명 : 사용자 정보 변경 로그 전체 카운트
+	 	*/
+	 	<!-- <![CDATA[
+	 	SELECT COUNT(*) FROM (
+		 	SELECT ROW_NUMBER() OVER(ORDER BY A.FRST_INQ_DTTM ASC) as lineNo
+				 , A.FRST_INQ_DTTM
+			     , A.USER_ID
+			     , A.CHG_GBNCD
+			     , A.CHGBFR_CTS
+			     , A.CHGAFT_CTS
+			     , A.CNTN_IP
+			     , A.RGTR_ID
+			     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS RGTRNM
+			  FROM TB_LMS_USER_INFO_CHG_HSTRY A
+			 WHERE A.USER_ID = #{userId}
+			 ORDER BY A.FRST_INQ_DTTM DESC
+	 	) T
+		]]> -->
+		SELECT COUNT(*) 
+		FROM TB_LMS_USER_INFO_CHG_HSTRY A
+		WHERE A.USER_ID = #{userId}
+	</select>	
+	
+	<select id="select" parameterType="usrUserInfoChgHstyVO" resultType="usrUserInfoChgHstyVO">
+		/*
+			 SQL ID : select
+			 설  명 : 사용자 정보 변경 로그 조회
+	 	*/
+	 	<![CDATA[
+		SELECT A.FRST_INQ_DTTM as regDttm
+		     , A.USER_ID as userId
+		     , A.CHG_GBNCD as userInfoChgDivCd
+		     , A.CHGBFR_CTS as userInfoCts
+		     , A.CHGAFT_CTS as chgTarget
+		     , A.CNTN_IP as connIp
+		     , A.RGTR_ID as rgtrId
+		     , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS regNm
+		  FROM TB_LMS_USER_INFO_CHG_HSTRY AS A
+		 WHERE A.USER_ID = #{userId}
+		]]>
+		   AND A.FRST_INQ_DTTM = #{regDttm}	 	
+	</select>
+	
+	<insert id="insert" parameterType="usrUserInfoChgHstyVO" >
+		/*
+			 SQL ID : insert
+			 설  명 : 사용자 정보 변경 로그 등록
+	 	*/
+		INSERT INTO TB_LMS_USER_INFO_CHG_HSTRY (
+		       FRST_INQ_DTTM
+		     , USER_ID
+		     , CHG_GBNCD
+		     , CHGBFR_CTS
+		     , CHGAFT_CTS
+		     , CNTN_IP
+		     , RGTR_ID
+		) VALUES (
+		       FN_DTTM()
+		     , #{userId}
+		     , #{userInfoChgDivCd}
+		     , #{userInfoCts}
+		     , #{chgTarget}
+		     , #{connIp}
+		     , #{rgtrId}
+		)	 	
+	</insert>
+
+</mapper>

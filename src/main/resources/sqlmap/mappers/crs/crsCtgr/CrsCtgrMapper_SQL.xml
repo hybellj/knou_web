@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.crs.crsCtgr.dao.CrsCtgrDAO">
+
+	<select id="listCrsCtgr" parameterType="knou.lms.crs.crsCtgr.vo.CrsCtgrVO" resultType="knou.lms.crs.crsCtgr.vo.CrsCtgrVO">
+		/*
+			 SQL ID : CrsCtgrDAO.listCrsCtgr
+			 설  명 : 과목 분류 리스트
+	 	*/
+	 	<![CDATA[
+	    	SELECT CRS_CTGRCD AS crsCtgrCd
+             , ORG_ID AS orgId
+		     , UP_CRS_CTGR_ID AS parCrsCtgrCd
+		     , CRS_CTGRNM AS crsCtgrNm
+		     , CRS_CTGR_EXPLN AS crsCtgrDesc
+		     , CRS_CTGR_LV AS crsCtgrLvl
+		     , CRS_CTGR_SEQ AS crsCtgrOdr
+		     , USEYN AS useYn
+		     , RGTR_ID AS rgtrId
+		     , FRST_INQ_DTTM  AS regDttm  
+		     , MDFR_ID AS mdfrId
+		     , MOD_DTTM  AS modDttm
+		     , IFNULL(( SELECT CRS_CTGRNM FROM TB_LMS_CRS_CTGR WHERE ORG_ID = A.ORG_ID AND CRS_CTGRCD = A.UP_CRS_CTGR_ID),'ROOT') AS parCrsCtgrNm 
+		     , IFNULL(( SELECT CRS_CTGRCD FROM TB_LMS_CRS_CTGR WHERE ORG_ID = A.ORG_ID AND CRS_CTGRCD = A.UP_CRS_CTGR_ID),'ROOT') AS parCrsCtgrCd 
+		     , CASE WHEN (A.CRS_CTGR_LV -1) < 0 THEN 0 ELSE (A.CRS_CTGR_LV -1) END  AS parCrsCtgrLvl
+		     , ( SELECT COUNT(*) FROM TB_LMS_CRS_CTGR WHERE ORG_ID = A.ORG_ID AND UP_CRS_CTGR_ID = A.CRS_CTGRCD ) AS subCnt
+	   	  FROM TB_LMS_CRS_CTGR A
+	   	  WHERE 1 = 1
+	   	  ]]>
+	   	  <if test="crsCtgrCd != null and crsCtgrCd != ''">
+	   	  	AND UP_CRS_CTGR_ID = #{crsCtgrCd} 
+	   	  </if>
+	   	  <if test="subParam == 'ENRLAPLC'">
+	   	  	 AND UP_CRS_CTGR_ID IS NULL
+	   	  </if>
+	   	  ORDER BY CRS_CTGR_LV, CRS_CTGR_SEQ
+	   	  <if test="subParam == 'ENRLAPLC'">
+	   	  	LIMIT 10
+	   	  </if>
+	</select>
+	
+	<select id="ctgrTree" parameterType="knou.lms.crs.crsCtgr.vo.CrsCtgrVO" resultType="knou.lms.crs.crsCtgr.vo.CrsCtgrVO">
+		/*
+			 SQL ID : CrsCtgrDAO.ctgrTree
+			 설  명 : 교과별 분류 트리
+	 	*/
+		 WITH RECURSIVE FOLDER_TREE AS
+	         (
+	         SELECT  
+	         1 AS level
+	         , CONVERT(CRS_CTGRCD, CHAR(1000)) AS PATH
+	         , CONVERT(CRS_CTGRNM, CHAR(1000)) AS PATHNM
+	         , CRS_CTGRCD 
+	         , UP_CRS_CTGR_ID 
+	         , CRS_CTGR_LV 
+	         , CRS_CTGRNM 
+	         FROM TB_LMS_CRS_CTGR 
+	         WHERE  UP_CRS_CTGR_ID IS NULL
+	         UNION ALL
+	         SELECT  
+	         B.LEVEL + 1 AS level
+	         ,  CONCAT(B.PATH, '|', CONVERT(A.CRS_CTGRCD, CHAR(1000))) AS PATH
+	         ,  CONCAT(B.PATHNM, '|', CONVERT(A.CRS_CTGRNM, CHAR(1000))) AS PATHNM
+	         , A.CRS_CTGRCD 
+	         , A.UP_CRS_CTGR_ID 
+	         , A.CRS_CTGR_LV 
+	         , A.CRS_CTGRNM 
+	         FROM TB_LMS_CRS_CTGR A
+	         JOIN FOLDER_TREE B
+	         WHERE A.UP_CRS_CTGR_ID = B.CRS_CTGRCD
+	         )
+	         SELECT  
+	         LEVEL AS LEVEL
+	         , D.PATH AS path
+	         , D.pathNm AS pathNm
+	         , D.CRS_CTGRCD AS crsCtgrCd
+	         , D.UP_CRS_CTGR_ID AS parCrsCtgrCd
+	         , D.CRS_CTGR_LV AS crsCtgrLvl
+	         , D.CRS_CTGRNM AS crsCtgrNm
+	         FROM FOLDER_TREE D
+	         WHERE 1 = 1
+	         <if test='crsCtgrCd != null and crsCtgrCd != ""'>
+	         AND D.CRS_CTGRCD = #{crsCtgrCd}
+	         </if>
+	         ORDER BY D.PATH 
+	</select>
+	
+	<select id="selectParCrsCtgrCd" parameterType="knou.lms.crs.crsCtgr.vo.CrsCtgrVO" resultType="knou.lms.crs.crsCtgr.vo.CrsCtgrVO">
+		/*
+			 SQL ID : CrsCtgrDAO.selectParCrsCtgrCd
+			 설  명 : 과목 분류 부모값 조회
+	 	*/
+	 	<![CDATA[
+	    	SELECT B.CRS_CTGRCD AS crsCtgrCd
+             , B.ORG_ID AS orgId
+		     , B.UP_CRS_CTGR_ID AS parCrsCtgrCd
+		     , B.CRS_CTGRNM AS crsCtgrNm
+		     , B.CRS_CTGR_EXPLN AS crsCtgrDesc
+		     , IFNULL(( SELECT A.CRS_CTGRNM FROM TB_LMS_CRS_CTGR A WHERE A.ORG_ID = B.ORG_ID AND A.CRS_CTGRCD = B.UP_CRS_CTGR_ID),'ROOT') AS parCrsCtgrNm
+		     , B.CRS_CTGR_LV AS crsCtgrLvl
+		     , B.CRS_CTGR_SEQ AS crsCtgrOdr
+		     , B.USEYN AS useYn
+		     , B.RGTR_ID AS rgtrId
+		     , B.FRST_INQ_DTTM  AS regDttm  
+		     , B.MDFR_ID AS mdfrId
+		     , B.MOD_DTTM  AS modDttm
+	   	  FROM TB_LMS_CRS_CTGR B
+	   	  WHERE B.CRS_CTGRCD = #{crsCtgrCd}
+	   	  ]]>
+	</select>
+	
+	<select id="selectParCreTmCtgrCd" parameterType="knou.lms.crs.crsCtgr.vo.CreTmCtgrVO" resultType="knou.lms.crs.crsCtgr.vo.CreTmCtgrVO">
+		/*
+			 SQL ID : CrsCtgrDAO.selectParCreTmCtgrCd
+			 설  명 : 테마별 분류 부모값 조회
+	 	*/
+	 	<![CDATA[
+	    	SELECT B.THM_ID AS creTmCtgrCd
+             , B.ORG_ID AS orgId
+		     , B.PAR_CRE_TM_CTGR_CD AS parCreTmCtgrCd
+		     , B.CRE_TM_CTGR_NM AS creTmCtgrNm
+		     , B.CRE_TM_CTGR_DESC AS creTmCtgrDesc
+		     , IFNULL((SELECT A.CRE_TM_CTGR_NM
+		                        FROM TB_LMS_CRE_TM_CTGR A
+		                      WHERE A.ORG_ID = B.ORG_ID
+		                           AND A.THM_ID = B.PAR_CRE_TM_CTGR_CD),'ROOT') AS parCreTmCtgrNm
+		     , B.CRE_TM_CTGR_LVL AS creTmCtgrLvl
+		     , B.CRE_TM_CTGR_ODR AS creTmCtgrOdr
+		     , B.USEYN AS useYn
+		     , B.RGTR_ID AS rgtrId
+		     , B.FRST_INQ_DTTM  AS regDttm  
+		     , B.MDFR_ID AS mdfrId
+		     , B.MOD_DTTM  AS modDttm
+	   	  FROM TB_LMS_CRE_TM_CTGR B
+	   	  WHERE B.THM_ID = #{creTmCtgrCd}
+	   	  ]]>
+	</select>
+	
+	<select id="listCreTmCtgr" parameterType="knou.lms.crs.crsCtgr.vo.CreTmCtgrVO" resultType="knou.lms.crs.crsCtgr.vo.CreTmCtgrVO">
+		/*
+			 SQL ID : CrsCtgrDAO.listCreTmCtgr
+			 설  명 : 테마 분류 리스트
+	 	*/
+	 	<![CDATA[
+	    	SELECT THM_ID AS creTmCtgrCd
+             , ORG_ID AS orgId
+		     , PAR_CRE_TM_CTGR_CD AS parCreTmCtgrCd
+		     , CRE_TM_CTGR_NM AS creTmCtgrNm
+		     , CRE_TM_CTGR_DESC AS creTmCtgrDesc
+		     , CRE_TM_CTGR_LVL AS creTmCtgrLvl
+		     , CRE_TM_CTGR_ODR AS creTmCtgrOdr
+		     , USEYN AS useYn
+		     , RGTR_ID AS rgtrId
+		     , FRST_INQ_DTTM  AS regDttm  
+		     , MDFR_ID AS mdfrId
+		     , MOD_DTTM  AS modDttm
+		     , IFNULL(( SELECT CRE_TM_CTGR_NM FROM TB_LMS_CRE_TM_CTGR WHERE ORG_ID = A.ORG_ID AND THM_ID = A.PAR_CRE_TM_CTGR_CD),'ROOT') AS parCreTmCtgrNm 
+		     , IFNULL(( SELECT THM_ID FROM TB_LMS_CRS_CTGR WHERE ORG_ID = A.ORG_ID AND THM_ID = A.PAR_CRE_TM_CTGR_CD),'ROOT') AS parCreTmCtgrCd 
+		     , CASE WHEN (A.CRE_TM_CTGR_LVL -1) < 0 THEN 0 ELSE (A.CRE_TM_CTGR_LVL -1) END  AS  parCreTmCtgrLvl
+		     , ( SELECT COUNT(*) FROM TB_LMS_CRE_TM_CTGR WHERE ORG_ID = A.ORG_ID AND PAR_CRE_TM_CTGR_CD = A.THM_ID ) AS subCnt
+	   	  FROM TB_LMS_CRE_TM_CTGR A
+	   	  WHERE 1 = 1
+	   	  ]]>
+	   	  <if test="creTmCtgrCd != null and creTmCtgrCd != ''">
+	   	  	AND PAR_CRE_TM_CTGR_CD = #{creTmCtgrCd} 
+	   	  </if>
+	   	  <if test="subParam == 'ENRLAPLC'">
+	   	  	 AND PAR_CRE_TM_CTGR_CD IS NULL
+	   	  </if>
+	   	  ORDER BY CRE_TM_CTGR_LVL, CRE_TM_CTGR_ODR
+	   	  <if test="subParam == 'ENRLAPLC'">
+	   	  	LIMIT 10
+	   	  </if>
+	</select>
+
+</mapper>

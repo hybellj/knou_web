@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.mut.dao.MutEvalDAO">
+
+	<sql id="refQuery">
+		SELECT A.ASMT_MTL_EVL_RSLT_ID
+			   , A.MTL_EVL_TYCD
+			   , A.MTL_EVL_TTL
+			   , A.DELYN
+			   , A.USEYN
+			   , A.ADM_REGYN
+			   , A.RGTR_ID
+			   , (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS RGTRNM
+			   , TO_CHAR(TO_DATE(A.FRST_INQ_DTTM, 'YYYYMMDDHH24MISS'), 'YYYY.MM.DD HH24:MI') AS FRST_INQ_DTTM
+			   , (SELECT COUNT(T.QSTN_ID) FROM MTL_EVL_QSTN T WHERE T.ASMT_MTL_EVL_RSLT_ID = A.ASMT_MTL_EVL_RSLT_ID) AS EVAL_CNT
+		  FROM MTL_EVL A
+		 WHERE A.DELYN = 'N'
+			<if test="searchValue != null and searchValue != ''">
+				AND LOWER(A.MTL_EVL_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			</if>
+	</sql>
+
+	<!-- 단건 -->
+	<select id="selectObject" parameterType="knou.lms.mut.vo.MutEvalVO" resultType="knou.lms.mut.vo.MutEvalVO">
+		<include refid="refQuery" />
+		  AND A.ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+	</select>
+
+	<!-- 다건 -->
+	<select id="selectList" parameterType="knou.lms.mut.vo.MutEvalVO" resultType="knou.lms.mut.vo.MutEvalVO">
+		SELECT RT.*
+	 		   , ROW_NUMBER() OVER(ORDER BY RT.FRST_INQ_DTTM) AS LINE_NO
+			   , COUNT(RT.ASMT_MTL_EVL_RSLT_ID) OVER() AS TOTAL_CNT
+		  FROM ( <include refid="refQuery" /> ) RT
+		ORDER BY RT.FRST_INQ_DTTM DESC
+	</select>
+
+	<!-- 페이징 -->
+	<select id="selectListPaging" parameterType="knou.lms.mut.vo.MutEvalVO" resultType="knou.lms.mut.vo.MutEvalVO">
+		SELECT RT.*
+	 		   , ROW_NUMBER() OVER(ORDER BY RT.FRST_INQ_DTTM) AS LINE_NO
+			   , COUNT(RT.ASMT_MTL_EVL_RSLT_ID) OVER() AS TOTAL_CNT
+		  FROM ( <include refid="refQuery" /> ) RT
+		ORDER BY RT.FRST_INQ_DTTM DESC
+		LIMIT #{firstIndex}, #{listScale}
+	</select>
+
+	<!-- 항목 -->
+	<select id="selectQstn" parameterType="knou.lms.mut.vo.MutEvalVO" resultType="mutEvalQstnVO">
+		SELECT A.ASMT_MTL_EVL_RSLT_ID
+			   , A.QSTN_ID
+			   , A.MTL_EVL_TYCD
+			   , A.UP_MTL_EVL_QSTN_ID
+			   , A.QSTN_SEQNO
+			   , A.QSTN_CTS
+			   , A.EVL_SCR
+			   , A.RGTR_ID
+			   , A.FRST_INQ_DTTM
+			   , A.MDFR_ID
+			   , A.MOD_DTTM
+		  FROM MTL_EVL_QSTN A
+		 WHERE A.ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+	</select>
+
+	<!-- 평가등급 -->
+	<select id="selectGrade" parameterType="mutEvalQstnVO" resultType="mutEvalGradeVO">
+        SELECT A.GRDCD
+			   , A.ASMT_MTL_EVL_RSLT_ID
+			   , A.QSTN_ID
+			   , A.MTL_EVL_GRD_TTL
+			   , A.MTL_EVL_GRD_CTS
+			   , A.MTL_EVL_MRK_GRDCD
+			   , A.RGTR_ID
+			   , A.FRST_INQ_DTTM
+			   , A.MDFR_ID
+			   , A.MOD_DTTM
+          FROM MTL_EVL_GRD A
+         WHERE A.QSTN_ID = #{qstnCd}
+	</select>
+
+	<!-- 사용여부 수정 -->
+	<update id="updateUseYn" parameterType="knou.lms.mut.vo.MutEvalVO">
+		UPDATE MTL_EVL
+		   SET MDFR_ID = #{userId}
+			   , MOD_DTTM = FN_DTTM()
+			   , USEYN = #{useYn}
+		 WHERE ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+	</update>
+
+	<!-- 삭제 -->
+	<update id="updateDelYn" parameterType="knou.lms.mut.vo.MutEvalVO">
+		UPDATE MTL_EVL
+		   SET MDFR_ID = #{userId}
+			   , MOD_DTTM = FN_DTTM()
+			   , DELYN = #{delYn}
+		 WHERE ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+	</update>
+
+	<!-- 루브릭 관리자 등록 + 본인 등록 조회 -->
+	<select id="selectRegList" parameterType="mutEvalRltnVO" resultType="knou.lms.mut.vo.MutEvalVO">
+		SELECT T.ASMT_MTL_EVL_RSLT_ID
+			   , T.MTL_EVL_TYCD
+			   , CONCAT('[기본] ', MTL_EVL_TTL) AS MTL_EVL_TTL
+		  FROM  MTL_EVL T
+		 WHERE T.ASMT_MTL_EVL_RSLT_ID NOT IN(SELECT ASMT_MTL_EVL_RSLT_ID FROM TB_LMS_MUT_EVAL_RLTN)
+		   AND T.DELYN = 'N'
+		   AND T.USEYN = 'Y'
+		   AND T.ADM_REGYN = 'Y'
+		 UNION ALL
+		SELECT DISTINCT A.ASMT_MTL_EVL_RSLT_ID
+			   , A.MTL_EVL_TYCD
+			   , A.MTL_EVL_TTL
+		  FROM MTL_EVL A
+		  JOIN TB_LMS_MUT_EVAL_RLTN B
+		    ON A.ASMT_MTL_EVL_RSLT_ID = B.ASMT_MTL_EVL_RSLT_ID
+		 WHERE RGTR_ID = #{userId}
+		 	AND A.DELYN = 'N'
+		 	AND A.ADM_REGYN = 'N'
+	</select>
+
+	<select id="listMutEvalByCrsCreCd" parameterType="mutEvalRltnVO" resultType="knou.lms.mut.vo.MutEvalVO">
+    	/*
+             SQL ID : MutEvalDAO.listMutEvalByCrsCreCd
+             	설  명 : 평가 정보 강의 연결 조회
+        */
+		SELECT
+			  A.ASMT_MTL_EVL_RSLT_ID			AS evalCd
+			, A.MTL_EVL_TYCD	AS evalTypeCd
+			, A.MTL_EVL_TTL		AS evalTitle
+		FROM MTL_EVL AS A
+		JOIN TB_LMS_MUT_EVAL_RLTN AS B
+		  ON A.ASMT_MTL_EVL_RSLT_ID = B.ASMT_MTL_EVL_RSLT_ID
+		 AND B.SBJCT_ID = #{crsCreCd}
+	</select>
+
+	<select id="selectMutEval" parameterType="knou.lms.mut.vo.MutEvalVO" resultType="knou.lms.mut.vo.MutEvalVO">
+		/*
+             SQL ID : MutEvalDAO.selectMutEval
+             	설  명 : 평가 정보 조회
+        */
+		<include refid="refQuery" />
+		AND A.ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+	</select>
+
+	<insert id="insertMutEval" parameterType="knou.lms.mut.vo.MutEvalVO">
+		/*
+             SQL ID : MutEvalDAO.insertMutEval
+             	설  명 : 평가 정보 등록
+        */
+		<!-- INSERT INTO MTL_EVL (
+			  ASMT_MTL_EVL_RSLT_ID
+			, MTL_EVL_TYCD
+			, MTL_EVL_TTL
+			, DELYN
+			, USEYN
+			, ADM_REGYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		)
+		VALUES (
+			  #{evalCd}
+			, 'R'
+			, #{evalTitle}
+			, 'N'
+			, 'Y'
+			, #{adminYn}
+			, #{userId}
+			, FN_DTTM()
+		)
+		ON DUPLICATE KEY
+		UPDATE MTL_EVL_TTL = #{evalTitle} -->
+		MERGE INTO MTL_EVL A
+		USING (
+			SELECT
+				  #{evalCd} 	AS ASMT_MTL_EVL_RSLT_ID
+				, 'R' 			AS MTL_EVL_TYCD
+				, #{evalTitle} 	AS MTL_EVL_TTL
+				, 'N' 			AS DELYN
+				, 'Y' 			AS USEYN
+				, #{adminYn} 	AS ADM_REGYN
+				, #{userId} 	AS RGTR_ID
+				, FN_DTTM() 	AS FRST_INQ_DTTM
+			FROM DUAL
+		) TEMP
+		ON (A.ASMT_MTL_EVL_RSLT_ID = TEMP.ASMT_MTL_EVL_RSLT_ID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				A.MTL_EVL_TTL = TEMP.MTL_EVL_TTL
+		WHEN NOT MATCHED THEN
+			INSERT (
+				  ASMT_MTL_EVL_RSLT_ID
+				, MTL_EVL_TYCD
+				, MTL_EVL_TTL
+				, DELYN
+				, USEYN
+				, ADM_REGYN
+				, RGTR_ID
+				, FRST_INQ_DTTM
+			)
+			VALUES (
+				  TEMP.ASMT_MTL_EVL_RSLT_ID
+				, TEMP.MTL_EVL_TYCD
+				, TEMP.MTL_EVL_TTL
+				, TEMP.DELYN
+				, TEMP.USEYN
+				, TEMP.ADM_REGYN
+				, TEMP.RGTR_ID
+				, TEMP.FRST_INQ_DTTM
+			)
+		
+	</insert>
+
+</mapper>

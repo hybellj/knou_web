@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/jdbc  http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd">
+
+	<!-- Jasypt -->
+	<bean id="environmentVariablesConfiguration" class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+		<property name="algorithm" value="PBEWITHMD5ANDDES" />
+		<property name="passwordEnvName" value="JASYPT_ENCRYPTOR_PASSWORD"/>
+	</bean>
+
+	<bean id="configurationEncryptor" class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+		<property name="config" ref="environmentVariablesConfiguration" />
+	</bean>
+
+	<bean class="knou.framework.base.DatabasePropertyFactory" factory-method="databasePropertyConfigurer">
+	    <constructor-arg ref="configurationEncryptor"/>
+	</bean>
+
+
+    <!-- LMS -->
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${lms.database.driver}" />
+        <property name="url" value="${lms.database.url}" />
+        <property name="username" value="${lms.database.username}"/>
+        <property name="password" value="${lms.database.password}"/>
+        <property name="validationQuery" value="${lms.database.validationQuery}"/>
+        <property name="testWhileIdle" value="${lms.database.testWhileIdle}"/>
+        <property name="testOnBorrow" value="${lms.database.testOnBorrow}"/>
+        <property name="timeBetweenEvictionRunsMillis" value="${lms.database.timeBetweenEvictionRunsMillis}"/>
+        <property name="minEvictableIdleTimeMillis" value="${lms.database.minEvictableIdleTimeMillis}"/>
+        <property name="numTestsPerEvictionRun" value="${lms.database.numTestsPerEvictionRun}"/>
+        <property name="initialSize" value="${lms.database.initialSize}"/>
+        <property name="maxTotal" value="${lms.database.maxTotal}"/>
+        <property name="minIdle" value="${lms.database.minIdle}"/>
+        <property name="maxIdle" value="${lms.database.maxIdle}"/>
+        <property name="maxWaitMillis" value="${lms.database.maxWaitMillis}"/>
+    </bean>
+
+
+    <!-- ERP (haksa) -->
+    <bean id="dataSourceErp" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${erp.database.driver}" />
+        <property name="url" value="${lms.database.url}" />
+        <property name="username" value="${erp.database.username}"/>
+        <property name="password" value="${erp.database.password}"/>
+        <property name="validationQuery" value="${erp.database.validationQuery}"/>
+        <property name="testWhileIdle" value="${erp.database.testWhileIdle}"/>
+        <property name="testOnBorrow" value="${erp.database.testOnBorrow}"/>
+        <property name="timeBetweenEvictionRunsMillis" value="${erp.database.timeBetweenEvictionRunsMillis}"/>
+        <property name="minEvictableIdleTimeMillis" value="${erp.database.minEvictableIdleTimeMillis}"/>
+        <property name="numTestsPerEvictionRun" value="${erp.database.numTestsPerEvictionRun}"/>
+        <property name="initialSize" value="${erp.database.initialSize}"/>
+        <property name="maxTotal" value="${erp.database.maxTotal}"/>
+        <property name="minIdle" value="${erp.database.minIdle}"/>
+        <property name="maxIdle" value="${erp.database.maxIdle}"/>
+        <property name="maxWaitMillis" value="${erp.database.maxWaitMillis}"/>
+    </bean>
+
+
+
+</beans>

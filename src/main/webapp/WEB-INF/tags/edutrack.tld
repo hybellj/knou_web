@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+	version="2.0">
+
+	<tlib-version>1.0</tlib-version>
+	<short-name>dsptag-utils</short-name>
+	<uri>dsptag-utils</uri>
+
+	<tag>
+		<name>paging</name>
+		<tag-class>knou.framework.taglib.PagingTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>pageInfo</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>funcName</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>name</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>property</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>imagePath</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+
+	<!-- 달력 표시 (DatePicker)-->
+	<!-- <tag>
+		<name>datepicker</name>
+		<tag-class>egovframework.mediopia.lxp.common.comm.web.taglib.DatePickerTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>name1</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>name2</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>icon</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag> -->
+
+	<!-- StyleSheet -->
+	<!-- <tag>
+		<name>css</name>
+		<tag-class>egovframework.mediopia.lxp.common.comm.web.taglib.CssTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>href</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag> -->
+
+	<!-- JavaScript -->
+	<tag>
+		<name>js</name>
+		<tag-class>knou.framework.taglib.JsTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>src</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+
+	<!-- DATE 포맷터  -->
+	<!-- <tag>
+		<name>dateformat</name>
+		<tag-class>egovframework.mediopia.lxp.common.comm.web.taglib.DateFormatterTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>property</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>type</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>delimeter</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag> -->
+
+	<!-- 메시지 태그  -->
+	<!-- <tag>
+		<name>message</name>
+		<tag-class>egovframework.mediopia.lxp.common.comm.web.taglib.MessageTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>messageKey</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>args1</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>args2</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>args3</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag> -->
+
+	<!-- 타이틀 -->
+	<tag>
+		<name>title</name>
+		<tag-class>knou.framework.taglib.TitleTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>title</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>width</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>height</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>alt</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+
+	<!-- 답글용 제목 prefix -->
+	<!-- <tag>
+		<name>reply</name>
+		<tag-class>egovframework.mediopia.lxp.common.comm.web.taglib.ReplyTag</tag-class>
+		<body-content>scriptless</body-content>
+		<attribute>
+			<name>level</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag> -->
+
+    <!-- 시스템 코드명 출력 -->
+    <tag>
+        <name>codename</name>
+        <tag-class>knou.framework.taglib.CodeNameTag</tag-class>
+        <body-content>empty</body-content>
+        <attribute>
+            <name>category</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>code</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+</taglib>

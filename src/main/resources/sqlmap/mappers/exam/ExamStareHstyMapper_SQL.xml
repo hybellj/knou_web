@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.exam.dao.ExamStareHstyDAO">
+
+	<select id="selectStareHsty" parameterType="examStareHstyVO" resultType="examStareHstyVO">
+		/*
+             SQL ID : ExamStareHstyDAO.selectStareHsty
+            	 설  명 : 시험 참여 이력 코드 조회
+         */
+         SELECT * FROM (
+         SELECT
+         	STARE_HSTY_SN
+           FROM TB_LMS_EXAM_STARE_HSTY
+          WHERE EXAM_ID = #{examCd}
+            AND STD_ID = #{stdNo}
+          ORDER BY FRST_INQ_DTTM DESC
+          )
+          WHERE ROWNUM = 1
+          <!-- LIMIT 1 -->
+	</select>
+
+	<select id="listExamStareHsty" parameterType="examStareHstyVO" resultType="examStareHstyVO">
+		/*
+             SQL ID : ExamStareHstyDAO.listExamStareHsty
+            	 설  명 : 시험 참여 이력 조회
+         */
+		SELECT ROW_NUMBER() OVER(ORDER BY A.STARE_HSTY_SN DESC) AS LINE_NO
+			 , A.STD_ID
+             , B.USER_ID
+             , C.USERNM
+             , C.DEPTNM
+             , D.USER_ID 
+             , A.HSTRY_TYCD
+             , NVL((SELECT CDNM FROM TB_ORG_CODE WHERE CTGRCD = 'HSTRY_TYCD' AND CD = A.HSTRY_TYCD AND ROWNUM = 1), '미응시') AS HSTY_TYPE_NM
+             , A.FRST_INQ_DTTM
+             , A.CNTN_IP
+             , A.REEXAMYN
+          FROM TB_LMS_EXAM_STARE_HSTY A
+          JOIN TB_LMS_ATNDLC_SBJCT B
+            ON A.STD_ID = B.STD_ID
+          JOIN TB_LMS_USR C
+            ON B.USER_ID = C.USER_ID
+          JOIN TB_LMS_USER_ACNT D
+            ON C.USER_ID = D.USER_ID
+         WHERE A.EXAM_ID = #{examCd}
+           AND A.STD_ID = #{stdNo}
+           AND A.HSTRY_TYCD != 'SET'
+           AND A.DELYN = 'N'
+	</select>
+	
+	<insert id="insertExamStareHsty" parameterType="examStareHstyVO">
+		/*
+             SQL ID : ExamStareHstyDAO.insertExamStareHsty
+            	 설  명 : 시험 응시 이력 등록
+         */
+    	INSERT INTO TB_LMS_EXAM_STARE_HSTY (
+    		  STARE_HSTY_SN
+			, STD_ID
+			, EXAM_ID
+			, ACQS_TOT_SCR
+			, STARE_CNT
+			, STARE_TM
+			, SDTTM
+			, EDTTM
+			, ADDNDM_CTS
+			, EVL_DTTM
+			, EVLYN
+			, REEXAMYN
+			, DELYN
+			, HSTRY_TYCD
+			, CNTN_IP
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+    	)
+    	SELECT
+    		  (SELECT NVL(MAX(STARE_HSTY_SN), 0) + 1 FROM TB_LMS_EXAM_STARE_HSTY H)
+    		, STD_ID
+    		, EXAM_ID
+    		, ACQS_TOT_SCR
+    		, STARE_CNT
+    		, STARE_TM
+    		, SDTTM
+    		, EDTTM
+    		, ADDNDM_CTS
+    		, EVL_DTTM
+    		, EVLYN
+    		, REEXAMYN
+    		, DELYN
+    		, #{hstyTypeCd}
+    		, #{connIp}
+    		, #{rgtrId}
+    		, FN_DTTM()
+    		, #{mdfrId}
+    		, FN_DTTM()
+    	FROM TB_LMS_EXAM_STARE
+    	WHERE EXAM_ID = #{examCd}
+    	  AND STD_ID = #{stdNo}
+	</insert>
+	
+	<insert id="insertExamStareHstyBatch" parameterType="examStareHstyVO">
+		/*
+             SQL ID : ExamStareHstyDAO.insertExamStareHstyBatch
+            	 설  명 : 시험 응시 이력 등록 일괄
+         */
+    	INSERT INTO TB_LMS_EXAM_STARE_HSTY (
+    		  STARE_HSTY_SN
+			, STD_ID
+			, EXAM_ID
+			, ACQS_TOT_SCR
+			, STARE_CNT
+			, STARE_TM
+			, SDTTM
+			, EDTTM
+			, ADDNDM_CTS
+			, EVL_DTTM
+			, EVLYN
+			, REEXAMYN
+			, DELYN
+			, HSTRY_TYCD
+			, CNTN_IP
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+    	)
+    	SELECT
+    		  (SELECT NVL(MAX(STARE_HSTY_SN), 0) + 1 FROM TB_LMS_EXAM_STARE_HSTY H) + ROW_NUMBER() OVER(ORDER BY STD_ID)
+    		, STD_ID
+    		, EXAM_ID
+    		, ACQS_TOT_SCR
+    		, STARE_CNT
+    		, STARE_TM
+    		, SDTTM
+    		, EDTTM
+    		, ADDNDM_CTS
+    		, EVL_DTTM
+    		, EVLYN
+    		, REEXAMYN
+    		, DELYN
+    		, #{hstyTypeCd}
+    		, #{connIp}
+    		, #{rgtrId}
+    		, FN_DTTM()
+    		, #{mdfrId}
+    		, FN_DTTM()
+    	FROM TB_LMS_EXAM_STARE
+    	WHERE EXAM_ID = #{examCd}
+    	  AND STD_ID IN
+		<foreach collection="sqlForeach" item="item" separator="," open="(" close=")">
+			#{item}
+		</foreach>
+	</insert>
+	
+	<select id="selectLastStareTm" parameterType="examStareHstyVO" resultType="examStareHstyVO">
+        /*
+       		SQL ID : ExamStareHstyDAO.selectLastStareTm
+           	설  명 : 마지막 저장 시간으로 부터 현재 시간의 차이를 초로 조회
+         */
+        SELECT 
+        	TIMESTAMPDIFF(SECOND, STR_TO_DATE(A.FRST_INQ_DTTM, '%Y%m%d%H%i%s'), NOW()) AS stareTm
+          FROM TB_LMS_EXAM_STARE_HSTY A
+         WHERE A.EXAM_ID = #{examCd}
+           AND A.STD_ID = #{stdNo}
+         ORDER BY A.STARE_HSTY_SN DESC
+         LIMIT 1
+    </select>
+    
+    <delete id="deleteAllStareHsty" parameterType="examVO">
+    	/*
+       		SQL ID : ExamStareHstyDAO.deleteAllStareHsty
+           	설  명 : 시험 응시 이력 전체 삭제
+         */
+         DELETE FROM TB_LMS_EXAM_STARE_HSTY
+          WHERE EXAM_ID = #{examCd}
+    </delete>
+
+</mapper>

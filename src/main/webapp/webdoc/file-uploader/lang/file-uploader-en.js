@@ -1,0 +1,25 @@
+var UiFileUploader_language = "en";
+var UiFileUploader_lang = {
+	dragDropStr:			"Drag &amp; Drop Files",
+	uploadStr:				"Select File",
+	extErrorStr:			"Files with extension [{0}] can not be uploaded.",
+	//extErrorStr:			"This file format cannot be uploaded.",
+	allowTypeStr:			"Only files with extension [{0}] can be uploaded.",
+	notAllowTypeStr:		"Not allowed extensions",
+	sizeErrorStr:			"File limit size exceeded {0}.",
+	allowSizeStr:			"Allowed size",
+	maxFileCountErrorStr:	"The maximum number of files you can attach is {0}.",
+	allowFileCountStr:		"Allowed count",
+	flashVersion:			"Please check the flash version \nonly version 8 or above can be used.",
+	networkError:			"An error occurred in the network.\nPlease try again later.",
+	ioError:				"An input/output error occurred.",
+	oneLimitError:			"The file size of one file exceeds {0}.",
+	selectFileStr:			"Please select a file.",
+	totalStr:				"File",
+	countStr:				"",
+	uploadCountStr:			"Sending",
+	completeStr:			"Complete",
+	uploadErrorStr:			"There was an error uploading the file.",
+	fileBox:				"Filebox",
+	addFromFileBox:			"Get Filebox"
+};

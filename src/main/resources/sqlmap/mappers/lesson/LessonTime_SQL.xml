@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.lesson.dao.LessonTimeDAO">
+
+	<select id="select" parameterType="lessonTimeVO" resultType="lessonTimeVO">
+		/*
+             SQL ID : LessonTimeDAO.select
+             설  명 : 교시 조회
+         */
+		SELECT
+			  A.SBJCT_LCTR_CLASTM_ID
+			, A.LCTR_SCHDL_ID
+			, A.SBJCT_ID
+			, A.LCTR_CLASTMNM
+			, A.LCTR_CLASTM_SEQ
+			, A.LCTR_MTHD
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		FROM TB_LMS_SBJCT_LCTR_CLASTM A
+		WHERE SBJCT_LCTR_CLASTM_ID = #{lessonTimeId}
+		<if test="crsCreCd != null and crsCreCd != ''">
+		AND SBJCT_ID = #{crsCreCd}
+		</if>
+	</select>
+	
+	<insert id="insert" parameterType="lessonTimeVO">
+		/*
+             SQL ID : LessonTimeDAO.insert
+             설  명 : 교시 등록
+         */
+		INSERT INTO TB_LMS_SBJCT_LCTR_CLASTM (
+			  SBJCT_LCTR_CLASTM_ID
+			, LCTR_SCHDL_ID
+			, SBJCT_ID
+			, LCTR_CLASTMNM
+			, LCTR_CLASTM_SEQ
+			, LCTR_MTHD
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		) VALUES (
+			  #{lessonTimeId}
+			, #{lessonScheduleId}
+			, #{crsCreCd}
+			, #{lessonTimeNm}
+			, #{lessonTimeOrder}
+			, #{stdyMethod}
+			, #{rgtrId}
+			, FN_DTTM()
+		)
+	</insert>
+	
+	<update id="update" parameterType="lessonTimeVO">
+		/*
+             SQL ID : LessonTimeDAO.update
+             설  명 : 교시 수정
+         */
+		UPDATE TB_LMS_SBJCT_LCTR_CLASTM
+		SET
+			  MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+			<if test="lessonTimeNm != null and lessonTimeNm != ''">
+			, LCTR_CLASTMNM = #{lessonTimeNm}
+			</if>
+			<if test="lessonTimeOrder != null and lessonTimeOrder != ''">
+			, LCTR_CLASTM_SEQ = #{lessonTimeOrder}
+			</if>
+			<if test="stdyMethod != null and stdyMethod != ''">
+			, LCTR_MTHD = #{stdyMethod}
+			</if>
+		WHERE SBJCT_LCTR_CLASTM_ID = #{lessonTimeId}
+	</update>
+	
+	<delete id="delete" parameterType="lessonTimeVO">
+		/*
+             SQL ID : LessonTimeDAO.delete
+             설  명 : 교시 삭제
+         */
+		DELETE FROM TB_LMS_SBJCT_LCTR_CLASTM
+		WHERE SBJCT_LCTR_CLASTM_ID = #{lessonTimeId}
+	</delete>
+
+	<select id="selectLessonTimeOrderMax" parameterType="lessonTimeVO" resultType="Integer">
+		/*
+             SQL ID : LessonTimeDAO.selectLessonTimeOrderMax
+             설  명 : 교시 순서 최대값
+         */
+		SELECT (SELECT IFNULL(MAX(LCTR_CLASTM_SEQ), 0) + 1 FROM TB_LMS_SBJCT_LCTR_CLASTM WHERE LCTR_SCHDL_ID = #{lessonScheduleId})
+	</select>
+	
+	<select id="list" parameterType="lessonTimeVO" resultType="lessonTimeVO">
+		/*
+             SQL ID : LessonTimeDAO.list
+             	설  명 : 교시 목록 조회
+         */
+		SELECT
+			  A.SBJCT_LCTR_CLASTM_ID
+			, A.LCTR_SCHDL_ID
+			, A.SBJCT_ID
+			, A.LCTR_CLASTMNM
+			, A.LCTR_CLASTM_SEQ
+			, A.LCTR_MTHD
+			, A.RGTR_ID
+			, A.FRST_INQ_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+		  FROM TB_LMS_SBJCT_LCTR_CLASTM A
+		<where>
+			<if test="lessonScheduleId != null and lessonScheduleId != ''">
+				AND A.LCTR_SCHDL_ID = #{lessonScheduleId}
+			</if>
+			<if test="crsCreCd != null and crsCreCd != ''">
+				AND A.SBJCT_ID = #{crsCreCd}
+			</if>
+		</where>
+		ORDER BY LCTR_CLASTM_SEQ
+	</select>
+	
+	<insert id="copyLessonTime" parameterType="lessonTimeVO">
+		/*
+             SQL ID : LessonTimeDAO.copyLessonTime
+             설  명 : 교시 복사
+         */
+		INSERT INTO TB_LMS_SBJCT_LCTR_CLASTM (
+			  SBJCT_LCTR_CLASTM_ID
+			, LCTR_SCHDL_ID
+			, SBJCT_ID
+			, LCTR_CLASTMNM
+			, LCTR_CLASTM_SEQ
+			, LCTR_MTHD
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		)
+		SELECT
+			  #{lessonTimeId}
+			, #{lessonScheduleId}
+			, #{crsCreCd}
+			, LCTR_CLASTMNM
+			, LCTR_CLASTM_SEQ
+			, LCTR_MTHD
+			, #{rgtrId}
+			, FN_DTTM()
+		FROM TB_LMS_SBJCT_LCTR_CLASTM
+		WHERE SBJCT_LCTR_CLASTM_ID = #{copyLessonTimeId}
+	</insert>
+	
+	
+	<insert id="insertLessonTimeListForTrans" parameterType="java.util.List" >
+        /*
+             SQL ID : LessonTimeDAO.insertLessonTimeListForTrans
+             설  명 : 교시목록 저장(선수강과목 이관용)
+        */
+		INSERT IGNORE INTO TB_LMS_SBJCT_LCTR_CLASTM (
+			  SBJCT_LCTR_CLASTM_ID
+			, LCTR_SCHDL_ID
+			, SBJCT_ID
+			, LCTR_CLASTMNM
+			, LCTR_CLASTM_SEQ
+			, LCTR_MTHD
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		) VALUES
+		<foreach collection="list" item="item" separator=",">
+		(
+			  #{item.lessonTimeId}
+			, #{item.lessonScheduleId}
+			, #{item.crsCreCd}
+			, #{item.lessonTimeNm}
+			, #{item.lessonTimeOrder}
+			, #{item.stdyMethod}
+			, #{item.rgtrId}
+			, #{item.regDttm}
+			, #{item.mdfrId}
+			, #{item.modDttm}
+	    )
+	   	</foreach>
+    </insert>
+</mapper>

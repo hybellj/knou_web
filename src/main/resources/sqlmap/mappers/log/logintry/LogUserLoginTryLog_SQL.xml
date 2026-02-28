@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.log.logintry.dao.LogUserLoginTryLogDAO">
+
+
+	<sql id="selectQuery">
+		<![CDATA[
+			SELECT LOGIN_TRY_SN as loginTrySn
+			     , USER_ID as userId
+			     , USER_ID as userId
+			     , LGN_TRY_DTTM as loginTryDttm
+			     , LGN_SCSYN as loginSuccYn
+			     , BRWSR_INFO as browserInfo
+			     , CNTN_IP as connIp
+			  FROM TB_LOG_USER_LOGIN_TRY_LOG
+			 WHERE USER_ID = IFNULL(#userId#, USER_ID)
+			   AND USER_ID = IFNULL(#userId#, USER_ID)
+		]]>
+	</sql>
+	
+	<sql id="listQuery">
+		<include refid="selectQuery"/>
+		 ORDER BY LGN_TRY_DTTM DESC
+	</sql>		
+
+	<select id="list" parameterType="logUserLoginTryLogVO" resultType="logUserLoginTryLogVO">
+		/*
+			 SQL ID : list
+			 설  명 : 로그인 시도 로그 전체 목록
+	 	*/
+	 	<include refid="listQuery"/>
+	</select>
+	
+	<select id="listPageing" parameterType="logUserLoginTryLogVO" resultType="logUserLoginTryLogVO">
+		/*
+			 SQL ID : listPageing
+			 설  명 : 로그인 시도 로그 페이징 목록
+	 	*/
+	 	<include refid="CommonSQL.pagePrefix"/>
+	 	<include refid="listQuery"/>
+	 	<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<select id="count" parameterType="logUserLoginTryLogVO" resultType="Integer">
+		/*
+			 SQL ID : count
+			 설  명 : 로그인 시도 로그 페이징 카운트
+	 	*/
+	 	SELECT COUNT(*) FROM (
+	 	<include refid="listQuery"/>
+	 	) T
+	</select>
+	
+	<select id="selectKey" resultType="Integer">
+		/*
+			 SQL ID : selectKey
+			 설  명 : 로그인 시도 키 생성
+	 	*/
+	 	SELECT SQ_LOG_USER_LOGIN_TRY_LOG.nextVal FROM DUAL
+	</select>
+	
+	<insert id="insert" parameterType="logUserLoginTryLogVO" >
+		/*
+			 SQL ID : insert
+			 설  명 : 로그인 시도 로그의 정보 등록
+	 	*/
+		INSERT INTO USER_LGN (
+		       LOGIN_TRY_SN
+		     , USER_ID
+		     , USER_ID
+		     , LGN_TRY_DTTM
+		     , LGN_SCSYN
+		     , BRWSR_INFO
+		     -- , CNTN_IP
+		) VALUES (
+		       #{loginTrySn}
+		     , #{userId}
+		     , #{userId}
+		     -- , FN_DTTM()
+		     , ''
+		     , #{loginSuccYn}
+		     , #{browserInfo}
+		     -- , #{connIp}
+		)		
+	</insert>	
+
+	<select id="selectLastLogin" parameterType="logUserLoginTryLogVO" resultType="logUserLoginTryLogVO">
+		/*
+			SQL ID 	: selectLastLogin
+			설  명 	: 마지막 로그인 정보 조회
+		*/
+
+		SELECT 
+			USER_LGN_HSTRY_ID
+			, USER_ID
+			, USER_SNS_ID
+			, ACSR_TYCD
+			, LGN_IP
+			, LGN_DTTM
+			, LGT_DTTM
+			, LGN_SCSYN
+			, CNTN_DVC_TYCD
+			, LGN_CNTN_BRWSR
+			, SESS_ID
+			, RGTR_ID
+			, REG_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		  FROM TB_LMS_USER_LGN_HSTRY 
+		 WHERE USER_ID = #{userId}
+	</select>
+</mapper>

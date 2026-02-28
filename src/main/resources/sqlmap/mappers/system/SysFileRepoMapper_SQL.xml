@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.common.dao.SysFileRepoDAO">
+
+	<sql id="selectQuery">
+		SELECT A.ATFL_REPO_ID
+		     , A.UP_TBLNM
+		     , A.UP_CLMNNM
+		     , A.ATFL_REPO_PATH
+		     , A.RGTR_ID
+		     , A.REG_DTTM
+		     , (SELECT COUNT(*) FROM TB_LMS_ATFL WHERE ATFL_REPO_ID = A.ATFL_REPO_ID)  AS FILE_CNT
+		  FROM TB_LMS_ATFL_REPO A
+		 WHERE 1 = 1
+	</sql>
+
+	<sql id="listQuery">
+		<include refid="selectQuery"/>
+			<if test="repoCd != null">
+			   AND A.ATFL_REPO_ID LIKE '%'||#{repoCd}||'%'
+			</if>
+			<!-- <if test="repoNm != null">
+			   AND A.REPO_NM LIKE '%'||#{repoNm}||'%'
+			</if> -->
+			<if test="parTableNm != null">
+			   AND A.UP_TBLNM LIKE '%'||#{parTableNm}||'%'
+			</if>
+			<if test="repoDfltPath != null">
+			   AND A.ATFL_REPO_PATH LIKE '%'||#{repoDfltPath}||'%'
+			</if>
+		 ORDER BY A.ATFL_REPO_ID
+	</sql>
+
+	<select id="list" parameterType="sysFileRepoVO" resultType="sysFileRepoVO">
+		/*
+			 SQL ID : SysFileRepoDAO.list
+			 설  명 : 파일 리파지토리 전체 목록
+	 	*/
+	 	<include refid="listQuery"/>
+	</select>
+
+	<select id="listPageing" parameterType="sysFileRepoVO" resultType="sysFileRepoVO">
+		/*
+			 SQL ID : SysFileRepoDAO.listPageing
+			 설  명 : 파일 리파지토리 페이징 목록
+	 	*/
+	 	<include refid="CommonSQL.pagePrefix"/>
+	 	<include refid="listQuery"/>
+	 	<include refid="CommonSQL.pageSubfix"/>
+	</select>
+
+	<select id="count"  parameterType="sysFileRepoVO" resultType="Integer">
+		/*
+			 SQL ID : SysFileRepoDAO.count
+			 설  명 : 파일 리파지토리의 페이징 카운트
+	 	*/
+	 	SELECT COUNT(*) FROM (
+	 	<include refid="listQuery"/>
+	 	) T
+	</select>
+
+	<select id="select" parameterType="sysFileRepoVO" resultType="sysFileRepoVO">
+		/*
+			 SQL ID : SysFileRepoDAO.select
+			 설  명 : 파일 리파지토리의 정보 조회
+	 	*/
+	 	<include refid="selectQuery"/>
+           AND A.ATFL_REPO_ID = #{repoCd}
+	</select>
+
+	<insert id="insert" parameterType="sysFileRepoVO" >
+		/*
+			 SQL ID : SysFileRepoDAO.insert
+			 설  명 : 파일 리파지토리의 정보 등록
+	 	*/
+	 	INSERT INTO TB_LMS_ATFL_REPO (
+		       ATFL_REPO_ID
+		     , ATFL_REPO_PATH
+		     , UP_CLMNNM
+		     , UP_TBLNM
+		     , RGTRNM
+		     , RGTR_ID
+		     , REG_DTTM
+		) VALUES (
+		       #{repoCd}
+		     , #{repoDfltPath}
+		     , #{parFieldNm}
+		     , #{parTableNm}
+		     , #{regNm}
+		     , #{rgtrId}
+		     , TO_CHAR(SYSDATE,'yyyymmddhh24miss')
+		)
+	</insert>
+
+	<update id="update" parameterType="sysFileRepoVO" >
+		/*
+			 SQL ID : SysFileRepoDAO.update
+			 설  명 : 파일 리파지토리의 정보 수정
+	 	*/
+		UPDATE TB_LMS_ATFL_REPO
+		   SET ATFL_REPO_ID = #{repoCd}
+		     , UP_TBLNM = #{parTableNm}
+		     , UP_CLMNNM = #{parFieldNm}
+		     , ATFL_REPO_PATH  = #{repoDfltPath}
+		 WHERE ATFL_REPO_ID = #{repoCd}
+	</update>
+
+	<delete id="delete" parameterType="sysFileRepoVO" >
+		/*
+			 SQL ID : SysFileRepoDAO.delete
+			 설  명 : 파일 리파지토리의 정보 삭제
+	 	*/
+		DELETE FROM TB_LMS_ATFL_REPO
+		 WHERE ATFL_REPO_ID = #{repoCd}
+	</delete>
+
+</mapper>

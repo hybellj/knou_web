@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.crs.home.dao.CrsHomeMenuDAO">
+
+<select id="selectCrsHomeMenulist" parameterType="crsHomeMenuVO" resultType="crsHomeMenuVO">
+		WITH RECURSIVE CTE AS 
+		(	   
+			 SELECT A.MENU_ID 
+				  , A.MENUNM
+				  , A.MENU_ENNM
+				  , A.MENU_TTL 
+				  , A.UP_MENU_ID 
+				  , A.MENU_LV
+				  , A.MENU_SEQ
+				  , A.MENU_URL 
+				  , A.MENU_PATH 
+				  , B.VIEW_AUTH AS USEYN 
+				  , A.MENU_TYCD  
+				  , A.LEFT_SIDE_MENU_IMG
+			   FROM TB_LMS_MENU A
+			  INNER JOIN TB_LMS_AUTHRT B
+			  WHERE A.ORG_ID = B.ORG_ID 
+			    AND A.MENU_ID = B.MENU_ID
+			    AND A.MENU_TYCD  = B.MENU_TYCD 
+			    AND A.ORG_ID = #{orgId} 
+				AND A.MENU_TYCD = #{menuType}
+			    AND B.USER_AUTHRT_ID = #{authGrpCd}
+			    AND B.VIEW_AUTH = 'Y'
+			    AND A.USEYN = 'Y'
+			<choose>
+			    <when test="menuType == 'STUDENT'.toString()">
+			    AND A.MENU_ID != 'STU0000000001'
+			    </when>
+			    <when test="menuType == 'PROFESSOR'.toString()">
+			    AND A.MENU_ID != 'PRO0000000001'
+			    </when>
+			</choose>
+		    UNION
+			SELECT A.MENU_ID 
+		    	 , A.MENUNM
+		    	 , A.MENU_ENNM
+		    	 , A.MENU_TTL 
+		    	 , A.UP_MENU_ID 
+		    	 , A.MENU_LV
+		    	 , A.MENU_SEQ
+		    	 , A.MENU_URL 
+		    	 , A.MENU_PATH 
+		    	 , B.USEYN
+		    	 , A.MENU_TYCD 
+		    	 , A.LEFT_SIDE_MENU_IMG
+		     FROM TB_LMS_MENU A
+		    INNER JOIN CTE B ON A.UP_MENU_ID = B.MENU_ID 
+		    WHERE A.USEYN = 'Y'
+		) 
+		SELECT MENU_ID 
+			 , MENUNM
+			 , MENU_ENNM
+			 , MENU_TTL 
+			 , UP_MENU_ID 
+			 , MENU_LV
+			 , MENU_SEQ
+			 , MENU_URL 
+			 , MENU_PATH 
+			 , USEYN  
+			 , MENU_TYCD
+			 , LEFT_SIDE_MENU_IMG 
+		  FROM CTE
+		 ORDER BY MENU_PATH
+	</select>
+
+
+	<select id="selectCrsAuthHomeMenulist" parameterType="crsHomeMenuVO" resultType="crsHomeMenuVO">
+		/*
+			 SQL ID : CrsHomeMenuDAO.selectCrsAuthHomeMenulist
+			 설  명 : 권한별 메뉴 리스트 조회 
+			           : MENU 를 MENU 로 변경해야함!
+			           : 기존 LMS7 과 한양대는 메뉴구조가 다른상황
+	 	*/
+	 	<![CDATA[
+	 	SELECT DISTINCT A.ORG_ID
+		     , A.MENU_ID 	
+			 , A.MENU_TYCD 	
+			 , A.MENUNM 	
+			 , A.MENU_ENNM
+			 , A.UP_MENU_ID
+			 , IFNULL((SELECT MENUNM
+					     FROM TB_LMS_MENU
+					    WHERE MENU_ID = A.UP_MENU_ID 
+					      AND ORG_ID = A.ORG_ID),'ROOT') AS PAR_MENU_NM
+			 , IFNULL((SELECT MENU_ENNM
+					     FROM TB_LMS_MENU
+					    WHERE MENU_ID = A.UP_MENU_ID 
+					      AND ORG_ID = A.ORG_ID),'ROOT') AS PAR_MENU_NM_EN
+			 , A.MENU_LV 
+			 , CASE WHEN (A.MENU_LV -1) < 0 THEN 0 ELSE (A.MENU_LV -1) END AS PAR_MENU_LVL
+			 , A.MENU_SEQ 
+			 , A.MENU_URL 
+			 , A.MENU_PATH
+			 , A.MENU_TTL 
+			 , A.MENU_EXPLN
+			 , A.USEYN 
+			 , A.UPEND_MENUYN 
+			 , A.TOP_MENU_IMG
+			 , A.LEFT_SIDE_MENU_IMG
+			 , A.LEFT_SIDE_MENU_TTL 
+			 , A.BRDRLN_USEYN 
+			 , A.OPTN_CTGR_CD_1 
+			 , A.OPTN_CD_1 
+			 , A.OPTN_CTGR_CD_2 
+			 , A.OPTN_CD_2 
+			 , A.OPTN_CTGR_CD_3 
+			 , A.OPTN_CD_3 
+			 , A.OPTN_CTGR_CD_4 
+			 , A.OPTN_CD_4 
+			 , A.OPTN_CTGR_CD_5 
+			 , A.OPTN_CD_5 
+			 , A.SSL_USEYN 
+			 , A.RGTR_ID 
+			 , '' AS RGTRNM
+			 , A.FRST_INQ_DTTM 
+			 , A.MDFR_ID 
+			 , '' AS MOD_NM
+			 , A.MOD_DTTM 
+			 , IFNULL(B.VIEW_AUTH,'N') AS VIEW_AUTH
+			 , IFNULL(B.REG_AUTHRTYN,'N') AS REG_AUTHRTYN
+			 , IFNULL(B.MOD_AUTHRTYN,'N') AS MOD_AUTHRTYN
+			 , IFNULL(B.DEL_AUTH,'N') AS DEL_AUTH
+			 , (SELECT COUNT(*)
+				  FROM TB_LMS_MENU
+				 WHERE MENU_TYCD = A.MENU_TYCD
+				   AND UP_MENU_ID = A.MENU_ID
+				   AND ORG_ID = A.ORG_ID) AS SUB_CNT
+		  FROM TB_LMS_MENU A
+		  LEFT OUTER JOIN TB_LMS_AUTHRT B
+			ON A.MENU_TYCD = B.MENU_TYCD 
+		   AND A.MENU_ID = B.MENU_ID 
+		   AND A.ORG_ID = B.ORG_ID 
+		   AND #{authGrpCd} LIKE CONCAT('%',B.USER_AUTHRT_ID,'%')
+		 WHERE A.ORG_ID = #{orgId}
+		]]>
+		   AND B.VIEW_AUTH = 'Y'
+		   AND A.USEYN = 'Y'
+		   AND A.MENU_TYCD = #{menuType}
+			<choose>
+			    <when test="menuType == 'STUDENT'">
+			    AND A.MENU_ID != 'STU0000000001'
+			    </when>
+			    <when test="menuType == 'PROFESSOR'">
+			    AND A.MENU_ID != 'PRO0000000001'
+			    </when>
+			</choose>
+			<if test="parMenuCd != null and parMenuCd != ''">
+			   AND A.UP_MENU_ID = #{parMenuCd}
+			</if>
+			ORDER BY MENU_ID, MENU_SEQ
+	</select>
+	
+	<select id="selectCrsHomeBbsMenulist" parameterType="crsHomeMenuVO" resultType="crsHomeBbsMenuVO">
+		/*
+			 SQL ID : CrsHomeMenuDAO.selectCrsHomeBbsMenulist
+			 설  명 : 과목 대한 게시판 메뉴 리스트 조회
+		*/	
+		SELECT A.ORG_ID
+		     , A.BBS_ID
+		     , A.BBS_ID
+		     , A.BBSNM
+		     , A.BBS_ENNM
+		     , A.SYS_BSC_PVSNYN
+		  FROM TB_LMS_BBS A
+		 INNER JOIN TB_HOME_BBS_RLTN B ON (A.BBS_ID = B.BBS_ID)
+	     WHERE A.ORG_ID = #{orgId}
+	       AND B.RLTN_REF_CD = #{crsCreCd}
+		   AND B.CONTS_TYCD = 'COURSE'
+		   AND A.USEYN = 'Y'
+		   AND A.DELYN = 'N'
+		   <if test="menuType != null and menuType == 'STUDENT'">
+		   AND A.STDNT_INQYN = 'Y'
+		   </if>
+		 ORDER BY CASE WHEN A.SYS_BSC_PVSNYN = 'Y' THEN 
+		 	   CASE WHEN A.BBS_ID = 'NOTICE'	THEN 0
+		 	        WHEN A.BBS_ID = 'QNA'		THEN 1
+		 	        WHEN A.BBS_ID = 'SECRET'	THEN 2
+		 	        WHEN A.BBS_ID = 'PDS'		THEN 3
+		 	        ELSE 4
+		 	   END
+		 	   ELSE 9999 END, A.FRST_INQ_DTTM
+	</select>
+
+</mapper>

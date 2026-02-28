@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.crs.termlink.dao.TermLinkMgrDAO">
+
+	<select id="select" parameterType="knou.lms.crs.termlink.vo.TermLinkMgrVO" resultType="knou.lms.crs.termlink.vo.TermLinkMgrVO">
+		/*
+			 SQL ID : TermLinkMgrDAO.select
+			 설  명 : 학사연동 관리 조회
+	 	*/
+		SELECT  
+			  DATA_LNKG_ID    AS termLinkMgrId
+            , AUTO_DATA_LNKGYN        AS autoLinkYn
+            , LST_DATA_LNKG_DTTM      AS lastLinkDttm
+            , RGTR_ID              AS rgtrId
+            , FRST_INQ_DTTM            AS regDttm
+            , MDFR_ID              AS mdfrId
+            , MOD_DTTM            AS modDttm
+        FROM TB_LMS_AIS_SMSTR_DATA_LNKG
+        WHERE DATA_LNKG_ID = 'LMGR_00000000000000000001'
+	</select>
+	
+	<update id="update" parameterType="knou.lms.crs.termlink.vo.TermLinkMgrVO">
+		/*
+			 SQL ID : TermLinkMgrDAO.update
+			 설  명 : 학사연동 관리 수정
+	 	*/
+	 	UPDATE TB_LMS_AIS_SMSTR_DATA_LNKG SET
+              AUTO_DATA_LNKGYN = #{autoLinkYn}
+			<if test='lastLinkDttmUpdateYn != null and lastLinkDttmUpdateYn == "Y"'>
+			, LST_DATA_LNKG_DTTM = FN_DTTM()
+			</if>
+			, MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+	    WHERE DATA_LNKG_ID = 'LMGR_00000000000000000001'
+	</update>
+
+</mapper>

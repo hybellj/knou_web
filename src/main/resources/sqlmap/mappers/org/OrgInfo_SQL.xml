@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.org.dao.OrgInfoDAO">
+	
+	<select id="select" parameterType="orgInfoVO" resultType="orgInfoVO">
+		/*
+             SQL ID : OrgInfoDAO.select
+             설  명 : 기관 정보
+         */
+		SELECT
+			  A.ORG_ID
+			, A.ORGNM
+			, A.ORG_NCNM
+			, A.RPRS_TELNO
+			, A.ORG_REG_NO
+			, A.ORG_ZIP
+			, A.ORG_ADDR
+			, A.RPRS_FAX
+			, A.DMNNM
+		FROM TB_LMS_ORG A
+		WHERE A.ORG_ID = #{orgId}
+	</select>
+	
+	<sql id="selectQuery">
+
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY A.ORG_ID) AS LINE_NO
+			, A.ORG_ID
+			, A.ORGNM
+			, A.DMNNM
+			, A.RPRS_TELNO
+			, A.ORG_REG_NO
+			, (
+				SELECT COUNT(1)
+				FROM TB_LMS_USER AA
+				WHERE AA.ORG_ID = A.ORG_ID
+				AND AA.USER_ID_STSCD = 'APRV_CMPTN'
+				AND EXISTS (
+					SELECT 1
+					FROM TB_LMS_AUTHRT CC
+					LEFT OUTER JOIN TB_LMS_USER_AUTHRT DD ON CC.AUTHRT_ID = DD.AUTHRT_ID
+					WHERE DD.USER_ID = AA.USER_ID
+					AND CC.AUTHRT_GRPCD = 'ADM'
+					AND CC.AUTHRT_CD = 'SYS_ADM'
+				)
+			) AS ADM_CNT
+			, CASE WHEN A.ORG_ID = 'LMSBASIC' THEN 1 ELSE 2 END AS ODR
+		FROM TB_LMS_ORG A
+		WHERE 1=1
+		AND USEYN = 'Y'
+		<if test="searchValue != null and searchValue != ''"> 
+		AND (
+			   A.ORGNM 	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			OR A.ORG_REG_NO LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		)
+		</if>
+		ORDER BY ODR, ORGNM 
+	</sql>
+	
+	<select id="count" parameterType="orgInfoVO" resultType="Integer">
+		/*
+             SQL ID : OrgInfoDAO.count
+             설  명 : 기관 정보 목록 수
+         */
+		SELECT COUNT(1) FROM (
+			<include refid="selectQuery" />
+		) Z
+	</select>
+	
+	<select id="list" parameterType="orgInfoVO" resultType="orgInfoVO">
+		/*
+             SQL ID : OrgInfoDAO.list
+             설  명 : 기관 정보 목록
+         */
+		<include refid="selectQuery" />
+	</select>
+	
+	<select id="listPaging" parameterType="orgInfoVO" resultType="orgInfoVO">
+		/*
+             SQL ID : OrgInfoDAO.listPaging
+             설  명 : 기관 정보 페이징 목록
+         */
+        <include refid="CommonSQL.pagePrefix"/>
+		<include refid="selectQuery" />
+		<include refid="CommonSQL.pageSubfix"/>
+	</select>
+	
+	<insert id="insert" parameterType="orgInfoVO" useGeneratedKeys="true">
+		/*
+             SQL ID : OrgInfoDAO.insert
+             설  명 : 기관 정보 등록
+         */
+		INSERT INTO TB_LMS_ORG (
+			ORG_ID 
+		  , ORGNM
+		  , ORG_SYS_TYCD 
+		  , DMNNM
+		  <if test="rprstPhoneNo != null and rprstPhoneNo != ''"> 
+		  , RPRS_TELNO
+		  </if>
+		  , ORG_NCNM
+		  <if test="rprstFaxNo != null and rprstFaxNo != ''"> 
+		  , RPRS_FAX
+		  </if>
+		  , ORG_REG_NO
+		  <if test="orgPost != null and orgPost != ''"> 
+		  , ORG_ZIP
+		  </if>
+		  <if test="orgAddr != null and orgAddr != ''"> 
+		  , ORG_ADDR
+		  </if>
+		  , USEYN
+		  , RGTR_ID
+		  , FRST_INQ_DTTM
+		) VALUES (
+			#{orgId}
+		  , #{orgNm}							    			
+		  , 'UNI'
+		  , #{domainNm}
+		  <if test="rprstPhoneNo != null and rprstPhoneNo != ''"> 
+		  , #{rprstPhoneNo}
+		  </if>
+		  , #{orgSnm}
+		  <if test="rprstFaxNo != null and rprstFaxNo != ''"> 
+		  , #{rprstFaxNo}
+		  </if>
+		  , #{orgBizNo}
+		  <if test="orgPost != null and orgPost != ''"> 
+		  , #{orgPost}
+		  </if>
+		  <if test="orgAddr != null and orgAddr != ''"> 
+		  , #{orgAddr}
+		  </if>
+		  , #{dfltLangCd}
+		  , 'Y'
+		  , #{rgtrId}
+		  , FN_DTTM()
+		)
+	</insert>
+	
+	<update id="update" parameterType="orgInfoVO">
+		/*
+             SQL ID : OrgInfoDAO.update
+             설  명 : 기관 정보 수정
+         */
+		UPDATE TB_LMS_ORG
+		SET
+			  ORGNM			= #{orgNm}
+			, DMNNM         = #{domainNm}
+			<if test="orgSnm != null and orgSnm != ''">
+				, ORG_NCNM           = #{orgSnm}
+			</if>
+			<if test="orgPost != null and orgPost != ''">
+				, ORG_ZIP          = #{orgPost}
+			</if>
+			<if test="orgAddr != null and orgAddr != ''">
+				, ORG_ADDR          = #{orgAddr}
+			</if>
+			<if test="rprstPhoneNo != null and rprstPhoneNo != ''">
+				, RPRS_TELNO    = #{rprstPhoneNo}
+			</if>
+			<if test="rprstFaxNo != null and rprstFaxNo != ''">
+				, RPRS_FAX      = #{rprstFaxNo}
+			</if>
+			<if test="orgBizNo != null and orgBizNo != ''">
+				, ORG_REG_NO        = #{orgBizNo}
+			</if>
+			, MDFR_ID  			= #{mdfrId}
+			, MOD_DTTM  		= FN_DTTM()
+		WHERE ORG_ID = #{orgId}
+	</update>
+	
+	<update id="updateUseN" parameterType="orgInfoVO">
+		/*
+             SQL ID : OrgInfoDAO.updateUseN
+             설  명 : 기관 정보 사용안함 수정
+         */
+		UPDATE TB_LMS_ORG
+		SET USEYN = 'N'
+		WHERE ORG_ID = #{orgId}
+	</update>
+	
+	<select id="listOrgAdmUser" parameterType="orgInfoVO" resultType="egovMap">
+		/*
+             SQL ID : OrgInfoDAO.listOrgAdmUser
+             설  명 : 기관 전체운영자 목록
+         */
+		SELECT
+			  A.USER_ID
+			, A.USERNM
+			, A.EMAIL
+			, A.OFCE_TELNO
+			, A.MOBILE_NO
+		FROM TB_LMS_USR A
+		JOIN TB_LMS_USER_ACNT B
+		ON A.USER_ID = B.USER_ID
+		AND B.ACNT_STSCD = 'U'
+		WHERE A.ORG_ID = #{orgId}
+		AND EXISTS (
+			SELECT 1
+			FROM TB_LMS_USER_AUTHRT
+			WHERE USER_ID = A.USER_ID
+			AND MENU_TYCD = 'ADMIN'
+			AND USER_AUTHRT_ID = 'DEV'
+		)
+		ORDER BY A.USERNM
+	</select>
+
+
+	<select id="listActiveOrg" resultType="orgInfoVO">
+		/*
+             SQL ID : OrgInfoDAO.listActiveOrg
+             설  명 : 운영 기관 전체 조회
+         */
+		<!-- SELECT * FROM (
+			SELECT 
+				 *
+				, IF (ORG_ID = 'ORG0000001', 0, 1) ODR
+			FROM TB_LMS_ORG
+			WHERE USEYN = 'Y'
+		) ORG
+		ORDER BY ODR, ORGNM -->
+		SELECT
+		    ORG.* 
+		  FROM (
+		        SELECT 
+		             TOOI.*,
+		        CASE WHEN ORG_ID = 'ORG0000001' THEN 0 ELSE 1 END AS ODR 
+		        FROM TB_LMS_ORG TOOI
+		        WHERE USEYN = 'Y'
+		) ORG
+		ORDER BY ODR, ORGNM
+	</select>
+</mapper>
