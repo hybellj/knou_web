@@ -85,6 +85,11 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
                 || uri.contains("/forum2/")
                 ) {
             checkSession = false;
+
+            SessionInfo.setUserId(request,"prof1");
+            SessionInfo.setOrgId(request,"ORG0000001");
+            SessionInfo.setAuthrtGrpcd(request,"PROF");
+            SessionInfo.setAuthrtCd(request,"PROF");
         }
 
         // ERP,홈페이지에서 이동인 경우 (로그인 안됐을 때)

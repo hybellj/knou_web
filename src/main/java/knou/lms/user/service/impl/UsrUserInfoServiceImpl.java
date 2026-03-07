@@ -82,7 +82,7 @@ public class UsrUserInfoServiceImpl extends ServiceBase implements UsrUserInfoSe
     @Override
     public UsrUserInfoVO viewForLogin(UsrUserInfoVO vo) throws Exception {
         //SNS로그인
-        if(ValidationUtils.isNotEmpty(vo.getSnsKey()) && ValidationUtils.isNotEmpty(vo.getSnsDiv())){
+        /*if(ValidationUtils.isNotEmpty(vo.getSnsKey()) && ValidationUtils.isNotEmpty(vo.getSnsDiv())){
             UsrUserInfoVO uuivo  = usrUserInfoDAO.selectForLogin(vo);
             if(ValidationUtils.isNotEmpty(uuivo)) {
                 vo = uuivo;
@@ -131,8 +131,10 @@ public class UsrUserInfoServiceImpl extends ServiceBase implements UsrUserInfoSe
         if (vo.getPhtFileByte() != null && vo.getPhtFileByte().length > 0) {
             vo.setPhotoFileId("data:image/png;base64," + new String(Base64.getEncoder().encode(vo.getPhtFileByte())));
         }
-
+*/
         this.getAuthGrp(vo);
+
+
         return vo;
     }
     
@@ -196,6 +198,7 @@ public class UsrUserInfoServiceImpl extends ServiceBase implements UsrUserInfoSe
 		 * uuavo.setUserId(vo.getUserId());
 		 */
         
+        /*
         uuavo.setOrgId(vo.getOrgId());
         uuavo.setUserId(vo.getUserId());
 
@@ -214,9 +217,17 @@ public class UsrUserInfoServiceImpl extends ServiceBase implements UsrUserInfoSe
         } else {
             vo.setAdminAuthYn("N");
         }
-        
+
         vo.setAuthrtGrpcd(authrtGrpCd);
         vo.setAuthrtCd(authrtCd);
+        */
+
+        // TODO : Test Code by hybellj.
+        uuavo.setOrgId("ORG0000001");
+        uuavo.setUserId("prof1");
+        vo.setAuthrtGrpcd("PROF");
+        vo.setAuthrtCd("PROF");
+
 //        vo.setWwwAuthrtCd(authrtCd);
     }
 
