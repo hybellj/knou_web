@@ -1,17 +1,16 @@
 package knou.lms.msg.service.impl;
 
-import java.util.List;
-
-import javax.annotation.Resource;
-
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.springframework.stereotype.Service;
-
 import knou.framework.common.ServiceBase;
-import knou.framework.util.IdGenerator;
 import knou.lms.msg.dao.MsgAlimDAO;
 import knou.lms.msg.service.MsgAlimService;
 import knou.lms.msg.vo.MsgAlimVO;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service("msgAlimService")
 public class MsgAlimServiceImpl extends ServiceBase implements MsgAlimService {
@@ -48,7 +47,7 @@ public class MsgAlimServiceImpl extends ServiceBase implements MsgAlimService {
      * @return
      */
     @Override
-    public List<MsgAlimVO> selectAlimPushList(MsgAlimVO vo) {
+    public List<MsgAlimVO> selectPushList(MsgAlimVO vo) {
         if (vo.getListCnt() <= 0) {
             vo.setListCnt(5);
         }
@@ -61,7 +60,7 @@ public class MsgAlimServiceImpl extends ServiceBase implements MsgAlimService {
      * @return
      */
     @Override
-    public List<MsgAlimVO> selectAlimSmsList(MsgAlimVO vo) {
+    public List<MsgAlimVO> selectSmsList(MsgAlimVO vo) {
         if (vo.getListCnt() <= 0) {
             vo.setListCnt(5);
         }
@@ -74,7 +73,7 @@ public class MsgAlimServiceImpl extends ServiceBase implements MsgAlimService {
      * @return
      */
     @Override
-    public List<MsgAlimVO> selectAlimNotitalkList(MsgAlimVO vo) {
+    public List<MsgAlimVO> selectAlimtalkList(MsgAlimVO vo) {
         if (vo.getListCnt() <= 0) {
             vo.setListCnt(5);
         }
@@ -82,33 +81,35 @@ public class MsgAlimServiceImpl extends ServiceBase implements MsgAlimService {
     }
 
     /**
-     * 알림 읽음 상태 수정
+     * 채널별 알림 데이터 조회
      * @param vo
+     * @param chnlCd
      * @return
      */
     @Override
-    public int modifyAlimRead(MsgAlimVO vo) {
-        int result = 0;
-        String alimTycd = vo.getSndngTycd();
+    public Map<String, Object> selectAlimChnlData(MsgAlimVO vo, String chnlCd) {
+        Map<String, Object> data = new HashMap<>();
 
-        if ("SHTNT".equals(alimTycd)) {
-            result = msgAlimDAO.modifyShrtntReadDttm(vo);
-        } else if ("PUSH".equals(alimTycd) || "SMS".equals(alimTycd) || "ALIMTALK".equals(alimTycd)) {
-            result = msgAlimDAO.modifyMblReadDttm(vo);
+        EgovMap unreadCnt = selectAlimUnrdCnt(vo);
+        data.put("unreadCnt", unreadCnt);
+
+        if ("ALL".equals(chnlCd)) {
+            data.put("pushList", selectPushList(vo));
+            data.put("smsList", selectSmsList(vo));
+            data.put("msgList", selectShrtntList(vo));
+            data.put("talkList", selectAlimtalkList(vo));
+        } else if ("PUSH".equals(chnlCd)) {
+            data.put("pushList", selectPushList(vo));
+        } else if ("SMS".equals(chnlCd)) {
+            data.put("smsList", selectSmsList(vo));
+        } else if ("SHRTNT".equals(chnlCd)) {
+            data.put("msgList", selectShrtntList(vo));
+        } else if ("ALIM_TALK".equals(chnlCd)) {
+            data.put("talkList", selectAlimtalkList(vo));
         }
 
-        return result;
+        return data;
     }
 
-    /**
-     * 메시지 등록
-     * @param vo
-     * @return
-     */
-    @Override
-    public int registMsg(MsgAlimVO vo) {
-        String msgId = IdGenerator.getNewId("MSG");
-        vo.setMsgId(msgId);
-        return msgAlimDAO.registMsg(vo);
-    }
+
 }

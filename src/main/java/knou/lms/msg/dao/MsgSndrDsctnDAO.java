@@ -3,6 +3,7 @@ package knou.lms.msg.dao;
 import java.util.List;
 
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.lms.msg.vo.MsgSndrDsctnVO;
 
@@ -19,7 +20,7 @@ public interface MsgSndrDsctnDAO {
 
     List<MsgSndrDsctnVO> selectSndrDsctnYrList(MsgSndrDsctnVO vo);
 
-    List<MsgSndrDsctnVO> selectSndrDsctnSmstrList(MsgSndrDsctnVO vo);
+    List<EgovMap> selectSndrDsctnSmstrList(MsgSndrDsctnVO vo);
 
     List<MsgSndrDsctnVO> selectSndrDsctnDeptList(MsgSndrDsctnVO vo);
 

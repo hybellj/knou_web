@@ -5,12 +5,10 @@ import knou.lms.common.vo.DefaultVO;
 public class MsgAlimVO extends DefaultVO {
     private static final long serialVersionUID = 1L;
 
-    private String userId;
     private String sndngTycd;
     private int listCnt = 5;
 
     private String msgId;
-    private String sbjctOfrngId;
     private String msgTmpltId;
     private String msgTycd;
     private String msgCtsGbncd;
@@ -51,14 +49,6 @@ public class MsgAlimVO extends DefaultVO {
     private int shrtntCnt;
     private int alimtalkCnt;
     private int totalUnreadCnt;
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
 
     public String getSndngTycd() {
         return sndngTycd;
@@ -210,14 +200,6 @@ public class MsgAlimVO extends DefaultVO {
 
     public void setTotalUnreadCnt(int totalUnreadCnt) {
         this.totalUnreadCnt = totalUnreadCnt;
-    }
-
-    public String getSbjctOfrngId() {
-        return sbjctOfrngId;
-    }
-
-    public void setSbjctOfrngId(String sbjctOfrngId) {
-        this.sbjctOfrngId = sbjctOfrngId;
     }
 
     public String getMsgTmpltId() {

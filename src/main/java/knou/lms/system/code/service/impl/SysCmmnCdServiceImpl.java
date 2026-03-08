@@ -96,7 +96,7 @@ public class SysCmmnCdServiceImpl extends ServiceBase implements SysCmmnCdServic
             sysCmmnCdDAO.deleteSysCmmnCd(vo);
         } else {
             throw new MediopiaDefineException("사용중인 하위 코드가 존재하여 삭제할 수 없습니다.");
-        }            
+        }
     }
 
     /*****************************************************
@@ -121,7 +121,7 @@ public class SysCmmnCdServiceImpl extends ServiceBase implements SysCmmnCdServic
      * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<SysCmmnCdVO> listSysCmmnCdPaging(SysCmmnCdVO vo) throws Exception {        
+    public ProcessResultVO<SysCmmnCdVO> listSysCmmnCdPaging(SysCmmnCdVO vo) throws Exception {
         ProcessResultVO<SysCmmnCdVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -164,5 +164,16 @@ public class SysCmmnCdServiceImpl extends ServiceBase implements SysCmmnCdServic
     @Override
     public void deleteSysCmmnCd(SysCmmnCdVO vo) throws Exception {
         sysCmmnCdDAO.deleteSysCmmnCd(vo);
+    }
+
+
+    /*****************************************************
+     * 시스템 공통코드 전체 목록 조회
+     * @return List<SysCmmnCdVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<SysCmmnCdVO> selectSysCmmnCdAll() throws Exception {
+    	return sysCmmnCdDAO.selectSysCmmnCdAll();
     }
 }

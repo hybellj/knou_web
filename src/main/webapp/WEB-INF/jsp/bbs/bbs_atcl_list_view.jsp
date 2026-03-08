@@ -16,20 +16,19 @@
 
 	<script type="text/javascript">
 		var USER_ID 		= '<c:out value="${USER_ID}" />';
-		var HAKSA_YEAR 		= '<c:out value="${bbsVO.haksaYear}" />';
-		var HAKSA_TERM		= '<c:out value="${bbsVO.haksaTerm}" />';
 		var BBS_CD 			= '<c:out value="${bbsVO.bbsTycd}" />';
 		var CRS_CRE_CD		= '<c:out value="${param.crsCreCd}" />';
 		var TEAM_CTGR_CD	= '<c:out value="${param.teamCtgrCd}" />';
 		var TEAM_CD			= '<c:out value="${param.teamCd}" />';
 		var SEARCH_VALUE	= '<c:out value="${param.searchValue}" />';
 		var PAGE_INDEX		= '<c:out value="${bbsVO.pageIndex}" />';
-		var LIST_SCALE		= '<c:out value="${bbsVO.listScale}" />';
 		var TAB 			= '<c:out value="${param.tab}" />';
 		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
 		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
 		var BBS_IDS;
-		var BBS_HOME_UNIV_GBNS = ""; // bbsHome 의 전체공지 조회용 대학구분 코드
+
+		// 사용값
+		var LIST_SCALE		= '<c:out value="${bbsVO.listScale}" />';
 		var EPARAM			= '<c:out value="${eparam}" />';
 
 
@@ -146,7 +145,7 @@
 			var extData = {
 					pageIndex		: pageIndex
 					, listScale		: LIST_SCALE
-					, searchValue 	: SEARCH_VALUE
+					, searchValue 	: $("#searchValue").val()
 			};
 
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do"
@@ -171,7 +170,7 @@
 	        		atclListTable.replaceData(dataList);
 	        		atclListTable.setPageInfo(data.pageInfo);
 	            } else {
-	             	showMessage(data.message, "error");
+	             	showMessage(data.message, "error"); // 에러가 발생했습니다!
 	            }
 			}, function(xhr, status, error) {
 				showMessage("<spring:message code='fail.common.msg'/>", "error"); // 에러가 발생했습니다!
@@ -328,7 +327,7 @@
                             <div class="item">
                                 <span class="item_tit"><label for="searchValue"><spring:message code='common.search.keyword'/></label></span><%-- 검색어 --%>
                                 <div class="itemList">
-                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${param.searchValue}" placeholder="<spring:message code='bbs.common.placeholder'/>"><%-- 작성자/제목/키워드 --%>
+                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${bbsVO.searchValue}" placeholder="<spring:message code='bbs.common.placeholder'/>"><%-- 작성자/제목/키워드 --%>
                                 </div>
                             </div>
                             <div class="button-area">

@@ -53,7 +53,6 @@
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
 	        		var quiz = data.returnVO;
-	        		$("#searchTo").val(quiz.examBscId);
 
 	        		/* var fileUploader = dx5.get("fileUploader");
 	        		fileUploader.clearItems(); */
@@ -180,7 +179,7 @@
 								quizViewMv("list", '');
 							}
 					    } else {
-					     	alert(data.message);
+					     	UiComm.showMessage(data.message, "error");
 					    }
 					}).fail(function() {
 						UiComm.showLoading(false);
@@ -600,7 +599,6 @@
 						        <input type="hidden" name="copyFiles"					value=""					   				id="copyFiles" />
 						        <input type="hidden" name="delFileIdStr"				value=""					   				id="delFileIdStr" />
 						        <input type="hidden" name="uploadPath"					value=""					   				id="uploadPath" />
-						        <input type="hidden" name="searchTo"					value=""					   				id="searchTo" />
 						        <input type="hidden" name="fileSns"						value=""					   				id="fileSns" />
 						        <input type="hidden" name="dtlInfos"					value=""					   				id="dtlInfos" />
 						        <table class="table-type5">

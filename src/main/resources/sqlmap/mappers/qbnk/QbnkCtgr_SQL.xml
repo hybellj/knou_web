@@ -23,11 +23,8 @@
 			, CTGRNM
 		  FROM TB_LMS_QBNK_CTGR
 		 WHERE DELYN = 'N'
-		   AND QBNK_QSTN_GBNCD = #{qbnkQstnGbncd}
-		   AND (
-		   		   CRS_MSTR_ID IN (SELECT CRS_MSTR_ID FROM SBJCT)
-		   		OR SMSTR_CHRT_ID IN (SELECT SMSTR_CHRT_ID FROM SBJCT)
-	   		)
+		   AND SMSTR_CHRT_ID IN (SELECT SMSTR_CHRT_ID FROM SBJCT)
+		   AND USER_RPRS_ID = #{userRprsId}
 		 <choose>
 			 <when test="upQbnkCtgrId != null and upQbnkCtgrId != ''">
 			 	AND UP_QBNK_CTGR_ID = #{upQbnkCtgrId}
@@ -37,6 +34,284 @@
 		 	 </otherwise>
 		 </choose>
 		 ORDER BY CTGR_SEQNO
+	</select>
+
+	<select id="profQbnkCtgrAllList" parameterType="qbnkCtgrVO" resultType="egovMap">
+		/*
+             SQL ID : QbnkCtgrDAO.profQbnkCtgrAllList
+             설  명 : 교수문제은행분류전체목록조회
+         */
+        SELECT * FROM (
+	        SELECT
+				  ROW_NUMBER() OVER(ORDER BY CTGR.ORDER_CTGR_ID ASC, CTGR.ORDER_SEQNO ASC) AS LINE_NO
+				, CTGR.*
+				, COUNT(CTGR.QBNK_CTGR_ID) OVER() AS TOTAL_CNT
+			FROM (
+				SELECT
+					  CTGR.QBNK_CTGR_ID
+					, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL
+						   THEN CTGR.CTGRNM
+						   ELSE (SELECT CTGRNM FROM TB_LMS_QBNK_CTGR WHERE QBNK_CTGR_ID = CTGR.UP_QBNK_CTGR_ID)
+					  END UP_QBNK_CTGRNM
+					, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL
+						   THEN '-'
+						   ELSE CTGR.CTGRNM
+					  END AS CTGRNM
+					, SBJCT.SBJCTNM
+					, SBJCT.DVCLAS_NO
+					, USR.USERNM
+					, CTGR.REG_DTTM
+					, NVL(CTGR.UP_QBNK_CTGR_ID, CTGR.QBNK_CTGR_ID) AS ORDER_CTGR_ID
+					, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL THEN 1 ELSE 2 END AS ORDER_SEQNO
+				  FROM TB_LMS_QBNK_CTGR CTGR
+				  LEFT JOIN TB_LMS_SBJCT SBJCT
+				    ON CTGR.SBJCT_ID = SBJCT.SBJCT_ID
+				   AND SBJCT.DELYN = 'N'
+				   AND SBJCT.USEYN = 'Y'
+				  LEFT JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
+				    ON SBJCT_ADM.SBJCT_ID = SBJCT.SBJCT_ID
+				   AND SBJCT_ADM.USER_ID = CTGR.USER_ID
+				   AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
+				   AND SBJCT_ADM.SBJCT_ADM_SEQNO = 1
+				  LEFT JOIN TB_LMS_USER USR
+				    ON USR.USER_ID = SBJCT_ADM.USER_ID
+				 WHERE CTGR.DELYN = 'N'
+				<if test="upQbnkCtgrId != null and upQbnkCtgrId != ''">
+				  	AND (
+				  		   CTGR.UP_QBNK_CTGR_ID = #{upQbnkCtgrId}
+				  		OR CTGR.QBNK_CTGR_ID = #{upQbnkCtgrId}
+				  	)
+				</if>
+				<if test="qbnkCtgrId != null and qbnkCtgrId != ''">
+				  	AND CTGR.QBNK_CTGR_ID = #{qbnkCtgrId}
+				</if>
+				<if test="sbjctId != null and sbjctId != ''">
+					AND CTGR.SBJCT_ID = #{sbjctId}
+				</if>
+				<if test="userRprsId != null and userRprsId != ''">
+					AND CTGR.USER_RPRS_ID = #{userRprsId}
+				</if>
+				<if test="searchValue != null and searchValue != ''">
+				  	AND (
+				  		   LOWER(CTGR.CTGRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				  		OR LOWER(SBJCT.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				  		OR LOWER(USR.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				  	)
+				</if>
+			) CTGR
+		) A
+		<if test="listScale != null and listScale > 0">
+		  WHERE LINE_NO BETWEEN #{firstIndex} +1 AND #{firstIndex} + #{listScale}
+		</if>
+	</select>
+
+	<select id="profQbnkSbjctSelect" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : QbnkCtgrDAO.profQbnkSbjctSelect
+             설  명 : 교수문제은행과목조회
+         */
+        SELECT
+			  SBJCT.SBJCT_ID
+			, SBJCT.DVCLAS_NO
+			, SBJCT.SBJCTNM
+			, SBJCT.PROF_ID
+			, SBJCT.SMSTR_CHRT_ID
+			, SBJCT.CRS_MSTR_ID
+			, USR.USER_RPRS_ID
+			, USR.USERNM
+		  FROM TB_LMS_SBJCT SBJCT
+		  JOIN TB_LMS_USER USR
+		    ON SBJCT.PROF_ID = USR.USER_ID
+		 WHERE SBJCT.SBJCT_ID = #{sbjctId}
+		   AND SBJCT.USEYN = 'Y'
+		   AND SBJCT.DELYN = 'N'
+	</select>
+
+	<select id="qbnkNextCtgrSeqnoSelect" parameterType="qbnkCtgrVO" resultType="Integer">
+		/*
+             SQL ID : QbnkCtgrDAO.qbnkNextCtgrSeqnoSelect
+             설  명 : 문제은행다음분류순번조회
+         */
+		SELECT
+			NVL(MAX(CTGR_SEQNO), 0) + 1
+		  FROM TB_LMS_QBNK_CTGR
+		 WHERE DELYN = 'N'
+		 <if test="userRprsId != null and userRprsId != ''">
+		   AND USER_RPRS_ID = #{userRprsId}
+		 </if>
+		 <choose>
+		 	<when test="upQbnkCtgrId != null and upQbnkCtgrId != ''">
+		 		AND UP_QBNK_CTGR_ID = #{upQbnkCtgrId}
+		 	</when>
+		 	<otherwise>
+		 		AND UP_QBNK_CTGR_ID IS NULL
+		 	</otherwise>
+		 </choose>
+	</select>
+
+	<insert id="qbnkCtgrRegist" parameterType="qbnkCtgrVO">
+		/*
+             SQL ID : QbnkCtgrDAO.qbnkCtgrRegist
+             설  명 : 문제은행분류등록
+         */
+        MERGE INTO TB_LMS_QBNK_CTGR CTGR
+	    USING (
+	        SELECT
+	        	  #{qbnkCtgrId} AS QBNK_CTGR_ID
+	        	, #{upQbnkCtgrId} AS UP_QBNK_CTGR_ID
+	        	, #{crsMstrId} AS CRS_MSTR_ID
+	        	, #{smstrChrtId} AS SMSTR_CHRT_ID
+	        	, #{sbjctId} AS SBJCT_ID
+	        	, #{userRprsId} AS USER_RPRS_ID
+	        	, #{userId} AS USER_ID
+	        	, #{ctgrnm} AS CTGRNM
+	        	, #{ctgrExpln} AS CTGR_EXPLN
+	        	, #{ctgrSeqno} AS CTGR_SEQNO
+	        	, 'Y' AS SHRNYN
+	        	, 'N' AS DELYN
+	        	, #{rgtrId} AS RGTR_ID
+	          FROM DUAL
+	    ) QBNK
+	    ON (
+	    	CTGR.QBNK_CTGR_ID = QBNK.QBNK_CTGR_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  CTGR.CTGRNM = QBNK.CTGRNM
+	        	, CTGR.CTGR_EXPLN = QBNK.CTGR_EXPLN
+	        	, CTGR.CTGR_SEQNO = QBNK.CTGR_SEQNO
+	        	, CTGR.MDFR_ID = QBNK.RGTR_ID
+				, CTGR.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  QBNK_CTGR_ID
+				, UP_QBNK_CTGR_ID
+				, CRS_MSTR_ID
+				, SMSTR_CHRT_ID
+				, SBJCT_ID
+				, USER_RPRS_ID
+				, USER_ID
+				, CTGRNM
+				, CTGR_EXPLN
+				, CTGR_SEQNO
+				, SHRNYN
+				, DELYN
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  QBNK.QBNK_CTGR_ID
+				, QBNK.UP_QBNK_CTGR_ID
+				, QBNK.CRS_MSTR_ID
+				, QBNK.SMSTR_CHRT_ID
+				, QBNK.SBJCT_ID
+				, QBNK.USER_RPRS_ID
+				, QBNK.USER_ID
+				, QBNK.CTGRNM
+				, QBNK.CTGR_EXPLN
+				, QBNK.CTGR_SEQNO
+				, QBNK.SHRNYN
+				, QBNK.DELYN
+				, QBNK.RGTR_ID
+				, FN_DTTM()
+	        )
+	</insert>
+
+	<select id="qbnkCtgrSelect" parameterType="String" resultType="qbnkCtgrVO">
+		/*
+             SQL ID : QbnkCtgrDAO.qbnkCtgrSelect
+             설  명 : 문제은행분류조회
+         */
+        SELECT
+        	*
+          FROM TB_LMS_QBNK_CTGR
+         WHERE DELYN = 'N'
+           AND QBNK_CTGR_ID = #{qbnkCtgrId}
+	</select>
+
+	<select id="qbnkCtgrUseCntSelect" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : QbnkCtgrDAO.qbnkCtgrUseCntSelect
+             설  명 : 문제은행분류사용수조회
+         */
+		SELECT
+		    (SELECT COUNT(QBNK_CTGR_ID)
+		       FROM TB_LMS_QBNK_CTGR
+		      WHERE DELYN = 'N'
+		        AND UP_QBNK_CTGR_ID = #{qbnkCtgrId}) AS CTGR_CNT,
+		    (SELECT COUNT(QBNK_QSTN_ID)
+		       FROM TB_LMS_QBNK_QSTN
+		      WHERE DELYN = 'N'
+		        AND QBNK_CTGR_ID = #{qbnkCtgrId}) AS QSTN_CNT
+		  FROM DUAL
+	</select>
+
+	<update id="qbnkCtgrSeqnoModify" parameterType="qbnkCtgrVO">
+		/*
+             SQL ID : QbnkCtgrDAO.qbnkCtgrSeqnoModify
+             설  명 : 문제은행분류순번수정
+         */
+		UPDATE TB_LMS_QBNK_CTGR CTGR SET
+			  CTGR.CTGR_SEQNO = CTGR.CTGR_SEQNO - 1
+			, CTGR.MDFR_ID = #{mdfrId}
+		    , CTGR.MOD_DTTM = FN_DTTM()
+		 WHERE CTGR.DELYN = 'N'
+		   AND CTGR.QBNK_CTGR_ID <![CDATA[ <> ]]> #{qbnkCtgrId}
+		   AND EXISTS (
+		         SELECT 1
+		           FROM TB_LMS_QBNK_CTGR BASE
+		          WHERE BASE.QBNK_CTGR_ID = #{qbnkCtgrId}
+		            AND BASE.DELYN = 'N'
+		            AND CTGR.CTGR_SEQNO <![CDATA[ > ]]> BASE.CTGR_SEQNO
+		            AND (
+		                  (BASE.UP_QBNK_CTGR_ID IS NULL AND CTGR.UP_QBNK_CTGR_ID IS NULL)
+		                  OR
+		                  (CTGR.UP_QBNK_CTGR_ID = BASE.UP_QBNK_CTGR_ID)
+		                )
+		       )
+	</update>
+
+	<delete id="qbnkCtgrDelete" parameterType="qbnkCtgrVO">
+		/*
+             SQL ID : QbnkCtgrDAO.qbnkCtgrDelete
+             설  명 : 문제은행분류삭제
+         */
+        UPDATE TB_LMS_QBNK_CTGR SET
+        	  DELYN = 'Y'
+        	, MDFR_ID = #{mdfrId}
+        	, MOD_DTTM = FN_DTTM()
+         WHERE QBNK_CTGR_ID = #{qbnkCtgrId}
+	</delete>
+
+	<select id="qbnkSearchSbjctList" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : QbnkCtgrDAO.qbnkSearchSbjctList
+             설  명 : 문제은행검색과목목록
+         */
+		SELECT
+			  SBJCT.SBJCT_ID
+			, SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+		  FROM TB_LMS_SBJCT SBJCT
+		  JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
+		    ON SBJCT.SBJCT_ID = SBJCT_ADM.SBJCT_ID
+		   AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
+		   AND SBJCT_ADM.USER_ID = #{userId}
+		 WHERE SBJCT.USEYN = 'Y'
+		   AND SBJCT.DELYN = 'N'
+	</select>
+
+	<select id="qbnkSearchProfList" resultType="egovMap">
+		/*
+             SQL ID : QbnkCtgrDAO.qbnkSearchProfList
+             설  명 : 문제은행검색교수목록
+         */
+		SELECT DISTINCT
+			  USR.USER_RPRS_ID
+			, USR.USERNM
+		  FROM TB_LMS_SBJCT_ADM ADM
+		  JOIN TB_LMS_USER USR
+		    ON USR.USER_ID = ADM.USER_ID
+		 WHERE SBJCT_ADM_TYCD = 'PROF'
 	</select>
 
 </mapper>

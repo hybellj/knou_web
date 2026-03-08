@@ -1,6 +1,6 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -8,6 +8,25 @@
         <jsp:param name="style" value="classroom"/>
         <jsp:param name="module" value="table,editor,fileuploader"/>
     </jsp:include>
+
+    <script type="text/javascript">
+        var dialog;
+        const editors = {};	// 에디터 목록 저장용
+
+        $(window).on('load', function() {
+            // 부주제 조회
+            $("input[name='lrnGrpSubForumSettingyns']:checked").each(function(i, e) {
+                var lrnGrpId = $("#lrnGrpId" + e.id.split("_")[1]).val().split(":")[0];	// 학습그룹아이디
+                var lrnGrpnm = $("#lrnGrpnm" + e.id.split("_")[1]).val();				// 학습그룹명
+                var dvclasNo = e.id.split("_")[1];										// 분반 순서
+                var sbjctId = e.value.split(":")[1];									// 과목아이디
+
+                selectTeam(lrnGrpId, lrnGrpnm, dvclasNo+":"+sbjctId);
+            });
+
+            dvclasChcChange($("#allDeclas")[0]);
+        });
+    </script>
     <title>교수자 토론 등록/수정</title>
 </head>
 <body class="class colorA">
@@ -60,11 +79,6 @@
 
                     <div class="table-wrap">
                         <form id="forumWriteForm" onsubmit="return false;" autocomplete="off">
-                            <input type="text" id="dscsId" name="dscsId" value="${not empty forum2VO.dscsId ? forum2VO.dscsId : param.dscsId}"/>
-                            <input type="text" id="sourceDscssId" name="sourceDscssId" value="${param.sourceDscssId}"/>
-                            <input type="text" id="sbjctId" name="sbjctId" value="${forum2VO.sbjctId}"/>
-                            <input type="text" id="dscsGbncd" name="dscsGbncd" value="${forum2VO.dscsGbncd}"/>
-
                             <!-- TODO : 팀 -->
                             <div id="teamArea" margin-top:12px;">
                                 <table class="table-type5">
@@ -82,8 +96,8 @@
                                         <td><input type="text" id="lrnGrpId" name="lrnGrpId" class="width-100per" value="<c:out value='${forum2VO.lrnGrpId}'/>"/></td>
                                     </tr>
                                     <tr>
-                                        <th><label for="dvclsId">분반ID</label></th>
-                                        <td><input type="text" id="dvclsId" name="dvclsId" class="width-100per" value="<c:out value='${forum2VO.dvclsId}'/>"/></td>
+                                        <th><label for="dvclsNo">분반ID</label></th>
+                                        <td><input type="text" id="dvclsNo" name="dvclsNo" class="width-100per" value="<c:out value='${forum2VO.dvclsNo}'/>"/></td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -128,6 +142,36 @@
                                         <!--//섹션 에디터-->
                                     </td>
                                 </tr>
+                            <c:choose>
+                                <c:when test="${mode eq 'E'}">
+                                </c:when>
+                                <c:otherwise>
+                                <tr>
+                                    <th><label for="contLabel" class="req">분반같이 등록</label></th>
+                                    <td>
+                                        <div class="checkbox_type">
+                                    <span class="custom-input">
+                                        <input type="checkbox" name="allDeclasNo" value="all" id="allDeclas" onchange="dvclasChcChange(this)">
+                                        <label for="allDeclas">전체</label>
+                                    </span>
+                                            <c:forEach var="list" items="${dvclasList }">
+                                                <c:set var="sbjctChk" value="N" />
+                                                <c:forEach var="item" items="${sbjctList }">
+                                                    <c:if test="${item.sbjctId eq list.sbjctId }">
+                                                        <c:set var="sbjctChk" value="Y" />
+                                                    </c:if>
+                                                </c:forEach>
+                                                <span class="custom-input">
+                                            <input type="checkbox" ${list.sbjctId eq sbjctId || sbjctChk eq 'Y' ? 'class="readonly" checked readonly' : '' } name="sbjctIds" id="declas_${list.dvclasNo }" value="${list.sbjctId }" onchange="dvclasChcChange(this)">
+                                            <label for="declas_${list.dvclasNo }">${list.dvclasNo }반</label>
+                                        </span>
+                                            </c:forEach>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </c:otherwise>
+                            </c:choose>
+
                                 <tr>
                                     <th><label for="dscsSdttm" class="req">참여기간</label></th>
                                     <!-- TODO : 참여기간 일정 날짜 + 시간 조합할 것 -->
@@ -203,37 +247,34 @@
                                     <th><label>팀 토론</label></th>
                                     <td>
                                         <span class="custom-input ml5">
-                                            <input type="radio" name="dscsUnitTycd" id="dscsUnitTycdN" value="NORMAL" onchange="teamynChange(this.value)" ${empty forum2VO.dscsUnitTycd || forum2VO.dscsUnitTycd ne 'TEAM' ? 'checked' : ''}>
+                                            <input type="radio" name="dscsUnitTycd" id="dscsUnitTycdN" value="N" onchange="teamynChange(this.value)" ${empty forum2VO.dscsUnitTycd || forum2VO.dscsUnitTycd ne 'TEAM' ? 'checked' : ''}>
                                             <label for="dscsUnitTycdN">아니오</label>
                                         </span>
                                         <span class="custom-input">
-                                            <input type="radio" name="dscsUnitTycd" id="dscsUnitTycdY" value="TEAM" onchange="teamynChange(this.value)" ${forum2VO.dscsUnitTycd eq 'TEAM' ? 'checked' : ''}>
+                                            <input type="radio" name="dscsUnitTycd" id="dscsUnitTycdY" value="Y" onchange="teamynChange(this.value)" ${forum2VO.dscsUnitTycd eq 'TEAM' ? 'checked' : ''}>
                                             <label for="dscsUnitTycdY">예</label>
                                         </span>
-                                        <div id="teamQuizDiv" ${empty forum2VO.dscsGrpId || forum2VO.dscsUnitTycd ne 'TEAM' ? 'style="display:block"' : '' }>
+                                        <div id="teamForumDiv" ${empty forum2VO.dscsId || forum2VO.dscsUnitTycd ne 'TEAM' ? 'style="display:none"' : '' }>
                                             <c:forEach var="list" items="${dvclasList }" varStatus="i">
                                                 <div class="form-row" id='lrnGrpView${list.dvclasNo}'>
                                                     <div class="input_btn width-100per">
                                                         <label>${list.dvclasNo }반</label>
-                                                        <input type='hidden' id='lrnGrpId${list.dvclasNo}' name='lrnGrpIds' value="${empty list.lrnGrpId ? '' : list.lrnGrpId}:${list.sbjctId}">
-                                                        <input class="form-control width-60per" type="text" name="name" id="lrnGrpnm${list.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty forum2VO.examBscId ? '' : list.lrnGrpnm}" readonly="" autocomplete="off">
-                                                        <a class="btn type1 small" onclick="teamGrpChcPopup('${list.dvclasNo}','${list.sbjctId }')">학습그룹지정</a>
+                                                        <input type='hidden' id='lrnGrpId${list.dvclasNo}' name='lrnGrpIds' value="${empty forum2VO.dscsId ? '' : list.lrnGrpId}:${list.sbjctId}">
+                                                        <input class="form-control width-60per" type="text" name="name" id="lrnGrpnm${list.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty forum2VO.dscsId ? '' : list.lrnGrpnm}" readonly="" autocomplete="off">
+                                                        <a class="btn type1 small" onclick="teamCtgrSelectPop('${list.dvclasNo}','${list.sbjctId }')">학습그룹지정</a>
                                                     </div>
                                                 </div>
                                                 <c:if test="${i.count eq 1 }">
-                                                    <div class="form-inline">
-                                                        <small class="note2">! 구성된 팀이 없는 경우 메뉴 “과목설정 > 학습그룹지정”에서 팀을 생성해 주세요</small>
-                                                    </div>
+                                                <div class="form-inline">
+                                                    <small class="note2">! 구성된 팀이 없는 경우 메뉴 “과목설정 > 학습그룹지정”에서 팀을 생성해 주세요</small>
+                                                </div>
                                                 </c:if>
-                                                <div class="ui segment" id="setQuizDiv${list.dvclasNo }" style="display:none;">
-											        		<span class="custom-input">
-															    <input type="checkbox" name="lrnGrpSubasmtStngyns" id="lrnGrpSubasmtStngyn_${list.dvclasNo }"
-                                                                       data-bscId="${not empty forum2VO.dscsGrpId && list.lrnGrpSubasmtStngyn eq 'Y' ? list.examBscId : '' }"
-                                                                       value="Y:${list.sbjctId }"
-                                                                       onchange="lrnGrpSubasmtStngynChange(this)" ${not empty forum2VO.dscsGrpId && list.lrnGrpSubasmtStngyn eq 'Y' ? 'checked' : '' }>
-															    <label for="lrnGrpSubasmtStngyn_${list.dvclasNo }">학습그룹별 부 과제 설정</label>
-															</span>
-                                                    <div id="subInfoDiv${list.dvclasNo }" ${not empty forum2VO.dscsGrpId && list.lrnGrpSubasmtStngyn eq 'Y' ? '' : 'style="display: none;"' }></div>
+                                                <div class="ui segment" id="setForumDiv${list.dvclasNo }" style="display:none;">
+                                                    <span class="custom-input">
+                                                        <input type="checkbox" name="lrnGrpSubForumSettingyns" id="lrnGrpSubForumSettingyn_${list.dvclasNo }" data-bscId="${not empty forum2VO.dscsId && list.lrnGrpSubForumSettingyn eq 'Y' ? list.examBscId : '' }" value="Y:${list.sbjctId }" onchange="lrnGrpSubForumSettingynChange(this)" ${not empty vo.examBscId && list.lrnGrpSubForumSettingyn eq 'Y' ? 'checked' : '' }>
+                                                        <label for="lrnGrpSubForumSettingyn_${list.dvclasNo }">학습그룹별 부 주제 설정</label>
+                                                    </span>
+                                                    <div id="subInfoDiv${list.dvclasNo }" ${not empty forum2VO.dscsId && list.lrnGrpSubForumSettingyn eq 'Y' ? '' : 'style="display: none;"' }></div>
                                                 </div>
                                             </c:forEach>
                                         </div>
@@ -290,12 +331,12 @@
                                                         <th><label><spring:message code="forum.label.prosCons"/></label></th>
                                                         <td>
                                                             <span class="custom-input">
-                                                                <input type="radio" name="oknokCfgyn" id="oknokCfgynY" value="N" ${forum2VO.oknokCfgyn eq 'N' ? 'checked' : '' }>
-                                                                <label for="oknokCfgynY">아니오</label>
+                                                                <input type="radio" name="oknokStngyn" id="oknokStngynN" value="N" ${forum2VO.oknokStngyn eq 'N' || empty forum2VO.oknokStngyn ? 'checked' : '' }>
+                                                                <label for="oknokStngynN">아니오</label>
                                                                 </span>
                                                             <span class="custom-input ml10">
-                                                                <input type="radio" name="oknokCfgyn" id="oknokCfgynN" value="Y" ${forum2VO.oknokCfgyn eq 'Y' || empty forum2VO.oknokCfgyn ? 'checked' : '' }>
-                                                                <label for="oknokCfgynN">예</label>
+                                                                <input type="radio" name="oknokStngyn" id="oknokStngynY" value="Y" ${forum2VO.oknokStngyn eq 'Y'  ? 'checked' : '' }>
+                                                                <label for="oknokStngynY">예</label>
                                                             </span>
 
                                                             <div id="oknok_option_area" class="mt10 ml10">
@@ -436,8 +477,278 @@
             $('#teamArea').hide();
             $('#dscsGrpId').val('');
             $('#lrnGrpId').val('');
-            $('#dvclsId').val('');
+            $('#dvclsNo').val('');
         }
+    }
+
+    /**
+     * 분반 선택 변경
+     * @param {obj}  obj - 선택한 분반 체크박스
+     */
+    function dvclasChcChange(obj) {
+        if(obj.value == "all") {
+            $("input[name=sbjctIds]").not(".readonly").prop("checked", obj.checked);
+
+            if(obj.checked) {
+                $("div[id^='lrnGrpView']").css("display", "flex");
+                $("input[name='lrnGrpSubForumSettingyns']:checked").each(function(i, e) {
+                    $("#setForumDiv"+e.id.split("_")[1]).show();
+                });
+            } else {
+                var fixDvclas = $("input[name=sbjctIds]").filter(".readonly")[0].id.split("_")[1];
+                $("div[id^='lrnGrpView']").not("#lrnGrpView"+fixDvclas).hide();
+                $("div[id^='setForumDiv']").not("#setForumDiv"+fixDvclas).hide();
+            }
+        } else {
+            $("#allDeclas").prop("checked", $("input[name=sbjctIds]").length == $("input[name=sbjctIds]:checked").length);
+
+            if(obj.checked) {
+                $("#lrnGrpView" + obj.id.split("_")[1]).css("display", "flex");
+                $("#setForumDiv"+obj.id.split("_")[1]).show();
+            } else {
+                $("#lrnGrpView" + obj.id.split("_")[1]).hide();
+                $("#setForumDiv"+obj.id.split("_")[1]).hide();
+            }
+        }
+    }
+
+    /**
+     * 팀 퀴즈 여부 변경
+     * @param {String}  value - 팀 퀴즈 여부
+     */
+    function teamynChange(value) {
+        if(value == "Y") {
+            $("#teamForumDiv").show();
+        } else {
+            $("#teamForumDiv").hide();
+        }
+    }
+
+    /**
+     * 학습그룹지정 팝업
+     * @param {Integer} i 		- 분반 순서
+     * @param {String}  sbjctId - 과목아이디
+     */
+    function teamCtgrSelectPop(i, sbjctId) {
+        dialog = UiDialog("dialog1", {
+            title: "학습그룹지정",
+            width: 600,
+            height: 500,
+            url: "/team/teamHome/teamCtgrSelectPop.do?sbjctId="+sbjctId+"&searchFrom="+i + ":" + sbjctId,
+            autoresize: true
+        });
+    }
+
+    /**
+     * 학습그룹 선택
+     * @param {String}  lrnGrpId 	- 학습그룹아이디
+     * @param {String}  lrnGrpnm 	- 학습그룹명
+     * @param {String}  id 			- 분반 순서:과목개설아이디
+     * @returns {list} 팀 목록
+     */
+    function selectTeam(lrnGrpId, lrnGrpnm, id) {
+        var idList = id.split(':');
+        $("#lrnGrpId" + idList[0]).val(lrnGrpId + ":" + idList[1]);
+        $("#lrnGrpnm" + idList[0]).val(lrnGrpnm);
+        $("#setForumDiv" + idList[0]).show();
+
+        // TODO : 학습그룹 > 팀갯수 조회 & 수정모드인 경우 이전 부주제 값을 설정한다.
+    }
+
+    /**
+     * 학습그룹 설정여부 변경
+     * @param {obj}  obj - 분반 학습그룹 과제 설정 체크박스
+     */
+    function lrnGrpSubForumSettingynChange(obj) {
+        if(obj.checked) {
+            $("#subInfoDiv" + obj.id.split("_")[1]).show();
+        } else {
+            $("#subInfoDiv" + obj.id.split("_")[1]).hide();
+        }
+    }
+
+    function resetTeamForumDetailParams() {
+        $('#forumWriteForm input.__teamForumDtlParam').remove();
+    }
+
+    function resetLrnGrpInfoParams() {
+        $('#forumWriteForm input.__lrnGrpInfoParam').remove();
+    }
+
+    function resetDvclasSelParams() {
+        $('#forumWriteForm input.__dvclasSelParam').remove();
+    }
+
+    function appendDvclasSelParam(index, fieldName, value) {
+        $('<input>', {
+            type: 'hidden',
+            name: 'dvclasSelList[' + index + '].' + fieldName,
+            value: value || '',
+            'class': '__dvclasSelParam'
+        }).appendTo('#forumWriteForm');
+    }
+
+    function appendDvclasSelParams() {
+        resetDvclasSelParams();
+
+        var index = 0;
+        $("input[name='sbjctIds']").each(function() {
+            var id = this.id || '';
+            var dvclasNo = id.indexOf('declas_') === 0 ? id.substring(7) : '';
+            var sbjctId = this.value || '';
+            var checkedYn = $(this).is(':checked') ? 'Y' : 'N';
+            var readonlyYn = ($(this).hasClass('readonly') || $(this).prop('readonly')) ? 'Y' : 'N';
+
+            if (!dvclasNo || !sbjctId) {
+                return;
+            }
+
+            appendDvclasSelParam(index, 'dvclasNo', dvclasNo);
+            appendDvclasSelParam(index, 'sbjctId', sbjctId);
+            appendDvclasSelParam(index, 'checkedYn', checkedYn);
+            appendDvclasSelParam(index, 'readonlyYn', readonlyYn);
+            index++;
+        });
+    }
+
+    function appendLrnGrpInfoParam(index, fieldName, value) {
+        $('<input>', {
+            type: 'hidden',
+            name: 'lrnGrpInfoList[' + index + '].' + fieldName,
+            value: value || '',
+            'class': '__lrnGrpInfoParam'
+        }).appendTo('#forumWriteForm');
+    }
+
+    function appendLrnGrpInfoParams() {
+        resetLrnGrpInfoParams();
+
+        var index = 0;
+        $("div[id^='lrnGrpView']").each(function() {
+            var dvclasNo = (this.id || '').replace('lrnGrpView', '');
+            if (!dvclasNo) {
+                return;
+            }
+
+            var lrnGrpRaw = $('#lrnGrpId' + dvclasNo).val() || '';
+            var lrnGrpnm = $.trim($('#lrnGrpnm' + dvclasNo).val() || '');
+            if (!lrnGrpRaw) {
+                return;
+            }
+
+            var tokens = lrnGrpRaw.split(':');
+            var lrnGrpId = tokens[0] || '';
+            var sbjctId = tokens.length > 1 ? (tokens[1] || '') : '';
+            if (!lrnGrpId) {
+                return;
+            }
+
+            appendLrnGrpInfoParam(index, 'dvclasNo', dvclasNo);
+            appendLrnGrpInfoParam(index, 'sbjctId', sbjctId);
+            appendLrnGrpInfoParam(index, 'lrnGrpId', lrnGrpId);
+            appendLrnGrpInfoParam(index, 'lrnGrpnm', lrnGrpnm);
+            index++;
+        });
+    }
+
+    function appendTeamForumDetailParam(index, fieldName, value) {
+        $('<input>', {
+            type: 'hidden',
+            name: 'teamForumDtlList[' + index + '].' + fieldName,
+            value: value || '',
+            'class': '__teamForumDtlParam'
+        }).appendTo('#forumWriteForm');
+    }
+
+    function pickFieldValue($scope, selectors) {
+        for (var i = 0; i < selectors.length; i++) {
+            var $el = $scope.find(selectors[i]).first();
+            if ($el.length > 0) {
+                return $.trim($el.val() || $el.text() || '');
+            }
+        }
+        return '';
+    }
+
+    function appendTeamForumDetailParams() {
+        resetTeamForumDetailParams();
+
+        if (!$("input[name='dscsUnitTycd']:checked").length || $("input[name='dscsUnitTycd']:checked").val() !== 'Y') {
+            return;
+        }
+
+        var index = 0;
+        $("div[id^='lrnGrpView']").each(function() {
+            var dvclasNo = (this.id || '').replace('lrnGrpView', '');
+            if (!dvclasNo) {
+                return;
+            }
+
+            var lrnGrpRaw = $('#lrnGrpId' + dvclasNo).val() || '';
+            if (!lrnGrpRaw) {
+                return;
+            }
+            var lrnGrpTokens = lrnGrpRaw.split(':');
+            var lrnGrpId = lrnGrpTokens[0] || '';
+            var sbjctId = lrnGrpTokens.length > 1 ? (lrnGrpTokens[1] || '') : '';
+
+            var $subInfoDiv = $('#subInfoDiv' + dvclasNo);
+            if ($subInfoDiv.length === 0 || $subInfoDiv.children().length === 0) {
+                return;
+            }
+
+            var $teamRows = $subInfoDiv.find('[data-team-id], tr.subForumTr');
+            if ($teamRows.length === 0) {
+                $teamRows = $subInfoDiv.children();
+            }
+
+            $teamRows.each(function() {
+                var $row = $(this);
+                var teamId = $.trim($row.attr('data-team-id') || pickFieldValue($row, [
+                    "input[name='teamId']",
+                    "input[name='teamid']",
+                    "input[name='team_id']"
+                ]));
+                var teamNm = $.trim($row.attr('data-team-nm') || pickFieldValue($row, [
+                    "input[name='teamNm']",
+                    "input[name='teamnm']",
+                    "input[name='team_name']",
+                    ".teamNm",
+                    ".teamnm"
+                ]));
+                var teamTtl = pickFieldValue($row, [
+                    "input[name='teamTtl']",
+                    "input[name='teamSubject']",
+                    "input[name='subForumTtl']",
+                    "input[name='subExamTtl']"
+                ]);
+                var teamCts = pickFieldValue($row, [
+                    "textarea[name='teamCts']",
+                    "textarea[name='teamDiscussion']",
+                    "textarea[name='subForumCts']"
+                ]);
+                var attchFileId = pickFieldValue($row, [
+                    "input[name='attchFileId']",
+                    "input[name='fileSn']",
+                    "input[name='fileId']"
+                ]);
+
+                // 팀ID/팀명은 필수로 보고, 둘 다 비어있으면 빈 row로 간주한다.
+                if (!teamId && !teamNm) {
+                    return;
+                }
+
+                appendTeamForumDetailParam(index, 'dvclasNo', dvclasNo);
+                appendTeamForumDetailParam(index, 'sbjctId', sbjctId);
+                appendTeamForumDetailParam(index, 'lrnGrpId', lrnGrpId);
+                appendTeamForumDetailParam(index, 'teamId', teamId);
+                appendTeamForumDetailParam(index, 'teamNm', teamNm);
+                appendTeamForumDetailParam(index, 'teamTtl', teamTtl);
+                appendTeamForumDetailParam(index, 'teamCts', teamCts);
+                appendTeamForumDetailParam(index, 'attchFileId', attchFileId);
+                index++;
+            });
+        });
     }
 
     // 토론등록/저장
@@ -446,6 +757,9 @@
         validator.then(function(result) {
             syncAllSwitchHidden();
             syncDiscussionDateTimeFields();
+            appendDvclasSelParams();
+            appendLrnGrpInfoParams();
+            appendTeamForumDetailParams();
             var registUrl = '<c:url value="/forum2/forumLect/profForumRegist.do" />';
             var modifyUrl = '<c:url value="/forum2/forumLect/profForumModify.do" />';
             var isModifyMode = '${mode}' === 'E';
@@ -486,7 +800,7 @@
         var param = {
             sourceDscssId: sourceDscssId,
             targetCrsId: $('#sbjctId').val(),
-            targetDvclsId: $('#dvclsId').val(),
+            targetdvclsNo: $('#dvclsNo').val(),
             targetLrnGrpId: $('#lrnGrpId').val(),
             targetDscsGrpId: $('#dscsGrpId').val()
         };

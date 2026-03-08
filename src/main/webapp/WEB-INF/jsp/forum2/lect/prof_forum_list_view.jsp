@@ -1,6 +1,6 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -44,7 +44,11 @@
                         <div class="board_top">
                             <h3 class="board-title">목록</h3>
                             <div class="right-area">
-                                <button type="button" class="btn type2" id="btn_scroe_ratio"><spring:message code="forum.button.scoreRatio.change" /></button><!-- 성적반영비율조정 -->
+                                <div class="mrkRfltrtFrmTrsfDiv" style="display:none;">
+                                    <a href="javascript:mrkRfltrtModify()" class="btn type2"><spring:message code="forum.button.scoreRatio.save" /></a><!-- 성적반영비율저장 -->
+                                    <a href="javascript:mrkRfltrtFrmTrsf(2)" class="btn type2"><spring:message code="button.cancel" /></a>
+                                </div>
+                                <a href="javascript:mrkRfltrtFrmTrsf(1)" id="mrkRfltrtFrmTrsfBtn" class="btn type2"><spring:message code="forum.button.scoreRatio.change" /></a><!-- 성적반영비율조정 -->
                                 <button type="button" class="btn type2" id="btnGoRegist"><spring:message code="button.write.forum" /></button><!-- 토론 등록 -->
 
                                 <%-- 리스트/카드 선택 버튼 --%>
@@ -59,23 +63,41 @@
                         <div id="forumList"></div>
 
                         <%-- 카드 폼 --%>
-                        <div id="forumList_cardForm" style="display:none">
+                        <div id="forumList_cardForm" class="lecture_box" style="display:none">
                             <div class="card-header">
-                                #[label]
+                                <label class="label s_c02">#[dscsUnitTycd]</label>
                                 <div class="card-title">
                                     #[dscsTtl]
                                 </div>
+                                <div class="btn_right">
+                                    <div class="dropdown">
+                                        <button type="button" class="btn basic icon set settingBtn" aria-label="토론 관리" onclick="this.nextElementSibling.classList.toggle('show')">
+                                            <i class="xi-ellipsis-v"></i>
+                                        </button>
+                                        <div class="option-wrap">
+                                            <div class="item"><a href="javascript:goWrite('#[valDscsId]')">토론방</a></div>
+                                            <div class="item"><a href="javascript:goWrite('#[valDscsId]')">토론평가</a></div>
+                                            <div class="item"><a href="javascript:goWrite('#[valDscsId]')">수정</a></div>
+                                            <div class="item"><a href="javascript:if(confirm('삭제하시겠습니까?')){ajaxCall('/forum2/forumLect/profForumDelete.do',{dscsId:'#[valDscsId]'},function(data){if(data.result>0){listPaging(PAGE_INDEX);}else{alert(data.message||'오류가 발생했습니다!');}},function(){alert('오류가 발생했습니다!');});}">삭제</a></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <!-- TODO : 참여현황 (비교바) -->
-                            <div class="ml20 mt20">
-                                <!-- 참여기간 -->
-                                <span class="item_tit"><spring:message code='forum.label.forum.date'/> : #[dscsSdttmEdtm]</label></span><br/>
-                                <!-- 성적 반영비율 -->
-                                <span class="item_tit"><spring:message code='forum.label.score.ratio'/> : #[scoreRate]</label></span><br/>
-                                <!-- 평가현황 -->
-                                <span class="item_tit"><spring:message code='forum.label.eval.status'/> : #[mrkStatus]</label></span><br/>
-                                <!-- 성적공개 -->
-                                <span class="item_tit"><spring:message code='forum.label.score.open'/> : #[mrkOyn]</label></span><br/>
+
+                            <div class="card-body">
+                                <div class="desc">
+                                    <%-- TODO : 참여현황 그래프로 표시 --%>
+                                    <p><label class="label-title"><spring:message code='forum.label.status.join'/></label><strong>#[forumJoinUserCnt]/#[forumUserTotalCnt]</strong></p>
+
+                                    <p><label class="label-title"><spring:message code='forum.label.forum.date'/></label><strong>#[dscsSdttmEdtm]</strong></p>
+                                    <%--
+                                    <p><label class="label-title"><spring:message code='forum.label.forum.bbsCnt'/></label><strong>#[dscsAtclCnt]</strong></p>
+                                    <p><label class="label-title"><spring:message code='forum.label.forum.commCnt'/></label><strong>#[dscsCmntCnt]</strong></p>
+                                    --%>
+                                    <p><label class="label-title"><spring:message code='forum.label.score.ratio'/></label>#[scoreRate]</p>
+                                    <p><label class="label-title"><spring:message code='forum.label.eval.status'/></label><strong>#[mrkStatus]</strong></p>
+                                    <p><label class="label-title"><spring:message code='forum.label.score.open'/></label><strong>#[mrkOyn]</strong></p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -129,47 +151,33 @@
     //selectRow: "1",
     //selectRowFunc: checkRowSelect,
     // sortFunc: atclListTableSort,
-    initialSort: [{column:"regDttm", dir:"desc"}],
+    //initialSort: [{column:"regDttm", dir:"desc"}],
     pageFunc: listPaging,
+    changeFunc: chanageModeEvent,
     columns: [
-        {title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
-        {title:"<spring:message code='forum.label.type'/>", field:"dscsUnitTycd",	headerHozAlign:"center", hozAlign:"left",	width:200,	minWidth:200, 	headerSort:true},	// 구분
-        {title:"<spring:message code='forum.label.forum'/>", 	field:"dscsTtl", 	headerHozAlign:"center", hozAlign:"left", width:0, 	minWidth:200,	headerSort:true},	// 토론제목
-        {title:"<spring:message code='forum.label.forum.date'/>", 	field:"dscsSdttmEdtm", 	headerHozAlign:"center", hozAlign:"center", width:300,	minWidth:300},	// 토론기간
-        {title:"<spring:message code='forum.label.forum.bbsCnt'/>", 	field:"dscsAtclCnt", 	headerHozAlign:"center", hozAlign:"center", width:200,	minWidth:200},	// 토론글수
-        {title:"<spring:message code='forum.label.forum.commCnt'/>", 		field:"dscsCmntCnt", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 댓글수
-        {title:"<spring:message code='forum.label.score.ratio'/>", 	field:"scoreRate", 	headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 성적 반영비율
-        {title:"<spring:message code='forum.label.status.join'/>", 	field:"joinCnt", 	headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 참여현황
-        {title:"<spring:message code='forum.label.eval.status'/>", 	field:"mrkStatus", 	headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 평가현황
-        {title:"<spring:message code='forum.label.score.open'/>", 	field:"mrkOyn", 	headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 성적공개
+        {title:"No", 													field:"no",				headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
+        {title:"<spring:message code='forum.label.type'/>", 			field:"dscsUnitTycd",	headerHozAlign:"center", hozAlign:"left",	width:200,	minWidth:200},	// 구분
+        {title:"<spring:message code='forum.label.forum'/>", 			field:"dscsTtl", 		headerHozAlign:"center", hozAlign:"left", 	width:0, 	minWidth:200},	// 토론제목
+        {title:"<spring:message code='forum.label.forum.date'/>", 		field:"dscsSdttmEdtm", 	headerHozAlign:"center", hozAlign:"center", width:300,	minWidth:300},	// 토론기간
+        {title:"<spring:message code='forum.label.forum.bbsCnt'/>", 	field:"dscsAtclCnt", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 토론글수
+        {title:"<spring:message code='forum.label.forum.commCnt'/>",	field:"dscsCmntCnt", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 댓글수
+        {title:"<spring:message code='forum.label.score.ratio'/>", 		field:"scoreRate", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 성적 반영비율
+        {title:"<spring:message code='forum.label.status.join'/>", 		field:"joinCnt", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 참여현황
+        {title:"<spring:message code='forum.label.eval.status'/>", 		field:"mrkStatus", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 평가현황
+        {title:"<spring:message code='forum.label.score.open'/>", 		field:"mrkOyn", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 성적공개
         ]
     });
 
-    function checkSelect() {
-        // 선택된값 array로 가져온다.
-        let data = forumListTable.getSelectedData("valDscsId"); // "valDscsId" 키로 설정된 값
-        alert(data);
-    }
+    let scoreInputMode = false; // 성적비율 입력 모드
 
-    function checkRowSelect(data) {
-        let value = data["valDscsId"]; // "valDscsId" 키로 설정된 값
-        alert(value);
-    }
-
-    function changePage(page) {
-        alert("페이지 "+page);
-    }
-
-    function testMessage() {
-        UiComm.showMessage("메시지 내용 테스트입니다.", "confirm")
-            .then(function(result) {
-                if (result) {
-                    // true 처리
-                }
-                else {
-                    // false 처리
-                }
-            });
+    // 리스트테이블에서 모드 변경될때 이벤트
+    function chanageModeEvent(mode) {
+		if (mode === "card") {
+			mrkRfltrtFrmTrsf(2);
+		}
+		else if (scoreInputMode) {
+			mrkRfltrtFrmTrsf(1);
+		}
     }
 
     // list scale 변경
@@ -194,6 +202,7 @@
             pageIndex		: pageIndex
             , listScale		: LIST_SCALE
             , dscsTtl       : $("#dscsTtl").val()
+            , sbjctId       : 'SBJCT_OFRNG_ID1' // TODO : sbjctId 진입전 값으로 대체 필요.
         };
 
         var url = '<c:url value="/forum2/forumLect/profForumList.do" />';
@@ -208,12 +217,110 @@
                 forumListTable.clearData();
                 forumListTable.replaceData(dataList);
                 forumListTable.setPageInfo(data.pageInfo);
+                UiInputmask();
             } else {
                 alert(data.message);
             }
         }, function(xhr, status, error) {
             alert("에러가 발생했습니다!");
         });
+    }
+
+    /**
+     * 성적 반영비율 폼 변환
+     * @param {Integer} type - 변환 타입 번호 (1 : 입력폼 노출, 2 : 취소)
+     */
+    function mrkRfltrtFrmTrsf(type) {
+        if(type == 1) {
+			// 현재 테이블모드가 list 이면 성적반영비율 입력필드 표시
+			if (forumListTable.mode === "list") {
+	            $("#mrkRfltrtFrmTrsfBtn").hide();
+	            $(".mrkRfltrtFrmTrsfDiv").css("display", "inline-block");
+	            $(".mrkInputDiv").show();
+	            $(".mrkRfltrtDiv").hide();
+	            UiInputmask();
+	            scoreInputMode = true;
+			}
+			// 현재 테이블모드가 card 이며 list 모드로 변경
+			else {
+				forumListTable.changeMode("list");
+				scoreInputMode = false;
+				setTimeout(function(){
+					mrkRfltrtFrmTrsf(1);
+				},100);
+			}
+        } else {
+            $("#mrkRfltrtFrmTrsfBtn").css("display", "inline-block");
+            $(".mrkRfltrtFrmTrsfDiv").hide();
+            $(".mrkInputDiv").hide();
+            $(".mrkRfltrtDiv").show();
+            scoreInputMode = false;
+        }
+    }
+
+    // 성적 반영비율 수정
+    function mrkRfltrtModify() {
+        var isMrkCheck = true;
+        var sumMrkRfltrt = 0;
+        var forumMrkList = [];
+
+        $(".mrkRfltrt").each(function(i) {
+            if(Number($(this).val()) < 0 || Number($(this).val()) > 100) {
+                UiComm.showMessage("점수는 100까지 입력 가능합니다.", "info");
+                isMrkCheck = false;
+                return false;
+            }
+            if(Number($(this).val()) == 0) {
+                UiComm.showMessage("0점은 입력할 수 없습니다. 다른 값을 입력해 주세요.", "info");
+                isMrkCheck = false;
+                return false;
+            }
+
+            sumMrkRfltrt += parseInt($(this).val(), 10);
+            forumMrkList.push({
+                dscsId : $(this).attr("data-dscsId"),
+                mrkRfltrt : $(this).val()
+            });
+        });
+
+        if($(".mrkRfltrt").length == 0) {
+            listPaging(1);
+            return false;
+        }
+
+        if(isMrkCheck) {
+            if(Number(sumMrkRfltrt) != 100) {
+                // 성적반영 비율 합이 100%가 되어야 합니다./n다시 확인 바랍니다.
+                UiComm.showMessage("<spring:message code="forum.alert.total"/>", "info");
+                return false;
+            } else {
+                $.ajax({
+                    url: "/forum2/forumLect/forumMrkRfltrtModifyAjax.do",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(forumMrkList),
+                    dataType: "json",
+                    beforeSend: function () {
+                        UiComm.showLoading(true);
+                    },
+                    success: function (data) {
+                        if (data.result > 0) {
+                            UiComm.showMessage("정상 저장되었습니다.", "success");
+                            listPaging(1);
+                        } else {
+                            UiComm.showMessage(data.message, "error");
+                        }
+                        UiComm.showLoading(false);
+                    },
+                    error: function (xhr, status, error) {
+                        UiComm.showMessage("반영 비율 수정 중 오류가 발생하였습니다.", "error");
+                    },
+                    complete: function () {
+                        UiComm.showLoading(false);
+                    }
+                });
+            }
+        }
     }
 
     function createForumListHTML(forumList, pageInfo) {
@@ -229,32 +336,49 @@
             let colLabel = "";
             col0 = lineNo;
 
-            let mrkOynHtml = '<input type="checkbox" value="Y" class="switch small" onchange="modifyMrkOyn(this, \'' + v.sbjctMstrId + '\', this.checked)"';
+            let mrkOynHtml = '<input type="checkbox" value="Y" class="switch small" onchange="modifyMrkOyn(this, \'' + v.dscsId + '\', this.checked)"';
             if(v.mrkOyn === 'Y') {
                 mrkOynHtml += '	checked="checked">';
             } else {
                 mrkOynHtml += '>';
             }
 
+            // 토론 제목
             var dscsTtl = v.dscsTtl.replaceAll("<", "&lt").replaceAll(">", "&gt");
             var linkUrl = 'javascript:goWrite(\''+v.dscsId+'\')';
-
             let title = "";
-            title += '<a href="'+linkUrl+'" title="'+dscsTtl+'">';
+            title += '<a href="' + linkUrl + '" title="' + dscsTtl +'" class="header header-icon link">';
             title += dscsTtl;
             title += '</a>';
 
+            // 성적 반영비율
+            var mrkRfltrt = "<span class='mrkInputDiv ui input' style='display:none'>";
+            mrkRfltrt += "    <input type='text' class='mrkRfltrt' data-dscsId=\"" + v.dscsId + "\" value=\"" + (v.mrkRfltrt == null ? 0 : v.mrkRfltrt) + "\" inputmask='numeric' inputmode='decimal' maxVal='100' />";
+            mrkRfltrt += "</span>";
+            mrkRfltrt += "<span class='mrkRfltrtDiv'>" + (v.mrkRfltrt == null ? 0 : v.mrkRfltrt) + "%</span>";
+            if(v.mrkRfltyn == 'N') {
+                mrkRfltrt = "0%";
+            }
+
+            // 참여현황
+            var joinUserStatusHtml = "<a href='javascript:goForumView(\"" + v.dscsId + "\", 3)' class='fcBlue'>" + v.forumJoinUserCnt +"/" + v.forumUserTotalCnt + "</a>";
+
+            // 평가현황
+            var mrkStatusHtml = "<a href='javascript:goForumView(\"" + v.dscsId + "\", 3)' class='fcBlue'>" + v.forumEvalCnt +"/" + v.forumJoinUserCnt + "</a>";
+
             dataList.push({
                 no: col0,
-                dscsUnitTycd: v.dscsUnitTycd,
+                dscsUnitTycd: formatDscsUnitTycd(v.dscsUnitTycd),
                 dscsTtl: title,
-                dscsSdttmEdtm: v.dscsSdttm + '~' + v.dscsEdttm,
+                dscsSdttmEdtm: dateFormat(v.dscsSdttm) + ' ~ ' + dateFormat(v.dscsEdttm),
                 dscsAtclCnt: '0',
                 dscsCmntCnt: '0',
-                scoreRate: '0/0',
-                joinCnt: '0/0',
-                mrkStatus: '0/0',
+                scoreRate: mrkRfltrt,
+                joinCnt: joinUserStatusHtml,
+                mrkStatus: mrkStatusHtml,
                 mrkOyn: mrkOynHtml,
+                forumJoinUserCnt: v.forumJoinUserCnt,
+                forumUserTotalCnt: v.forumUserTotalCnt,
                 valDscsId: v.dscsId,
                 label: colLabel
             });
@@ -263,36 +387,34 @@
         return dataList;
     }
 
-    //사용여부 수정
+    function formatDscsUnitTycd(dscsUnitTycd) {
+        return dscsUnitTycd === 'TEAM' ? '팀토론' : '일반토론';
+    }
+
+    //성적공개여부 수정
     function modifyMrkOyn(el, dscsId){
-        alert('modifyMrkOyn:' + dscsId);
-        /*
-      var $el = $(el);
-      var isChecked = $el.is(":checked");
+        var $el = $(el);
+        var isChecked = $el.is(":checked");
 
-      $el.prop("disabled", true);
-      var param = {
-          sbjctMstrId     : dscsId
-          , useYn         : isChecked ? 'Y' : 'N'
-      };
+        $el.prop("disabled", true);
+        var param = {
+            dscsId     : dscsId
+        ,   mrkOyn      : isChecked ? 'Y' : 'N'
+        };
 
-
-      var url  = "/crs/sbjct/sbjctListUseYnModify.do";
-      ajaxCall(url, param, function(data) {
-          $el.prop("disabled", false);
-          if (data.result > 0) {
-              // do something
-              ;
-          } else {
-              $el.prop("checked", !isChecked);
-              alert("에러가 발생했습니다!");
-          }
-      }, function(xhr, status, error) {
-          $el.prop("disabled", false);
-          alert("에러가 발생했습니다!");
-      });
-      */
-
+        var url  = "/forum2/forumLect/profForumMrkOynModify.do";
+        ajaxCall(url, param, function(data) {
+            $el.prop("disabled", false);
+            if (data.result > 0) {
+                // do something
+            } else {
+                $el.prop("checked", !isChecked);
+                alert("에러가 발생했습니다!");
+            }
+        }, function(xhr, status, error) {
+            $el.prop("disabled", false);
+            alert("에러가 발생했습니다!");
+        });
     }
 
     function showError(message) {

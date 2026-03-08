@@ -214,8 +214,6 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 //            // 파일 등록
 //            fileVO = addFile(vo);
 //        }
-        // 가져오기 문제 복사
-//        insertExamQstn(vo);
 
         // 분반 등록
         if("Y".equals(vo.getDvclasRegyn())) {
@@ -285,8 +283,6 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 //                    // 첨부파일 복사
 //                    copyFile(vo, fileVO);
 //                }
-//                // 가져오기 문제 복사
-//                insertExamQstn(vo);
             }
         }
 

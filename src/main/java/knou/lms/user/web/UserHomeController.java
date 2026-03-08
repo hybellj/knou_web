@@ -1181,4 +1181,16 @@ public class UserHomeController extends ControllerBase {
 
     }
 
+    /**
+     * 사용자 프로필 알림수신동의 유의사항 모달
+     *
+     * @param model
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value="/alimNoticePopview.do")
+    public String alimNoticePopview(ModelMap model, HttpServletRequest request) throws Exception {
+        return "user/prfil/alim_notice_popview";
+    }
 }

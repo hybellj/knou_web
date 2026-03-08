@@ -35,7 +35,8 @@ public class PopupNtcController extends ControllerBase {
     }
 
     private boolean isAdmin(UserContext userCtx) {
-        return "ADM".equals(userCtx.getAuthrtGrpcd());
+        String authrtGrpcd = userCtx.getAuthrtGrpcd();
+        return authrtGrpcd != null && authrtGrpcd.contains("ADM");
     }
 
     /**

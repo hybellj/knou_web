@@ -218,10 +218,10 @@ textarea.form-control { height: auto; resize: none; }
 .custom-input { position: relative; }
 .custom-input input { position: absolute; left: 0; top: 0; opacity: 0; }
 .custom-input input + label { display: inline-block; position: relative; padding-left: 2.4rem; margin-right: 2rem; cursor: pointer; }
-.custom-input input + label::before, .custom-input input + label::after { content: ""; position: absolute; left: 0; top: 0.3rem; width: 1.7rem; height: 1.7rem; border: 1px solid #c7c7c7; background-color: #fff; cursor: pointer; }
+.custom-input input + label::before, .custom-input input + label::after { content: ""; position: absolute; left: 0; top: 0.3rem; width: 1.7rem; height: 1.7rem; border-radius: 3px; border: 1px solid #c7c7c7; background-color: #fff; cursor: pointer; }
 .custom-input input[type=radio] + label::before { border-radius: 50%; }
 .custom-input input[type=radio] + label::after { content: ""; display: block; opacity: 0; width: 0.7rem; height: 0.7rem; background-color: #505050; border-radius: 50%; position: absolute; left: 0.5rem; top: 0.8rem; z-index: 2; }
-.custom-input input[type=checkbox] + label::after { content: "\e929"; text-align: center; background-color: #4888dc; border: 1px solid #4888dc; border-radius: 2px; color: #fff; font-size: 1.6rem; font-family: "xeicon"; z-index: 2; opacity: 0; line-height: 1; }
+.custom-input input[type=checkbox] + label::after { content: "\e929"; text-align: center; background-color: #4888dc; border: 1px solid #4888dc; border-radius: 3px; color: #fff; font-size: 1.6rem; font-family: "xeicon"; z-index: 2; opacity: 0; line-height: 1; }
 .custom-input input[disabled] + label::before { background-color: #e5e5e5; border-color: #ddd; }
 .custom-input input:focus + label::before { border: 2px solid #4888dc; }
 .custom-input input:checked + label::after { opacity: 1; border-color: #4888dc; }

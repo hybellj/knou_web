@@ -329,7 +329,7 @@
                                     <a href="#tab23" class="btn "><span>과목공지</span></a>
                                 </nav>
                                 <div class="btn-wrap">
-                                    <a href="#0" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
+                                    <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=NTC" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                             
@@ -338,14 +338,14 @@
                                 <div id="tab21" class="tab-content" style="display: block;">
                                     <ul class="dash_item_listA">
                                         <c:choose>
-										    <c:when test="${empty dashboardResponse.topAllNoticeList}">
+										    <c:when test="${empty dashVM.stdntDashAllNoticeList}">
 										        <li>최신공지사항이 없습니다</li>
 										    </c:when>
 										    <c:otherwise>								        
-			                                	<c:forEach var="item" items="${dashboardResponse.topAllNoticeList}">
+			                                	<c:forEach var="item" items="${dashVM.stdntDashAllNoticeList}">
 												    <!-- 3건만 출력 -->
 												    <c:set var="cnt" value="0"/>
-												    <c:if test="${item.topic eq 'ALL_NOTICE' and cnt lt 3}">
+												    <c:if test="${item.topic eq 'STDNT_DASH_ALL_NOTICE' and cnt lt 3}">
 												        <li>
 												            <!-- 공지 유형 라벨 -->
 												            <div class="noti_label">
@@ -360,7 +360,7 @@
 												            </div>
 												
 												            <!-- 공지 링크 및 내용 -->
-												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
+												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 												                <p class="tit">${item.atclTtl}</p>
 												                <p class="desc">
 												                    <c:choose>
@@ -398,15 +398,15 @@
                                 <div id="tab22" class="tab-content" style="display: none;">
                                     <ul class="dash_item_listA">
                                         <c:choose>
-										    <c:when test="${empty dashboardResponse.topCrsNoticeList}">
+										    <c:when test="${empty dashVM.dashCrsNoticeList}">
 										        <li>전체공지사항이 없습니다</li>
 										    </c:when>
 										    <c:otherwise>							        
 			                                	<!-- 3건만 출력 -->
 												<c:set var="cnt" value="0"/>
-												<c:forEach var="item" items="${dashboardResponse.topCrsNoticeList}">
+												<c:forEach var="item" items="${dashVM.dashCrsNoticeList}">
 												    <!-- 전체공지만출력 -->
-												    <c:if test="${item.topic eq 'ALL_CRS' and cnt lt 3}">
+												    <c:if test="${item.topic eq 'CRS_NOTICE' and cnt lt 3}">
 												        <li>
 												            <!-- 공지 유형 라벨 -->
 												            <div class="noti_label">
@@ -414,7 +414,7 @@
 												            </div>
 												
 												            <!-- 공지 링크 및 내용 -->
-												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
+												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 												                <p class="tit">${item.atclTtl}</p>
 												                <p class="desc">
 												                    <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
@@ -447,14 +447,14 @@
                                 <div id="tab23" class="tab-content" style="display: none;">
                                     <ul class="dash_item_listA">
                                         <c:choose>
-										    <c:when test="${empty dashboardResponse.stdntTopSubjctNoticeList}">
+										    <c:when test="${empty dashVM.stdntDashSubjectNoticeList}">
 										        <li>과목공지사항이 없습니다</li>
 										    </c:when>
 										    <c:otherwise>								        
                                 				<c:set var="cnt" value="0" />
-												<c:forEach var="item" items="${dashboardResponse.stdntTopSubjctNoticeList}">
+												<c:forEach var="item" items="${dashVM.stdntDashSubjectNoticeList}">
 												    <!-- 과목공지만 출력 -->
-												    <c:if test="${item.topic eq 'STDNT_SUBJECT_NOTICE' and cnt lt 3}">
+												    <c:if test="${item.topic eq 'STDNT_DASH_SUBJECT_NOTICE' and cnt lt 3}">
 												        <li>
 												            <!-- 공지 유형 라벨 -->
 												            <div class="noti_label">
@@ -462,7 +462,7 @@
 												            </div>
 												
 												            <!-- 공지 링크/내용 -->
-												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
+												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 												                <p class="tit">${item.atclTtl}</p>
 												                <p class="desc">
 												                    <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
@@ -677,24 +677,24 @@
                                 <i class="xi-arrows m_handle" aria-label="위젯 이동" role="button" tabindex="0" aria-grabbed="false"></i>
                                 <h3 class="h3">강의 Q&A <small class="msg_num">1</small></h3>
                                 <div class="btn-wrap">
-                                    <a href="#0" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
+                                    <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=QNA" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                             <div class="box_content">
                                 <ul class="dash_item_listA">
                                     <c:choose>
-									    <c:when test="${empty dashboardResponse.stdntTopLctrQnaList}">
+									    <c:when test="${empty dashVM.stdntDashLctrQnaList}">
 									        <li>강의Q&A가 없습니다</li>
 									    </c:when>
 	                                	<c:otherwise>
-		                                	<c:forEach var="item" items="${dashboardResponse.stdntTopLctrQnaList}">
+		                                	<c:forEach var="item" items="${dashVM.stdntDashLctrQnaList}">
 		                                	<c:set var="cnt" value="0"/>
-												<c:if test="${item.topic eq 'STDNT_LCTR_QNA' and cnt lt 3}">  
+												<c:if test="${item.topic eq 'STDNT_DASH_LCTR_QNA' and cnt lt 3}">  
 				                                    <li>
 				                                        <div class="user">
 				                                           <span class="${item.userThumbnail}"></span>
 				                                        </div>
-				                                        <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
+				                                        <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 				                                            <p class="tit">${item.atclTtl}</p>
 				                                            <p class="desc">
 				                                                <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
@@ -727,7 +727,7 @@
                                 <i class="xi-arrows m_handle" aria-label="위젯 이동" role="button" tabindex="0" aria-grabbed="false"></i>
                                 <h3 class="h3">강의자료실</h3>
                                 <div class="btn-wrap">
-                                    <a href="#0" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
+                                    <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=DATARM" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                             
@@ -735,18 +735,18 @@
                             <div class="box_content">
                                 <ul class="dash_item_listA">
                                     <c:choose>
-									    <c:when test="${empty dashboardResponse.stdntTopDatarmList}">
+									    <c:when test="${empty dashVM.stdntDashDatarmList}">
 									        <li>강의자료가 없습니다</li>
 									    </c:when>
 	                                	<c:otherwise>
-		                                	<c:forEach var="item" items="${dashboardResponse.stdntTopDatarmList}">
+		                                	<c:forEach var="item" items="${dashVM.stdntDashDatarmList}">
 		                                	<c:set var="cnt" value="0"/>
-												<c:if test="${item.topic eq 'STDNT_DATARM' and cnt lt 3}">  
+												<c:if test="${item.topic eq 'STDNT_DASH_DATARM' and cnt lt 3}">  
 				                                    <li>
 				                                        <div class="user">
 				                                           <span class="user_img"></span>
 				                                        </div>
-				                                        <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
+				                                        <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 				                                            <p class="tit">${item.atclTtl}</p>
 				                                            <p class="desc">
 				                                                <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
@@ -874,7 +874,7 @@
                                                             <span class="info_txt">튜터 김하늘</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="#0">데이터베이스의 이해와 활용</a></p>
+                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">
@@ -930,7 +930,7 @@
                                                             <span class="info_txt">튜터 김하늘</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="#0">데이터베이스의 이해와 활용</a></p>
+                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">
@@ -986,7 +986,7 @@
                                                             <span class="info_txt">튜터 한여름</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="#0">간결하고 힘찬 영어 쓰기 - 품격 있는 영작</a></p>
+                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">간결하고 힘찬 영어 쓰기 - 품격 있는 영작</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">
@@ -1036,7 +1036,7 @@
                                                             <span class="info_txt">온라인</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="#0">New TEPS 실전 연습-기본편</a></p>
+                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">New TEPS 실전 연습-기본편</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">
@@ -1088,7 +1088,7 @@
                                                             <span class="info_txt">튜터 김하늘</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="#0">AI와 빅데이터 경영입문 2반</a></p>
+                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 2반</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">
@@ -1144,7 +1144,7 @@
                                                             <span class="info_txt">튜터 김하늘</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="#0">AI와 빅데이터 경영입문 2반</a></p>
+                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 2반</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">

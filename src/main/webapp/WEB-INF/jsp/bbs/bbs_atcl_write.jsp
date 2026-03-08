@@ -52,7 +52,6 @@
         	ajaxCall(url, data, function(data) {
         		if(data.result > 0) {
         			$("#uploadFiles").val(dx.getUploadFiles());
-        	    	$("#uploadPath").val(dx.getUploadPath());
 
         	    	// 게시글 저장 호출
         	    	atclSave();
@@ -67,15 +66,17 @@
 
     	// 게시글 저장
     	function atclSave() {
+    		let dx = dx5.get("fileUploader");
+    		$("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
+
     		let url = "/bbs/${templateUrl}/bbsAtclSave.do";
-    		let returnUrl = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
     		let data = $("#atclWriteForm").serialize();
 
     		ajaxCall(url, data, function(data) {
             	if(data.result > 0) {
 					UiComm.showMessage(data.message, "success")
 					.then(function(result) {
-						document.location.href = returnUrl;
+						moveListPage();
 					});
                 } else {
                 	UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
@@ -87,8 +88,8 @@
     	}
 
 
-    	// 글쓰기 취소
-    	function cancelWrite() {
+    	// 목록화면 이동
+    	function moveListPage() {
     		document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
     	}
 
@@ -130,11 +131,12 @@
 
                         <!--table-type-->
 						<div class="table-wrap">
-							<form id="atclWriteForm" name="atclWriteForm">
+							<form id="atclWriteForm" name="atclWriteForm" onsubmit="return false;">
 								<input type="hidden" name="eparam"       id="eparam"      value="${eparam}" />
+								<input type="hidden" name="gubun"        id="gubun"       value="${bbsAtclVO.gubun}" />
 								<input type="hidden" name="uploadFiles"  id="uploadFiles" value="" />
-								<input type="hidden" name="uploadPath"   id="uploadPath"  value="" />
-								<input type="hidden" name="delFileIdStr" value=""/>
+								<input type="hidden" name="uploadPath"   id="uploadPath"  value="${bbsVO.uploadPath}" />
+								<input type="hidden" name="delFileIdStr" id="delFileIdStr"  value="" />
 
 							<table class="table-type5">
 								<colgroup>
@@ -162,7 +164,7 @@
 																// HTML 에디터
 																let editor = UiEditor({
 																	targetId: "atclCts",
-																	uploadPath: "/bbs/${bbsVO.bbsId}",
+																	uploadPath: "${bbsVO.uploadPath}",
 																	height: "500px"
 																});
 															</script>
@@ -180,7 +182,7 @@
 										<td>
 											<uiex:dextuploader
 												id="fileUploader"
-												path="/bbs/${bbsVO.bbsId}"
+												path="${bbsVO.uploadPath}"
 												limitCount="5"
 												limitSize="100"
 												oneLimitSize="100"
@@ -199,7 +201,7 @@
 
 						<div class="btns">
                             <button type="button" class="btn type1" onclick="saveConfirm()"><spring:message code="common.button.save" /></button><%-- 저장 --%>
-                            <button type="button" class="btn type2" onclick="cancelWrite()"><spring:message code="common.button.cancel" /></button><%-- 취소 --%>
+                            <button type="button" class="btn type2" onclick="moveListPage()"><spring:message code="common.button.cancel" /></button><%-- 취소 --%>
                         </div>
                     </div>
 

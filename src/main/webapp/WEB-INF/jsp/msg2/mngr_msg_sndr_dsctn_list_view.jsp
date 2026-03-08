@@ -4,7 +4,7 @@
 <html lang="ko">
 <head>
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
-        <jsp:param name="style" value="dashboard"/>
+        <jsp:param name="style" value="admin"/>
         <jsp:param name="module" value="table"/>
     </jsp:include>
 </head>
@@ -285,91 +285,27 @@
         $('#lmsSuccCnt').text(s.lmsSuccCnt || 0);
         $('#lmsFailCnt').text(s.lmsFailCnt || 0);
     }
-/*
-    /!* 발송내역 엑셀 다운로드 *!/
-    function fn_excelDown() {
-        let param = fn_getSearchParam();
-
-        ajaxCall('/msgSndrDsctnMngExcelAjax.do', param, function(res) {
-            if (res.result > 0 && res.returnList) {
-                fn_makeExcel(res.returnList);
-            }
-        }, null, true);
-    }
-
-    /!* 엑셀 생성 *!/
-    function fn_makeExcel(list) {
-        let csv = '\uFEFF번호,발신구분,년도,학기,기관,학과,운영과목,분반,수신자,수신자번호,발신일시,발송,결과\n';
-        list.forEach(function(v, i) {
-            csv += (i + 1) + ',';
-            csv += '"' + (SNDNG_GBN_MAP[v.sndngGbncd] || v.sndngGbncd || '') + '",';
-            csv += '"' + (v.sbjctYr || '') + '",';
-            csv += '"' + (v.sbjctSmstr || '') + '",';
-            csv += '"' + (v.orgnm || '') + '",';
-            csv += '"' + (v.deptnm || '') + '",';
-            csv += '"' + (v.sbjctnm || '') + '",';
-            csv += '"' + (v.dvclasNo || '') + '",';
-            csv += '"' + (v.rcvrnm || '') + '",';
-            csv += '"' + (v.rcvrTelno || '') + '",';
-            csv += '"' + UiComm.formatDate(v.sndngDttm, 'datetime') + '",';
-            csv += '"' + (v.sndngYn || '') + '",';
-            csv += '"' + (SNDNG_STS_MAP[v.sndngRsltCd] || '') + '"\n';
-        });
-        let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        let link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = '발송내역.csv';
-        link.click();
-    }
-
-    /!* 발송비용금액 엑셀 다운로드 *!/
-    function fn_summaryExcelDown() {
-        let csv = '\uFEFF발신구분,PUSH,쪽지,이메일,알림톡,SMS,LMS\n';
-        csv += '총 발신 건수,' + $('#pushTotalCnt').text() + ',' + $('#shrtntTotalCnt').text() + ',' + $('#emlTotalCnt').text() + ',' + $('#alimtalkTotalCnt').text() + ',' + $('#smsTotalCnt').text() + ',' + $('#lmsTotalCnt').text() + '\n';
-        csv += '총 성공 건수,' + $('#pushSuccCnt').text() + ',' + $('#shrtntSuccCnt').text() + ',' + $('#emlSuccCnt').text() + ',' + $('#alimtalkSuccCnt').text() + ',' + $('#smsSuccCnt').text() + ',' + $('#lmsSuccCnt').text() + '\n';
-        csv += '총 실패 건수,' + $('#pushFailCnt').text() + ',' + $('#shrtntFailCnt').text() + ',' + $('#emlFailCnt').text() + ',' + $('#alimtalkFailCnt').text() + ',' + $('#smsFailCnt').text() + ',' + $('#lmsFailCnt').text() + '\n';
-        csv += '발신 비용,,,,,,\n';
-        csv += '총 발신 비용,,,,,,\n';
-
-        let blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-        let link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = '발송비용금액.csv';
-        link.click();
-    }*/
 </script>
 
-<body class="home colorA">
+<body class="admin">
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
-        <!-- //common header -->
+        <jsp:include page="/WEB-INF/jsp/common_new/admin_header.jsp"/>
 
-        <!-- dashboard -->
+        <!-- admin -->
         <main class="common">
 
             <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
-            <!-- //gnb -->
+            <jsp:include page="/WEB-INF/jsp/common_new/admin_aside.jsp"/>
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-                <div class="dashboard_sub">
-
-                    <!-- page_tab -->
-                    <jsp:include page="/WEB-INF/jsp/common_new/home_page_tab.jsp"/>
-                    <!-- //page_tab -->
+                <div class="admin_sub">
 
                     <div class="sub-content">
+                        <!-- page info -->
                         <div class="page-info">
-                            <h2 class="page-title"><span><spring:message code="msg.title.msg.msgDlvrHist" text="메시지 발송내역"/></span><spring:message code="msg.sndrDsctn.label.title" text="발송내역관리"/></h2>
-                            <div class="navi_bar">
-                                <ul>
-                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li><spring:message code="msg.sndrDsctn.label.msgBox" text="메시지함"/></li>
-                                    <li><span class="current"><spring:message code="msg.sndrDsctn.label.title" text="발송내역관리"/></span></li>
-                                </ul>
-                            </div>
+                            <h2 class="page-title"><spring:message code="msg.sndrDsctn.label.title" text="발송내역관리"/></h2>
                         </div>
 
                         <!-- search typeA -->
@@ -389,7 +325,7 @@
                                 <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.course" text="운영과목"/></label></span>
                                 <div class="itemList">
                                     <select class="form-select" id="selectOrg">
-                                        <option value="${userCtx.orgId}"><c:out value="${userCtx.orgId}"/></option>
+                                        <option value="${orgId}"><c:out value="${orgId}"/></option>
                                     </select>
                                     <select class="form-select" id="selectDept">
                                         <option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과 전체"/></option>
@@ -586,18 +522,12 @@
                         <!-- //발송비용금액 -->
 
                     </div>
-
                 </div>
             </div>
             <!-- //content -->
 
-            <!-- common footer -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
-            <!-- //common footer -->
-
         </main>
-        <!-- //dashboard-->
-
+        <!-- //admin -->
     </div>
 
 </body>

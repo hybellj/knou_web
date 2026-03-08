@@ -2,6 +2,77 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.qbnk.dao.QbnkQstnDAO">
 
+	<select id="qbnkQstnList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : QbnkQstnDAO.qbnkQstnList
+             설  명 : 문제은행문항목록조회
+         */
+		SELECT * FROM (
+	        SELECT
+				  ROW_NUMBER() OVER(ORDER BY QSTN.REG_DTTM ASC) AS LINE_NO
+				, QSTN.*
+				, COUNT(QSTN.QBNK_QSTN_ID) OVER() AS TOTAL_CNT
+			FROM (
+				SELECT
+					  QSTN.QBNK_QSTN_ID
+					, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL
+						   THEN CTGR.CTGRNM
+						   ELSE (SELECT CTGRNM FROM TB_LMS_QBNK_CTGR WHERE QBNK_CTGR_ID = CTGR.UP_QBNK_CTGR_ID)
+					  END UP_QBNK_CTGRNM
+					, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL
+						   THEN '-'
+						   ELSE CTGR.CTGRNM
+					  END AS CTGRNM
+					, SBJCT.SBJCTNM
+					, SBJCT.DVCLAS_NO
+					, USR.USERNM
+					, QSTN.QSTN_TTL
+					, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_RSPNS_TYCD' AND CD = QSTN.QSTN_RSPNS_TYCD) AS QSTN_RSPNS_TYNM
+					, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_DFCTLV_TYCD' AND CD = QSTN.QSTN_DFCTLV_TYCD) AS QSTN_DFCTLV_TYNM
+					, QSTN.REG_DTTM
+				  FROM TB_LMS_QBNK_QSTN QSTN
+				  JOIN TB_LMS_QBNK_CTGR CTGR
+				    ON CTGR.QBNK_CTGR_ID = QSTN.QBNK_CTGR_ID
+				   AND CTGR.DELYN = 'N'
+				  LEFT JOIN TB_LMS_SBJCT SBJCT
+				    ON CTGR.SBJCT_ID = SBJCT.SBJCT_ID
+				   AND SBJCT.DELYN = 'N'
+				   AND SBJCT.USEYN = 'Y'
+				  LEFT JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
+				    ON SBJCT_ADM.SBJCT_ID = SBJCT.SBJCT_ID
+				   AND SBJCT_ADM.USER_ID = CTGR.USER_ID
+				   AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
+				   AND SBJCT_ADM.SBJCT_ADM_SEQNO = 1
+				  LEFT JOIN TB_LMS_USER USR
+				    ON USR.USER_ID = SBJCT_ADM.USER_ID
+				 WHERE QSTN.DELYN = 'N'
+				<if test="upQbnkCtgrId != null and upQbnkCtgrId != ''">
+				  	AND (
+				  		   CTGR.UP_QBNK_CTGR_ID = #{upQbnkCtgrId}
+				  		OR CTGR.QBNK_CTGR_ID = #{upQbnkCtgrId}
+				  	)
+				</if>
+				<if test="qbnkCtgrId != null and qbnkCtgrId != ''">
+				  	AND CTGR.QBNK_CTGR_ID = #{qbnkCtgrId}
+				</if>
+				<if test="sbjctId != null and sbjctId != ''">
+					AND CTGR.SBJCT_ID = #{sbjctId}
+				</if>
+			 	<if test="userRprsId != null and userRprsId != ''">
+			 		AND CTGR.USER_RPRS_ID = #{userRprsId}
+			 	</if>
+			 	<if test="searchValue != null and searchValue != ''">
+				  	AND LOWER(QSTN.QSTN_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				</if>
+			) QSTN
+			ORDER BY QSTN.REG_DTTM DESC
+		) A
+		WHERE 1=1
+		<if test="listScale != null and listScale > 0">
+		  AND LINE_NO BETWEEN #{firstIndex} +1 AND #{firstIndex} + #{listScale}
+		</if>
+	</select>
+
 	<select id="profQstnCopyQbnkQstnList" parameterType="qbnkQstnVO" resultType="egovMap">
 		/*
              SQL ID : QbnkQstnDAO.profQbnkQstnList
@@ -35,5 +106,140 @@
 		   AND QBNK_QSTN.QBNK_CTGR_ID = #{qbnkCtgrId}
 		 ORDER BY REG_DTTM DESC
 	</select>
+
+	<select id="qbnkQstnSelect" parameterType="qbnkQstnVO" resultType="egovMap">
+		/*
+             SQL ID : QbnkQstnDAO.qbnkQstnSelect
+             설  명 : 문제은행문항조회
+         */
+        SELECT
+			  QSTN.QBNK_QSTN_ID
+			, QSTN.QBNK_CTGR_ID
+			, (SELECT QBNK_CTGR_ID FROM TB_LMS_QBNK_CTGR WHERE QBNK_CTGR_ID = CTGR.UP_QBNK_CTGR_ID AND DELYN = 'N') AS UP_QBNK_CTGR_ID
+			, QSTN.QSTN_SEQNO
+			, QSTN.QSTN_TTL
+			, DBMS_LOB.SUBSTR(QSTN.QSTN_CTS, 4000, 1) AS QSTN_CTS
+			, QSTN.QSTN_RSPNS_TYCD
+			, QSTN.CRANS_TYCD
+			, QSTN.QSTN_DFCTLV_TYCD
+			, CTGR.CTGRNM
+			, (SELECT CTGRNM FROM TB_LMS_QBNK_CTGR WHERE QBNK_CTGR_ID = CTGR.UP_QBNK_CTGR_ID) AS UP_CTGRNM
+			, SBJCT.SBJCTNM
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_RPRS_ID = CTGR.USER_RPRS_ID) AS USERNM
+		  FROM TB_LMS_QBNK_QSTN QSTN
+		  JOIN TB_LMS_QBNK_CTGR CTGR
+		    ON QSTN.QBNK_CTGR_ID = CTGR.QBNK_CTGR_ID
+		   AND CTGR.DELYN = 'N'
+		  JOIN TB_LMS_SBJCT SBJCT
+		    ON SBJCT.SBJCT_ID = CTGR.SBJCT_ID
+		   AND SBJCT.DELYN = 'N'
+		   AND SBJCT.USEYN = 'Y'
+		 WHERE QSTN.DELYN = 'N'
+		   AND QSTN.QBNK_QSTN_ID = #{qbnkQstnId}
+	</select>
+
+	<insert id="qbnkQstnRegist" parameterType="qbnkQstnVO">
+		/*
+             SQL ID : QbnkQstnDAO.qbnkQstnRegist
+             설  명 : 문제은행문항등록
+         */
+        INSERT INTO TB_LMS_QBNK_QSTN (
+         	  QBNK_QSTN_ID
+			, QBNK_CTGR_ID
+			, QSTN_SEQNO
+			, USER_ID
+			, QSTN_TTL
+			, QSTN_CTS
+			, QSTN_RSPNS_TYCD
+			, QSTN_SCR
+			, CRANS_TYCD
+			, QSTN_DFCTLV_TYCD
+			, RGTR_ID
+			, REG_DTTM
+         ) VALUES (
+         	  #{qbnkQstnId}
+			, #{qbnkCtgrId}
+			, #{qstnSeqno}
+			, #{userId}
+			, #{qstnTtl}
+			, #{qstnCts}
+			, #{qstnRspnsTycd}
+			, #{qstnScr}
+			, #{cransTycd}
+			, #{qstnDfctlvTycd}
+			, #{rgtrId}
+			, FN_DTTM()
+         )
+	</insert>
+
+	<select id="qbnkNextQstnSeqnoSelect" parameterType="qbnkQstnVO" resultType="int">
+		/*
+             SQL ID : QbnkQstnDAO.qbnkNextQstnSeqnoSelect
+             설  명 : 문제은행다음문항순번조회
+         */
+        SELECT
+        	NVL(MAX(QSTN_SEQNO), 0) + 1
+          FROM TB_LMS_QBNK_QSTN
+         WHERE QBNK_CTGR_ID = #{qbnkCtgrId}
+           AND DELYN = 'N'
+	</select>
+
+	<update id="qbnkQstnModfiy" parameterType="qbnkQstnVO">
+		/*
+             SQL ID : QbnkQstnDAO.qbnkQstnModfiy
+             설  명 : 문제은행문항수정
+         */
+        UPDATE TB_LMS_QBNK_QSTN SET
+        	  MDFR_ID   = #{mdfrId}
+    		, MOD_DTTM = FN_DTTM()
+    		, CRANS_TYCD = #{cransTycd}
+    		<if test="qstnTtl != null and qstnTtl != ''">
+    		, QSTN_TTL = #{qstnTtl}
+    		</if>
+    		<if test="qstnCts != null and qstnCts != ''">
+    		, QSTN_CTS = #{qstnCts}
+    		</if>
+    		<if test="qstnRspnsTycd != null and qstnRspnsTycd != ''">
+    		, QSTN_RSPNS_TYCD = #{qstnRspnsTycd}
+    		</if>
+    		<if test="qstnDfctlvTycd != null and qstnDfctlvTycd != ''">
+    		, QSTN_DFCTLV_TYCD = #{qstnDfctlvTycd}
+    		</if>
+    	 WHERE QBNK_QSTN_ID = #{qbnkQstnId}
+	</update>
+
+	<update id="qbnkQstnDelynModify" parameterType="qbnkQstnVO">
+		/*
+             SQL ID : QbnkQstnDAO.qbnkQstnDelynModify
+             설  명 : 문제은행문항삭제여부수정
+         */
+        UPDATE TB_LMS_QBNK_QSTN SET
+        	  MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+			, DELYN = 'Y'
+		 WHERE QBNK_QSTN_ID = #{qbnkQstnId}
+	</update>
+
+	<update id="qbnkQstnDelNSeqnoModify" parameterType="qbnkQstnVO">
+		/*
+             SQL ID : QbnkQstnDAO.qbnkQstnDelNSeqnoModify
+             설  명 : 문제은행문항미삭제순번수정
+         */
+        UPDATE TB_LMS_QBNK_QSTN QBNK_QSTN SET
+		      QBNK_QSTN.MDFR_ID = #{mdfrId}
+		    , QBNK_QSTN.MOD_DTTM = FN_DTTM()
+		    , QBNK_QSTN.QSTN_SEQNO = QBNK_QSTN.QSTN_SEQNO - 1
+		WHERE QBNK_QSTN.DELYN = 'N'
+		  AND EXISTS (
+		      SELECT 1
+		        FROM (
+		            SELECT QBNK_CTGR_ID, QSTN_SEQNO
+		              FROM TB_LMS_QBNK_QSTN
+		             WHERE QBNK_QSTN_ID = #{qbnkQstnId}
+		        ) BASE
+		       WHERE QBNK_QSTN.QBNK_CTGR_ID = BASE.QBNK_CTGR_ID
+		         AND QBNK_QSTN.QSTN_SEQNO <![CDATA[ > ]]> BASE.QSTN_SEQNO
+		  )
+	</update>
 
 </mapper>

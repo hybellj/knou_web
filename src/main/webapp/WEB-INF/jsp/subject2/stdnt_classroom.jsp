@@ -71,18 +71,18 @@
                                 <p class="labels">
                                     <label class="label uniA">대학원</label><!-- 대학원 -->
                                 </p>
-                                <h2>${subjectVO.sbjctnm}</h2><!--  과목명 -->
+                                <h2>${subjectVM.subjectVO.sbjctnm}</h2><!--  과목명 -->
                             </div>
                             <div class="class_detail">
                                 <div class="detail_txt"><!-- 교수명 --><!-- 튜터명 --><!-- 학점 -->
                                     <p class="desc">
-                                        <span>교수:<strong>${subjectAdms.profnm}</strong></span>
-                                        <span>튜터:<strong>${subjectAdms.tutnm}</strong></span>
-                                        <span>학점:<strong>${subjectVO.crdts}학점</strong></span>
+                                        <span>교수:<strong>${subjectVM.subjectAdms.profnm}</strong></span>
+                                        <span>튜터:<strong>${subjectVM.subjectAdms.tutnm}</strong></span>
+                                        <span>학점:<strong>${subjectVM.subjectVO.crdts}학점</strong></span>
                                     </p>
                                     <p class="desc"><!-- 학습기간 --><!-- 수강시작일시 --><!-- 수강종료일시 -->
-                                        <span>학습기간:<strong>${fnc:dateFormat(subjectVO.atndlcSdttm, '.')} 
-                                        ~ ${fnc:dateFormat(subjectVO.atndlcEdttm, '.')}</strong></span>
+                                        <span>학습기간:<strong>${fnc:dateFormat(subjectVM.subjectVO.atndlcSdttm, '.')} 
+                                        ~ ${fnc:dateFormat(subjectVM.subjectVO.atndlcEdttm, '.')}</strong></span>
                                     </p>
                                 </div>
 
@@ -414,29 +414,29 @@
 						<div class="segment">
                             <div class="box_title">
                                 <i class="icon-svg-notice"></i>
-                                <h3 class="h3">과목 공지사항 <small class="msg_num">${noticeUnreadCnt}</small></h3><!-- 과목 공지사항-->
+                                <h3 class="h3">과목 공지사항 <small class="msg_num">${subjectVM.badge.noticeUnreadCnt}</small></h3><!-- 과목 공지사항-->
                                 <div class="btn-wrap">
-                                    <a href="#0" class="btn_more"><i class="xi-plus"></i></a>
+                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.ntcBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                             <div class="box_content">
 	                            <c:choose>
-								    <c:when test="${empty bbsAtclNoticeList}">
+								    <c:when test="${empty subjectVM.subjectTopNoticeList}">
 								        <li>공지사항이 없습니다</li>
 								    </c:when>
 								    <c:otherwise>
 								        <ul class="dash_item_listA">
-		                                	<c:forEach var="bbsAtcl" items="${bbsAtclNoticeList}">
+		                                	<c:forEach var="item" items="${subjectVM.subjectTopNoticeList}">
 			                                    <li class="dot">
 			                                        <a href="#0" class="item_txt">
-			                                            <p class="tit">${bbsAtcl.atclTtl}</p>
+			                                            <p class="tit">${item.atclTtl}</p>
 			                                            <p class="desc">
-			                                                <span class="date">${fnc:dateFormat(bbsAtcl.regDttm, '.')}</span>
+			                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 			                                            </p>
 			                                        </a>
 			                                        <div class="state">
 			                                        	<c:choose>
-				                                            <c:when test="${empty bbsAtcl.vwerId}">
+				                                            <c:when test="${empty item.readyn}">
 				                                            	<label class="label check_no">읽지않음</label>
 				                                            </c:when>
 										         			<c:otherwise>
@@ -457,33 +457,33 @@
                         <div class="segment">
                             <div class="box_title">
                                 <i class="icon-svg-question"></i>
-                                <h3 class="h3">강의 Q&A <small class="msg_num">${qnaNoreplyCnt}</small></h3>
+                                <h3 class="h3">강의 Q&A <small class="msg_num">${subjectVM.badge.qnaNoreplyCnt}</small></h3>
                                 <div class="btn-wrap">
-                                    <a href="#0" class="btn_more"><i class="xi-plus"></i></a>
+                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.qnaBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                             <div class="box_content">                            
                             	<c:choose>
-								    <c:when test="${empty bbsAtclQNAList}">
+								    <c:when test="${empty subjectVM.subjectTopLctrQnaList}">
 								        <li>QNA가 없습니다</li>
 								    </c:when>
 								    <c:otherwise>								    
 								        <ul class="dash_item_listA">
-		                                	<c:forEach var="bbsAtcl" items="${bbsAtclQNAList}">
+		                                	<c:forEach var="item" items="${subjectVM.subjectTopLctrQnaList}">
 			                                    <li>
 			                                        <div class="user">
 			                                           <span class="user_img"></span>
 			                                        </div>
 			                                        <a href="#0" class="item_txt">
-			                                            <p class="tit">${bbsAtcl.atclTtl}</p>
+			                                            <p class="tit">${item.atclTtl}</p>
 			                                            <p class="desc">
-			                                                <span class="name">${bbsAtcl.atclTtl}</span>
-			                                                <span class="date">${fnc:dateFormat(bbsAtcl.regDttm, '.')}</span>
+			                                                <span class="name">${item.usernm}</span>
+			                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 			                                            </p>
 			                                        </a>
 			                                        <div class="state">
 				                                        <c:choose>
-				                                            <c:when test="${empty bbsAtcl.upAtclId}">
+				                                            <c:when test="${empty item.answerAtclId}">
 				                                            	<label class="label check_no">미답변</label>
 				                                            </c:when>
 										         			<c:otherwise>
@@ -511,22 +511,22 @@
                             </div>
                             <div class="box_content">
                             	<c:choose>
-								    <c:when test="${empty bbsAtclDataRmList}">
+								    <c:when test="${empty subjectVM.stdntSubjectTopDatarmList}">
 								        <li>자료가 없습니다</li>
 								    </c:when>
 								    <c:otherwise>								    
 								        <ul class="dash_item_listA">								        
-		                                	<c:forEach var="bbsAtcl" items="${bbsAtclDataRmList}">
+		                                	<c:forEach var="item" items="${subjectVM.stdntSubjectTopDatarmList}">
 			                                    <li class="dot">
 				                                    <a href="#0" class="item_txt">
-			                                            <p class="tit">${bbsAtcl.atclTtl}</p>
+			                                            <p class="tit">${item.atclTtl}</p>
 			                                            <p class="desc">
-			                                                <span class="date">${fnc:dateFormat(bbsAtcl.regDttm, '.')}</span>
+			                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 			                                            </p>
 			                                        </a>
 			                                        <div class="state">
 			                                            <c:choose>
-				                                            <c:when test="${empty bbsAtcl.refId}">
+				                                            <c:when test="${empty item.readyn}">
 				                                            	&nbsp;
 				                                            </c:when>
 										         			<c:otherwise>
@@ -565,14 +565,14 @@
 	                            <div class="title">학습현황</div>
 	                            <div class="week_state_list"><!-- week_state_list -->	                                
 	                            	<c:choose>
-									    <c:when test="${empty lectureScheduleList}">
+									    <c:when test="${empty subjectVM.lectureScheduleList}">
 									        <li>학습주차일정정보가 없습니다.</li>
 									    </c:when>
 								    	<c:otherwise>
-			                       			<c:forEach var="stdntLctrs" items="${lectureScheduleList}">
+			                       			<c:forEach var="item" items="${subjectVM.lectureScheduleList}">
 			                                   <div class="state">
 			                                       <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>
-			                                       <span class="week">학생${stdntLctrs.lctrWkno}</span>
+			                                       <span class="week">학생${item.lctrWkno}</span>
 			                                   </div>
 			                               	</c:forEach>
 			                           	</c:otherwise>
@@ -587,21 +587,21 @@
 	                            <div class="info">
 	                                <p class="point">
 	                                    <span class="tit">중간고사:</span>
-	                                    <span>${fnc:dateFormat(middleLastExamMap.midExamSdttm, '.')}</span>
+	                                    <span>${fnc:dateFormat(subjectVM.middleLastExam.midExamSdttm, '.')}</span>
 	                                </p>
 	                                <p class="desc">
 	                                    <span class="tit">시간:</span>
-	                                    <span>${middleLastExamMap.midExamMnts}분</span>
+	                                    <span>${subjectVM.middleLastExam.midExamMnts}분</span>
 	                                </p>
 	                            </div>
 	                            <div class="info">
 	                                <p class="point">
 	                                    <span class="tit">기말고사:</span>
-	                                    <span>${fnc:dateFormat(middleLastExamMap.lstExamSdttm, '.')}</span>
+	                                    <span>${fnc:dateFormat(subjectVM.middleLastExam.lstExamSdttm, '.')}</span>
 	                                </p>
 	                                <p class="desc">
 	                                    <span class="tit">시간:</span>
-	                                    <span>${middleLastExamMap.lstExamMnts}분</span>
+	                                    <span>${subjectVM.middleLastExam.lstExamMnts}분</span>
 	                                </p>
 	                            </div>
 	                        </div>
@@ -614,15 +614,15 @@
 	                    <div style="display:none;">
 	                     	<c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="" />
 	
-							<c:forEach var="row" items="${byWeeknoLectureSchdlList}">
+							<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
 				    
 							    <!-- 주차 -->
-							    <c:if test="${row.firstOrd == 0}">
-							        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${row.LCTR_WKNO_SCHDL_ID}" />
+							    <c:if test="${item.firstOrd == 0}">
+							        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${item.LCTR_WKNO_SCHDL_ID}" />
 							
 							        <div class="week">
 							            <h3>
-							                ${row.seqno}주차. ${row.nm}
+							                ${item.seqno}주차. ${item.nm}
 							            </h3>
 							        </div>
 							
@@ -630,26 +630,26 @@
 							    </c:if>
 					
 							    <!-- 주차 하위 콘텐츠 -->
-							    <c:if test="${row.firstOrd == 1}">
-							        <li class="content type-${row.srcTbl}">
+							    <c:if test="${item.firstOrd == 1}">
+							        <li class="content type-${item.srcTbl}">
 							            <span class="label">
 							                <c:choose>
-							                    <c:when test="${row.srcTbl == 'TB_LMS_LCTR'}">강의</c:when>
-							                    <c:when test="${row.srcTbl == 'TB_LMS_ASMT'}">과제</c:when>
-							                    <c:when test="${row.srcTbl == 'TB_LMS_DSCS'}">토론</c:when>
-							                    <c:when test="${row.srcTbl == 'TB_LMS_SRVY'}">설문</c:when>
-							                    <c:when test="${row.srcTbl == 'TB_LMS_SMNR'}">세미나</c:when>
+							                    <c:when test="${item.srcTbl == 'TB_LMS_LCTR'}">강의</c:when>
+							                    <c:when test="${item.srcTbl == 'TB_LMS_ASMT'}">과제</c:when>
+							                    <c:when test="${item.srcTbl == 'TB_LMS_DSCS'}">토론</c:when>
+							                    <c:when test="${item.srcTbl == 'TB_LMS_SRVY'}">설문</c:when>
+							                    <c:when test="${item.srcTbl == 'TB_LMS_SMNR'}">세미나</c:when>
 							                </c:choose>
 							            </span>
 							
 							            <span class="title">
-							                ${row.nm}
+							                ${item.nm}
 							            </span>
 							        </li>
 							    </c:if>
 					
 							    <!-- 다음 주차가 나오면 닫기 -->
-							    <c:if test="${row.firstOrd == 0 && PREV_LCTR_WKNO_SCHDL_ID != ''}">
+							    <c:if test="${item.firstOrd == 0 && PREV_LCTR_WKNO_SCHDL_ID != ''}">
 							        </ul>
 							    </c:if>
 							</c:forEach>

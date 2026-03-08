@@ -283,14 +283,16 @@ admin - sub common
 .admin_sub .dropdown .option-wrap { position: absolute; top: calc(100% + 2px); right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); overflow: hidden; 
   max-height: 0; opacity: 0; transition: all 0.25s ease; pointer-events: none; z-index: 10;}
 .admin_sub .dropdown .option-wrap.show { max-height: 250px; opacity: 1; pointer-events: auto; }
-.admin_sub .dropdown .option-wrap .tit {    font-weight: 400;
-    font-size: 1.3rem;
-    color: #fff;
-    padding: 5px 7px 5px 7px;
-    background-color: #455973;
-    border-radius: 6px 6px 0 0;}
-.admin_sub .dropdown .option-wrap .item { padding: 6px 12px; font-size: 1.4rem; text-align: left; white-space: nowrap;  transition: all 0.3s ease;}
+.admin_sub .dropdown .option-wrap .tit { font-weight: 400; font-size: 1.3rem; color: #fff; padding: 5px 7px 5px 7px; background-color: #455973; border-radius: 6px 6px 0 0; }
+.admin_sub .dropdown .option-wrap .item { padding: 5px 12px; font-size: 1.4rem; text-align: left; white-space: nowrap;  transition: all 0.3s ease;}
 .admin_sub .dropdown .option-wrap .item .custom-input input + label::before {top: 0.1rem;}
 .admin_sub .dropdown .option-wrap .item .custom-input input + label::after {top: 0.6rem;}
 .admin_sub .dropdown .option-wrap .item:hover { background: #f2f2f2; }
 .admin_sub .dropdown .option-wrap .item .custom-input input + label {margin-right: 0;}
+
+/* 위젯설정 */
+.widget_setting {display: flex; gap: 1.5rem; }
+.widget_setting .setting_box {display: flex; flex: 1; flex-direction: column; }
+.widget_setting .setting_box .widget-list { display: flex; flex: 1; flex-direction: column; gap: .8rem; padding: 1rem 1.5rem; border: 1px solid #cdcdcd; border-radius: 0 0 6px 6px; }
+.widget_setting .info-tit { font-weight: 400; font-size: 1.6rem; text-align: center; color: #fff; padding: .8rem 1.5rem; background-color: #31394A; border-radius: 6px 6px 0 0; }
+.widget_setting .setting_box + .setting_box .info-tit {background-color: #1f2d4d;}

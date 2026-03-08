@@ -19,7 +19,7 @@ public interface MsgTmpltService {
 
     int modifyTmplt(MsgTmpltVO vo);
 
-    int deleteTmplt(MsgTmpltVO vo);
+    int deleteTmplt(MsgTmpltVO vo, String userId, boolean isAdmin) throws Exception;
 
     int deleteAllTmplt(MsgTmpltVO vo);
 

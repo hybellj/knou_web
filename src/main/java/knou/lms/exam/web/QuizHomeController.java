@@ -3779,22 +3779,22 @@ public class QuizHomeController extends ControllerBase {
         String crsCreCd = vo.getCrsCreCd();
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
-        if(ValidationUtils.isEmpty(crsCreCd)) {
-            // 시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.
-            throw new BadRequestUrlException(getMessage("common.system.error"));
-        }
+        //if(ValidationUtils.isEmpty(crsCreCd)) {
+        //    // 시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.
+        //    throw new BadRequestUrlException(getMessage("common.system.error"));
+        //}
+        //
+        //if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+        //    throw new AccessDeniedException(messageSource.getMessage("system.fail.auth.msg", null, locale));/* 페이지 접근 권한이 없습니다. */
+        //}
 
-        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
-            throw new AccessDeniedException(messageSource.getMessage("system.fail.auth.msg", null, locale));/* 페이지 접근 권한이 없습니다. */
-        }
-
-        CreCrsVO cvo = new CreCrsVO();
-        cvo.setCrsCreCd(crsCreCd);
-        cvo = crecrsService.selectCreCrs(cvo);
-        if("".equals(StringUtil.nvl(vo.getCrsNo()))) {
-            vo.setCrsNo(cvo.getCrsCd());
-        }
-        request.setAttribute("creCrsVO", cvo);
+        //CreCrsVO cvo = new CreCrsVO();
+        //cvo.setCrsCreCd(crsCreCd);
+        //cvo = crecrsService.selectCreCrs(cvo);
+        //if("".equals(StringUtil.nvl(vo.getCrsNo()))) {
+        //    vo.setCrsNo(cvo.getCrsCd());
+        //}
+        //request.setAttribute("creCrsVO", cvo);
 
         vo.setCrsCreCd(crsCreCd);
         vo.setUserId(userId);
@@ -3802,19 +3802,19 @@ public class QuizHomeController extends ControllerBase {
         ExamQbankCtgrVO ctgrVO = new ExamQbankCtgrVO();
         ctgrVO.setCrsNo(vo.getCrsNo());
 
-        CreCrsVO creCrsVO = new CreCrsVO();
-        creCrsVO.setUserId(StringUtil.nvl(cvo.getTchNo()));
-        creCrsVO.setCreYear(cvo.getCreYear());
-        creCrsVO.setCreTerm(cvo.getCreTerm());
-        List<CrsVO> crsList = crsService.selectCrsByUserId(creCrsVO);
-        request.setAttribute("crsList", crsList);
+        //CreCrsVO creCrsVO = new CreCrsVO();
+        //creCrsVO.setUserId(StringUtil.nvl(cvo.getTchNo()));
+        //creCrsVO.setCreYear(cvo.getCreYear());
+        //creCrsVO.setCreTerm(cvo.getCreTerm());
+        //List<CrsVO> crsList = crsService.selectCrsByUserId(creCrsVO);
+        //request.setAttribute("crsList", crsList);
 
-        ctgrVO.setSearchType("UPPER");
-        List<ExamQbankCtgrVO> qbankCtgrList = examQbankCtgrService.list(ctgrVO);
-        request.setAttribute("ctgrList", qbankCtgrList);
+        //ctgrVO.setSearchType("UPPER");
+        //List<ExamQbankCtgrVO> qbankCtgrList = examQbankCtgrService.list(ctgrVO);
+        //request.setAttribute("ctgrList", qbankCtgrList);
 
-        List<ExamQbankCtgrVO> userList = examQbankCtgrService.listQbankCtgrUser(ctgrVO);
-        request.setAttribute("userList", userList);
+        //List<ExamQbankCtgrVO> userList = examQbankCtgrService.listQbankCtgrUser(ctgrVO);
+        //request.setAttribute("userList", userList);
         request.setAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         request.setAttribute("orgId", orgId);
         request.setAttribute("authGrpCd", authGrpCd);

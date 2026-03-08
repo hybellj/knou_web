@@ -84,7 +84,7 @@
 													<li class="addedLabel">
 														<label>학위과정</label><span class="labelRemove"><i class="xi-close-min"></i></span>
 													</li>
-												</ul>												
+												</ul>
 												<script>
 													document.addEventListener("DOMContentLoaded", function() {
 														const removeButtons = document.querySelectorAll(".labelRemove");
@@ -358,9 +358,6 @@
 													</dd>
 												</dl>
 											</li>
-
-										</section>
-										<!--//섹션 에디터-->
 										</td>
 									</tr>
 									<tr>

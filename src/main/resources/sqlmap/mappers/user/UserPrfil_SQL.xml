@@ -17,7 +17,7 @@
             , DEPT_ID
             , PHOTO_FILE_ID
             , SHRTNT_ALIM_RCVYN
-            , EML_NOTI_RCVYN
+            , EML_ALIM_RCVYN
             , PUSH_TALK_SMS_FLAG
             , USE_EML_GBNCD
             , USER_NCNM
@@ -51,7 +51,7 @@
             설 명 : 사용자 알림수신여부 변경
         */
         UPDATE TB_LMS_USER
-        SET EML_NOTI_RCVYN     = #{emlNotiRcvyn}
+        SET EML_ALIM_RCVYN     = #{emlAlimRcvyn}
             , SHRTNT_ALIM_RCVYN  = #{shrtntAlimRcvyn}
             , PUSH_TALK_SMS_FLAG = #{pushTalkSmsFlag}
             , MDFR_ID = #{userId}

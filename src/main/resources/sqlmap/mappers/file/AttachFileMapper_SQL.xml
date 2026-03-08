@@ -8,8 +8,9 @@
              설  명 : 첨부파일조회 (by AtflId)
          */
 		SELECT
-			*
-		FROM TB_LMS_ATFL
+			  A.*
+			, (SELECT COUNT(1) FROM TB_LMS_ATFL WHERE SRC_ATFL_ID = A.ATFL_ID AND SRC_ATFL_ID IS NOT NULL) AS REF_ATFL_CNT
+		FROM TB_LMS_ATFL A
 		WHERE ATFL_ID = #{atflId}
     </select>
 
@@ -20,8 +21,9 @@
              설  명 : 첨부파일목록조회 (by RefId)
          */
 		SELECT
-			*
-		FROM TB_LMS_ATFL
+			  A.*
+			, (SELECT COUNT(1) FROM TB_LMS_ATFL WHERE SRC_ATFL_ID = A.ATFL_ID AND SRC_ATFL_ID IS NOT NULL) AS REF_ATFL_CNT
+		FROM TB_LMS_ATFL A
 		WHERE REF_ID = #{refId}
 		ORDER BY ATFL_SEQNO
     </select>
@@ -52,17 +54,18 @@
 			, THMB_FILENM
 			, DWLD_CNT
 			, DELYN
+			, SRC_ATFL_ID
 			, RGTR_ID
 			, REG_DTTM
 			, MDFR_ID
 			, MOD_DTTM
         )
-		<foreach collection="list" item="item" open="" close="" separator="UNION ALL">
+		<foreach collection="list" item="item" index="index" open="" close="" separator="UNION ALL">
 			SELECT
 				  #{item.atflId}
 				, #{item.refId}
 				, #{item.atflRepoId}
-				, #{item.atflSeqno}
+				, (SELECT NVL(MAX(ATFL_SEQNO),0)+#{index}+1 FROM TB_LMS_ATFL WHERE REF_ID = #{item.refId})
 				, #{item.filenm}
 				, #{item.fileExt}
 				, #{item.filePath}
@@ -78,6 +81,7 @@
 				, #{item.thmbFilenm}
 				, #{item.dwldCnt}
 				, #{item.delyn}
+				, #{item.srcAtflId}
 				, #{item.rgtrId}
 				, FN_DTTM()
 				, #{item.mdfrId}
@@ -85,4 +89,27 @@
 			FROM DUAL
 		</foreach>
 	</insert>
+
+
+    <select id="deleteAtfl" parameterType="atflVO">
+    	/*
+             SQL ID : AttachFileDAO.deleteAtfl
+             설  명 : 첨부파일삭제
+         */
+		DELETE FROM TB_LMS_ATFL
+		WHERE 1=1
+			AND ATFL_ID = #{atflId}
+    </select>
+
+
+    <select id="selectAtflRepoList" resultType="atflRepoVO">
+    	/*
+             SQL ID : AttachFileDAO.selectAtflRepoList
+             설  명 : 첨부파일저장소목록
+         */
+		SELECT
+			*
+		FROM TB_LMS_ATFL_REPO
+    </select>
+
 </mapper>

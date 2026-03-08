@@ -8,6 +8,7 @@ import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.IdPrefixType;
+import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenerator;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.dao.PopupNtcDAO;
@@ -15,7 +16,7 @@ import knou.lms.msg.service.PopupNtcService;
 import knou.lms.msg.vo.PopupNtcVO;
 
 @Service("popupNtcService")
-public class PopupNtcServiceImpl implements PopupNtcService {
+public class PopupNtcServiceImpl extends ServiceBase implements PopupNtcService {
 
     @Resource(name = "popupNtcDAO")
     private PopupNtcDAO popupNtcDAO;

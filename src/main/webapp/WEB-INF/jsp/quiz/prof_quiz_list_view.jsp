@@ -146,7 +146,7 @@
 		                    	UiComm.showMessage("<spring:message code='exam.alert.insert' />", "success");/* 정상 저장 되었습니다. */
 				        		quizListSelect(1);
 		                    } else {
-		                        alert(data.message);
+		                    	UiComm.showMessage(data.message, "error");
 		                    }
 		                    UiComm.showLoading(false);
 		                },
@@ -188,7 +188,7 @@
 					if (data.result > 0) {
 		        		quizListSelect(1);
 		            } else {
-		             	alert(data.message);
+		            	UiComm.showMessage(data.message, "error");
 		            }
 				}, function(xhr, status, error) {
 					UiComm.showMessage("<spring:message code='exam.error.score.open' />", "error");/* 성적 공개 변경 중 에러가 발생하였습니다. */
@@ -221,20 +221,11 @@
 				if (data.result > 0) {
 	        		quizListSelect(1);
 	            } else {
-	             	alert(data.message);
+	            	UiComm.showMessage(data.message, "error");
 	            }
 			}, function(xhr, status, error) {
 				UiComm.showMessage("<spring:message code='exam.error.score.open' />", "error");/* 성적 공개 변경 중 에러가 발생하였습니다. */
 			}, true);
-		}
-
-		// 문제은행 페이지
-		function viewQbank() {
-			var kvArr = [];
-			kvArr.push({'key' : 'crsNo',    'val' : "${creCrsVO.crsCd}"});
-			kvArr.push({'key' : 'crsCreCd', 'val' : "${creCrsVO.crsCreCd}"});
-
-			submitForm("/quiz/Form/qbankList.do", "", "", kvArr);
 		}
 
 		/**
@@ -247,11 +238,13 @@
 				"1" : "/quiz/profQuizQstnMngView.do",		// 퀴즈 문항 관리 화면
 				"2" : "/quiz/profQuizRetkexamMngView.do",	// 퀴즈 재응시 관리 화면
 				"3" : "/quiz/profQuizEvlMngView.do",		// 퀴즈 평가 관리 화면
+				"4" : "/qbnk/profQbnkListView.do",			// 문제은행 목록 화면
 				"8" : "/quiz/profQuizRegistView.do", 		// 퀴즈 등록 화면
 				"9" : "/quiz/profQuizModifyView.do" 		// 퀴즈 수정 화면
 			};
 
 			var kvArr = [];
+
 			kvArr.push({'key' : 'examBscId',   	'val' : examBscId});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${sbjctId}"});
 
@@ -297,13 +290,13 @@
 
 					ajaxCall(url, data, function(data) {
 						if (data.result > 0) {
-			        		alert("<spring:message code='exam.alert.delete' />");/* 정상 삭제 되었습니다. */
+							UiComm.showMessage("<spring:message code='exam.alert.delete' />", "success");/* 정상 삭제 되었습니다. */
 			        		quizListSelect(1);
 			            } else {
-			             	alert(data.message);
+			             	UiComm.showMessage(data.message, "error");
 			            }
 		    		}, function(xhr, status, error) {
-		    			alert("<spring:message code='exam.error.delete' />");/* 삭제 중 에러가 발생하였습니다. */
+		    			UiComm.showMessage("<spring:message code='exam.error.delete' />", "error");/* 삭제 중 에러가 발생하였습니다. */
 		    		}, true);
 				}
 			});
@@ -462,7 +455,7 @@
 							        </div>
 							        <a href="javascript:mrkRfltrtFrmTrsf(1)" id="mrkRfltrtFrmTrsfBtn" class="btn type2"><spring:message code="exam.label.grade.score" /> <spring:message code="exam.label.score.aply.rate" /> <spring:message code="exam.button.adju" /></a><!-- 성적 --><!-- 반영비율 --><!-- 조정 -->
 						            <a href="javascript:quizViewMv('', 8)" class="btn type2"><spring:message code="exam.label.quiz" /><spring:message code="exam.button.reg" /></a><!-- 퀴즈 --><!-- 등록 -->
-						            <a href="javascript:viewQbank()" class="btn type2"><spring:message code="exam.label.qbank" /></a><!-- 문제은행 -->
+						            <a href="javascript:quizViewMv('', 4)" class="btn type2"><spring:message code="exam.label.qbank" /></a><!-- 문제은행 -->
 
 									<%-- 리스트/카드 선택 버튼 --%>
 									<span class="list-card-button"></span>

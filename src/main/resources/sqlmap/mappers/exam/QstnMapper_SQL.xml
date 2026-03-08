@@ -170,7 +170,7 @@
 	<select id="qstnSelect" parameterType="qstnVO" resultType="qstnVO">
 		/*
              SQL ID : QstnDAO.qstnSelect
-             설  명 : 문항정보조회
+             설  명 : 문항조회
          */
          SELECT
          	*

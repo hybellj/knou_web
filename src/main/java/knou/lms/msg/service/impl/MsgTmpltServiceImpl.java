@@ -8,6 +8,7 @@ import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.IdPrefixType;
+import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenerator;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.dao.MsgTmpltDAO;
@@ -15,7 +16,7 @@ import knou.lms.msg.service.MsgTmpltService;
 import knou.lms.msg.vo.MsgTmpltVO;
 
 @Service("msgTmpltService")
-public class MsgTmpltServiceImpl implements MsgTmpltService {
+public class MsgTmpltServiceImpl extends ServiceBase implements MsgTmpltService {
 
     @Resource(name = "msgTmpltDAO")
     private MsgTmpltDAO msgTmpltDAO;
@@ -100,23 +101,44 @@ public class MsgTmpltServiceImpl implements MsgTmpltService {
         return msgTmpltDAO.modifyTmplt(vo);
     }
 
+    private static final String ORG_MSG = "ORG_MSG";
+
     /**
-     * 템플릿 삭제
+     * 템플릿 삭제 (권한 검증 포함)
      * @param vo
+     * @param userId
+     * @param isAdmin
      * @return
+     * @throws Exception
      */
     @Override
-    public int deleteTmplt(MsgTmpltVO vo) {
-        int result = 0;
+    public int deleteTmplt(MsgTmpltVO vo, String userId, boolean isAdmin) throws Exception {
         String[] ids = vo.getMsgTmpltIds();
-        if (ids != null && ids.length > 0) {
-            for (String id : ids) {
-                MsgTmpltVO delVo = new MsgTmpltVO();
-                delVo.setMsgTmpltId(id);
-                result += msgTmpltDAO.deleteTmplt(delVo);
+        if (ids == null || ids.length == 0) {
+            if (vo.getMsgTmpltId() != null) {
+                ids = new String[]{vo.getMsgTmpltId()};
+            } else {
+                return 0;
             }
-        } else if (vo.getMsgTmpltId() != null) {
-            result = msgTmpltDAO.deleteTmplt(vo);
+        }
+
+        for (String id : ids) {
+            MsgTmpltVO checkVo = new MsgTmpltVO();
+            checkVo.setMsgTmpltId(id);
+            MsgTmpltVO existVo = msgTmpltDAO.selectTmplt(checkVo);
+            if (existVo != null) {
+                boolean hasAuth = ORG_MSG.equals(existVo.getMsgCtsGbncd()) ? isAdmin : userId.equals(existVo.getRgtrId());
+                if (!hasAuth) {
+                    throw new IllegalAccessException();
+                }
+            }
+        }
+
+        int result = 0;
+        for (String id : ids) {
+            MsgTmpltVO delVo = new MsgTmpltVO();
+            delVo.setMsgTmpltId(id);
+            result += msgTmpltDAO.deleteTmplt(delVo);
         }
         return result;
     }

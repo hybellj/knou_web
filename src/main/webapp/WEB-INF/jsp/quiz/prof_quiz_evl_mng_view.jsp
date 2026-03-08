@@ -15,6 +15,11 @@
 		$(document).ready(function() {
 			quizTkexamListSelect();
 
+			// 학습그룹부과제설정시 퀴즈 부 과제 목록 조회
+			if("${vo.lrnGrpSubasmtStngyn}" == "Y") {
+				quizSubAsmtListSelect();
+			}
+
 			$("#searchValue").on("keyup", function(e) {
 				if(e.keyCode == 13) {
 					quizTkexamListSelect();
@@ -45,8 +50,8 @@
 		function quizViewMv(tab) {
 			var urlMap = {
 				"1" : "/quiz/profQuizQstnMngView.do",		// 퀴즈 문항 관리 화면
-				"2" : "/quiz/profQuizRetkexamMngView.do",	// 퀴즈 재응시 관리 페이지
-				"3" : "/quiz/profQuizEvlMngView.do",		// 퀴즈 평가 관리 페이지
+				"2" : "/quiz/profQuizRetkexamMngView.do",	// 퀴즈 재응시 관리 화면
+				"3" : "/quiz/profQuizEvlMngView.do",		// 퀴즈 평가 관리 화면
 				"4" : "/quiz/profQuizModifyView.do",		// 퀴즈 수정 화면
 				"9" : "/quiz/profQuizListView.do"			// 퀴즈 목록 화면
 			};
@@ -476,6 +481,63 @@
 		function qstnScoreEdit() {
 			quizTkexamListSelect();
 		}
+
+		/**
+		 * 퀴즈 부 과제 목록 조회
+		 * @param {String}  lrnGrpId 	- 학습그룹아이디
+		 * @param {String}  examBscId 	- 시험기본아이디
+		 * @returns {list} 부 과제 목록
+		 */
+		function quizSubAsmtListSelect() {
+			var url  = "/quiz/quizLrnGrpSubAsmtListAjax.do";
+			var data = {
+				lrnGrpId  : "${vo.lrnGrpId}",
+				examBscId : "${vo.examBscId}"
+			};
+
+			ajaxCall(url, data, function(data) {
+				if (data.result > 0) {
+					var returnList = data.returnList || [];
+					var html = "";
+
+	        		if(returnList.length > 0) {
+	        			returnList.forEach(function(v, i) {
+							html += "<tr>";
+							html += "	<th>" + v.teamnm + "</th>";
+							html += "	<td>";
+							html += "		<table class='table-type2'>";
+							html += "			<colgroup>";
+							html += "				<col class='width-10per' />";
+							html += "				<col class='' />";
+							html += "			</colgroup>";
+							html += "			<tbody>";
+							html += "				<tr>";
+							html += "					<th>주제</th>";
+							html += "					<td class='t_left'>" + v.examTtl + "</td>";
+							html += "				</tr>";
+							html += "				<tr>";
+							html += "					<th>내용</th>";
+							html += "					<td class='t_left'><pre>" + v.examCts + "</pre></td>";
+							html += "				</tr>";
+							html += "				<tr>";
+							html += "					<th>첨부파일</th>";
+							html += "					<td class='t_left'>";
+							//html += "						<button class='ui icon small button' id='file_fileSn' title='파일다운로드' onclick='fileDown(\"" + ${list.fileSn } + "\", \"" + ${list.repoCd } + "\")'><i class='ion-android-download'></i></button>";
+							html += "					</td>";
+							html += "				</tr>";
+							html += "			</tbody>";
+							html += "		</table>";
+							html += "	</td>";
+							html += "	<td>" + v.leadernm + " 외 " + (v.teamMbrCnt - 1) + "</td>";
+							html += "</tr>";
+	        			});
+	        		}
+					/* byteConvertor("${list.fileSize}", "${list.fileNm}", "${list.fileSn}"); */
+
+	        		$("#quizSubAsmtTbody").append(html);
+				}
+			}, true);
+		}
 	</script>
 </head>
 
@@ -658,6 +720,20 @@
 														</c:when>
 														<c:otherwise>${no }</c:otherwise>
 													</c:choose>
+				        						</td>
+				        					</tr>
+				        					<tr>
+				        						<th><label>재응시 사용</label></th>
+				        						<td class="t_left" colspan="3">
+				        							<p>${vo.examDtlVO.reexamyn eq 'Y' ? yes : no }</p>
+													<c:if test="${vo.examDtlVO.reexamyn eq 'Y' }">
+														<fmt:parseDate var="rePsblSdttmFmt" pattern="yyyyMMddHHmmss" value="${vo.examDtlVO.reexamPsblSdttm }" />
+														<fmt:formatDate var="reexamPsblSdttm" pattern="yyyy.MM.dd HH:mm" value="${rePsblSdttmFmt }" />
+														<fmt:parseDate var="rePsblEdttmFmt" pattern="yyyyMMddHHmmss" value="${vo.examDtlVO.reexamPsblEdttm }" />
+														<fmt:formatDate var="reexamPsblEdttm" pattern="yyyy.MM.dd HH:mm" value="${rePsblEdttmFmt }" />
+														<p>재응시 기간 : ${reexamPsblSdttm } ~ ${reexamPsblEdttm }</p>
+														<p>재응시 적용률 : ${vo.examDtlVO.reexamMrkRfltrt }%</p>
+													</c:if>
 				        						</td>
 				        					</tr>
 				        				</tbody>

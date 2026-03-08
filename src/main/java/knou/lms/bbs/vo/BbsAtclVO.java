@@ -35,6 +35,12 @@ public class BbsAtclVO extends BbsInfoVO {
     private String		hdrTycd;			// 말머리유형코드
     private String		athrId;				// 원작자아이디
     private String		dscsnProfId;		// 상담교수아이디
+    private String		srcAtclId;			// 원본게시글아이디
+
+    private String		prevAtclId;			// 이전글아이디
+    private String		prevAtclTtl;		// 이전글제목
+    private String		nextAtclId;			// 다음글아이디
+    private String		nextAtclTtl;		// 다음글제목
 
     private String	sbjctId;	// 과목 아이디
     private String	crsCreCd;
@@ -81,8 +87,8 @@ public class BbsAtclVO extends BbsInfoVO {
     private String		rsrvDttmStartYn;     // 예약등록일 시작여부
     private String[]	univGbnList;         // 대학구분 리스트
 
-    private String		beforeAtclId;
-    private String		afterAtclId;
+    private String		beforeAtclId;		//TODO 삭제...
+    private String		afterAtclId;		//TODO 삭제...
     private int		answerAtclCnt;       // 답글 수
     private String		regMenuType;         // 등록자 메뉴타입
     private String		copyAtclId;          // 게시글 복사대상 id
@@ -644,5 +650,45 @@ public class BbsAtclVO extends BbsInfoVO {
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;
+	}
+
+	public String getPrevAtclId() {
+		return prevAtclId;
+	}
+
+	public void setPrevAtclId(String prevAtclId) {
+		this.prevAtclId = prevAtclId;
+	}
+
+	public String getPrevAtclTtl() {
+		return prevAtclTtl;
+	}
+
+	public void setPrevAtclTtl(String prevAtclTtl) {
+		this.prevAtclTtl = prevAtclTtl;
+	}
+
+	public String getNextAtclId() {
+		return nextAtclId;
+	}
+
+	public void setNextAtclId(String nextAtclId) {
+		this.nextAtclId = nextAtclId;
+	}
+
+	public String getNextAtclTtl() {
+		return nextAtclTtl;
+	}
+
+	public void setNextAtclTtl(String nextAtclTtl) {
+		this.nextAtclTtl = nextAtclTtl;
+	}
+
+	public String getSrcAtclId() {
+		return srcAtclId;
+	}
+
+	public void setSrcAtclId(String srcAtclId) {
+		this.srcAtclId = srcAtclId;
 	}
 }

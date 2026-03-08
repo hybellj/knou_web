@@ -16,7 +16,6 @@ public class QbnkCtgrVO extends DefaultVO {
 	private Integer	ctgrSeqno;			// 분류순번
 	private String 	shrnyn;				// 공유여부
 	private String 	delyn;				// 삭제여부
-	private String 	qbnkQstnGbncd;		// 문제은행문항구분코드
 
 	public String getQbnkCtgrId() {
 		return qbnkCtgrId;
@@ -45,9 +44,6 @@ public class QbnkCtgrVO extends DefaultVO {
 	public String getDelyn() {
 		return delyn;
 	}
-	public String getQbnkQstnGbncd() {
-		return qbnkQstnGbncd;
-	}
 	public void setQbnkCtgrId(String qbnkCtgrId) {
 		this.qbnkCtgrId = qbnkCtgrId;
 	}
@@ -74,9 +70,6 @@ public class QbnkCtgrVO extends DefaultVO {
 	}
 	public void setDelyn(String delyn) {
 		this.delyn = delyn;
-	}
-	public void setQbnkQstnGbncd(String qbnkQstnGbncd) {
-		this.qbnkQstnGbncd = qbnkQstnGbncd;
 	}
 
 }

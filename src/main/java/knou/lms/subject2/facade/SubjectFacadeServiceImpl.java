@@ -9,9 +9,10 @@ import org.springframework.stereotype.Service;
 import knou.framework.common.ServiceBase;
 import knou.framework.context2.UserContext;
 import knou.lms.bbs2.service.Bbs2Service;
+import knou.lms.common.dto.BaseParam;
 import knou.lms.lecture2.service.LectureScheduleService;
 import knou.lms.subject2.service.SubjectService;
-import knou.lms.subject2.web.view.SubjectMainResponse;
+import knou.lms.subject2.web.view.SubjectViewModel;
 
 @Service("subjectFacadeService")
 public class SubjectFacadeServiceImpl extends ServiceBase implements SubjectFacadeService {
@@ -26,45 +27,93 @@ public class SubjectFacadeServiceImpl extends ServiceBase implements SubjectFaca
 
     @Resource(name="bbs2Service")
     private Bbs2Service bbs2Service;
-
-	@Override
-	public SubjectMainResponse loadSubjectMainView(UserContext userCtx, String subjectId) throws Exception {
+	
+	//	과목 공통
+	public SubjectViewModel cmmonSubjectViewModel(BaseParam param) throws Exception {
 		
-		SubjectMainResponse	subjectMainResponse = new SubjectMainResponse();
+		SubjectViewModel	subjectVM = new SubjectViewModel();
+		
+		//	게시판미열람수조회
+		subjectVM.setBadge(bbs2Service.bbsUnreadCntSelect(param));
 		
 		//	과목조회
-		subjectMainResponse.setSubjectVO(subjectService.subjectSelect(subjectId));
+		subjectVM.setSubjectVO(subjectService.subjectSelect(param));
 		
 		//	과목게시판아이디조회
-		subjectMainResponse.setSubjectBbsIds(subjectService.subjectBbsIdsSelect(subjectId));
+		subjectVM.setSubjectBbsIds(subjectService.subjectBbsIdsSelect(param));
 		
-		//	과목관리자들조회
-		subjectMainResponse.setSubjectAdmsMap(subjectService.sbjctAdmSelect(subjectId));		
+		//	과목최신공지사항목록조회
+		subjectVM.setSubjectTopNoticeList(bbs2Service.subjectTopNoticeList(param));
 		
-		//	과목학습활동목록조회
-		subjectMainResponse.setSubjectLearingActvList(subjectService.subjectLearningActvList(subjectId));
-		
-		//	중간고사시험조회, 기말고사시험조회
-		subjectMainResponse.setMiddleLastExamMap(subjectService.middleLastExamSelect(subjectId));
-		
-		//	최신게시글목록조회
-		subjectMainResponse.setLatestTopArticlesList(bbs2Service.latestTopArticlesList(userCtx.getUserId(), subjectId, 3));
-		
-		//	최신게시글미열람미답변건수조회	
-		//subjectMainView.setLatestTopArticlesUnreadNoreplyCntSelect(bbs2Service.latestTopArticlesUnreadNoreplyCntSelect(userCtx.getUserId(), subjectId));
+		//	과목최신강의Qna목록조회
+		subjectVM.setSubjectTopLctrQnaList(bbs2Service.subjectTopLctrQnaList(param));
 		
 		//	강의주차일정목록조회
-		subjectMainResponse.setLectureScheduleList(lectureScheduleService.lectureScheduleList(subjectId));
-		
-		//	교수강의주차일정목록조회
-		subjectMainResponse.setProfLectureScheduleList(lectureScheduleService.profLectureScheduleList(subjectId));
+		subjectVM.setLectureScheduleList(lectureScheduleService.lectureScheduleList(param));
 		
 		//	금주강의조회
-		subjectMainResponse.setThisWeekLectureMap(lectureScheduleService.thisWeekLectureSelect(subjectId));
-					
-		//	주차별강의목록조회
-		subjectMainResponse.setByWeeknoLectureSchdlList(lectureScheduleService.byWeeknoLectureSchdlList(subjectId));
+		subjectVM.setThisWeekLectureMap(lectureScheduleService.thisWeekLectureSelect(param));
 		
-		return subjectMainResponse;
+		//	주차별강의목록조회
+		subjectVM.setByWeeknoLectureSchdlList(lectureScheduleService.byWeeknoLectureSchdlList(param));
+		
+		// 	중간고사시험조회, 기말고사시험조회
+		subjectVM.setMiddleLastExam(subjectService.middleLastExamSelect(param));
+		
+		return subjectVM;
+    }
+
+	//	교수과목
+	@Override
+	public SubjectViewModel profSubjectViewModel(BaseParam param) throws Exception {		
+		SubjectViewModel	subjectVM = cmmonSubjectViewModel(param);
+			
+		//	과목학습활동목록조회
+		subjectVM.setSubjectLearingActvList(subjectService.subjectLearningActvList(param));
+		
+		//	교수과목최신일대일목록조회
+		subjectVM.setProfSubjectTopOneOnOneList(bbs2Service.profSubjectTopOneOnOneList(param));
+		
+		//	교수강의주차일정목록조회
+		subjectVM.setProfLectureScheduleList(lectureScheduleService.profLectureScheduleList(param));
+		
+		return subjectVM;
+	}
+	
+	//	학생과목
+	@Override
+	public SubjectViewModel stdntSubjectViewModel(BaseParam param) throws Exception {
+		
+		SubjectViewModel	subjectVM = cmmonSubjectViewModel(param);
+		
+		//	과목관리자조회
+		subjectVM.setSubjectAdms(subjectService.sbjctAdmSelect(param));
+		
+		//	학생과목최신자료실목록조회
+		subjectVM.setStdntSubjectTopDatarmList(bbs2Service.stdntSubjectTopDatarmList(param));
+		
+		return subjectVM;
+	}
+
+	@Override
+	public SubjectViewModel getSubjectViewModel(UserContext userCtx, BaseParam param) throws Exception {
+		
+		SubjectViewModel subjectVM = new SubjectViewModel();
+		
+		if (userCtx.isProfessor()) {
+			subjectVM = profSubjectViewModel(param);
+			subjectVM.setViewName("subject2/prof_classroom");
+	        return subjectVM;
+	    }
+
+	    if (userCtx.isStudent()) {
+	    	subjectVM = stdntSubjectViewModel(param);
+	    	subjectVM.setViewName("subject2/stdnt_classroom");
+	        return subjectVM;
+	    }
+
+	    subjectVM = new SubjectViewModel();
+	    subjectVM.setViewName("subject2/default_classroom");
+	    return subjectVM;
 	}  
 }

@@ -1,5 +1,7 @@
 package knou.lms.system.code.service;
 
+import java.util.List;
+
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.system.code.vo.SysCmmnCdVO;
 
@@ -15,7 +17,7 @@ public interface SysCmmnCdService {
     // 시스템 상위 공통코드 분류 목록 페이징
     public ProcessResultVO<SysCmmnCdVO> listSysCmmnUpCdPaging(SysCmmnCdVO vo) throws Exception;
 
-    // 시스템 상위 공통코드 분류 수정    
+    // 시스템 상위 공통코드 분류 수정
     public void updateSysCmmnUpCd(SysCmmnCdVO vo) throws Exception;
 
     // 시스템 상위 공통코드 분류 삭제
@@ -36,4 +38,8 @@ public interface SysCmmnCdService {
 
     // 시스템 공통코드 삭제
     public void deleteSysCmmnCd(SysCmmnCdVO vo) throws Exception;
+
+
+    // 시스템 공통코드 전체 목록 조회
+    public List<SysCmmnCdVO> selectSysCmmnCdAll() throws Exception;
 }

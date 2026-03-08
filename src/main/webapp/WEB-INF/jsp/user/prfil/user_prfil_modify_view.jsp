@@ -8,27 +8,21 @@
 <head>
     <title></title>
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
-        <jsp:param name="module" value="file-uploader"/>
+        <jsp:param name="module" value="fileuploader"/>
         <jsp:param name="style" value="dashboard"/>
     </jsp:include>
-
-    <%--임시 파일업로드 스크립트--%>
-    <script type="text/javascript" src="/webdoc/js/dx5/dextuploadx5-configuration.js"></script>
-    <script type="text/javascript" src="/webdoc/js/dx5/dextuploadx5.js"></script>
-    <script type="text/javascript" src="/webdoc/js/dx5-uploader.js?v=11"></script>
-
 </head>
 <body class="home colorA "><!-- 컬러선택시 클래스변경 -->
 <div id="wrap" class="main">
     <!-- common header -->
-    <%@ include file="/WEB-INF/jsp/common_new/home_header.jsp" %>
+    <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
     <!-- //common header -->
 
     <!-- dashboard -->
     <main class="common">
 
         <!-- gnb -->
-        <%@ include file="/WEB-INF/jsp/common_new/home_gnb_prof.jsp" %>
+        <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
         <!-- //gnb -->
 
         <!-- content -->
@@ -36,7 +30,7 @@
             <div class="dashboard_sub">
 
                 <!-- page_tab -->
-                <%@ include file="/WEB-INF/jsp/common_new/home_page_tab.jsp" %>
+                <jsp:include page="/WEB-INF/jsp/common_new/home_page_tab.jsp"/>
                 <!-- //page_tab -->
 
                 <div class="sub-content">
@@ -108,7 +102,8 @@
                                         <td>
                                             <div class="form-row">
                                                 <input class="form-control width-50per" type="text" name="usernm"
-                                                       id="usernm" value="${vo.usernm}">
+                                                       id="usernm" value="${vo.usernm}"
+                                                       inputmask="byte" maxLen="200" required="true"/>
                                             </div>
                                         </td>
                                     </tr>
@@ -120,7 +115,8 @@
                                                     <div class="form-inline">
                                                         <input class="form-control width-50per" type="text"
                                                                name="userNcnm"
-                                                               id="userNcnm" value="${vo.userNcnm}">
+                                                               id="userNcnm" value="${vo.userNcnm}"
+                                                               inputmask="byte" maxLen="100" required="true"/>
                                                         <small class="note2">! 이름 대신 노출됩니다. 수정 후 사용하세요.</small>
                                                     </div>
                                                 </td>
@@ -184,7 +180,8 @@
                                         <td>
                                             <div class="form-inline">
                                                 <input type="password" id="curPswd" name="curPswd"
-                                                       placeholder="<spring:message code='user.message.search.input.userpass' />">
+                                                       placeholder="<spring:message code='user.message.search.input.userpass' />"
+                                                       inputmask="byte" maxLen="100" required="true"/>
                                                 <small class="note2">! 개인정보변경을 위한 비밀번호 체크</small>
                                             </div>
                                         </td>
@@ -356,8 +353,8 @@
                     </form>
 
                     <div class="btns">
-                        <button type="button" class="btn type1">취소</button>
-                        <button type="button" class="btn type2" onclick="save()">저장</button>
+                        <button type="button" class="btn type2" onclick="cancel()">취소</button>
+                        <button type="button" class="btn type1" onclick="save()">저장</button>
                     </div>
 
                 </div>
@@ -368,7 +365,7 @@
 
 
         <!-- common footer -->
-        <%@ include file="/WEB-INF/jsp/common_new/home_footer.jsp" %>
+        <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
         <!-- //common footer -->
 
     </main>
@@ -573,35 +570,35 @@
             return false;
         }
 
-        if (!$.trim($('#usernm').val())) {
+        /*if (!$.trim($('#usernm').val())) {
             alert('이름을 입력하세요.');
             $('#usernm').focus();
             return false;
-        }
-        if (!$.trim($('#userNcnm').val())) {
+        }*/
+        /*if (!$.trim($('#userNcnm').val())) {
             alert('사용자별칭을 입력하세요.');
             $('#userNcnm').focus();
             return false;
-        }
+        }*/
 
         if (!$('input[name=gndrTycd]:checked').val()) {
             alert('성별을 선택하세요.');
             return false;
         }
 
-        if (!$.trim($('#curPswd').val())) {
+        /*if (!$.trim($('#curPswd').val())) {
             alert('비밀번호를 입력하세요.');
             $('#curPswd').focus();
             return false;
-        }
+        }*/
 
-        if (!$('#mblPhn').val()) {
+        /*if (!$('#mblPhn').val()) {
             alert('휴대폰 번호를 입력하세요.');
             return false;
-        }
+        }*/
 
         // 사용 이메일 선택 여부
-        var useEmlGbncd = $('input[name=useEmlGbncd]:checked').val();
+        let useEmlGbncd = $('input[name=useEmlGbncd]:checked').val();
 
         if (!useEmlGbncd) {
             alert('사용 이메일을 선택하세요.');
@@ -610,7 +607,7 @@
 
         // 사용 이메일 구분에 따라 개인 이메일 검증(INDV일 때만 필수/검증)
         if (useEmlGbncd === 'INDV') {
-            var email = $('#indvEml').val(); // setData에서 조립됨
+            let email = $('#indvEml').val(); // setData에서 조립됨
 
             if (!email) {
                 alert('개인 이메일을 입력하세요.');
@@ -632,23 +629,35 @@
         // 데이터 조립
         setData();
 
-        // 유효성 체크
-        if (!validateForm()) {
-            return;
-        }
 
-        // 패스워드 체크 -> 파일업로드 -> 저장
-        checkPswdMtch(function () {
-            var fileUploader = dx5.get("fileUploader");
+        let validator = UiValidator("frmUserModify");
+        validator.then(function (result) {
+            if (result) {
+                // 유효성 체크-로직포함
+                if (!validateForm()) {
+                    return;
+                }
 
-            if (fileUploader.getFileCount() > 0) {
-                fileUploader.startUpload(); // finishUpload로 이어짐
+                // 패스워드 체크 -> 파일업로드 -> 저장
+                checkPswdMtch(function () {
+                    const fileUploader = dx5.get("fileUploader");
+
+                    if (fileUploader.getFileCount() > 0) {
+                        fileUploader.startUpload(); // finishUpload로 이어짐
+                    } else {
+                        saveUserProfileAjax();  // 파일 없이 저장
+                    }
+                });
+
             } else {
-                saveUserProfileAjax();  // 파일 없이 저장
+                return false;
             }
         });
     }
 
+    function cancel() {
+        location.href = '/user/userHome/userPrfilView.do';
+    }
 
 </script>
 </body>

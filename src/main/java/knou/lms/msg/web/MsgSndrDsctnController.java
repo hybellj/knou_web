@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
-import knou.framework.exception.AccessDeniedException;
 import knou.framework.util.StringUtil;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.service.MsgSndrDsctnService;
@@ -37,29 +37,48 @@ public class MsgSndrDsctnController extends ControllerBase {
                 SessionInfo.getLastLogin(request));
     }
 
-    private void checkAuth(HttpServletRequest request) throws AccessDeniedException {
-        String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        if (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());
-        }
+    private boolean isAdmin(UserContext userCtx) {
+        String authrtGrpcd = userCtx.getAuthrtGrpcd();
+        return authrtGrpcd != null && authrtGrpcd.contains("ADM");
     }
 
     /**
-     * 발송내역관리 화면
+     * 교수 발송내역관리 화면
      * @param model
      * @param request
      * @return
      * @throws Exception
      */
-    @RequestMapping(value = "/msgSndrDsctnMngListView.do")
-    public String msgSndrDsctnMngView(ModelMap model, HttpServletRequest request) throws Exception {
-        checkAuth(request);
+    @RequestMapping(value = "/profMsgSndrDsctnListView.do")
+    public String profMsgSndrDsctnListView(ModelMap model, HttpServletRequest request) throws Exception {
         UserContext userCtx = getUserContext(request);
 
-        model.addAttribute("userCtx", userCtx);
+        model.addAttribute("orgId", StringUtil.nvl(userCtx.getOrgId()));
         model.addAttribute("pageSize", PAGE_SIZE);
 
-        return "msg2/msg_sndr_dsctn_list_view";
+        return "msg2/prof_msg_sndr_dsctn_list_view";
+    }
+
+    /**
+     * 관리자 발송내역관리 화면
+     * @param model
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/mngrMsgSndrDsctnListView.do")
+    public String mngrMsgSndrDsctnListView(ModelMap model, HttpServletRequest request) throws Exception {
+        UserContext userCtx = getUserContext(request);
+
+        if (!isAdmin(userCtx)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
+        model.addAttribute("orgId", StringUtil.nvl(userCtx.getOrgId()));
+        model.addAttribute("pageSize", PAGE_SIZE);
+
+        return "msg2/mngr_msg_sndr_dsctn_list_view";
     }
 
     /**
@@ -149,7 +168,18 @@ public class MsgSndrDsctnController extends ControllerBase {
         ProcessResultVO<MsgSndrDsctnVO> resultVO = new ProcessResultVO<>();
 
         try {
+            String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+            if (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF")) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
+
             vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
+
+            if (authrtGrpcd.contains("PROF") && !authrtGrpcd.contains("ADM")) {
+                vo.setUserId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            }
 
             List<MsgSndrDsctnVO> list = msgSndrDsctnService.selectSndrDsctnYrList(vo);
             resultVO.setReturnList(list);
@@ -171,13 +201,24 @@ public class MsgSndrDsctnController extends ControllerBase {
      */
     @RequestMapping(value = "/msgSndrDsctnMngSmstrListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgSndrDsctnVO> msgSndrDsctnMngSmstrListAjax(MsgSndrDsctnVO vo, HttpServletRequest request) throws Exception {
-        ProcessResultVO<MsgSndrDsctnVO> resultVO = new ProcessResultVO<>();
+    public ProcessResultVO<EgovMap> msgSndrDsctnMngSmstrListAjax(MsgSndrDsctnVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
 
         try {
+            String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+            if (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF")) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
+
             vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
 
-            List<MsgSndrDsctnVO> list = msgSndrDsctnService.selectSndrDsctnSmstrList(vo);
+            if (authrtGrpcd.contains("PROF") && !authrtGrpcd.contains("ADM")) {
+                vo.setUserId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            }
+
+            List<EgovMap> list = msgSndrDsctnService.selectSndrDsctnSmstrList(vo);
             resultVO.setReturnList(list);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
         } catch (Exception e) {
@@ -201,7 +242,18 @@ public class MsgSndrDsctnController extends ControllerBase {
         ProcessResultVO<MsgSndrDsctnVO> resultVO = new ProcessResultVO<>();
 
         try {
+            String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+            if (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF")) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
+
             vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
+
+            if (authrtGrpcd.contains("PROF") && !authrtGrpcd.contains("ADM")) {
+                vo.setUserId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            }
 
             List<MsgSndrDsctnVO> list = msgSndrDsctnService.selectSndrDsctnDeptList(vo);
             resultVO.setReturnList(list);
@@ -227,7 +279,18 @@ public class MsgSndrDsctnController extends ControllerBase {
         ProcessResultVO<MsgSndrDsctnVO> resultVO = new ProcessResultVO<>();
 
         try {
+            String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+            if (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF")) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
+
             vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
+
+            if (authrtGrpcd.contains("PROF") && !authrtGrpcd.contains("ADM")) {
+                vo.setUserId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            }
 
             List<MsgSndrDsctnVO> list = msgSndrDsctnService.selectSndrDsctnSbjctList(vo);
             resultVO.setReturnList(list);

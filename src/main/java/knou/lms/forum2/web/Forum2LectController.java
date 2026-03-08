@@ -3,8 +3,11 @@ package knou.lms.forum2.web;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -22,6 +25,9 @@ public class Forum2LectController extends ControllerBase {
 
     @Resource(name = "forum2Service")
     private ForumService forumService;
+
+    private String test_sbjctId = "SBJCT_OFRNG_ID1";
+    private String test_lrnGrpId = "LRN_GRP_01";
 
     /**
      * 토론목록화면이동
@@ -57,8 +63,13 @@ public class Forum2LectController extends ControllerBase {
         model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
 
         // TODO : Test Code 값 추후 수정 예정.(setSbjctId, setLrnGrpId)
-        forum2VO.setSbjctId("SBJCT20260001");
-        forum2VO.setLrnGrpId("LRN_GRP_01");
+        model.addAttribute("sbjctId", test_sbjctId);
+        model.addAttribute("lrnGrpId", test_lrnGrpId);
+
+        // TODO : Test Code 값 추후 수정 예정.(setSbjctId, setLrnGrpId)
+        forum2VO.setSbjctId(test_sbjctId);
+        List<Forum2VO> dvclasList = forumService.selectForumDvclasList(forum2VO);
+        model.addAttribute("dvclasList", dvclasList);
 
         // 등록 or 수정 구분 - I : 등록, E : 수정
         model.addAttribute("mode", "I");
@@ -79,6 +90,13 @@ public class Forum2LectController extends ControllerBase {
     @ResponseBody
     public ProcessResultVO<Forum2ListVO> profForumList(Forum2ListVO vo, HttpServletRequest request) throws Exception {
         ProcessResultVO<Forum2ListVO> resultVO = new ProcessResultVO<>();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        // 현 사용자의 구분(학생, 교수)
+        String userType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
+        vo.setSearchKeyNm(userType);
+        vo.setUserId(userId);
 
         try {
             setCommonSessionValue(vo, request);
@@ -192,6 +210,70 @@ public class Forum2LectController extends ControllerBase {
     }
 
     /**
+     * 토론 성적공개여부 수정
+     * @param vo
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/profForumMrkOynModify.do")
+    @ResponseBody
+    public ProcessResultVO<Forum2VO> profForumMrkOynModify(Forum2VO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+
+        try {
+            if (StringUtil.isNull(vo.getDscsId())) {
+                resultVO.setResultFailed("dscsId is required");
+                return resultVO;
+            }
+
+            String mrkOyn = StringUtil.nvl(vo.getMrkOyn());
+            if (StringUtil.isNull(mrkOyn)) {
+                mrkOyn = StringUtil.nvl(request.getParameter("mrkOyn"));
+            }
+            mrkOyn = mrkOyn.toUpperCase();
+
+            if (!"Y".equals(mrkOyn) && !"N".equals(mrkOyn)) {
+                resultVO.setResultFailed("수정 중 에러가 발생하였습니다.");
+                return resultVO;
+            }
+
+            vo.setMrkOyn(mrkOyn);
+            resultVO = forumService.modifyForumMrkOyn(vo);
+        } catch (Exception e) {
+            resultVO.setResultFailed(e.getMessage());
+        }
+
+        return resultVO;
+    }
+
+    /**
+     * 토론 성적반영비율 수정
+     * @param list
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/forumMrkRfltrtModifyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<Forum2VO> forumMrkRfltrtModifyAjax(@RequestBody List<Forum2VO> list, HttpServletRequest request) throws Exception {
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+
+        try {
+            for (Forum2VO vo : list) {
+                vo.setMdfrId(userId);
+            }
+            forumService.updateForumMrkRfltrt(list);
+            resultVO.setResultSuccess();
+        } catch (Exception e) {
+            resultVO.setResultFailed(e.getMessage());
+        }
+
+        return resultVO;
+    }
+    
+    /**
      * 토론삭제
      * @param vo
      * @param request
@@ -273,3 +355,5 @@ public class Forum2LectController extends ControllerBase {
         vo.setMdfrId(SessionInfo.getUserId(request));
     }
 }
+
+

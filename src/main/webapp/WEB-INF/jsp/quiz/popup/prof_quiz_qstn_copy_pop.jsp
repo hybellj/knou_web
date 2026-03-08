@@ -73,8 +73,7 @@
 
 			var data = {
 				"sbjctId" 	: "${vo.sbjctId}",
-				"upQbnkCtgrId" 	: upQbnkCtgrId,
-				"qbnkQstnGbncd"	: "QUIZ"
+				"upQbnkCtgrId" 	: upQbnkCtgrId
 			};
 
 			ajaxCall(url, data, function(data) {

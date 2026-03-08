@@ -61,7 +61,7 @@
 						<!-- info-left -->
 						<div class="info-left">
 							<div class="class_info">
-                                <h2>${subjectVO.sbjctnm}</h2>
+                                <h2>${subjectVM.subjectVO.sbjctnm}</h2>
                                 <div class="classSection">
                                     <div class="cls_btn">
                                         <a href="#0" class="btn">강의계획서</a>
@@ -72,10 +72,10 @@
                             </div>
                             <div class="info-cnt">
                                 <div class="info_iconSet">
-                                	<c:forEach var="actv" items="${subjectLearningActvList}">
-                                    <a href="${actv.href}" class="info">
-                                        <span>${actv.ttlKo}</span>
-                                        <div class="num_txt">${actv.cnt}</div>
+                                	<c:forEach var="item" items="${subjectVM.subjectLearingActvList}">
+                                    <a href="${item.href}" class="info">
+                                        <span>${item.ttlKo}</span>
+                                        <div class="num_txt">${item.cnt}</div>
                                     </a>
                                     </c:forEach>                                  
                                 </div>
@@ -83,21 +83,21 @@
                                     <div class="info">
                                         <p class="point">
                                             <span class="tit">중간고사:</span>
-                                            <span>${fnc:dateFormat(middleLastExamMap.midExamSdttm, '.')}</span>
+                                            <span>${fnc:dateFormat(subjectVM.middleLastExamMap.midExamSdttm, '.')}</span>
                                         </p>
                                         <p class="desc">
                                             <span class="tit">시간:</span>
-                                            <span>${middleLastExamMap.midExamMnts}분</span>
+                                            <span>${subjectVM.middleLastExamMap.midExamMnts}분</span>
                                         </p>
                                     </div>
                                     <div class="info">
                                         <p class="point">
                                             <span class="tit">기말고사:</span>
-                                            <span>${fnc:dateFormat(middleLastExamMap.lstExamSdttm, '.')}</span>
+                                            <span>${fnc:dateFormat(subjectVM.middleLastExamMap.lstExamSdttm, '.')}</span>
                                         </p>
                                         <p class="desc">
                                             <span class="tit">시간:</span>
-                                            <span>${middleLastExamMap.lstExamMnts}분</span>
+                                            <span>${subjectVM.middleLastExamMap.lstExamMnts}분</span>
                                         </p>
                                     </div>
                                 </div>
@@ -251,25 +251,25 @@
 					<!-- segment row -->
 					<div class="segment-row">
 					
-						<!-- 공지사항 -->
+						<!-- 과목공지사항 -->
 						<div class="segment">
                             <div class="box_title">
                                 <i class="icon-svg-notice"></i>
-                                <h3 class="h3">과목 공지사항 <small class="msg_num">${unreadNoreplyCnt.noticeUnreadCnt}</small></h3><!-- 과목 공지사항-->
+                                <h3 class="h3">과목 공지사항 <small class="msg_num">${subjectVM.badge.noticeUnreadCnt}</small></h3><!-- 과목 공지사항-->
                                 <div class="btn-wrap">
-                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectBbsIds.ntcBbsId}" class="btn_more"><i class="xi-plus"></i></a>
+                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.ntcBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                             <div class="box_content">
                             	<ul class="dash_item_listA">
 		                            <c:choose>
-									    <c:when test="${empty recentTopList}">
+									    <c:when test="${empty subjectVM.subjectTopNoticeList}">
 									        <li>과목공지사항이 없습니다</li>
 									    </c:when>
 									    <c:otherwise>									        
-		                                	<c:forEach var="item" items="${recentTopList}">
-		                                	<c:set var="cnt" value="0"/>
-			                                    <c:if test="${item.ntcTopic eq 'PROF_NOTICE' and cnt lt 3}">
+		                                	<c:forEach var="item" items="${subjectVM.subjectTopNoticeList}">
+		                                		<c:set var="cnt" value="0"/>
+			                                    <c:if test="${item.topic eq 'SUBJECT_TOP_NOTICE' and cnt lt 3}">
 				                                    <li class="dot">
 				                                        <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
 				                                            <p class="tit">${item.atclTtl}</p>
@@ -288,6 +288,7 @@
 											         		</c:choose>
 				                                        </div>
 				                                    </li>
+				                                    <c:set var="cnt" value="${cnt + 1}"/>
 				                            	</c:if>
 		                                    </c:forEach>	                                	
 									    </c:otherwise>
@@ -301,22 +302,21 @@
                         <div class="segment">
                             <div class="box_title">
                                 <i class="icon-svg-question"></i>
-                                <h3 class="h3">강의 Q&A <small class="msg_num">${unreadNoreplyCnt.qnaNoreplyCnt}</small></h3>
-                                <c:set var="bbsId" value="${recentTopList[0].bbsId}" />
+                                <h3 class="h3">강의 Q&A <small class="msg_num">${subjectVM.badge.qnaNoreplyCnt}</small></h3>
                                 <div class="btn-wrap">
-                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectBbsIds.qnaBbsId}" class="btn_more"><i class="xi-plus"></i></a>
+                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.qnaBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                             <div class="box_content">                            
                             	<c:choose>
-								    <c:when test="${empty recentTopList}">
+								    <c:when test="${empty subjectVM.subjectTopLctrQnaList}">
 								        <li>QNA가 없습니다</li>
 								    </c:when>
 								    <c:otherwise>								    
 								        <ul class="dash_item_listA">
-		                                	<c:forEach var="item" items="${recentTopList}">
-		                                	<c:set var="cnt" value="0"/>
-			                                    <c:if test="${item.ntcTopic eq 'PROF_QNA' and cnt lt 3}">
+		                                	<c:forEach var="item" items="${subjectVM.subjectTopLctrQnaList}">
+		                                		<c:set var="cnt" value="0"/>
+			                                    <c:if test="${item.topic eq 'SUBJECT_TOP_LCTR_QNA' and cnt lt 3}">
 			                                    	<li>
 				                                        <div class="user">
 				                                           <span class="user_img"></span>
@@ -324,7 +324,7 @@
 				                                        <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
 				                                            <p class="tit">${item.atclTtl}</p>
 				                                            <p class="desc">
-				                                                <span class="name">${item.atclTtl}</span>
+				                                                <span class="name">${item.usernm}</span>
 				                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 				                                            </p>
 				                                        </a>
@@ -339,6 +339,7 @@
 											         		</c:choose>
 											         	</div>										         
 				                                    </li>
+				                                    <c:set var="cnt" value="${cnt + 1}"/>
 				                            	</c:if>                                   
 		                                    </c:forEach>
 	                                	</ul>
@@ -352,21 +353,21 @@
                         <div class="segment">
                             <div class="box_title">
                                 <i class="icon-svg-message"></i>
-                                <h3 class="h3">1:1 상담<small class="msg_num">${unreadNoreplyCnt.oneOnOneNoreplyCnt}</small></h3>
+                                <h3 class="h3">1:1 상담<small class="msg_num">${subjectVM.badge.oneOnOneNoreplyCnt}</small></h3>
                                 <div class="btn-wrap">
-                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectBbsIds.oneOnOneBbsId}" class="btn_more"><i class="xi-plus"></i></a>
+                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.oneOnOneBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                             <div class="box_content">
                            		<ul class="dash_item_listA">
 		                            <c:choose>
-									    <c:when test="${empty recentTopList}">
+									    <c:when test="${empty subjectVM.profSubjectTopOneOnOneList}">
 									        <li>1:1 상담이 없습니다</li>
 									    </c:when>
 									    <c:otherwise>		                                  
-		                                	<c:forEach var="item" items="${recentTopList}">                                  
+		                                	<c:forEach var="item" items="${subjectVM.profSubjectTopOneOnOneList}">                                  
 			                                    <c:set var="cnt" value="0"/>
-												<c:if test="${item.ntcTopic eq 'PROF_1ON1' and cnt lt 3}">
+													<c:if test="${item.topic eq 'PROF_SUBJECT_TOP_1ON1' and cnt lt 3}">
 													<li>
 				                                        <div class="user">
 				                                           <span class="user_img"><img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진"></span>
@@ -380,7 +381,7 @@
 				                                        </a>
 				                                        <div class="state">
 					                                        <c:choose>
-					                                            <c:when test="${empty item.upAtclId}">
+					                                            <c:when test="${empty item.answerAtclId}">
 			                                            			<label class="label check_no">미답변</label>
 			                                            		</c:when>
 				                                            	<c:otherwise>
@@ -389,6 +390,7 @@
 				                                           	</c:choose>
 				                                        </div>
 				                                    </li>
+				                                    <c:set var="cnt" value="${cnt + 1}"/>
 				                            	</c:if>
 			                                </c:forEach> 
 	                               		</c:otherwise>
@@ -410,13 +412,13 @@
                         </div>                        
                         <div class="week_attend_list">
                         	<c:choose>
-							    <c:when test="${empty profLectureScheduleList}">
+							    <c:when test="${empty subjectVM.profLectureScheduleList}">
 							        <li>학습주차일정정보가 없습니다.</li>
 							    </c:when>
 							    <c:otherwise>
-		                        	<c:forEach var="profLctrs" items="${profLectureScheduleList}">
+		                        	<c:forEach var="item" items="${subjectVM.profLectureScheduleList}">
 			                            <div class="state">                                
-			                                <span class="week">${profLctrs.lctrWkno}</span>
+			                                <span class="week">${item.lctrWkno}</span>
 			                                <span class="percent">교수10%</span>                                                                  
 			                            </div>
 		                            </c:forEach>
@@ -443,15 +445,15 @@
                         <div style="display:none;">
 	                        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="" />
 	
-							<c:forEach var="row" items="${byWeeknoLectureSchdlList}">
+							<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
 							    
 							    <!-- 주차 -->
-							    <c:if test="${row.firstOrd == 0}">
-							        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${row.LCTR_WKNO_SCHDL_ID}" />
+							    <c:if test="${item.firstOrd == 0}">
+							        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${item.LCTR_WKNO_SCHDL_ID}" />
 							
 							        <div class="week">
 							            <h3>
-							                ${row.seqno}주차. ${row.nm}
+							                ${item.seqno}주차. ${item.nm}
 							            </h3>
 							        </div>
 							
@@ -459,26 +461,26 @@
 							    </c:if>
 							
 							    <!-- 주차 하위 콘텐츠 -->
-							    <c:if test="${row.firstOrd == 1}">
-							        <li class="content type-${row.srcTbl}">
+							    <c:if test="${item.firstOrd == 1}">
+							        <li class="content type-${item.srcTbl}">
 							            <span class="label">
 							                <c:choose>
-							                    <c:when test="${row.srcTbl == 'TB_LMS_LCTR'}">강의</c:when>
-							                    <c:when test="${row.srcTbl == 'TB_LMS_ASMT'}">과제</c:when>
-							                    <c:when test="${row.srcTbl == 'TB_LMS_DSCS'}">토론</c:when>
-							                    <c:when test="${row.srcTbl == 'TB_LMS_SRVY'}">설문</c:when>
-							                    <c:when test="${row.srcTbl == 'TB_LMS_SMNR'}">세미나</c:when>
+							                    <c:when test="${item.srcTbl == 'TB_LMS_LCTR'}">강의</c:when>
+							                    <c:when test="${item.srcTbl == 'TB_LMS_ASMT'}">과제</c:when>
+							                    <c:when test="${item.srcTbl == 'TB_LMS_DSCS'}">토론</c:when>
+							                    <c:when test="${item.srcTbl == 'TB_LMS_SRVY'}">설문</c:when>
+							                    <c:when test="${item.srcTbl == 'TB_LMS_SMNR'}">세미나</c:when>
 							                </c:choose>
 							            </span>
 							
 							            <span class="title">
-							                ${row.nm}
+							                ${item.nm}
 							            </span>
 							        </li>
 							    </c:if>
 							
 							    <!-- 다음 주차가 나오면 닫기 -->
-							    <c:if test="${row.firstOrd == 0 && PREV_LCTR_WKNO_SCHDL_ID != ''}">
+							    <c:if test="${item.firstOrd == 0 && PREV_LCTR_WKNO_SCHDL_ID != ''}">
 							        </ul>
 							    </c:if>
 							

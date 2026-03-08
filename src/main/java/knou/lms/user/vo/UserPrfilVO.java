@@ -12,7 +12,7 @@ public class UserPrfilVO extends DefaultVO {
     private String photoFileId;       // 프로필사진파일ID
     private String deptId;            // 학과/부서아이디
     private String shrtntAlimRcvyn;   // 쪽지수신여부
-    private String emlNotiRcvyn;      // 이메일알림수신여부
+    private String emlAlimRcvyn;      // 이메일알림수신여부
     private String pushTalkSmsFlag;     // 푸시톡문자수신플래그
     private String pushRcvyn;         // 푸시알림수신여부
     private String alimTalkRcvyn;   // 알림톡수신여부
@@ -85,12 +85,12 @@ public class UserPrfilVO extends DefaultVO {
         this.shrtntAlimRcvyn = shrtntAlimRcvyn;
     }
 
-    public String getEmlNotiRcvyn() {
-        return emlNotiRcvyn;
+    public String getEmlAlimRcvyn() {
+        return emlAlimRcvyn;
     }
 
-    public void setEmlNotiRcvyn(String emlNotiRcvyn) {
-        this.emlNotiRcvyn = emlNotiRcvyn;
+    public void setEmlAlimRcvyn(String emlAlimRcvyn) {
+        this.emlAlimRcvyn = emlAlimRcvyn;
     }
 
     public String getUserCntctId() {

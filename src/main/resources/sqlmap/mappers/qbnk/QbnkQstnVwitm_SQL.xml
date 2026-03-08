@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.qbnk.dao.QbnkQstnVwitmDAO">
+
+	<insert id="qbnkQstnVwitmBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : QbnkQstnVwitmDAO.qbnkQstnVwitmBulkRegist
+             설  명 : 문제은행문항보기항목일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_QBNK_QSTN_VWITM (
+	         	  QBNK_QSTN_VWITM_ID
+				, QBNK_QSTN_ID
+				, VWITM_CTS
+				, VWITM_SEQNO
+				, CRANSYN
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.qbnkQstnVwitmId}
+				, #{item.qbnkQstnId}
+				, #{item.vwitmCts}
+				, #{item.vwitmSeqno}
+				, #{item.cransyn}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<select id="qbnkQstnVwitmList" parameterType="qbnkQstnVO" resultType="qbnkQstnVwitmVO">
+		/*
+             SQL ID : QbnkQstnVwitmDAO.qbnkQstnVwitmList
+             설  명 : 문제은행문항보기항목목록조회
+         */
+         SELECT
+         	*
+           FROM TB_LMS_QBNK_QSTN_VWITM
+          WHERE QBNK_QSTN_ID = #{qbnkQstnId}
+          ORDER BY VWITM_SEQNO
+	</select>
+
+	<delete id="qbnkQstnVwitmDelete" parameterType="qbnkQstnVO">
+		/*
+             SQL ID : QbnkQstnVwitmDAO.qbnkQstnVwitmDelete
+             설  명 : 문제은행문항보기항목삭제
+         */
+         DELETE FROM TB_LMS_QBNK_QSTN_VWITM
+          WHERE QBNK_QSTN_ID = #{qbnkQstnId}
+	</delete>
+
+</mapper>

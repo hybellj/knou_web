@@ -20,9 +20,4 @@ public interface MsgAlimDAO {
 
     List<MsgAlimVO> selectAlimtalkList(MsgAlimVO vo);
 
-    int modifyShrtntReadDttm(MsgAlimVO vo);
-
-    int modifyMblReadDttm(MsgAlimVO vo);
-
-    int registMsg(MsgAlimVO vo);
 }

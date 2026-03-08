@@ -21,7 +21,7 @@ public interface SysCmmnCdDAO {
     // 시스템 상위 공통코드 목록 페이징
     public List<SysCmmnCdVO> listSysCmmnUpCdPaging(SysCmmnCdVO vo) throws Exception;
 
-    // 시스템 상위 공통코드 수정    
+    // 시스템 상위 공통코드 수정
     public void updateSysCmmnUpCd(SysCmmnCdVO vo) throws Exception;
 
     // 시스템 상위 공통코드 삭제
@@ -45,4 +45,9 @@ public interface SysCmmnCdDAO {
 
     // 시스템 공통코드 삭제
     public void deleteSysCmmnCd(SysCmmnCdVO vo) throws Exception;
+
+
+
+    // 시스템 공통코드 전체 목록 조회
+    public List<SysCmmnCdVO> selectSysCmmnCdAll() throws Exception;
 }

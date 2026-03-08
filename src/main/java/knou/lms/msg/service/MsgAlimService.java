@@ -1,6 +1,7 @@
 package knou.lms.msg.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
@@ -12,13 +13,11 @@ public interface MsgAlimService {
 
     List<MsgAlimVO> selectShrtntList(MsgAlimVO vo);
 
-    List<MsgAlimVO> selectAlimPushList(MsgAlimVO vo);
+    List<MsgAlimVO> selectPushList(MsgAlimVO vo);
 
-    List<MsgAlimVO> selectAlimSmsList(MsgAlimVO vo);
+    List<MsgAlimVO> selectSmsList(MsgAlimVO vo);
 
-    List<MsgAlimVO> selectAlimNotitalkList(MsgAlimVO vo);
+    List<MsgAlimVO> selectAlimtalkList(MsgAlimVO vo);
 
-    int modifyAlimRead(MsgAlimVO vo);
-
-    int registMsg(MsgAlimVO vo);
+    Map<String, Object> selectAlimChnlData(MsgAlimVO vo, String chnlCd);
 }

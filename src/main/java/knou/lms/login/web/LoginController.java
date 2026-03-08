@@ -51,7 +51,6 @@ import knou.lms.user.vo.UsrLoginVO;
 import knou.lms.user.vo.UsrUserInfoVO;
 
 @Controller
-@SessionAttributes("userCtx")
 public class LoginController extends ControllerBase {
     private static Logger log = Logger.getLogger(LoginController.class);
     
@@ -430,7 +429,7 @@ public class LoginController extends ControllerBase {
         
         request.getSession().setAttribute("SSO_STATUS", "");
         
-        /*	@SessionAttributes 사용을 위한 설정 start */
+        /*	Session에 저장 start */
         UserContext userCtx = new UserContext(SessionInfo.getOrgId(request),
 				SessionInfo.getUserId(request),
 				SessionInfo.getUserTycd(request),
@@ -440,8 +439,8 @@ public class LoginController extends ControllerBase {
 				SessionInfo.getLastLogin(request) );
 
         // 3. model에 추가하면 세션에도 자동 저장됨
-        model.addAttribute("userCtx", userCtx);
-        /*	@SessionAttributes 사용을 위한 설정 end */
+        request.getSession().setAttribute("userCtx", userCtx);
+        /*	Session에 저장 end */
 
         return "redirect:/dashboard/main.do";
     }

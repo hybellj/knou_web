@@ -1,5 +1,17 @@
 package knou.lms.lecture2.facade.impl;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
 import knou.framework.common.ServiceBase;
 import knou.framework.context2.UserContext;
 import knou.framework.util.StringUtil;
@@ -12,18 +24,9 @@ import knou.lms.lecture2.vo.LctrPlandocVO;
 import knou.lms.lecture2.vo.LctrPlandocView;
 import knou.lms.mrk.service.MarkItemSettingService;
 import knou.lms.mrk.vo.MarkItemSettingVO;
+import knou.lms.subject2.dto.SubjectParam;
 import knou.lms.subject2.service.SubjectService;
 import knou.lms.subject2.vo.SubjectVO;
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Service("lctrPlandocFacadeService")
 public class LctrPlandocFacadeServiceImpl extends ServiceBase implements LctrPlandocFacadeService {
@@ -112,7 +115,7 @@ public class LctrPlandocFacadeServiceImpl extends ServiceBase implements LctrPla
         lpv.setMrkItmStngList(markItemSettingService.mrkItmStngList(mrkItmStngVO));
 
         // 주차별 강의내용
-        lpv.setLectureScheduleList(lectureScheduleService.profLectureScheduleList(sbjctId));
+        lpv.setLectureScheduleList(lectureScheduleService.profLectureScheduleList(new SubjectParam(sbjctId)));
 
         return lpv;
     }
@@ -184,7 +187,7 @@ public class LctrPlandocFacadeServiceImpl extends ServiceBase implements LctrPla
         lpv.setMrkItmStngList(markItemSettingService.mrkItmStngList(mrkItmStngVO));
 
         // 주차별 강의내용
-        lpv.setLectureScheduleList(lectureScheduleService.profLectureScheduleList(sbjctId));
+        lpv.setLectureScheduleList(lectureScheduleService.profLectureScheduleList(new SubjectParam(sbjctId)));
 
         // 공통코드 목록
         Map<String, List<CmmnCdVO>> cmmnCdList = new HashMap<String, List<CmmnCdVO>>();

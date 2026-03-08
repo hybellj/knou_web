@@ -4,18 +4,18 @@ import java.util.List;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
-import knou.lms.common.web.view.BoardResponse;
+import knou.lms.common.web.view.BoardViewModel;
 import knou.lms.subject2.vo.SubjectVO;
 
-public class SubjectMainResponse extends BoardResponse {
+public class SubjectViewModel extends BoardViewModel {
 	
 	SubjectVO	subjectVO;
 	
 	EgovMap	subjectBbsIds;
 	
-	EgovMap subjectAdmsMap;
+	EgovMap subjectAdms;
 	
-	EgovMap middleLastExamMap;
+	EgovMap middleLastExam;
 	
 	List<EgovMap> subjectLearingActvList;	
 	
@@ -25,7 +25,7 @@ public class SubjectMainResponse extends BoardResponse {
 	
 	List<EgovMap> profLectureScheduleList;
 	
-	EgovMap thisWeekLectureMap;
+	EgovMap thisWeekLecture;
 	
 	List<EgovMap> byWeeknoLectureSchdlList;
 
@@ -37,12 +37,12 @@ public class SubjectMainResponse extends BoardResponse {
 		this.subjectVO = subjectVO;
 	}
 
-	public EgovMap getSubjectAdmsMap() {
-		return subjectAdmsMap;
+	public EgovMap getSubjectAdms() {
+		return subjectAdms;
 	}
 
-	public void setSubjectAdmsMap(EgovMap subjectAdmsMap) {
-		this.subjectAdmsMap = subjectAdmsMap;
+	public void setSubjectAdms(EgovMap subjectAdms) {
+		this.subjectAdms = subjectAdms;
 	}
 
 	public List<EgovMap> getBbsAtclDataRmList() {
@@ -53,12 +53,12 @@ public class SubjectMainResponse extends BoardResponse {
 		this.bbsAtclDataRmList = bbsAtclDataRmList;
 	}
 
-	public EgovMap getMiddleLastExamMap() {
-		return middleLastExamMap;
+	public EgovMap getMiddleLastExam() {
+		return middleLastExam;
 	}
 
-	public void setMiddleLastExamMap(EgovMap middleLastExamMap) {
-		this.middleLastExamMap = middleLastExamMap;
+	public void setMiddleLastExam(EgovMap middleLastExam) {
+		this.middleLastExam = middleLastExam;
 	}
 
 	public List<EgovMap> getSubjectLearingActvList() {
@@ -85,12 +85,12 @@ public class SubjectMainResponse extends BoardResponse {
 		this.profLectureScheduleList = profLectureScheduleList;
 	}
 
-	public EgovMap getThisWeekLectureMap() {
-		return thisWeekLectureMap;
+	public EgovMap getThisWeekLecture() {
+		return thisWeekLecture;
 	}
 
-	public void setThisWeekLectureMap(EgovMap thisWeekLectureMap) {
-		this.thisWeekLectureMap = thisWeekLectureMap;
+	public void setThisWeekLectureMap(EgovMap thisWeekLecture) {
+		this.thisWeekLecture = thisWeekLecture;
 	}
 
 	public List<EgovMap> getByWeeknoLectureSchdlList() {

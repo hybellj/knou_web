@@ -16,13 +16,19 @@
 
 	<script type="text/javascript">
 		// 게시글 수정 이동
-		function moveEditAtcl() {
+		function moveAtclEdit() {
 			document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?eparam=${eparam}&gubun=edit";
 		}
 
         // 게시글 목록 이동
         function moveAtclList() {
             document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
+        }
+
+        // 게시글 이동
+        function moveActlView(atclId) {
+			let extParam = UiComm.makeExtParam({"atclId":atclId});
+        	document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?eparam=${eparam}&extParam="+extParam;
         }
 	</script>
 </head>
@@ -81,18 +87,29 @@
 	                            	<uiex:filedownload fileList="${bbsAtclVO.fileList}"/>
 	                            </div>
 							</c:if>
+
+	                        <ul class="list_board">
+	                        	<%-- 이전글 --%>
+	                        	<c:if test="${not empty bbsAtclVO.prevAtclId}">
+									<li class="prev">
+										<span><spring:message code="bbs.label.prev_atcl" /></span>
+										<a href="#0" onclick="moveActlView('${bbsAtclVO.prevAtclId}');return false;" title="${bbsAtclVO.prevAtclTtl}">${bbsAtclVO.prevAtclTtl}</a>
+									</li>
+								</c:if>
+								<%-- 다음글 --%>
+								<c:if test="${not empty bbsAtclVO.nextAtclId}">
+									<li class="next">
+										<span><spring:message code="bbs.label.next_atcl" /></span>
+										<a href="#0" onclick="moveActlView('${bbsAtclVO.nextAtclId}');return false;" title="${bbsAtclVO.nextAtclTtl}">${bbsAtclVO.nextAtclTtl}</a>
+									</li>
+								</c:if>
+	                        </ul>
+
                         </div>
 
                         <div class="btns">
-                        	<c:if test="${not empty bbsAtclVO.beforeAtclId }">
-                           		<a href="#0" onclick="moveAtclPost('${bbsAtclVO.beforeAtclId }')" class="btn type2"><spring:message code="bbs.label.prev_atcl" /><!-- 이전글 --></a>
-                           	</c:if>
-                           	<c:if test="${not empty bbsAtclVO.afterAtclId }">
-                           		<a href="#0" onclick="moveAtclPost('${bbsAtclVO.afterAtclId }')" class="btn type2"><spring:message code="bbs.label.next_atcl" /><!-- 다음글 --></a>
-                           	</c:if>
-
                             <c:if test="${atclEditAuth eq 'Y'}">
-		                        <a href="#0" onclick="moveEditAtcl();return false;" class="btn type1"><spring:message code="common.button.modify" /></a><!-- 수정 -->
+		                        <a href="#0" onclick="moveAtclEdit();return false;" class="btn type1"><spring:message code="common.button.modify" /></a><!-- 수정 -->
 							</c:if>
 
 							<c:if test="${atclDeleteAuth eq 'Y'}">

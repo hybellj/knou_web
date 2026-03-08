@@ -89,7 +89,7 @@
                                 <tbody>
                                     <tr>
                                         <td data-th="번호">6</td>
-                                        <td data-th="기관 ID"><a href="#0" class="link">KNOUTESTID001</a></td>
+                                        <td data-th="기관 ID">KNOUTESTID001</td>
                                         <td data-th="기관 Full Name">대학원</td>
                                         <td data-th="기관 Short Name">대학원</td>                                        
                                         <td data-th="담당자">홍길동</td>
@@ -147,7 +147,7 @@
                                     </tr>
                                     <tr>
                                         <td data-th="번호">6</td>
-                                        <td data-th="기관 ID"><a href="#0" class="link">KNOUTESTID002</a></td>
+                                        <td data-th="기관 ID">KNOUTESTID002</td>
                                         <td data-th="기관 Full Name">경영대학원</td>
                                         <td data-th="기관 Short Name">경영대학원</td>                                       
                                         <td data-th="담당자">홍길동</td>
@@ -205,7 +205,7 @@
                                     </tr>
                                     <tr>
                                         <td data-th="번호">6</td>
-                                        <td data-th="기관 ID"><a href="#0" class="link">KNOUTESTID003</a></td>
+                                        <td data-th="기관 ID">KNOUTESTID003</td>
                                         <td data-th="기관 Full Name">프라임칼리지 학위과정</td>
                                         <td data-th="기관 Short Name">학위과정</td>                                       
                                         <td data-th="담당자">홍길동</td>
@@ -263,7 +263,7 @@
                                     </tr>
                                     <tr>
                                         <td data-th="번호">6</td>
-                                        <td data-th="기관 ID"><a href="#0" class="link">KNOUTESTID004</a></td>
+                                        <td data-th="기관 ID">KNOUTESTID004</td>
                                         <td data-th="기관 Full Name">프라임칼리지 평생교육과정</td>
                                         <td data-th="기관 Short Name">평생교육</td>                                        
                                         <td data-th="담당자">홍길동</td>
@@ -321,7 +321,7 @@
                                     </tr>
                                     <tr>
                                         <td data-th="번호">6</td>
-                                        <td data-th="기관 ID"><a href="#0" class="link">KNOUTESTID004</a></td>
+                                        <td data-th="기관 ID">KNOUTESTID004</td>
                                         <td data-th="기관 Full Name">프라임칼리지 평생교육과정</td>
                                         <td data-th="기관 Short Name">평생교육</td>                                        
                                         <td data-th="담당자">홍길동</td>
@@ -379,7 +379,7 @@
                                     </tr>
                                     <tr>
                                         <td data-th="번호">6</td>
-                                        <td data-th="기관 ID"><a href="#0" class="link">KNOUTESTID004</a></td>
+                                        <td data-th="기관 ID">KNOUTESTID004</td>
                                         <td data-th="기관 Full Name">프라임칼리지 평생교육과정</td>
                                         <td data-th="기관 Short Name">평생교육</td>                                        
                                         <td data-th="담당자">홍길동</td>

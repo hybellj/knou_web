@@ -120,3 +120,12 @@ UI Switcher
 	opacity:.5;
 	filter:Alpha(Opacity=50);
 }
+
+/* tabulator cell에 적용할 경우 */
+.tabulator .tabulator-row .tabulator-cell .ui-switcher {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+    transform: translateY(-50%) translateX(-50%);
+    margin-top:0;
+}

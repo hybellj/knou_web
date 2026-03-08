@@ -43,6 +43,7 @@ import knou.lms.log2.user.service.LogUserActvService;
 import knou.lms.resh.service.ReshService;
 import knou.lms.score.service.ScoreConfService;
 import knou.lms.std.service.StdService;
+import knou.lms.subject2.dto.SubjectParam;
 import knou.lms.subject2.service.SubjectService;
 import knou.lms.sys.service.SysJobSchService;
 
@@ -184,7 +185,7 @@ public class LectureScheduleController extends ControllerBase {
         String	lcdmsLinkYn = "Y"; // TODO 임의처리 
 
         //	강의일정목록조회
-        List<EgovMap> lectureScheduleList = lectureScheduleService.profLectureScheduleList(subjectId);
+        List<EgovMap> lectureScheduleList = lectureScheduleService.profLectureScheduleList(new SubjectParam(subjectId));
         
         // 수업지원팀(20042), 교육플랫폼혁신팀(20134)
         if("20042".equals(deptId) || "20134".equals(deptId)) {

@@ -171,11 +171,11 @@
 		    		html += "	</td>";
 		    		html += "</tr>";
 		    	$("#"+formId+" .qstnTypeDiv > table > tbody").append(html);
+		    	$("#"+formId+" .qstnTypeDiv select[name=vwitmCnt]").chosen({disable_search: true});
 			},
 			/**
 			 * 단일, 다중선택형 문항 HTML 추가
 			 * @param {String}  formId 		- 문제 추가용 form 아이디
-			 * @param {String}  type 		- 문항답변유형코드
 			 */
 			createChgQstnHTML: function(formId) {
 				var html  = "<tr>";
@@ -314,6 +314,7 @@
 		    		html += "	</td>";
 		    		html += "</tr>";
 		    	$("#"+formId+" .qstnTypeDiv > table > tbody").append(html);
+		    	$("#"+formId+"QstnDfctlvTycd").chosen({disable_search: true});
 		    }
 		};
 
@@ -480,8 +481,8 @@
 		function quizViewMv(tab) {
 			var urlMap = {
 				"1" : "/quiz/profQuizQstnMngView.do",		// 퀴즈 문항 관리 화면
-				"2" : "/quiz/profQuizRetkexamMngView.do",	// 퀴즈 재응시 관리 페이지
-				"3" : "/quiz/profQuizEvlMngView.do",		// 퀴즈 평가 관리 페이지
+				"2" : "/quiz/profQuizRetkexamMngView.do",	// 퀴즈 재응시 관리 화면
+				"3" : "/quiz/profQuizEvlMngView.do",		// 퀴즈 평가 관리 화면
 				"9" : "/quiz/profQuizListView.do"			// 퀴즈 목록 화면
 			};
 
@@ -1007,7 +1008,7 @@
 						 UiComm.showMessage("<spring:message code='exam.error.qstn.insert' />", "error");/* 문항 등록 중 에러가 발생하였습니다. */
 					});
 				}
-			 });
+			});
 	    }
 
 	    /**

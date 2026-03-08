@@ -197,24 +197,31 @@
 						<!--//Today box -->
 
                         <!-- 강의Q&A -->
-                        <div class="box">
-                            <div class="box_title">
+                        <div class="box">                            <div class="box_title">
                                 <i class="xi-arrows m_handle" aria-label="위젯 이동" role="button" tabindex="0" aria-grabbed="false"></i>
-                                <h3 class="h3">강의 Q&A <small class="msg_num">${unreadNoreplyCnt.qnaNoreplyCnt}</small></h3>
+                                <h3 class="h3">강의 Q&A 
+                                	<c:choose>
+                                		<c:when test="${dashVM.badge.qnaNoreplyCnt eq '0'}">                                			
+                                		</c:when>
+                                		<c:otherwise>
+                                			<small class="msg_num">${dashVM.badge.qnaNoreplyCnt}</small>
+                                		</c:otherwise>
+                                	</c:choose>
+                                </h3>
                                 <div class="btn-wrap">
-                                    <a href="#0" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
+                                    <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=QNA" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                             <div class="box_content">
                             	<ul class="dash_item_listA">
 	                            	<c:choose>
-									    <c:when test="${empty dashboardResponse.profTopLctrQnaList}">
+									    <c:when test="${empty dashVM.profDashLctrQnaList}">
 									        <li>강의Q&A가 없습니다</li>
 									    </c:when>
 	                                	<c:otherwise>
-		                                	<c:forEach var="item" items="${dashboardResponse.profTopLctrQnaList}">
+		                                	<c:forEach var="item" items="${dashVM.profDashLctrQnaList}">
 		                                	<c:set var="cnt" value="0"/>
-												<c:if test="${item.topic eq 'PROF_LCTR_QNA' and cnt lt 3}">  
+												<c:if test="${item.topic eq 'PROF_DASH_LCTR_QNA' and cnt lt 3}">  
 				                                    <li>
 				                                        <div class="user">
 				                                           <span class="${item.userThumbnail}"></span>
@@ -239,34 +246,41 @@
 				                                    </li>
 				                                    <c:set var="cnt" value="${cnt + 1}"/>
 			                                    </c:if>
-                                    		</c:forEach>	                                	
+                                    		</c:forEach>
 									    </c:otherwise>
 									</c:choose>                                   
                                 </ul>
 							</div>
                         </div>
 
-
                         <!-- 1:1 상담 -->
                         <div class="box">
                             <div class="box_title">
                                 <i class="xi-arrows m_handle" aria-label="위젯 이동" role="button" tabindex="0" aria-grabbed="false"></i>
-                                <h3 class="h3">1:1 상담 <small class="msg_num">${unreadNoreplyCnt.oneOnOneNoreplyCnt}</small></h3>
+                                <h3 class="h3">1:1 상담 
+                                	<c:choose>
+                                		<c:when test="${dashVM.badge.oneOnOneNoreplyCnt eq '0'}">                                			
+                                		</c:when>
+                                		<c:otherwise>
+                                			<small class="msg_num">${dashVM.badge.oneOnOneNoreplyCnt}</small>
+                                		</c:otherwise>
+                                	</c:choose>
+                               	</h3>
                                 <div class="btn-wrap">
-                                    <a href="#0" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
+                                    <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=1ON1" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                            
                             <div class="box_content">
                             	<ul class="dash_item_listA">
 		                            <c:choose>
-									    <c:when test="${empty dashboardResponse.profTopOneOnOneList}">
+									    <c:when test="${empty dashVM.profDashOneOnOneList}">
 									        <li>1:1 상담이 없습니다</li>
 									    </c:when>
 									    <c:otherwise>		                                  
-		                                	<c:forEach var="item" items="${dashboardResponse.profTopOneOnOneList}"> 
+		                                	<c:forEach var="item" items="${dashVM.profDashOneOnOneList}"> 
 		                                		<c:set var="cnt" value="0"/>
-												<c:if test="${item.topic eq 'PROF_ONE_ON_ONE' and cnt lt 3}">                                
+												<c:if test="${item.topic eq 'PROF_DASH_1ON1' and cnt lt 3}">                                
 				                                    <li>
 				                                        <div class="user">
 				                                           <span class="${item.userThumbnail}"><img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진"></span>
@@ -488,7 +502,7 @@
                                         <a href="#tab23" class="btn"><span>과목공지</span></a>
                                     </nav>
                                     <div class="btn-wrap">
-                                        <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=LMSBASIC_NOTICE" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
+                                        <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=NTC" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                     </div>
                                 </div>
                                 
@@ -499,14 +513,14 @@
                                     <div id="tab21" class="tab-content" style="display: block;">
                                         <ul class="dash_item_listA">
 				                            <c:choose>
-											    <c:when test="${empty dashboardResponse.topAllNoticeList}">
+											    <c:when test="${empty dashVM.profDashAllNoticeList}">
 											        <li>최신공지사항이 없습니다</li>
 											    </c:when>
 											    <c:otherwise>								        
-				                                	<c:forEach var="item" items="${dashboardResponse.topAllNoticeList}">
+				                                	<c:forEach var="item" items="${dashVM.profDashAllNoticeList}">
 													    <!-- 3건만 출력 -->
 													    <c:set var="cnt" value="0"/>
-													    <c:if test="${item.topic eq 'ALL_NOTICE' and cnt lt 3}">
+													    <c:if test="${item.topic eq 'PROF_DASH_ALL_NOTICE' and cnt lt 3}">
 													        <li>
 													            <!-- 공지 유형 라벨 -->
 													            <div class="noti_label">
@@ -561,15 +575,15 @@
                                     <div id="tab22" class="tab-content" style="display: none;">
                                         <ul class="dash_item_listA">
 				                            <c:choose>
-											    <c:when test="${empty dashboardResponse.topCrsNoticeList}">
+											    <c:when test="${empty dashVM.dashCrsNoticeList}">
 											        <li>전체공지사항이 없습니다</li>
 											    </c:when>
 											    <c:otherwise>							        
 				                                	<!-- 3건만 출력 -->
 													<c:set var="cnt" value="0"/>
-													<c:forEach var="item" items="${dashboardResponse.topCrsNoticeList}">
+													<c:forEach var="item" items="${dashVM.dashCrsNoticeList}">
 													    <!-- 전체공지만출력 -->
-													    <c:if test="${item.topic eq 'ALL_CRS' and cnt lt 3}">
+													    <c:if test="${item.topic eq 'CRS_NOTICE' and cnt lt 3}">
 													        <li>
 													            <!-- 공지 유형 라벨 -->
 													            <div class="noti_label">
@@ -610,14 +624,14 @@
                                     <div id="tab23" class="tab-content" style="display: none;">
                                         <ul class="dash_item_listA">
 				                            <c:choose>
-											    <c:when test="${empty dashboardResponse.profTopSubjctNoticeList}">
+											    <c:when test="${empty dashVM.profDashSubjectNoticeList}">
 											        <li>과목공지사항이 없습니다</li>
 											    </c:when>
 											    <c:otherwise>								        
 	                                				<c:set var="cnt" value="0" />
-													<c:forEach var="item" items="${dashboardResponse.profTopSubjctNoticeList}">
+													<c:forEach var="item" items="${dashVM.profDashSubjectNoticeList}">
 													    <!-- 과목공지만 출력 -->
-													    <c:if test="${item.topic eq 'PROF_SUBJECT_NOTICE' and cnt lt 3}">
+													    <c:if test="${item.topic eq 'PROF_DASH_SUBJECT_NOTICE' and cnt lt 3}">
 													        <li>
 													            <!-- 공지 유형 라벨 -->
 													            <div class="noti_label">

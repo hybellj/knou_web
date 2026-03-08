@@ -56,11 +56,11 @@
 			, PDS: true
 		};
 		var atclId = '<c:out value="${bbsAtclVO.atclId}" />';
-		
+
 		// 강의실
 		if(TEMPLATE_URL == "bbsLect") {
 			var isAlarmBbs = sysUseYn == "N" && sysDefaultYn == "Y" && alarmBbsInfo[bbsCd];
-			
+
 			// 알림터 글쓰기 일경우 (교수자)
 			if(isAlarmBbs && !atclId && !bbsCommon.isStudent()) {
 				// 알림터 [강의공지, 강의자료실] 라디오 세팅
@@ -83,7 +83,7 @@
 			initBbsForm(bbsId);
 		}
 	});
-	
+
 	var writeOption = {
 		bbsInfo: null,
 		userType: null,
@@ -93,9 +93,9 @@
 			var html = '';
 			var imptYnChecked = '<c:out value="${bbsAtclVO.imptYn}" />' == "Y" ? "checked" : "";
 			var noticeYnChecked = '<c:out value="${bbsAtclVO.noticeYn}" />' == "Y" ? "checked" : "";
-			
+
 			var noticeText = '<spring:message code="bbs.label.fix_atcl" />'; // 고정글
-			
+
 			html += '<dl>';
 			html += '	<dt>';
 			html += '		<label><spring:message code="bbs.label.form_main_option" /></label>'; // 주요옵션
@@ -119,7 +119,7 @@
 			html += '		</div>';
 			html += '	</dd>';
 			html += '</dl>';
-			
+
 			return html;
 		},
 		// 문의/상담 옵션 HTML 생성
@@ -129,12 +129,12 @@
 			//var councelProfDisabled = this.isEdit ? "disabled" : ":";
 			var councelProfListHtml = "";
 			var councelProfSelected;
-			
+
 			councelProflist.forEach(function(v, i) {
 				councelProfSelected = councelProf == v.userId ? "selected" : "";
 				councelProfListHtml += '<option value="' + v.userId + '" ' + councelProfSelected + ' >' + v.userNm + ' (' + v.userId + ')</option>';
 			});
-			
+
 			html += '<dl>';
 			html += '	<dt>';
 			html += '		<label><spring:message code="bbs.label.form_main_option" /></label>'; // 주요옵션
@@ -151,20 +151,20 @@
 			html += '		</div>';
 			html += '	</dd>';
 			html += '</dl>';
-			
+
 			return html;
 		},
 		// 팀지정 옵션
 		createTeamSelectOptionHtml: function(teamCtgrList) {
 			var teamCtgrNm = '<c:out value="${bbsAtclVO.teamCtgrNm}" />';
 			var teamNm = '<c:out value="${bbsAtclVO.teamNm}" />';
-			
+
 			var html = '';
 			var teamCtgrListHtml = '';
 			teamCtgrList.forEach(function(v, i) {
-				teamCtgrListHtml += '<option value="' + v.teamCtgrCd + '">' + v.teamCtgrNm + '</option>'; 
+				teamCtgrListHtml += '<option value="' + v.teamCtgrCd + '">' + v.teamCtgrNm + '</option>';
 			});
-			
+
 			html += '<dl>';
 			html += '	<dt>';
 			html += '		<label class="req"><spring:message code="bbs.label.form_assign_team" /></label>'; // 팀지정
@@ -200,13 +200,13 @@
 		}
 			html += '	</dd>';
 			html += '</dl>';
-			
+
 			return html;
 		},
 		// 파일첨부 옵션 HTML 생성
 		createAtchFileOptionHtml: function() {
 			var html = '';
-			
+
 			html += '<dl>';
 			html += '	<dt>';
 			html += '		<label for="uploaderBox"><spring:message code="bbs.label.form_attach_file" /></label>'; // 첨부파일
@@ -218,7 +218,7 @@
 			html += '<button type="button" id="upload1_btn-delete"><spring:message code="button.delete"/></button></div>';
 			html += '	</dd>';
 			html += '</dl>';
-			
+
 			return html;
 		},
 		// 부가 옵션 HTML 생성
@@ -254,7 +254,7 @@
 			html += '		</div>';
 			html += '	</dd>';
 			html += '</dl>';
-			
+
 			return html;
 		},
 		// 분반 같이 등록 옵션 HTML 생성
@@ -262,12 +262,12 @@
 			var html = '';
 			var declsListHtml = '';
 			var isEdit = this.isEdit;
-			
+
 			declsList.forEach(function(v, i) {
 				var id = "decls_" + v.crsCreCd;
 				var checked = v.crsCreCd == CRS_CRE_CD ? "checked" : "";
 				var disabled = v.crsCreCd == CRS_CRE_CD ? "disabled" : "";
-				
+
 				declsListHtml += '<div class="fields">';
 				declsListHtml += '	<div class="field">';
 				declsListHtml += '		<div class="ui checkbox">';
@@ -284,7 +284,7 @@
 				declsListHtml += '	</div>';
 				declsListHtml += '</div>';
 			});
-			
+
 			html += '<dl>';
 			html += '	<dt>';
 			html += '		<label><spring:message code="bbs.label.form_decls" /></label>'; // 분반 같이 등록
@@ -299,7 +299,7 @@
 			}
 			html += '	</dd>';
 			html += '</dl>';
-			
+
 			return html;
 		},
 		// 등록 예약 옵션 HTML 생성
@@ -308,7 +308,7 @@
 			var rsrvUseYnChecked = '<c:out value="${bbsAtclVO.rsrvUseYn}" />' == "Y" ? "checked" : "";
 			var rsrvDttm = '<c:out value="${bbsAtclVO.rsrvDttm}" />';
 			var visibility = rsrvUseYnChecked == "checked" ? "visible" : "hidden";
-			
+
 			html += '<dl>';
 			html += '	<dt>';
 			html += '		<label><spring:message code="bbs.label.form_write_resv" /></label>'; // 등록 예약
@@ -346,7 +346,7 @@
 			html += '		</div>';
 			html += '	</dd>';
 			html += '</dl>';
-			
+
 			return html;
 		},
 		// 공개여부 옵션 HTML 생성
@@ -354,14 +354,14 @@
 			var html = '';
 			var lockYnChecked;
 			var lockYn = '<c:out value="${bbsAtclVO.lockYn}" />';
-			
+
 			if(!this.isEdit) {
 				// 글쓰기 기본 공개
 				lockYnChecked = "checked";
 			} else {
 				lockYnChecked = lockYn == "N" ? "checked" : "";
 			}
-			
+
 			html += '<dl>';
 			html += '	<dt>';
 			html += '		<label><spring:message code="bbs.label.form_public_yn" /></label>'; // 공개여부
@@ -378,7 +378,7 @@
 			html += '		</div>';
 			html += '	</dd>';
 			html += '</dl>';
-			
+
 			return html;
 		},
 		// 년도/학기 옵션 HTML 생성
@@ -386,13 +386,13 @@
 			var noticeType = "TERM";
 			var haksaYear = '<c:out value="${bbsAtclVO.haksaYear}" />';
 			var haksaTerm = '<c:out value="${bbsAtclVO.haksaTerm}" />';
-			
+
 			if(this.isEdit && (!haksaYear || !haksaTerm)) {
 				noticeType = "ALL";
 			}
-			
+
 			var html = '';
-			
+
 			html += '<dl>';
 			html += '	<dt>';
 			html += '		<label><spring:message code="bbs.label.notice.period" /></label>'; // 공지기간
@@ -430,14 +430,14 @@
 			html += '		</div>';
 			html += '	</dd>';
 			html += '</dl>';
-			
+
 			return html;
 		},
 		// 중요글, 고정글
 		useNoti: function() {
 			// 공지 사용 여부
 			if(this.bbsInfo.notiUseYn != "Y") return;
-			
+
 			if(TEMPLATE_URL == "bbsLect") {
 				// 교수만 이용가능
 				if(!bbsCommon.isProfessor()) return;
@@ -445,16 +445,16 @@
 				// 관리자만 이용가능
 				if(!bbsCommon.isAdmin()) return;
 			}
-			
+
 			$("#notiOptionLi").show().html(this.createNotiOptionHtml());
-			
+
 			// 중요글, 고정글 1개만 체크
 			$("#imptYn, #noticeYn").on("change", function() {
 				if(this.checked) {
 					if(this.id == "imptYn") {
 						$("#noticeYn").prop("checked", false);
 					}
-					
+
 					if(this.id == "noticeYn") {
 						$("#imptYn").prop("checked", false);
 					}
@@ -466,7 +466,7 @@
 			var data = {
 				crsCreCd: $("#crsCreCd").val()
 			};
-			
+
 			// 상담교수 목록 조회
 			$.ajax({
 	            url : url,
@@ -485,57 +485,57 @@
 			var data = {
 				crsCreCd: crsCreCd
 			};
-			
+
 			ajaxCall(url, data, function(data) {
 				if(data.result > 0) {
 					var returnList = data.returnList || [];
 					$("#teamSelectOptionLi").show().html(writeOption.createTeamSelectOptionHtml(returnList));
 					$("#teamSelectOptionLi").find(".ui.dropdown").dropdown();
-					
+
 					// 팀 카테고리 선택 이벤트
 					$("#teamCtgrCd").dropdown("clear");
 					$("#teamCtgrCd").on("change", function(){
 						$("#bbsId").val(""); // 게시판 선택 초기화
 						$("#teamCd").empty();
 						$("#teamCd").off("change");
-						
+
 						// 팀 조회
 						var url = "/bbs/bbsLect/listTeamBbsId.do";
 						var data = {
 							  crsCreCd: crsCreCd
 							, teamCtgrCd: this.value
 						};
-						
+
 						ajaxCall(url, data, function(data) {
 							if(data.result > 0) {
 								var returnList = data.returnList || [];
 								var html = '';
-				        		
+
 								returnList.forEach(function(v, i) {
 				        			html += '<option value="' + v.teamCd + '" data-bbs-id="' + v.bbsId + '">' + v.teamNm + '</option>';
 				        		});
-								
+
 								$("#teamCd").html(html);
 								// 팀 선택 이벤트
 				        		$("#teamCd").dropdown("clear");
 				        		$("#teamCd").on("change", function() {
 				        			if(!this.value) return;
-				        			
+
 				        			$("#bbsId").val("");  // 게시판 선택 초기화
-				        			
+
 				        			// 팀 게시판 생성여부 조회
 				        			checkAndCreateTeamBbs(this.value).done(function(bbsId) {
 				        				var url = "/bbs/bbsHome/bbsInfo.do";
 					    				var data = {
 					    					bbsId: bbsId
 					    				};
-					    				
-					    				// 게시판 정보 조회 및 옵션 초기화 
+
+					    				// 게시판 정보 조회 및 옵션 초기화
 					    				ajaxCall(url, data, function(data) {
 					    					if (data.result > 0) {
 					    		        		var returnVO = data.returnVO;
 					    		        		$("#bbsId").val(returnVO.bbsId);
-					    		        		
+
 					    		        		writeOption.setWriteForm(returnVO);
 					    		            } else {
 					    		             	alert(data.message);
@@ -545,10 +545,10 @@
 					    					alert('<spring:message code="fail.common.msg" />');
 					    				});
 				        			});
-				        			
+
 				        			$(".displayOptionLi").css("display", "list-item");
 				       			});
-				        		
+
 				        		// 파라미터 값 세팅
 				        		if(TEAM_CD) {
 				        			setTimeout(function() {
@@ -563,7 +563,7 @@
 							alert('<spring:message code="fail.common.msg" />');
 						});
 	       			});
-					
+
 					// 파라미터 값 세팅
 	        		if(TEAM_CTGR_CD) {
 	        			setTimeout(function() {
@@ -582,9 +582,9 @@
 			if(this.bbsInfo.atchUseYn != "Y") return;
 			// 게시글 등록할때만 초기화
 			if(this.isEdit) return;
-			
+
 			$("#atclFileOptionLi").show().html(this.createAtchFileOptionHtml());
-			
+
 			DextUploader({
 				id:"upload1",
 				parentId:"upload1-container",
@@ -605,7 +605,7 @@
 		// 부가 옵션
 		useEtc: function() {
 			if(!(this.bbsInfo.cmntUseYn == 'Y' || this.bbsInfo.goodUseYn == 'Y')) return;
-			
+
 			$("#etcOptionLi").show().html(this.createEtcOptionHtml());
 		},
 		// 분반 같이 등록
@@ -614,7 +614,7 @@
 			if(this.isEdit) {
 				var atclId = '<c:out value="${bbsAtclVO.atclId}" />';
 				var declsAtclIds = '<c:out value="${bbsAtclVO.declsAtclIds}" />';
-				
+
 				// 분반 등록정보 있는경우
 				if(declsAtclIds) {
 					var url = "/bbs/bbsLect/listDeclsAtcl.do";
@@ -622,7 +622,7 @@
 						  crsCreCd: CRS_CRE_CD
 						, declsAtclIds: declsAtclIds
 					};
-					
+
 					// 분반 목록 조회
 					$.ajax({
 			            url : url,
@@ -630,7 +630,7 @@
 			            data: data,
 			        }).always(function(data) {
 			        	var returnList = data && data.returnList || [];
-			        	
+
 			        	if(returnList.length > 0) {
 			        		$("#declsOptionLi").show().html(writeOption.createDeclsOptionHtml(returnList));
 			        	}
@@ -639,15 +639,15 @@
 			} else {
 				// 강의실에서 교수만 이용가능
 				if(TEMPLATE_URL != "bbsLect" || !bbsCommon.isProfessor()) return;
-				
+
 				// 강의실 기본게시판만 가능
 				if(!(this.bbsInfo.sysUseYn == "N" && this.bbsInfo.sysDefaultYn == "Y")) return;
-				
+
 				var url = "/bbs/bbsLect/declsList.do";
 				var data = {
 					crsCreCd: $("#crsCreCd").val()
 				};
-				
+
 				// 분반 목록 조회
 				$.ajax({
 		            url : url,
@@ -655,7 +655,7 @@
 		            data: data,
 		        }).always(function(data) {
 		        	var returnList = data && data.returnList || [];
-		        	
+
 	        		$("#declsOptionLi").show().html(writeOption.createDeclsOptionHtml(returnList));
 		        });
 			}
@@ -670,13 +670,13 @@
 				// 관리자만 이용가능
 				if(!bbsCommon.isAdmin()) return;
 			}
-			
+
 			$("#writeResvOptionLi").show().html(this.createWriteResvOptionHtml());
 			$("#writeResvOptionLi").find(".ui.checkbox").checkbox();
-			
+
 			// calendar 설정
 			initCalendar();
-			
+
 			// 예약일시 영역 show/hide
 			$("#rsrvUseYn").on("change", function() {
 				if(this.checked) {
@@ -689,10 +689,10 @@
 		// 공개여부
 		useLock: function() {
 			var lockUseYn = this.bbsInfo.lockUseYn;
-			
+
 			// 공개 사용 여부
 			if(lockUseYn != "Y") return;
-			
+
 			if(TEMPLATE_URL == "bbsLect") {
 				// 교수만 이용가능
 				if(!bbsCommon.isProfessor()) return;
@@ -700,7 +700,7 @@
 				// 관리자만 이용가능
 				if(!bbsCommon.isAdmin()) return;
 			}
-			
+
 			$("#lockOptionLi").show().html(this.createLockOptionHtml());
 			$("#lockOptionLi").find(".ui.checkbox").checkbox();
 		},
@@ -708,7 +708,7 @@
 		useTerm: function() {
 			// 공지 사용 여부
 			if(this.bbsInfo.notiUseYn != "Y") return;
-			
+
 			if(TEMPLATE_URL == "bbsLect") {
 				// 교수만 이용가능
 				if(!bbsCommon.isProfessor()) return;
@@ -716,7 +716,7 @@
 				// 관리자만 이용가능
 				if(!bbsCommon.isAdmin()) return;
 			}
-			
+
 			$("#termOptionLi").show().html(this.createTermOptionHtml());
 			$("#haksaYearSelect").dropdown();
 			$("#haksaTermSelect").dropdown();
@@ -729,7 +729,7 @@
 					$("#yearTermSelectDiv").show();
 				}
 			});
-			
+
 			$("input[name='noticeType']:checked").trigger("change");
 		},
 		clearForm: function() {
@@ -748,13 +748,13 @@
 			if(!this.isEdit) {
 				$("#bbsId").val("");
 			}
-			
+
 			writeOption.useTeamSelectOption();
 		},
 		setWriteForm: function(bbsInfo) {
 			this.bbsInfo = bbsInfo;
 			this.clearForm();
-			
+
 			// 전체공지
 			if(bbsInfo.bbsCd == "NOTICE" && bbsInfo.sysUseYn == "Y" && bbsInfo.sysDefaultYn == "Y") {
 				writeOption.useNoti();		// 공지옵션 (중요글, 고정글)
@@ -772,7 +772,7 @@
     			writeOption.useDecls();		// 분반 같이 등록
     			writeOption.useWriteResv();	// 등록예약 사용
     			writeOption.useLock();		// 공개여부
-			} 
+			}
 			// 문의
 			else if(bbsInfo.bbsCd == "QNA") {
 				writeOption.useAtchFile();	// 첨부파일
@@ -813,26 +813,26 @@
 			}
 		}
 	};
-	
+
 	// 저장 버튼
 	function saveConfirm() {
 		if(!$("#bbsId").val()) {
 			alert('<spring:message code="bbs.alert.no_select_team" />'); // 팀지정은 필수 항목입니다. 다시 확인 바랍니다.
 			return;
 		}
-		
+
 		//if($("#councelProf").length == 1 && !$("#councelProf").val()) {
 		//	alert('<spring:message code="bbs.alert.no_select_councel_prof" />'); // 일대일상담을 선택한경우, 상담교수는 필수 항목입니다. 다시 확인 바랍니다.
 		//	$("#councelProf").focus();
 		//	return;
 		//}
-		
+
 		if(!$("#atclTitle").val()) {
 			alert('<spring:message code="bbs.alert.empty_title" />'); // 제목은 필수 항목입니다. 다시 확인 바랍니다.
 			$("#atclTitle").focus();
 			return;
 		}
-		
+
 		if(editor.isEmpty()) {
 			alert('<spring:message code="bbs.alert.empty_content" />'); // 내용은 필수 항목입니다. 다시 확인 바랍니다.
 			editor.execCommand('selectAll');
@@ -840,12 +840,12 @@
 			editor.execCommand('insertText', "");
 			return;
 		}
-		
+
 		if($("#rsrvUseYn").is(":checked")) {
 			<spring:message code="bbs.common.placeholder_write_resv" var="resvDate" />
-			
+
 			var rsrvDttmText = $("#rsrvDttmText").val();
-			
+
 			if(!rsrvDttmText) {
 				alert('<spring:message code="common.alert.input.eval_date" arguments='${resvDate}' />'); // 날짜를 입력하세요.
 				$("#rsrvDttmText").focus();
@@ -861,7 +861,7 @@
 				$("#rsrvDttmMM").parent().focus();
 				return;
 			}
-			
+
 			var rsrvDttm = $("#rsrvDttmText").val().replaceAll('.','-')+ ' ' + $("#rsrvDttmHH option:selected").val() + ":" + $("#rsrvDttmMM option:selected").val();
 			rsrvDttm = bbsCommon.replaceDateToDttm(rsrvDttm);
 
@@ -870,28 +870,28 @@
 				$("#rsrvDttmText").focus();
 				return;
 			}
-			
+
 			$("#rsrvDttm").val(rsrvDttm)
 		}
-		
+
 		if($("input[name='noticeType']:checked").val() == "TERM") {
 			var haksaYear = $("#haksaYearSelect").val();
 			var haksaTerm = $("#haksaTermSelect").val();
-			
+
 			$("#haksaYear").val(haksaYear);
 			$("#haksaTerm").val(haksaTerm);
 		} else {
 			$("#haksaYear").val("");
 			$("#haksaTerm").val("");
 		}
-		
+
 		$("#uploadFiles").val("");
 		$("#copyFiles").val("");
 		$("#uploadPath").val("");
-		
+
 		// 비밀글 여부
 		$("#lockYn").val($("#lock").is(":checked") ? "N" : "Y");
-		
+
 		var dx = dx5.get("upload1");
 		if (dx.availUpload()) {
 			dx.startUpload();
@@ -899,28 +899,28 @@
 			save();
 		}
 	}
-	
+
 	function save() {
 		$("#atclId").val('<c:out value="${bbsAtclVO.atclId}" />');
-		
+
 		var url;
 		var returnUrl;
 		var queryInfo = {};
 		var dx = dx5.get("upload1");
-		
+
 		$("input[name='copyFiles']").val(dx.getCopyFiles()); // 파일함에서 가져온 파일
 		$("#uploadPath").val(dx.getUploadPath());
-		
+
 		if($("#atclId").val()) {
-			$("input[name='delFileIdStr']").val(dx.getDelFileIdStr()); // 삭제파일 Id			
-			
+			$("input[name='delFileIdStr']").val(dx.getDelFileIdStr()); // 삭제 파일ID 문자열
+
 			url = "/bbs/" + TEMPLATE_URL +"/editAtcl.do";
-			
+
 			// 수정 후 글보기 이동
     		if(BBS_CD) {
     			queryInfo.bbsCd = BBS_CD;
     		}
-    		
+
     		if(CRS_CRE_CD) {
     			queryInfo.crsCreCd = CRS_CRE_CD;
     		}
@@ -928,63 +928,63 @@
     			queryInfo.teamCtgrCd = TEAM_CTGR_CD;
     			queryInfo.teamCd = TEAM_CD;
     		}
-    		
+
     		queryInfo.bbsId = BBS_ID;
     		queryInfo.atclId = ATCL_ID;
-    		
+
     		if(SEARCH_VALUE) {
     			queryInfo.searchValue = SEARCH_VALUE;
     		}
-    		
+
     		if(PAGE_INDEX) {
     			queryInfo.pageIndex = PAGE_INDEX;
     		}
-    		
+
     		if(LIST_SCALE) {
     			queryInfo.listScale = LIST_SCALE;
     		}
-    		
+
     		if(TAB) {
     			queryInfo.tab = TAB;
     		}
-    		
+
     		returnUrl = "/bbs/" + TEMPLATE_URL + "/Form/atclView.do";
 		} else {
 			url = "/bbs/" + TEMPLATE_URL + "/addAtcl.do";
-			
+
 			// 저장 후 목록 이동
     		if(BBS_CD) {
     			queryInfo.bbsCd = BBS_CD;
     		}
-    		
+
     		var crsCreCd = CRS_CRE_CD;
     		if(crsCreCd) {
     			queryInfo.crsCreCd = crsCreCd;
     		}
-    		
+
     		if(TEAM_CTGR_CD && TEAM_CD) {
     			queryInfo.teamCtgrCd = TEAM_CTGR_CD;
     			queryInfo.teamCd = TEAM_CD;
     		}
-    		
+
     		if(BBS_ID) {
     			queryInfo.bbsId = $("#bbsId").val();
     		}
-    		
+
     		if(TAB) {
     			queryInfo.tab = TAB;
     		}
-    		
+
     		returnUrl = "/bbs/" + TEMPLATE_URL + "/atclList.do";
 		}
-		
+
 		var data = $("#atclWriteForm").serialize();
-		
+
 		ajaxCall(url, data, function(data) {
         	if(data.result > 0) {
         		alert(data.message);
         		var queryStr = new URLSearchParams(queryInfo).toString();
-        		
+
         		bbsCommon.movePost(returnUrl, queryStr);
             } else {
             	alert(data.message || "An error occurred while saving."); // 에러 메세지 (방화벽)
@@ -994,7 +994,7 @@
 			alert('<spring:message code="fail.common.msg" />');
 		}, true);
 	}
-	
+
 	// 파일 업로드 완료
     function finishUpload() {
     	var dx = dx5.get("upload1");
@@ -1004,13 +1004,13 @@
     		"copyFiles"   : dx.getCopyFiles(),
     		"uploadPath"  : dx.getUploadPath()
     	};
-    	
+
     	ajaxCall(url, data, function(data) {
     		if(data.result > 0) {
     			$("#uploadFiles").val(dx.getUploadFiles());
     	    	$("#copyFiles").val(dx.getCopyFiles());
     	    	$("#uploadPath").val(dx.getUploadPath());
-    	    	
+
     	    	save();
     		} else {
     			alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
@@ -1019,17 +1019,17 @@
     		alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
     	});
     }
-	
+
 	// 취소 버튼
 	function cancel() {
 		var url;
 		var queryInfo = {};
-		
+
 		if($("#atclId").val()) {
 			if(BBS_CD) {
     			queryInfo.bbsCd = BBS_CD;
     		}
-    		
+
     		if(CRS_CRE_CD) {
     			queryInfo.crsCreCd = CRS_CRE_CD;
     		}
@@ -1037,81 +1037,81 @@
     			queryInfo.teamCtgrCd = TEAM_CTGR_CD;
     			queryInfo.teamCd = TEAM_CD;
     		}
-    		
+
     		queryInfo.bbsId = BBS_ID;
     		queryInfo.atclId = ATCL_ID;
-    		
+
     		if(SEARCH_VALUE) {
     			queryInfo.searchValue = SEARCH_VALUE;
     		}
-    		
+
     		if(PAGE_INDEX) {
     			queryInfo.pageIndex = PAGE_INDEX;
     		}
-    		
+
     		if(LIST_SCALE) {
     			queryInfo.listScale = LIST_SCALE;
     		}
-    		
+
     		if(TAB) {
     			queryInfo.tab = TAB;
     		}
-    		
+
     		url = "/bbs/" + TEMPLATE_URL + "/Form/atclView.do";
 		} else {
 			if(BBS_CD) {
 				queryInfo.bbsCd = BBS_CD;
 			}
-			
+
 			if(CRS_CRE_CD) {
 				queryInfo.crsCreCd = CRS_CRE_CD;
 			}
-			
+
 			if(TEAM_CTGR_CD && TEAM_CD) {
 				queryInfo.teamCtgrCd = TEAM_CTGR_CD;
 				queryInfo.teamCd = TEAM_CD;
 			}
-			
+
 			if(BBS_ID) {
 				queryInfo.bbsId = BBS_ID;
 			}
-			
+
 			if(SEARCH_VALUE) {
     			queryInfo.searchValue = SEARCH_VALUE;
     		}
-    		
+
     		if(PAGE_INDEX) {
     			queryInfo.pageIndex = PAGE_INDEX;
     		}
-    		
+
     		if(LIST_SCALE) {
     			queryInfo.listScale = LIST_SCALE;
     		}
-			
+
 			if(TAB) {
 				queryInfo.tab = TAB;
 			}
-			
+
 			url = "/bbs/" + TEMPLATE_URL + "/atclList.do";
 		}
-		
+
 		var queryStr = new URLSearchParams(queryInfo).toString();
 		bbsCommon.movePost(url, queryStr);
 	}
-	
-	// 과목선택 변경 (강의실 기본게시판, 글쓰기, 관리자 경우만 가능) 
+
+	// 과목선택 변경 (강의실 기본게시판, 글쓰기, 관리자 경우만 가능)
 	function changeCrsCreCd(crsCreCd, defaultBbsCd) {
 		var prevCrsCreCd = $("#crsCreCd").val();
-		
+
 		// 1. 게시판 옵션 리로딩 (bbsId, bbsCd, bbsNm)
 		var url = "/bbs/bbsLect/listCourseDefaultBbs.do";
 		var data = {
 			crsCreCd: crsCreCd
 		};
-		
+
 		ajaxCall(url, data, function(data) {
 			var returnList = data.returnList || [];
-        	
+
         	if (data.result > 0 && returnList.length > 0) {
         		// 알림터 게시판 코드
         		var alarmBbsCdObj = {
@@ -1120,11 +1120,11 @@
        				//, "SECRET": true
        				, "PDS": true
       			};
-      			
+
         		var isAlarmBbs = alarmBbsCdObj[defaultBbsCd] ? true : false;
         		var alarmBbsObj = {};
         		var bbsList = [];
-        		
+
         		returnList.forEach(function(v, i) {
         			if(isAlarmBbs) {
         				if(alarmBbsCdObj[v.bbsCd]) {
@@ -1137,7 +1137,7 @@
         				}
         			}
     			});
-        		
+
         		if(isAlarmBbs) {
         			Object.keys(alarmBbsCdObj).forEach(function(key, i) {
         				if(alarmBbsObj[key]) {
@@ -1145,13 +1145,13 @@
         				}
         			});
         		}
-        		
+
         		var html = '';
         		var bbsCdRadioHtml = '';
-        		
+
         		bbsList.forEach(function(v, i) {
 					var inputId = "bbsCd_" + i;
-        			
+
        				bbsCdRadioHtml += '	<div class="field">';
        				bbsCdRadioHtml += '		<div class="ui radio checkbox">';
        				bbsCdRadioHtml += '			<label for="' + inputId + '" class="hide">bbsCd</label>';
@@ -1160,7 +1160,7 @@
            			bbsCdRadioHtml += '		</div>';
            			bbsCdRadioHtml += '	</div>';
         		});
-        		
+
         		html += '<dl>';
     			html += '	<dt>';
     			html += '		<label class="req"><spring:message code="bbs.label.form_bbs" /></label>'; // 게시판
@@ -1173,58 +1173,58 @@
     			html += '		</div>';
     			html += '	</dd>';
     			html += '</dl>';
-        		
+
         		$("#bbsOptionLi").empty().html(html);
         		$("#bbsOptionLi").find(".ui.checkbox").checkbox();
         		$("#bbsOptionLi").show();
-        		
+
         		var $bbsCdRadio = $("input[name='bbsCd'][value=" + defaultBbsCd + "]");
-        		
+
         		if($bbsCdRadio.length == 0) {
         			$bbsCdRadio = $("input[name='bbsCd']").eq(0);
         		}
-        		
+
         		$bbsCdRadio.prop("checked", true);
         		$bbsCdRadio.trigger("change");
-        		
+
         		$("#crsCreCd").val(crsCreCd);
             } else {
             	alert('<spring:message code="bbs.error.not_exists_bbs" />'); // 게시판 정보를 찾을 수 없습니다.
             }
-        	
+
         	$('.ui.dropdown').dropdown();
-        	
+
 		}, function(xhr, status, error) {
 			alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
 		});
 	}
-		
+
 	// 게시판 정보 조회후 쓰기 폼 세팅
 	function initBbsForm(bbsId) {
 		var url = "/bbs/bbsHome/bbsInfo.do";
 		var data = {
    			bbsId: bbsId
 		};
-		
+
 		ajaxCall(url, data, function(data) {
 			if(data.result > 0) {
 				var returnVO = data.returnVO;
         		writeOption.setWriteForm(returnVO);
         		$("#bbsId").val(returnVO.bbsId);
-        		
+
         		var bbsId = returnVO.bbsId
         		var bbsCd = returnVO.bbsCd;
         		var sysUseYn = returnVO.sysUseYn;
         		var sysDefaultYn = returnVO.sysDefaultYn;
-        		
+
         		var html = '';
         		var btnText;
-        		
+
         		if(sysDefaultYn == "Y") {
         			if(sysUseYn == "Y") {
             			if(bbsCd == "NOTICE") {
                 			btnText = '<spring:message code="bbs.button.prev_system_notice" />'; // 전체 공지 가져오기
-                			
+
                 			html += '<div class="fields">';
                    			html += '	<div class="field mt5">';
                    			html += '		<a href="javascript:void(0)" onclick="prevAtclListModal(\'' + bbsId + '\', null, \'' + btnText +'\')" class="ui blue button small">' + btnText + '</a>';
@@ -1238,7 +1238,7 @@
             				} else {
             					btnText = '<spring:message code="bbs.button.prev_class_pds" />'; // 강의자료 가져오기
             				}
-                			
+
                 			html += '<div class="fields">';
                    			html += '	<div class="field mt5">';
                    			html += '		<a href="javascript:void(0)" onclick="prevAtclListModal(null, \'' + bbsCd + '\', \'' + btnText +'\')" class="ui blue button small">' + btnText + '</a>';
@@ -1247,10 +1247,10 @@
                 		}
             		}
         		}
-       			
+
        			$("#prevAtclBtnArea").empty().html(html);
        			$('.ui.dropdown').dropdown();
-       			
+
             } else {
             	alert(data.message);
             }
@@ -1259,11 +1259,11 @@
 			alert('<spring:message code="fail.common.msg" />');
 		}, true);
 	}
-	
+
 	// 이전게시글 목록 모달
 	function prevAtclListModal(bbsId, bbsCd, title) {
 		var crsCreCd = CRS_CRE_CD;
-		
+
 		$("#prevAtclListModalTitle").html(title);
 		$("#prevAtclListForm").attr("target", "prevAtclListIfm");
         $("#prevAtclListForm").attr("action", "/bbs/bbsLect/popup/prevAtclList.do");
@@ -1274,36 +1274,36 @@
 			$("#prevAtclListForm > input[name='crsCreCd']").val(crsCreCd);
 			$("#prevAtclListForm > input[name='bbsCd']").val(bbsCd);
 		}
-		
+
         $("#prevAtclListForm").submit();
         $('#prevAtclListModal').modal('show');
 	}
-	
+
 	// 이전게시글 가져오기
 	function prevAtclListModalCallback(atclId) {
 		var url = "/bbs/bbsHome/atclInfo.do";
 		var data = {
 			atclId: atclId
 		};
-		
+
 		ajaxCall(url, data, function(data) {
 			var returnVO = data.returnVO;
-        	
+
         	if (data.result > 0 && returnVO) {
         		var atclTitle = returnVO.atclTitle;
         		var atclCts = returnVO.atclCts;
-        		
+
         		// 폼 초기화
         		writeOption.setWriteForm(writeOption.bbsInfo);
-        		
+
         		// 게시글 타이틀 세팅
         		$("#atclTitle").val(atclTitle);
-        		
+
         		// 게시글 내용 세팅
         		editor.execCommand('selectAll');
     			editor.execCommand('deleteLeft');
     			editor.openHTML(atclCts);
-    			
+
     			// 게시판 옵션
     			if(returnVO.bbsCd == "NOTICE") {
     				/* 공지사항 사용 옵션 */
@@ -1312,23 +1312,23 @@
         			// 부가옵션 (댓글사용)
         			// 분반 같이 등록
         			// 공개여부
-        			
+
         			/* 이전글 세팅 목록 */
         			// 공지옵션 (중요글, 고정글)
         			var imptYn = returnVO.imptYn;
         			var noticeYn = returnVO.noticeYn;
-        			
+
         			// 부가옵션 (댓글사용)
         			var cmntUseYn = returnVO.cmntUseYn;
-        			
+
 					if(imptYn == "Y") {
 						$("#imptYn").prop("checked", true);
         			}
-					
+
 					if(noticeYn == "Y") {
         				$("#noticeYn").prop("checked", true);
         			}
-					
+
 					if(cmntUseYn == "Y") {
 						$("#cmntUseYn").prop("checked", true);
         			}
@@ -1339,33 +1339,33 @@
     				// 분반 같이 등록
     				// 등록예약 사용
     				// 공개여부
-    				
+
     				/* 이전글 세팅 목록 */
         			// 공지옵션 (중요글, 고정글)
         			var imptYn = returnVO.imptYn;
         			var noticeYn = returnVO.noticeYn;
-        			
+
         			// 부가옵션 (댓글사용, 좋아요 사용)
         			var cmntUseYn = returnVO.cmntUseYn;
         			var goodUseYn = returnVO.goodUseYn;
-        			
+
         			if(imptYn == "Y") {
         				$("#imptYn").prop("checked", true);
         			}
-					
+
 					if(noticeYn == "Y") {
 						$("#noticeYn").prop("checked", true);
         			}
-					
+
 					if(cmntUseYn == "Y") {
 						$("#cmntUseYn").prop("checked", true);
         			}
-					
+
 					if(goodUseYn == "Y") {
 						$("#goodUseYn").prop("checked", true);
         			}
     			}
-    			
+
     			// 이전 파일 가져오기
     			if(returnVO.fileList && returnVO.fileList.length > 0) {
     				setTimeout(function(){
@@ -1382,21 +1382,21 @@
 			alert('<spring:message code="fail.common.msg" />');
 		});
 	}
-	
+
 	// 팀 게시판 생성여부 조회
 	function checkAndCreateTeamBbs(teamCd) {
 		var deferred = $.Deferred();
-		
+
 		var url = "/bbs/bbsLect/checkAndCreateTeamBbs.do";
 		var data = {
 			teamCd: teamCd
 		};
-		
+
 		ajaxCall(url, data, function(data) {
 			if(data.result > 0) {
 				var returnVO = data.returnVO;
 				var bbsId = returnVO && returnVO.bbsId;
-				
+
 				deferred.resolve(bbsId);
         	} else {
         		alert(data.message);
@@ -1407,14 +1407,14 @@
 			alert('<spring:message code="fail.common.msg" />');
 			deferred.reject();
 		});
-	
+
 		return deferred.promise();
 	}
 </script>
 <body class="<%=SessionInfo.getThemeMode(request)%>">
 
 	<div id="wrap" class="main">
-	
+
 		<!-- class_top 인클루드  -->
 		<c:choose>
 			<c:when test="${templateUrl eq 'bbsHome'}">
@@ -1429,7 +1429,7 @@
 		</c:choose>
 
 		<div id="container">
-		
+
 			<c:choose>
 				<c:when test="${templateUrl eq 'bbsHome'}">
 					<%@ include file="/WEB-INF/jsp/common/frontGnb.jsp"%>
@@ -1453,14 +1453,14 @@
 					<c:when test="${templateUrl eq 'bbsMgr'}">
 					</c:when>
 				</c:choose>
-		        
+
 		        <!-- 영역1 -->
 		        <div class="ui form">
 			        <div class="layout2">
                     	<script>
 	                    	$(document).ready(function (){
 								var templateUrl = '<c:out value="${templateUrl}" />';
-								
+
 								var bbsTitle;
 								if(templateUrl == "bbsHome") {
 									bbsTitle = '<spring:message code="bbs.label.bbs_lect_home" />'; 			// 강의실 홈
@@ -1469,12 +1469,12 @@
 								} else if(templateUrl == "bbsMgr") {
 									bbsTitle = '<spring:message code="bbs.label.bbs_manager_home" />';		// 관리자
 								}
-								
+
 								var bbsSubTitle;
 								var bbsCd = '<c:out value="${param.bbsCd}" />';
 								var bbsNm = '<c:out value="${bbsInfoVO.bbsNm}" />';
 								var tab = '<c:out value="${param.tab}" />';
-								
+
 								if(bbsCd == "TEAM") {
 									bbsSubTitle = '<spring:message code="bbs.label.bbs_team" />';	// 팀게시판
 								} else if(bbsCd == "ALARM") {
@@ -1482,15 +1482,15 @@
 								} else {
 									bbsSubTitle = bbsNm;
 								}
-								
+
 								// set location
 								if(typeof setLocationBar === "function") {
 									setLocationBar(bbsTitle, bbsSubTitle);
 								}
 							});
 						</script>
-						
-						<!-- 템플릿 별 ID, 클래스 --> 
+
+						<!-- 템플릿 별 ID, 클래스 -->
 						<c:choose>
                         	<c:when test="${templateUrl eq 'bbsHome'}">
                         		<c:set var="titleId" value="" />
@@ -1505,7 +1505,7 @@
                         		<c:set var="titleClass" value="" />
                         	</c:when>
                         </c:choose>
-                        
+
                         <div id="<c:out value="${titleId}" />" class="<c:out value="${titleClass}" />">
                             <h2 class="page-title flex-item flex-wrap gap4 columngap16">
                                  <c:choose>
@@ -1545,7 +1545,7 @@
 	                            		<c:set var="btnColor2" value="basic" />
 	                            	</c:when>
 	                            </c:choose>
-                            
+
                                 <a href="javascript:void(0)" onclick="saveConfirm();" class="ui <c:out value="${btnColor1}" /> button"><spring:message code="common.button.save" /></a><!-- 저장 -->
 		                        <a href="javascript:void(0)" onclick="cancel();" class="ui <c:out value="${btnColor2}" /> button"><spring:message code="common.button.cancel" /></a><!-- 취소 -->
                             </div>
@@ -1564,25 +1564,25 @@
 		                        	<b class=""><spring:message code="bbs.label.secret.guide" /><!-- ※교수자와 1:1로 상담을 요청하는 게시판입니다. 작성자와 답변자만 내용을 볼 수 있습니다. 강의 및 행정 관련 문의는 강의 Q&A에 올려주시기 바랍니다. --></b>
 								</div>
 							</c:if>
-                            
+
                             <!-- 게시판 탭 -->
 							<c:if test="${templateUrl eq 'bbsLect'}">
 								<%@ include file="/WEB-INF/jsp/bbs/common/bbs_tab_inc.jsp" %>
 							</c:if>
-								
+
 								<form id="atclWriteForm" name="atclWriteForm">
 									<input type="hidden" name="crsCreCd" 	value="<c:out value="${vo.crsCreCd}" />" 		id="crsCreCd" />
 									<input type="hidden" name="bbsId" 		value="<c:out value="${vo.bbsId}" />" 			id="bbsId" />
 									<input type="hidden" name="atclId" 		value="<c:out value="${bbsAtclVO.atclId}" />" 	id="atclId" />
 									<input type="hidden" name="haksaYear"   value="" id="haksaYear" />
 									<input type="hidden" name="haksaTerm"   value="" id="haksaTerm" />
-									
+
 									<input type="hidden" name="uploadFiles" value="" id="uploadFiles" />
 									<input type="hidden" name="copyFiles"   value="" id="copyFiles" />
 									<input type="hidden" name="uploadPath"  value="" id="uploadPath" />
 									<input type="hidden" name="delFileIdStr" value=""/>
-									
-									
+
+
 									<div class="ui segment">
 										<ul class="tbl border-top-grey">
 										<c:if test="${bbsInfoVO.bbsId eq BBS_ID_SYSTEM_NOTICE}">
@@ -1700,7 +1700,7 @@
 											<li id="writeResvOptionLi" style="display: none;"></li>
 											<li id="lockOptionLi" style="display: none;"></li>
 										</ul>
-										
+
 										<div class="tr mt10">
 											<a href="javascript:void(0)" onclick="saveConfirm();" class="ui blue button"><spring:message code="common.button.save" /></a><!-- 저장 -->
 					                        <a href="javascript:void(0)" onclick="cancel();" class="ui basic button"><spring:message code="common.button.cancel" /></a><!-- 취소 -->
@@ -1709,11 +1709,11 @@
 								</form>
                             </div><!-- //col -->
                         </div><!-- //row -->
-                        
+
 			        </div><!-- //layout2 -->
 			    </div><!-- //ui form -->
 			</div><!-- //content stu_section -->
-			
+
 			<c:choose>
 				<c:when test="${templateUrl eq 'bbsHome'}">
 					<%@ include file="/WEB-INF/jsp/common/frontFooter.jsp"%>
@@ -1725,11 +1725,11 @@
 					<%@ include file="/WEB-INF/jsp/common/admin/admin_footer.jsp"%>
 				</c:when>
 			</c:choose>
-		
-		</div><!-- //container -->		
+
+		</div><!-- //container -->
 	</div><!-- //wrap -->
-	
-	<!-- 이전 목록 팝업 --> 
+
+	<!-- 이전 목록 팝업 -->
 	<form id="prevAtclListForm" name="prevAtclListForm">
 		<input type="hidden" name="crsCreCd" value="" />
 		<input type="hidden" name="bbsId" />
@@ -1750,7 +1750,7 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         $('iframe').iFrameResize();
         window.closeModal = function() {

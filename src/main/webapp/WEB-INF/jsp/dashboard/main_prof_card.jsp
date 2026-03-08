@@ -2,11 +2,12 @@
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko">
-<%@ include file="../common_new/home_common.jsp" %>
-<link rel="stylesheet" type="text/css" href="/webdoc/assets/css/dashboard.css" />
-<link rel="stylesheet" type="text/css" href="/webdoc/css/gridstack.min.css" />
-
-<script src="/webdoc/js/gridstack-all.js"></script>
+<head>
+	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+		<jsp:param name="module" value="widget"/>
+		<jsp:param name="style" value="dashboard"/>
+	</jsp:include>
+</head>
 
 <c:set var="userId" value="${userId}"/>
 <c:set var="authrtGrpcd" value="${authrtGrpcd}"/>
@@ -14,14 +15,15 @@
 <body class="home colorA "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="../common_new/home_header.jsp">
+        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp">
             <jsp:param name="userId" value="${userId}" />
       	</jsp:include>
         <!-- //common header -->
+
         <!-- dashboard -->
         <main class="common">
             <!-- gnb -->
-            <%@ include file="/WEB-INF/jsp/common_new/home_gnb_prof.jsp" %>
+            <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
             <!-- //gnb -->
 
             <!-- content -->
@@ -32,7 +34,7 @@
             </div>
 
             <!-- common footer -->
-            <%@ include file="../common_new/home_footer.jsp" %>
+            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
             <!-- //common footer -->
 
         </main>

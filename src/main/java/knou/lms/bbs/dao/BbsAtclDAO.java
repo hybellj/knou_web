@@ -45,13 +45,6 @@ public interface BbsAtclDAO {
     public void insertBbsAtcl(BbsAtclVO vo) throws Exception;
 
     /*****************************************************
-     * 게시글 정보 수정
-     * @param vo
-     * @throws Exception
-     ******************************************************/
-    public void updateBbsAtcl(BbsAtclVO vo) throws Exception;
-
-    /*****************************************************
      * 게시글 삭제
      * @param vo
      * @throws Exception
@@ -110,7 +103,7 @@ public interface BbsAtclDAO {
     public void updateBbsAtclForTrans(BbsAtclVO vo) throws Exception;
 
     /*****************************************************
-     * 이전글 다음글 조회
+     * 이전글 다음글 조회 -- TODO 삭제예정.....
      * @param vo
      * @return BbsAtclVO
      * @throws Exception
@@ -163,6 +156,21 @@ public interface BbsAtclDAO {
      * @throws Exception
      ******************************************************/
     public BbsAtclVO selectBbsAtcl(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 이전글/다음글 조회
+     * @param vo
+     * @return BbsAtclVO
+     * @throws Exception
+     ******************************************************/
+    public BbsAtclVO selecBbsAtclPrevNext(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판게시글 수정
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void updateBbsAtcl(BbsAtclVO vo) throws Exception;
 
     public List<EgovMap> listRecentBbsToday(BbsAtclVO vo) throws Exception;
     public List<EgovMap> listRecentBbsLctrQna(BbsAtclVO vo) throws Exception;

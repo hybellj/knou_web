@@ -1,6 +1,8 @@
 package knou.lms.qbnk.vo;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 
 import knou.lms.common.vo.DefaultVO;
 
@@ -20,7 +22,8 @@ public class QbnkQstnVO extends DefaultVO {
 	private String 	qstnDfctlvTycd;		// 문항난이도유형코드 ( NONE : 상관없음, LOW : 하, MIDDLE : 중, HIGH : 상 )
 	private String 	edtrUseyn;			// 에디터사용여부
 	private String 	delyn;				// 삭제여부
-	private String  qbnkQstnGbncd;		// 문제은행문항구분코드 ( QUIZ : 퀴즈, SRVY : 설문 )
+
+	private List<Map<String, Object>> qstns;	// 문항 등록용
 
 	public String getQbnkQstnId() {
 		return qbnkQstnId;
@@ -55,9 +58,6 @@ public class QbnkQstnVO extends DefaultVO {
 	public String getDelyn() {
 		return delyn;
 	}
-	public String getQbnkQstnGbncd() {
-		return qbnkQstnGbncd;
-	}
 	public void setQbnkQstnId(String qbnkQstnId) {
 		this.qbnkQstnId = qbnkQstnId;
 	}
@@ -91,8 +91,11 @@ public class QbnkQstnVO extends DefaultVO {
 	public void setDelyn(String delyn) {
 		this.delyn = delyn;
 	}
-	public void setQbnkQstnGbncd(String qbnkQstnGbncd) {
-		this.qbnkQstnGbncd = qbnkQstnGbncd;
+	public List<Map<String, Object>> getQstns() {
+		return qstns;
+	}
+	public void setQstns(List<Map<String, Object>> qstns) {
+		this.qstns = qstns;
 	}
 
 }

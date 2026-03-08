@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
@@ -51,10 +52,11 @@ import knou.framework.util.MapToVoUtil;
 import knou.framework.util.SecureUtil;
 import knou.framework.util.SessionUtil;
 import knou.framework.util.StringUtil;
+import knou.framework.util.URLBuilder;
 import knou.framework.util.ValidationUtils;
 import knou.lms.bbs.service.BbsAtclService;
 import knou.lms.bbs.vo.BbsAtclVO;
-import knou.lms.bbs2.dto.BbsParam;
+import knou.lms.common.dto.BaseParam;
 import knou.lms.common.service.OrgOrgInfoService;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.common.vo.OrgOrgInfoVO;
@@ -63,6 +65,7 @@ import knou.lms.crs.crecrs.service.CrecrsService;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.crs.term.service.TermService;
 import knou.lms.crs.term.vo.TermVO;
+import knou.lms.dashboard.dto.DashboardParam;
 import knou.lms.dashboard.facade.DashboardFacadeService;
 import knou.lms.dashboard.service.AcadSchService;
 import knou.lms.dashboard.service.DashboardService;
@@ -72,7 +75,7 @@ import knou.lms.dashboard.vo.DashboardAdminVO;
 import knou.lms.dashboard.vo.DashboardVO;
 import knou.lms.dashboard.vo.MainCreCrsVO;
 import knou.lms.dashboard.vo.SchVO;
-import knou.lms.dashboard.web.view.DashboardResponse;
+import knou.lms.dashboard.web.view.DashboardViewModel;
 import knou.lms.erp.service.ErpService;
 import knou.lms.erp.util.ErpUtil;
 import knou.lms.log.lesson.service.LogLessonActnHstyService;
@@ -93,7 +96,6 @@ import knou.lms.user.vo.UsrDeptCdVO;
 import knou.lms.user.vo.UsrUserInfoVO;
 
 @Controller
-@SessionAttributes("userCtx")
 @RequestMapping(value = "/dashboard")
 public class DashboardController extends ControllerBase {
 
@@ -2375,29 +2377,33 @@ public class DashboardController extends ControllerBase {
         }
 
         return result;
-    }
-    
+    }    
     
     /**
      * ***************************************************
      * 대시보드2
-     * @param request
-     * @param response
+     * @param userCtx
      * @param model
      * @return
-     * @throws Exception ****************************************************
+     * @throws Exception *********************************
      */
-    @RequestMapping(value = "/dashboard2.do")
-    public String dashBoard2(@ModelAttribute("userCtx") UserContext userCtx, ModelMap model) throws Exception {   
+    @RequestMapping(value = "/dashboard2.do")    
+    public String dashBoard2(HttpServletRequest request, ModelMap model) throws Exception {
+    	
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    	
+    	if ( null == userCtx ) {
+    		return "redirect:" + new URLBuilder("", "login.do",request).toString();
+    	}    	
 
-    	BbsParam bbsParam = new BbsParam(userCtx.getOrgId(), userCtx.getUserId(), 3);
+    	BaseParam param = new DashboardParam(userCtx.getOrgId(), userCtx.getUserId(), 3);
 
-    	DashboardResponse dashboardResponse =
-    	        dashboardFacadeService.getDashboardResponse(userCtx, bbsParam);
+    	DashboardViewModel dashVM = dashboardFacadeService.getDashboardResponse(userCtx, param);
 
     	model.addAttribute("userCtx", userCtx);
-    	model.addAttribute("dashboardResponse", dashboardResponse);
+    	model.addAttribute("dashVM", dashVM);
 
-    	return dashboardResponse.getViewName();    	
+    	return dashVM.getViewName();
+
     }
 }

@@ -750,7 +750,6 @@ dashboard - sub
 }
 
 
-
 *:has(>.table-wrap) {
     container-type: inline-size;
     container-name: tableWrap;
@@ -760,24 +759,24 @@ dashboard - sub
 /* 메시지 목록 - 카드형 */
 .message_card { display: grid; width:100%; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-bottom: 4.5rem;}
 .message_card>li { display: flex;}
-.message_card>li .card_item { display: flex; flex-grow: 1; flex-direction: column; width: 100%; padding: 2rem 2.5rem; background: #fff; border:1px solid #D0D0D0; border-radius: var(--border-radius-10); transition:all 0.2s; }
+.message_card>li .card_item { display: flex; flex-grow: 1; flex-direction: column; width: 100%; padding: 1.6rem 2.5rem 2rem 2.5rem; background: #fff; border:1px solid #D0D0D0; border-radius: var(--border-radius-10); transition:all 0.2s; }
 .message_card>li .card_item:hover {/*margin-top: -.3rem;*/ border:1px solid var(--blue-600); box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.1);}
 .message_card>li .card_item.active {border:1px solid var(--blue-600);}
-.message_card>li .card_item .item_header {display: flex; align-items: center; gap: 1rem; margin-bottom: 1.6rem;}
-.message_card>li .card_item .msg_tit { color: #222; font-weight: 500;
+.message_card>li .card_item .item_header {display: flex; align-items: center; gap: 1rem; margin-bottom: .8rem;}
+.message_card>li .card_item .msg_tit { color: #222; font-weight: 600;
     text-overflow: ellipsis;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;}
-.message_card>li .card_item .extra {flex-grow: 1; height: 12rem; background-color: #ECF3FE; padding: 1rem; overflow-y: auto; border-radius: 8px;}
+.message_card>li .card_item .extra {flex-grow: 1; height: 11.5rem; background-color: #ECF3FE; padding: 1rem; overflow-y: auto; border-radius: 8px;}
 .message_card>li .card_item .extra .desc { display: flex;  font-size: 1.4rem; font-weight: 400; color: var(--txt_03_80); } 
 .message_card>li .card_item .extra::-webkit-scrollbar { width: 6px; }
 .message_card>li .card_item .extra::-webkit-scrollbar-track { background: #e6e6e6; border-radius: 8px; }
 .message_card>li .card_item .extra::-webkit-scrollbar-thumb { background: var(--txt_03_60); border-radius: 8px; }
 @media(max-width:950px) {
         .message_card { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-        .message_card>li .card_item .item_header {margin-bottom: 1rem;}
+        .message_card>li .card_item .item_header {margin-bottom: .6rem;}
         .message_card>li .card_item .extra {height: 9.6rem;}
 }
 @media(max-width:768px) {

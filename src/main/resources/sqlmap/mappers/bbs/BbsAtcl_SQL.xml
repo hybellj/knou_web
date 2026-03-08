@@ -178,54 +178,11 @@
 		<!-- <include refid="CommonSQL.pageSubfix" /> -->
 	</select>
 
-	<select id="selectPrevNextAtcl" parameterType="bbsInfoVO" resultType="bbsAtclVO">
-		/*
-             SQL ID : BbsAtclDAO.selectPrevNextAtcl
-             설  명 : 이전글 다음글 조회
-         */
-        SELECT
-        	A.*
-        FROM (
-			SELECT
-				  A.ATCL_ID
-				<!-- , LAG(A.ATCL_ID, 1) OVER(ORDER BY LINE_NO DESC) AS BEFORE_ATCL_ID
-				, LEAD(A.ATCL_ID, 1) OVER(ORDER BY LINE_NO DESC) AS AFTER_ATCL_ID -->
-			FROM (
-				<include refid="listQuery" />
-			) A
-		) A
-		WHERE A.ATCL_ID = #{atclId}
-	</select>
 
 
 
-	<update id="updateBbsAtcl" parameterType="bbsAtclVO">
-		/*
-             SQL ID : BbsAtclDAO.updateBbsAtcl
-             설  명 : 게시글 정보 수정
-         */
-		UPDATE TB_LMS_BBS_ATCL
-		SET
-			  ATCL_TTL		= #{atclTitle}
-			, ATCL_CTS			= #{atclCts}
-			, NTCYN			= NVL(#{noticeYn}, 'N')
-			, CMNT_USEYN		= NVL(#{cmntUseYn}, 'N')
-			<!-- , LOCKYN			= NVL(#{lockYn}, 'N') -->
-			, FVRT_USEYN		= NVL(#{goodUseYn}, 'N')
-			<!-- , RSRV_USEYN		= NVL(#{rsrvUseYn}, 'N') -->
-			<!-- , RSRV_DTTM			= #{rsrvDttm} -->
-			, IMPT_ATCLYN			= NVL(#{imptYn}, 'N')
-			<if test='councelProf != null and councelProf != ""'>
-			, DSCSN_PROF_ID		= #{councelProf}
-			</if>
-			, DGRS_YR		= CASE WHEN #{haksaYear} = '' THEN NULL ELSE #{haksaYear} END
-			, DGRS_SMSTR		= CASE WHEN #{haksaTerm} = '' THEN NULL ELSE #{haksaTerm} END
-			, UNIV_CD			= NVL(#{uniCd}, 'P')
-			, UNIV_GBNCD			= NVL(#{univGbn}, '0')
-			, MDFR_ID			= #{mdfrId}
-			, MOD_DTTM			= FN_DTTM()
-		WHERE ATCL_ID = #{atclId}
-	</update>
+
+
 
 	<delete id="updateBbsAtclDelYn" parameterType="bbsAtclVO">
 		/*
@@ -787,6 +744,28 @@
 	</select>
 
 
+	<select id="selecBbsAtclPrevNext" parameterType="bbsAtclVO" resultType="bbsAtclVO">
+		/*
+             SQL ID : BbsAtclDAO.selecBbsAtclPrevNext
+             설  명 : 게시판 이전글/다음글 조회
+         */
+        SELECT
+        	  Z.*
+        	, (SELECT ATCL_TTL FROM TB_LMS_BBS_ATCL WHERE ATCL_ID = Z.PREV_ATCL_ID) AS PREV_ATCL_TTL
+        	, (SELECT ATCL_TTL FROM TB_LMS_BBS_ATCL WHERE ATCL_ID = Z.NEXT_ATCL_ID) AS NEXT_ATCL_TTL
+        FROM (
+			SELECT
+				  ATCL_ID
+				, LEAD(X.ATCL_ID, 1) OVER (ORDER BY LINE_NO DESC) AS PREV_ATCL_ID
+				, LAG(X.ATCL_ID, 1) OVER (ORDER BY LINE_NO DESC) AS NEXT_ATCL_ID
+			FROM (
+				<include refid="bbsAtclListQuery" />
+			) X
+		) Z
+		WHERE Z.ATCL_ID = #{atclId}
+	</select>
+
+
 	<insert id="insertBbsAtcl" parameterType="bbsAtclVO">
 		/*
              SQL ID : BbsAtclDAO.insertBbsAtcl
@@ -846,6 +825,21 @@
 	</insert>
 
 
+	<update id="updateBbsAtcl" parameterType="bbsAtclVO">
+		/*
+        	SQL ID : BbsAtclDAO.updateBbsAtcl
+        	설  명 : 게시판게시글 수정
+         */
+		UPDATE TB_LMS_BBS_ATCL
+		SET
+			  ATCL_TTL		= #{atclTtl}
+			, ATCL_CTS		= #{atclCts}
+			, MDFR_ID		= #{mdfrId}
+			, MOD_DTTM		= FN_DTTM()
+		WHERE ATCL_ID = #{atclId}
+	</update>
+
+
 	<select id="listRecentBbsToday" parameterType="bbsAtclVO" resultType="egovMap">
 		/*
              SQL ID : BbsAtclDAO.listRecentBbsToday, TOBE: atclList
@@ -892,5 +886,7 @@
 		ORDER BY A.REG_DTTM
 		<!-- LIMIT #{listScale} -->
 	</select>
+
+
 
 </mapper>

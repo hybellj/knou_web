@@ -1,5 +1,6 @@
 package knou.lms.lecture2.service;
 
+import knou.lms.common.dto.BaseParam;
 import knou.lms.lecture2.dao.LectureScheduleDAO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +23,8 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> lectureScheduleList(String subjectId) throws Exception {
-        return lectureScheduleDAO.lectureScheduleList(subjectId);
+    public List<EgovMap> lectureScheduleList(BaseParam param) throws Exception {
+        return lectureScheduleDAO.lectureScheduleList(param);
     }
 
     /*****************************************************
@@ -33,8 +34,8 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
      * @throws Exception
      ******************************************************/
     @Override
-    public EgovMap thisWeekLectureSelect(String subjectId) throws Exception {
-        return lectureScheduleDAO.thisWeekLectureSelect(subjectId);
+    public EgovMap thisWeekLectureSelect(BaseParam param) throws Exception {
+        return lectureScheduleDAO.thisWeekLectureSelect(param);
     }
 
     /*****************************************************
@@ -44,8 +45,8 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> profLectureScheduleList(String subjectId) throws Exception {
-        return lectureScheduleDAO.profLectureScheduleList(subjectId);
+    public List<EgovMap> profLectureScheduleList(BaseParam param) throws Exception {
+        return lectureScheduleDAO.profLectureScheduleList(param);
     }
 
     /*****************************************************
@@ -55,7 +56,7 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> byWeeknoLectureSchdlList(String subjectId) throws Exception {
-        return lectureScheduleDAO.byWeeknoLectureSchdlList(subjectId);
+    public List<EgovMap> byWeeknoLectureSchdlList(BaseParam param) throws Exception {
+        return lectureScheduleDAO.byWeeknoLectureSchdlList(param);
     }
 }

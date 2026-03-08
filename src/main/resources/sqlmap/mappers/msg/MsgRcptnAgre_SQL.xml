@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.msg.dao.MsgRcptnAgreDAO">
+
+    <sql id="searchCondition">
+        <if test="profId != null and profId != ''">
+            AND S.PROF_ID = #{profId}
+        </if>
+        <if test="sbjctYr != null and sbjctYr != ''">
+            AND S.SBJCT_YR = #{sbjctYr}
+        </if>
+        <if test="sbjctSmstr != null and sbjctSmstr != ''">
+            AND TRIM(S.SBJCT_SMSTR) = TRIM(#{sbjctSmstr})
+        </if>
+        <if test="orgId != null and orgId != ''">
+            AND D.ORG_ID = #{orgId}
+        </if>
+        <if test="deptId != null and deptId != ''">
+            AND S.DEPT_ID = #{deptId}
+        </if>
+        <if test="sbjctId != null and sbjctId != ''">
+            AND S.SBJCT_ID = #{sbjctId}
+        </if>
+        <if test="userTycd != null and userTycd != ''">
+            AND U.USER_TYCD = #{userTycd}
+        </if>
+        <if test="searchType == 'name'">
+            <if test="searchText != null and searchText != ''">
+                AND U.USERNM LIKE '%' || #{searchText} || '%'
+            </if>
+        </if>
+        <if test="searchType == 'stdntNo'">
+            <if test="searchText != null and searchText != ''">
+                AND U.STDNT_NO LIKE '%' || #{searchText} || '%'
+            </if>
+        </if>
+    </sql>
+
+    <select id="selectRcptnAgreCnt" parameterType="MsgRcptnAgreVO" resultType="int">
+        /*
+             SQL ID : MsgRcptnAgreDAO.selectRcptnAgreCnt
+             설  명 : 알림수신동의 목록 건수 조회
+         */
+        SELECT COUNT(*)
+        FROM TB_LMS_ATNDLC A
+        INNER JOIN TB_LMS_SBJCT S ON A.SBJCT_ID = S.SBJCT_ID
+        INNER JOIN TB_LMS_USER U ON A.USER_ID = U.USER_ID
+        LEFT JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
+        WHERE S.DELYN = 'N'
+        <include refid="searchCondition"/>
+    </select>
+
+    <select id="selectRcptnAgreList" parameterType="MsgRcptnAgreVO" resultType="MsgRcptnAgreVO">
+        /*
+             SQL ID : MsgRcptnAgreDAO.selectRcptnAgreList
+             설  명 : 알림수신동의 목록 조회
+         */
+        SELECT *
+        FROM (
+            SELECT ROWNUM AS RNUM, T.*
+            FROM (
+                SELECT S.SBJCT_YR
+                     , S.SBJCT_SMSTR
+                     , O.ORGNM
+                     , D.DEPTNM
+                     , S.SBJCTNM
+                     , S.DVCLAS_NO
+                     , U.USER_TYCD
+                     , U.USER_RPRS_ID
+                     , U.STDNT_NO
+                     , U.USERNM
+                     , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
+                     , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
+                     , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 4, 1) = '1' THEN 'Y' ELSE 'N' END AS PUSH_RCVYN
+                     , U.SHRTNT_ALIM_RCVYN
+                     , U.EML_ALIM_RCVYN
+                     , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 6, 1) = '1' THEN 'Y' ELSE 'N' END AS ALIM_TALK_RCVYN
+                     , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 1, 1) = '1' THEN 'Y' ELSE 'N' END AS SMS_RCVYN
+                FROM TB_LMS_ATNDLC A
+                INNER JOIN TB_LMS_SBJCT S ON A.SBJCT_ID = S.SBJCT_ID
+                INNER JOIN TB_LMS_USER U ON A.USER_ID = U.USER_ID
+                LEFT JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
+                LEFT JOIN TB_LMS_ORG O ON D.ORG_ID = O.ORG_ID
+                WHERE S.DELYN = 'N'
+                <include refid="searchCondition"/>
+                ORDER BY S.SBJCT_YR DESC, S.SBJCT_SMSTR ASC, S.SBJCTNM ASC, U.USERNM ASC
+            ) T
+            WHERE ROWNUM <![CDATA[<=]]> #{lastIndex}
+        )
+        WHERE RNUM <![CDATA[>=]]> #{firstIndex}
+    </select>
+
+    <select id="selectRcptnAgreExcelList" parameterType="MsgRcptnAgreVO" resultType="MsgRcptnAgreVO">
+        /*
+             SQL ID : MsgRcptnAgreDAO.selectRcptnAgreExcelList
+             설  명 : 알림수신동의 엑셀 목록 조회
+         */
+        SELECT S.SBJCT_YR
+             , S.SBJCT_SMSTR
+             , O.ORGNM
+             , D.DEPTNM
+             , S.SBJCTNM
+             , S.DVCLAS_NO
+             , U.USER_TYCD
+             , U.USER_RPRS_ID
+             , U.STDNT_NO
+             , U.USERNM
+             , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
+             , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
+             , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 4, 1) = '1' THEN 'Y' ELSE 'N' END AS PUSH_RCVYN
+             , U.SHRTNT_ALIM_RCVYN
+             , U.EML_ALIM_RCVYN
+             , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 6, 1) = '1' THEN 'Y' ELSE 'N' END AS ALIM_TALK_RCVYN
+             , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 1, 1) = '1' THEN 'Y' ELSE 'N' END AS SMS_RCVYN
+        FROM TB_LMS_ATNDLC A
+        INNER JOIN TB_LMS_SBJCT S ON A.SBJCT_ID = S.SBJCT_ID
+        INNER JOIN TB_LMS_USER U ON A.USER_ID = U.USER_ID
+        LEFT JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
+        LEFT JOIN TB_LMS_ORG O ON D.ORG_ID = O.ORG_ID
+        WHERE S.DELYN = 'N'
+        <include refid="searchCondition"/>
+        ORDER BY S.SBJCT_YR DESC, S.SBJCT_SMSTR ASC, S.SBJCTNM ASC, U.USERNM ASC
+    </select>
+
+    <select id="selectRcptnAgreYrList" parameterType="MsgRcptnAgreVO" resultType="MsgRcptnAgreVO">
+        /*
+             SQL ID : MsgRcptnAgreDAO.selectRcptnAgreYrList
+             설  명 : 알림수신동의 학사년도 목록 조회
+         */
+        SELECT DISTINCT S.SBJCT_YR
+        FROM TB_LMS_SBJCT S
+        WHERE S.DELYN = 'N'
+        <if test="profId != null and profId != ''">
+          AND S.PROF_ID = #{profId}
+        </if>
+        ORDER BY S.SBJCT_YR DESC
+    </select>
+
+    <select id="selectRcptnAgreSmstrList" parameterType="MsgRcptnAgreVO" resultType="egovMap">
+        /*
+             SQL ID : MsgRcptnAgreDAO.selectRcptnAgreSmstrList
+             설  명 : 알림수신동의 학기 목록 조회
+         */
+        SELECT DISTINCT TRIM(S.SBJCT_SMSTR) AS SBJCT_SMSTR
+        FROM TB_LMS_SBJCT S
+        WHERE S.DELYN = 'N'
+        <if test="profId != null and profId != ''">
+          AND S.PROF_ID = #{profId}
+        </if>
+        <if test="sbjctYr != null and sbjctYr != ''">
+          AND S.SBJCT_YR = #{sbjctYr}
+        </if>
+        ORDER BY TRIM(S.SBJCT_SMSTR) ASC
+    </select>
+
+    <select id="selectRcptnAgreDeptList" parameterType="MsgRcptnAgreVO" resultType="MsgRcptnAgreVO">
+        /*
+             SQL ID : MsgRcptnAgreDAO.selectRcptnAgreDeptList
+             설  명 : 알림수신동의 학과 목록 조회
+         */
+        SELECT DISTINCT D.DEPT_ID
+             , D.DEPTNM
+        FROM TB_LMS_SBJCT S
+        INNER JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
+        WHERE S.DELYN = 'N'
+        <if test="profId != null and profId != ''">
+          AND S.PROF_ID = #{profId}
+        </if>
+        ORDER BY D.DEPTNM ASC
+    </select>
+
+    <select id="selectRcptnAgreSbjctList" parameterType="MsgRcptnAgreVO" resultType="MsgRcptnAgreVO">
+        /*
+             SQL ID : MsgRcptnAgreDAO.selectRcptnAgreSbjctList
+             설  명 : 알림수신동의 운영과목 목록 조회
+         */
+        SELECT S.SBJCT_ID
+             , S.SBJCTNM
+        FROM TB_LMS_SBJCT S
+        WHERE S.DELYN = 'N'
+        <if test="profId != null and profId != ''">
+          AND S.PROF_ID = #{profId}
+        </if>
+        <if test="sbjctYr != null and sbjctYr != ''">
+          AND S.SBJCT_YR = #{sbjctYr}
+        </if>
+        <if test="sbjctSmstr != null and sbjctSmstr != ''">
+          AND TRIM(S.SBJCT_SMSTR) = TRIM(#{sbjctSmstr})
+        </if>
+        <if test="deptId != null and deptId != ''">
+          AND S.DEPT_ID = #{deptId}
+        </if>
+        ORDER BY S.SBJCTNM ASC
+    </select>
+
+</mapper>

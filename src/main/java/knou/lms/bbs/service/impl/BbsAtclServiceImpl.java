@@ -1,6 +1,7 @@
 package knou.lms.bbs.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import knou.lms.bbs.vo.BbsInfoVO;
 import knou.lms.common.service.SysFileService;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.file.dao.AttachFileDAO;
+import knou.lms.file.service.AttachFileService;
 import knou.lms.file.vo.AtflVO;
 import knou.lms.log.recom.service.LogRecomService;
 import knou.lms.log.recom.vo.LogRecomVO;
@@ -65,8 +67,13 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
     @Resource(name="usrUserInfoDAO")
     private UsrUserInfoDAO usrUserInfoDAO;
 
+
+
     @Resource(name="attachFileDAO")
     private AttachFileDAO attachFileDAO;
+
+    @Resource(name="attachFileService")
+    private AttachFileService attachFileService;
 
     /*****************************************************
      * 게시글 목록 수
@@ -207,7 +214,7 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
             String newAtclId = IdGenerator.getNewId("ATCL");
             vo.setAtclId(newAtclId);
             // 스크립트 태그 제거
-            //vo.setAtclTtl(StringUtil.removeScript(vo.getAtclTtl()));
+            vo.setAtclTtl(StringUtil.removeScript(vo.getAtclTtl()));
             //vo.setAtclCts(StringUtil.removeScript(vo.getAtclCts()));
 
             // TODO 임시맵핑
@@ -316,223 +323,7 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         }
     }
 
-    /*****************************************************
-     * 게시글 정보 수정
-     * @param vo
-     * @throws Exception
-     ******************************************************/
-    @Override
-    public void updateBbsAtcl(BbsAtclVO vo) throws Exception {
-        String bbsId = vo.getBbsId();
 
-        // 비공개여부
-        if(ValidationUtils.isEmpty(vo.getLockYn())) {
-            vo.setLockYn("N");
-        }
-
-        // 등록예약
-        if(!"Y".equals(StringUtil.nvl(vo.getRsrvUseYn()))) {
-            vo.setRsrvDttm(null);
-        }
-
-        // 일대일 상담 여부
-        if(!"SECRET".equals(StringUtil.nvl(bbsId))) {
-            vo.setDscsnProfId(null);
-        }
-
-        LOGGER.debug("bbsId     : " + vo.getBbsId());
-        LOGGER.debug("atclId    : " + vo.getAtclId());
-
-        if("NOTICE".equals(bbsId)) {
-            LOGGER.debug("중요글           : " + vo.getImptYn());
-            LOGGER.debug("고정글           : " + vo.getNoticeYn());
-            LOGGER.debug("atclTitle : " + vo.getAtclTtl());
-            LOGGER.debug("atclCts   : " + vo.getAtclCts());
-            LOGGER.debug("댓글사용        : " + vo.getCmntUseYn());
-            LOGGER.debug("분반List   : " + vo.getDeclsList());
-            LOGGER.debug("비공개여부     : " + vo.getLockYn());
-        } else if("QNA".equals(bbsId) || "SECRET".equals(bbsId)) {
-            LOGGER.debug("상담교수        : " + vo.getDscsnProfId());
-            LOGGER.debug("atclTitle : " + vo.getAtclTtl());
-            LOGGER.debug("atclCts   : " + vo.getAtclCts());
-            LOGGER.debug("댓글사용        : " + vo.getCmntUseYn());
-            LOGGER.debug("비공개여부     : " + vo.getLockYn());
-        } else if("PDS".equals(bbsId)) {
-            LOGGER.debug("중요글           : " + vo.getImptYn());
-            LOGGER.debug("고정글           : " + vo.getNoticeYn());
-            LOGGER.debug("atclTitle : " + vo.getAtclTtl());
-            LOGGER.debug("atclCts   : " + vo.getAtclCts());
-            LOGGER.debug("댓글사용        : " + vo.getCmntUseYn());
-            LOGGER.debug("좋아요사용     : " + vo.getGoodUseYn());
-            LOGGER.debug("분반List   : " + vo.getDeclsList());
-            LOGGER.debug("등록예약        : " + vo.getRsrvUseYn());
-            LOGGER.debug("예약일시        : " + vo.getRsrvDttm());
-            LOGGER.debug("비공개여부     : " + vo.getLockYn());
-        }
-
-        String uploadFiles = vo.getUploadFiles();
-        String copyFiles = vo.getCopyFiles();
-        String uploadPath = vo.getUploadPath();
-
-        LOGGER.debug("파일 업로드 경로 : " + uploadPath);
-        LOGGER.debug("파일 업로드        : " + uploadFiles);
-        LOGGER.debug("파일함 복사        : " + copyFiles);
-
-        List<FileVO> uploadFileList = FileUtil.getUploadFileList(vo.getUploadFiles());
-        List<FileVO> copyFileList = FileUtil.getUploadFileList(vo.getCopyFiles());
-
-        try {
-            String atclId = vo.getAtclId();
-
-            // 스크립트 태그 제거
-            vo.setAtclTtl(StringUtil.removeScript(vo.getAtclTtl()));
-            vo.setAtclCts(StringUtil.removeScript(vo.getAtclCts()));
-
-            // TODO 임시맵핑
-            if(CommConst.BBS_ID_SYSTEM_NOTICE.equals(vo.getBbsId())) {
-                if(ValidationUtils.isNotEmpty(vo.getUnivGbn())) {
-                    if("1".equals(vo.getUnivGbn())) {
-                        vo.setUniCd("C");
-                    } else {
-                        vo.setUniCd("G");
-                    }
-                } else {
-                    vo.setUniCd("P");
-                }
-            }
-
-            // 수정
-            bbsAtclDAO.updateBbsAtcl(vo);
-
-            boolean isFileChanged = false;
-
-            // 파일 업로드
-            if(uploadFileList.size() > 0) {
-                FileVO fileVO = new FileVO();
-                fileVO.setUploadFiles(uploadFiles);
-                fileVO.setFilePath(uploadPath);
-                fileVO.setRepoCd("BBS");
-                fileVO.setRgtrId(vo.getMdfrId());
-                fileVO.setFileBindDataSn(vo.getAtclId());
-                sysFileService.addFile(fileVO);
-
-                isFileChanged = true;
-            }
-
-            // 파일함 복사
-            if(copyFileList.size() > 0) {
-                FileVO fileVO = new FileVO();
-                fileVO.setCopyFiles(copyFiles);
-                fileVO.setFilePath(uploadPath);
-                fileVO.setRepoCd("BBS");
-                fileVO.setRgtrId(vo.getRgtrId());
-                fileVO.setFileBindDataSn(vo.getAtclId());
-                fileVO = sysFileService.addFile(fileVO);
-
-                isFileChanged = true;
-            }
-
-            // 파일삭제
-            String[] delFileIds = vo.getDelFileIds();
-            if(delFileIds != null && delFileIds.length > 0) {
-                FileVO fileVO = new FileVO();
-                fileVO.setRepoCd("BBS");
-                fileVO.setFileBindDataSn(vo.getAtclId());
-                List<FileVO> fileList = sysFileService.list(fileVO).getReturnList();
-
-                for(String delFileId : delFileIds) {
-                    for(FileVO fvo : fileList) {
-                        if(delFileId.equals(fvo.getFileSaveNm().substring(0, fvo.getFileSaveNm().indexOf(".")))) {
-                            sysFileService.removeFile(fvo.getFileSn());
-                            break;
-                        }
-                    }
-                }
-
-                isFileChanged = true;
-            }
-
-            // 분반 동시 업데이트
-            String declsAtclIds = vo.getDvclasRegAtclId();
-
-            if(ValidationUtils.isNotEmpty(declsAtclIds) && ("NOTICE".equals(bbsId) || "PDS".equals(bbsId))) {
-                String[] declsAtclIdList = declsAtclIds.split(",");
-
-                for(String declsAtclId : declsAtclIdList) {
-                    if(!declsAtclId.equals(atclId)) {
-
-                        // 1.수정
-                        vo.setAtclId(declsAtclId);
-                        bbsAtclDAO.updateBbsAtcl(vo);
-
-                        // 파일 업로드
-                        if(isFileChanged) {
-                            // 2.분반 게시글 정보조회
-                            BbsAtclVO bbsAtclVO = new BbsAtclVO();
-                            bbsAtclVO.setOrgId(vo.getOrgId());
-                            bbsAtclVO.setAtclId(declsAtclId);
-                            bbsAtclVO = bbsAtclDAO.selectBbsAtcl(bbsAtclVO);
-
-                            if(bbsAtclVO == null) {
-                                continue;
-                            }
-
-                            // 3.원글의 파일정보
-                            FileVO fileVO = new FileVO();
-                            fileVO.setRepoCd("BBS");
-                            fileVO.setFileBindDataSn(atclId);
-                            List<FileVO> originFileList = (List<FileVO>) sysFileService.list(fileVO).getReturnList();
-                            List<Map<String, String>> fileMapList = new ArrayList<>();
-                            for(FileVO fvo2 : originFileList) {
-                                Map<String, String> map = new HashMap<>();
-                                map.put("fileNm", fvo2.getFileNm());
-                                map.put("fileId", fvo2.getFileId());
-                                map.put("fileSize", fvo2.getFileSize().toString());
-                                map.put("fileSaveNm", fvo2.getFileSaveNm());
-                                map.put("filePath", fvo2.getFilePath());
-                                fileMapList.add(map);
-                            }
-                            JSONArray copyFileJsonArray = JSONArray.fromObject(fileMapList);
-                            String declsCopyFiles = copyFileJsonArray.toString();
-
-                            // 4.분반 게시글 파일정보 조회
-                            fileVO = new FileVO();
-                            fileVO.setRepoCd("BBS");
-                            fileVO.setFileBindDataSn(declsAtclId);
-                            List<FileVO> fileList = sysFileService.list(fileVO).getReturnList();
-
-                            // 5.분반 게시글 기존 파일 제거
-                            for(FileVO fvo : fileList) {
-                                sysFileService.removeFile(fvo.getFileSn());
-                            }
-
-                            // 6.수정글의 파일 분반 게시글로 복사
-                            fileVO = new FileVO();
-                            fileVO.setCopyFiles(declsCopyFiles);
-                            fileVO.setFilePath("/bbs/" + bbsAtclVO.getBbsId());
-                            fileVO.setRepoCd("BBS");
-                            fileVO.setRgtrId(vo.getRgtrId());
-                            fileVO.setFileBindDataSn(declsAtclId);
-                            fileVO = sysFileService.addFile(fileVO);
-                        }
-                    }
-
-                }
-            }
-        } catch(Exception e) {
-            LOGGER.debug("e: ", e);
-
-            if(uploadFileList.size() > 0) {
-                FileUtil.delUploadFileList(uploadFiles, uploadPath);
-            }
-
-            if(copyFileList.size() > 0) {
-                FileUtil.delUploadFileList(copyFiles, uploadPath);
-            }
-
-            throw e;
-        }
-    }
 
     /*****************************************************
      * 게시글 삭제
@@ -814,14 +605,17 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
      ******************************************************/
     @Override
     public BbsAtclVO selectBbsAtcl(BbsAtclVO bbsAtclVO) throws Exception {
+    	// 게시글조회
         bbsAtclVO = bbsAtclDAO.selectBbsAtcl(bbsAtclVO);
 
         if(bbsAtclVO != null) {
         	// 이전글/다음글
-            BbsAtclVO prevNextAtclVO = bbsAtclDAO.selectPrevNextAtcl(bbsAtclVO);
+            BbsAtclVO prevNextAtclVO = bbsAtclDAO.selecBbsAtclPrevNext(bbsAtclVO);
             if(prevNextAtclVO != null) {
-                bbsAtclVO.setBeforeAtclId(prevNextAtclVO.getBeforeAtclId());
-                bbsAtclVO.setAfterAtclId(prevNextAtclVO.getAfterAtclId());
+                bbsAtclVO.setPrevAtclId(prevNextAtclVO.getPrevAtclId());
+                bbsAtclVO.setPrevAtclTtl(prevNextAtclVO.getPrevAtclTtl());
+                bbsAtclVO.setNextAtclId(prevNextAtclVO.getNextAtclId());
+                bbsAtclVO.setNextAtclTtl(prevNextAtclVO.getNextAtclTtl());
             }
 
             // 첨부파일
@@ -836,6 +630,176 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
 
         return bbsAtclVO;
     }
+
+
+    /*****************************************************
+     * 게시판게시글 수정
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void updateBbsAtcl(BbsAtclVO vo) throws Exception {
+        String bbsId = vo.getBbsId();
+
+        // 비공개여부
+        if(ValidationUtils.isEmpty(vo.getLockYn())) {
+            vo.setLockYn("N");
+        }
+
+        // 등록예약
+        if(!"Y".equals(StringUtil.nvl(vo.getRsrvUseYn()))) {
+            vo.setRsrvDttm(null);
+        }
+
+        // 일대일 상담 여부
+        if(!"SECRET".equals(StringUtil.nvl(bbsId))) {
+            vo.setDscsnProfId(null);
+        }
+
+        LOGGER.debug("bbsId     : " + vo.getBbsId());
+        LOGGER.debug("atclId    : " + vo.getAtclId());
+
+        if("NOTICE".equals(bbsId)) {
+            LOGGER.debug("중요글           : " + vo.getImptYn());
+            LOGGER.debug("고정글           : " + vo.getNoticeYn());
+            LOGGER.debug("atclTitle : " + vo.getAtclTtl());
+            LOGGER.debug("atclCts   : " + vo.getAtclCts());
+            LOGGER.debug("댓글사용        : " + vo.getCmntUseYn());
+            LOGGER.debug("분반List   : " + vo.getDeclsList());
+            LOGGER.debug("비공개여부     : " + vo.getLockYn());
+        } else if("QNA".equals(bbsId) || "SECRET".equals(bbsId)) {
+            LOGGER.debug("상담교수        : " + vo.getDscsnProfId());
+            LOGGER.debug("atclTitle : " + vo.getAtclTtl());
+            LOGGER.debug("atclCts   : " + vo.getAtclCts());
+            LOGGER.debug("댓글사용        : " + vo.getCmntUseYn());
+            LOGGER.debug("비공개여부     : " + vo.getLockYn());
+        } else if("PDS".equals(bbsId)) {
+            LOGGER.debug("중요글           : " + vo.getImptYn());
+            LOGGER.debug("고정글           : " + vo.getNoticeYn());
+            LOGGER.debug("atclTitle : " + vo.getAtclTtl());
+            LOGGER.debug("atclCts   : " + vo.getAtclCts());
+            LOGGER.debug("댓글사용        : " + vo.getCmntUseYn());
+            LOGGER.debug("좋아요사용     : " + vo.getGoodUseYn());
+            LOGGER.debug("분반List   : " + vo.getDeclsList());
+            LOGGER.debug("등록예약        : " + vo.getRsrvUseYn());
+            LOGGER.debug("예약일시        : " + vo.getRsrvDttm());
+            LOGGER.debug("비공개여부     : " + vo.getLockYn());
+        }
+
+        String uploadFiles = vo.getUploadFiles();
+        String uploadPath = vo.getUploadPath();
+
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+        //List<FileVO> copyFileList = FileUtil.getUploadFileList(vo.getCopyFiles());
+
+        try {
+            // 스크립트 태그 제거
+            vo.setAtclTtl(StringUtil.removeScript(vo.getAtclTtl()));
+            // TODO -->> 내용은 저장할때 태그 제거하지 않고 내용 조회할때 태그제거하도록 변경해야함...
+            //vo.setAtclCts(StringUtil.removeScript(vo.getAtclCts()));
+
+            // 수정
+            bbsAtclDAO.updateBbsAtcl(vo);
+
+            // 첨부파일
+            if (uploadFileList.size() > 0) {
+            	for (AtflVO atflVO : uploadFileList) {
+            		atflVO.setAtflId(IdGenerator.getNewId("ATFL"));
+            		atflVO.setRefId(vo.getAtclId());
+            		atflVO.setRgtrId(vo.getRgtrId());
+            		atflVO.setMdfrId(vo.getMdfrId());
+            		atflVO.setAtflRepoId("BBS"); // TODO 첨부파일저장소아이디 임시설정, 설정값으로 변경해야.....
+            		atflVO.setDwldCnt(0);
+            		atflVO.setDelyn("N");
+            	}
+
+            	// 첨부파일 저장
+            	attachFileDAO.insertAtflList(uploadFileList);
+            }
+
+            // 첨부파일 삭제
+            attachFileService.deleteAtflByAtflIds(vo.getDelFileIds());
+
+            /*
+            // 분반 동시 업데이트
+            String declsAtclIds = vo.getDvclasRegAtclId();
+
+            if(ValidationUtils.isNotEmpty(declsAtclIds) && ("NOTICE".equals(bbsId) || "PDS".equals(bbsId))) {
+                String[] declsAtclIdList = declsAtclIds.split(",");
+
+                for(String declsAtclId : declsAtclIdList) {
+                    if(!declsAtclId.equals(atclId)) {
+
+                        // 1.수정
+                        vo.setAtclId(declsAtclId);
+                        bbsAtclDAO.updateBbsAtcl(vo);
+
+                        // 파일 업로드
+                        if(isFileChanged) {
+                            // 2.분반 게시글 정보조회
+                            BbsAtclVO bbsAtclVO = new BbsAtclVO();
+                            bbsAtclVO.setOrgId(vo.getOrgId());
+                            bbsAtclVO.setAtclId(declsAtclId);
+                            bbsAtclVO = bbsAtclDAO.selectBbsAtcl(bbsAtclVO);
+
+                            if(bbsAtclVO == null) {
+                                continue;
+                            }
+
+                            // 3.원글의 파일정보
+                            FileVO fileVO = new FileVO();
+                            fileVO.setRepoCd("BBS");
+                            fileVO.setFileBindDataSn(atclId);
+                            List<FileVO> originFileList = (List<FileVO>) sysFileService.list(fileVO).getReturnList();
+                            List<Map<String, String>> fileMapList = new ArrayList<>();
+                            for(FileVO fvo2 : originFileList) {
+                                Map<String, String> map = new HashMap<>();
+                                map.put("fileNm", fvo2.getFileNm());
+                                map.put("fileId", fvo2.getFileId());
+                                map.put("fileSize", fvo2.getFileSize().toString());
+                                map.put("fileSaveNm", fvo2.getFileSaveNm());
+                                map.put("filePath", fvo2.getFilePath());
+                                fileMapList.add(map);
+                            }
+                            JSONArray copyFileJsonArray = JSONArray.fromObject(fileMapList);
+                            String declsCopyFiles = copyFileJsonArray.toString();
+
+                            // 4.분반 게시글 파일정보 조회
+                            fileVO = new FileVO();
+                            fileVO.setRepoCd("BBS");
+                            fileVO.setFileBindDataSn(declsAtclId);
+                            List<FileVO> fileList = sysFileService.list(fileVO).getReturnList();
+
+                            // 5.분반 게시글 기존 파일 제거
+                            for(FileVO fvo : fileList) {
+                                sysFileService.removeFile(fvo.getFileSn());
+                            }
+
+                            // 6.수정글의 파일 분반 게시글로 복사
+                            fileVO = new FileVO();
+                            fileVO.setCopyFiles(declsCopyFiles);
+                            fileVO.setFilePath("/bbs/" + bbsAtclVO.getBbsId());
+                            fileVO.setRepoCd("BBS");
+                            fileVO.setRgtrId(vo.getRgtrId());
+                            fileVO.setFileBindDataSn(declsAtclId);
+                            fileVO = sysFileService.addFile(fileVO);
+                        }
+                    }
+
+                }
+            }
+            */
+        } catch(Exception e) {
+            LOGGER.debug("e: ", e);
+
+            if(uploadFileList.size() > 0) {
+                FileUtil.delUploadFileList(uploadFiles, uploadPath);
+            }
+
+            throw e;
+        }
+    }
+
 
     @Override
     public List<EgovMap> listRecentBbsToday(BbsAtclVO vo) throws Exception {

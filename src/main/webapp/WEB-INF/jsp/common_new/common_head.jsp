@@ -135,6 +135,13 @@ if (module != null && !"".equals(module)) {
 			<script src="<%=assets%>/js/d3.v4/d3.v4.js"></script><!-- chart d3.js -->
 			<%
 		}
+		// 위젯
+		else if ("widget".equals(name)) {
+			%>
+			<link rel="stylesheet" href="<%=uilib%>/gridstack/gridstack.min.css">
+			<script src="<%=uilib%>/gridstack/gridstack-all.js"></script>
+			<%
+		}
 	}
 }
 

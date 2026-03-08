@@ -72,12 +72,19 @@ public class ControllerBase {
 			this.eparamMap 	= new HashMap<>();
 
 			// 암호화 파라메터가 있는 경우 값을 VO에 세팅
-			if (paramVO != null && this.eparam != null && !"".equals(this.eparam)) {
+			if (paramVO != null) {
 				// 암호화 파라메터 VO에 설정
-				setParamToVO(eparam, paramVO, true);
+				if (this.eparam != null && !"".equals(this.eparam)) {
+					Map<String, Object> paramMap = JsonUtil.jsonToMap(SecureUtil.decodeStr(this.eparam));
+					setEparamMapToVO(paramMap, paramVO, true);
+				}
 
 				// 추가 파라메터 VO에 설정
-				setParamToVO(request.getParameter("extParam"), paramVO, false);
+				String extParam = request.getParameter("extParam");
+				if (extParam != null && !"".equals(extParam)) {
+					Map<String, Object> paramMap = JsonUtil.jsonToMap(SecureUtil.decodeStr(extParam));
+					setEparamMapToVO(paramMap, paramVO, true);
+				}
 			}
 
 			modelMap.addAttribute("eparam", this.eparam);
@@ -92,43 +99,42 @@ public class ControllerBase {
 		}
 	}
 
-	// 암호화 파라메터 값을 VO에 할당
-	private void setParamToVO(String param, Object paramVO, boolean isInit) {
+
+	// 암호화 파라메터맵을 VO에 할당
+	private void setEparamMapToVO(Map<String, Object> paramMap, Object paramVO, boolean isInit) {
 		try {
-			if (param != null) {
-				Map<String, Object> paramMap = JsonUtil.jsonToMap(SecureUtil.decodeStr(param));
+			if (paramMap != null && paramMap.size() > 0) {
+				for (String key : paramMap.keySet()) {
+					Map<String, Method> methodMap = CommonUtil.getMethod(paramVO.getClass(), key);
+					Method setMethod = methodMap.get("set");
 
-				if (paramMap != null && paramMap.size() > 0) {
-					for (String key : paramMap.keySet()) {
-						Map<String, Method> methodMap = CommonUtil.getMethod(paramVO.getClass(), key);
-						Method setMethod = methodMap.get("set");
+					if (setMethod == null) {
+						continue;
+					}
 
-						if (setMethod == null) {
-							continue;
-						}
+					String type = setMethod.getParameterTypes()[0].getSimpleName().toLowerCase();
+					Object value = paramMap.get(key);
 
-						String type = setMethod.getParameterTypes()[0].getSimpleName().toLowerCase();
-						Object value = paramMap.get(key);
+					if ("string".equals(type)) {
+						setMethod.invoke(paramVO, value.toString());
+					}
+					else if (("integer".equals(type) || "int".equals(type))) {
+						setMethod.invoke(paramVO, Integer.parseInt(value.toString()));
+					}
+					else if ("double".equals(type)) {
+						setMethod.invoke(paramVO, Double.parseDouble(value.toString()));
+					}
+					else if ("long".equals(type)) {
+						setMethod.invoke(paramVO, Long.parseLong(value.toString()));
+					}
+					else if ("boolean".equals(type)) {
+						setMethod.invoke(paramVO, (value instanceof Boolean) ? (Boolean)value : Boolean.parseBoolean(value == null ? "false" : value.toString()));
+					}
+					else {
+						setMethod.invoke(paramVO, value);
+					}
 
-						if ("string".equals(type)) {
-							setMethod.invoke(paramVO, value.toString());
-						}
-						else if (("integer".equals(type) || "int".equals(type))) {
-							setMethod.invoke(paramVO, Integer.parseInt(value.toString()));
-						}
-						else if ("double".equals(type)) {
-							setMethod.invoke(paramVO, Double.parseDouble(value.toString()));
-						}
-						else if ("long".equals(type)) {
-							setMethod.invoke(paramVO, Long.parseLong(value.toString()));
-						}
-						else if ("boolean".equals(type)) {
-							setMethod.invoke(paramVO, (value instanceof Boolean) ? (Boolean)value : Boolean.parseBoolean(value == null ? "false" : value.toString()));
-						}
-						else {
-							setMethod.invoke(paramVO, value);
-						}
-
+					if (isInit) {
 						addEparam(key, value);
 					}
 				}
@@ -137,6 +143,16 @@ public class ControllerBase {
 			log.error(e.getMessage());
 		}
 	}
+
+
+	/**
+	 * 암호화 파라메터 값을 VO에 할당
+	 * @param paramVO
+	 */
+	public void setEparamToVO(Object paramVO) {
+		setEparamMapToVO(this.eparamMap, paramVO, false);
+	}
+
 
 	/**
 	 * 처리 결과 설정
@@ -416,4 +432,13 @@ public class ControllerBase {
 		modelMap.addAttribute("eparam", eparam);
 	}
 
+	/**
+	 * 파라메터에서 페이지정보, 검색정보 삭제
+	 */
+	public void delEparamPageSearch() {
+		delEparam("pageIndex");
+		delEparam("searchKey");
+		delEparam("searchValue");
+		delEparam("sortKey");
+	}
 }

@@ -1,5 +1,7 @@
 package knou.lms.forum2.vo;
 
+import java.util.List;
+
 import knou.lms.common.vo.DefaultVO;
 
 public class Forum2VO extends DefaultVO {
@@ -8,6 +10,7 @@ public class Forum2VO extends DefaultVO {
 
     private String dscsId; // 토론아이디
     private String dscsGrpId; // 토론그룹아이디
+    private String dscsGrpnm; // dscs group name
     private String dscsGbncd; // 토론구분코드
     private String dscsUnitTycd; // 토론단위유형코드
     private String evlScrTycd; // 평가점수유형코드
@@ -15,29 +18,37 @@ public class Forum2VO extends DefaultVO {
     private String dscsCts; // 토론내용
     private String dscsSdttm; // 토론시작일시
     private String dscsEdttm; // 토론종료일시
-    private String dvclsId; // 분반아이디
+    private String dvclsNo; // 분반아이디
     private String lrnGrpId; // 학습그룹아이디
     private String delyn; // 삭제여부
     private String oatclInqyn; // 타게시글조회여부
     private String oknokrtOyn; // 찬성반대비율공개여부
-    private String oknokCfgyn; // 찬성반대토론설정여부
+    private String oknokStngyn; // 찬성반대토론설정여부
     private String oknokModyn; // 찬성반대수정여부
     private String mltOpnnRegyn; // 다중의견등록여부
     private String oknokRgtrOyn; // 찬성반대작성자공개여부
     private String cmntRspnsReqyn; // 댓글답변요청여부
     private String mrkRfltyn; // 성적반영여부
+    private Integer mrkRfltrt; // 성적반영비율
     private String mrkOyn; // 성적공개여부
     private String rgtrId; // 등록자아이디
     private String regDttm; // 등록일시
     private String mdfrId; // 수정자아이디
     private String modDttm; // 수정일시
     private String sbjctId; // 과목아이디
+    private String dvclasNo; // 분반아이디
 
     private String sourceDscssId; // 복사용: 원본 토론ID
     private String targetCrsId; // 복사용: 대상 과목ID
-    private String targetDvclsId; // 복사용: 대상 분반ID
+    private String targetdvclsNo; // 복사용: 대상 분반ID
     private String targetLrnGrpId; // 복사용: 대상 학습그룹ID
     private String targetDscsGrpId; // 복사용: 대상 토론그룹ID
+
+    private String[] dvclsNoList; // 분반별 저장 대상 DVCLS_NO 목록
+    private String[] lrnGrpIdList; // 분반별 학습그룹 ID 목록
+    private List<Forum2DvclasSelVO> dvclasSelList; // 분반선택 목록(sbjctIds)
+    private List<Forum2LrnGrpVO> lrnGrpInfoList; // 학습그룹선택 목록(teamForumDiv)
+    private List<Forum2TeamDtlVO> teamForumDtlList; // 팀토론 상세목록
 
     public String getDscsId() {
         return dscsId;
@@ -53,6 +64,14 @@ public class Forum2VO extends DefaultVO {
 
     public void setDscsGrpId(String dscsGrpId) {
         this.dscsGrpId = dscsGrpId;
+    }
+
+    public String getDscsGrpnm() {
+        return dscsGrpnm;
+    }
+
+    public void setDscsGrpnm(String dscsGrpnm) {
+        this.dscsGrpnm = dscsGrpnm;
     }
 
     public String getDscsGbncd() {
@@ -111,12 +130,12 @@ public class Forum2VO extends DefaultVO {
         this.dscsEdttm = dscsEdttm;
     }
 
-    public String getDvclsId() {
-        return dvclsId;
+    public String getdvclsNo() {
+        return dvclsNo;
     }
 
-    public void setDvclsId(String dvclsId) {
-        this.dvclsId = dvclsId;
+    public void setdvclsNo(String dvclsNo) {
+        this.dvclsNo = dvclsNo;
     }
 
     public String getLrnGrpId() {
@@ -151,12 +170,12 @@ public class Forum2VO extends DefaultVO {
         this.oknokrtOyn = oknokrtOyn;
     }
 
-    public String getOknokCfgyn() {
-        return oknokCfgyn;
+    public String getOknokStngyn() {
+        return oknokStngyn;
     }
 
-    public void setOknokCfgyn(String oknokCfgyn) {
-        this.oknokCfgyn = oknokCfgyn;
+    public void setOknokStngyn(String oknokStngyn) {
+        this.oknokStngyn = oknokStngyn;
     }
 
     public String getOknokModyn() {
@@ -207,6 +226,14 @@ public class Forum2VO extends DefaultVO {
         this.mrkOyn = mrkOyn;
     }
 
+    public Integer getMrkRfltrt() {
+        return mrkRfltrt;
+    }
+
+    public void setMrkRfltrt(Integer mrkRfltrt) {
+        this.mrkRfltrt = mrkRfltrt;
+    }
+
     public String getRgtrId() {
         return rgtrId;
     }
@@ -247,6 +274,14 @@ public class Forum2VO extends DefaultVO {
         this.sbjctId = sbjctId;
     }
 
+
+    public String getDvclasNo() {
+        return dvclasNo;
+    }
+
+    public void setDvclasNo(String dvclasNo) {
+        this.dvclasNo = dvclasNo;
+    }
     public String getSourceDscssId() {
         return sourceDscssId;
     }
@@ -263,12 +298,12 @@ public class Forum2VO extends DefaultVO {
         this.targetCrsId = targetCrsId;
     }
 
-    public String getTargetDvclsId() {
-        return targetDvclsId;
+    public String getTargetdvclsNo() {
+        return targetdvclsNo;
     }
 
-    public void setTargetDvclsId(String targetDvclsId) {
-        this.targetDvclsId = targetDvclsId;
+    public void setTargetdvclsNo(String targetdvclsNo) {
+        this.targetdvclsNo = targetdvclsNo;
     }
 
     public String getTargetLrnGrpId() {
@@ -286,4 +321,50 @@ public class Forum2VO extends DefaultVO {
     public void setTargetDscsGrpId(String targetDscsGrpId) {
         this.targetDscsGrpId = targetDscsGrpId;
     }
+
+    public String[] getdvclsNoList() {
+        return dvclsNoList;
+    }
+
+    public void setdvclsNoList(String[] dvclsNoList) {
+        this.dvclsNoList = dvclsNoList;
+    }
+
+    public String[] getLrnGrpIdList() {
+        return lrnGrpIdList;
+    }
+
+    public void setLrnGrpIdList(String[] lrnGrpIdList) {
+        this.lrnGrpIdList = lrnGrpIdList;
+    }
+
+    public List<Forum2DvclasSelVO> getDvclasSelList() {
+        return dvclasSelList;
+    }
+
+    public void setDvclasSelList(List<Forum2DvclasSelVO> dvclasSelList) {
+        this.dvclasSelList = dvclasSelList;
+    }
+
+    public List<Forum2LrnGrpVO> getLrnGrpInfoList() {
+        return lrnGrpInfoList;
+    }
+
+    public void setLrnGrpInfoList(List<Forum2LrnGrpVO> lrnGrpInfoList) {
+        this.lrnGrpInfoList = lrnGrpInfoList;
+    }
+
+    public List<Forum2TeamDtlVO> getTeamForumDtlList() {
+        return teamForumDtlList;
+    }
+
+    public void setTeamForumDtlList(List<Forum2TeamDtlVO> teamForumDtlList) {
+        this.teamForumDtlList = teamForumDtlList;
+    }
 }
+
+
+
+
+
+

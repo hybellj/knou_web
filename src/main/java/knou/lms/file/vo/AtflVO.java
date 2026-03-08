@@ -26,9 +26,11 @@ public class AtflVO extends DefaultVO {
 	private String		thmbFilenm;		// 썸네일파일명
 	private int		dwldCnt;		// 다운로드수
 	private String		delyn;			// 삭제여부
+	private String		srcAtflId;		// 원본첨부파일아이디
 
-	private String		downDttm;		// 다운로드 유효시간
+	private String		downDttm;			// 다운로드 유효시간
 	private int		atchFileCnt = 0;	// 첨부파일수
+	private int		refAtflCnt = 0;		// 참조첨부파일수
 
 	public String getAtflId() {
 		return atflId;
@@ -200,6 +202,22 @@ public class AtflVO extends DefaultVO {
 
 	public void setDelyn(String delyn) {
 		this.delyn = delyn;
+	}
+
+	public String getSrcAtflId() {
+		return srcAtflId;
+	}
+
+	public void setSrcAtflId(String srcAtflId) {
+		this.srcAtflId = srcAtflId;
+	}
+
+	public int getRefAtflCnt() {
+		return refAtflCnt;
+	}
+
+	public void setRefAtflCnt(int refAtflCnt) {
+		this.refAtflCnt = refAtflCnt;
 	}
 
 }

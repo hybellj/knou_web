@@ -7,15 +7,15 @@ public class QbnkQstnVwitmVO extends DefaultVO {
 	private static final long serialVersionUID = 8698445216638288126L;
 
 	// TB_LMS_QBNK_QSTN_VWITM ( 문제은행보기항목 )
-	private String 	qbnkVwitmId;		// 문제은행보기항목아이디
+	private String 	qbnkQstnVwitmId;	// 문제은행문항보기항목아이디
 	private String 	qbnkQstnId;			// 문제은행문항아이디
 	private String 	vwitmCts;			// 보기항목내용
 	private Integer	vwitmSeqno;			// 보기항목순번
 	private String 	cransyn;			// 정답여부
 	private String 	edtrUseyn;			// 편집기사용여부
 
-	public String getQbnkVwitmId() {
-		return qbnkVwitmId;
+	public String getQbnkQstnVwitmId() {
+		return qbnkQstnVwitmId;
 	}
 	public String getQbnkQstnId() {
 		return qbnkQstnId;
@@ -32,8 +32,8 @@ public class QbnkQstnVwitmVO extends DefaultVO {
 	public String getEdtrUseyn() {
 		return edtrUseyn;
 	}
-	public void setQbnkVwitmId(String qbnkVwitmId) {
-		this.qbnkVwitmId = qbnkVwitmId;
+	public void setQbnkQstnVwitmId(String qbnkQstnVwitmId) {
+		this.qbnkQstnVwitmId = qbnkQstnVwitmId;
 	}
 	public void setQbnkQstnId(String qbnkQstnId) {
 		this.qbnkQstnId = qbnkQstnId;

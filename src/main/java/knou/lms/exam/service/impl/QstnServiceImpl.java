@@ -147,7 +147,7 @@ public class QstnServiceImpl extends ServiceBase implements QstnService {
 	}
 
 	/**
-	 * 문항정보조회
+	 * 문항조회
 	 *
 	 * @param examDtlId 시험상세아이디
 	 * @param qstnId 	문항아이디

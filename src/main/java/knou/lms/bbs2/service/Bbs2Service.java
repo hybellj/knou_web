@@ -4,27 +4,35 @@ import java.util.List;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
-import knou.lms.bbs2.dto.BbsParam;
+import knou.lms.common.dto.BaseParam;
 
-public interface Bbs2Service {	
+public interface Bbs2Service {
 	
-	public List<EgovMap> latestTopArticlesList(String userId, String subjctId, int limitTop) throws Exception;
-	public EgovMap latestTopArticlesUnreadNoreplyCntSelect(BbsParam param) throws Exception;	
+	//	게시판미열람수조회 - 대시보드, 과목 공통
+	public EgovMap bbsUnreadCntSelect(BaseParam param) throws Exception;
 	
-
-	public List<EgovMap> topAllNoticeList(BbsParam param) throws Exception;
+	//	대시보드 과정공지
+	public List<EgovMap> dashCrsNoticeList(BaseParam param) throws Exception;
 	
-	public List<EgovMap> topCrsNoticeList(BbsParam param) throws Exception;
-
-	public List<EgovMap> profTopSubjctNoticeList(BbsParam param) throws Exception;
-
-	public List<EgovMap> profTopLctrQnaList(BbsParam param) throws Exception;
+	//	대시보드 교수
+	public List<EgovMap> profDashAllNoticeList(BaseParam param) throws Exception;	
+	public List<EgovMap> profDashSubjectNoticeList(BaseParam param) throws Exception;	
+	public List<EgovMap> profDashLctrQnaList(BaseParam param) throws Exception;
+	public List<EgovMap> profDashOneOnOneList(BaseParam param) throws Exception;
 	
-	public List<EgovMap> profTopOneOnOneList(BbsParam param) throws Exception;
+	//	대시보드 학생
+	public List<EgovMap> stdntDashAllNoticeList(BaseParam param) throws Exception;
+	public List<EgovMap> stdntDashSubjectNoticeList(BaseParam param) throws Exception;
+	public List<EgovMap> stdntDashLctrQnaList(BaseParam param) throws Exception;
+	public List<EgovMap> stdntDashDatarmList(BaseParam param) throws Exception;			
 	
-	public List<EgovMap> stdntTopSubjctNoticeList(BbsParam param) throws Exception;
+	//	과목 공통
+	public List<EgovMap> subjectTopNoticeList(BaseParam param) throws Exception;
+	public List<EgovMap> subjectTopLctrQnaList(BaseParam param) throws Exception;	
 	
-	public List<EgovMap> stdntTopLctrQnaList(BbsParam param) throws Exception;
+	//	과목 교수
+	public List<EgovMap> profSubjectTopOneOnOneList(BaseParam param) throws Exception;
 	
-	public List<EgovMap> stdntTopDatarmList(BbsParam param) throws Exception;
+	//	과목 학생	
+	public List<EgovMap> stdntSubjectTopDatarmList(BaseParam param) throws Exception;
 }

@@ -3,78 +3,232 @@
 <mapper namespace="knou.lms.forum2.dao.Forum2DAO">
 
     <sql id="listQuery">
+        WITH EVAL_STATS AS (
+            SELECT
+                PT.DSCS_ID,
+                COUNT(DISTINCT AT.USER_ID) AS forumEvalCnt
+            FROM TB_LMS_DSCS_PTCP PT
+            JOIN TB_LMS_ATNDLC AT
+              ON AT.USER_ID = PT.USER_ID
+             AND AT.ATNDLC_STSCD = 'S'
+             AND AT.AUDITYN = 'N'
+            JOIN TB_LMS_DSCS D
+              ON D.DSCS_ID = PT.DSCS_ID
+             AND D.SBJCT_ID = AT.SBJCT_ID
+            WHERE PT.DELYN = 'N'
+              AND PT.EVLYN = 'Y'
+              AND PT.SCR IS NOT NULL
+              AND D.DELYN = 'N'
+              AND D.SBJCT_ID = #{sbjctId}
+              AND EXISTS (
+                  SELECT 1
+                  FROM (
+                      SELECT DSCS_ID, USER_ID
+                      FROM TB_LMS_DSCS_ATCL
+                      WHERE DELYN = 'N'
+                      UNION ALL
+                      SELECT ATC2.DSCS_ID, CMT.USER_ID
+                      FROM TB_LMS_DSCS_CMNT CMT
+                      JOIN TB_LMS_DSCS_ATCL ATC2
+                        ON ATC2.DSCS_ATCL_ID = CMT.DSCS_ATCL_ID
+                      WHERE CMT.DELYN = 'N'
+                        AND ATC2.DELYN = 'N'
+                  ) ACT
+                  WHERE ACT.DSCS_ID = PT.DSCS_ID
+                    AND ACT.USER_ID = PT.USER_ID
+              )
+            GROUP BY PT.DSCS_ID
+        )
         SELECT
-            ROW_NUMBER() OVER (ORDER BY REG_DTTM DESC, DSCS_ID DESC) LINE_NO
-          , COUNT(*) OVER() TOTAL_CNT
-          , DSCS_ID
-          , DSCS_GRP_ID
-          , DSCS_GBNCD
-          , DSCS_UNIT_TYCD
-          , EVL_SCR_TYCD
-          , DSCS_TTL
-          , DSCS_CTS
-          , DSCS_SDTTM
-          , DSCS_EDTTM
-          , DVCLS_ID
-          , LRN_GRP_ID
-          , DELYN
-          , OATCL_INQYN
-          , OKNOK_CFGYN
-          , OKNOKRT_OYN
-          , OKNOK_MODYN
-          , MLT_OPNN_REGYN
-          , OKNOK_RGTR_OYN
-          , CMNT_RSPNS_REQYN
-          , MRK_RFLTYN
-          , MRK_OYN
-          , RGTR_ID
-          , REG_DTTM
-          , MDFR_ID
-          , MOD_DTTM
-          , SBJCT_ID
-        FROM TB_LMS_DSCS
+            ROW_NUMBER() OVER (ORDER BY A.REG_DTTM DESC, A.DSCS_ID DESC) LINE_NO
+            , COUNT(*) OVER() TOTAL_CNT
+            , A.DSCS_ID
+            , A.DSCS_GRP_ID
+            , A.DSCS_GBNCD
+            , A.DSCS_TYCD
+            , A.DSCS_UNIT_TYCD
+            , A.EVL_SCR_TYCD
+            , A.DSCS_TTL
+            , A.DSCS_CTS
+            , A.DSCS_SDTTM
+            , A.DSCS_EDTTM
+            , A.DVCLS_NO
+            , A.LRN_GRP_ID
+            , A.DELYN
+            , A.OATCL_INQYN
+            , A.OKNOK_STNGYN
+            , A.OKNOKRT_OYN
+            , A.OKNOK_MODYN
+            , A.MLT_OPNN_REGYN
+            , A.OKNOK_RGTR_OYN
+            , A.CMNT_RSPNS_REQYN
+            , A.MRK_RFLTYN
+            , A.MRK_RFLTRT
+            , A.MRK_OYN
+            , A.RGTR_ID
+            , A.REG_DTTM
+            , A.MDFR_ID
+            , A.MOD_DTTM
+            , A.SBJCT_ID
+            , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumAtclCnt
+            , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
+               WHERE B.DELYN = 'N'
+                 AND B.DSCS_ATCL_ID IN (
+                     SELECT C.DSCS_ATCL_ID
+                     FROM TB_LMS_DSCS_ATCL C
+                     WHERE C.DSCS_ID = A.DSCS_ID
+                       AND C.DELYN = 'N'
+                 )) AS forumCmntCnt
+            , (
+                SELECT COUNT(*)
+                    FROM TB_LMS_ATNDLC ATNDLC
+                    JOIN TB_LMS_SBJCT SBJCT
+                    ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+                    WHERE ATNDLC.AUDITYN = 'N'
+                    AND SBJCT.SBJCT_ID = #{sbjctId}
+                ) AS forumUserTotalCnt
+            , (
+                SELECT COUNT(1)
+                FROM TB_LMS_ATNDLC AA
+                WHERE AA.SBJCT_ID = #{sbjctId}
+                    AND AA.ATNDLC_STSCD = 'S'
+                    AND AA.AUDITYN = 'N'
+                    AND (
+                        EXISTS (
+                            SELECT 1
+                            FROM TB_LMS_DSCS_ATCL
+                            WHERE DSCS_ID = A.DSCS_ID
+                                AND USER_ID = AA.USER_ID
+                                AND DELYN = 'N'
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM TB_LMS_DSCS_CMNT
+                            WHERE USER_ID = AA.USER_ID
+                                AND DELYN = 'N'
+                                AND DSCS_ATCL_ID IN (
+                                    SELECT DSCS_ATCL_ID
+                                    FROM TB_LMS_DSCS_ATCL
+                                    WHERE DSCS_ID = A.DSCS_ID
+                                        AND DELYN = 'N'
+                                )
+                            )
+                    )
+              ) AS forumJoinUserCnt
+        , NVL(S.forumEvalCnt, 0) AS forumEvalCnt
+        , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B
+           WHERE B.DSCS_ID = A.DSCS_ID
+             AND B.DELYN = 'N'
+             AND RGTR_ID = #{userId}) AS forumMyAtclCnt
+        , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
+           WHERE B.DELYN = 'N'
+             AND B.RGTR_ID = #{userId}
+             AND B.DSCS_ATCL_ID IN (
+                 SELECT C.DSCS_ATCL_ID
+                 FROM TB_LMS_DSCS_ATCL C
+                 WHERE C.DSCS_ID = A.DSCS_ID
+                   AND C.DELYN = 'N'
+             )) AS forumMyCmntCnt
+
+	    , (SELECT SCR
+	       FROM TB_LMS_DSCS_PTCP B
+	       WHERE B.DSCS_ID = A.DSCS_ID
+	         AND B.DELYN = 'N'
+	         AND B.USER_ID = (
+	             SELECT USER_ID
+	             FROM TB_LMS_ATNDLC
+	             WHERE SBJCT_ID = #{sbjctId}
+	               AND USER_ID = #{userId}
+	               AND ATNDLC_STSCD = 'S'
+	       )
+	    ) AS forumMyScore
+
+	    , CASE
+	        WHEN EXISTS (
+	            SELECT 1
+	            FROM TB_LMS_DSCS_FDBK B
+	            WHERE B.DSCS_ID = A.DSCS_ID
+	              AND B.USER_ID = (
+	                  SELECT USER_ID
+	                  FROM TB_LMS_ATNDLC
+	                  WHERE SBJCT_ID = #{sbjctId}
+	                    AND USER_ID = #{userId}
+	                    AND ATNDLC_STSCD = 'S'                )
+	        ) THEN 1
+	        ELSE 0
+	    END AS forumMyFdbk
+        FROM TB_LMS_DSCS A
+        LEFT JOIN EVAL_STATS S
+          ON S.DSCS_ID = A.DSCS_ID
         WHERE 1 = 1
-          AND DELYN = 'N'
+          AND A.DELYN = 'N'
         <if test="sbjctId != null and sbjctId != ''">
-          AND SBJCT_ID = #{sbjctId}
+          AND A.SBJCT_ID = #{sbjctId}
         </if>
         <if test="dscsGbncd != null and dscsGbncd != ''">
-          AND DSCS_GBNCD = #{dscsGbncd}
+          AND A.DSCS_GBNCD = #{dscsGbncd}
         </if>
         <if test="dscsUnitTycd != null and dscsUnitTycd != ''">
-          AND DSCS_UNIT_TYCD = #{dscsUnitTycd}
+          AND A.DSCS_UNIT_TYCD = #{dscsUnitTycd}
         </if>
         <if test="evlScrTycd != null and evlScrTycd != ''">
-            AND EVL_SCR_TYCD = #{evlScrTycd}
+            AND A.EVL_SCR_TYCD = #{evlScrTycd}
         </if>
         <if test="dscsTtl != null and dscsTtl != ''">
-          AND DSCS_TTL LIKE FN_LIKE_VAL(#{dscsTtl})
+          AND A.DSCS_TTL LIKE FN_LIKE_VAL(#{dscsTtl})
         </if>
         <if test="dscsSdttm != null and dscsSdttm != '' and dscsEdttm != null and dscsEdttm != ''">
           <![CDATA[
-          AND TO_DATE(DSCS_SDTTM, 'YYYYMMDDHH24MISS')
+          AND TO_DATE(A.DSCS_SDTTM, 'YYYYMMDDHH24MISS')
               BETWEEN TO_DATE(#{dscsSdttm}, 'YYYYMMDDHH24MISS')
                   AND TO_DATE(#{dscsEdttm}, 'YYYYMMDDHH24MISS')
           ]]>
         </if>
-        ORDER BY REG_DTTM DESC, DSCS_ID DESC
+        ORDER BY A.REG_DTTM DESC, A.DSCS_ID DESC
     </sql>
 
-    <!-- 토론목록조회(페이징) -->
+    <select id="selectForumDvclasList" parameterType="forum2VO" resultType="forum2VO">
+        /*
+            SQL ID : ForumDAO.selectForumDvclasList
+            설명 : 토론분반목록조회
+        */
+        WITH BASE AS (
+            SELECT
+                  PROF_ID
+                , SMSTR_CHRT_ID
+            FROM TB_LMS_SBJCT
+            WHERE SBJCT_ID = #{sbjctId}
+              AND DELYN = 'N'
+              AND USEYN = 'Y'
+        )
+        SELECT
+              SBJCT.SBJCT_ID
+            , SBJCT.DVCLAS_NO AS DVCLAS_NO
+            , SBJCT.SBJCT_ID AS DVCLS_NO
+        FROM TB_LMS_SBJCT SBJCT
+        JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
+          ON SBJCT.SBJCT_ID = SBJCT_ADM.SBJCT_ID
+         AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
+         AND SBJCT_ADM.USER_ID = (SELECT PROF_ID FROM BASE)
+        WHERE SBJCT.DELYN = 'N'
+          AND SBJCT.USEYN = 'Y'
+          AND SBJCT.SMSTR_CHRT_ID = (SELECT SMSTR_CHRT_ID FROM BASE)
+        ORDER BY SBJCT.DVCLAS_NO
+    </select>
+
     <select id="selectForumList" parameterType="Forum2ListVO" resultType="Forum2ListVO">
         /*
-            SQL ID : ForumDAO.selectForumList
-            설명 : 토론목록조회(페이징)
+        SQL ID : Forum2DAO.selectForumList
+        설명 : 토론목록조회(페이징)
         */
         <include refid="CommonSQL.pagePrefix" />
         <include refid="listQuery" />
         <include refid="CommonSQL.pageSubfix" />
     </select>
 
-    <!-- 토론정보조회(1건) -->
     <select id="selectForum" parameterType="forum2VO" resultType="forum2VO">
         /*
-            SQL ID : ForumDAO.selectForum
+            SQL ID : Forum2DAO.selectForum
             설명 : 토론정보조회(1건)
         */
         SELECT
@@ -87,17 +241,18 @@
           , DSCS_CTS
           , DSCS_SDTTM
           , DSCS_EDTTM
-          , DVCLS_ID
+          , DVCLS_NO
           , LRN_GRP_ID
           , DELYN
           , OATCL_INQYN
-          , OKNOK_CFGYN
+          , OKNOK_STNGYN
           , OKNOKRT_OYN
           , OKNOK_MODYN
           , MLT_OPNN_REGYN
           , OKNOK_RGTR_OYN
           , CMNT_RSPNS_REQYN
           , MRK_RFLTYN
+          , MRK_RFLTRT
           , MRK_OYN
           , RGTR_ID
           , REG_DTTM
@@ -109,10 +264,27 @@
           AND DELYN = 'N'
     </select>
 
-    <!-- 토론등록 -->
+    <insert id="insertForumGrp" parameterType="forum2VO">
+        /*
+            SQL ID : Forum2DAO.insertForumGrp
+            설명 : 토론그룹등록
+        */
+        INSERT INTO TB_LMS_DSCS_GRP (
+            DSCS_GRP_ID
+          , DSCS_GRPNM
+          , RGTR_ID
+          , REG_DTTM
+        ) VALUES (
+            #{dscsGrpId}
+          , #{dscsGrpnm}
+          , #{rgtrId}
+          , FN_DTTM()
+        )
+    </insert>
+
     <insert id="insertForum" parameterType="forum2VO">
         /*
-            SQL ID : ForumDAO.insertForum
+            SQL ID : Forum2DAO.insertForum
             설명 : 토론등록
         */
         INSERT INTO TB_LMS_DSCS (
@@ -125,17 +297,18 @@
           , DSCS_CTS
           , DSCS_SDTTM
           , DSCS_EDTTM
-          , DVCLS_ID
+          , DVCLS_NO
           , LRN_GRP_ID
           , DELYN
           , OATCL_INQYN
-          , OKNOK_CFGYN
+          , OKNOK_STNGYN
           , OKNOKRT_OYN
           , OKNOK_MODYN
           , MLT_OPNN_REGYN
           , OKNOK_RGTR_OYN
           , CMNT_RSPNS_REQYN
           , MRK_RFLTYN
+          , MRK_RFLTRT
           , MRK_OYN
           , RGTR_ID
           , REG_DTTM
@@ -152,17 +325,18 @@
           , #{dscsCts}
           , #{dscsSdttm}
           , #{dscsEdttm}
-          , #{dvclsId}
+          , #{dvclsNo}
           , #{lrnGrpId}
           , NVL(#{delyn}, 'N')
           , NVL(#{oatclInqyn}, 'N')
-          , NVL(#{oknokCfgyn}, 'N')
+          , NVL(#{oknokStngyn}, 'N')
           , NVL(#{oknokrtOyn}, 'N')
           , NVL(#{oknokModyn}, 'N')
           , NVL(#{mltOpnnRegyn}, 'N')
           , NVL(#{oknokRgtrOyn}, 'N')
           , NVL(#{cmntRspnsReqyn}, 'N')
           , NVL(#{mrkRfltyn}, 'N')
+          , NVL(#{mrkRfltrt}, 0)
           , NVL(#{mrkOyn}, 'N')
           , #{rgtrId}
           , FN_DTTM()
@@ -172,11 +346,10 @@
         )
     </insert>
 
-    <!-- 토론수정 -->
     <update id="updateForum" parameterType="forum2VO">
         /*
-            SQL ID : ForumDAO.updateForum
-            설명 : 토론수정
+           SQL ID : ForumDAO.updateForum
+           설명 : 토론수정
         */
         UPDATE TB_LMS_DSCS
         SET MDFR_ID = NVL(#{mdfrId}, #{rgtrId})
@@ -205,8 +378,8 @@
         <if test="dscsEdttm != null and dscsEdttm != ''">
           , DSCS_EDTTM = #{dscsEdttm}
         </if>
-        <if test="dvclsId != null and dvclsId != ''">
-          , DVCLS_ID = #{dvclsId}
+        <if test="dvclsNo != null and dvclsNo != ''">
+          , DVCLS_NO = #{dvclsNo}
         </if>
         <if test="lrnGrpId != null and lrnGrpId != ''">
           , LRN_GRP_ID = #{lrnGrpId}
@@ -217,8 +390,8 @@
         <if test="oatclInqyn != null and oatclInqyn != ''">
           , OATCL_INQYN = #{oatclInqyn}
         </if>
-        <if test="oknokCfgyn != null and oknokCfgyn != ''">
-          , OKNOK_CFGYN = #{oknokCfgyn}
+        <if test="oknokStngyn != null and oknokStngyn != ''">
+          , OKNOK_STNGYN = #{oknokStngyn}
         </if>
         <if test="oknokrtOyn != null and oknokrtOyn != ''">
           , OKNOKRT_OYN = #{oknokrtOyn}
@@ -263,7 +436,7 @@
           , DSCS_CTS
           , DSCS_SDTTM
           , DSCS_EDTTM
-          , DVCLS_ID
+          , DVCLS_NO
           , LRN_GRP_ID
           , DELYN
           , OATCL_INQYN
@@ -273,6 +446,7 @@
           , OKNOK_RGTR_OYN
           , CMNT_RSPNS_REQYN
           , MRK_RFLTYN
+          , MRK_RFLTRT
           , MRK_OYN
           , RGTR_ID
           , REG_DTTM
@@ -290,7 +464,7 @@
           , DSCS_CTS
           , DSCS_SDTTM
           , DSCS_EDTTM
-          , DVCLS_ID
+          , DVCLS_NO
           , LRN_GRP_ID
           , 'N'
           , OATCL_INQYN
@@ -300,6 +474,7 @@
           , OKNOK_RGTR_OYN
           , CMNT_RSPNS_REQYN
           , MRK_RFLTYN
+          , NVL(MRK_RFLTRT, 0)
           , MRK_OYN
           , #{rgtrId}
           , FN_DTTM()
@@ -310,7 +485,35 @@
         WHERE DSCS_ID = #{copydscsId}
     </insert>
 
-    <!-- 토론 삭제(논리삭제) -->
+
+    <update id="updateForumMrkOyn" parameterType="forum2VO">
+        /*
+            SQL ID : Forum2DAO.updateForumMrkOyn
+            설명 : 토론성적공개여부 수정
+        */
+        UPDATE TB_LMS_DSCS
+        SET MRK_OYN = #{mrkOyn}
+          , MDFR_ID = NVL(#{mdfrId}, #{rgtrId})
+          , MOD_DTTM = FN_DTTM()
+        WHERE DSCS_ID = #{dscsId}
+          AND DELYN = 'N'
+    </update>
+
+    <update id="updateForumMrkRfltrt" parameterType="java.util.List">
+        /*
+            SQL ID : Forum2DAO.updateForumMrkRfltrt
+            설명 : 토론성적반영비율 수정
+        */
+        <foreach item="item" collection="list" separator=";" open="BEGIN" close="; END;">
+        UPDATE TB_LMS_DSCS
+           SET MRK_RFLTRT = #{item.mrkRfltrt}
+             , MDFR_ID = NVL(#{item.mdfrId}, #{item.rgtrId})
+             , MOD_DTTM = FN_DTTM()
+         WHERE DSCS_ID = #{item.dscsId}
+           AND DELYN = 'N'
+        </foreach>
+    </update>
+
     <update id="deleteForum" parameterType="forum2VO">
         /*
             SQL ID : ForumDAO.deleteForum
@@ -324,3 +527,5 @@
     </update>
 
 </mapper>
+
+

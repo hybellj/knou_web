@@ -1,16 +1,16 @@
 package knou.lms.dashboard.facade;
 
 import knou.framework.context2.UserContext;
-import knou.lms.bbs2.dto.BbsParam;
-import knou.lms.dashboard.web.view.DashboardResponse;
+import knou.lms.common.dto.BaseParam;
+import knou.lms.dashboard.web.view.DashboardViewModel;
 
 public interface DashboardFacadeService {
 
-	public DashboardResponse cmmonDashboardResponse(BbsParam param) throws Exception ;
+	public DashboardViewModel cmmonDashboardViewModel(BaseParam param) throws Exception ;
 	
-	public DashboardResponse stdntDashboardResponse(BbsParam param) throws Exception ;
+	public DashboardViewModel stdntDashboardViewModel(BaseParam param) throws Exception ;
 	
-	public DashboardResponse profDashboardResponse(BbsParam param) throws Exception ;
+	public DashboardViewModel profDashboardViewModel(BaseParam param) throws Exception ;
 	
-	public DashboardResponse getDashboardResponse(UserContext userCtx, BbsParam param) throws Exception ;
+	public DashboardViewModel getDashboardResponse(UserContext userCtx, BaseParam param) throws Exception ;
 }

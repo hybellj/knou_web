@@ -571,9 +571,9 @@
 
             // 3. 사용여부 체크박스 설정
             if (useyn === 'Y') {
-                $.switcherOn("useyn");
+                UiSwitcherOn("useyn");
             } else {
-                $.switcherOff("useyn");
+                UiSwitcherOff("useyn");
             }
 
             // 4. 버튼 상태 변경
@@ -715,7 +715,7 @@
             $("#modifyCdArea2 input").prop("disabled", true);
 
             // 사용여부 체크박스 초기화 (Y로 설정)
-            $.switcherOn("useyn");
+            UiSwitcherOn("useyn");
 
             // 버튼 상태 원래대로
             $("#cdSaveBtn").prop("disabled", true);

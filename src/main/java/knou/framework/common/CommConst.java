@@ -675,6 +675,18 @@ public class CommConst {
     public static final String[] FILE_TYPE_DOC_EXT		= {"doc", "docx", "xls", "xlsx", "ppt", "pptx", "hwp", "hwpx", "rtf", "pdf"};
     public static final String[] FILE_TYPE_TXT_EXT		= {"txt", "htm", "html", "css", "js", "xml", "csv", "log", "json"};
 
+    // 파일저장소아이디
+    public static final String   REPO_BBS				= "BBS";	// 게시판
+    public static final String   REPO_DSCS				= "DSCS";	// 토론
+    public static final String   REPO_ASMT				= "ASMT";	// 과제
+    public static final String   REPO_EXAM				= "EXAM";	// 시험
+    public static final String   REPO_SMNR				= "SMNR";	// 세미나
+    public static final String   REPO_SRVY				= "SRVY";	// 설문
+    public static final String   REPO_CONTS				= "CONTS";	// 강의콘텐츠
+    public static final String   REPO_MSG				= "MSG";	// 메시지
+    public static final String   REPO_USER				= "USER";	// 사용자
+
+
     // 사용자 접속상태 체크값
     public static final String[][] CONN_CHECK_LIST = {
     		{"/profDashboard.do", CONN_HOME},

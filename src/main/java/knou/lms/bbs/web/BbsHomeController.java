@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
+import knou.framework.common.RepoInfo;
 import knou.framework.common.SessionInfo;
 import knou.framework.exception.AccessDeniedException;
 import knou.framework.exception.BadRequestUrlException;
@@ -1685,6 +1686,9 @@ public class BbsHomeController extends ControllerBase {
             throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
         }
 
+        // 게시판정보에 파라메터값 재설정 (게시판정보 조회에서 초기화돼서 재설정)
+        setEparamToVO(bbsVO);
+
         /*
          TODO 강의실 활동 로그 추가해야....
         if(BbsAuthUtil.isStudent(request)) {
@@ -1752,6 +1756,7 @@ public class BbsHomeController extends ControllerBase {
 
             resultVO = bbsAtclService.selectBbsAtclList(bbsAtclVO);
             resultVO.setResult(1);
+            resultVO.setEparam(getEparam());
         } catch(Exception e) {
             LOGGER.debug("e: ", e);
             resultVO.setResult(-1);
@@ -1880,6 +1885,7 @@ public class BbsHomeController extends ControllerBase {
         // 파라메터 설정
         addEparam("bbsId", bbsVO.getBbsId());
         addEparam("bbsTycd", bbsVO.getBbsTycd());
+        delEparam("atclId");
 
         // 학기정보
         SmstrChrtVO smstrChrtVO = new SmstrChrtVO();
@@ -1975,7 +1981,7 @@ public class BbsHomeController extends ControllerBase {
             throw new BadRequestUrlException(getMessage("bbs.error.not_exists_atcl"));
         }
 
-        addEparam("atclId", bbsAtclVO.getAtclId());
+        bbsAtclVO.setGubun(gubun); // 구분값
 
         model.addAttribute("bbsVO", bbsVO);
         model.addAttribute("bbsAtclVO", bbsAtclVO);
@@ -2108,6 +2114,12 @@ public class BbsHomeController extends ControllerBase {
             throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
         }
 
+        // 페이지/검색 파라메터 삭제
+        delEparamPageSearch();
+
+        // 첨부파일저장소 설정
+        bbsVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_BBS, bbsId));
+
         // 글쓰기 권한 체크
         //atclWriteAuth = BbsAuthUtil.getAtclWriteAuth(request, bbsVO);
 
@@ -2211,8 +2223,14 @@ public class BbsHomeController extends ControllerBase {
             }
             */
 
-            // 게시글 저장
-            bbsAtclService.insertBbsAtcl(vo);
+            if ("edit".equals(vo.getGubun())) {
+            	// 게시글 수정
+                bbsAtclService.updateBbsAtcl(vo);
+            }
+            else {
+                // 게시글 저장
+                bbsAtclService.insertBbsAtcl(vo);
+            }
 
             resultVO.setReturnVO(vo);
             resultVO.setResult(1);
@@ -2307,6 +2325,9 @@ public class BbsHomeController extends ControllerBase {
             // 게시글 정보를 찾을 수 없습니다.
             throw new BadRequestUrlException(getMessage("bbs.error.not_exists_atcl"));
         }
+
+        // 첨부파일저장소 설정
+        bbsVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_BBS, bbsId));
 
         model.addAttribute("bbsVO", bbsVO);
         model.addAttribute("bbsAtclVO", bbsAtclVO);

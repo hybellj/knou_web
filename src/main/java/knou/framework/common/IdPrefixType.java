@@ -106,6 +106,7 @@ public enum IdPrefixType {
 
     // 문제은행
     QB("QB", "문제은행"),
+    QBCTG("QBCTG", "문제은행분류"),
     QBQSN("QBQSN", "문제은행문항"),
     QBQSR("QBQSR", "문제은행문항정답"),
     QBQVW("QBQVW", "문제은행보기항목"),

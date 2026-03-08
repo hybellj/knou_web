@@ -4,16 +4,18 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import org.springframework.stereotype.Service;
 
+import knou.framework.common.ServiceBase;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.dao.MsgSndrDsctnDAO;
 import knou.lms.msg.service.MsgSndrDsctnService;
 import knou.lms.msg.vo.MsgSndrDsctnVO;
 
 @Service("msgSndrDsctnService")
-public class MsgSndrDsctnServiceImpl implements MsgSndrDsctnService {
+public class MsgSndrDsctnServiceImpl extends ServiceBase implements MsgSndrDsctnService {
 
     @Resource(name = "msgSndrDsctnDAO")
     private MsgSndrDsctnDAO msgSndrDsctnDAO;
@@ -82,7 +84,7 @@ public class MsgSndrDsctnServiceImpl implements MsgSndrDsctnService {
      * @return
      */
     @Override
-    public List<MsgSndrDsctnVO> selectSndrDsctnSmstrList(MsgSndrDsctnVO vo) {
+    public List<EgovMap> selectSndrDsctnSmstrList(MsgSndrDsctnVO vo) {
         return msgSndrDsctnDAO.selectSndrDsctnSmstrList(vo);
     }
 

@@ -1,6 +1,5 @@
 package knou.lms.msg.web;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -64,7 +63,6 @@ public class MsgAlimController extends ControllerBase {
      * 채널별 알림 목록 조회
      * @param request
      * @param chnlCd
-     * @param listCnt
      * @return
      */
     @RequestMapping("/alimChnlListAjax.do")
@@ -87,27 +85,7 @@ public class MsgAlimController extends ControllerBase {
             msgAlimVO.setUserId(userId);
             msgAlimVO.setListCnt(LIST_CNT);
 
-            Map<String, Object> data = new HashMap<>();
-
-            // 읽지 않은 건수
-            EgovMap unreadCnt = msgAlimService.selectAlimUnrdCnt(msgAlimVO);
-            data.put("unreadCnt", unreadCnt);
-
-            // 채널별 목록 조회
-            if ("ALL".equals(chnlCd)) {
-                data.put("pushList", msgAlimService.selectAlimPushList(msgAlimVO));
-                data.put("smsList", msgAlimService.selectAlimSmsList(msgAlimVO));
-                data.put("msgList", msgAlimService.selectShrtntList(msgAlimVO));
-                data.put("talkList", msgAlimService.selectAlimNotitalkList(msgAlimVO));
-            } else if ("PUSH".equals(chnlCd)) {
-                data.put("pushList", msgAlimService.selectAlimPushList(msgAlimVO));
-            } else if ("SMS".equals(chnlCd)) {
-                data.put("smsList", msgAlimService.selectAlimSmsList(msgAlimVO));
-            } else if ("SHRTNT".equals(chnlCd)) {
-                data.put("msgList", msgAlimService.selectShrtntList(msgAlimVO));
-            } else if ("ALIM_TALK".equals(chnlCd)) {
-                data.put("talkList", msgAlimService.selectAlimNotitalkList(msgAlimVO));
-            }
+            Map<String, Object> data = msgAlimService.selectAlimChnlData(msgAlimVO, chnlCd);
 
             resultVO.setReturnVO(data);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);

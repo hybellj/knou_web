@@ -114,19 +114,19 @@
 			WHERE 1=1
 				AND DELYN = 'N'
 			<if test="sbjctYr != null and sbjctYr != ''">
-				AND SBJCT_YR = #{sbjctYr}
+				AND A.SBJCT_YR = #{sbjctYr}
 			</if>
 			<if test="smstrChrtId != null and smstrChrtId != ''">
-				AND SMSTR_CHRT_ID = #{smstrChrtId}
+				AND A.SMSTR_CHRT_ID = #{smstrChrtId}
 			</if>
 			<if test="orgId != null and orgId != ''">
-				AND ORG_ID = #{orgId}
+				AND SMSTR.ORG_ID = #{orgId}
 			</if>
 			<if test="deptId != null and deptId != ''">
-				AND DEPT_ID = #{deptId}
+				AND A.DEPT_ID = #{deptId}
 			</if>
 			<if test="sbjctId != null and sbjctId != ''">
-				AND SBJCT_ID = #{sbjctId}
+				AND A.SBJCT_ID = #{sbjctId}
 			</if>
 		),
 		<!-- 과목별 오픈 주차 목록 -->
@@ -160,6 +160,7 @@
 				, B.USER_ID
 				, USR.USERNM
 				, B.SCYR
+			    , USR.STDNT_NO
 			FROM SBJ_LIST A
 			JOIN TB_LMS_ATNDLC B ON A.SBJCT_ID = B.SBJCT_ID
 			JOIN TB_LMS_USER USR ON B.USER_ID = USR.USER_ID

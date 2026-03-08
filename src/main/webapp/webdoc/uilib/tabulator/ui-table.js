@@ -74,6 +74,7 @@ function UiTable(tableId, opts) {
     let selectRowFunc = !opts.selectRowFunc ? "" : opts.selectRowFunc;
     let pageInfo = !opts.pageInfo ? null : opts.pageInfo;
     let pageFunc = !opts.pageFunc ? null : opts.pageFunc;
+	let changeFunc = !opts.changeFunc ? null : opts.changeFunc;
     let showTotRecord = opts.showTotRecord == undefined ? true : opts.showTotRecord;
     let showCurrentPage = opts.showCurrentPage == undefined ? true : opts.showCurrentPage;
     let data = !opts.data ? null : opts.data;
@@ -160,6 +161,7 @@ function UiTable(tableId, opts) {
     uiTable.enableCard = enableCard;
     uiTable.sortFunc = sortFunc;
     uiTable.pageFunc = pageFunc;
+	uiTable.changeFunc = changeFunc;
     uiTable.isParentSet = false;
     uiTable.isRendered = false;
     uiTable.selectable = selectRow;
@@ -391,6 +393,10 @@ function UiTable(tableId, opts) {
         uiTable.setParentWidth(false);
         $table.addClass(MODE_TEMP);
         uiTable.redraw(true);
+
+		if (uiTable.changeFunc && typeof uiTable.changeFunc === "function") {
+			uiTable.changeFunc(uiTable.mode);
+		}
     }
 
     // 리사이즈/미디어쿼리 변화에 반응
@@ -417,6 +423,10 @@ function UiTable(tableId, opts) {
             uiTable.setParentWidth(false);
             $table.addClass(MODE_TEMP);
             uiTable.redraw(true);
+
+			if (uiTable.changeFunc && typeof uiTable.changeFunc === "function") {
+				uiTable.changeFunc(uiTable.mode);
+			}
         }, 300);
     });
 

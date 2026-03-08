@@ -1,6 +1,8 @@
 package knou.lms.forum2.service.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -13,7 +15,9 @@ import knou.framework.util.StringUtil;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.forum2.dao.Forum2DAO;
 import knou.lms.forum2.service.ForumService;
+import knou.lms.forum2.vo.Forum2DvclasSelVO;
 import knou.lms.forum2.vo.Forum2ListVO;
+import knou.lms.forum2.vo.Forum2LrnGrpVO;
 import knou.lms.forum2.vo.Forum2VO;
 
 @Service("forum2Service")
@@ -21,6 +25,11 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
     @Resource(name = "forum2DAO")
     private Forum2DAO forumDAO;
+
+    @Override
+    public List<Forum2VO> selectForumDvclasList(Forum2VO vo) throws Exception {
+        return forumDAO.selectForumDvclasList(vo);
+    }
 
     /**
      * 토론목록조회
@@ -61,24 +70,134 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
     }
 
     /**
-     * 토론저장
+     * 토론성적공개여부 수정
      * @param vo
      * @return
      * @throws Exception
      */
     @Override
+    public ProcessResultVO<Forum2VO> modifyForumMrkOyn(Forum2VO vo) throws Exception {
+        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+
+        int affected = forumDAO.updateForumMrkOyn(vo);
+        if (affected > 0) {
+            resultVO.setReturnVO(vo);
+            resultVO.setResultSuccess();
+        } else {
+            resultVO.setResultFailed("update target not found");
+        }
+
+        return resultVO;
+    }
+
+    @Override
+    public void updateForumMrkRfltrt(List<Forum2VO> list) throws Exception {
+        forumDAO.updateForumMrkRfltrt(list);
+    }
+
+    @Override
     public ProcessResultVO<Forum2VO> saveForum(Forum2VO vo) throws Exception {
         ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
 
-        if (StringUtil.isNull(vo.getOknokCfgyn())) {
-            vo.setOknokCfgyn("N");
+        if (StringUtil.isNull(vo.getOknokStngyn())) {
+            vo.setOknokStngyn("N");
         }
 
-        if (StringUtil.isNull(vo.getDscsId())) {
-            vo.setDscsId(IdGenerator.getNewId("DSCS"));
-            forumDAO.insertForum(vo);
-        } else {
+        boolean isInsertMode = StringUtil.isNull(vo.getDscsId());
+        boolean isTeamDiscussion = "TEAM".equalsIgnoreCase(vo.getDscsUnitTycd()) || "Y".equalsIgnoreCase(vo.getDscsUnitTycd());
+        vo.setDscsUnitTycd(isTeamDiscussion ? "TEAM" : "NORMAL");
+
+        if (!isInsertMode) {
+            // 수정(mode=E): 기존 dscsId 단건 update만 수행
+            vo.setdvclsNo(null); // 수정 시 분반 변경 금지
             forumDAO.updateForum(vo);
+        } else {
+            List<Forum2DvclasSelVO> dvclasSelList = vo.getDvclasSelList();
+            if (dvclasSelList == null || dvclasSelList.isEmpty()) {
+                resultVO.setResultFailed("등록 시 분반 정보가 필요합니다.");
+                return resultVO;
+            }
+
+            Map<String, String> lrnGrpMapByDvclasNo = new HashMap<>();
+            Map<String, String> lrnGrpNmMapByDvclasNo = new HashMap<>();
+            List<Forum2LrnGrpVO> lrnGrpInfoList = vo.getLrnGrpInfoList();
+            if (lrnGrpInfoList != null) {
+                for (Forum2LrnGrpVO info : lrnGrpInfoList) {
+                    if (info == null) {
+                        continue;
+                    }
+                    if (!StringUtil.isNull(info.getDvclasNo()) && !StringUtil.isNull(info.getLrnGrpId())) {
+                        lrnGrpMapByDvclasNo.put(info.getDvclasNo(), info.getLrnGrpId());
+                    }
+                    if (!StringUtil.isNull(info.getDvclasNo()) && !StringUtil.isNull(info.getLrnGrpnm())) {
+                        lrnGrpNmMapByDvclasNo.put(info.getDvclasNo(), info.getLrnGrpnm());
+                    }
+                }
+            }
+
+            if (isTeamDiscussion) {
+                if (lrnGrpMapByDvclasNo.isEmpty()) {
+                    resultVO.setResultFailed("팀토론 등록 시 분반별 학습그룹 정보가 필요합니다.");
+                    return resultVO;
+                }
+            }
+
+            String firstDscsId = null;
+            for (Forum2DvclasSelVO dvclasSelVO : dvclasSelList) {
+                // 분반별 과목개설ID 를 등록한다.
+                vo.setSbjctId(dvclasSelVO.getSbjctId());
+                if (dvclasSelVO == null) {
+                    continue;
+                }
+                if (!"Y".equalsIgnoreCase(dvclasSelVO.getCheckedYn())) {
+                    continue;
+                }
+
+                String dvclasNo = dvclasSelVO.getDvclasNo();
+                String dvclsNo = dvclasNo; 
+                if (StringUtil.isNull(dvclsNo)) {
+                    resultVO.setResultFailed("등록 시 분반 정보가 필요합니다.");
+                    return resultVO;
+                }
+
+                if (isTeamDiscussion) {
+                    String lrnGrpId = lrnGrpMapByDvclasNo.get(dvclasNo);
+                    String lrnGrpnm = lrnGrpNmMapByDvclasNo.get(dvclasNo);
+                    if (StringUtil.isNull(lrnGrpId)) {
+                        resultVO.setResultFailed("팀토론 등록 시 분반별 학습그룹 정보가 필요합니다.");
+                        return resultVO;
+                    }
+                    if (StringUtil.isNull(lrnGrpnm)) {
+                        resultVO.setResultFailed("팀토론 등록 시 분반별 학습그룹 정보가 필요합니다.");
+                        return resultVO;
+                    }
+                    String dscsGrpId = IdGenerator.getNewId("DGRP");
+                    vo.setDscsGrpId(dscsGrpId);
+                    vo.setLrnGrpId(lrnGrpId);
+                    vo.setDscsGrpnm(lrnGrpnm);
+                    forumDAO.insertForumGrp(vo);
+                } else {
+                    vo.setDscsGrpId(null);
+                    vo.setLrnGrpId(null);
+                    vo.setDscsGrpnm(null);
+                }
+
+                String newDscsId = IdGenerator.getNewId("DSCS");
+                vo.setDscsId(newDscsId);
+                vo.setdvclsNo(dvclsNo);
+                forumDAO.insertForum(vo);
+
+                if (firstDscsId == null) {
+                    // 입력된 분반 선택 순서 기준으로 첫 번째 DSCS를 대표 dscsId로 사용
+                    firstDscsId = newDscsId;
+                }
+            }
+
+            if (StringUtil.isNull(firstDscsId)) {
+                resultVO.setResultFailed("팀토론 등록 시 유효한 분반 정보가 없습니다.");
+                return resultVO;
+            }
+            vo.setDscsId(firstDscsId);
         }
 
         Forum2VO detailParam = new Forum2VO();

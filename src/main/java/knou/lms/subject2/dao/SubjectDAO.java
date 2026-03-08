@@ -1,31 +1,26 @@
 package knou.lms.subject2.dao;
 
-import knou.lms.subject2.vo.SubjectVO;
+import java.util.List;
+
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
-import java.util.List;
+import knou.lms.common.dto.BaseParam;
+import knou.lms.subject2.vo.SubjectVO;
 
 @Mapper("subjectDAO")
 public interface SubjectDAO {
+   
+    public SubjectVO subjectSelect(BaseParam param) throws Exception;
 
-    /**
-     * 과목조회
-     *
-     * @param subjectId
-     * @return SubjctOfferingVO
-     * @throws Exception
-     */
-    public SubjectVO subjectSelect(String subjectId) throws Exception;
+    public List<EgovMap> subjectLearningActvList(BaseParam param) throws Exception;
 
-    public List<EgovMap> subjectLearningActvList(String subjectId) throws Exception;
+    public EgovMap sbjctAdmSelect(BaseParam param) throws Exception;
 
-    public EgovMap sbjctAdmSelect(String subjectId) throws Exception;
+    public List<EgovMap> sbjctAdmList(BaseParam param) throws Exception;
 
-    public List<EgovMap> sbjctAdmList(String subjectId) throws Exception;
+    public EgovMap middleLastExamSelect(BaseParam param) throws Exception;
 
-    public EgovMap middleLastExamSelect(String subjectId) throws Exception;
-
-	public EgovMap subjectBbsIdsSelect(String subjectId) throws Exception;
+	public EgovMap subjectBbsIdsSelect(BaseParam param) throws Exception;
 
 }

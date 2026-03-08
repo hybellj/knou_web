@@ -29,18 +29,18 @@
 		WHERE 	SBJCT.SBJCT_ID = #{subjectId}
 	</select>
 	
-	<select id="subjectBbsIdsSelect" parameterType="string" resultType="egovMap">
+	<select id="subjectBbsIdsSelect" resultType="egovMap">
 		/*	설	명 	: 과목게시판아이디조회*/
 		SELECT	MAX(CASE WHEN BBS.BBS_TYCD = 'NTC'	THEN BBS.BBS_ID END) AS NTC_BBS_ID,
 				MAX(CASE WHEN BBS.BBS_TYCD = '1ON1'	THEN BBS.BBS_ID END) AS ONE_ON_ONE_BBS_ID,
-				MAX(CASE WHEN BBS.BBS_TYCD = 'QNA'	THEN BBS.BBS_ID END) AS QNA_BBS_ID
+				MAX(CASE WHEN BBS.BBS_TYCD = 'QNA'	THEN BBS.BBS_ID END) AS QNA_BBS_ID,
 				MAX(CASE WHEN BBS.BBS_TYCD = 'DATA'	THEN BBS.BBS_ID END) AS DATA_BBS_ID
 		FROM 	TB_LMS_SBJCT SBJCT
 				JOIN TB_LMS_BBS BBS ON SBJCT.SBJCT_ID = BBS.SBJCT_ID AND BBS.DELYN = 'N'
 		WHERE 	SBJCT.SBJCT_ID = #{subjectId}
 	</select>
 
-	<select id="sbjctAdmSelect" parameterType="string" resultType="egovMap">
+	<select id="sbjctAdmSelect" resultType="egovMap">
 		/*		설  명 : 과목관리자조회			*/
 	 	SELECT	A.SBJCT_ID,
 		    	MAX(CASE WHEN A.SBJCT_ADM_TYCD = 'PROF'	THEN U.USERNM END) AS PROFNM,
@@ -54,7 +54,7 @@
 		GROUP 	BY A.SBJCT_ID
 		ORDER 	BY A.SBJCT_ID
 	</select>
-	<select id="sbjctAdmList" parameterType="string" resultType="egovMap">
+	<select id="sbjctAdmList" resultType="egovMap">
 		/*
 			 SQL ID : SubjectDAO.sbjctAdmList
 			 설  명  : 과목관리자목록조회

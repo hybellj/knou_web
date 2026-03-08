@@ -18,7 +18,6 @@ import knou.lms.msg.service.MsgTmpltService;
 import knou.lms.msg.vo.MsgTmpltVO;
 
 @Controller
-@RequestMapping(value = "/msg/tmplt")
 public class MsgTmpltController extends ControllerBase {
 
     @Resource(name = "msgTmpltService")
@@ -39,14 +38,8 @@ public class MsgTmpltController extends ControllerBase {
     }
 
     private boolean isAdmin(UserContext userCtx) {
-        return "ADM".equals(userCtx.getAuthrtGrpcd());
-    }
-
-    private boolean isValidAuthority(MsgTmpltVO existVo, String userId, boolean isAdmin) {
-        if (ORG_MSG.equals(existVo.getMsgCtsGbncd())) {
-            return isAdmin;
-        }
-        return userId.equals(existVo.getRgtrId());
+        String authrtGrpcd = userCtx.getAuthrtGrpcd();
+        return authrtGrpcd != null && authrtGrpcd.contains("ADM");
     }
 
     private void initSearchParam(MsgTmpltVO vo, UserContext userCtx) {
@@ -61,35 +54,52 @@ public class MsgTmpltController extends ControllerBase {
     }
 
     /**
-     * 메시지 템플릿 목록 화면
+     * 교수 메시지 템플릿 목록 화면
      * @param vo
      * @param model
      * @param request
      * @return
      * @throws Exception
      */
-    @RequestMapping(value = "/msgTmpltList.do")
-    public String msgTmpltList(MsgTmpltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/profMsgTmpltListView.do")
+    public String profMsgTmpltListView(MsgTmpltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         UserContext userCtx = getUserContext(request);
-
-        initSearchParam(vo, userCtx);
-        vo.setListScale(PAGE_SIZE);
-
-        ProcessResultVO<MsgTmpltVO> resultVO = msgTmpltService.selectTmpltListPage(vo);
 
         model.addAttribute("userCtx", userCtx);
         model.addAttribute("vo", vo);
-        model.addAttribute("list", resultVO.getReturnList());
-        model.addAttribute("totalCnt", resultVO.getPageInfo().getTotalRecordCount());
-        model.addAttribute("pageInfo", resultVO.getPageInfo());
         model.addAttribute("pageSize", PAGE_SIZE);
         model.addAttribute("isAdmin", isAdmin(userCtx));
 
-        return "msg/main/msg_tmplt_list";
+        return "msg2/prof_msg_tmplt_list_view";
     }
 
     /**
-     * 메시지 템플릿 추가 목록 조회 (무한스크롤)
+     * 관리자 메시지 템플릿 목록 화면
+     * @param vo
+     * @param model
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/mngrMsgTmpltListView.do")
+    public String mngrMsgTmpltListView(MsgTmpltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        UserContext userCtx = getUserContext(request);
+
+        if (!isAdmin(userCtx)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
+        model.addAttribute("userCtx", userCtx);
+        model.addAttribute("vo", vo);
+        model.addAttribute("pageSize", PAGE_SIZE);
+        model.addAttribute("isAdmin", true);
+
+        return "msg2/mngr_msg_tmplt_list_view";
+    }
+
+    /**
+     * 메시지 템플릿 목록 조회 (AJAX 페이징)
      * @param vo
      * @param request
      * @return
@@ -104,10 +114,8 @@ public class MsgTmpltController extends ControllerBase {
             UserContext userCtx = getUserContext(request);
 
             initSearchParam(vo, userCtx);
-            vo.setListScale(PAGE_SIZE);
 
             resultVO = msgTmpltService.selectTmpltListPage(vo);
-            resultVO.setSuccess(resultVO.getPageInfo().getLastRecordIndex() < resultVO.getPageInfo().getTotalRecordCount());
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
@@ -199,7 +207,8 @@ public class MsgTmpltController extends ControllerBase {
                 resultVO.setMessage(getMessage("common.content.not_found"));
                 return resultVO;
             }
-            if (!isValidAuthority(existVo, userId, admin)) {
+            boolean hasAuth = ORG_MSG.equals(existVo.getMsgCtsGbncd()) ? admin : userId.equals(existVo.getRgtrId());
+            if (!hasAuth) {
                 resultVO.setResult(ProcessResultVO.RESULT_FAIL);
                 resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
@@ -235,35 +244,11 @@ public class MsgTmpltController extends ControllerBase {
             String userId = userCtx.getUserId();
             boolean admin = isAdmin(userCtx);
 
-            String[] ids = vo.getMsgTmpltIds();
-            if ((ids == null || ids.length == 0) && vo.getMsgTmpltId() != null) {
-                ids = new String[]{vo.getMsgTmpltId()};
-            }
-
-            if (ids == null || ids.length == 0) {
-                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-                resultVO.setMessage(getMessage("common.item.select.msg"));
-                return resultVO;
-            }
-
-            for (String id : ids) {
-                MsgTmpltVO checkVo = new MsgTmpltVO();
-                checkVo.setMsgTmpltId(id);
-                MsgTmpltVO existVo = msgTmpltService.selectTmplt(checkVo);
-
-                if (existVo == null) {
-                    continue;
-                }
-
-                if (!isValidAuthority(existVo, userId, admin)) {
-                    resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-                    resultVO.setMessage(getCommonNoAuthMessage());
-                    return resultVO;
-                }
-            }
-
-            int cnt = msgTmpltService.deleteTmplt(vo);
+            int cnt = msgTmpltService.deleteTmplt(vo, userId, admin);
             resultVO.setResult(cnt > 0 ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
+        } catch (IllegalAccessException e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getCommonNoAuthMessage());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.delete"));
@@ -326,8 +311,7 @@ public class MsgTmpltController extends ControllerBase {
         try {
             UserContext userCtx = getUserContext(request);
 
-            vo.setOrgId(userCtx.getOrgId());
-            vo.setRgtrId(userCtx.getUserId());
+            initSearchParam(vo, userCtx);
 
             List<MsgTmpltVO> list = msgTmpltService.selectTmpltExcelList(vo);
 

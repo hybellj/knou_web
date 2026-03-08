@@ -89,6 +89,7 @@ public class StatisticsController extends ControllerBase {
     	model.addAttribute("filterOptions", filterOptions);
     	
     	return "statistics/learn_progress_list_view";
+//    	return "statistics/learn_progress_list_view_backup";
     }
     
     /**
