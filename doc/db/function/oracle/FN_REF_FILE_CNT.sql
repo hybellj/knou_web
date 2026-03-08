@@ -1,0 +1,16 @@
+CREATE OR REPLACE FUNCTION FN_REF_FILE_CNT(
+	refId      VARCHAR2
+)
+RETURN NUMBER
+IS
+	attachFileCnt NUMBER;
+BEGIN
+	/**
+	 * 참조ID로 첨부파일수 조회
+	 */
+	SELECT COUNT(1) INTO attachFileCnt
+	FROM TB_LMS_ATFL
+	WHERE REF_ID = refId;
+
+	RETURN attachFileCnt;
+END;
