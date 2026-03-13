@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.srvy.dao.SrvyTrgtDAO">
+
+	<insert id="srvyTrgtRegist" parameterType="srvyTrgtVO">
+		/*
+             SQL ID : SrvyTrgtDAO.srvyTrgtRegist
+             설  명  : 설문대상등록
+         */
+         INSERT INTO TB_LMS_SRVY_TRGT (
+         	  SRVY_TRGTR_ID
+			, USER_ID
+			, SRVY_ID
+			, TEAM_ID
+			, RGTR_ID
+			, REG_DTTM
+         ) VALUES (
+         	  #{srvyTrgtrId}
+         	, #{userId}
+         	, #{srvyId}
+         	, #{teamId}
+         	, #{rgtrId}
+         	, FN_DTTM()
+         )
+	</insert>
+
+	<delete id="srvyTrgtrDelete" parameterType="String">
+		/*
+             SQL ID : SrvyTrgtDAO.srvyTrgtrDelete
+             설  명  : 설문대상삭제
+         */
+         DELETE FROM TB_LMS_SRVY_TRGT
+          WHERE SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = #{srvyId})
+	</delete>
+
+</mapper>

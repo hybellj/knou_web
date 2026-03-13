@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.srvy.dao.SrvyGrpDAO">
+
+	<insert id="srvyGrpRegist" parameterType="srvyGrpVO">
+		/*
+             SQL ID : SrvyGrpDAO.srvyGrpRegist
+             설  명  : 설문그룹등록
+         */
+        INSERT INTO TB_LMS_SRVY_GRP (
+         	  SRVY_GRP_ID
+			, SRVY_GRPNM
+			, RGTR_ID
+			, REG_DTTM
+         ) VALUES (
+         	  #{srvyGrpId}
+         	, #{srvyGrpnm}
+			, #{rgtrId}
+			, FN_DTTM()
+         )
+	</insert>
+
+</mapper>

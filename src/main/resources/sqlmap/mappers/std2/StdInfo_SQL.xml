@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.std2.dao.StdInfoDAO">
+    <sql id="stdInfoQuery">
+        SELECT
+            ATNDLC.ATNDLC_ID
+            , ATNDLC.SBJCT_ID
+            , ATNDLC.USER_ID
+            , ATNDLC.SCYR
+            , ATNDLC.CMCRS_GBNCD
+            , ATNDLC.AUDITYN
+            , USR.USER_RPRS_ID
+            , USR.STDNT_NO
+            , USR.USERNM
+            , USR.DSBLYN
+            , DEPT.DEPTNM
+        FROM TB_LMS_ATNDLC ATNDLC
+        JOIN TB_LMS_USER USR ON ATNDLC.USER_ID = USR.USER_ID
+        LEFT JOIN TB_LMS_DEPT DEPT ON DEPT.DEPT_ID = USR.DEPT_ID
+        WHERE ATNDLC.SBJCT_ID = #{sbjctId}
+    </sql>
+    <select id="stdInfoListPaging" resultType="egovMap" parameterType="atndlcVO">
+        /*
+            SQL ID : StdInfoDAO.stdInfoListPaging
+            설  명 : 수강생 정보 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix"/>
+        SELECT ROW_NUMBER() OVER(ORDER BY A.DEPTNM, A.USERNM, A.STDNT_NO) AS LINE_NO
+            , A.*
+            , COUNT(*) OVER() AS TOTAL_CNT
+        FROM (
+            <include refid="stdInfoQuery"/>
+        ) A
+        WHERE 1=1
+        <if test="searchKey != null and searchKey != ''">
+            <if test='searchKey == "std"'>
+                AND A.DSBLYN = 'N'
+                AND A.AUDITYN = 'N'
+            </if>
+            <if test='searchKey == "dsbl"'>
+                AND A.DSBLYN = 'Y'
+            </if>
+            <if test='searchKey == "audit"'>
+                AND A.AUDITYN = 'Y'
+            </if>
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+                LOWER(A.USER_RPRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <include refid="CommonSQL.pageSubfix"/>
+    </select>
+
+    <select id="stdInfoExcelList" resultType="egovMap" parameterType="atndlcVO">
+        /*
+            SQL ID : StdInfoDAO.stdInfoExcelList
+            설  명 : 수강생 정보 엑셀 목록
+        */
+        SELECT ROW_NUMBER() OVER(ORDER BY A.DEPTNM, A.USERNM, A.STDNT_NO) AS LINE_NO
+            , A.*
+        FROM (
+            <include refid="stdInfoQuery"/>
+        ) A
+        WHERE 1=1
+        <if test="searchKey != null and searchKey != ''">
+            <if test='searchKey == "std"'>
+                AND A.DSBLYN = 'N'
+                AND A.AUDITYN = 'N'
+            </if>
+            <if test='searchKey == "dsbl"'>
+                AND A.DSBLYN = 'Y'
+            </if>
+            <if test='searchKey == "audit"'>
+                AND A.AUDITYN = 'Y'
+            </if>
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+                LOWER(A.USER_RPRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+    </select>
+</mapper>
