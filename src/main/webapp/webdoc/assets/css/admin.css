@@ -266,9 +266,9 @@ admin - sub common
 .admin_sub .table_ingrid p {display: flex; align-items: center; justify-content: center;  border: 1px solid #e1e4e8; border-right: 0; font-weight: 600; height: 3rem;}
 .admin_sub .table_ingrid p:nth-child(7n) { border-right: 1px solid #e1e4e8; }
 .admin_sub .table_ingrid p:nth-child(n + 8) {border-top: 0;}
-.admin_sub .table_ingrid .state_ok {color:var(--blue-600) ;}
+/* .admin_sub .table_ingrid .state_ok {color:var(--blue-600) ;}
 .admin_sub .table_ingrid .state_late {color:#F4B600;}
-.admin_sub .table_ingrid .state_no {color:#DC3939 ;}
+.admin_sub .table_ingrid .state_no {color:#DC3939 ;} */
 
 .admin_sub .table-type5 thead tr > * { background-color: var(--table-th-bg); }
 .admin_sub .table-type5 tbody tr th {background-color: #f0f2f6; }
@@ -296,3 +296,9 @@ admin - sub common
 .widget_setting .setting_box .widget-list { display: flex; flex: 1; flex-direction: column; gap: .8rem; padding: 1rem 1.5rem; border: 1px solid #cdcdcd; border-radius: 0 0 6px 6px; }
 .widget_setting .info-tit { font-weight: 400; font-size: 1.6rem; text-align: center; color: #fff; padding: .8rem 1.5rem; background-color: #31394A; border-radius: 6px 6px 0 0; }
 .widget_setting .setting_box + .setting_box .info-tit {background-color: #1f2d4d;}
+
+/* 학사 연동  */
+.haksa_option {display: flex; gap: 1.5rem; align-items: center;}
+.haksa_option .haksa_btn {display: flex; justify-content: space-between; min-width: 16rem;}
+.haksa_option .haksa_btn .icon-svg-yes {color: #007BFF;}
+.haksa_option .haksa_btn .icon-svg-no {color: #DC3939;}

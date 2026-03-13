@@ -49,6 +49,7 @@ public class TkexamServiceImpl extends ServiceBase implements TkexamService {
     * @param tkexamCmptnyn 	응시여부
     * @param evlyn 			평가여부
     * @param searchValue 	검색어(학과, 학번, 이름)
+    * @param userId		 	사용자아이디
 	* @return 퀴즈응시목록
 	* @throws Exception
 	*/

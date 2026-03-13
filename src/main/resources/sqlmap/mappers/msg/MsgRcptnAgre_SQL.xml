@@ -37,6 +37,35 @@
         </if>
     </sql>
 
+    <sql id="selectColumns">
+              S.SBJCT_YR
+             , S.SBJCT_SMSTR
+             , O.ORGNM
+             , D.DEPTNM
+             , S.SBJCTNM
+             , S.DVCLAS_NO
+             , U.USER_TYCD
+             , U.USER_RPRS_ID
+             , U.STDNT_NO
+             , U.USERNM
+             , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
+             , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
+             , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 4, 1) = '1' THEN 'Y' ELSE 'N' END AS PUSH_RCVYN
+             , U.SHRTNT_ALIM_RCVYN
+             , U.EML_ALIM_RCVYN
+             , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 6, 1) = '1' THEN 'Y' ELSE 'N' END AS ALIM_TALK_RCVYN
+             , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 1, 1) = '1' THEN 'Y' ELSE 'N' END AS SMS_RCVYN
+    </sql>
+
+    <sql id="fromJoins">
+        FROM TB_LMS_ATNDLC A
+        INNER JOIN TB_LMS_SBJCT S ON A.SBJCT_ID = S.SBJCT_ID
+        INNER JOIN TB_LMS_USER U ON A.USER_ID = U.USER_ID
+        LEFT JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
+        LEFT JOIN TB_LMS_ORG O ON D.ORG_ID = O.ORG_ID
+        WHERE S.DELYN = 'N'
+    </sql>
+
     <select id="selectRcptnAgreCnt" parameterType="MsgRcptnAgreVO" resultType="int">
         /*
              SQL ID : MsgRcptnAgreDAO.selectRcptnAgreCnt
@@ -60,29 +89,8 @@
         FROM (
             SELECT ROWNUM AS RNUM, T.*
             FROM (
-                SELECT S.SBJCT_YR
-                     , S.SBJCT_SMSTR
-                     , O.ORGNM
-                     , D.DEPTNM
-                     , S.SBJCTNM
-                     , S.DVCLAS_NO
-                     , U.USER_TYCD
-                     , U.USER_RPRS_ID
-                     , U.STDNT_NO
-                     , U.USERNM
-                     , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
-                     , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
-                     , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 4, 1) = '1' THEN 'Y' ELSE 'N' END AS PUSH_RCVYN
-                     , U.SHRTNT_ALIM_RCVYN
-                     , U.EML_ALIM_RCVYN
-                     , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 6, 1) = '1' THEN 'Y' ELSE 'N' END AS ALIM_TALK_RCVYN
-                     , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 1, 1) = '1' THEN 'Y' ELSE 'N' END AS SMS_RCVYN
-                FROM TB_LMS_ATNDLC A
-                INNER JOIN TB_LMS_SBJCT S ON A.SBJCT_ID = S.SBJCT_ID
-                INNER JOIN TB_LMS_USER U ON A.USER_ID = U.USER_ID
-                LEFT JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
-                LEFT JOIN TB_LMS_ORG O ON D.ORG_ID = O.ORG_ID
-                WHERE S.DELYN = 'N'
+                SELECT <include refid="selectColumns"/>
+                <include refid="fromJoins"/>
                 <include refid="searchCondition"/>
                 ORDER BY S.SBJCT_YR DESC, S.SBJCT_SMSTR ASC, S.SBJCTNM ASC, U.USERNM ASC
             ) T
@@ -96,29 +104,8 @@
              SQL ID : MsgRcptnAgreDAO.selectRcptnAgreExcelList
              설  명 : 알림수신동의 엑셀 목록 조회
          */
-        SELECT S.SBJCT_YR
-             , S.SBJCT_SMSTR
-             , O.ORGNM
-             , D.DEPTNM
-             , S.SBJCTNM
-             , S.DVCLAS_NO
-             , U.USER_TYCD
-             , U.USER_RPRS_ID
-             , U.STDNT_NO
-             , U.USERNM
-             , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
-             , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
-             , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 4, 1) = '1' THEN 'Y' ELSE 'N' END AS PUSH_RCVYN
-             , U.SHRTNT_ALIM_RCVYN
-             , U.EML_ALIM_RCVYN
-             , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 6, 1) = '1' THEN 'Y' ELSE 'N' END AS ALIM_TALK_RCVYN
-             , CASE WHEN SUBSTR(NVL(U.PUSH_TALK_SMS_FLAG, '0000000000'), 1, 1) = '1' THEN 'Y' ELSE 'N' END AS SMS_RCVYN
-        FROM TB_LMS_ATNDLC A
-        INNER JOIN TB_LMS_SBJCT S ON A.SBJCT_ID = S.SBJCT_ID
-        INNER JOIN TB_LMS_USER U ON A.USER_ID = U.USER_ID
-        LEFT JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
-        LEFT JOIN TB_LMS_ORG O ON D.ORG_ID = O.ORG_ID
-        WHERE S.DELYN = 'N'
+        SELECT <include refid="selectColumns"/>
+        <include refid="fromJoins"/>
         <include refid="searchCondition"/>
         ORDER BY S.SBJCT_YR DESC, S.SBJCT_SMSTR ASC, S.SBJCTNM ASC, U.USERNM ASC
     </select>
@@ -167,6 +154,9 @@
         <if test="profId != null and profId != ''">
           AND S.PROF_ID = #{profId}
         </if>
+        <if test="orgId != null and orgId != ''">
+          AND D.ORG_ID = #{orgId}
+        </if>
         ORDER BY D.DEPTNM ASC
     </select>
 
@@ -190,6 +180,9 @@
         </if>
         <if test="deptId != null and deptId != ''">
           AND S.DEPT_ID = #{deptId}
+        </if>
+        <if test="orgId != null and orgId != ''">
+          AND EXISTS (SELECT 1 FROM TB_LMS_DEPT D WHERE D.DEPT_ID = S.DEPT_ID AND D.ORG_ID = #{orgId})
         </if>
         ORDER BY S.SBJCTNM ASC
     </select>

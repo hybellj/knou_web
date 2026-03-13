@@ -75,10 +75,10 @@
                                             <i class="xi-ellipsis-v"></i>
                                         </button>
                                         <div class="option-wrap">
-                                            <div class="item"><a href="javascript:goWrite('#[valDscsId]')">토론방</a></div>
-                                            <div class="item"><a href="javascript:goWrite('#[valDscsId]')">토론평가</a></div>
-                                            <div class="item"><a href="javascript:goWrite('#[valDscsId]')">수정</a></div>
-                                            <div class="item"><a href="javascript:if(confirm('삭제하시겠습니까?')){ajaxCall('/forum2/forumLect/profForumDelete.do',{dscsId:'#[valDscsId]'},function(data){if(data.result>0){listPaging(PAGE_INDEX);}else{alert(data.message||'오류가 발생했습니다!');}},function(){alert('오류가 발생했습니다!');});}">삭제</a></div>
+                                            <div class="item"><a href="javascript:goForumBbs('#[valDscsId]')"><spring:message code='forum.label.forum.bbs'/></a></div><!-- 토론방 -->
+                                            <div class="item"><a href="javascript:goForumBbs('#[valDscsId]')"><spring:message code='forum.button.eval'/></a></div><!-- 토론평가 -->
+                                            <div class="item"><a href="javascript:goWrite('#[valDscsId]')"><spring:message code='forum.button.mod'/></a></div><!-- 수정 -->
+                                            <div class="item"><a href="javascript:delForum('#[valDscsId]')"><spring:message code='forum.button.del'/></a></div><!-- 삭제 -->
                                         </div>
                                     </div>
                                 </div>
@@ -202,13 +202,14 @@
             pageIndex		: pageIndex
             , listScale		: LIST_SCALE
             , dscsTtl       : $("#dscsTtl").val()
-            , sbjctId       : 'SBJCT_OFRNG_ID1' // TODO : sbjctId 진입전 값으로 대체 필요.
+            , sbjctId       : '<c:out value="${forum2ListVO.sbjctId}" />'
         };
 
         var url = '<c:url value="/forum2/forumLect/profForumList.do" />';
 
         UiComm.showLoading(true);
         ajaxCall(url, param, function(data) {
+            UiComm.showLoading(false);
             if (data.result > 0) {
                 let returnList = data.returnList || [];
 
@@ -219,10 +220,11 @@
                 forumListTable.setPageInfo(data.pageInfo);
                 UiInputmask();
             } else {
-                alert(data.message);
+                UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
             }
         }, function(xhr, status, error) {
-            alert("에러가 발생했습니다!");
+            UiComm.showLoading(false);
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
         });
     }
 
@@ -302,22 +304,18 @@
                     dataType: "json",
                     beforeSend: function () {
                         UiComm.showLoading(true);
-                    },
-                    success: function (data) {
-                        if (data.result > 0) {
-                            UiComm.showMessage("정상 저장되었습니다.", "success");
-                            listPaging(1);
-                        } else {
-                            UiComm.showMessage(data.message, "error");
-                        }
-                        UiComm.showLoading(false);
-                    },
-                    error: function (xhr, status, error) {
-                        UiComm.showMessage("반영 비율 수정 중 오류가 발생하였습니다.", "error");
-                    },
-                    complete: function () {
-                        UiComm.showLoading(false);
                     }
+                }).done(function(data) {
+                    UiComm.showLoading(false);
+                    if (data.result > 0) {
+                        UiComm.showMessage("<spring:message code='success.common.save' />", "success");/* 정상 저장 되었습니다. */
+                        listPaging(1);
+                    } else {
+                        UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
+                    }
+                }).fail(function() {
+                    UiComm.showLoading(false);
+                    UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
                 });
             }
         }
@@ -370,7 +368,7 @@
                 no: col0,
                 dscsUnitTycd: formatDscsUnitTycd(v.dscsUnitTycd),
                 dscsTtl: title,
-                dscsSdttmEdtm: dateFormat(v.dscsSdttm) + ' ~ ' + dateFormat(v.dscsEdttm),
+                dscsSdttmEdtm: UiComm.formatDate(v.dscsSdttm, 'datetime') + ' ~ ' + UiComm.formatDate(v.dscsEdttm, 'datetime'),
                 dscsAtclCnt: '0',
                 dscsCmntCnt: '0',
                 scoreRate: mrkRfltrt,
@@ -388,7 +386,8 @@
     }
 
     function formatDscsUnitTycd(dscsUnitTycd) {
-        return dscsUnitTycd === 'TEAM' ? '팀토론' : '일반토론';
+        // 팀토론 , 일반토론
+        return dscsUnitTycd === 'TEAM' ? '<spring:message code='forum.label.type.teamForum'/>' : '<spring:message code='forum.label.type.forum'/>';
     }
 
     //성적공개여부 수정
@@ -409,25 +408,59 @@
                 // do something
             } else {
                 $el.prop("checked", !isChecked);
-                alert("에러가 발생했습니다!");
+                UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
             }
         }, function(xhr, status, error) {
             $el.prop("disabled", false);
-            alert("에러가 발생했습니다!");
+            UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
         });
     }
 
-    function showError(message) {
-        var msg = message || '처리 중 오류가 발생했습니다.';
-        alert(msg);
-    }
-
+    // 토론등록/수정
     function goWrite(dscsId) {
         if (dscsId != null && dscsId != "") {
             location.href = '<c:url value="/forum2/forumLect/profForumEditView.do" />?dscsId=' + encodeURIComponent(dscsId);
         } else {
             location.href = '<c:url value="/forum2/forumLect/profForumWriteView.do" />';
         }
+    }
+
+    // 토론방
+    function goForumBbs(dscsId) {
+        // TODO : forumCd -> dscsId 로 변경해야 함.
+        //location.href = '/forum2/forumLect/Form/bbsManage.do?dscsId=' + encodeURIComponent(dscsId);
+        location.href = '/forum2/forumLect/Form/bbsManage.do?forumCd=' + encodeURIComponent(dscsId);
+    }
+
+    //토론삭제
+    function delForum(dscsId) {
+        UiComm.showMessage("<spring:message code="forum.alert.confirm.delete" />", "confirm")/*  정말 토론을 삭제 하시겠습니까?  */
+        .then(function(result) {
+            if (result) {
+                // '확인' 선택
+                $.ajax({
+                    url: "/forum2/forumLect/profForumDelete.do",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({dscsId:dscsId}),
+                    dataType: "json",
+                    beforeSend: function () {
+                        UiComm.showLoading(true);
+                    }
+                }).done(function(data) {
+                    UiComm.showLoading(false);
+                    if (data.result > 0) {
+                        UiComm.showMessage("<spring:message code='success.common.save' />", "success");/* 정상 저장 되었습니다. */
+                        listPaging(PAGE_INDEX);
+                    } else {
+                        UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
+                    }
+                }).fail(function() {
+                    UiComm.showLoading(false);
+                    UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
+                });
+            }
+        });
     }
 </script>
 </body>

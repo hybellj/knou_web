@@ -7,7 +7,286 @@ import knou.lms.common.vo.DefaultVO;
 public class ExamVO extends DefaultVO {
 
     private static final long serialVersionUID = -523935686222564979L;
-    
+
+    /*****************************************************
+     * 신규 작성 VO 영역
+     *****************************************************/
+    private String  examBscId;          // 시험기본 ID
+    private String  examTycd;           // 시험유형코드
+    private String  examGbncd;          // 시험구분코드
+    private String  examGbnnm;          // 시험구분코드명
+    private String  tkexamMthdCd;       // 시험응시방법코드
+    private String  tkexamMthdNm;       // 시험응시방법코드명
+    private String  examTtl;            // 시험제목
+    private String  examPsblSdttm;      // 시험 시작일
+    private String  examPsblEdttm;      // 시험 종료일
+    private String  examDrtn;           // 시험일시(기간)
+    private Integer examMnts;           // 시험시간(분)
+    private Integer mrkRfltrt;          // 반영비율
+    private String  tkexamCmptnynTot;   // 응시현황 (완료/전체)
+    private String  evlynTot;           // 평가현황 (평가/전체)
+    private String  examQstnsCmptnyn;   // 출제상태
+    private String  mrkOyn;             // 성적공개
+    private String  crsCreCd;           // 과목 코드 (파라미터)
+    private String  tabType;            // 메뉴 탭 지정 (파라미터)
+    private String  mrkRfltyn;          // 성적반영여부
+    private String  exampprOyn;         // 시험지공개여부
+    private String  byteamSubrexamUseyn; // 팀시험여부
+    private String  examSbstTynm;       // 시험대체코드명
+    private Integer absnceTot;          // 결시인원 COUNT
+    private Integer dsblTot;            // 장애인/고령자 COUNT
+
+    private String  teamId;             // 팀 ID
+    private String  teamnm;             // 팀명
+    private String  deptId;             // 학과 ID
+    private String  deptnm;             // 학과명
+    private String  userRprsId;         // 사용자 대표 ID
+    private String  stdntNo;            // 학번
+    private String  userId;             // 사용자 ID
+    private String  usernm;             // 사용자 이름
+    private String  ldryn;              // 역할 (팀장/팀원)
+    private String  examScr;            // 시험 점수 레이블
+    private String  totScr;             // 총 점수 (평가점수)
+    private String  tkexamCmptnyn;      // 응시상태
+    private Integer tkexamCnt;          // 응시횟수
+    private String  evlyn;              // 평가여부
+
+    /*****************************************************
+     * Getter / Setter
+     *****************************************************/
+
+    public String getExamBscId() {
+        return examBscId;
+    }
+    public void setExamBscId(String examBscId) {
+        this.examBscId = examBscId;
+    }
+    public String getExamTycd() {
+        return examTycd;
+    }
+    public void setExamTycd(String examTycd) {
+        this.examTycd = examTycd;
+    }
+    public String getExamGbncd() {
+        return examGbncd;
+    }
+    public void setExamGbncd(String examGbncd) {
+        this.examGbncd = examGbncd;
+    }
+    public String getExamGbnnm() {
+        return examGbnnm;
+    }
+    public void setExamGbnnm(String examGbnnm) {
+        this.examGbnnm = examGbnnm;
+    }
+    public String getTkexamMthdCd() {
+        return tkexamMthdCd;
+    }
+    public void setTkexamMthdCd(String tkexamMthdCd) {
+        this.tkexamMthdCd = tkexamMthdCd;
+    }
+    public String getTkexamMthdNm() {
+        return tkexamMthdNm;
+    }
+    public void setTkexamMthdNm(String tkexamMthdNm) {
+        this.tkexamMthdNm = tkexamMthdNm;
+    }
+    public String getExamTtl() {
+        return examTtl;
+    }
+    public void setExamTtl(String examTtl) {
+        this.examTtl = examTtl;
+    }
+    public String getExamDrtn() {
+        return examDrtn;
+    }
+    public void setExamDrtn(String examDrtn) {
+        this.examDrtn = examDrtn;
+    }
+    public Integer getExamMnts() {
+        return examMnts;
+    }
+    public void setExamMnts(Integer examMnts) {
+        this.examMnts = examMnts;
+    }
+    public Integer getMrkRfltrt() {
+        return mrkRfltrt;
+    }
+    public void setMrkRfltrt(Integer mrkRfltrt) {
+        this.mrkRfltrt = mrkRfltrt;
+    }
+    public String getTkexamCmptnynTot() {
+        return tkexamCmptnynTot;
+    }
+    public void setTkexamCmptnynTot(String tkexamCmptnynTot) {
+        this.tkexamCmptnynTot = tkexamCmptnynTot;
+    }
+    public String getEvlynTot() {
+        return evlynTot;
+    }
+    public void setEvlynTot(String evlynTot) {
+        this.evlynTot = evlynTot;
+    }
+    public String getExamQstnsCmptnyn() {
+        return examQstnsCmptnyn;
+    }
+    public void setExamQstnsCmptnyn(String examQstnsCmptnyn) {
+        this.examQstnsCmptnyn = examQstnsCmptnyn;
+    }
+    public String getMrkOyn() {
+        return mrkOyn;
+    }
+    public void setMrkOyn(String mrkOyn) {
+        this.mrkOyn = mrkOyn;
+    }
+    public String getCrsCreCd() {
+        return crsCreCd;
+    }
+    public void setCrsCreCd(String crsCreCd) {
+        this.crsCreCd = crsCreCd;
+    }
+    public String getTabType() {
+        return tabType;
+    }
+    public void setTabType(String tabType) {
+        this.tabType = tabType;
+    }
+
+    public String getMrkRfltyn() {
+        return mrkRfltyn;
+    }
+    public void setMrkRfltyn(String mrkRfltyn) {
+        this.mrkRfltyn = mrkRfltyn;
+    }
+    public String getExamPsblSdttm() {
+        return examPsblSdttm;
+    }
+    public void setExamPsblSdttm(String examPsblSdttm) {
+        this.examPsblSdttm = examPsblSdttm;
+    }
+    public String getExamPsblEdttm() {
+        return examPsblEdttm;
+    }
+    public void setExamPsblEdttm(String examPsblEdttm) {
+        this.examPsblEdttm = examPsblEdttm;
+    }
+    public String getExampprOyn() {
+        return exampprOyn;
+    }
+    public void setExampprOyn(String exampprOyn) {
+        this.exampprOyn = exampprOyn;
+    }
+    public String getByteamSubrexamUseyn() {
+        return byteamSubrexamUseyn;
+    }
+    public void setByteamSubrexamUseyn(String byteamSubrexamUseyn) {
+        this.byteamSubrexamUseyn = byteamSubrexamUseyn;
+    }
+    public String getExamSbstTynm() {
+        return examSbstTynm;
+    }
+    public void setExamSbstTynm(String examSbstTynm) {
+        this.examSbstTynm = examSbstTynm;
+    }
+    public Integer getAbsnceTot() {
+        return absnceTot;
+    }
+    public void setAbsnceTot(Integer absnceTot) {
+        this.absnceTot = absnceTot;
+    }
+    public Integer getDsblTot() {
+        return dsblTot;
+    }
+    public void setDsblTot(Integer dsblTot) {
+        this.dsblTot = dsblTot;
+    }
+    public String getTeamId() {
+        return teamId;
+    }
+    public void setTeamId(String teamId) {
+        this.teamId = teamId;
+    }
+    public String getTeamnm() {
+        return teamnm;
+    }
+    public void setTeamnm(String teamnm) {
+        this.teamnm = teamnm;
+    }
+    public String getDeptId() {
+        return deptId;
+    }
+    public void setDeptId(String deptId) {
+        this.deptId = deptId;
+    }
+    public String getDeptnm() {
+        return deptnm;
+    }
+    public void setDeptnm(String deptnm) {
+        this.deptnm = deptnm;
+    }
+    public String getUserRprsId() {
+        return userRprsId;
+    }
+    public void setUserRprsId(String userRprsId) {
+        this.userRprsId = userRprsId;
+    }
+    public String getStdntNo() {
+        return stdntNo;
+    }
+    public void setStdntNo(String stdntNo) {
+        this.stdntNo = stdntNo;
+    }
+    public String getUserId() {
+        return userId;
+    }
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+    public String getUsernm() {
+        return usernm;
+    }
+    public void setUsernm(String usernm) {
+        this.usernm = usernm;
+    }
+    public String getLdryn() {
+        return ldryn;
+    }
+    public void setLdryn(String ldryn) {
+        this.ldryn = ldryn;
+    }
+    public String getExamScr() {
+        return examScr;
+    }
+    public void setExamScr(String examScr) {
+        this.examScr = examScr;
+    }
+    public String getTotScr() {
+        return totScr;
+    }
+    public void setTotScr(String totScr) {
+        this.totScr = totScr;
+    }
+    public String getTkexamCmptnyn() {
+        return tkexamCmptnyn;
+    }
+    public void setTkexamCmptnyn(String tkexamCmptnyn) {
+        this.tkexamCmptnyn = tkexamCmptnyn;
+    }
+    public Integer getTkexamCnt() {
+        return tkexamCnt;
+    }
+    public void setTkexamCnt(Integer tkexamCnt) {
+        this.tkexamCnt = tkexamCnt;
+    }
+    public String getEvlyn() {
+        return evlyn;
+    }
+    public void setEvlyn(String evlyn) {
+        this.evlyn = evlyn;
+    }
+    /*****************************************************
+     * 기존에 있던 VO 영역
+     *****************************************************/
     /** tb_lms_exam */
     private String  examCd;                 // 시험 번호
     private String  examCtgrCd;             // 시험 분류 코드
@@ -55,7 +334,6 @@ public class ExamVO extends DefaultVO {
     private String  regYn;                  // 등록 여부
     
     /** tb_lms_exam_cre_crs_rltn */
-    private String  crsCreCd;               // 과목 코드
     private String  grpCd;                  // 그룹 코드
     
     private Integer examTotalUserCnt;       // 시험 총 인원수
@@ -107,7 +385,6 @@ public class ExamVO extends DefaultVO {
     private String  examAbsentApproveYn;    // 결시원 승인 여부
     private String  examAbsentCd;           // 결시코드
     private String  siteCd;
-    private String  userId;
     private String  crsDeptNm;              // 과목 개설 학과
     private String  declsNo;                // 분반
     private String  periodAfterWriteYn;     // 토론 기간 후 허용 여부
@@ -395,12 +672,6 @@ public class ExamVO extends DefaultVO {
     public void setRegYn(String regYn) {
         this.regYn = regYn;
     }
-    public String getCrsCreCd() {
-        return crsCreCd;
-    }
-    public void setCrsCreCd(String crsCreCd) {
-        this.crsCreCd = crsCreCd;
-    }
     public String getGrpCd() {
         return grpCd;
     }
@@ -586,12 +857,6 @@ public class ExamVO extends DefaultVO {
     }
     public void setSiteCd(String siteCd) {
         this.siteCd = siteCd;
-    }
-    public String getUserId() {
-        return userId;
-    }
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
     public String getCrsDeptNm() {
         return crsDeptNm;

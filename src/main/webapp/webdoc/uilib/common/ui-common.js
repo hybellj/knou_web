@@ -232,6 +232,78 @@ let UiComm = {
 
 
 	/**
+	 * 페이징 표시
+	 *
+	 * @param target :		페이지정보를 표시할 대상 객체ID
+	 * @param opts	:		페이지 옵션
+	 * 		{
+	 * 			pageInfo: PageInfo,		// 페이지정보 객체
+	 * 			pageFunc: func,			// 페이지 이동 Javascript 함수
+	 * 			showTotRecord: true,	// 전체 페이지 정보 표시 여부 (true/false), 기본값 true
+	 * 			showCurrentPage: true,	// 현재 페이지 정보 표시 여부 (true/false), 기본값 true
+	 * 		}
+	 */
+	showPaging: function(target, opts) {
+		if (opts == null || opts == undefined) return;
+
+		let $paginator = $("#"+target);
+		let pageInfo = opts.pageInfo;
+		let pageNo = pageInfo.currentPageNo;
+		let prev = (pageNo > 1) ? pageNo - 1 : 1;
+		let next = (pageNo < pageInfo.lastPageNo) ? pageNo + 1 : pageInfo.lastPageNo;
+		let firstStatus = pageNo === 1 ? "disabled" : "";
+		let prevStatus = pageNo === 1 ? "disabled" : "";
+		let nextStatus = pageNo === pageInfo.lastPageNo ? "disabled" : "";
+		let lastStatus = pageNo === pageInfo.lastPageNo ? "disabled" : "";
+		let showTotRecord = opts.showTotRecord == undefined ? true : !opts.showTotRecord ? false : opts.showTotRecord;
+		let showCurrentPage = opts.showCurrentPage == undefined ? true : !opts.showCurrentPage ? false : opts.showCurrentPage;
+		let counterCnts = "";
+		let pageCnts = "";
+
+		$paginator.addClass("board_foot");
+		pageCnts += `<div class='page_info'>`;
+
+		if (showTotRecord) {
+		    pageCnts += `<span class='total_page'>${this.getMsg("tot_count", pageInfo.totalRecordCount)}</span>`;
+		}
+
+		if (showCurrentPage) {
+		    pageCnts += `<span class='${showTotRecord ? "current_page" : "current_page_info"}'>${UiTableUtil.getMsg("cur_page")}`;
+		    pageCnts += ` <strong>${pageNo}</strong>/${pageInfo.totalPageCount}</span>`;
+		}
+
+		pageCnts += `</div>`;
+		pageCnts += `<div class='board_pager'><span class='inner'>`;
+
+
+		pageCnts += `<button class='page first' type='button' role='button' aria-label='First Page' title='${this.getMsg("first_page")}' data-page='1' ${firstStatus}><i class='icon-page-first'></i></button>`;
+		pageCnts += `<button class='page' type='button' role='button' aria-label='Prev Page' title='${this.getMsg("prev_page")}' data-page='${prev}' ${prevStatus}><i class='icon-page-prev'></i></button>`;
+		pageCnts += `<span class='pages'>`;
+
+		for (let i = pageInfo.firstPageNoOnPageList; i <= pageInfo.lastPageNoOnPageList; i++) {
+		    pageCnts += `<button class='page${i == pageNo ? " active" : ""}' type='button' role='button' aria-label='Page ${i}' title='${this.getMsg("page", i)}' data-page='${i}'>${i}</button> `;
+		}
+
+		pageCnts += `</span>`;
+		pageCnts += `<button class='page' type='button' role='button' aria-label='Next Page' title='${this.getMsg("next_page")}' data-page='${next}' ${nextStatus}><i class='icon-page-next'></i></button>`;
+		pageCnts += `<button class='page' type='button' role='button' aria-label='Last Page' title='${this.getMsg("last_page")}' data-page='${pageInfo.lastPageNo}' ${lastStatus}><i class='icon-page-last'></i></button>`;
+
+		pageCnts += `</span></div>`;
+		pageCnts += `</div>`;
+
+		$paginator.html(pageCnts);
+		$paginator.find("button").on('click', function () {
+		    if (opts.pageFunc && typeof opts.pageFunc === "function") {
+		        let page = parseInt($(this).attr("data-page"));
+		        if (pageNo !== page) {
+		            opts.pageFunc(page);
+		        }
+		    }
+		});
+	},
+
+
+	/**
 	 * html 태그 제거
 	 *
 	 * @param str		html 문자열
@@ -488,7 +560,8 @@ let UiComm = {
 window.UiComm = UiComm;
 
 
-// old --> 삭제 예정
+// old --> 삭제 예정,
+// 이 함수를 사용하는 페이지에서는 UiComm.showPaging() 함수로 변경해야함.
 gfn_renderPaging = function(params){
 	var divId = "paging"; //페이징이 그려질 div id
 	if(params.pagingDivId != undefined) {

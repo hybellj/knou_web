@@ -13,7 +13,7 @@ public interface MsgSndrDsctnService {
 
     List<MsgSndrDsctnVO> selectSndrDsctnExcelList(MsgSndrDsctnVO vo);
 
-    MsgSndrDsctnVO selectSndrDsctnSummary(MsgSndrDsctnVO vo);
+    MsgSndrDsctnVO selectSndrDsctnSmry(MsgSndrDsctnVO vo);
 
     List<MsgSndrDsctnVO> selectSndrDsctnYrList(MsgSndrDsctnVO vo);
 

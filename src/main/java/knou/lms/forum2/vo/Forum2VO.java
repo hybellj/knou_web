@@ -50,6 +50,19 @@ public class Forum2VO extends DefaultVO {
     private List<Forum2LrnGrpVO> lrnGrpInfoList; // 학습그룹선택 목록(teamForumDiv)
     private List<Forum2TeamDtlVO> teamForumDtlList; // 팀토론 상세목록
 
+    /*DB와 관계없는 파라미터*/
+    private Integer forumAtclCnt;               // 게시글 갯수
+    private Integer forumCmntCnt;               // 댓글 갯수
+    private Integer forumMyAtclCnt;             // 내가 쓴 게시글 갯수
+    private Integer forumMyCmntCnt;             // 내가 쓴 댓글 갯수
+    private Integer forumAtclPorsCnt;           // 찬성 게시글 갯수
+    private Integer forumAtclConsCnt;           // 반대 게시글 갯수
+    private Integer forumUserTotalCnt;          // 총 인원 수
+    private Integer forumJoinUserCnt;           // 참여자 수
+    private Integer forumMyScore;               // 내 평가 점수
+    private Integer forumMyFdbk;                // 패드백
+    private Integer forumEvalCnt;               // 평가한 인원수
+
     public String getDscsId() {
         return dscsId;
     }
@@ -130,11 +143,11 @@ public class Forum2VO extends DefaultVO {
         this.dscsEdttm = dscsEdttm;
     }
 
-    public String getdvclsNo() {
+    public String getDvclsNo() {
         return dvclsNo;
     }
 
-    public void setdvclsNo(String dvclsNo) {
+    public void setDvclsNo(String dvclsNo) {
         this.dvclsNo = dvclsNo;
     }
 
@@ -218,14 +231,6 @@ public class Forum2VO extends DefaultVO {
         this.mrkRfltyn = mrkRfltyn;
     }
 
-    public String getMrkOyn() {
-        return mrkOyn;
-    }
-
-    public void setMrkOyn(String mrkOyn) {
-        this.mrkOyn = mrkOyn;
-    }
-
     public Integer getMrkRfltrt() {
         return mrkRfltrt;
     }
@@ -234,46 +239,63 @@ public class Forum2VO extends DefaultVO {
         this.mrkRfltrt = mrkRfltrt;
     }
 
+    public String getMrkOyn() {
+        return mrkOyn;
+    }
+
+    public void setMrkOyn(String mrkOyn) {
+        this.mrkOyn = mrkOyn;
+    }
+
+    @Override
     public String getRgtrId() {
         return rgtrId;
     }
 
+    @Override
     public void setRgtrId(String rgtrId) {
         this.rgtrId = rgtrId;
     }
 
+    @Override
     public String getRegDttm() {
         return regDttm;
     }
 
+    @Override
     public void setRegDttm(String regDttm) {
         this.regDttm = regDttm;
     }
 
+    @Override
     public String getMdfrId() {
         return mdfrId;
     }
 
+    @Override
     public void setMdfrId(String mdfrId) {
         this.mdfrId = mdfrId;
     }
 
+    @Override
     public String getModDttm() {
         return modDttm;
     }
 
+    @Override
     public void setModDttm(String modDttm) {
         this.modDttm = modDttm;
     }
 
+    @Override
     public String getSbjctId() {
         return sbjctId;
     }
 
+    @Override
     public void setSbjctId(String sbjctId) {
         this.sbjctId = sbjctId;
     }
-
 
     public String getDvclasNo() {
         return dvclasNo;
@@ -282,6 +304,7 @@ public class Forum2VO extends DefaultVO {
     public void setDvclasNo(String dvclasNo) {
         this.dvclasNo = dvclasNo;
     }
+
     public String getSourceDscssId() {
         return sourceDscssId;
     }
@@ -322,11 +345,11 @@ public class Forum2VO extends DefaultVO {
         this.targetDscsGrpId = targetDscsGrpId;
     }
 
-    public String[] getdvclsNoList() {
+    public String[] getDvclsNoList() {
         return dvclsNoList;
     }
 
-    public void setdvclsNoList(String[] dvclsNoList) {
+    public void setDvclsNoList(String[] dvclsNoList) {
         this.dvclsNoList = dvclsNoList;
     }
 
@@ -360,6 +383,94 @@ public class Forum2VO extends DefaultVO {
 
     public void setTeamForumDtlList(List<Forum2TeamDtlVO> teamForumDtlList) {
         this.teamForumDtlList = teamForumDtlList;
+    }
+
+    public Integer getForumAtclCnt() {
+        return forumAtclCnt;
+    }
+
+    public void setForumAtclCnt(Integer forumAtclCnt) {
+        this.forumAtclCnt = forumAtclCnt;
+    }
+
+    public Integer getForumCmntCnt() {
+        return forumCmntCnt;
+    }
+
+    public void setForumCmntCnt(Integer forumCmntCnt) {
+        this.forumCmntCnt = forumCmntCnt;
+    }
+
+    public Integer getForumMyAtclCnt() {
+        return forumMyAtclCnt;
+    }
+
+    public void setForumMyAtclCnt(Integer forumMyAtclCnt) {
+        this.forumMyAtclCnt = forumMyAtclCnt;
+    }
+
+    public Integer getForumMyCmntCnt() {
+        return forumMyCmntCnt;
+    }
+
+    public void setForumMyCmntCnt(Integer forumMyCmntCnt) {
+        this.forumMyCmntCnt = forumMyCmntCnt;
+    }
+
+    public Integer getForumAtclPorsCnt() {
+        return forumAtclPorsCnt;
+    }
+
+    public void setForumAtclPorsCnt(Integer forumAtclPorsCnt) {
+        this.forumAtclPorsCnt = forumAtclPorsCnt;
+    }
+
+    public Integer getForumAtclConsCnt() {
+        return forumAtclConsCnt;
+    }
+
+    public void setForumAtclConsCnt(Integer forumAtclConsCnt) {
+        this.forumAtclConsCnt = forumAtclConsCnt;
+    }
+
+    public Integer getForumUserTotalCnt() {
+        return forumUserTotalCnt;
+    }
+
+    public void setForumUserTotalCnt(Integer forumUserTotalCnt) {
+        this.forumUserTotalCnt = forumUserTotalCnt;
+    }
+
+    public Integer getForumJoinUserCnt() {
+        return forumJoinUserCnt;
+    }
+
+    public void setForumJoinUserCnt(Integer forumJoinUserCnt) {
+        this.forumJoinUserCnt = forumJoinUserCnt;
+    }
+
+    public Integer getForumMyScore() {
+        return forumMyScore;
+    }
+
+    public void setForumMyScore(Integer forumMyScore) {
+        this.forumMyScore = forumMyScore;
+    }
+
+    public Integer getForumMyFdbk() {
+        return forumMyFdbk;
+    }
+
+    public void setForumMyFdbk(Integer forumMyFdbk) {
+        this.forumMyFdbk = forumMyFdbk;
+    }
+
+    public Integer getForumEvalCnt() {
+        return forumEvalCnt;
+    }
+
+    public void setForumEvalCnt(Integer forumEvalCnt) {
+        this.forumEvalCnt = forumEvalCnt;
     }
 }
 

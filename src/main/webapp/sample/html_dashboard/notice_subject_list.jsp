@@ -181,34 +181,35 @@
                                         </td>
                                     </tr>
                                 </tbody>
-
                             </table>
+
+	                        <%-- 테이블의 페이징 정보 생성할때 아래 내용 참조하여 작업하고 아래와 같은 HTML 코드를 직접 만들지 않는다.
+	                        	1) UiTable() 함수를 사용하여 테이블 생성할경우는 해당 프로그램에서 페이지 정보 생성하도록 한다.
+	                        	2) Controller에서 페이지정보(PageInfo) 객체를 받아을 경우 <uiex:paging> 태그를 사용하여 생성한다.
+	                        	   <uiex:paging pageInfo="${pageInfo}" pageFunc="listPaging"/>
+	                        --%>
+	                        <!-- board foot -->
+							<div class="board_foot">
+								<div class="page_info">
+									<span class="total_page">전체 <b>12</b>건</span>
+									<span class="current_page">현재 페이지 <strong>1</strong>/10</span>
+								</div>
+								<div class="board_pager">
+									<span class="inner">
+										<button class="page" type="button" role="button" aria-label="First Page" title="처음 페이지" data-page="1" disabled=""><i class="icon-page-first"></i></button>
+										<button class="page" type="button" role="button" aria-label="Prev Page" title="이전 페이지" data-page="1" disabled=""><i class="icon-page-prev"></i></button>
+										<span class="pages">
+											<button class="page active" type="button" role="button" aria-label="Page 1" title="1 페이지" data-page="1">1</button>
+											<button class="page" type="button" role="button" aria-label="Page 2" title="2 페이지" data-page="2">2</button>
+											<button class="page" type="button" role="button" aria-label="Page 3" title="3 페이지" data-page="3">3</button>
+										</span>
+										<button class="page" type="button" role="button" aria-label="Next Page" title="다음 페이지" data-page="2"><i class="icon-page-next"></i></button>
+										<button class="page" type="button" role="button" aria-label="Last Page" title="마지막 페이지" data-page="3"><i class="icon-page-last"></i></button>
+									</span>
+								</div>
+							</div>
                         </div>
                         <!--//table-type2-->
-
-                        <!-- board foot -->
-                        <div class="board_foot">
-                            <div class="page_info">
-                                <span class="total_page">전체 <b>12</b>건</span>
-                                <span class="current_page">현재 페이지 <strong>1</strong>/10</span>
-                            </div>
-
-                            <div class="board_pager">
-                                <span class="inner">
-                                    <a href="" class="page_first" title="첫페이지"><i class="icon-svg-arrow01"></i><span class="sr_only">첫페이지</span></a>
-                                    <a href="" class="page_prev" title="이전페이지"><i class="icon-svg-arrow02"></i><span class="sr_only">이전페이지</span></a>
-                                    <a href="" class="page_now" title="1페이지"><strong>1</strong></a>
-                                    <a href="" class="page_none" title="2페이지">2</a>
-                                    <a href="" class="page_none" title="3페이지">3</a>
-                                    <a href="" class="page_none" title="4페이지">4</a>
-                                    <a href="" class="page_none" title="5페이지">5</a>
-                                    <a href="" class="page_next" title="다음페이지"><i class="icon-svg-arrow03"></i><span class="sr_only">다음페이지</span></a>
-                                    <a href="" class="page_last" title="마지막페이지"><i class="icon-svg-arrow04"></i><span class="sr_only">마지막페이지</span></a>
-                                </span>
-                            </div>
-                        </div>
-
-                    </div>
 
                 </div>
             </div>

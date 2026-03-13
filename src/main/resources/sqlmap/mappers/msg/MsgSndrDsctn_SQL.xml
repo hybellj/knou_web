@@ -190,9 +190,9 @@
         ORDER BY CH.SNDNG_DTTM DESC
     </select>
 
-    <select id="selectSndrDsctnSummary" parameterType="MsgSndrDsctnVO" resultType="MsgSndrDsctnVO">
+    <select id="selectSndrDsctnSmry" parameterType="MsgSndrDsctnVO" resultType="MsgSndrDsctnVO">
         /*
-             SQL ID : MsgSndrDsctnDAO.selectSndrDsctnSummary
+             SQL ID : MsgSndrDsctnDAO.selectSndrDsctnSmry
              설  명 : 발송내역 채널별 요약 조회
          */
         SELECT NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'PUSH' THEN 1 ELSE 0 END), 0) AS PUSH_TOTAL_CNT

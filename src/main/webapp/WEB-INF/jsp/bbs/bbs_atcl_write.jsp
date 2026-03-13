@@ -41,7 +41,7 @@
 
     	// 파일 업로드 완료
         function finishUpload() {
-        	let url = "/common/uploadFileCheck.do";
+        	let url = "/common/uploadFileCheck.do"; // 업로드된 파일 검증 URL
         	let dx = dx5.get("fileUploader");
         	let data = {
         		"uploadFiles" : dx.getUploadFiles(),
@@ -158,16 +158,15 @@
 												<dl>
 													<dd>
 														<div class="editor-box">
-															<label for="atclCts" class="hide">Content</label>
-															<textarea id="atclCts" name="atclCts" required="true"><c:out value="${bbsAtclVO.atclCts}"/></textarea>
-															<script>
-																// HTML 에디터
-																let editor = UiEditor({
-																	targetId: "atclCts",
-																	uploadPath: "${bbsVO.uploadPath}",
-																	height: "500px"
-																});
-															</script>
+															<%-- HTML 에디터 --%>
+															<uiex:htmlEditor
+																id="atclCts"
+																name="atclCts"
+																uploadPath="${bbsVO.uploadPath}"
+																value="${bbsAtclVO.atclCts}"
+																height="500px"
+																required="true"
+															/>
 														</div>
 													</dd>
 												</dl>
@@ -180,6 +179,7 @@
 									<tr>
 										<th><label for="attchFile">첨부파일</label></th>
 										<td>
+											<%-- 파일업로더 --%>
 											<uiex:dextuploader
 												id="fileUploader"
 												path="${bbsVO.uploadPath}"

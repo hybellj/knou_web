@@ -90,7 +90,7 @@
 
     /* 학사년도 목록 조회 */
     function fn_loadYrList() {
-        ajaxCall('/msgSndrDsctnMngYrListAjax.do', {}, function(res) {
+        ajaxCall('/msgSndrDsctnYrListAjax.do', {}, function(res) {
             let $sel = $('#selectSbjctYr');
             $sel.find('option:gt(0)').remove();
             if (res.result > 0 && res.returnList) {
@@ -111,7 +111,7 @@
         let sbjctYr = $('#selectSbjctYr').val();
         if (!sbjctYr) return;
 
-        ajaxCall('/msgSndrDsctnMngSmstrListAjax.do', { sbjctYr: sbjctYr }, function(res) {
+        ajaxCall('/msgSndrDsctnSmstrListAjax.do', { sbjctYr: sbjctYr }, function(res) {
             if (res.result > 0 && res.returnList) {
                 res.returnList.forEach(function(v) {
                     $sel.append('<option value="' + v.sbjctSmstr + '">' + v.sbjctSmstr + '학기</option>');
@@ -123,7 +123,7 @@
 
     /* 학과 목록 조회 */
     function fn_loadDeptList() {
-        ajaxCall('/msgSndrDsctnMngDeptListAjax.do', {}, function(res) {
+        ajaxCall('/msgSndrDsctnDeptListAjax.do', {}, function(res) {
             let $sel = $('#selectDept');
             $sel.find('option:gt(0)').remove();
             if (res.result > 0 && res.returnList) {
@@ -147,7 +147,7 @@
             deptId: $('#selectDept').val()
         };
 
-        ajaxCall('/msgSndrDsctnMngSbjctListAjax.do', data, function(res) {
+        ajaxCall('/msgSndrDsctnSbjctListAjax.do', data, function(res) {
             if (res.result > 0 && res.returnList) {
                 res.returnList.forEach(function(v) {
                     $sel.append('<option value="' + v.sbjctId + '">' + UiComm.escapeHtml(v.sbjctnm) + '</option>');
@@ -160,7 +160,7 @@
     /* 검색 */
     function fn_search() {
         fn_loadList(1);
-        fn_loadSummary();
+        fn_loadSmry();
     }
 
     /* 목록 조회 */
@@ -171,7 +171,7 @@
         param.pageIndex = currentPage;
         param.listScale = listScale;
 
-        ajaxCall('/msgSndrDsctnMngListAjax.do', param, function(res) {
+        ajaxCall('/msgSndrDsctnListAjax.do', param, function(res) {
             if (res.result > 0) {
                 let dataList = fn_createListData(res.returnList, res.pageInfo);
                 sndrDsctnTable.clearData();
@@ -211,7 +211,7 @@
                 dvclasNo: UiComm.escapeHtml(v.dvclasNo || ''),
                 rcvrnm: UiComm.escapeHtml(v.rcvrnm || ''),
                 rcvrTelno: UiComm.escapeHtml(v.rcvrTelno || ''),
-                sndngDttm: v.sndngDttm,
+                sndngDttm: UiComm.formatDate(v.sndngDttm, 'datetime'),
                 sndngYn: UiComm.escapeHtml(v.sndngYn || ''),
                 rslt: rsltHtml,
                 cost: '',
@@ -222,12 +222,12 @@
     }
 
     /* 요약 조회 */
-    function fn_loadSummary() {
+    function fn_loadSmry() {
         let param = fn_getSearchParam();
 
-        ajaxCall('/msgSndrDsctnMngSummaryAjax.do', param, function(res) {
+        ajaxCall('/msgSndrDsctnSmryAjax.do', param, function(res) {
             if (res.result > 0 && res.returnVO) {
-                fn_renderSummary(res.returnVO);
+                fn_renderSmry(res.returnVO);
             }
         });
     }
@@ -265,7 +265,7 @@
     }
 
     /* 요약 렌더링 */
-    function fn_renderSummary(s) {
+    function fn_renderSmry(s) {
         $('#pushTotalCnt').text(s.pushTotalCnt || 0);
         $('#pushSuccCnt').text(s.pushSuccCnt || 0);
         $('#pushFailCnt').text(s.pushFailCnt || 0);
@@ -285,58 +285,83 @@
         $('#lmsSuccCnt').text(s.lmsSuccCnt || 0);
         $('#lmsFailCnt').text(s.lmsFailCnt || 0);
     }
-/*
-    /!* 발송내역 엑셀 다운로드 *!/
+    /* 발송내역 엑셀 다운로드 */
     function fn_excelDown() {
+        let excelGrid = { colModel: [] };
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.no" text="번호"/>', name: 'rnum', align: 'center', width: '2000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.sndngGbn" text="발신구분"/>', name: 'sndngGbncd', align: 'center', width: '3000', codes: {'PUSH':'PUSH', 'SHRTNT':'<spring:message code="msg.title.msg.shrtnt"/>', 'EML':'<spring:message code="msg.title.msg.eml"/>', 'ALIM_TALK':'<spring:message code="msg.title.msg.alimTalk"/>', 'SMS':'SMS', 'LMS':'LMS', 'RSRV':'<spring:message code="msg.sndrDsctn.label.rsrv"/>'}});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.year" text="년도"/>', name: 'sbjctYr', align: 'center', width: '2500'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.smstr" text="학기"/>', name: 'sbjctSmstr', align: 'center', width: '2000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.org" text="기관"/>', name: 'orgnm', align: 'center', width: '5000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.dept" text="학과"/>', name: 'deptnm', align: 'center', width: '5000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.sbjct" text="운영과목"/>', name: 'sbjctnm', align: 'left', width: '7000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.dvclas" text="분반"/>', name: 'dvclasNo', align: 'center', width: '2000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.rcvr" text="수신자"/>', name: 'rcvrnm', align: 'center', width: '3000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.rcvrTelno" text="수신자번호"/>', name: 'rcvrTelno', align: 'center', width: '4000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.sndngDttm" text="발신일시"/>', name: 'sndngDttm', align: 'center', width: '5000', formatter: 'date'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.sndngYn" text="발송"/>', name: 'sndngYn', align: 'center', width: '2000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.col.rslt" text="결과"/>', name: 'sndngRsltCd', align: 'center', width: '2500', codes: {'SUCCESS':'<spring:message code="msg.sndrDsctn.label.success"/>', 'FAIL':'<spring:message code="msg.sndrDsctn.label.fail"/>', 'READY':'<spring:message code="msg.sndrDsctn.label.ready"/>', 'SENDING':'<spring:message code="msg.sndrDsctn.label.sending"/>'}});
+
         let param = fn_getSearchParam();
-
-        ajaxCall('/msgSndrDsctnMngExcelAjax.do', param, function(res) {
-            if (res.result > 0 && res.returnList) {
-                fn_makeExcel(res.returnList);
-            }
-        }, null, true);
+        let form = $("<form></form>");
+        form.attr("method", "POST");
+        form.attr("name", "excelForm");
+        form.attr("action", "/msgSndrDsctnExcelDown.do");
+        form.append($('<input/>', { type: 'hidden', name: 'sbjctYr', value: param.sbjctYr }));
+        form.append($('<input/>', { type: 'hidden', name: 'sbjctSmstr', value: param.sbjctSmstr }));
+        form.append($('<input/>', { type: 'hidden', name: 'deptId', value: param.deptId }));
+        form.append($('<input/>', { type: 'hidden', name: 'sbjctId', value: param.sbjctId }));
+        form.append($('<input/>', { type: 'hidden', name: 'sndngSdttm', value: param.sndngSdttm }));
+        form.append($('<input/>', { type: 'hidden', name: 'sndngEdttm', value: param.sndngEdttm }));
+        form.append($('<input/>', { type: 'hidden', name: 'searchType', value: param.searchType }));
+        form.append($('<input/>', { type: 'hidden', name: 'searchText', value: param.searchText }));
+        if (param.sndngGbncds) {
+            param.sndngGbncds.forEach(function(v) {
+                form.append($('<input/>', { type: 'hidden', name: 'sndngGbncds', value: v }));
+            });
+        }
+        form.append($('<input/>', { type: 'hidden', name: 'rsltGbncd', value: param.rsltGbncd }));
+        form.append($('<input/>', { type: 'hidden', name: 'excelGrid', value: JSON.stringify(excelGrid) }));
+        form.appendTo("body");
+        form.submit();
+        $("form[name=excelForm]").remove();
     }
 
-    /!* 엑셀 생성 *!/
-    function fn_makeExcel(list) {
-        let csv = '\uFEFF번호,발신구분,년도,학기,기관,학과,운영과목,분반,수신자,수신자번호,발신일시,발송,결과\n';
-        list.forEach(function(v, i) {
-            csv += (i + 1) + ',';
-            csv += '"' + (SNDNG_GBN_MAP[v.sndngGbncd] || v.sndngGbncd || '') + '",';
-            csv += '"' + (v.sbjctYr || '') + '",';
-            csv += '"' + (v.sbjctSmstr || '') + '",';
-            csv += '"' + (v.orgnm || '') + '",';
-            csv += '"' + (v.deptnm || '') + '",';
-            csv += '"' + (v.sbjctnm || '') + '",';
-            csv += '"' + (v.dvclasNo || '') + '",';
-            csv += '"' + (v.rcvrnm || '') + '",';
-            csv += '"' + (v.rcvrTelno || '') + '",';
-            csv += '"' + UiComm.formatDate(v.sndngDttm, 'datetime') + '",';
-            csv += '"' + (v.sndngYn || '') + '",';
-            csv += '"' + (SNDNG_STS_MAP[v.sndngRsltCd] || '') + '"\n';
-        });
-        let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        let link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = '발송내역.csv';
-        link.click();
+    /* 발송비용금액 엑셀 다운로드 */
+    function fn_smryExcelDown() {
+        let excelGrid = { colModel: [] };
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.label.sndngType" text="발신구분"/>', name: 'sndngGbn', align: 'center', width: '5000'});
+        excelGrid.colModel.push({label: 'PUSH', name: 'push', align: 'center', width: '3000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.title.msg.shrtnt"/>', name: 'shrtnt', align: 'center', width: '3000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.title.msg.eml"/>', name: 'eml', align: 'center', width: '3000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.title.msg.alimTalk"/>', name: 'alimTalk', align: 'center', width: '3000'});
+        excelGrid.colModel.push({label: 'SMS', name: 'sms', align: 'center', width: '3000'});
+        excelGrid.colModel.push({label: 'LMS', name: 'lms', align: 'center', width: '3000'});
+
+        let param = fn_getSearchParam();
+        let form = $("<form></form>");
+        form.attr("method", "POST");
+        form.attr("name", "excelForm");
+        form.attr("action", "/msgSndrDsctnSmryExcelDown.do");
+        form.append($('<input/>', { type: 'hidden', name: 'sbjctYr', value: param.sbjctYr }));
+        form.append($('<input/>', { type: 'hidden', name: 'sbjctSmstr', value: param.sbjctSmstr }));
+        form.append($('<input/>', { type: 'hidden', name: 'deptId', value: param.deptId }));
+        form.append($('<input/>', { type: 'hidden', name: 'sbjctId', value: param.sbjctId }));
+        form.append($('<input/>', { type: 'hidden', name: 'sndngSdttm', value: param.sndngSdttm }));
+        form.append($('<input/>', { type: 'hidden', name: 'sndngEdttm', value: param.sndngEdttm }));
+        form.append($('<input/>', { type: 'hidden', name: 'searchType', value: param.searchType }));
+        form.append($('<input/>', { type: 'hidden', name: 'searchText', value: param.searchText }));
+        if (param.sndngGbncds) {
+            param.sndngGbncds.forEach(function(v) {
+                form.append($('<input/>', { type: 'hidden', name: 'sndngGbncds', value: v }));
+            });
+        }
+        form.append($('<input/>', { type: 'hidden', name: 'rsltGbncd', value: param.rsltGbncd }));
+        form.append($('<input/>', { type: 'hidden', name: 'excelGrid', value: JSON.stringify(excelGrid) }));
+        form.appendTo("body");
+        form.submit();
+        $("form[name=excelForm]").remove();
     }
-
-    /!* 발송비용금액 엑셀 다운로드 *!/
-    function fn_summaryExcelDown() {
-        let csv = '\uFEFF발신구분,PUSH,쪽지,이메일,알림톡,SMS,LMS\n';
-        csv += '총 발신 건수,' + $('#pushTotalCnt').text() + ',' + $('#shrtntTotalCnt').text() + ',' + $('#emlTotalCnt').text() + ',' + $('#alimtalkTotalCnt').text() + ',' + $('#smsTotalCnt').text() + ',' + $('#lmsTotalCnt').text() + '\n';
-        csv += '총 성공 건수,' + $('#pushSuccCnt').text() + ',' + $('#shrtntSuccCnt').text() + ',' + $('#emlSuccCnt').text() + ',' + $('#alimtalkSuccCnt').text() + ',' + $('#smsSuccCnt').text() + ',' + $('#lmsSuccCnt').text() + '\n';
-        csv += '총 실패 건수,' + $('#pushFailCnt').text() + ',' + $('#shrtntFailCnt').text() + ',' + $('#emlFailCnt').text() + ',' + $('#alimtalkFailCnt').text() + ',' + $('#smsFailCnt').text() + ',' + $('#lmsFailCnt').text() + '\n';
-        csv += '발신 비용,,,,,,\n';
-        csv += '총 발신 비용,,,,,,\n';
-
-        let blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-        let link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = '발송비용금액.csv';
-        link.click();
-    }*/
 </script>
 
 <body class="home colorA">
@@ -506,7 +531,7 @@
                         <div class="board_top" style="margin-top:30px;">
                             <h3 class="board-title"><spring:message code="msg.sndrDsctn.label.costTitle" text="발송비용금액"/></h3>
                             <div class="right-area">
-                                <button type="button" class="btn basic" onclick="fn_summaryExcelDown()"><spring:message code="msg.sndrDsctn.label.excelDown" text="엑셀 다운로드"/></button>
+                                <button type="button" class="btn basic" onclick="fn_smryExcelDown()"><spring:message code="msg.sndrDsctn.label.excelDown" text="엑셀 다운로드"/></button>
                             </div>
                         </div>
 

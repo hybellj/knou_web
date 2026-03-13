@@ -119,9 +119,9 @@
         )
     </insert>
 
-    <insert id="registPopupNtcPstnSize" parameterType="PopupNtcVO">
+    <insert id="registPopupNtcPstnSz" parameterType="PopupNtcVO">
         /*
-             SQL ID : PopupNtcDAO.registPopupNtcPstnSize
+             SQL ID : PopupNtcDAO.registPopupNtcPstnSz
              설  명 : 팝업공지 위치크기 등록
          */
         INSERT INTO TB_LMS_POPUP_NTC_PSTN_SIZE (
@@ -161,9 +161,9 @@
         WHERE POPUP_NTC_ID = #{popupNtcId}
     </update>
 
-    <update id="modifyPopupNtcPstnSize" parameterType="PopupNtcVO">
+    <update id="modifyPopupNtcPstnSz" parameterType="PopupNtcVO">
         /*
-             SQL ID : PopupNtcDAO.modifyPopupNtcPstnSize
+             SQL ID : PopupNtcDAO.modifyPopupNtcPstnSz
              설  명 : 팝업공지 위치크기 수정
          */
         UPDATE TB_LMS_POPUP_NTC_PSTN_SIZE
@@ -188,9 +188,9 @@
         WHERE POPUP_NTC_ID = #{popupNtcId}
     </update>
 
-    <delete id="deletePopupNtcPstnSize" parameterType="PopupNtcVO">
+    <delete id="deletePopupNtcPstnSz" parameterType="PopupNtcVO">
         /*
-             SQL ID : PopupNtcDAO.deletePopupNtcPstnSize
+             SQL ID : PopupNtcDAO.deletePopupNtcPstnSz
              설  명 : 팝업공지 위치크기 삭제
          */
         DELETE FROM TB_LMS_POPUP_NTC_PSTN_SIZE

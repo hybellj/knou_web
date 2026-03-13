@@ -14,19 +14,61 @@ public class ForumCmntVO extends DefaultVO{
     
     private String ansReqYn;    // 답변요청 여부
     private String cmntCts;     //  댓글 내용
-    private int emoticonNo;     //  이모티콘 번호
+    private String emoticonNo;     //  이모티콘 번호
     
     private String delYn;       // 삭제여부
     private String parCmntSn;   // 상위 댓글 고유번호
     private String parRgtrNm;    // 상위 댓글 등록자 이름
     private int cmntCtsLen;     // 내용길이
-    
+
+    private String rgtrnm;       //등록자 이름
     private String stdId;       //수강생 번호
     private String crsCreCd;    //개설과정 코드
-    
+
+    private int level;          // 댓글 레벨
+    private String mdfrId;
+    private String modDttm;
+
     private String phtFile;
     private byte[] phtFileByte;
-    
+
+    @Override
+    public String getRgtrnm() {
+        return rgtrnm;
+    }
+
+    @Override
+    public void setRgtrnm(String rgtrnm) {
+        this.rgtrnm = rgtrnm;
+    }
+
+    @Override
+    public String getMdfrId() {
+        return mdfrId;
+    }
+
+    @Override
+    public void setMdfrId(String mdfrId) {
+        this.mdfrId = mdfrId;
+    }
+
+    @Override
+    public String getModDttm() {
+        return modDttm;
+    }
+
+    public void setModDttm(String modDttm) {
+        this.modDttm = modDttm;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
     public String getCmntSn() {
         return cmntSn;
     }
@@ -51,10 +93,10 @@ public class ForumCmntVO extends DefaultVO{
     public void setCmntCts(String cmntCts) {
         this.cmntCts = cmntCts;
     }
-    public int getEmoticonNo() {
+    public String getEmoticonNo() {
         return emoticonNo;
     }
-    public void setEmoticonNo(int emoticonNo) {
+    public void setEmoticonNo(String emoticonNo) {
         this.emoticonNo = emoticonNo;
     }
     public String getDelYn() {

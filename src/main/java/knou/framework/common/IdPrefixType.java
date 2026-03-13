@@ -16,6 +16,8 @@ public enum IdPrefixType {
     SREVL("SREVL", "설문평가"),
     SRPCT("SRPCT", "설문참여"),
     SRRSP("SRRSP", "설문응답"),
+    SRTGT("SRTGT", "설문대상"),
+    SRGRP("SRGRP", "설문그룹"),
 
     // 학습
     LN("LN", "학습"),

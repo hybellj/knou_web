@@ -289,6 +289,22 @@
 				, QSTN.QSTN_SCR = QSTN_SCR.QSTN_SCR
 	</update>
 
+	<update id="cmptnYQuizQstnScrBulkModify" parameterType="java.util.List">
+		/*
+             SQL ID : QstnDAO.cmptnYQuizQstnScrBulkModify
+             설  명 : 출제완료퀴즈문항점수일괄수정
+         */
+        <foreach item="item" collection="list" separator=";" open="BEGIN" close="; END;">
+         UPDATE TB_LMS_QSTN SET
+         	  MDFR_ID = #{item.mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, QSTN_SCR = #{item.qstnScr}
+          WHERE EXAM_DTL_ID = #{item.examDtlId}
+            AND DELYN = 'N'
+            AND QSTN_SEQNO = #{item.qstnSeqno}
+         </foreach>
+	</update>
+
 	<select id="profQstnCopyQuizQstnList" parameterType="qstnVO" resultType="egovMap">
 		/*
              SQL ID : QbnkQstnDAO.profQstnCopyQuizQstnList
@@ -328,5 +344,49 @@
 		   AND QSTN.EXAM_DTL_ID = #{examDtlId}
 		 ORDER BY QSTN.QSTN_SEQNO, QSTN.QSTN_CNDDT_SEQNO
 	</select>
+
+	<insert id="quizQstnCopy" parameterType="java.util.List">
+		/*
+             SQL ID : QbnkQstnDAO.quizQstnCopy
+             설  명 : 퀴즈문항가져오기
+         */
+        INSERT INTO TB_LMS_QSTN (
+        	  QSTN_ID
+        	, EXAM_DTL_ID
+        	, QSTN_TTL
+        	, QSTN_CTS
+        	, QSTN_RSPNS_TYCD
+        	, QSTN_DFCTLV_TYCD
+        	, CRANS_TYCD
+        	, QSTN_SEQNO
+        	, RGTR_ID
+        	, REG_DTTM
+        	, QSTN_CNDDT_SEQNO
+        )
+        SELECT
+			  A.*
+			, ROW_NUMBER() OVER(ORDER BY QSTN_TTL) AS QSTN_CNDDT_SEQNO
+		  FROM (
+	        <foreach item="item" collection="list" separator="UNION ALL">
+			  	SELECT
+			          #{item.qstnId}  									AS QSTN_ID
+			        , #{item.examDtlId}									AS EXAM_DTL_ID
+			        , COALESCE(Q.QSTN_TTL,         B.QSTN_TTL)         	AS QSTN_TTL
+			        , COALESCE(Q.QSTN_CTS,         B.QSTN_CTS)         	AS QSTN_CTS
+			        , COALESCE(Q.QSTN_RSPNS_TYCD,  B.QSTN_RSPNS_TYCD)  	AS QSTN_RSPNS_TYCD
+			        , COALESCE(Q.QSTN_DFCTLV_TYCD, B.QSTN_DFCTLV_TYCD) 	AS QSTN_DFCTLV_TYCD
+			        , COALESCE(Q.CRANS_TYCD,       B.CRANS_TYCD)       	AS CRANS_TYCD
+			        , (SELECT NVL(MAX(QSTN_SEQNO), 0) + 1
+			             FROM TB_LMS_QSTN
+			            WHERE EXAM_DTL_ID = #{item.examDtlId}
+			              AND DELYN = 'N') 								AS QSTN_SEQNO
+			        , #{item.rgtrId} 									AS RGTR_ID
+			        , FN_DTTM()											AS REG_DTTM
+			      FROM DUAL
+			      LEFT JOIN TB_LMS_QSTN      Q ON Q.QSTN_ID      = #{item.copyQstnId}
+			      LEFT JOIN TB_LMS_QBNK_QSTN B ON B.QBNK_QSTN_ID = #{item.copyQstnId}
+        </foreach>
+		) A
+	</insert>
 
 </mapper>

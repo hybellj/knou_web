@@ -70,7 +70,7 @@ public class PopupNtcServiceImpl extends ServiceBase implements PopupNtcService 
         vo.setPopupNtcId(popupNtcId);
 
         int cnt = popupNtcDAO.registPopupNtc(vo);
-        cnt += popupNtcDAO.registPopupNtcPstnSize(vo);
+        cnt += popupNtcDAO.registPopupNtcPstnSz(vo);
 
         return cnt;
     }
@@ -83,7 +83,7 @@ public class PopupNtcServiceImpl extends ServiceBase implements PopupNtcService 
     @Override
     public int modifyPopupNtc(PopupNtcVO vo) {
         int cnt = popupNtcDAO.modifyPopupNtc(vo);
-        cnt += popupNtcDAO.modifyPopupNtcPstnSize(vo);
+        cnt += popupNtcDAO.modifyPopupNtcPstnSz(vo);
 
         return cnt;
     }
@@ -95,7 +95,7 @@ public class PopupNtcServiceImpl extends ServiceBase implements PopupNtcService 
      */
     @Override
     public int deletePopupNtc(PopupNtcVO vo) {
-        popupNtcDAO.deletePopupNtcPstnSize(vo);
+        popupNtcDAO.deletePopupNtcPstnSz(vo);
         return popupNtcDAO.deletePopupNtc(vo);
     }
 

@@ -1,7 +1,9 @@
 package knou.lms.exam.dao;
 
 import java.util.List;
+import java.util.Map;
 
+import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
@@ -14,6 +16,45 @@ import knou.lms.exam.vo.ExamVO;
 @Mapper("examDAO")
 public interface ExamDAO {
 
+    /*****************************************************
+     * 신규 작성 DAO 영역
+     *****************************************************/
+    // 교수 시험목록 조회
+    public List<ExamVO> listProfExam (ExamVO vo) throws Exception;
+
+    // 교수 시험목록 페이징
+    public List<ExamVO> listProfExamPaging(ExamVO vo) throws Exception;
+
+    // 교수 시험 상세조회
+    public ExamVO selectProfExamDtl(ExamVO vo) throws Exception;
+
+    // 교수 시험목록 카운트
+    public int countProfExam(ExamVO vo) throws Exception;
+
+    // 팀 시험 평가대상자 목록 페이징
+    public List<ExamVO> listTkexamTeamUserPaging(ExamVO vo) throws Exception;
+
+    // 팀 시험 평가대상자 카운트
+    public int countTkexamTeamUser(ExamVO vo) throws Exception;
+
+    // 시험 평가대상자 목록 페이징
+    public List<ExamVO> listTkexamUserPaging(ExamVO vo) throws Exception;
+
+    // 시험 평가대상자 목록 카운트
+    public int countTkexamUser(ExamVO vo) throws Exception;
+
+    // 성적 반영 시험 목록
+    public List<ExamBscVO> mrkRfltExamList(ExamBscVO vo) throws Exception;
+
+    // 성적 공개여부 수정
+    public void updateMrkOyn(ExamVO vo) throws Exception;
+
+    // 시험 성적 반영비율 수정
+    public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
+
+    /*****************************************************
+     * 기존에 있던 DAO 영역
+     *****************************************************/
 	/**
 	* 교수퀴즈목록조회
 	*
@@ -67,6 +108,14 @@ public interface ExamDAO {
 	 * @throws Exception
 	 */
     public void examDtlDelete(String examBscId) throws Exception;
+
+    /**
+	 * 시험상세삭제여부수정
+	 *
+	 * @param ExamBscVO
+	 * @throws Exception
+	 */
+    public void examDtlDelynModify(ExamBscVO vo) throws Exception;
 
 	/**
 	 * 시험그룹등록
@@ -130,15 +179,14 @@ public interface ExamDAO {
 	*
 	* @param orgId 			기관아이디
 	* @param userId 		교수아이디
-	* @param dgrsYr 		학사년도
-	* @param dgrsSmstrChrt 	학기
+	* @param smstrChrtId 	학기기수아이디
 	* @param sbjctId	 	과목아이디
 	* @param searchValue 	검색내용(퀴즈명)
 	* @param listScale	 	페이지크기
 	* @return 퀴즈목록 페이징
 	* @throws Exception
 	*/
-	public List<ExamBscVO> profAuthrtSbjctQuizList(ExamBscVO vo) throws Exception;
+	public List<EgovMap> profAuthrtSbjctQuizList(Map<String, Object> params) throws Exception;
 
 	/**
 	* 퀴즈그룹과목목록조회
@@ -219,6 +267,43 @@ public interface ExamDAO {
 	 * @throws Exception
 	 */
 	public void quizRetkexamListModify(List<ExamDtlVO> list) throws Exception;
+
+	/**
+	* 시험지일괄엑셀다운퀴즈대상자목록조회
+	*
+	* @param examBscId 	시험기본아이디
+    * @param sbjctId 	과목이이디
+	* @return 시험지일괄엑셀다운퀴즈대상자목록
+	* @throws Exception
+	*/
+	public List<EgovMap> exampprBulkExcelDownQuizTrgtrList(ExamBscVO vo) throws Exception;
+
+	/**
+	* 문제가져오기학기기수목록조회
+	*
+	* @return 학기기수목록
+	* @throws Exception
+	*/
+	public List<EgovMap> qstnCopySmstrList() throws Exception;
+
+	/**
+	* 문제가져오기과목목록조회
+	*
+	* @param smstrChrtId 	학기기수아이디
+    * @param sbjctId 		과목이이디
+	* @return 과목목록
+	* @throws Exception
+	*/
+	public List<EgovMap> qstnCopySbjctList(@Param("smstrChrtId") String smstrChrtId, @Param("sbjctId") String sbjctId) throws Exception;
+
+	/**
+	* 문제가져오기퀴즈목록조회
+	*
+    * @param sbjctId 		과목이이디
+	* @return 퀴즈목록
+	* @throws Exception
+	*/
+	public List<ExamDtlVO> qstnCopyQuizList(@Param("sbjctId") String sbjctId) throws Exception;
 
 
 

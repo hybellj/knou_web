@@ -154,7 +154,7 @@
 		 * @param {String}  examDtlId 		- 시험상세아이디
 		 * @param {String}  userId 			- 사용자아이디
 		 * @param {String}  evlyn 			- 평가여부
-		 * @param {String}  evlyn 			- 시험응시완료여부
+		 * @param {String}  tkexamCmptnyn 	- 시험응시완료여부
 		 * @param {String}  searchValue 	- 검색어(학과, 학번, 이름)
 		 */
 		function quizExampprEvlPopup(examDtlId, userId) {

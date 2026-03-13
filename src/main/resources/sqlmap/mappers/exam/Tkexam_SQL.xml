@@ -10,6 +10,12 @@
          SELECT
          	  ROW_NUMBER() OVER(ORDER BY A.USERNM) AS LINE_NO
          	, A.*
+         	, CASE WHEN A.TKEXAM_SDTTM IS NULL
+         		   THEN CASE WHEN A.RETKEXAM_YN = 'Y' THEN 'INIT' ELSE 'NOTKEXAM' END
+         		   WHEN A.TKEXAM_CMPTNYN = 'Y'
+         		   THEN 'COMPLETED'
+         		   ELSE 'TKEXAMING'
+         		   END AS TKEXAM_CMPTN_GBNCD
            FROM (
            	 WITH DTL AS (
            	 	SELECT
@@ -106,6 +112,9 @@
 			 WHERE ATNDLC.AUDITYN = 'N'
 			   AND ATNDLC.ATNDLC_STSCD = 'ATNDLC'
 			   AND EXAM_BSC.EXAM_BSC_ID = #{examBscId}
+			   <if test="userId != null and userId != ''">
+			   		AND USR.USER_ID = #{userId}
+			   </if>
            ) A
          <where>
          	<if test="tkexamCmptnyn != null and tkexamCmptnyn != '' and tkexamCmptnyn != 'all'">
@@ -144,7 +153,7 @@
 			, NVL(USR.STDNT_NO,'-') AS STDNT_NO
 			, USR.USERNM
 			, USR.USER_ID
-			, NVL(TKEXAM_RSLT.TOT_SCR,0) AS TOT_SCR
+			, NVL((SELECT SUM(SCR) FROM TB_LMS_TKEXAM_ANSW_SHT WHERE USER_ID = USR.USER_ID AND QSTN_ID IN (SELECT QSTN_ID FROM TB_LMS_QSTN WHERE EXAM_DTL_ID = TKEXAM.EXAM_DTL_ID AND DELYN = 'N')),0) AS TOT_SCR
 			, TKEXAM.TKEXAM_ID
 		  FROM TB_LMS_USER USR
 		  LEFT JOIN TB_LMS_TKEXAM TKEXAM

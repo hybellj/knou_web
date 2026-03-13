@@ -2058,7 +2058,7 @@
 	<select id="dashboardCurrentWeek" parameterType="termVO" resultType="egovMap">
 		/*
 			 SQL ID : DashboardDAO.dashboardCurrentWeek
-			 설  명 : 대시보드 현재 주차
+			 설  명 : 대시보드 현재 주차  (임시처리)
 		*/
 		SELECT
 			TLSO.SBJCT_ID
@@ -2068,7 +2068,8 @@
 		     , TB_LMS_LCTR_WKNO_SCHDL TLLWS
 		 WHERE TLSO.SBJCT_ID  = TLLWS.SBJCT_ID
 		   AND FN_DT() BETWEEN TLLWS.LCTR_WKNO_SYMD AND TLLWS.LCTR_WKNO_EYMD
-		 GROUP BY TLSO.SBJCT_ID, TLLWS.LCTR_WKNO_SYMD, TLLWS.LCTR_WKNO_EYMD
+		   AND rownum=1
+		 /* GROUP BY TLSO.SBJCT_ID, TLLWS.LCTR_WKNO_SYMD, TLLWS.LCTR_WKNO_EYMD */
 	</select>
 
 	<select id="selectLoginCntInfo" parameterType="usrUserInfoVO" resultType="egovMap">

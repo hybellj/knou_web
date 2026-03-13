@@ -42,7 +42,7 @@
     }
 
     function fn_goList() {
-        location.href = '/popupNtcList.do';
+        location.href = '/popupNtcListView.do';
     }
 </script>
 

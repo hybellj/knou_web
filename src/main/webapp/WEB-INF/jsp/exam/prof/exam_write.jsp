@@ -58,7 +58,7 @@
 				UiComm.showMessage("목록으로 돌아가시겠습니까?", "confirm")
 					.then(function(result) {
 						if (result) {
-							location.href = "/exam/Form/examList.do";
+							location.href = "/exam/profExamListView.do";
 						}
 					});
 			});

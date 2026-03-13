@@ -59,14 +59,8 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<Forum2VO> selectForum(Forum2VO vo) throws Exception {
-        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
-
-        Forum2VO detailVO = forumDAO.selectForum(vo);
-        resultVO.setReturnVO(detailVO);
-        resultVO.setResultSuccess();
-
-        return resultVO;
+    public Forum2VO selectForum(Forum2VO vo) throws Exception {
+        return forumDAO.selectForum(vo);
     }
 
     /**
@@ -109,7 +103,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
         if (!isInsertMode) {
             // 수정(mode=E): 기존 dscsId 단건 update만 수행
-            vo.setdvclsNo(null); // 수정 시 분반 변경 금지
+            vo.setDvclsNo(null); // 수정 시 분반 변경 금지
             forumDAO.updateForum(vo);
         } else {
             List<Forum2DvclasSelVO> dvclasSelList = vo.getDvclasSelList();
@@ -184,7 +178,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
                 String newDscsId = IdGenerator.getNewId("DSCS");
                 vo.setDscsId(newDscsId);
-                vo.setdvclsNo(dvclsNo);
+                vo.setDvclsNo(dvclsNo);
                 forumDAO.insertForum(vo);
 
                 if (firstDscsId == null) {

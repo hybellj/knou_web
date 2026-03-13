@@ -39,4 +39,71 @@
 		    )
 	</update>
 
+	<update id="tkexamAnswShtScrModify" parameterType="java.util.List">
+		/*
+             SQL ID : TkexamAnswShtDAO.tkexamAnswShtScrModify
+             설  명  : 시험응시답안점수수정
+         */
+        MERGE INTO TB_LMS_TKEXAM_ANSW_SHT ANSW_SHT
+	    USING (
+	    	<foreach item="item" collection="list" separator="UNION ALL">
+	            SELECT
+		       		  #{item.tkexamAnswShtId} AS TKEXAM_ANSW_SHT_ID
+			       	, #{item.exampprId} AS EXAMPPR_ID
+			       	, #{item.qstnId} AS QSTN_ID
+			       	, #{item.userId} AS USER_ID
+			       	, TO_NUMBER(#{item.scr}) AS SCR
+			       	, #{item.rgtrId} AS RGTR_ID
+		         FROM DUAL
+	        </foreach>
+	    ) SCR
+	    ON (
+	    	    ANSW_SHT.TKEXAM_ANSW_SHT_ID = SCR.TKEXAM_ANSW_SHT_ID
+	     	AND ANSW_SHT.EXAMPPR_ID = SCR.EXAMPPR_ID
+	     	AND ANSW_SHT.QSTN_ID = SCR.QSTN_ID
+	     	AND ANSW_SHT.USER_ID = SCR.USER_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  ANSW_SHT.SCR = SCR.SCR
+	        	, ANSW_SHT.MDFR_ID = SCR.RGTR_ID
+				, ANSW_SHT.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  TKEXAM_ANSW_SHT_ID
+				, EXAMPPR_ID
+				, QSTN_ID
+				, USER_ID
+				, SCR
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  SCR.TKEXAM_ANSW_SHT_ID
+				, SCR.EXAMPPR_ID
+				, SCR.QSTN_ID
+				, SCR.USER_ID
+				, SCR.SCR
+				, SCR.RGTR_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+	<select id="qstnTkexamAnswShtCtsList" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : TkexamAnswShtDAO.qstnTkexamAnswShtCtsList
+             설  명  : 문항시험응시답안목록조회
+        */
+		SELECT
+			  EXAMPPR.QSTN_ID
+			, EXAMPPR.QSTN_VWITM_DSPLY_SEQ
+			, ANSW_SHT.ANSW_SHT_CTS
+			, (SELECT QSTN_VWITM_DSPLY_SEQ FROM TB_LMS_EXAMPPR WHERE QSTN_ID = #{qstnId} AND EXAMPPR_ID = #{exampprId}) AS BASE_DSPLY_SEQNO
+			, ANSW_SHT.SCR
+		  FROM TB_LMS_EXAMPPR EXAMPPR
+		  JOIN TB_LMS_TKEXAM_ANSW_SHT ANSW_SHT
+		    ON EXAMPPR.EXAMPPR_ID = ANSW_SHT.EXAMPPR_ID
+		   AND EXAMPPR.QSTN_ID = ANSW_SHT.QSTN_ID
+		 WHERE EXAMPPR.QSTN_ID = #{qstnId}
+	</select>
+
 </mapper>

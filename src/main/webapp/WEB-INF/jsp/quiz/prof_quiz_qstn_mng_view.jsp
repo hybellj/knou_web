@@ -219,11 +219,11 @@
 		    		html += "	<th>정답 유형</th>";
 		    		html += "	<td class='t_left'>";
 		    		html += "		<span class='custom-input'>";
-		    		html += "			<input type='radio' name='cransTycd' id='"+formId+"cransI' value='cransInorder' checked='checked'>";
+		    		html += "			<input type='radio' name='cransTycd' id='"+formId+"cransI' value='CRANS_INORDER' checked='checked'>";
 		    		html += "			<label for='"+formId+"cransI'>순서에 맞게 정답</label>";
 		    		html += "		</span>";
 		    		html += "		<span class='custom-input'>";
-		    		html += "			<input type='radio' name='cransTycd' id='"+formId+"cransN' value='cransNotInorder'>";
+		    		html += "			<input type='radio' name='cransTycd' id='"+formId+"cransN' value='CRANS_NOT_INORDER'>";
 		    		html += "			<label for='"+formId+"cransN'>순서에 상관없이 정답</label>";
 		    		html += "		</span>";
 		    		html += "	</td>";
@@ -1128,7 +1128,7 @@
 	    		return false;
 	    	}
 
-	    	var data = "examBscId=${vo.examBscId}&sbjctId=${vo.sbjctId}";
+	    	var data = "examBscId=${vo.examBscId}&sbjctId=${vo.sbjctId}&examDtlId="+$("#examDtlId").val();
 
 			dialog = UiDialog("dialog1", {
 				title: "문제 가져오기",
@@ -1161,8 +1161,8 @@
 
 	    	var url  = "/quiz/quizQstnScrBulkModifyAjax.do";
 	    	var data = {
-	    		  "examBscId" : "${vo.examBscId}",
-	    		  "examDtlId" : examDtlId
+	    		"examBscId" : "${vo.examBscId}",
+	    		"examDtlId" : examDtlId
 	   		};
 
 			ajaxCall(url, data, function(data) {
@@ -1176,16 +1176,16 @@
 			}, true);
 	    }
 
-	 	// 퀴즈 문항 점수 자동 배점 (출제 완료 후) ( 미완료 )
-	    function editqstnScrAllAfter() {
+	 	// 출제완료문항점수자동배점
+	    function cmptnYQstnScrAutoGrnt() {
 	    	UiComm.showMessage("<spring:message code='exam.confirm.score.edit' />", "confirm")// 배점을 수정하겠습니까?
 	    	.then(function(result) {
 	    		if (result) {
-	    			var url  = "/quiz/updateQuizqstnScr.do";
+	    			var url  = "/quiz/quizQstnScrBulkModifyAjax.do";
 	    	    	var data = {
-	    	      		  "examBscId" : "${vo.examBscId}"
-	    	  			, "crsCreCd" : "${vo.crsCreCd}"
-	    	  		};
+	    	    		"examBscId" : "${vo.examBscId}",
+	    	    		"examDtlId" : $("#examDtlId").val()
+	    	   		};
 
 	    			ajaxCall(url, data, function(data) {
 	    				if (data.result > 0) {
@@ -1530,66 +1530,66 @@
 	    	};
 
 			tkexamUserCntSelect().done(function(returnVO) {
-	        		if(returnVO.result > 0) {
-	        			UiComm.showMessage('<spring:message code="exam.error.submit.join.user" />', "info");// 시험 응시 학생이 있으므로 변경이 불가능합니다.
-	     				return;
-	     			}
+		        if(returnVO.result > 0) {
+		        	UiComm.showMessage('<spring:message code="exam.error.submit.join.user" />', "info");// 시험 응시 학생이 있으므로 변경이 불가능합니다.
+		     		return;
+		     	}
 
-	        		// 점수편집 비활성화
-	     			cancelScoreEditMode();
+		        // 점수편집 비활성화
+		     	cancelScoreEditMode();
 
-	     			// 점수 입력 활성화
-	     			$.each($("input[name='editScore']"), function() {
-	     				var index = this.id.replace("editScore", "");
+		     	// 점수 입력 활성화
+		     	$.each($("input[name='editScore']"), function() {
+		     		var index = this.id.replace("editScore", "");
 
-	     				$("#scoreDisplayDiv" + index).hide();
-	     				$("#scoreInputDiv" + index).show();
+		     		$("#scoreDisplayDiv" + index).hide();
+		     		$("#scoreInputDiv" + index).show();
 
-	     				// 탭 이벤트 활성화
-	     				$("#editScore" + index).off("keydown.tab").on("keydown.tab", function(e) {
-	     					if(e.keyCode == 9 && e.shiftKey) {
-	     						e.preventDefault();
+		     		// 탭 이벤트 활성화
+		     		$("#editScore" + index).off("keydown.tab").on("keydown.tab", function(e) {
+		     			if(e.keyCode == 9 && e.shiftKey) {
+		     				e.preventDefault();
 
-	     						var index = Number(this.id.replace("editScore", ""));
-	     						var $prev = $("#editScore" + (index - 1));
-	     						var maxLen = $("input[name='editScore']").length;
+		     				var index = Number(this.id.replace("editScore", ""));
+		     				var $prev = $("#editScore" + (index - 1));
+		     				var maxLen = $("input[name='editScore']").length;
 
-	     						if($prev.length != 1 && index == 0) {
-	     							$prev = $("#editScore" + (maxLen - 1));
-	     						}
+		     				if($prev.length != 1 && index == 0) {
+		     					$prev = $("#editScore" + (maxLen - 1));
+		     				}
 
-	     						if($prev.length == 1) {
-	     							$prev.focus().select();
-	     						}
-	     					} else if(e.keyCode == 9) {
-	     						e.preventDefault();
+		     				if($prev.length == 1) {
+		     					$prev.focus().select();
+		     				}
+		     			} else if(e.keyCode == 9) {
+		     				e.preventDefault();
 
-	     						var index = Number(this.id.replace("editScore", ""));
-	     						var $next = $("#editScore" + (index + 1));
+		     				var index = Number(this.id.replace("editScore", ""));
+		     				var $next = $("#editScore" + (index + 1));
 
-	     						if($next.length != 1 && index != 0) {
-	     							$next = $("#editScore0");
-	     						}
+		     				if($next.length != 1 && index != 0) {
+		     					$next = $("#editScore0");
+		     				}
 
-	     						if($next.length == 1) {
-	     							$next.focus().select();
-	     						}
-	     					}
-	     				});
-	     			});
+		     				if($next.length == 1) {
+		     					$next.focus().select();
+		     				}
+		     			}
+		     		});
+		     	});
 
-	     			// 일괄 점수저장 버튼으로 변경
-	     			$("#changeScoreEditModeBtn").removeClass("blue").removeClass("orange");
-	     			$("#changeScoreEditModeBtn").addClass("orange");
-	     			$("#changeScoreEditModeBtn").text("<spring:message code='exam.button.batch.save.score' />"); // 배점 일괄 저장
-	     			$("#changeScoreEditModeBtn").off("click").on("click", function() {
-	     				submitScoreBatch();
-	     			});
+		     	// 일괄 점수저장 버튼으로 변경
+		     	$("#changeScoreEditModeBtn").removeClass("blue").removeClass("orange");
+		     	$("#changeScoreEditModeBtn").addClass("orange");
+		     	$("#changeScoreEditModeBtn").text("<spring:message code='exam.button.batch.save.score' />"); // 배점 일괄 저장
+		     	$("#changeScoreEditModeBtn").off("click").on("click", function() {
+		     		cmptnYQstnScrBulkModify();
+		     	});
 
-	     			// 취소 버튼 보임
-	     			$("#cancelScoreEditModeBtn").show();
+		     	// 취소 버튼 보임
+		     	$("#cancelScoreEditModeBtn").show();
 
-	     			SCORE_EDIT_MODE = true;
+		     	SCORE_EDIT_MODE = true;
 			});
 	 	}
 
@@ -1627,10 +1627,11 @@
 			SCORE_EDIT_MODE = false;
 	 	}
 
-	 	// 일괄 점수편집 저장
-		function submitScoreBatch() {
+	 	// 출제완료문항점수일괄수정
+		function cmptnYQstnScrBulkModify() {
 			var changeScoreList = [];
 			var isValid = true;
+			var totalScr = 0;
 
 			// 점수 입력 체크
 			$.each($("input[name='editScore']"), function() {
@@ -1650,41 +1651,46 @@
 					return false;
 				}
 
-				var qstnIds = "" + $(this).data("editqstnSeqnos")
-				var qstnScr = this.value;
+				var qstnSeqno	= $(this).parents(".quizQstnList").attr("data-qstnSeqno");	// 문항순번
+				var qstnScr = this.value;													// 문항점수
 
 				changeScoreList.push({
-					  examBscId   : "${vo.examBscId}"
-		   			, crsCreCd : "${vo.crsCreCd}"
-					, qstnIds: qstnIds
-					, qstnScr: qstnScr
-				})
+        			"examDtlId"	: $("#examDtlId").val(),
+        			"qstnSeqno" : qstnSeqno,
+        			"qstnScr"  	: qstnScr
+				});
+
+				totalScr += Number(qstnScr);
 			});
+
+			if(totalScr != 100) {
+				UiComm.showMessage("배점합계가 100점이 아닙니다.", "info");
+				return false;
+			}
 
 			if(!isValid) return;
 
 			UiComm.showMessage("<spring:message code='exam.confirm.score.edit' />", "confirm")// 배점을 수정하겠습니까?
 			.then(function(result) {
 				if (result) {
-					var url = "/quiz/updateQuizqstnScrBatch.do";
-					var data = JSON.stringify(changeScoreList);
+					var url = "/quiz/cmptnYQuizQstnScrBulkModifyAjax.do";
 
-					ajaxCall(url, data, function(data) {
-						if(data.result > 0) {
-							cancelScoreEditMode();
+					$.ajax({
+				        url 	  : url,
+				        async	  : false,
+				        type 	  : "POST",
+				        dataType : "json",
+				        data 	  : JSON.stringify(changeScoreList),
+				        contentType: "application/json; charset=UTF-8",
+				    }).done(function(data) {
+				    	cancelScoreEditMode();
 
-							UiComm.showMessage("<spring:message code='exam.alert.score.finish' />", "success");// 점수 등록이 완료되었습니다.
+						UiComm.showMessage("<spring:message code='exam.alert.score.finish' />", "success");// 점수 등록이 완료되었습니다.
 
-							qstnListSelect();
-			        	} else {
-			        		UiComm.showMessage(data.message, "error");
-			        	}
-					}, function(xhr, status, error) {
-						UiComm.showMessage('<spring:message code="fail.common.msg" />', "error");// 에러가 발생했습니다!
-					}, true, {
-						  contentType: "application/json"
-						, dataType: "json"
-					});
+						qstnListSelect();
+				    }).fail(function() {
+				    	UiComm.showMessage('<spring:message code="fail.common.msg" />', "error");// 에러가 발생했습니다!
+				    });
 				}
 			});
 		}
@@ -1698,7 +1704,7 @@
 	 		}
 
 	 		// 100 이하의 정수 또는 소수점인지 확인
-	 	    var regex = /^100(\.0+)?(\.\d{1,4})?$|^\d{0,2}(\.\d{0,1})?$/;
+	 	    var regex = /^100(\.0+)?(\.\d{1,4})?$|^\d{0,2}(\.\d{0,2})?$/;
 
 	 	    // 입력값이 정규식과 일치하지 않으면 이전 값으로 복원
 	 	    if (!regex.test(obj.value)) {
@@ -1743,7 +1749,7 @@
 					if("${team.examQstnsCmptnyn}" == "M") {
 						html += "<a href='javascript:void(0)' id='changeScoreEditModeBtn' class='btn type1'>배점 일괄 수정</a>";
 						html += "<a href='javascript:cancelScoreEditMode()' id='cancelScoreEditModeBtn' class='btn type1' style='display: none;'>취소</a>";
-						html += "<a href='javascript:editqstnScrAllAfter(\"${vo.examBscId }\")' class='btn type1'>자동 배점</a>";
+						html += "<a href='javascript:cmptnYQstnScrAutoGrnt(\"${vo.examBscId }\")' class='btn type1'>자동 배점</a>";
 						html += "<a href='javascript:quizQstnsCmptnModify(\"save\", \"dtl\")' class='btn type1'>출제 완료</a>";
 					} else if("${team.examQstnsCmptnyn}" == "Y") {
 						html += "<a href='javascript:quizQstnsCmptnModify(\"edit\", \"dtl\")' class='btn type1'>수정</a>";
@@ -1990,7 +1996,7 @@
 											<c:when test="${vo.examDtlVO.examQstnsCmptnyn eq 'M'}">
 												<a href="javascript:void(0)" id="changeScoreEditModeBtn" class="btn type1">배점 일괄 수정</a>
 										    	<a href="javascript:cancelScoreEditMode()" id="cancelScoreEditModeBtn" class="btn type1" style="display: none;">취소</a>
-										    	<a href="javascript:editqstnScrAllAfter('${vo.examBscId }')" class="btn type1">자동 배점</a>
+										    	<a href="javascript:cmptnYQstnScrAutoGrnt('${vo.examBscId }')" class="btn type1">자동 배점</a>
 										    	<a href="javascript:quizQstnsCmptnModify('save', 'dtl')" class="btn type1">출제 완료</a>
 											</c:when>
 											<c:when test="${vo.examDtlVO.examQstnsCmptnyn eq 'Y'}">

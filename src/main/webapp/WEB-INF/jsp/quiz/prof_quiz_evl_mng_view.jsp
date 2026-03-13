@@ -113,17 +113,21 @@
 				return dataList;
 			} else {
 				userList.forEach(function(v,i) {
-					var tkexamCmptnyn = "";
+					var tkexamCmptnGbnnm = "";
 					var quizScr = v.quizScr;
 					var totScr = v.totScr;
 					if(v.tkexamSdttm == null) {
-						tkexamCmptnyn = v.retkexamYn == "Y" ? "초기화" : "미응시";
 						quizScr = "-";
 						totScr = v.evlyn == "Y" ? v.totScr : "-";
-					} else if(v.tkexamCmptnyn == "Y") {
-						tkexamCmptnyn = "응시완료";
-					} else {
-						tkexamCmptnyn = "응시중";
+					}
+					if(v.tkexamCmptnGbncd == "INIT") {
+						tkexamCmptnGbnnm = "초기화";
+					} else if(v.tkexamCmptnGbncd == "NOTKEXAM") {
+						tkexamCmptnGbnnm = "미응시";
+					} else if(v.tkexamCmptnGbncd == "COMPLETED") {
+						tkexamCmptnGbnnm = "응시완료";
+					} else if(v.tkexamCmptnGbncd == "TKEXAMING") {
+						tkexamCmptnGbnnm = "응시중";
 					}
 					var ldryn = v.ldryn == "Y" ? "팀장" : "팀원";
 					var mng = "<a href='javascript:quizExampprInit(\"" + v.tkexamId + "\", \"" + v.examDtlId + "\", \"" + v.userId + "\")' class='btn basic small'>퀴즈초기화</a>";
@@ -134,22 +138,22 @@
 					mng += "<a href='javascript:memoPopup(\"" + v.tkexamId + "\", \"" + v.userId + "\")' class='btn basic small'>메모</a>";
 
 					dataList.push({
-						no: 			v.lineNo,
-						deptnm: 		v.deptnm,
-						userRprsId: 	v.userRprsId,
-						stdntNo: 		v.stdntNo,
-						usernm: 		v.usernm,
-						quizScr: 		quizScr,
-						totScr: 		totScr,
-						tkexamCmptnyn: 	tkexamCmptnyn,
-						tkexamCnt: 		v.tkexamCnt + "회",
-						evlyn: 			v.evlyn,
-						mng: 			mng,
-						ldryn:			ldryn,
-						teamnm:			v.teamnm,
-						userId:			v.userId,
-						examDtlId:		v.examDtlId,
-						tkexamId:		v.tkexamId
+						no: 				v.lineNo,
+						deptnm: 			v.deptnm,
+						userRprsId: 		v.userRprsId,
+						stdntNo: 			v.stdntNo,
+						usernm: 			v.usernm,
+						quizScr: 			quizScr,
+						totScr: 			totScr,
+						tkexamCmptnGbnnm: 	tkexamCmptnGbnnm,
+						tkexamCnt: 			v.tkexamCnt + "회",
+						evlyn: 				v.evlyn,
+						mng: 				mng,
+						ldryn:				ldryn,
+						teamnm:				v.teamnm,
+						userId:				v.userId,
+						examDtlId:			v.examDtlId,
+						tkexamId:			v.tkexamId
 					});
 				});
 			}
@@ -163,7 +167,7 @@
 		 * @param {String}  examDtlId 		- 시험상세아이디
 		 * @param {String}  userId 			- 사용자아이디
 		 * @param {String}  evlyn 			- 평가여부
-		 * @param {String}  evlyn 			- 시험응시완료여부
+		 * @param {String}  tkexamCmptnyn 	- 시험응시완료여부
 		 * @param {String}  searchValue 	- 검색어(학과, 학번, 이름)
 		 */
 		function quizExampprEvlPopup(examDtlId, userId) {
@@ -347,50 +351,66 @@
 			});
 		}
 
-		// 엑셀 다운로드
-		function quizStatusExcelDown() {
-			var univGbn = "${creCrsVO.univGbn}";
-			var hstyTypeCdObj = {
-				  SET: "<spring:message code='exam.label.no.stare' />" // 미응시
-				, REEXAM: "<spring:message code='exam.label.reexam.no.stare' />" // 재응시미완료
-				, START: "<spring:message code='exam.label.complete.stare' />" // 응시완료
-				, RESTORE: "<spring:message code='exam.label.complete.stare' />" // 응시완료
-				, COMPLETE: "<spring:message code='exam.label.complete.stare' />" // 응시완료
+		/**
+		 * 퀴즈응시현황엑셀다운로드
+		 * @param {String}  examBscId 		시험기본아이디
+	     * @param {String}  tkexamCmptnyn 	응시여부
+	     * @param {String}  evlyn 			평가여부
+	     * @param {String}  searchValue 	검색어 ( 학과, 학번, 성명 )
+	     * @param {String}  excelGrid 		엑셀그리드
+		 */
+		function quizTkexamStatusExcelDown() {
+			var examGbncd = "${vo.examGbncd}";
+			var ldrynObj = {
+				Y: "팀장", N: "팀원"
+			};
+			var tkexamCmptnObj = {
+				  INIT: "초기화"
+				, NOTKEXAM: "미응시"
+				, COMPLETED: "응시완료"
+				, TKEXAMING: "응시중"
 			};
 
 			var excelGrid = { colModel: [] };
 
-			excelGrid.colModel.push({label: 'No.', name: 'lineNo', align: 'center', width: '1000'}); // No.
-			excelGrid.colModel.push({label: "<spring:message code='exam.label.dept' />", name: 'deptNm', align: 'left', width: '5000'}); // 학과
-			excelGrid.colModel.push({label: "<spring:message code='exam.label.user.no' />", name: 'userId', align: 'left', width: '5000'}); // 학번
-			excelGrid.colModel.push({label: "<spring:message code='exam.label.user.grade' />", name: 'hy', align: 'center', width: '1000'}); // 학년
-			if(univGbn == "3" || univGbn == "4") {
-				excelGrid.colModel.push({label: '<spring:message code="common.label.grsc.degr.cors.gbn" />', name: 'grscDegrCorsGbnNm', align: 'left', width: '4000'}); // 학위과정
+			excelGrid.colModel.push({label: 'No.', 		name: 'lineNo', 			align: 'center', 	width: '1000'});
+			if(examGbncd == "QUIZ_TEAM") {
+				excelGrid.colModel.push({label: '팀명', 	name: 'teamnm', 			align: 'left', 		width: '4000'});
 			}
-			excelGrid.colModel.push({label: "<spring:message code='exam.label.user.nm' />", name: 'userNm', align: 'right', width: '5000'}); // 이름
-			excelGrid.colModel.push({label: "<spring:message code='exam.label.admission.year' />", name: 'entrYy', align: 'left', width: '5000'}); // 입학년도
-			excelGrid.colModel.push({label: "<spring:message code='exam.label.admission.grade' />", name: 'entrHy', align: 'left', width: '5000'}); // 입학학년
-			excelGrid.colModel.push({label: "<spring:message code='exam.label.admission.type' />", name: 'entrGbnNm', align: 'left', width: '5000'}); // 입학구분
-			excelGrid.colModel.push({label: "<spring:message code='exam.label.eval.score' />", name: 'stareScore', align: 'right', width: '5000'}); // 평가점수
-			excelGrid.colModel.push({label: "<spring:message code='exam.label.situation' />", name: 'hstyTypeCd', align: 'right', width: '5000', codes: hstyTypeCdObj}); // 상황
-			excelGrid.colModel.push({label: "<spring:message code='exam.label.stare.count' />", name: 'stareCnt', align: 'right', width: '5000'}); // 응시횟수
-
+			excelGrid.colModel.push({label: "학과", 		name: 'deptnm', 			align: 'left', 		width: '5000'});
+			excelGrid.colModel.push({label: "대표아이디", 	name: 'userRprsId', 		align: 'left', 		width: '5000'});
+			excelGrid.colModel.push({label: "학번", 		name: 'stdntNo', 			align: 'center', 	width: '5000'});
+			excelGrid.colModel.push({label: "이름", 		name: 'usernm', 			align: 'center', 	width: '5000'});
+			if(examGbncd == "QUIZ_TEAM") {
+				excelGrid.colModel.push({label: "역할", 	name: 'ldryn', 				align: 'left', 		width: '5000', 	codes: ldrynObj});
+			}
+			excelGrid.colModel.push({label: "퀴즈점수", 	name: 'quizScr', 			align: 'center', 	width: '3000'});
+			excelGrid.colModel.push({label: "평가점수", 	name: 'totScr', 			align: 'center', 	width: '3000'});
+			excelGrid.colModel.push({label: "응시상태", 	name: 'tkexamCmptnGbncd', 	align: 'left', 		width: '5000', 	codes: tkexamCmptnObj});
+			excelGrid.colModel.push({label: "응시횟수", 	name: 'tkexamCnt', 			align: 'center', 	width: '3000'});
+			excelGrid.colModel.push({label: "평가여부", 	name: 'evlyn', 				align: 'left', 		width: '5000'});
 
 			var kvArr = [];
-			kvArr.push({'key' : 'examCd', 	   'val' : "${vo.examBscId}"});
-			kvArr.push({'key' : 'stdNos', 	   'val' : $("#stdNos").val()});
-			kvArr.push({'key' : 'searchValue', 'val' : $("#searchValue").val()});
-			kvArr.push({'key' : 'excelGrid',   'val' : JSON.stringify(excelGrid)});
+			kvArr.push({'key' : 'examBscId', 	   	'val' : "${vo.examBscId}"});
+			kvArr.push({'key' : 'tkexamCmptnyn', 	'val' : $("#tkexamCmptnyn").val()});
+			kvArr.push({'key' : 'evlyn', 			'val' : $("#evlyn").val()});
+			kvArr.push({'key' : 'searchValue', 		'val' : $("#searchValue").val()});
+			kvArr.push({'key' : 'excelGrid',   		'val' : JSON.stringify(excelGrid)});
 
-			submitForm("/quiz/quizStatusExcelDown.do", "", "", kvArr);
+			submitForm("/quiz/profQuizTkexamStatusExcelDown.do", "", "", kvArr);
 		}
 
-		// 시험지 일괄 엑셀 다운로드
-		function allQuizPaperExcelDown() {
+		/**
+		 * 퀴즈시험지일괄엑셀다운로드
+		 * @param {String}  examBscId 	시험기본아이디
+	     * @param {String}  sbjctId 	과목아이디
+		 */
+		function quizExampprBlukExcelDown() {
 			var kvArr = [];
-			kvArr.push({'key' : 'examCd', 'val' : "${vo.examBscId}"});
+			kvArr.push({'key' : 'examBscId', 	'val' : "${vo.examBscId}"});
+			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
 
-			submitForm("/quiz/allQuizPaperExcelDown.do", "", "", kvArr);
+			submitForm("/quiz/profQuizExampprBulkExcelDown.do", "", "", kvArr);
 		}
 
 		// 메세지 보내기
@@ -537,6 +557,19 @@
 	        		$("#quizSubAsmtTbody").append(html);
 				}
 			}, true);
+		}
+
+		// 퀴즈시험지일괄인쇄
+		function quizExampprBulkPrintPopup() {
+			var data = "examBscId=${vo.examBscId}&tkexamCmptnyn="+$("#tkexamCmptnyn").val()+"&evlyn="+$("#evlyn").val()+"&searchValue="+$("#searchValue").val();
+
+			dialog = UiDialog("dialog1", {
+				title: "시험지 인쇄",
+				width: 600,
+				height: 500,
+				url: "/quiz/profQuizExampprBulkPrintPopup.do?"+data,
+				autoresize: true
+			});
 		}
 	</script>
 </head>
@@ -800,9 +833,9 @@
                         </table>
                         <div class="board_top margin-top-4">
 							<div class="right-area">
-								<a href="javascript:void(0)" class="btn type1">시험지 일괄 인쇄</a>
-								<a href="javascript:allQuizPaperExcelDown()" class="btn type1">시험지 일괄 엑셀 다운로드</a>
-								<a href="javascript:quizStatusExcelDown()" class="btn type1">엑셀 다운로드</a>
+								<a href="javascript:quizExampprBulkPrintPopup()" class="btn type1">시험지 일괄 인쇄</a>
+								<a href="javascript:quizExampprBlukExcelDown()" class="btn type1">시험지 일괄 엑셀 다운로드</a>
+								<a href="javascript:quizTkexamStatusExcelDown()" class="btn type1">엑셀 다운로드</a>
 								<a href="javascript:quizChartPop()" class="btn type1">응시현황 그래프</a>
 							</div>
 						</div>
@@ -814,19 +847,19 @@
 								lang: "ko",
 								selectRow: "checkbox",
 								columns: [
-									{title:"No", 		field:"no",				headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},
+									{title:"No", 		field:"no",					headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},
 									("${vo.examGbncd}" == "QUIZ_TEAM" ? {title: "팀명", field: "teamnm", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
-									{title:"학과", 		field:"deptnm",			headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:100},
-									{title:"대표아이디", 	field:"userRprsId", 	headerHozAlign:"center", hozAlign:"center", width:0, 	minWidth:100},
-									{title:"학번", 		field:"stdntNo", 		headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
-									{title:"이름", 		field:"usernm", 		headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
+									{title:"학과", 		field:"deptnm",				headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:100},
+									{title:"대표아이디", 	field:"userRprsId", 		headerHozAlign:"center", hozAlign:"center", width:0, 	minWidth:100},
+									{title:"학번", 		field:"stdntNo", 			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
+									{title:"이름", 		field:"usernm", 			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
 									("${vo.examGbncd}" == "QUIZ_TEAM" ? {title: "역할", field: "ldryn", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
-									{title:"퀴즈점수", 	field:"quizScr", 		headerHozAlign:"center", hozAlign:"center", width:80,	minWidth:80},
-									{title:"평가점수", 	field:"totScr", 		headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
-									{title:"응시상태", 	field:"tkexamCmptnyn", 	headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
-									{title:"응시횟수", 	field:"tkexamCnt", 		headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
-									{title:"평가여부", 	field:"evlyn", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
-									{title:"관리", 		field:"mng", 			headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:200},
+									{title:"퀴즈점수", 	field:"quizScr", 			headerHozAlign:"center", hozAlign:"center", width:80,	minWidth:80},
+									{title:"평가점수", 	field:"totScr", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"응시상태", 	field:"tkexamCmptnGbnnm", 	headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"응시횟수", 	field:"tkexamCnt", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"평가여부", 	field:"evlyn", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"관리", 		field:"mng", 				headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:300},
 								].filter(function(col) {return col !== null;})
 							});
 						</script>

@@ -2,6 +2,7 @@ package knou.lms.exam.web;
 
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
+import knou.framework.common.RepoInfo;
 import knou.framework.common.SessionInfo;
 import knou.framework.exception.AccessDeniedException;
 import knou.framework.exception.BadRequestUrlException;
@@ -38,8 +39,13 @@ import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -54,6 +60,8 @@ import java.util.Map;
 @Controller
 @RequestMapping(value="/exam")
 public class ExamHomeController extends ControllerBase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExamHomeController.class);
 
     @Resource(name="examService")
     private ExamService examService;
@@ -116,6 +124,9 @@ public class ExamHomeController extends ControllerBase {
     private LessonScheduleService lessonScheduleService;
 
     /*****************************************************
+     * 신규 작성 Controller 영역
+     *****************************************************/
+    /*****************************************************
      * 시험 목록 페이지 (교수)
      * @param vo
      * @param model
@@ -123,65 +134,451 @@ public class ExamHomeController extends ControllerBase {
      * @return "exam/exam_list"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value="/Form/examList.do")
-    public String examListForm(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value="/profExamListView.do")
+    public String profExamListView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
 
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
-        String crsCreCd = vo.getCrsCreCd();
+//        String crsCreCd = vo.getCrsCreCd();
 
         if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
             throw new AccessDeniedException(getCommonNoAuthMessage()); // 페이지 접근 권한이 없습니다.
         }
 
-        vo.setCrsCreCd(crsCreCd);
+//        vo.setCrsCreCd(crsCreCd);
         model.addAttribute("vo", vo);
-
-        CreCrsVO creCrsVO = new CreCrsVO();
-        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
-        creCrsVO = crecrsService.selectCreCrs(creCrsVO);
-        model.addAttribute("creCrsVO", creCrsVO);
-
-        TermVO termVO = new TermVO();
-        termVO.setCrsCreCd(crsCreCd);
-        termVO = termService.selectTermByCrsCreCd(termVO);
-        model.addAttribute("termVO", termVO);
 
         LocalDateTime today = LocalDateTime.now();
         model.addAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("crsCreCd", "SBJCT_OFRNG_ID2");  // 임시 하드코딩
         model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
 
-        return "exam/exam_list";
+        // 임시로 prof 경로 추가
+        return "exam/prof/exam_list_view";
+//        return "exam/exam_list";
     }
 
     /*****************************************************
-     * 시험 목록  가져오기 ajax (교수)
+     * 시험 [등록|수정] 페이지 (교수)
+     * @param ExamVO
+     * @return "exam/exam_write"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamWriteView.do")
+    public String profExamWriteView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String isModify = "N";
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+
+        // 임시로 prof 경로 추가
+        return "exam/prof/exam_write";
+    }
+
+    /*****************************************************
+     * 시험 관리 페이지 (시험정보 및 평가 탭)
+     * @param ExamVO
+     * @return "exam/exam_write"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamInfoEvlView.do")
+    public String profExamInfoEvlView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String tabType = StringUtil.nvl(vo.getTabType());
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+
+        System.out.println("tabType is : " + tabType);
+        System.out.println("examBscId is : " + examBscId);
+        System.out.println("tkexamMthdCd is : " + tkexamMthdCd);
+        System.out.println("byteamSubrexamUseyn is : " + byteamSubrexamUseyn);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+
+        examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
+        System.out.println("examVO is : " + examVO.getUploadPath());
+        // 임시로 prof 경로 추가
+        return "exam/prof/exam_info_evl";
+    }
+
+    /*****************************************************
+     * 시험 관리 페이지 (시험 대체 탭)
+     * @param ExamVO
+     * @return "exam/prof/exam_info_sbst"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamSbstView.do")
+    public String profExamSbstView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String tabType = StringUtil.nvl(vo.getTabType());
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+
+        System.out.println("tabType is : " + tabType);
+        System.out.println("examBscId is : " + examBscId);
+        System.out.println("tkexamMthdCd is : " + tkexamMthdCd);
+        System.out.println("byteamSubrexamUseyn is : " + byteamSubrexamUseyn);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+
+        examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
+        System.out.println("examVO is : " + examVO.getUploadPath());
+        // 임시로 prof 경로 추가
+        return "exam/prof/exam_info_sbst";
+    }
+
+    /*****************************************************
+     * 시험 관리 페이지 (결시 내용 및 현황 탭)
+     * @param ExamVO
+     * @return "exam/prof/exam_info_absnce"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamAbsnceView.do")
+    public String profExamAbsnceView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String tabType = StringUtil.nvl(vo.getTabType());
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+
+        System.out.println("tabType is : " + tabType);
+        System.out.println("examBscId is : " + examBscId);
+        System.out.println("tkexamMthdCd is : " + tkexamMthdCd);
+        System.out.println("byteamSubrexamUseyn is : " + byteamSubrexamUseyn);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+
+        examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
+        System.out.println("examVO is : " + examVO.getUploadPath());
+        // 임시로 prof 경로 추가
+        return "exam/prof/exam_info_absnce";
+    }
+
+    /*****************************************************
+     * 시험 관리 페이지 (장애인/고령자 지원 현황 탭)
+     * @param ExamVO
+     * @return "exam/prof/exam_info_dsbl"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamDsblView.do")
+    public String profExamDsblView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String tabType = StringUtil.nvl(vo.getTabType());
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+
+        System.out.println("tabType is : " + tabType);
+        System.out.println("examBscId is : " + examBscId);
+        System.out.println("tkexamMthdCd is : " + tkexamMthdCd);
+        System.out.println("byteamSubrexamUseyn is : " + byteamSubrexamUseyn);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+
+        examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
+        System.out.println("examVO is : " + examVO.getUploadPath());
+        // 임시로 prof 경로 추가
+        return "exam/prof/exam_info_dsbl";
+    }
+
+    /*****************************************************
+     * 시험 관리 페이지 (퀴즈관리 탭)
+     * @param ExamVO
+     * @return "exam/prof/exam_info_dsbl"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamQuizMngView.do")
+    public String profExamQuizMngView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String tabType = StringUtil.nvl(vo.getTabType());
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+        }
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+
+        System.out.println("tabType is : " + tabType);
+        System.out.println("examBscId is : " + examBscId);
+        System.out.println("tkexamMthdCd is : " + tkexamMthdCd);
+        System.out.println("byteamSubrexamUseyn is : " + byteamSubrexamUseyn);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+
+        examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
+        System.out.println("examVO is : " + examVO.getUploadPath());
+        // 임시로 prof 경로 추가
+        return "exam/prof/exam_info_quiz_mng";
+    }
+
+    /*****************************************************
+     * 교수 시험목록 페이징
+     * @param vo
      * @param ExamVO
      * @return ProcessResultVO<ExamVO>
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value="/examList.do")
+    @RequestMapping(value="/profExamPaging.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> examList(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> listProfExamPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String orgId = SessionInfo.getOrgId(request);
+        String examTtl = vo.getExamTtl();
+        String crsCreCd = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
 
-        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
-
+        vo.setOrgId(orgId);
+        vo.setExamTtl(examTtl);
+        vo.setCrsCreCd(crsCreCd);
+        System.out.println("examTtl ?" + examTtl);
         try {
-            resultVO = examService.list(vo);
-            resultVO.setResult(1);
+            resultVO = examService.listProfExamPaging(vo);
+            resultVO.setResultSuccess();
         } catch(Exception e) {
-            resultVO.setResult(-1);
-            resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
         }
         return resultVO;
     }
+
+    /*****************************************************
+     * 교수 시험 상세 조회
+     * @param vo
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamDtl.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> selectProfExamDtl(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        try {
+            // 필수 파라미터 체크
+            String examBscId = vo.getExamBscId();
+
+            if (examBscId == null || examBscId.isEmpty()) {
+                resultVO.setResultFailed();
+                resultVO.setMessage("시험 ID가 필요합니다.");
+                return resultVO;
+            }
+
+            ExamVO examVO = examService.selectProfExamDtl(vo);
+
+            if(examVO == null) {
+                resultVO.setResultFailed();
+                resultVO.setMessage("해당 시험 정보를 찾을 수 없습니다.");
+            } else {
+                resultVO.setReturnVO(examVO);
+                resultVO.setResultSuccess();
+                resultVO.setMessage("성목 메시지");
+            }
+        } catch(Exception e) {
+            LOGGER.error("시험 상세 조회 실패", e);
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 평가대상자 목록 페이징
+     * @param vo
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/tkexamUserPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String examBscId = vo.getExamBscId();
+        String byteamSubrexamUseyn = vo.getByteamSubrexamUseyn();
+        String crsCreCd = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
+
+        vo.setExamBscId(examBscId);
+        vo.setCrsCreCd(crsCreCd);
+        System.out.println("byteamSubrexamUseyn ?" + vo.getByteamSubrexamUseyn());
+        try {
+            if (byteamSubrexamUseyn.equals("Y")) {
+                // 팀 시험 평가대상자
+                resultVO = examService.listTkexamTeamUserPaging(vo);
+            } else {
+                // 시험 평가대상자
+                resultVO = examService.listTkexamUserPaging(vo);
+            }
+            resultVO.setResultSuccess();
+        } catch(Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 성적 공개여부 수정
+     * @param vo
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/editMrkOyn.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> updateMrkOyn(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String mrkOyn = vo.getMrkOyn();
+        String examBscId = vo.getExamBscId();
+
+        vo.setMrkOyn(mrkOyn);
+        vo.setExamBscId(examBscId);
+        try {
+            examService.updateMrkOyn(vo);
+            resultVO.setResultSuccess();
+            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        } catch (MediopiaDefineException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
+        } catch (Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
+    /*****************************************************
+     * 시험 성적 반영비율 수정
+     * @param vo
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/editMrkRfltrt.do")
+    @ResponseBody
+    public ProcessResultVO<ExamBscVO> examMrkRfltrtModifyAjax(@RequestBody List<ExamBscVO> list, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+            for(ExamBscVO vo : list) {
+                vo.setMdfrId(userId);
+            }
+            examService.examMrkRfltrtListModify(list);
+            resultVO.setResultSuccess();
+            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        }  catch (MediopiaDefineException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
+        } catch(Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage("수정 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 기존에 있던 Controller 영역
+     *****************************************************/
 
     /*****************************************************
      * 중간/기말 대체 과제 목록 (교수)
@@ -660,48 +1057,6 @@ public class ExamHomeController extends ControllerBase {
             resultVO.setMessage(getMessage("exam.error.list"));/* 리스트 조회 중 에러가 발생하였습니다. */
         }
         return resultVO;
-    }
-
-    /*****************************************************
-     * 시험 등록 페이지 (교수)
-     * @param ExamVO
-     * @return "exam/exam_write"
-     * @throws Exception
-     ******************************************************/
-    @RequestMapping(value="/Form/examWrite.do")
-    public String examWrtieForm(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        // 사용자 접속상태 저장
-        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
-
-        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
-
-        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
-        }
-
-        CreCrsVO creCrsVO = new CreCrsVO();
-        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
-        creCrsVO = crecrsService.select(creCrsVO);
-
-        // 성적처리 일정
-        SysJobSchVO sysJobSchVO = new SysJobSchVO();
-        sysJobSchVO.setOrgId(SessionInfo.getOrgId(request));
-        sysJobSchVO.setHaksaYear(creCrsVO.getCreYear());
-        sysJobSchVO.setHaksaTerm(creCrsVO.getCreTerm());
-        sysJobSchVO.setCalendarCtgr("00210206");
-        sysJobSchVO = sysJobSchService.select(sysJobSchVO);
-
-        model.addAttribute("vo", vo);
-        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
-        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
-        model.addAttribute("sysJobSchVO", sysJobSchVO);
-
-        return "exam/exam_write";
     }
 
     /*****************************************************

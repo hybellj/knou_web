@@ -24,8 +24,7 @@
 		/**
 		 * 이전 퀴즈 목록 조회
 		 * @param {Integer} pageIndex 		- 현재 페이지
-		 * @param {String}  dgrsYr 			- 학사년도
-		 * @param {String}  dgrsSmstrChrt 	- 학기
+		 * @param {String}  smstrChrtId 	- 학사년도/학기
 		 * @param {String}  sbjctId	 		- 과목아이디
 		 * @param {String}  listScale 		- 페이징 목록 수
 		 * @param {String}  searchValue 	- 검색어 ( 퀴즈명 )
@@ -36,17 +35,23 @@
     		var url  = "/quiz/profAuthrtSbjctQuizListAjax.do";
     		var data = {
     			"pageIndex"   	: page,
-    			"dgrsYr" 	  	: $("#dgrsYr").val(),
-    			"dgrsSmstrChrt" : $("#dgrsSmstrChrt").val(),
+    			"smstrChrtId" 	: $("#smstrChrtId").val(),
     			"sbjctId" 		: $("#sbjctId").val(),
     			"listScale"   	: $("#listScale").val(),
     			"searchValue" 	: $("#searchValue").val(),
     			"userId"		: "${vo.userId}"
     		};
 
-    		ajaxCall(url, data, function(data) {
-    			if (data.result > 0) {
-            		var returnList = data.returnList || [];
+			$.ajax({
+		        url 	  : url,
+		        async	  : false,
+		        type 	  : "POST",
+		        dataType  : "json",
+		        data 	  : JSON.stringify(data),
+		        contentType: "application/json; charset=UTF-8",
+		    }).done(function(data) {
+	        	if (data.result > 0) {
+	        		var returnList = data.returnList || [];
             		var html = "";
 
             		if(returnList.length > 0) {
@@ -77,46 +82,46 @@
 	    	    	} else {
 	    	    		$("#paging").hide();
 	    	    	}
-                } else {
-                 	alert(data.message);
-                }
-    		}, function(xhr, status, error) {
-    			alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
-    		});
+	            } else {
+	            	alert(data.message);
+	            }
+		    }).fail(function() {
+		    	alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
+		    });
     	}
 
-    	// 선택 학기로 과목 가져오기
-    	function copyCreCrsList() {
-    		var url  = "/crs/creCrsHome/listAuthCrsCreByTerm.do";
-    		var data = {
-    			"dgrsYr" 	 		: $("#dgrsYr").val(),
-    			"dgrsSmstrChrt" 	: $("#dgrsSmstrChrt").val(),
-    			"userId" 	 		: "${vo.userId}",
-    			"searchMenu" 		: "selectYear"
-    		};
+		 /**
+		 * 퀴즈학기기수선택
+		 * @param {String}  smstrChrtId - 학기기수아이디
+		 * @param {String}  sbjctId 	- 과목아이디
+		 */
+		function quizSmstrChrtChc(smstrChrtId) {
+			var url  = "/quiz/copyQstnSbjctListAjax.do";
+			var data = {
+				"smstrChrtId"   : smstrChrtId,
+				"sbjctId" 		: "${vo.sbjctId}"
+			};
 
-    		ajaxCall(url, data, function(data) {
-    			if (data.result > 0) {
-            		var returnList = data.returnList || [];
-            		var html = "";
+			ajaxCall(url, data, function(data) {
+				if (data.result > 0) {
+			    		var returnList = data.returnList || [];
+			    		var html = "";
 
-            		if(returnList.length > 0) {
-            			html += "<option value=' '><spring:message code='exam.common.search.all' /></option>";/* 과목 선택 */
-            			returnList.forEach(function(v, i) {
-            				html += `<option value="\${v.sbjctId}">\${v.sbjctnm} (\${v.dvclasNo}<spring:message code="exam.label.decls" />)</option>`;/* 반 */
-            			});
-            		}
+			    		if(returnList.length > 0) {
+			    			html += "<option value='' selected><spring:message code='exam.label.sel.crs' /></option>";/* 과목 선택 */
+			    			returnList.forEach(function(v, i) {
+							html += "<option value='" + v.sbjctId + "'>" + v.sbjctnm + " " + v.dvclasNo + "반</option>";
+			    			});
+			    		}
 
-            		$("#sbjctId").empty().html(html);
-            		$("#sbjctId").dropdown("clear");
-            		$("#sbjctId").trigger("change");
-                } else {
-                 	alert(data.message);
-                }
-    		}, function(xhr, status, error) {
-    			alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
-    		});
-    	}
+			    		$("#sbjctId").empty().append(html);
+			        } else {
+			         	alert(data.message);
+			        }
+		   	}, function(xhr, status, error) {
+		   		alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
+		   	});
+		}
 	</script>
 
 	<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
@@ -125,20 +130,14 @@
                 <i class="info circle icon"></i><spring:message code="exam.label.select.copy.info" /><!-- 선택 시 정보가 복사됩니다. -->
             </p>
             <div class="option-content mb10 mt20">
-            	<select class="ui dropdown mr5" id="dgrsYr" onchange="copyCreCrsList()">
-            		<option value=" " hidden><spring:message code="crs.label.open.year" /><!-- 개설년도 --></option>
-            		<c:forEach var="item" items="${creYearList }">
-            			<option value="${item.haksaYear }">${item.haksaYear }</option>
-            		</c:forEach>
-            	</select>
-            	<select class="ui dropdown mr5" id="dgrsSmstrChrt" onchange="copyCreCrsList()">
-            		<option value=" " hidden><spring:message code="crs.label.open.term" /><!-- 개설학기 --></option>
-            		<c:forEach var="item" items="${smstrTycdList }">
-            			<option value="${item.cd }">${item.cdnm }</option>
-            		</c:forEach>
+            	<select class="ui dropdown mr5" id="smstrChrtId" onchange="quizSmstrChrtChc(this.value)">
+            		<option value=""><spring:message code="exam.label.open.crs.year.term" /> <spring:message code="exam.button.select" /></option><!-- 개설년도_학기 --><!-- 선택 -->
+            		<c:forEach var="item" items="${quizSearchSmstrList }">
+						<option value="${item.smstrChrtId }">${item.smstrChrtnm }</option>
+					</c:forEach>
             	</select>
                 <select class="ui dropdown mr5 w250" id="sbjctId" onchange="bfrQuizListSelect(1)">
-                	<option value=""><spring:message code='exam.common.search.all' /></option><!-- 전체 -->
+                	<option value=""><spring:message code='crs.label.crecrs.sel' /></option><!-- 과목 선택 -->
                 </select>
 
                 <div class="ui action input search-box mr5">

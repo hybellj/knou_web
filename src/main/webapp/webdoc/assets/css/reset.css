@@ -32,6 +32,7 @@ input[disabled] { cursor: not-allowed; }
 input[type=password].input_error, input[type=text].input_error, input[type=number].input_error, select.input_error, textarea.input_error { background-color: #FFF6F6 !important; border-color: #E0B4B4 !important; color: #9F3A38 !important; box-shadow: none !important; }
 input[type=password].input_error.alert, input[type=text].input_error.alert, input[type=number].input_error.alert, select.input_error.alert, textarea.input_error.alert { width:50px; height:2.4rem; min-height:auto; }
 
+audio, canvas, progress, video { display: inline-block; vertical-align: baseline; }
 address, em, i { font-style: normal; }
 button { color: inherit; border: 0; padding: 0; background: 0 0; border-radius: .4rem; cursor: pointer; -webkit-appearance: button; }
 hr { margin: 0; border: none; padding: 0; display: block; }
@@ -136,6 +137,7 @@ td, th { padding: 0; }
 .flex-left-auto { margin-left: auto !important; }
 .position-relative { position: relative !important; }
 .word-break-keep-all { word-break: keep-all !important; }
+.word-break-none { white-space: none !important; }
 
 /* 모바일, 데스크탑 적용 */
 .desktop-elem { display: none !important }
@@ -621,6 +623,21 @@ size
 .mt30 { margin-top: 3rem !important; }
 .mt40 { margin-top: 4rem !important; }
 .mt50 { margin-top: 5rem !important; }
+.mb0 { margin-bottom: 0 !important; }
+.mb2 { margin-bottom: 0.2rem !important; }
+.mb3 { margin-bottom: 0.3rem !important; }
+.mb4 { margin-bottom: 0.4rem !important; }
+.mb5 { margin-bottom: 0.5rem !important; }
+.mb6 { margin-bottom: 0.6rem !important; }
+.mb7 { margin-bottom: 0.7rem !important; }
+.mb8 { margin-bottom: 0.8rem !important; }
+.mb9 { margin-bottom: 0.9rem !important; }
+.mb10 { margin-bottom: 1rem !important; }
+.mb20 { margin-bottom: 2rem !important; }
+.mb30 { margin-bottom: 3rem !important; }
+.mb40 { margin-bottom: 4rem !important; }
+.mb50 { margin-bottom: 5rem !important; }
+
 
 .mr-5 { margin-right: -0.5rem !important;}
 .mr0 { margin-right: 0 !important;}
@@ -665,6 +682,8 @@ font size
 .fw-700, .fw-bold { font-weight: 700 !important; }
 .fw-800 { font-weight: 800 !important; }
 .fw-900 { font-weight: 900 !important; }
+
+.fs-sm {font-size: 1.4rem;}
 
 /* 폰트 정렬 */
 .text-center { text-align: center !important; }
@@ -833,6 +852,10 @@ icon style
 .icon-svg-arrow02 {--maskimg: url('../img/common/icon-svg-arrow02.svg');}
 .icon-svg-arrow03 {--maskimg: url('../img/common/icon-svg-arrow03.svg');}
 .icon-svg-arrow04 {--maskimg: url('../img/common/icon-svg-arrow04.svg');}
+.icon-svg-yes {--maskimg: url('../img/common/icon-svg-yes.svg');}
+.icon-svg-no {--maskimg: url('../img/common/icon-svg-no.svg');}
+/* .icon-svg-warning {--maskimg: url('../img/common/icon-svg-warning.svg');} */
+.icon-svg-warning { color: transparent; --maskimg: none; background: url(../img/common/icon-svg-warning.svg) left center no-repeat; background-size: cover; }
 
 
 /* gnb icon */

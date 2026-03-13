@@ -367,6 +367,13 @@
                             </div>
                         </div>
 
+                        <br><br><br>
+
+                        <h4 class="sub-title">버튼</h4>
+                        <button type="button" class="btn basic">기본버튼</button>
+                        <button type="button" class="btn basic" disabled>기본버튼 disabled</button>
+                        <a href="#0" class="btn basic">a태그버튼</a>
+                        <a href="#0" class="btn basic disabled">a태그버튼 disabled</a>
 
                     </div>
 

@@ -43,16 +43,16 @@
 			$(".qstnList").find("input[name=allCheck]").prop("checked", false).trigger("change");
 
 			// 문제 은행
-			if(type == "qbank") {
-				$("#qbankCopy").css("display", "list-item");
-				$("#anotherCopy").css("display", "none");
+			if(type == "qbnk") {
+				$("#qbnkCopy").css("display", "list-item");
+				$("#exampprCopy").css("display", "none");
 				$(".copyQuizList").css("display", "none");
 				$(".qstnList").css("display", "none");
 				qbnkCtgrList('upCtgrId');
 			// 다른 시험
-			} else if(type == "another") {
-				$("#qbankCopy").css("display", "none");
-				$("#anotherCopy").css("display", "list-item");
+			} else if(type == "examppr") {
+				$("#qbnkCopy").css("display", "none");
+				$("#exampprCopy").css("display", "list-item");
 				$(".copyQuizList").css("display", "none");
 				$(".qstnList").css("display", "none");
 			}
@@ -61,9 +61,8 @@
 		/**
 		 * 문제은행분류 목록 조회
 		 * @param {String} 	type 			- (ctgrId : 하위분류, upCtgrId : 상위분류)
-		 * @param {String}  sbjctId 	- 과목개설아이디
+		 * @param {String}  sbjctId 		- 과목개설아이디
 		 * @param {String}  upQbnkCtgrId 	- 상위문제은행분류아이디
-		 * @param {String}  qbnkQstnGbncd 	- 문제은행문항구분코드 ( QUIZ : 퀴즈, SRVY : 설문 )
 		 * @returns {list} 문제은행분류 목록
 		 */
 		function qbnkCtgrList(type) {
@@ -72,19 +71,15 @@
 			var upQbnkCtgrId = type == "ctgrId" ? $("#upQbnkCtgrId").val() : "";
 
 			var data = {
-				"sbjctId" 	: "${vo.sbjctId}",
-				"upQbnkCtgrId" 	: upQbnkCtgrId
+				  "sbjctId" 		: "${vo.sbjctId}"
+				, "upQbnkCtgrId" 	: upQbnkCtgrId
 			};
 
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
 	        		var returnList = data.returnList || [];
-	        		var html = "";
+	        		var html = "<option value='' selected><spring:message code='exam.label.sel.categori' /></option>";/* 분류 선택 */
 
-	        			html += "<option value='' selected><spring:message code='exam.label.sel.categori' /></option>";/* 분류 선택 */
-		        	if(type == "upCtgrId") {
-		        		html += "<option value='-'><spring:message code='exam.label.not.categori' /></option>";	// 미분류
-		        	}
 	        		if(returnList.length > 0) {
 	        			returnList.forEach(function(v, i) {
 							html += "<option value='" + v.qbnkCtgrId + "'>" + v.ctgrnm + "</option>";
@@ -97,7 +92,6 @@
 	        		} else if(type == "ctgrId") {
 	        			$("#qbnkCtgrId").empty().append(html);
 	        			$("#qbnkCtgrId").dropdown("clear");
-	            		//$("#qbnkCtgrId").trigger("change");
 	        		}
 	            } else {
 	             	alert(data.message);
@@ -116,7 +110,7 @@
 				qbnkCtgrList("ctgrId");
 			}
 			var qbnkCtgrId = $("#upQbnkCtgrId").val();
-			if($("#qbnkCtgrId").val() != null && $("#qbnkCtgrId").val() != "") {
+			if($("#qbnkCtgrId").val() != null && $("#qbnkCtgrId").val() != "" && $(obj).attr("id") == "qbnkCtgrId") {
 				qbnkCtgrId = $("#qbnkCtgrId").val();
 			}
 
@@ -141,12 +135,16 @@
     		});
 		}
 
-		// 퀴즈 학년도 학기 선택
-		function userCreCrsChk(obj) {
-			var url  = "/crs/creCrsHome/listTchCrsCreByTerm.do";
+		/**
+		 * 퀴즈학기기수선택
+		 * @param {String}  smstrChrtId - 학기기수아이디
+		 * @param {String}  sbjctId 	- 과목아이디
+		 */
+		function quizSmstrChrtChc(smstrChrtId) {
+			var url  = "/quiz/copyQstnSbjctListAjax.do";
 			var data = {
-				"termCd"   : $(obj).val(),
-				"crsCreCd" : "${crsCreCd}"
+				"smstrChrtId"   : smstrChrtId,
+				"sbjctId" 		: "${vo.sbjctId}"
 			};
 
 			ajaxCall(url, data, function(data) {
@@ -157,11 +155,11 @@
 	        		if(returnList.length > 0) {
 	        			html += "<option value='' selected><spring:message code='exam.label.sel.crs' /></option>";/* 과목 선택 */
 	        			returnList.forEach(function(v, i) {
-	        				html += `<option value="\${v.crsCreCd}">\${v.crsCreNm} (\${v.declsNo}<spring:message code="exam.label.decls" />)</option>`;/* 반 */
+							html += "<option value='" + v.sbjctId + "'>" + v.sbjctnm + " " + v.dvclasNo + "반</option>";
 	        			});
 	        		}
 
-	        		$("#copyCreCrsCd").empty().append(html);
+	        		$("#copySbjctId").empty().append(html);
 	        		$(".copyQuizList").css("display", "none");
 	        		$(".qstnList").find("input[name=allCheck]").prop("checked", false).trigger("change");
 	            } else {
@@ -172,12 +170,14 @@
     		});
 		}
 
-		// 퀴즈 과목 선택
-		function creCrsQuizChk(obj) {
-			var url  = "/exam/examList.do";
+		/**
+		 * 퀴즈과목선택
+		 * @param {String}  sbjctId 	- 과목아이디
+		 */
+		function quizSbjctChc(sbjctId) {
+			var url  = "/quiz/copyQstnQuizListAjax.do";
 			var data = {
-				"sbjctId"  : $(obj).val(),
-				"examGbncd" 	: "QUIZ"
+				"sbjctId"  	: sbjctId
 			};
 
 			ajaxCall(url, data, function(data) {
@@ -203,11 +203,14 @@
     		});
 		}
 
-		// 퀴즈 시험지 선택
-		function quizQstnPageChk(obj) {
+		/**
+		 * 퀴즈선택
+		 * @param {String}  examDtlId 	- 시험상세아이디
+		 */
+		function quizChc(examDtlId) {
 			var url  = "/quiz/profQstnCopyQuizQstnListAjax.do";
 			var data = {
-				"examDtlId" : $(obj).val()
+				"examDtlId" : examDtlId
 			};
 
 			ajaxCall(url, data, function(data) {
@@ -258,7 +261,9 @@
 					html += "<tr>";
 					html += "	<td>";
 					html += "		<div class='ui checkbox'>";
-					html += "			<input type='checkbox' tabindex='0' name='qstnId' data-id='" + v.qstnId + "' class='hidden chk' onchange='changeCheckBox(this)' />";
+					html += "			<input type='checkbox' tabindex='0' id='chk_" + v.qstnId + "' name='qstnId' data-id='" + v.qstnId + "' class='hidden chk' onchange='changeCheckBox(this)' />";
+					html += "			<label for='chk_" + v.qstnId + "'></label>";
+					html += "		</div>";
 					html += "	</td>";
 					if(type == "qbnk") {
 						html += "<td class='tl'>" + v.upQbnkCtgrnm + "</td>";
@@ -267,20 +272,19 @@
 						html += "<td class='tl'>" + v.qstnTtl + "</td>";
 						html += "<td class='tl'>" + v.qstnDfctlvTynm + "</td>";
 					} else if(type == "examppr") {
-						html += "<td class='tl'></td>";
-						html += "<td class='tl'></td>";
-						html += "<td class='tl'></td>";
-						html += "<td class='tl'></td>";
-						html += "<td class='tl'></td>";
-						html += "<td class='tl'></td>";
-						html += "<td class='tl'></td>";
+						html += "<td class='tl'>" + v.sbjctYr + "</td>";
+						html += "<td class='tl'>" + v.sbjctSmstr + "</td>";
+						html += "<td class='tl'>" + v.qstnRspnsTynm + "</td>";
+						html += "<td class='tl'>" + v.qstnSeqno + "</td>";
+						html += "<td class='tl'>" + v.qstnCnddtSeqno + "</td>";
+						html += "<td class='tl'>" + v.qstnTtl + "</td>";
+						html += "<td class='tl'>" + v.qstnDfctlvTynm + "</td>";
 					}
 					html += "</tr>";
 				});
 			}
 				html += "</tbody>"
 
-	        //$("#quizListTable tr.footable-empty").remove();
 	        $("#quizQstnTable").empty().html(html);
 	        $("#quizQstnTable").addClass("table type2");
 	        $("div.qstnList").css("display", "block");
@@ -288,47 +292,43 @@
 		    $(".qstnList").find("input[name=allCheck]").prop("checked", false).trigger("change");
 		}
 
-		// 문제 가져오기
-		function copyQuizQstn() {
+		/**
+		 * 퀴즈문항가져오기
+		 * @param {String}  copyQstnId 	- 복사문항아이디
+		 * @param {String}  examDtlId 	- 시험상세아이디
+		 */
+		function quizQstnCopy() {
 			if(!copyQstnChk()) {
 				return false;
 			}
-			var url = "/quiz/insertCopyQstn.do";
-			var copyType = "";
-			var copyCd = "";
-			var copyQstnSn = "";
 
-			$("#quizListTable").find("input[name=qstnSn]:checked").each(function(i){
-				if(i > 0) {
-					copyQstnSn += "|";
-					copyType += "|";
-					copyCd += "|";
-				}
-				copyQstnSn += $(this).val();
-				copyType += $(this).attr("copyType");
-				copyCd += $(this).attr("copyCd");
+			const qstns = [];	// 문항 가져오기용
+
+			// 여기 할 차례
+			$("#quizListTable").find("input[name=qstnId]:checked").each(function(i){
+				const map = {
+					  copyQstnId: 	$(this).attr("data-id")
+					, examDtlId: 	"${vo.examDtlId}"
+				};
+
+				qstns.push(map);
 			});
 
-			var data = {
-				"examCd" 	 : "${vo.examCd}",
-				"examQstnSn" : 0,
-				"qstnNo" 	 : "${qstnCnt + 1}",
-				"copyType" 	 : copyType,
-				"copyCd" 	 : copyCd,
-				"copyQstnSn" : copyQstnSn
-			};
+			var url  = "/quiz/profQuizQstnCopyAjax.do";
 
-			ajaxCall(url, data, function(data) {
-				if (data.result > 0) {
-					window.parent.editQstnScoreAll("${vo.examCd}");
-	        		window.parent.listQuizQstn();
-	        		window.parent.closeDialog();
-	            } else {
-	             	alert(data.message);
-	            }
-    		}, function(xhr, status, error) {
-    			alert("<spring:message code='exam.error.copy' />");/* 가져오기 중 에러가 발생하였습니다. */
-    		});
+			$.ajax({
+		        url 	  : url,
+		        async	  : false,
+		        type 	  : "POST",
+		        dataType : "json",
+		        data 	  : JSON.stringify(qstns),
+		        contentType: "application/json; charset=UTF-8",
+		    }).done(function(data) {
+	       		window.parent.qstnScrAutoGrnt("${vo.examDtlId}");
+	       		window.parent.closeDialog();
+		    }).fail(function() {
+		    	alert("<spring:message code='exam.error.copy' />");/* 가져오기 중 에러가 발생하였습니다. */
+		    });
 		}
 
 		// 가져오기 체크 확인
@@ -337,18 +337,18 @@
 			var copyType = $("#copyType").val();
 
 			// 문제 은행
-			if(copyType == "qbank") {
+			if(copyType == "qbnk") {
 				if($("#upQbnkCtgrId").val() == "") {
 					alert("<spring:message code='exam.alert.select.upper.categori' />");/* 상위 분류를 선택하세요. */
 					return false;
 				}
 			// 다른 시험
-			} else if(copyType == "another") {
-				if($("#copyTermCd").val() == "") {
+			} else if(copyType == "examppr") {
+				if($("#copySmstrChrtId").val() == "") {
 					alert("<spring:message code='exam.alert.select.year.term' />");/* 학년도 학기를 선택하세요. */
 					return false;
 				}
-				if($("#copyCreCrsCd").val() == "") {
+				if($("#copySbjctId").val() == "") {
 					alert("<spring:message code='exam.alert.select.crs' />");/* 과목을 선택하세요. */
 					return false;
 				}
@@ -358,7 +358,7 @@
 				}
 			}
 
-			if($("#quizListTable").find("input[name=qstnSn]:checked").length == 0) {
+			if($("#quizListTable").find("input[name=qstnId]:checked").length == 0) {
 				alert("<spring:message code='exam.alert.select.copy.qstn' />");/* 복사할 문항을 선택하세요. */
 				return false;
 			}
@@ -377,13 +377,13 @@
 							</dt>
 							<dd>
 								<select class="ui dropdown wmax" id="copyType" name="copyType" onchange="quizCopyTypeChk()">
-						            <option value="qbank"><spring:message code="exam.label.copy.qbank" /></option><!-- 문제은행에서 가져오기 -->
-						            <option value="another"><spring:message code="exam.label.copy.another.exam" /></option><!-- 다른 퀴즈에서 가져오기 -->
+						            <option value="qbnk"><spring:message code="exam.label.copy.qbank" /></option><!-- 문제은행에서 가져오기 -->
+						            <option value="examppr"><spring:message code="exam.label.copy.another.exam" /></option><!-- 다른 퀴즈에서 가져오기 -->
 						        </select>
 							</dd>
 						</dl>
 					</li>
-					<li id="qbankCopy">
+					<li id="qbnkCopy">
 						<dl class="mb20">
 							<dt class="tc">
 								<label for="teamLabel"><spring:message code="exam.label.sel.categori" /></label><!-- 분류 선택 -->
@@ -398,18 +398,16 @@
 							</dd>
 						</dl>
 					</li>
-					<li id="anotherCopy" style="display:none;">
+					<li id="exampprCopy" style="display:none;">
 						<dl class="mb20">
 							<dt class="tc">
 								<label for="teamLabel"><spring:message code="exam.label.open.crs.year.term" /></label><!-- 개설년도_학기 -->
 							</dt>
 							<dd>
-								<select class="ui dropdown wmax" id="copyTermCd" onchange="userCreCrsChk(this)">
+								<select class="ui dropdown wmax" id="copySmstrChrtId" onchange="quizSmstrChrtChc(this.value)">
 						            <option value=""><spring:message code="exam.label.open.crs.year.term" /> <spring:message code="exam.button.select" /></option><!-- 개설년도_학기 --><!-- 선택 -->
-						            <c:forEach var="item" items="${termList }">
-						            	<option value="${item.termCd }">
-							            	${item.haksaYear }<spring:message code="exam.label.year" /> ${item.haksaTermNm }<!-- 학년도 -->
-						            	</option>
+						            <c:forEach var="item" items="${quizSearchSmstrList }">
+						            	<option value="${item.smstrChrtId }">${item.smstrChrtnm }</option>
 						            </c:forEach>
 						        </select>
 							</dd>
@@ -419,7 +417,7 @@
 								<label for="teamLabel"><spring:message code="crs.label.crecrs" /></label><!-- 과목 -->
 							</dt>
 							<dd>
-								<select class="ui dropdown wmax" id="copyCreCrsCd" onchange="creCrsQuizChk(this)">
+								<select class="ui dropdown wmax" id="copySbjctId" onchange="quizSbjctChc(this.value)">
 						            <option value=""><spring:message code="crs.label.crecrs.sel" /></option><!-- 과목 선택 -->
 						        </select>
 							</dd>
@@ -429,7 +427,7 @@
 								<label for="teamLabel"><spring:message code="exam.label.paper" /></label><!-- 시험지 -->
 							</dt>
 							<dd>
-								<select class="ui dropdown wmax" id="quizQstnPage" onchange="quizQstnPageChk(this)">
+								<select class="ui dropdown wmax" id="quizQstnPage" onchange="quizChc(this.value)">
 						            <option value=""><spring:message code="exam.label.sel.paper" /></option><!-- 시험지 선택 -->
 						        </select>
 							</dd>
@@ -442,8 +440,8 @@
 				</div>
         	</div>
 
-            <div class="bottom-content mt70">
-                <button class="ui blue button" onclick="copyQuizQstn()"><spring:message code="exam.label.copy" /></button><!-- 가져오기 -->
+            <div class="bottom-content">
+                <button class="ui blue button" onclick="quizQstnCopy()"><spring:message code="exam.label.copy" /></button><!-- 가져오기 -->
                 <button class="ui black cancel button" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
             </div>
         </div>

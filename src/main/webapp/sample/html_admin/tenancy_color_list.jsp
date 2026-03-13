@@ -51,7 +51,7 @@
                         <!-- board top -->
                         <div class="board_top">
                             <h3 class="board-title">목록</h3>
-                            <div class="right-area">                                
+                            <div class="right-area">
                                 <select class="form-select type-num" id="select" title="페이지당 리스트수를 선택하세요.">
                                     <option value="ALL" selected="selected">10</option>
                                     <option value="20">20</option>
@@ -67,9 +67,9 @@
                                     <col style="width:5%">
                                     <col style="width:12%">
                                     <col style="width:20%">
-                                    <col style="width:13%">                                    
+                                    <col style="width:13%">
                                     <col style="width:8%">
-                                    <col style="width:13%">                                    
+                                    <col style="width:13%">
                                     <col style="">
                                     <col style="width:5%">
                                     <col style="width:8%">
@@ -79,7 +79,7 @@
                                         <th>번호</th>
                                         <th>기관 ID</th>
                                         <th>기관 Full Name</th>
-                                        <th>기관 Short Name</th>                                        
+                                        <th>기관 Short Name</th>
                                         <th>담당자</th>
                                         <th>담당자 연락처</th>
                                         <th>담당자 이메일</th>
@@ -91,14 +91,14 @@
                                         <td data-th="번호">6</td>
                                         <td data-th="기관 ID">KNOUTESTID001</td>
                                         <td data-th="기관 Full Name">대학원</td>
-                                        <td data-th="기관 Short Name">대학원</td>                                        
+                                        <td data-th="기관 Short Name">대학원</td>
                                         <td data-th="담당자">홍길동</td>
                                         <td data-th="담당자 연락처">010-1234-4567</td>
                                         <td data-th="담당자 이메일">test001@naver.com</td>
                                         <td data-th="컬러">
                                             <p class="sm_circular label blue">블루</p>
                                         </td>
-                                        <td data-th="디자인 컬러설정">                                            
+                                        <td data-th="디자인 컬러설정">
                                             <div class="dropdown">
                                                 <button type="button" class="btn basic small settingBtn" aria-label="컬러설정">
                                                     컬러설정
@@ -149,14 +149,14 @@
                                         <td data-th="번호">6</td>
                                         <td data-th="기관 ID">KNOUTESTID002</td>
                                         <td data-th="기관 Full Name">경영대학원</td>
-                                        <td data-th="기관 Short Name">경영대학원</td>                                       
+                                        <td data-th="기관 Short Name">경영대학원</td>
                                         <td data-th="담당자">홍길동</td>
                                         <td data-th="담당자 연락처">010-1234-4567</td>
                                         <td data-th="담당자 이메일">test001@naver.com</td>
                                         <td data-th="컬러">
                                             <p class="sm_circular label mint">민트</p>
                                         </td>
-                                        <td data-th="디자인 컬러설정">                                            
+                                        <td data-th="디자인 컬러설정">
                                             <div class="dropdown">
                                                 <button type="button" class="btn basic small settingBtn" aria-label="컬러설정">
                                                     컬러설정
@@ -207,14 +207,14 @@
                                         <td data-th="번호">6</td>
                                         <td data-th="기관 ID">KNOUTESTID003</td>
                                         <td data-th="기관 Full Name">프라임칼리지 학위과정</td>
-                                        <td data-th="기관 Short Name">학위과정</td>                                       
+                                        <td data-th="기관 Short Name">학위과정</td>
                                         <td data-th="담당자">홍길동</td>
                                         <td data-th="담당자 연락처">010-1234-4567</td>
                                         <td data-th="담당자 이메일">test001@naver.com</td>
                                         <td data-th="컬러">
                                             <p class="sm_circular label orange">오렌지</p>
                                         </td>
-                                        <td data-th="디자인 컬러설정">                                            
+                                        <td data-th="디자인 컬러설정">
                                             <div class="dropdown">
                                                 <button type="button" class="btn basic small settingBtn" aria-label="컬러설정">
                                                     컬러설정
@@ -265,14 +265,14 @@
                                         <td data-th="번호">6</td>
                                         <td data-th="기관 ID">KNOUTESTID004</td>
                                         <td data-th="기관 Full Name">프라임칼리지 평생교육과정</td>
-                                        <td data-th="기관 Short Name">평생교육</td>                                        
+                                        <td data-th="기관 Short Name">평생교육</td>
                                         <td data-th="담당자">홍길동</td>
                                         <td data-th="담당자 연락처">010-1234-4567</td>
                                         <td data-th="담당자 이메일">test001@naver.com</td>
                                         <td data-th="컬러">
                                             <p class="sm_circular label red">레드</p>
                                         </td>
-                                        <td data-th="디자인 컬러설정">                                            
+                                        <td data-th="디자인 컬러설정">
                                             <div class="dropdown">
                                                 <button type="button" class="btn basic small settingBtn" aria-label="컬러설정">
                                                     컬러설정
@@ -323,14 +323,14 @@
                                         <td data-th="번호">6</td>
                                         <td data-th="기관 ID">KNOUTESTID004</td>
                                         <td data-th="기관 Full Name">프라임칼리지 평생교육과정</td>
-                                        <td data-th="기관 Short Name">평생교육</td>                                        
+                                        <td data-th="기관 Short Name">평생교육</td>
                                         <td data-th="담당자">홍길동</td>
                                         <td data-th="담당자 연락처">010-1234-4567</td>
                                         <td data-th="담당자 이메일">test001@naver.com</td>
                                         <td data-th="컬러">
                                             <p class="sm_circular label purple">퍼플</p>
                                         </td>
-                                        <td data-th="디자인 컬러설정">                                            
+                                        <td data-th="디자인 컬러설정">
                                             <div class="dropdown">
                                                 <button type="button" class="btn basic small settingBtn" aria-label="컬러설정">
                                                     컬러설정
@@ -381,14 +381,14 @@
                                         <td data-th="번호">6</td>
                                         <td data-th="기관 ID">KNOUTESTID004</td>
                                         <td data-th="기관 Full Name">프라임칼리지 평생교육과정</td>
-                                        <td data-th="기관 Short Name">평생교육</td>                                        
+                                        <td data-th="기관 Short Name">평생교육</td>
                                         <td data-th="담당자">홍길동</td>
                                         <td data-th="담당자 연락처">010-1234-4567</td>
                                         <td data-th="담당자 이메일">test001@naver.com</td>
                                         <td data-th="컬러">
                                             <p class="sm_circular label">기본</p>
                                         </td>
-                                        <td data-th="디자인 컬러설정">                                            
+                                        <td data-th="디자인 컬러설정">
                                             <div class="dropdown">
                                                 <button type="button" class="btn basic small settingBtn" aria-label="컬러설정">
                                                     컬러설정
@@ -436,33 +436,36 @@
                                         </td>
                                     </tr>
                                 </tbody>
-
                             </table>
+
+	                        <%-- 테이블의 페이징 정보 생성할때 아래 내용 참조하여 작업하고 아래와 같은 HTML 코드를 직접 만들지 않는다.
+	                        	1) UiTable() 함수를 사용하여 테이블 생성할경우는 해당 프로그램에서 페이지 정보 생성하도록 한다.
+	                        	2) Controller에서 페이지정보(PageInfo) 객체를 받아을 경우 <uiex:paging> 태그를 사용하여 생성한다.
+	                        	   <uiex:paging pageInfo="${pageInfo}" pageFunc="listPaging"/>
+	                        --%>
+	                        <!-- board foot -->
+							<div class="board_foot">
+								<div class="page_info">
+									<span class="total_page">전체 <b>12</b>건</span>
+									<span class="current_page">현재 페이지 <strong>1</strong>/10</span>
+								</div>
+								<div class="board_pager">
+									<span class="inner">
+										<button class="page" type="button" role="button" aria-label="First Page" title="처음 페이지" data-page="1" disabled=""><i class="icon-page-first"></i></button>
+										<button class="page" type="button" role="button" aria-label="Prev Page" title="이전 페이지" data-page="1" disabled=""><i class="icon-page-prev"></i></button>
+										<span class="pages">
+											<button class="page active" type="button" role="button" aria-label="Page 1" title="1 페이지" data-page="1">1</button>
+											<button class="page" type="button" role="button" aria-label="Page 2" title="2 페이지" data-page="2">2</button>
+											<button class="page" type="button" role="button" aria-label="Page 3" title="3 페이지" data-page="3">3</button>
+										</span>
+										<button class="page" type="button" role="button" aria-label="Next Page" title="다음 페이지" data-page="2"><i class="icon-page-next"></i></button>
+										<button class="page" type="button" role="button" aria-label="Last Page" title="마지막 페이지" data-page="3"><i class="icon-page-last"></i></button>
+									</span>
+								</div>
+							</div>
+
                         </div>
                         <!--//table-type-->
-
-                        <!-- board foot -->
-                        <div class="board_foot">
-                            <div class="page_info">
-                                <span class="total_page">전체 <b>12</b>건</span>
-                                <span class="current_page">현재 페이지 <strong>1</strong>/10</span>
-                            </div>
-
-                            <div class="board_pager">
-                                <span class="inner">
-                                    <a href="" class="page_first" title="첫페이지"><i class="xi-angle-left-min"></i><span class="sr_only">첫페이지</span></a>
-                                    <a href="" class="page_prev" title="이전페이지"><i class="xi-angle-left-min"></i><span class="sr_only">이전페이지</span></a>
-                                    <a href="" class="page_now" title="1페이지"><strong>1</strong></a>
-                                    <a href="" class="page_none" title="2페이지">2</a>
-                                    <a href="" class="page_none" title="3페이지">3</a>
-                                    <a href="" class="page_none" title="4페이지">4</a>
-                                    <a href="" class="page_none" title="5페이지">5</a>
-                                    <a href="" class="page_next" title="다음페이지"><i class="xi-angle-right-min"></i><span class="sr_only">다음페이지</span></a>
-                                    <a href="" class="page_last" title="마지막페이지"><i class="xi-angle-right-min"></i><span class="sr_only">마지막페이지</span></a>
-                                </span>
-                            </div>
-                        </div>
-
 
                     </div>
                 </div>

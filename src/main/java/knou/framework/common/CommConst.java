@@ -54,6 +54,12 @@ public class CommConst {
     // 데이터 경로
     public static final String WEBDATA_CONTEXT = framework.getString("framework.fileupload.context"); // webdata context
     public static final String WEBDATA_PATH = framework.getString("framework.fileupload.rootPath"); // webdata path
+    public static final String EDITORDATA_PATH = framework.getString("framework.fileupload.rootPath"); // webdata path
+
+    // 에디터 파일 경로
+    public static final String EDITOR_DATA_PATH = WEBDATA_PATH + framework.getString("framework.editor.uploadPath");	// 에디터파일 업로드 경로
+    public static final String EDITOR_CONTEXT = framework.getString("framework.editor.context"); // 에디터파일 Context
+    public static final String EDITOR_FILE_TYPES[] = {"jpg", "jpeg", "gif", "png", "webp", "tif", "tiff", "bmp", "svg"}; // 에디터 업로드 가능 파일 확장명
 
     // 날짜/시간 표시 패턴
     public static final String DATE_DATETIME_PATTERN = framework.getString("date.datetime_pattern");   // 날짜시간 패턴

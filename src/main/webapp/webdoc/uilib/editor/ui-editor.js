@@ -9,6 +9,7 @@
  * 		uploadMaxSize:	업로드 사이즈(Mbyte, 기본값 5)
  * 		width:			너비 (%/px, 기본값:100%)
  * 		height:			높이 (%/px, 기본값:400px)
+ * 		required:		필수입력 여부(true/false, 기본값:false)
  * }
  *
  * let editor = UiEditor({옵션});

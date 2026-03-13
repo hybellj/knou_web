@@ -27,6 +27,12 @@ public interface AttachFileService {
     public List<AtflVO> selectAtflListByRefId(AtflVO vo) throws Exception;
 
 	/*****************************************************
+     * 첨부파일 목록 저장
+     * @param List<AtflVO>
+     *****************************************************/
+    public void insertAtflList(List<AtflVO> fileList) throws Exception;
+
+	/*****************************************************
      * 첨부파일 삭제 (by atflIds)
      * @param String[]
      *****************************************************/

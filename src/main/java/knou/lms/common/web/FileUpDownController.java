@@ -172,13 +172,17 @@ public class FileUpDownController extends ControllerBase {
     @ResponseBody
     public Map<String, String> editorUpload(MultipartHttpServletRequest multiRequest, HttpServletRequest request,
                                             HttpServletResponse response, ModelMap modelMap) {
-
         Map<String, String> resultMap = new HashMap<String, String>();
 
         try {
             String path = StringUtil.nvl(request.getParameter("path"));
-            String dataPath = CommConst.WEBDATA_PATH;
-            //String[] fileTypes   = {"jpg","jpeg","png","gif","mp4","ogg","webm"};
+            String dataPath = CommConst.EDITOR_DATA_PATH;
+            String[] fileTypes   = CommConst.EDITOR_FILE_TYPES;
+
+            // 경로 위변조 방지
+            if(path.indexOf("..") > -1) {
+                return null;
+            }
 
             if("".equals(path)) {
                 path = "/common";
@@ -191,19 +195,17 @@ public class FileUpDownController extends ControllerBase {
             }
 
             path = path.replace("/\\/g", "/");
-            if(!path.equals("") && !path.substring(0, 1).equals("/")) {
+            if (!path.equals("") && !path.substring(0, 1).equals("/")) {
                 path = "/" + path;
             }
-            if(!path.equals("") && !path.substring(path.length() - 1).equals("/")) {
+            if (!path.equals("") && !path.substring(path.length() - 1).equals("/")) {
                 path += "/";
             }
-            path += "editor/";
 
             String uploadPath = dataPath + path;
-
             final Map<String, MultipartFile> fileMap = multiRequest.getFileMap();
 
-            if(!fileMap.isEmpty()) {
+            if (!fileMap.isEmpty()) {
                 Object[] keys = fileMap.keySet().toArray();
                 MultipartFile multiFile = fileMap.get(keys[0]);
 
@@ -217,22 +219,23 @@ public class FileUpDownController extends ControllerBase {
                 String newFileName = "";
                 String url = "";
 
-                //if(Arrays.asList(fileTypes).contains(fileExt)) {
-                newFileName = IdGenerator.getNewId("EDT") + "." + fileExt;
-                url = CommConst.WEBDATA_CONTEXT + path + newFileName;
+                if (Arrays.asList(fileTypes).contains(fileExt)) {
+	                newFileName = IdGenerator.getNewId("EDT") + "." + fileExt;
+	                url = CommConst.EDITOR_CONTEXT + path + newFileName;
 
-                FileUtil.setDirectory(uploadPath);
-                File file = new File(uploadPath, newFileName);
-                multiFile.transferTo(file);
+	                FileUtil.setDirectory(uploadPath);
+	                File file = new File(uploadPath, newFileName);
+	                multiFile.transferTo(file);
 
-                resultMap.put("uploadPath", url);
-                //}
+	                resultMap.put("uploadPath", url);
+                }
             }
         } catch(Exception e) {
         	log.error(e.getMessage());
         }
         return resultMap;
     }
+
 
     /**
      * 파일 다운로드

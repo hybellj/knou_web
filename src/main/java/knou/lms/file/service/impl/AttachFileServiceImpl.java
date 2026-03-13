@@ -49,6 +49,14 @@ public class AttachFileServiceImpl  extends ServiceBase implements AttachFileSer
     	return attachFileDAO.selectAtflListByRefId(vo);
     }
 
+    /*****************************************************
+     * 첨부파일 목록 저장
+     * @param List<AtflVO>
+     *****************************************************/
+    public void insertAtflList(List<AtflVO> fileList) throws Exception {
+    	attachFileDAO.insertAtflList(fileList);
+    }
+
 	/*****************************************************
      * 첨부파일 삭제 (by AtflIds)
      * @param String[]

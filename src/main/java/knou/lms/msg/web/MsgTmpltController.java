@@ -1,5 +1,8 @@
 package knou.lms.msg.web;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -13,6 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
+import knou.framework.exception.BadRequestUrlException;
+import knou.framework.util.ExcelUtilPoi;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.service.MsgTmpltService;
 import knou.lms.msg.vo.MsgTmpltVO;
@@ -323,5 +328,41 @@ public class MsgTmpltController extends ControllerBase {
         }
 
         return resultVO;
+    }
+
+    /**
+     * 메시지 템플릿 엑셀 다운로드
+     */
+    @RequestMapping(value = "/msgTmpltExcelDown.do")
+    public String msgTmpltExcelDown(MsgTmpltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String authrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
+        if (authrtGrpcd == null || (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF"))) {
+            throw new BadRequestUrlException(getCommonNoAuthMessage());
+        }
+
+        UserContext userCtx = getUserContext(request);
+        initSearchParam(vo, userCtx);
+
+        List<MsgTmpltVO> list = msgTmpltService.selectTmpltExcelList(vo);
+
+        String title = getMessage("msg.tmplt.label.title");
+        Date today = new Date();
+        SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd");
+
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("title", title);
+        map.put("sheetName", title);
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list", list);
+
+        HashMap<String, Object> modelMap = new HashMap<String, Object>();
+        modelMap.put("outFileName", title + "_" + date.format(today));
+        modelMap.put("sheetName", title);
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
     }
 }

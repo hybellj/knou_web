@@ -164,6 +164,7 @@ function UiTable(tableId, opts) {
 	uiTable.changeFunc = changeFunc;
     uiTable.isParentSet = false;
     uiTable.isRendered = false;
+	uiTable.isPaging = false;
     uiTable.selectable = selectRow;
     uiTable.resizeTimer = null;
     uiTable.sortState = {};
@@ -229,6 +230,13 @@ function UiTable(tableId, opts) {
         if (!this.isParentSet) {
             this.setParentWidth(true);
         }
+
+		if (!this.isPaging) {
+			$table.addClass("nopage");
+		}
+		else {
+			$table.removeClass("nopage");
+		}
 
         this.isRendered = true;
 
@@ -322,6 +330,9 @@ function UiTable(tableId, opts) {
             };
             this.on("renderComplete", handler);
         }
+
+		this.isPaging = true;
+		$table.removeClass("nopage");
     }
 
     // 페이지 정보 출력

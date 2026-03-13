@@ -6,7 +6,7 @@
 <mapper namespace="knou.lms.crs.sbjct.dao.SbjctDAO">
      <sql id="listQuery">
         SELECT
-            A.SBJCT_MSTR_ID
+            A.SBJCT_TMPLT_ID
          ,  A.SBJCTNM
          ,  A.SBJCT_YR
          ,  A.SBJCT_SMSTR
@@ -21,7 +21,7 @@
          ,  B.DGRS_SMSTR_CHRT
          ,  ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
          ,  COUNT(*) OVER() AS TOTAL_CNT
-        FROM DEV_LMS.TB_LMS_SBJCT_MSTR A
+        FROM DEV_LMS.TB_LMS_SBJCT_TMPLT A
             INNER JOIN DEV_LMS.TB_LMS_SMSTR_CHRT B
             ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
         WHERE 1 = 1
@@ -99,7 +99,7 @@
            SET USEYN    = #{useYn},
                MDFR_ID  = #{mdfrId},
                MOD_DTTM = #{modDttm}
-         WHERE SBJCT_MSTR_ID = #{sbjctMstrId}
+         WHERE SBJCT_TMPLT_ID = #{sbjctMstrId}
            AND DELYN = 'N'
     </update>
 
@@ -115,7 +115,7 @@
            SET DELYN    = 'Y',
                MDFR_ID  = #{mdfrId},
                MOD_DTTM = #{modDttm}
-         WHERE SBJCT_MSTR_ID = #{sbjctMstrId}
+         WHERE SBJCT_TMPLT_ID = #{sbjctMstrId}
            AND DELYN = 'N'
     </update>
 

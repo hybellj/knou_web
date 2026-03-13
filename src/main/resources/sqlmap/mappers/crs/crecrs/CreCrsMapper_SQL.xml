@@ -50,14 +50,14 @@
 				WHERE ROWNUM = 1
 			) AS SBJCT_LCTR_CONTS_ID
 			</if>
-		FROM TB_LMS_SBJCT_OFRNG A
+		FROM TB_LMS_SBJCT A
 		LEFT JOIN TB_LMS_SBJCT_ADM B ON 	A.SBJCT_OFRNG_ID = B.SBJCT_OFRNG_ID
 									 AND 	B.SBJCT_ADM_TYCD = 'PROF'
 		LEFT JOIN TB_LMS_USER U ON 	U.USER_ID = A.RGTR_ID
 								AND U.ORG_ID = #{orgId}
 		WHERE 	1 = 1
 				AND 	A.DELYN = 'N'
-				AND		A.SBJCT_OFRNG_ID = #{sbjctOfrngId}
+				AND		A.SBJCT_ID = #{sbjctId}
 		<if test="termCd != null and termCd != ''">
 		AND C.CRS_SMSTR_ID = #{termCd}
 		</if>
@@ -66,10 +66,10 @@
 		AND D.RPRSYN = 'Y'
 		WHERE A.DELYN = 'N' -->
 		<if test="crsCreCd != null and crsCreCd != ''">
-			AND A.SBJCT_OFRNG_ID = #{crsCreCd}
+			AND A.SBJCT_ID = #{crsCreCd}
 		</if>
 		<if test="creYear != null and creYear != ''">
-			AND A.SBJCT_ID = #{creYear}
+			AND A.SBJCT_YR = #{creYear}
 		</if>
 		<if test="creTerm != null and creTerm != ''">
 			AND A.CRS_ID = #{creTerm}

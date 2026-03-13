@@ -132,7 +132,9 @@ if (module != null && !"".equals(module)) {
 		// 차트
 		else if ("chart".equals(name)) {
 			%>
-			<script src="<%=assets%>/js/d3.v4/d3.v4.js"></script><!-- chart d3.js -->
+			<script src="<%=uilib%>/chart/d3.v4.js"></script><!-- chart d3.js -->
+			<script src="<%=uilib%>/chart/chart4.min.js"></script><!-- chart4 -->
+			<script src="<%=uilib%>/chart/chart-utils.min.js"></script><!-- chart util -->
 			<%
 		}
 		// 위젯

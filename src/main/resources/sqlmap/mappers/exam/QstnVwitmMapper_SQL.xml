@@ -65,4 +65,40 @@
 		 ORDER BY QSTN_ID, QSTN_VWITM_SEQNO
 	</select>
 
+	<insert id="quizQstnVwitmCopy" parameterType="java.util.List">
+		/*
+             SQL ID : QstnVwitmDAO.quizQstnVwitmCopy
+             설  명 : 퀴즈문항보기항목가져오기
+         */
+        INSERT INTO TB_LMS_QSTN_VWITM (
+        	  QSTN_VWITM_ID
+        	, QSTN_ID
+        	, QSTN_VWITM_CTS
+        	, CRANS_YN
+        	, RGTR_ID
+        	, REG_DTTM
+        )
+        SELECT
+        	  'QSVW0'
+					  || TO_CHAR(SYSDATE, 'YYMMDDHH24MISS')
+					  || LPAD(MOD(EXTRACT(SECOND FROM SYSTIMESTAMP) * 1000, 1000), 3, '0')
+					  || LOWER(SUBSTR(RAWTOHEX(SYS_GUID()), 1, 7))
+					  || LPAD(ROW_NUMBER() OVER(ORDER BY NULL), 3, '0') AS QSTN_VWITM_ID
+			, A.*
+		  FROM (
+	        <foreach item="item" collection="list" separator="UNION ALL">
+			  	SELECT
+			          #{item.qstnId}  									AS QSTN_ID
+			        , COALESCE(Q.QSTN_VWITM_CTS,	B.VWITM_CTS)        AS QSTN_VWITM_CTS
+			        , COALESCE(Q.CRANS_YN,			B.CRANSYN)  		AS CRANS_YN
+			        , #{item.rgtrId} 									AS RGTR_ID
+			        , FN_DTTM()											AS REG_DTTM
+			      FROM DUAL
+			      LEFT JOIN TB_LMS_QSTN_VWITM Q 		ON Q.QSTN_ID      = #{item.copyQstnId}
+			      LEFT JOIN TB_LMS_QBNK_QSTN_VWITM B 	ON B.QBNK_QSTN_ID = #{item.copyQstnId}
+			     WHERE (Q.QSTN_ID IS NOT NULL OR B.QBNK_QSTN_ID IS NOT NULL)
+        </foreach>
+		) A
+	</insert>
+
 </mapper>

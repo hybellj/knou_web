@@ -135,7 +135,7 @@
         ajaxCall(url, param, function(res) {
             if (res.result > 0) {
                 alert(successMsg);
-                location.href = '/popupNtcList.do';
+                location.href = '/popupNtcListView.do';
             } else {
                 alert(res.message || '<spring:message code="fail.common.insert"/>');
             }
@@ -146,7 +146,7 @@
 
     /* 목록으로 */
     function fn_goList() {
-        location.href = '/popupNtcList.do';
+        location.href = '/popupNtcListView.do';
     }
 </script>
 

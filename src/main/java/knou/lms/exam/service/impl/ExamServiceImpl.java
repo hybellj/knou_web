@@ -1,5 +1,6 @@
 package knou.lms.exam.service.impl;
 
+import knou.framework.common.CommConst;
 import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
 import knou.framework.exception.BadRequestUrlException;
@@ -13,6 +14,8 @@ import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.exam.dao.*;
 import knou.lms.exam.service.ExamService;
 import knou.lms.exam.vo.*;
+import knou.lms.file.service.AttachFileService;
+import knou.lms.file.vo.AtflVO;
 import knou.lms.forum.dao.ForumDAO;
 import knou.lms.forum.service.ForumService;
 import knou.lms.forum.vo.ForumVO;
@@ -22,7 +25,6 @@ import knou.lms.std.dao.StdDAO;
 import knou.lms.std.vo.StdVO;
 import knou.lms.team.dao.TeamDAO;
 import knou.lms.team.vo.TeamVO;
-import net.sf.json.JSONArray;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,6 +89,133 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     @Resource(name="teamDAO")
     private TeamDAO teamDAO;
 
+    @Resource(name="attachFileService")
+    private AttachFileService attachFileService;
+
+    /*****************************************************
+     * 신규 작성 Service 영역
+     *****************************************************/
+
+    /*****************************************************
+     * 교수 시험목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listProfExamPaging(ExamVO vo) throws Exception{
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countProfExam(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listProfExamPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 교수 시험 상세조회
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public ExamVO selectProfExamDtl(ExamVO vo) throws Exception {
+        return examDAO.selectProfExamDtl(vo);
+    }
+
+    /*****************************************************
+     * 팀 시험 평가대상자 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listTkexamTeamUserPaging(ExamVO vo) throws Exception{
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countTkexamTeamUser(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listTkexamTeamUserPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 시험 평가대상자 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo) throws Exception{
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countTkexamUser(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listTkexamUserPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 성적 공개여부 수정
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void updateMrkOyn(ExamVO vo) throws Exception{
+        examDAO.updateMrkOyn(vo);
+    }
+
+    /*****************************************************
+     * 시험 성적 반영비율 수정
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception {
+        examDAO.examMrkRfltrtListModify(list);
+    }
+
+    /*****************************************************
+     * 기존에 있던 Service 영역
+     *****************************************************/
     /**
      * 교수퀴즈목록조회
      *
@@ -136,12 +265,16 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         	if(vo.getExamDtlVO() != null) dtlVO.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
             bscVO.setExamDtlVO(examDAO.quizDtlSelect(dtlVO));	// 퀴즈상세 정보 조회
 
-            List<FileVO> fileList = new ArrayList<FileVO>();
-            FileVO fileVO = new FileVO();
-            fileVO.setRepoCd("EXAM_CD");
-            fileVO.setFileBindDataSn(vo.getExamBscId());
-            fileList = sysFileService.list(fileVO).getReturnList();
-            vo.setFileList(fileList);
+            if(bscVO.getFileCnt() > 0) {
+            	String examBscId = bscVO.getExamBscId();
+            	FileVO fileVO = new FileVO();
+            	fileVO.setRepoCd(CommConst.REPO_EXAM);
+            	fileVO.setFileBindDataSn(examBscId);
+            	ProcessResultVO<FileVO> resultVO = (ProcessResultVO<FileVO>) sysFileService.list(fileVO);
+
+                List<FileVO> fileList = resultVO.getReturnList();
+                bscVO.setFileList(fileList);
+            }
         }
 
         return bscVO;
@@ -207,16 +340,24 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
             quizMrkRfltrtModify(vo);	// 퀴즈 성적반영비율 수정
         }
 
-        // 이전 시험 가져오기 파일 복사
-//        prevCopyFlieAdd(vo);
-//        FileVO fileVO = new FileVO();
-//        if(!"EXAM".equals(StringUtil.nvl(vo.getGoUrl())) || "QUIZ".equals(StringUtil.nvl(vo.getExamTycd()))) {
-//            // 파일 등록
-//            fileVO = addFile(vo);
-//        }
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+
+        // 첨부파일
+        if (uploadFileList.size() > 0) {
+        	for (AtflVO atflVO : uploadFileList) {
+        		atflVO.setRefId(vo.getExamBscId());
+        		atflVO.setRgtrId(vo.getRgtrId());
+        		atflVO.setMdfrId(vo.getMdfrId());
+        		atflVO.setAtflRepoId(CommConst.REPO_EXAM); // 첨부파일 저장소 아이디
+        	}
+
+        	// 첨부파일 저장
+        	attachFileService.insertAtflList(uploadFileList);
+        }
 
         // 분반 등록
         if("Y".equals(vo.getDvclasRegyn())) {
+        	String examBscId = vo.getExamBscId();
             vo.getSbjctIds().removeIf(item -> item.equals(vo.getSbjctId()));	// 퀴즈등록 분반 목록 제거
 
             ExamGrpVO grpVO = new ExamGrpVO();
@@ -225,6 +366,7 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
             grpVO.setRgtrId(vo.getRgtrId());
             examDAO.examGrpRegist(grpVO); // 퀴즈그룹 등록
             vo.setExamGrpId(grpVO.getExamGrpId());
+            vo.setMrkRfltrt(null);
             examDAO.examBscModify(vo);	// 퀴즈기본 수정
 
             for(String sbjctId : vo.getSbjctIds()) {
@@ -277,13 +419,13 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                     quizMrkRfltrtModify(vo);	// 퀴즈 성적반영비율 수정
                 }
 
-//                // 이전 시험 가져오기 파일 복사
-//                prevCopyFlieAdd(vo);
 //                if(!"EXAM".equals(StringUtil.nvl(vo.getGoUrl())) || "QUIZ".equals(StringUtil.nvl(vo.getExamCtgrCd()))) {
 //                    // 첨부파일 복사
 //                    copyFile(vo, fileVO);
 //                }
+
             }
+            vo.setExamBscId(examBscId);
         }
 
         return vo;
@@ -317,13 +459,15 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                         String lrnGbnId = lrnGrp.split(":")[0];		// 신규 학습그룹아이디
                         String bfrLrnGbnId = bfrQuiz.getLrnGrpId();	// 기존 학습그룹아이디
 
+                        TeamVO teamVO = new TeamVO();
+                        teamVO.setTeamCtgrCd(lrnGbnId);
+                        List<TeamVO> teamList = teamDAO.list(teamVO);	// 팀 목록 조회
+
+                        // 학습그룹 불일치시
                         if(!lrnGbnId.equals(bfrLrnGbnId)) {
                             examDAO.examTrgtrDelete(vo.getExamBscId());	// 기존 퀴즈대상자 삭제
                             examDAO.examDtlDelete(vo.getExamBscId());	// 기존 퀴즈상세 삭제
 
-                            TeamVO teamVO = new TeamVO();
-                            teamVO.setTeamCtgrCd(lrnGbnId);
-                            List<TeamVO> teamList = teamDAO.list(teamVO);	// 팀 목록 조회
                             for(TeamVO team : teamList) {
                                 vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
                                 Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
@@ -343,6 +487,26 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                                 trgtr.setRgtrId(vo.getRgtrId());
                                 examDAO.examTrgtrRegist(trgtr);		// 신규 퀴즈대상자 등록
                             }
+                        // 학습그룹 일치시
+                        } else {
+                        	List<EgovMap> quizDtlList = examDAO.quizTeamList(vo.getExamBscId());
+                        	for(TeamVO team : teamList) {
+                        		Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
+                                if(target != null) {
+                                    vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
+                                    vo.getExamDtlVO().setExamCts((String) target.get("cts"));
+                                } else {
+                                    vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
+                                    vo.getExamDtlVO().setExamCts(vo.getExamCts());
+                                }
+                                String examDtlId = quizDtlList.stream()
+                                	    .filter(map -> team.getTeamId().equals(map.get("teamId")))
+                                	    .map(map -> String.valueOf(map.get("examDtlId")))
+                                	    .findFirst()
+                                	    .orElse(null);
+                                vo.getExamDtlVO().setExamDtlId(examDtlId);
+                                examDAO.examDtlModify(vo.getExamDtlVO());	// 퀴즈상세 수정
+                        	}
                         }
                     }
                 }
@@ -397,8 +561,23 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
             }
         }
 
-        // 가져오기 문제 복사
-//        insertExamQstn(vo);
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+
+        // 첨부파일
+        if (uploadFileList.size() > 0) {
+        	for (AtflVO atflVO : uploadFileList) {
+        		atflVO.setRefId(vo.getExamBscId());
+        		atflVO.setRgtrId(vo.getRgtrId());
+        		atflVO.setMdfrId(vo.getMdfrId());
+        		atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+        	}
+
+        	// 첨부파일 저장
+        	attachFileService.insertAtflList(uploadFileList);
+        }
+
+        // 첨부파일 삭제
+        attachFileService.deleteAtflByAtflIds(vo.getDelFileIds());
 
         if("QUIZ".equals(StringUtil.nvl(bfrQuiz.getExamTycd())) || "EXAM".equals(StringUtil.nvl(vo.getGoUrl()))) {
             quizMrkRfltrtModify(vo);	// 퀴즈 성적반영비율 수정
@@ -517,14 +696,10 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                     quizMrkRfltrtModify(vo);	// 퀴즈 성적반영비율 수정
                 }
 
-//                // 이전 시험 가져오기 파일 복사
-//                prevCopyFlieAdd(vo);
 //                if(!"EXAM".equals(StringUtil.nvl(vo.getGoUrl())) || "QUIZ".equals(StringUtil.nvl(vo.getExamCtgrCd()))) {
 //                    // 첨부파일 복사
 //                    copyFile(vo, fileVO);
 //                }
-//                // 가져오기 문제 복사
-//                insertExamQstn(vo);
             }
         }
 
@@ -577,8 +752,8 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                 bscVO.setMrkRfltrt(mrkRfltrt);
                 bscVO.setMdfrId(vo.getMdfrId());
             }
+            examDAO.quizMrkRfltrtListModify(quizList);
         }
-        examDAO.quizMrkRfltrtListModify(quizList);
     }
 
     /**
@@ -596,12 +771,7 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
             examDAO.examEvlSbstDelete(vo.getExamBscId());
         }
 
-        ExamDtlVO searchDtlVO = new ExamDtlVO();
-        searchDtlVO.setExamBscId(vo.getExamBscId());
-        ExamDtlVO dtlVO = examDAO.quizDtlSelect(searchDtlVO);	// 퀴즈상세정보 조회
-        dtlVO.setDelyn(vo.getDelyn());
-        dtlVO.setMdfrId(vo.getMdfrId());
-        examDAO.examDtlModify(dtlVO);	// 퀴즈상세 삭제여부 수정
+        examDAO.examDtlDelynModify(vo); // 퀴즈상세 삭제여부 수정
         examDAO.examBscModify(vo);		// 퀴즈기본 삭제여부 수정
 
         quizMrkRfltrtModify(vo);		// 퀴즈 성적반영비율 수정
@@ -619,33 +789,32 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     * 교수권한과목퀴즈목록조회
     *
     * @param userId 		교수아이디
-    * @param dgrsYr 		학사년도
-    * @param dgrsSmstrChrt 	학기
-    * @param sbjctId 	과목개설아이디
+    * @param smstrChrtId 	학기기수아이디
+    * @param sbjctId 		과목아이디
     * @param searchValue 	검색내용(퀴즈명)
     * @param listScale	 	페이지크기
     * @return 퀴즈목록 페이징
     * @throws Exception
     */
     @Override
-    public ProcessResultVO<ExamBscVO> profAuthrtSbjctQuizList(ExamBscVO vo) throws Exception {
+    public ProcessResultVO<EgovMap> profAuthrtSbjctQuizList(Map<String, Object> params) throws Exception {
         PaginationInfo paginationInfo = new PaginationInfo();
-        paginationInfo.setCurrentPageNo(vo.getPageIndex());
-        paginationInfo.setRecordCountPerPage(vo.getListScale());
-        paginationInfo.setPageSize(vo.getListScale());
+        paginationInfo.setCurrentPageNo((Integer) params.get("pageIndex"));
+        paginationInfo.setRecordCountPerPage(Integer.parseInt((String) params.get("listScale")));
+        paginationInfo.setPageSize(Integer.parseInt((String) params.get("listScale")));
 
-        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
-        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+        params.put("firstIndex", paginationInfo.getFirstRecordIndex());
+        params.put("lastIndex", paginationInfo.getLastRecordIndex());
 
-        List<ExamBscVO> quizList = examDAO.profAuthrtSbjctQuizList(vo);
+        List<EgovMap> quizList = examDAO.profAuthrtSbjctQuizList(params);
 
         if(quizList.size() > 0) {
-            paginationInfo.setTotalRecordCount(quizList.get(0).getTotalCnt());
+        	paginationInfo.setTotalRecordCount(((BigDecimal) quizList.get(0).get("totalCnt")).intValue());
         } else {
             paginationInfo.setTotalRecordCount(0);
         }
 
-        ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
 
         resultVO.setReturnList(quizList);
         resultVO.setPageInfo(paginationInfo);
@@ -673,6 +842,7 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     * @return 퀴즈 부과제 목록
     * @throws Exception
     */
+    @Override
     public List<ExamDtlVO> quizLrnGrpSubAsmtList(ExamDtlVO vo) throws Exception {
         return examDAO.quizLrnGrpSubAsmtList(vo);
     }
@@ -728,25 +898,27 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      }
 
      /**
- 	* 퀴즈팀문제출제완료여부조회
- 	*
- 	* @param examBscId 시험기본아이디
- 	* @throws Exception
- 	*/
- 	public Boolean quizTeamQstnsCmptnynSelect(String examBscId) throws Exception {
- 		return examDAO.quizTeamQstnsCmptnynSelect(examBscId);
- 	}
+ 	 * 퀴즈팀문제출제완료여부조회
+ 	 *
+ 	 * @param examBscId 시험기본아이디
+ 	 * @throws Exception
+ 	 */
+     @Override
+ 	 public Boolean quizTeamQstnsCmptnynSelect(String examBscId) throws Exception {
+ 	 	return examDAO.quizTeamQstnsCmptnynSelect(examBscId);
+ 	 }
 
- 	/**
-	 * 시험응시시작사용자수조회
-	 *
-	 * @param examBscId 시험기본아이디
-	 * @param examDtlId 시험상세아이디
-	 * @throws Exception
-	 */
-	public Integer tkexamStrtUserCntSelect(ExamDtlVO vo) throws Exception {
-		return examDAO.tkexamStrtUserCntSelect(vo);
-	}
+ 	 /**
+	  * 시험응시시작사용자수조회
+	  *
+	  * @param examBscId 시험기본아이디
+	  * @param examDtlId 시험상세아이디
+	  * @throws Exception
+	  */
+     @Override
+	 public Integer tkexamStrtUserCntSelect(ExamDtlVO vo) throws Exception {
+	 	return examDAO.tkexamStrtUserCntSelect(vo);
+	 }
 
 	/**
 	 * 과목분반목록조회
@@ -755,19 +927,70 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 	 * @return 과목분반목록
 	 * @throws Exception
 	 */
-	public List<EgovMap> sbjctDvclasList(String sbjctId) throws Exception {
-		return examDAO.sbjctDvclasList(sbjctId);
-	}
+     @Override
+	 public List<EgovMap> sbjctDvclasList(String sbjctId) throws Exception {
+	 	return examDAO.sbjctDvclasList(sbjctId);
+	 }
 
-	/**
+	 /**
 	 * 퀴즈성적반영비율목록수정
 	 *
 	 * @param List<ExamBscVO>
 	 * @throws Exception
 	 */
-	public void quizMrkRfltrtListModify(List<ExamBscVO> list) throws Exception {
-		examDAO.quizMrkRfltrtListModify(list);
-	}
+     @Override
+	 public void quizMrkRfltrtListModify(List<ExamBscVO> list) throws Exception {
+	 	examDAO.quizMrkRfltrtListModify(list);
+	 }
+
+	 /**
+	 * 시험지일괄엑셀다운퀴즈대상자목록조회
+	 *
+	 * @param examBscId 	시험기본아이디
+     * @param sbjctId 		과목이이디
+	 * @return 시험지일괄엑셀다운퀴즈대상자목록
+	 * @throws Exception
+	 */
+     @Override
+	 public List<EgovMap> exampprBulkExcelDownQuizTrgtrList(ExamBscVO vo) throws Exception {
+    	 return examDAO.exampprBulkExcelDownQuizTrgtrList(vo);
+     }
+
+    /**
+ 	* 문제가져오기학기기수목록조회
+ 	*
+ 	* @return 학기기수목록
+ 	* @throws Exception
+ 	*/
+    @Override
+ 	public List<EgovMap> qstnCopySmstrList() throws Exception {
+ 		return examDAO.qstnCopySmstrList();
+ 	}
+
+ 	/**
+ 	* 문제가져오기과목목록조회
+ 	*
+ 	* @param smstrChrtId 	학기기수아이디
+     * @param sbjctId 		과목이이디
+ 	* @return 과목목록
+ 	* @throws Exception
+ 	*/
+    @Override
+ 	public List<EgovMap> qstnCopySbjctList(String smstrChrtId, String sbjctId) throws Exception {
+ 		return examDAO.qstnCopySbjctList(smstrChrtId, sbjctId);
+ 	}
+
+ 	/**
+ 	* 문제가져오기퀴즈목록조회
+ 	*
+     * @param sbjctId 		과목이이디
+ 	* @return 퀴즈목록
+ 	* @throws Exception
+ 	*/
+    @Override
+ 	public List<ExamDtlVO> qstnCopyQuizList(String sbjctId) throws Exception {
+    	return examDAO.qstnCopyQuizList(sbjctId);
+    }
 
 
 
@@ -960,8 +1183,6 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
             setScoreRatio(vo);
         }
 
-        // 이전 시험 가져오기 파일 복사
-        prevCopyFlieAdd(vo);
         FileVO fileVO = new FileVO();
         if(!"EXAM".equals(StringUtil.nvl(vo.getGoUrl())) || "QUIZ".equals(StringUtil.nvl(vo.getExamCtgrCd()))) {
             // 파일 등록
@@ -1008,8 +1229,6 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                         // 성적 반영 비율 수정
                         setScoreRatio(examCreCrsRltnVO);
                     }
-                    // 이전 시험 가져오기 파일 복사
-                    prevCopyFlieAdd(vo);
                     if(!"EXAM".equals(StringUtil.nvl(vo.getGoUrl())) || "QUIZ".equals(StringUtil.nvl(vo.getExamCtgrCd()))) {
                         // 첨부파일 복사
                         copyFile(vo, fileVO);
@@ -1083,8 +1302,6 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
             if("QUIZ".equals(oldExamTypeCd) && "EXAM".equals(StringUtil.nvl(examVO.getExamCtgrCd()))) {
                 vo.setExamCd(vo.getInsRefCd());
             }
-            // 이전 시험 가져오기 파일 복사
-            prevCopyFlieAdd(vo);
             // 파일 등록
             addFile(vo);
         }
@@ -2040,60 +2257,6 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
             fvo.setFileBindDataSn(vo.getExamCd());
             fvo.setFileList(fileVO.getFileList());
             sysFileService.copyFile(fvo);
-        }
-    }
-
-    // 이전 시험 가져오기 첨부파일 복사
-    private void prevCopyFlieAdd(ExamVO vo) throws Exception {
-        if(!"".equals(StringUtil.nvl(vo.getSearchTo())) && !"".equals(StringUtil.nvl(vo.getFileSns()))) {
-            // 기존 파일 삭제
-            FileVO delFileVO = new FileVO();
-            delFileVO.setRepoCd(vo.getRepoCd());
-            delFileVO.setFileBindDataSn(vo.getExamCd());
-            List<FileVO> delFileList = sysFileService.list(delFileVO).getReturnList();
-            for(FileVO dfvo : delFileList) {
-                sysFileService.removeFile(dfvo);
-            }
-
-            // 이전 시험 파일 복사
-            FileVO fileVO = new FileVO();
-            fileVO.setRepoCd(vo.getRepoCd());
-            fileVO.setFileBindDataSn(vo.getSearchTo());
-            fileVO.setFileSnList(StringUtil.nvl(vo.getFileSns()).split(","));
-            List<FileVO> fileList = sysFileService.list(fileVO).getReturnList();
-            String fileSns = "";
-            // 이전 파일 중 삭제 클릭 파일 제외
-            for(FileVO list : fileList) {
-                String fileId = list.getFileId();
-                boolean isChk = true;
-                for(String delFileId : vo.getDelFileIds()) {
-                    if(fileId.equals(delFileId)) {
-                        isChk = false;
-                    }
-                }
-                if(isChk) {
-                    fileSns += list.getFileSn() + ",";
-                }
-            }
-            if(!"".equals(fileSns)) {
-                fileVO.setFileSnList(fileSns.split(","));
-            }
-            fileList = sysFileService.list(fileVO).getReturnList();
-            fileVO.setFileList(fileList);
-            List<Map<String, String>> uploadFiles = new ArrayList<Map<String, String>>();
-            for(FileVO fvo2 : fileList) {
-                Map<String, String> map = new HashMap<String, String>();
-                map.put("fileNm", fvo2.getFileNm());
-                map.put("fileId", fvo2.getFileId());
-                map.put("fileSize", fvo2.getFileSize().toString());
-                uploadFiles.add(map);
-            }
-            JSONArray uploadFile = JSONArray.fromObject(uploadFiles);
-            fileVO.setUploadFiles(uploadFile.toString());
-            fileVO.setFilePath(vo.getUploadPath());
-            fileVO.setRgtrId(vo.getRgtrId());
-            fileVO.setFileBindDataSn(vo.getExamCd());
-            sysFileService.copyFile(fileVO);
         }
     }
 

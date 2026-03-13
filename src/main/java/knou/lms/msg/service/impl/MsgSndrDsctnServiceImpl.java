@@ -64,8 +64,8 @@ public class MsgSndrDsctnServiceImpl extends ServiceBase implements MsgSndrDsctn
      * @return
      */
     @Override
-    public MsgSndrDsctnVO selectSndrDsctnSummary(MsgSndrDsctnVO vo) {
-        return msgSndrDsctnDAO.selectSndrDsctnSummary(vo);
+    public MsgSndrDsctnVO selectSndrDsctnSmry(MsgSndrDsctnVO vo) {
+        return msgSndrDsctnDAO.selectSndrDsctnSmry(vo);
     }
 
     /**

@@ -17,15 +17,15 @@ public interface PopupNtcDAO {
 
     int registPopupNtc(PopupNtcVO vo);
 
-    int registPopupNtcPstnSize(PopupNtcVO vo);
+    int registPopupNtcPstnSz(PopupNtcVO vo);
 
     int modifyPopupNtc(PopupNtcVO vo);
 
-    int modifyPopupNtcPstnSize(PopupNtcVO vo);
+    int modifyPopupNtcPstnSz(PopupNtcVO vo);
 
     int modifyPopupNtcUseyn(PopupNtcVO vo);
 
-    int deletePopupNtcPstnSize(PopupNtcVO vo);
+    int deletePopupNtcPstnSz(PopupNtcVO vo);
 
     int deletePopupNtc(PopupNtcVO vo);
 

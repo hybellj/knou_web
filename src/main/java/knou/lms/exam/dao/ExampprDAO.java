@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
+import knou.lms.exam.vo.ExamBscVO;
 import knou.lms.exam.vo.ExamDtlVO;
 
 @Mapper("exampprDAO")
@@ -56,5 +57,15 @@ public interface ExampprDAO {
 	 * @throws Exception
 	 */
 	public void userExampprRegist(Map<String, Object> params) throws Exception;
+
+	/**
+	* 시험지일괄엑셀다운퀴즈문항목록
+	*
+	* @param examBscId 	시험기본아이디
+    * @param sbjctId 	과목아이디
+	* @return 시험지일괄엑셀다운퀴즈문항목록
+	* @throws Exception
+	*/
+	public List<EgovMap> exampprBulkExcelDownQuizQstnList(ExamBscVO vo) throws Exception;
 
 }

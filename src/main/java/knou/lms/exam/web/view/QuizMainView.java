@@ -38,6 +38,8 @@ public class QuizMainView {
 
 	EgovMap profMemo;
 
+	List<EgovMap> quizSearchSmstrList;
+
 	public ExamBscVO getExamBscVO() {
 		return examBscVO;
 	}
@@ -140,6 +142,14 @@ public class QuizMainView {
 
 	public void setProfMemo(EgovMap profMemo) {
 		this.profMemo = profMemo;
+	}
+
+	public List<EgovMap> getQuizSearchSmstrList() {
+		return quizSearchSmstrList;
+	}
+
+	public void setQuizSearchSmstrList(List<EgovMap> quizSearchSmstrList) {
+		this.quizSearchSmstrList = quizSearchSmstrList;
 	}
 
 }

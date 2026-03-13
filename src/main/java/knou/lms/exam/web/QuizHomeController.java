@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
+import knou.framework.common.RepoInfo;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
 import knou.framework.exception.AccessDeniedException;
@@ -16,7 +17,6 @@ import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
 import knou.framework.vo.FileVO;
 import knou.lms.cmmn.service.CmmnCdService;
-import knou.lms.cmmn.vo.CmmnCdVO;
 import knou.lms.common.service.SysFileService;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.common.vo.ProcessResultVO;
@@ -24,6 +24,7 @@ import knou.lms.crs.crecrs.service.CrecrsService;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.crs.crs.service.CrsService;
 import knou.lms.crs.crs.vo.CrsVO;
+import knou.lms.crs.sbjct.vo.SbjctVO;
 import knou.lms.crs.term.service.TermService;
 import knou.lms.crs.term.vo.TermVO;
 import knou.lms.exam.facade.QuizFacadeService;
@@ -137,6 +138,12 @@ public class QuizHomeController extends ControllerBase {
 
     @Resource(name="tkexamRsltService")
     private TkexamRsltService tkexamRsltService;
+
+    @Resource(name="exampprService")
+    private ExampprService exampprService;
+
+    @Resource(name="tkexamAnswShtService")
+    private TkexamAnswShtService tkexamAnswShtService;
 
     /**
      * 교수퀴즈목록화면
@@ -299,7 +306,9 @@ public class QuizHomeController extends ControllerBase {
     public String profQuizModifyView(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         QuizMainView quizMainView = quizFacadeService.loadProfQuizModifyView(vo);
 
-        model.addAttribute("vo", quizMainView.getExamBscVO());
+        ExamBscVO bscVO = quizMainView.getExamBscVO();
+        bscVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, bscVO.getExamBscId()));	// 첨부파일저장소 설정
+        model.addAttribute("vo", bscVO);
         model.addAttribute("dvclasList", quizMainView.getQuizGrpSbjctList());
         model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
         model.addAttribute("menuTycd", "PROF");
@@ -350,12 +359,13 @@ public class QuizHomeController extends ControllerBase {
      *
      * @param sbjctId   과목아이디
      * @param examBscId 시험기본아이디
+     * @param delyn 	삭제여부
      * @return ProcessResultVO<ExamBscVO>
      * @throws Exception
      */
     @RequestMapping(value="/quizDeleteAjax.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> quizDeleteAjax(ExamBscVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> quizDeleteAjax(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
 //        logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -391,22 +401,12 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/profBfrQuizCopyPopup.do")
     public String profBfrQuizCopyPopup(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        String userId 		= StringUtil.nvl(SessionInfo.getUserId(request));
-        String authrtGrpCd  = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String authGrpCd 	= StringUtil.nvl(SessionInfo.getAuthrtCd(request));
-        String orgId     	= StringUtil.nvl(SessionInfo.getOrgId(request));
+    	QuizMainView quizMainView = quizFacadeService.loadProfBfrQuizCopyPopup(vo);
+    	String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
+        model.addAttribute("quizSearchSmstrList", quizMainView.getQuizSearchSmstrList());
         vo.setUserId(userId);
-        request.setAttribute("vo", vo);
-        TermVO termVO = new TermVO();
-        termVO.setSearchKey(authGrpCd.contains("TUT") ? "ASSISTANT" : "PROF");
-        if(authrtGrpCd.contains("ADM") && !authrtGrpCd.contains("PROF")) termVO.setSearchKey(null);
-        termVO.setUserId(SessionInfo.getUserId(request));
-
-        List<CmmnCdVO> smstrTycdList = cmmnCdService.listCode(orgId, "SMSTR_TYCD").getReturnList();        // 학기유형코드 조회
-        smstrTycdList.removeIf(item -> item.getCdSeqno() == 0);
-        model.addAttribute("smstrTycdList", smstrTycdList);
-        model.addAttribute("creYearList", termService.listCreYearByProf(termVO));
+        model.addAttribute("vo", vo);
 
         return "quiz/popup/prof_bfr_quiz_copy_pop";
     }
@@ -415,8 +415,7 @@ public class QuizHomeController extends ControllerBase {
      * 교수권한과목퀴즈목록조회
      *
      * @param userId        교수아이디
-     * @param dgrsYr        학사년도
-     * @param dgrsSmstrChrt 학기
+     * @param smstrChrtId 	학사년도/학기
      * @param sbjctId       과목아이디
      * @param searchValue   검색내용(퀴즈명)
      * @param listScale     페이지크기
@@ -425,12 +424,12 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/profAuthrtSbjctQuizListAjax.do")
     @ResponseBody
-    public ProcessResultVO<ExamBscVO> profAuthrtSbjctQuizListAjax(ExamBscVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> profAuthrtSbjctQuizListAjax(@RequestBody Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
 
-        ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
 
         try {
-            resultVO = examService.profAuthrtSbjctQuizList(vo);
+            resultVO = examService.profAuthrtSbjctQuizList(params);
             resultVO.setResult(1);
         } catch(Exception e) {
             resultVO.setResult(-1);
@@ -448,7 +447,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/quizSelectAjax.do")
     @ResponseBody
-    public ProcessResultVO<ExamBscVO> quizSelectAjax(ExamBscVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamBscVO> quizSelectAjax(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
 
         try {
@@ -506,7 +505,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/quizLrnGrpSubAsmtListAjax.do")
     @ResponseBody
-    public ProcessResultVO<ExamDtlVO> quizLrnGrpSubAsmtListAjax(ExamDtlVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamDtlVO> quizLrnGrpSubAsmtListAjax(ExamDtlVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<ExamDtlVO> resultVO = new ProcessResultVO<ExamDtlVO>();
 
         try {
@@ -529,7 +528,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/quizQstnListAjax.do")
     @ResponseBody
-    public ProcessResultVO<QstnVO> quizQstnListAjax(QstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<QstnVO> quizQstnListAjax(QstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<QstnVO> resultVO = new ProcessResultVO<QstnVO>();
 
@@ -559,7 +558,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/quizQstnVwitmListAjax.do")
     @ResponseBody
-    public ProcessResultVO<QstnVwitmVO> quizQstnVwitmListAjax(QstnVwitmVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<QstnVwitmVO> quizQstnVwitmListAjax(QstnVwitmVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<QstnVwitmVO> resultVO = new ProcessResultVO<QstnVwitmVO>();
 
@@ -583,7 +582,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/quizQstnRegistAjax.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> quizQstnRegistAjax(QstnVO vo, @RequestParam(value="qstns", defaultValue="[]") String qstnsStr, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> quizQstnRegistAjax(QstnVO vo, @RequestParam(value="qstns", defaultValue="[]") String qstnsStr, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -626,7 +625,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/quizQstnModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> quizQstnModifyAjax(QstnVO vo, @RequestParam(value="qstns", defaultValue="[]") String qstnsStr, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> quizQstnModifyAjax(QstnVO vo, @RequestParam(value="qstns", defaultValue="[]") String qstnsStr, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -724,7 +723,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/qstnSelectAjax.do")
     @ResponseBody
-    public ProcessResultVO<QstnVO> qstnSelectAjax(QstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<QstnVO> qstnSelectAjax(QstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<QstnVO> resultVO = new ProcessResultVO<QstnVO>();
 
         try {
@@ -747,7 +746,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/quizQstnDeleteAjax.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> quizQstnDeleteAjax(QstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> quizQstnDeleteAjax(QstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -779,7 +778,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/quizQstnScrModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> quizQstnScrModifyAjax(QstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> quizQstnScrModifyAjax(QstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
 
@@ -820,7 +819,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/quizQstnScrBulkModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> quizQstnScrBulkModifyAjax(QstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> quizQstnScrBulkModifyAjax(QstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -855,6 +854,64 @@ public class QuizHomeController extends ControllerBase {
     }
 
     /**
+     * 출제완료퀴즈문항점수일괄수정
+     *
+     * @param examDtlId 시험상세아이디
+     * @param qstnSeqno 문항순번
+     * @param qstnScr 	문항점수
+     * @return ProcessResultVO<QstnVO>
+     * @throws Exception
+     */
+    @RequestMapping(value="/cmptnYQuizQstnScrBulkModifyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> cmptnYQuizQstnScrBulkModifyAjax(@RequestBody List<Map<String, Object>> list, ModelMap model, HttpServletRequest request) throws Exception {
+    	String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+    	ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+    	try {
+    		for(Map<String, Object> map : list) {
+            	map.put("mdfrId", userId);
+            }
+    		qstnService.cmptnYQuizQstnScrBulkModify(list);
+    		resultVO.setResult(1);
+    	} catch(EgovBizException | MediopiaDefineException e) {
+    		resultVO.setResult(-1);
+    		resultVO.setMessage(e.getMessage());
+    	} catch(Exception e) {
+    		resultVO.setResult(-1);
+    		resultVO.setMessage("점수 수정 중 에러가 발생하였습니다.");
+    	}
+    	return resultVO;
+    }
+
+    /**
+     * 교수퀴즈문항가져오기
+     *
+     * @param copyQstnId	복사문항아이디
+     * @param examDtlId 	시험상세아이디
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizQstnCopyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<QstnVO> profQuizQstnCopyAjax(@RequestBody List<Map<String, Object>> list, ModelMap model, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<QstnVO> resultVO = new ProcessResultVO<QstnVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+        	for(Map<String, Object> map : list) {
+            	map.put("rgtrId", userId);
+            }
+        	qstnService.quizQstnCopy(list);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("가져오기 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /**
      * 퀴즈문제출제완료수정
      *
      * @param examBscId   시험기본아이디
@@ -867,7 +924,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/quizQstnsCmptnModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<ExamBscVO> quizQstnsCmptnModifyAjax(ExamBscVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamBscVO> quizQstnsCmptnModifyAjax(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String userId = SessionInfo.getUserId(request);
         ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
 
@@ -895,7 +952,7 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/tkexamStrtUserCntSelectAjax.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> tkexamStrtUserCntSelectAjax(ExamDtlVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> tkexamStrtUserCntSelectAjax(ExamDtlVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
 
         try {
@@ -911,28 +968,68 @@ public class QuizHomeController extends ControllerBase {
     /**
      * 교수퀴즈문제복사팝업
      *
-     * @param sbjctId 과목아이디
+     * @param sbjctId	과목아이디
+     * @param examBscId 시험기본아이디
      * @return prof_quiz_qstn_copy_pop.jsp
      * @throws Exception
      */
     @RequestMapping(value="/profQuizQstnCopyPopup.do")
-    public String profQuizQstnCopyPopup(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+    public String profQuizQstnCopyPopup(ExamDtlVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    	QuizMainView quizMainView = quizFacadeService.loadProfQuizQstnCopyPopup(vo);
+    	String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
+        model.addAttribute("quizSearchSmstrList", quizMainView.getQuizSearchSmstrList());
         vo.setUserId(userId);
         model.addAttribute("vo", vo);
 
-        /*
-         * ExamQstnVO qstnVO = new ExamQstnVO(); qstnVO.setExamCd(vo.getExamCd());
-         * List<ExamQstnVO> qstnList = examQstnService.seqQstnList(qstnVO);
-         * model.addAttribute("qstnList", qstnList); model.addAttribute("qstnCnt",
-         * examQstnService.qstnCount(qstnVO));
-         *
-         * TermVO termVO = new TermVO(); termVO.setOrgId(orgId); List<TermVO> termList =
-         * termService.list(termVO); model.addAttribute("termList", termList);
-         */
-
         return "quiz/popup/prof_quiz_qstn_copy_pop";
+    }
+
+    /**
+     * 문제가져오기과목목록조회
+     *
+     * @param smstrChrtId 	학기기수아이디
+     * @param sbjctId 		과목이이디
+     * @return 과목목록
+     * @throws Exception
+     */
+    @RequestMapping(value="/copyQstnSbjctListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> copyQstnSbjctListAjax(SbjctVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+
+        try {
+            resultVO.setReturnList(examService.qstnCopySbjctList(vo.getSmstrChrtId(), vo.getSbjctId()));
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("리스트 조회 중 에러가 발생하였습니다.");
+        }
+
+        return resultVO;
+    }
+
+    /**
+     * 문제가져오기퀴즈목록조회
+     *
+     * @param sbjctId 		과목이이디
+     * @return 퀴즈목록
+     * @throws Exception
+     */
+    @RequestMapping(value="/copyQstnQuizListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<ExamDtlVO> copyQstnQuizListAjax(ExamDtlVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    	ProcessResultVO<ExamDtlVO> resultVO = new ProcessResultVO<ExamDtlVO>();
+
+    	try {
+    		resultVO.setReturnList(examService.qstnCopyQuizList(vo.getSbjctId()));
+    		resultVO.setResult(1);
+    	} catch(Exception e) {
+    		resultVO.setResult(-1);
+    		resultVO.setMessage("리스트 조회 중 에러가 발생하였습니다.");
+    	}
+
+    	return resultVO;
     }
 
     /**
@@ -971,7 +1068,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value="/profQuizQstnsCmptnModifyPopup.do")
-    public String profQuizQstnsCmptnModifyPopup(ExamBscVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String profQuizQstnsCmptnModifyPopup(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         request.setAttribute("vo", vo);
 
         return "quiz/popup/prof_quiz_qstns_cmptn_modify_pop";
@@ -1193,7 +1290,7 @@ public class QuizHomeController extends ControllerBase {
 	*/
     @RequestMapping(value="/profQuizExampprInitAjax.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> profQuizExampprInitAjax(@RequestBody Map<String, Object> params, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> profQuizExampprInitAjax(@RequestBody Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
 
@@ -1254,6 +1351,472 @@ public class QuizHomeController extends ControllerBase {
         return "quiz/popup/prof_quiz_tkexam_status_pop";
     }
 
+    /**
+     * 교수퀴즈응시현황엑셀다운로드
+     *
+     * @param examBscId 		시험기본아이디
+     * @param tkexamCmptnyn 	응시여부
+     * @param evlyn 			평가여부
+     * @param searchValue 		검색어 ( 학과, 학번, 성명 )
+     * @param excelGrid 		엑셀그리드
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizTkexamStatusExcelDown.do")
+    public String profQuizTkexamStatusExcelDown(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title", "시험학습자목록");
+        map.put("sheetName", "학습자목록");
+        map.put("excelGrid", vo.getExcelGrid());
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("examBscId", vo.getExamBscId());
+        params.put("tkexamCmptnyn", request.getParameter("tkexamCmptnyn"));
+        params.put("evlyn", request.getParameter("evlyn"));
+        params.put("searchValue", vo.getSearchValue());
+        map.put("list", tkexamService.quizTkexamList(params));
+
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", "학습자목록");
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /**
+     * 교수퀴즈시험지일괄엑셀다운로드
+     *
+     * @param examBscId 	시험기본아이디
+     * @param sbjctId 		과목아이디
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizExampprBulkExcelDown.do")
+    public String profQuizExampprBulkExcelDown(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String paperTitle = "학습자별 시험지 목록";
+
+        List<EgovMap> trgtrList = examService.exampprBulkExcelDownQuizTrgtrList(vo);
+        List<EgovMap> qstnList = exampprService.exampprBulkExcelDownQuizQstnList(vo);
+
+        //엑셀 정보값 세팅
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title", paperTitle);      // 학습자별 시험지 목록
+        map.put("sheetName", paperTitle);  // 학습자별 시험지 목록
+        map.put("list", trgtrList);
+        map.put("qstnList", qstnList);
+
+        //엑셀화
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", paperTitle);   // 학습자별 시험지 목록
+        modelMap.put("workbook", examStarePaperStdListExcel2(map, request));
+        modelMap.put("list", trgtrList);
+        modelMap.put("qstnList", qstnList);
+        modelMap.put("sheetName", "examStarePaperStdList");
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    public SXSSFWorkbook examStarePaperStdListExcel2(HashMap<String, Object> map, HttpServletRequest request) {
+
+        String title = StringUtil.nvl(map.get("title"));
+        String sheetName = StringUtil.nvl(map.get("sheetName"), "sheet1");
+        List<EgovMap> resultList = (List<EgovMap>) map.get("list");
+        List<EgovMap> qstnList = (List<EgovMap>) map.get("qstnList");
+
+        String checkNo = "";
+        int checkQstnNo = 0;
+        List<EgovMap> questionNos = new ArrayList<>();
+        for(int i = 0; i < qstnList.size(); i++) {
+        	EgovMap egovMap = qstnList.get(i);
+
+            int qstnSeqno = Integer.parseInt(StringUtil.nvl(egovMap.get("qstnSeqno"), "0"));
+            int qstnCnddtSeqno = Integer.parseInt(StringUtil.nvl(egovMap.get("qstnCnddtSeqno"), "0"));
+
+            if(!checkNo.equals(qstnSeqno + "-" + qstnCnddtSeqno)) {
+                questionNos.add(egovMap);
+                checkNo = qstnSeqno + "-" + qstnCnddtSeqno;
+                checkQstnNo++;
+            }
+        }
+
+        int fixColSize = 5; //고정 컬럼 길이
+        int addColSize = qstnList == null ? 0 : checkQstnNo; //가변 컬럼 길이
+        int colSize = fixColSize + addColSize;
+
+        String ext = StringUtil.nvl(map.get("ext"));
+        if(StringUtil.isNull(ext)) {
+            ext = ".xlsx";
+        }
+
+        SXSSFWorkbook workbook = null;
+        SXSSFSheet worksheet = null;
+        SXSSFRow row = null;
+
+        workbook = new SXSSFWorkbook();
+        // 새로운 sheet를 생성한다.
+        worksheet = workbook.createSheet(sheetName);
+
+        //폰트 설정
+        Font fontTitle = workbook.createFont();
+        fontTitle.setFontHeight((short) (16 * 25)); //사이즈
+        fontTitle.setBold(true);
+
+        //폰트 설정
+        Font font1 = workbook.createFont();
+        font1.setFontName("나눔고딕"); //글씨체
+        font1.setFontHeight((short) (16 * 10)); //사이즈
+        font1.setBold(true);
+
+        //폰트 설정(정답)
+        Font fontBlue = workbook.createFont();
+        fontBlue.setFontName("나눔고딕"); //글씨체
+        fontBlue.setFontHeight((short) (16 * 10)); //사이즈
+        fontBlue.setBold(true);
+        fontBlue.setColor(IndexedColors.BLUE.getIndex());
+
+        //폰트 설정(미평가)
+        Font fontGrey = workbook.createFont();
+        fontGrey.setFontName("나눔고딕"); //글씨체
+        fontGrey.setFontHeight((short) (16 * 10)); //사이즈
+        fontGrey.setBold(true);
+        fontGrey.setColor(IndexedColors.GREY_50_PERCENT.getIndex());
+
+        //폰트 설정(틀림)
+        Font fontRed = workbook.createFont();
+        fontRed.setFontName("나눔고딕"); //글씨체
+        fontRed.setFontHeight((short) (16 * 10)); //사이즈
+        fontRed.setBold(true);
+        fontRed.setColor(IndexedColors.RED.getIndex()); //Font.COLOR_RED
+
+        // 셀 스타일 및 폰트 설정
+        CellStyle styleTitle = workbook.createCellStyle();
+        //정렬
+        styleTitle.setAlignment(HorizontalAlignment.CENTER);
+        styleTitle.setVerticalAlignment(VerticalAlignment.CENTER);
+        styleTitle.setBorderRight(BorderStyle.NONE);
+        styleTitle.setBorderLeft(BorderStyle.NONE);
+        styleTitle.setBorderTop(BorderStyle.NONE);
+        styleTitle.setBorderBottom(BorderStyle.NONE);
+        styleTitle.setFont(fontTitle);
+
+        // 셀 스타일 및 폰트 설정
+        CellStyle styleCulums = workbook.createCellStyle();
+        //정렬
+        styleCulums.setAlignment(HorizontalAlignment.CENTER); //왼쪽 정렬
+        styleCulums.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        styleCulums.setBorderRight(BorderStyle.NONE);
+        styleCulums.setBorderLeft(BorderStyle.NONE);
+        styleCulums.setBorderTop(BorderStyle.NONE);
+        styleCulums.setBorderBottom(BorderStyle.NONE);
+        styleCulums.setFont(font1);
+
+        // 셀 스타일 및 폰트 설정
+        CellStyle styleContent = workbook.createCellStyle();
+        //정렬
+        styleContent.setAlignment(HorizontalAlignment.LEFT); //왼쪽 정렬
+        styleContent.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        styleContent.setBorderRight(BorderStyle.NONE);
+        styleContent.setBorderLeft(BorderStyle.NONE);
+        styleContent.setBorderTop(BorderStyle.NONE);
+        styleContent.setBorderBottom(BorderStyle.NONE);
+        styleContent.setFont(font1);
+
+
+        // 셀 스타일 및 폰트 설정(정답)
+        CellStyle styleComplete = workbook.createCellStyle();
+        //정렬
+        styleComplete.setAlignment(HorizontalAlignment.CENTER); //가운데 정렬
+        styleComplete.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        styleComplete.setFont(fontBlue);
+
+        // 셀 스타일 및 폰트 설정(미평가)
+        CellStyle styleStudy = workbook.createCellStyle();
+        //정렬
+        styleStudy.setAlignment(HorizontalAlignment.CENTER); //가운데 정렬
+        styleStudy.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        styleStudy.setFont(fontGrey);
+
+        // 셀 스타일 및 폰트 설정(틀림)
+        CellStyle styleNoStudy = workbook.createCellStyle();
+        //정렬
+        styleNoStudy.setAlignment(HorizontalAlignment.CENTER); //가운데 정렬
+        styleNoStudy.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        styleNoStudy.setFont(fontRed);
+
+        // 칼럼 길이 설정
+        int columnWidth = 3000;
+        worksheet.setColumnWidth(0, 1500);
+        worksheet.setColumnWidth(1, 3000);
+        worksheet.setColumnWidth(2, 3000);
+        worksheet.setColumnWidth(3, 3000);
+        worksheet.setColumnWidth(4, 3000);
+
+        for(int j = fixColSize; j < colSize; j++) { // 가변컬럼
+            worksheet.setColumnWidth(j, columnWidth);
+        }
+
+        int rowNum = -1;
+
+        // TITLE
+        row = worksheet.createRow(++rowNum);
+        for(int j = 0; j < colSize; j++) {
+            row.createCell(j).setCellValue(title);
+            row.getCell(j).setCellStyle(styleTitle);
+        }
+        // 셀 병합 CellRangeAddress(시작 행, 끝 행, 시작 열, 끝 열)
+        if(colSize > 1) {
+            worksheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, 0, colSize - 1));
+        }
+
+        // 빈행
+        row = worksheet.createRow(++rowNum);
+        for(int j = 0; j < colSize; j++) {
+            row.createCell(j).setCellValue("");
+        }
+
+        // 헤더 설정
+        row = worksheet.createRow(++rowNum);
+        row.createCell(0).setCellValue("NO.");
+        row.getCell(0).setCellStyle(styleCulums);
+        row.createCell(1).setCellValue("학과");
+        row.getCell(1).setCellStyle(styleCulums); // 학과
+        row.createCell(2).setCellValue("아이디");
+        row.getCell(2).setCellStyle(styleCulums); // 아이디
+        row.createCell(3).setCellValue("이름");
+        row.getCell(3).setCellStyle(styleCulums); // 이름
+        row.createCell(4).setCellValue("상태");
+        row.getCell(4).setCellStyle(styleCulums); // 상태
+
+        for(int j = fixColSize; j < colSize; j++) { // 가변컬럼
+            EgovMap egovMap = questionNos.get(j - fixColSize);
+            String qstnCts = StringUtil.nvl(egovMap.get("qstnCts")).replaceAll("<[^>]*>", " ");
+            row.createCell(j).setCellValue(qstnCts);
+            row.getCell(j).setCellStyle(styleCulums);
+        }
+
+        //헤더별 병합
+        row = worksheet.createRow(++rowNum);
+        for(int j = 0; j < fixColSize; j++) {
+            row.createCell(j).setCellValue("");
+            row.getCell(j).setCellStyle(styleTitle);
+        }
+        for(int j = fixColSize; j < colSize; j++) { // 가변컬럼
+            EgovMap egovMap = questionNos.get(j - fixColSize);
+            row.createCell(j).setCellValue(StringUtil.nvl(egovMap.get("qstnSeqno")) + "-" + StringUtil.nvl(egovMap.get("qstnCnddtSeqno")) + "번");
+            row.getCell(j).setCellStyle(styleCulums);
+        }
+
+        //헤더별 병합
+        row = worksheet.createRow(++rowNum);
+        for(int j = 0; j < fixColSize; j++) {
+            row.createCell(j).setCellValue("");
+            row.getCell(j).setCellStyle(styleTitle);
+            // 셀 병합 CellRangeAddress(시작 행, 끝 행, 시작 열, 끝 열)
+            if(colSize > 1) {
+                worksheet.addMergedRegion(new CellRangeAddress(rowNum - 2, rowNum, j, j));
+            }
+        }
+        for(int j = fixColSize; j < colSize; j++) { // 가변컬럼
+            EgovMap egovMap = questionNos.get(j - fixColSize);
+            row.createCell(j).setCellValue(StringUtil.nvl(egovMap.get("qstnRspnsTynm")));
+            row.getCell(j).setCellStyle(styleCulums);
+        }
+
+        // list
+        for(int i = 0; i < resultList.size(); i++) {
+            EgovMap vo = resultList.get(i);
+            row = worksheet.createRow(++rowNum);
+            int lineNo = resultList.size() - i;
+            String userId = StringUtil.nvl(vo.get("userId"));
+            String stareStatusCd = StringUtil.nvl(vo.get("tkexamCmptnyn"));
+            String reExamYn = StringUtil.nvl(vo.get("retkexamYn"));
+            String status = "";
+            if("Y".equals(reExamYn)) {
+                status = "재응시";
+            }
+            else if("N".equals(stareStatusCd)) {
+                status = "미응시";
+            }
+            else if("C".equals(stareStatusCd)) {
+                status = "응시완료";
+            }
+
+            row.createCell(0).setCellValue(StringUtil.nvl(lineNo));
+            row.getCell(0).setCellStyle(styleContent);
+            row.createCell(1).setCellValue(StringUtil.nvl(vo.get("deptnm")));
+            row.getCell(1).setCellStyle(styleContent);
+            row.createCell(2).setCellValue(StringUtil.nvl(vo.get("userId")));
+            row.getCell(2).setCellStyle(styleContent);
+            row.createCell(3).setCellValue(StringUtil.nvl(vo.get("usernm")));
+            row.getCell(3).setCellStyle(styleContent);
+            row.createCell(4).setCellValue(status);
+            row.getCell(4).setCellStyle(styleContent);
+            for(int j = fixColSize; j < colSize; j++) { // 가변컬럼
+                EgovMap questionEgovMap = questionNos.get(j - fixColSize);
+                String questionQstnNo = StringUtil.nvl(questionEgovMap.get("qstnSeqno"));
+                String questionSubNo = StringUtil.nvl(questionEgovMap.get("qstnCnddtSeqno"));
+                String questionNo = questionQstnNo + "-" + questionSubNo;
+                String cellNullCheck = "";
+                for(int l = 0; l < qstnList.size(); l++) {
+                    EgovMap qstnEgovMap = qstnList.get(l);
+                    String qstnUserId = StringUtil.nvl(qstnEgovMap.get("userId"));
+                    String qstnQstnNo = StringUtil.nvl(qstnEgovMap.get("qstnSeqno"));
+                    String qstnSubNo = StringUtil.nvl(qstnEgovMap.get("qstnCnddtSeqno"));
+                    String qstnNo = qstnQstnNo + "-" + qstnSubNo;
+                    if(userId.equals(qstnUserId) && questionNo.equals(qstnNo)) {
+                        String answShtCts = StringUtil.nvl(qstnEgovMap.get("answShtCts"));
+                        String qstnRspnsTycd = StringUtil.nvl(qstnEgovMap.get("qstnRspnsTycd"));
+                        int scr = (int) Math.round(Math.floor(Double.parseDouble(StringUtil.nvl(qstnEgovMap.get("scr"), "0"))));
+
+                        row.createCell(j).setCellValue(answShtCts);
+                        //정답유무 처리
+                        if("LONG_TEXT".equals(qstnRspnsTycd) && scr <= 0) {
+                            row.getCell(j).setCellStyle(styleStudy);
+                        } else if(scr > 0 && !"".equals(answShtCts)) {
+                            row.getCell(j).setCellStyle(styleComplete);
+                        } else if(scr == 0) {
+                            row.getCell(j).setCellStyle(styleNoStudy);
+                        } else {
+                            row.getCell(j).setCellStyle(styleNoStudy);
+                        }
+                        cellNullCheck = "N";
+                        break;
+                    } else if(userId.equals(qstnUserId)) {
+                        cellNullCheck = "Y";
+                    }
+                }
+                if("Y".equals(cellNullCheck)) {
+                    row.createCell(j).setCellValue(" ");
+                    row.getCell(j).setCellStyle(styleStudy);
+                }
+            }
+        }
+
+        return workbook;
+    }
+
+    /**
+     * 교수퀴즈시험지일괄인쇄팝업
+     *
+     * @param examBscId 	시험기본아이디
+     * @param sbjctId   	과목아이디
+     * @return prof_quiz_examppr_bulk_print_pop.jsp
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizExampprBulkPrintPopup.do")
+    public String profQuizExampprBulkPrintPopup(@RequestParam Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+    	QuizMainView quizMainView = quizFacadeService.loadProfQuizExampprBulkPrintPopup(params);
+    	model.addAttribute("examBscVO", quizMainView.getExamBscVO());
+        model.addAttribute("quizTkexamList", quizMainView.getQuizTkexamList());
+
+        return "quiz/popup/prof_quiz_examppr_bulk_print_pop";
+    }
+
+    /**
+     * 교수시험응시시험지답안목록조회
+     *
+     * @param tkexamId  시험응시아이디
+     * @param userId 	사용자아이디
+     * @return 시험응시시험지답안목록
+     * @throws Exception
+     */
+    @RequestMapping(value="/profTkexamExampprAnswShtListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> profTkexamExampprAnswShtListAjax(TkexamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+
+        try {
+        	resultVO.setReturnList(exampprService.tkexamExampprAnswShtList(vo.getTkexamId(), vo.getUserId()));
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("리스트 조회 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /**
+	* 퀴즈시험지점수수정
+	*
+	* @param exampprId 			시험지아이디
+	* @param qstnId 			문항아이디
+	* @param tkexamAnswShtId 	시험응시답안아이디
+	* @param userId 			사용자아이디
+	* @throws Exception
+	*/
+    @RequestMapping(value="/quizExampprScrModifyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<TkexamAnswShtVO> quizExampprScrModifyAjax(@RequestBody List<Map<String, Object>> list, ModelMap model, HttpServletRequest request) throws Exception {
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<TkexamAnswShtVO> resultVO = new ProcessResultVO<TkexamAnswShtVO>();
+
+        try {
+        	for(Map<String, Object> map : list) {
+            	map.put("rgtrId", userId);
+            }
+            tkexamAnswShtService.tkexamAnswShtScrModify(list);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("점수 저장 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /**
+     * 퀴즈문항분포바차트
+     *
+     * @param examDtlId  	시험상세아이디
+     * @param qstnId 		문항아이디
+     * @return 퀴즈문항분포
+     * @throws Exception
+     */
+    @RequestMapping(value="/quizQstnDistributionBarChartAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> quizQstnDistributionBarChartAjax(@RequestBody Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+
+        try {
+        	resultVO = qstnService.quizQstnDistributionBarChart(params);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage());/* 에러가 발생했습니다! */
+        }
+        return resultVO;
+    }
+
+    /**
+     * 퀴즈문항정답현황파이차트
+     *
+     * @param examDtlId  	시험상세아이디
+     * @param qstnId 		문항아이디
+     * @return 퀴즈문항현황
+     * @throws Exception
+     */
+    @RequestMapping(value="/quizQstnCransStatusPieChartAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> quizQstnCransStatusPieChartAjax(@RequestBody Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+
+        try {
+        	resultVO = qstnService.quizQstnCransStatusPieChart(params);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage());/* 에러가 발생했습니다! */
+        }
+        return resultVO;
+    }
+
 
 
 
@@ -1271,7 +1834,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/Form/quizList.do")
-    public String quizListForm(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizListForm(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         if(ValidationUtils.isEmpty(vo.getCrsCreCd())) {
             // 시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.
             throw new BadRequestUrlException(getMessage("common.system.error"));
@@ -1313,7 +1876,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/selectQuizQstn.do")
     @ResponseBody
-    public ProcessResultVO<ExamQstnVO> selectQuizQstn(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQstnVO> selectQuizQstn(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ExamQstnVO> resultVO = new ProcessResultVO<ExamQstnVO>();
 
@@ -1337,7 +1900,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/selectQuizQstnStdList.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> selectQuizQstnStdList(ExamStarePaperVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> selectQuizQstnStdList(ExamStarePaperVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
 
@@ -1358,7 +1921,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizQstnManage.do")
-    public String quizQstnManage(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizQstnManage(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1415,7 +1978,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizQstnEditOptionPop.do")
-    public String quizQstnEditOptionPop(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizQstnEditOptionPop(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         request.setAttribute("vo", vo);
 
         return "quiz/popup/quiz_qstn_edit_option";
@@ -1428,7 +1991,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizQstnExcelUploadPop.do")
-    public String quizQstnExcelUploadPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizQstnExcelUploadPop(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1537,7 +2100,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/editExamSubmitYnPop.do")
-    public String editExamSubmitYnPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String editExamSubmitYnPop(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         request.setAttribute("vo", vo);
 
         return "quiz/popup/edit_exam_submit_pop";
@@ -1551,7 +2114,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editExamSubmitYn.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> editExamSubmitYn(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> editExamSubmitYn(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1582,7 +2145,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/writeQuizQstn.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> writeQuizQstn(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> writeQuizQstn(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1627,7 +2190,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editQuizQstn.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> editQuizQstn(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> editQuizQstn(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1658,7 +2221,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editQuizQstnOption.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> editQuizQstnOption(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> editQuizQstnOption(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1689,7 +2252,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/delQuizQstn.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> delQuizQstn(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> delQuizQstn(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1716,7 +2279,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/updateQuizQstnScore.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> updateQuizQstnScore(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> updateQuizQstnScore(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1774,7 +2337,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/updateQuizQstnScore1.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> updateQuizQstnScore1(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> updateQuizQstnScore1(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1805,7 +2368,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/quizList.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> quizList(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> quizList(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
@@ -1829,7 +2392,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/quizListPaging.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> quizListPaging(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> quizListPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
 
@@ -1851,7 +2414,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/listQuizQstn.do")
     @ResponseBody
-    public ProcessResultVO<ExamQstnVO> listQuizQstn(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQstnVO> listQuizQstn(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ExamQstnVO> resultVO = new ProcessResultVO<ExamQstnVO>();
 
@@ -1880,7 +2443,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editQuizQstnNo.do")
     @ResponseBody
-    public ProcessResultVO<ExamQstnVO> editQuizQstnNo(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQstnVO> editQuizQstnNo(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1904,7 +2467,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editQuizSubNo.do")
     @ResponseBody
-    public ProcessResultVO<ExamQstnVO> editQuizSubNo(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQstnVO> editQuizSubNo(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1927,7 +2490,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizRetakeManage.do")
-    public String quizRetakeManage(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizRetakeManage(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -1959,7 +2522,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editReQuizStare.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> editReQuizStare(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> editReQuizStare(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -2028,7 +2591,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/viewQuizScoreChart.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> viewQuizScoreChart(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> viewQuizScoreChart(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
 
@@ -2055,7 +2618,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizScoreChartPop.do")
-    public String quizScoreChartPop(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizScoreChartPop(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         if(ValidationUtils.isEmpty(vo.getCrsCreCd())) {
             // 시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.
             throw new BadRequestUrlException(getMessage("common.system.error"));
@@ -2073,7 +2636,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizScoreExcelUploadPop.do")
-    public String quizScoreExcelUploadPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizScoreExcelUploadPop(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -2186,7 +2749,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizProfMemoPop.do")
-    public String quizProfMemoPop(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizProfMemoPop(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -2214,7 +2777,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editExamStareMemo.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> editExamStareMemo(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> editExamStareMemo(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -2607,7 +3170,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizStarePaperListPrintPop.do")
-    public String quizStarePaperListPrintPop(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizStarePaperListPrintPop(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -2628,7 +3191,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/quizStarePaperList.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> quizStarePaperList(ExamStarePaperVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> quizStarePaperList(ExamStarePaperVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
 
@@ -2654,7 +3217,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/updateExamStareScore.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> updateExamStareScore(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> updateExamStareScore(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -2680,7 +3243,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editInitQuizStare.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> editInitQuizStare(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> editInitQuizStare(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -2712,7 +3275,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/quizStareUserList.do")
     @ResponseBody
-    public ProcessResultVO<ExamStareVO> quizStareUserList(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamStareVO> quizStareUserList(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ExamStareVO> resultVO = new ProcessResultVO<ExamStareVO>();
 
@@ -2733,7 +3296,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizQstnPreviewPop.do")
-    public String quizQstnPreviewPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizQstnPreviewPop(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -2799,7 +3362,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/stuQuizList.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> stuQuizList(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> stuQuizList(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
@@ -2822,7 +3385,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/stuQuizView.do")
-    public String stuQuizView(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String stuQuizView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String crsCreCd = StringUtil.nvl(vo.getCrsCreCd());
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
@@ -2900,7 +3463,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/writeQuiz.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> writeQuiz(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> writeQuiz(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -2993,7 +3556,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editQuiz.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> editQuiz(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> editQuiz(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3028,7 +3591,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editQuizAjax.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> editQuizAjax(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> editQuizAjax(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3066,7 +3629,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/delQuiz.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> delQuiz(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> delQuiz(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3102,7 +3665,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizCopyListPop.do")
-    public String quizCopyListPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizCopyListPop(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3130,7 +3693,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/quizCopyList.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> quizCopyList(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> quizCopyList(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
@@ -3154,7 +3717,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/quizCopy.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> quizCopy(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> quizCopy(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3225,7 +3788,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/insertCopyQstn.do")
     @ResponseBody
-    public ProcessResultVO<ExamQstnVO> insertCopyQstn(ExamQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQstnVO> insertCopyQstn(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3251,7 +3814,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizQstnEvalPop.do")
-    public String quizQstnEvalPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizQstnEvalPop(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3352,7 +3915,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/updateQstnPaperScore.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> updateQstnPaperScore(ExamStarePaperVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> updateQstnPaperScore(ExamStarePaperVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3383,7 +3946,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/updateQstnPaperStdScore.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> updateQstnPaperStdScore(ExamStarePaperVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> updateQstnPaperStdScore(ExamStarePaperVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3413,7 +3976,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/updateQstnAllRightScore.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> updateQstnAllRightScore(ExamStarePaperVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> updateQstnAllRightScore(ExamStarePaperVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3439,7 +4002,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/updateQstnPaper.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> updateQstnPaper(ExamStarePaperVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> updateQstnPaper(ExamStarePaperVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3470,7 +4033,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/viewQuizQstnBarChart.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> viewQuizQstnBarChart(ExamStarePaperVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> viewQuizQstnBarChart(ExamStarePaperVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
 
@@ -3492,7 +4055,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/viewQuizQstnPieChart.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> viewQuizQstnPieChart(ExamStarePaperVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> viewQuizQstnPieChart(ExamStarePaperVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
 
@@ -3513,7 +4076,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizRecordViewPop.do")
-    public String quizRecordViewPop(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizRecordViewPop(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3553,7 +4116,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/listPaperHstyLog.do")
     @ResponseBody
-    public ProcessResultVO<ExamStarePaperHstyVO> listPaperHstyLog(ExamStarePaperHstyVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamStarePaperHstyVO> listPaperHstyLog(ExamStarePaperHstyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<ExamStarePaperHstyVO> resultVO = new ProcessResultVO<ExamStarePaperHstyVO>();
 
         try {
@@ -3573,7 +4136,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizJoinAlarmPop.do")
-    public String quizJoinAlarmPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizJoinAlarmPop(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         CreCrsVO creCrsVO = new CreCrsVO();
         creCrsVO.setCrsCreCd(vo.getCrsCreCd());
         creCrsVO = crecrsService.selectCreCrs(creCrsVO);
@@ -3592,7 +4155,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizJoinPop.do")
-    public String quizJoinPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizJoinPop(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3645,7 +4208,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/quizCompleteStare.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> quizCompleteStare(ExamStarePaperVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> quizCompleteStare(ExamStarePaperVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         String crsCreCd = StringUtil.nvl(vo.getCrsCreCd(), SessionInfo.getCurCrsCreCd(request));
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
@@ -3677,7 +4240,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/quizSaveTempStare.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> quizSaveTempStare(ExamStarePaperVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> quizSaveTempStare(ExamStarePaperVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3712,7 +4275,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/quizSubmitAnswerPop.do")
-    public String quizSubmitAnswerPop(ExamVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String quizSubmitAnswerPop(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3768,7 +4331,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/Form/qbankList.do")
-    public String qbnakListForm(ExamQbankQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String qbnakListForm(ExamQbankQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3832,7 +4395,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/qbankList.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankQstnVO> qbankList(ExamQbankQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankQstnVO> qbankList(ExamQbankQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ExamQbankQstnVO> resultVO = new ProcessResultVO<ExamQbankQstnVO>();
 
@@ -3884,7 +4447,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/qbankQstnList.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankQstnVO> qbankQstnList(ExamQbankQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankQstnVO> qbankQstnList(ExamQbankQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ExamQbankQstnVO> resultVO = new ProcessResultVO<ExamQbankQstnVO>();
 
@@ -3906,7 +4469,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/Form/writeQbank.do")
-    public String writeQbankForm(ExamQbankCtgrVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String writeQbankForm(ExamQbankCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -3957,7 +4520,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/Form/editQbank.do")
-    public String editQbankForm(ExamQbankQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String editQbankForm(ExamQbankQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -4021,7 +4584,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/writeQbank.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> writeQbank(ExamQbankQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> writeQbank(ExamQbankQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
 
         // 사용자 접속상태 저장
@@ -4048,7 +4611,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editQbank.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> editQbank(ExamQbankQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> editQbank(ExamQbankQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
 
         // 사용자 접속상태 저장
@@ -4076,7 +4639,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/delQbank.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> delQbank(ExamQbankQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> delQbank(ExamQbankQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -4101,7 +4664,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/listExamQbankCtgrCd.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankCtgrVO> listExamQbankCtgrCd(ExamQbankCtgrVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankCtgrVO> listExamQbankCtgrCd(ExamQbankCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ExamQbankCtgrVO> resultVO = new ProcessResultVO<ExamQbankCtgrVO>();
 
@@ -4124,7 +4687,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/viewExamQbankCtgrCd.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankCtgrVO> viewExamQbankCtgrCd(ExamQbankCtgrVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankCtgrVO> viewExamQbankCtgrCd(ExamQbankCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ExamQbankCtgrVO> resultVO = new ProcessResultVO<ExamQbankCtgrVO>();
 
@@ -4147,7 +4710,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/selectQbankQstnNos.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankQstnVO> selectQbankQstnNos(ExamQbankQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankQstnVO> selectQbankQstnNos(ExamQbankQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ExamQbankQstnVO> resultVO = new ProcessResultVO<ExamQbankQstnVO>();
 
@@ -4170,7 +4733,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/qbankQstnViewPop.do")
-    public String qbankQstnViewPop(ExamQbankQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String qbankQstnViewPop(ExamQbankQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -4197,7 +4760,7 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/writeQbankCtgrPop.do")
-    public String writeClassCodePop(ExamQbankCtgrVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String writeClassCodePop(ExamQbankCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -4265,7 +4828,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/writeQbankCtgr.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankCtgrVO> writeQbankCtgr(ExamQbankCtgrVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankCtgrVO> writeQbankCtgr(ExamQbankCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -4294,7 +4857,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/editQbankCtgr.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankCtgrVO> editQbankCtgr(ExamQbankCtgrVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankCtgrVO> editQbankCtgr(ExamQbankCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -4320,7 +4883,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/delQbankCtgr.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankCtgrVO> delQbankCtgr(ExamQbankCtgrVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankCtgrVO> delQbankCtgr(ExamQbankCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -4345,7 +4908,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/viewQbankQstn.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankQstnVO> viewQbankQstn(ExamQbankQstnVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankQstnVO> viewQbankQstn(ExamQbankQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -4371,7 +4934,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/qbankCtgrList.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankCtgrVO> qbankCtgrList(ExamQbankCtgrVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankCtgrVO> qbankCtgrList(ExamQbankCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -4396,7 +4959,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/selectQbankCtgrOdr.do")
     @ResponseBody
-    public ProcessResultVO<ExamQbankCtgrVO> selectQbankCtgrOdr(ExamQbankCtgrVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamQbankCtgrVO> selectQbankCtgrOdr(ExamQbankCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
@@ -4423,7 +4986,7 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/checkStdExamStare.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> selectExamStdStareInfo(ExamStareVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> selectExamStdStareInfo(ExamStareVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();

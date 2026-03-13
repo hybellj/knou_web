@@ -47,13 +47,13 @@ public class PopupNtcController extends ControllerBase {
      * @return
      * @throws Exception
      */
-    @RequestMapping(value = "/popupNtcList.do")
-    public String popupNtcList(PopupNtcVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/popupNtcListView.do")
+    public String popupNtcListView(PopupNtcVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         UserContext userCtx = getUserContext(request);
 
         if (!isAdmin(userCtx)) {
             model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/common_error";
+            return "common/error";
         }
 
         model.addAttribute("userCtx", userCtx);
@@ -107,7 +107,7 @@ public class PopupNtcController extends ControllerBase {
 
         if (!isAdmin(userCtx)) {
             model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/common_error";
+            return "common/error";
         }
 
         PopupNtcVO detailVO = popupNtcService.selectPopupNtc(vo);
@@ -132,7 +132,7 @@ public class PopupNtcController extends ControllerBase {
 
         if (!isAdmin(userCtx)) {
             model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/common_error";
+            return "common/error";
         }
 
         model.addAttribute("userCtx", userCtx);
@@ -155,7 +155,7 @@ public class PopupNtcController extends ControllerBase {
 
         if (!isAdmin(userCtx)) {
             model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/common_error";
+            return "common/error";
         }
 
         PopupNtcVO detailVO = popupNtcService.selectPopupNtc(vo);

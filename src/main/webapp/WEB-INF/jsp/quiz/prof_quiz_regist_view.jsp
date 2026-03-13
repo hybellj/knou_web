@@ -6,8 +6,7 @@
 <head>
 	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
 		<jsp:param name="style" value="classroom"/>
-		<jsp:param name="module" value="editor"/>
-		<jsp:param name="module" value="fileuploader"/>
+		<jsp:param name="module" value="editor,fileuploader"/>
 	</jsp:include>
 
 	<script type="text/javascript">
@@ -15,26 +14,36 @@
 		const editors = {};	// 에디터 목록 저장용
 
 		$(window).on('load', function() {
-			// 부과제 조회
-			$("input[name='lrnGrpSubasmtStngyns']:checked").each(function(i, e) {
-				var lrnGrpId = $("#lrnGrpId" + e.id.split("_")[1]).val().split(":")[0];	// 학습그룹아이디
-				var lrnGrpnm = $("#lrnGrpnm" + e.id.split("_")[1]).val();				// 학습그룹명
-				var dvclasNo = e.id.split("_")[1];										// 분반 순서
-				var sbjctId = e.value.split(":")[1];									// 과목아이디
+			if(${not empty vo.examBscId && vo.examGbncd eq 'QUIZ_TEAM' }) {
+				// 부과제 조회
+				$("input[name='lrnGrpSubasmtStngyns']").each(function(i, e) {
+					var lrnGrpId = $("#lrnGrpId" + e.id.split("_")[1]).val().split(":")[0];	// 학습그룹아이디
+					var lrnGrpnm = $("#lrnGrpnm" + e.id.split("_")[1]).val();				// 학습그룹명
+					var dvclasNo = e.id.split("_")[1];										// 분반 순서
+					var sbjctId = e.value.split(":")[1];									// 과목아이디
 
-				selectTeam(lrnGrpId, lrnGrpnm, dvclasNo+":"+sbjctId);
-			});
+					selectTeam(lrnGrpId, lrnGrpnm, dvclasNo+":"+sbjctId);
+				});
+			}
 
 			dvclasChcChange($("#allDeclas")[0]);
+
+			// 퀴즈 등록 분반 클릭 이벤트 해제
+			const checkbox = document.querySelector('input[name="sbjctIds"].readonly');
+			checkbox.addEventListener('click', (e) => {
+				e.preventDefault();
+			});
 		});
 
 	 	// 이전 퀴즈 가져오기 팝업
 		function bfrQuizCopyPopup() {
+			var data = "sbjctId=${sbjctId}";
+
 			dialog = UiDialog("dialog1", {
 				title: "이전퀴즈 가져오기",
 				width: 800,
 				height: 450,
-				url: "/quiz/profBfrQuizCopyPopup.do",
+				url: "/quiz/profBfrQuizCopyPopup.do?"+data,
 				autoresize: true
 			});
 		}
@@ -53,26 +62,6 @@
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
 	        		var quiz = data.returnVO;
-
-	        		/* var fileUploader = dx5.get("fileUploader");
-	        		fileUploader.clearItems(); */
-
-	        		// 가져온 파일 리스트
-	        		/* if (quiz.fileList != null && quiz.fileList.length > 0) {
-	        			var oldFiles = [];
-	        			var fileSns = new Set();
-
-	        			quiz.fileList.forEach(function(v, i) {
-	        				oldFiles.push({vindex:v.fileId, name:v.fileNm, size:v.fileSize, saveNm:v.fileSaveNm});
-				        	fileSns.add(v.fileSn);
-		        		});
-
-	        			fileUploader.addOldFileList(oldFiles);
-	        			fileUploader.showResetBtn();
-		        		$("#fileSns").val(Array.from(fileSns));
-	        		} */
-
-	        		$("#uploadPath").val("/quiz/${vo.examBscId}");
 
 	        		// 퀴즈명
 	        		$("#examTtl").val(quiz.examTtl);
@@ -104,42 +93,6 @@
 
 	 	// 저장 확인
 	    function saveConfirm() {
-	 		/* var fileUploader = dx5.get("fileUploader");
-	    	// 파일이 있으면 업로드 시작
-	 		if (fileUploader.getFileCount() > 0) {
-				fileUploader.startUpload();
-			}
-			else {
-				// 저장 호출
-				save();
-			} */
-
-	    	save();
-	    }
-
-	 	// 파일 업로드 완료
-	    function finishUpload() {
-	    	var fileUploader = dx5.get("fileUploader");
-	    	var url = "/file/fileHome/saveFileInfo.do";
-	    	var data = {
-	    		"uploadFiles" : fileUploader.getUploadFiles(),
-	    		"copyFiles"   : fileUploader.getCopyFiles(),
-	    		"uploadPath"  : fileUploader.getUploadPath()
-	    	};
-
-	    	ajaxCall(url, data, function(data) {
-	    		if(data.result > 0) {
-	    			save();
-	    		} else {
-	    			UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");	// 업로드를 실패하였습니다.
-	    		}
-	    	}, function(xhr, status, error) {
-	    		UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");	// 업로드를 실패하였습니다.
-	    	});
-	    }
-
-	    // 퀴즈 등록, 수정
-	    function save() {
 	    	let validator = UiValidator("writeQuizForm");
 			validator.then(function(result) {
 				if (result) {
@@ -147,48 +100,82 @@
 						return false;
 					}
 
-					setValue();
-					UiComm.showLoading(true);
+					let dx = dx5.get("fileUploader");
+					// 첨부파일 있으면 업로드
+		    		if (dx.availUpload()) {
+		    			dx.startUpload();
+		    		}
+					// 첨부파일 없으면 저장 호출
+		    		else {
+		    			save();
+		    		}
+				}
+			});
+	    }
 
-					/* var fileUploader = dx5.get("fileUploader");
-					$("#uploadFiles").val(fileUploader.getUploadFiles());
-					$("#copyFiles").val(fileUploader.getCopyFiles());
-					$("#delFileIdStr").val(fileUploader.getDelFileIdStr()); */
-					$("#uploadPath").val("/quiz/${vo.examBscId}");
+	 	// 파일 업로드 완료
+	    function finishUpload() {
+	    	let url = "/common/uploadFileCheck.do"; // 업로드된 파일 검증 URL
+        	let dx = dx5.get("fileUploader");
+        	let data = {
+        		"uploadFiles" : dx.getUploadFiles(),
+        		"uploadPath"  : dx.getUploadPath()
+        	};
 
-					var url = "/quiz/quizRegistAjax.do";
-					if(${not empty vo.examBscId}) {
-						url = "/quiz/quizModifyAjax.do";
+        	// 업로드된 파일 체크
+        	ajaxCall(url, data, function(data) {
+        		if(data.result > 0) {
+        			$("#uploadFiles").val(dx.getUploadFiles());
+
+        	    	save();
+        		} else {
+					UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error"); // 업로드를 실패하였습니다.
+        		}
+        	},
+        	function(xhr, status, error) {
+        		UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error"); // 업로드를 실패하였습니다.
+        	});
+	    }
+
+	    // 퀴즈 등록, 수정
+	    function save() {
+	    	setValue();
+			UiComm.showLoading(true);
+
+			let dx = dx5.get("fileUploader");
+    		$("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
+
+			var url = "/quiz/quizRegistAjax.do";
+			if(${not empty vo.examBscId}) {
+				url = "/quiz/quizModifyAjax.do";
+			}
+			$.ajax({
+			    url 	 : url,
+			    async	 : false,
+			    type 	 : "POST",
+			    dataType : "json",
+			    data 	 : $("#writeQuizForm").serialize(),
+			}).done(function(data) {
+				UiComm.showLoading(false);
+				if (data.result > 0) {
+					if(${empty vo.examBscId} || ${vo.examQstnsCmptnyn ne 'Y'}) {
+						UiComm.showMessage("<spring:message code='exam.alert.already.quiz.qstn.submit' />", "info")	/* 퀴즈 문제관리에서 문제를 출제 해 주세요. */
+						.then(function(result) {
+							// 메시지 닫은후 실행
+							quizViewMv("qstn", data.returnVO.examBscId);
+						});
+					} else {
+						quizViewMv("list", '');
 					}
-					$.ajax({
-					    url 	 : url,
-					    async	 : false,
-					    type 	 : "POST",
-					    dataType : "json",
-					    data 	 : $("#writeQuizForm").serialize(),
-					}).done(function(data) {
-						UiComm.showLoading(false);
-						if (data.result > 0) {
-							if(${empty vo.examBscId} || ${vo.examQstnsCmptnyn ne 'Y'}) {
-								UiComm.showMessage("<spring:message code='exam.alert.already.quiz.qstn.submit' />", "info")	/* 퀴즈 문제관리에서 문제를 출제 해 주세요. */
-								.then(function(result) {
-									// 메시지 닫은후 실행
-									quizViewMv("qstn", data.returnVO.examBscId);
-								});
-							} else {
-								quizViewMv("list", '');
-							}
-					    } else {
-					     	UiComm.showMessage(data.message, "error");
-					    }
-					}).fail(function() {
-						UiComm.showLoading(false);
-						if(${empty vo.examBscId}) {
-							UiComm.showMessage("<spring:message code='exam.error.insert' />", "error");	/* 저장 중 에러가 발생하였습니다. */
-						} else {
-							UiComm.showMessage("<spring:message code='exam.error.update' />", "error");	/* 수정 중 에러가 발생하였습니다. */
-						}
-					});
+			    } else {
+			     	UiComm.showMessage(data.message, "error");
+			    }
+			}).fail(function() {
+				UiComm.showLoading(false);
+				if(${empty vo.examBscId}) {
+					UiComm.showMessage("<spring:message code='exam.error.insert' />", "error");	/* 저장 중 에러가 발생하였습니다. */
+				} else {
+					UiComm.showMessage("<spring:message code='exam.error.update' />", "error");	/* 수정 중 에러가 발생하였습니다. */
 				}
 			});
 	    }
@@ -219,23 +206,41 @@
 				}
 			}
 
-			// 팀 퀴즈 학습그룹별 부 과제 설정시
+			// 팀 퀴즈 설정시
 			if($("#quizTeamynY").is(":checked")) {
-				$("input[name='lrnGrpSubasmtStngyns']:checked").each(function(i, e) {
-					$("#subInfoDiv"+e.id.split("_")[1]+" tr.subQuizTr").each(function(index, element) {
-					var ttl = $(element).find("input[name='subExamTtl']");
-					if($.trim($(ttl).val()) == "") {
-						UiComm.showMessage("<spring:message code='exam.alert.input.title' />", "warning");	/* 제목을 입력하세요. */
+				var isResult = true;
+				var alertMsg = "";
+				$("input[name=lrnGrpnm]:visible").each(function(i, e) {
+					if(e.value == "") {
+						isResult = false;
+						alertMsg = "학습그룹을 지정하세요.";
 						return false;
 					}
+				});
 
-					var teamId = ttl[0].id.split("_")[0];
-					if(editors[teamId+'_editor'+index].isEmpty() || editors[teamId+'_editor'+index].getTextContent().trim() === "") {
-						UiComm.showMessage("<spring:message code='exam.alert.input.contents' />", "warning");	/* 내용을 입력하세요. */
-			 			return false;
-			 		}
+				// 팀 퀴즈 학습그룹별 부 과제 설정시
+				$("input[name='lrnGrpSubasmtStngyns']:checked").each(function(i, e) {
+					if(!isResult) return false;
+					$("#subInfoDiv"+e.id.split("_")[1]+" tr.subQuizTr").each(function(index, element) {
+						var ttl = $(element).find("input[name='subExamTtl']");
+						if($.trim($(ttl).val()) == "") {
+							isResult = false;
+							alertMsg = "<spring:message code='exam.alert.input.title' />"	/* 제목을 입력하세요. */
+							return false;
+						}
+
+						var teamId = ttl[0].id.split("_")[0];
+						if(editors[teamId+'_editor'+index].isEmpty() || editors[teamId+'_editor'+index].getTextContent().trim() === "") {
+							isResult = false;
+							alertMsg = "<spring:message code='exam.alert.input.contents' />";	/* 내용을 입력하세요. */
+				 			return false;
+				 		}
 					});
 				});
+				if(!isResult) {
+					UiComm.showMessage(alertMsg, "warning");
+					return false;
+				}
 			}
 
 			return true;
@@ -439,7 +444,6 @@
 //							html += "							<button type='button' id='"+v.teamId+"_upload"+i+"_btn-filebox'><spring:message code='button.from_filebox'/></button>";
 //							html += "							<button type='button' id='"+v.teamId+"_upload"+i+"_btn-delete'><spring:message code='button.delete'/></button></div>";
 							html += "					</tr>";
-							html += "					</tr>";
 							html += "				</tbody>";
 							html += "			</table>";
 							html += "		</td>";
@@ -595,12 +599,10 @@
 						        <input type="hidden" name="dvclasRegyn" 				value="${vo.dvclasRegyn }"	   				id="dvclasRegyn" />
 						        <input type="hidden" name="imdtAnswShtInqyn"			value=""					   				id="imdtAnswShtInqyn" />
 						        <input type="hidden" name="examCts" 					value=""					   				id="examCts"/>
-						        <input type="hidden" name="uploadFiles"					value=""					   				id="uploadFiles" />
-						        <input type="hidden" name="copyFiles"					value=""					   				id="copyFiles" />
-						        <input type="hidden" name="delFileIdStr"				value=""					   				id="delFileIdStr" />
-						        <input type="hidden" name="uploadPath"					value=""					   				id="uploadPath" />
-						        <input type="hidden" name="fileSns"						value=""					   				id="fileSns" />
-						        <input type="hidden" name="dtlInfos"					value=""					   				id="dtlInfos" />
+						        <input type="hidden" name="dtlInfos" 					value=""					   				id="dtlInfos"/>
+						        <input type="hidden" name="uploadFiles"  				value=""									id="uploadFiles" />
+								<input type="hidden" name="uploadPath"   				value="${vo.uploadPath}"					id="uploadPath"   />
+								<input type="hidden" name="delFileIdStr" 				value=""									id="delFileIdStr" />
 						        <table class="table-type5">
 						        	<colgroup>
 						        		<col class="width-20per" />
@@ -645,7 +647,7 @@
 												        	</c:if>
 												        </c:forEach>
 												        <span class="custom-input">
-															<input type="checkbox" ${list.sbjctId eq sbjctId || sbjctChk eq 'Y' ? 'class="readonly" checked readonly' : '' } name="sbjctIds" id="declas_${list.dvclasNo }" value="${list.sbjctId }" onchange="dvclasChcChange(this)">
+															<input type="checkbox" ${list.sbjctId eq sbjctId || sbjctChk eq 'Y' ? 'class="readonly" checked' : '' } name="sbjctIds" id="declas_${list.dvclasNo }" value="${list.sbjctId }" onchange="dvclasChcChange(this)">
 															<label for="declas_${list.dvclasNo }">${list.dvclasNo }반</label>
 														</span>
 											        </c:forEach>
@@ -735,28 +737,17 @@
 						        		<tr>
 											<th><label for="attchFile">첨부파일</label></th>
 											<td>
-												<%-- <c:set var="path" value="" />
-										        <c:choose>
-										        	<c:when test="${empty vo.examBscId }">
-										        	<c:set var="path" value="/quiz" />
-										        	</c:when>
-										        	<c:otherwise>
-										        	<c:set var="path" value="/quiz/${vo.examBscId }" />
-										        	</c:otherwise>
-										        </c:choose>
-										        <uiex:dextuploader
+												<uiex:dextuploader
 													id="fileUploader"
-													path="${path}"
+													path="${vo.uploadPath}"
 													limitCount="5"
-													limitSize="1024"
-													oneLimitSize="1024"
+													limitSize="100"
+													oneLimitSize="100"
 													listSize="3"
-													fileList="${fileList}"
+													fileList="${vo.fileList}"
 													finishFunc="finishUpload()"
-													useFileBox="true"
 													allowedTypes="*"
-													bigSize="false"
-												/> --%>
+												/>
 											</td>
 										</tr>
 										<tr>
@@ -776,7 +767,7 @@
 															<div class="input_btn width-100per">
 																<label>${list.dvclasNo }반</label>
 																<input type='hidden' id='lrnGrpId${list.dvclasNo}' name='lrnGrpIds' value="${empty vo.examBscId ? '' : list.lrnGrpId}:${list.sbjctId}">
-																<input class="form-control width-60per" type="text" name="name" id="lrnGrpnm${list.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty vo.examBscId ? '' : list.lrnGrpnm}" readonly="" autocomplete="off">
+																<input class="form-control width-60per" type="text" name="lrnGrpnm" id="lrnGrpnm${list.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty vo.examBscId ? '' : list.lrnGrpnm}" readonly="" autocomplete="off">
 																<a class="btn type1 small" onclick="teamGrpChcPopup('${list.dvclasNo}','${list.sbjctId }')">학습그룹지정</a>
 															</div>
 														</div>

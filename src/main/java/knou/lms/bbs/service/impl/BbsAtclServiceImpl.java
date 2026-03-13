@@ -69,8 +69,8 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
 
 
 
-    @Resource(name="attachFileDAO")
-    private AttachFileDAO attachFileDAO;
+    //@Resource(name="attachFileDAO")
+    //private AttachFileDAO attachFileDAO;
 
     @Resource(name="attachFileService")
     private AttachFileService attachFileService;
@@ -236,17 +236,14 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
             // 첨부파일
             if (uploadFileList.size() > 0) {
             	for (AtflVO atflVO : uploadFileList) {
-            		atflVO.setAtflId(IdGenerator.getNewId("ATFL"));
             		atflVO.setRefId(newAtclId);
             		atflVO.setRgtrId(vo.getRgtrId());
             		atflVO.setMdfrId(vo.getMdfrId());
-            		atflVO.setAtflRepoId("BBS"); // TODO 첨부파일저장소아이디 임시설정, 설정값으로 변경해야.....
-            		atflVO.setDwldCnt(0);
-            		atflVO.setDelyn("N");
+            		atflVO.setAtflRepoId(CommConst.REPO_BBS); // 첨부파일 저장소 아이디
             	}
 
             	// 첨부파일 저장
-            	attachFileDAO.insertAtflList(uploadFileList);
+            	attachFileService.insertAtflList(uploadFileList);
             }
 
             /* TODO 분반 동시 등록 기능 추가해야함.....
@@ -623,7 +620,7 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
                 AtflVO atflVO = new AtflVO();
                 atflVO.setRefId(bbsAtclVO.getAtclId());
 
-                List<AtflVO> fileList = attachFileDAO.selectAtflListByRefId(atflVO);
+                List<AtflVO> fileList = attachFileService.selectAtflListByRefId(atflVO);
                 bbsAtclVO.setFileList(fileList);
             }
         }
@@ -704,17 +701,14 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
             // 첨부파일
             if (uploadFileList.size() > 0) {
             	for (AtflVO atflVO : uploadFileList) {
-            		atflVO.setAtflId(IdGenerator.getNewId("ATFL"));
             		atflVO.setRefId(vo.getAtclId());
             		atflVO.setRgtrId(vo.getRgtrId());
             		atflVO.setMdfrId(vo.getMdfrId());
-            		atflVO.setAtflRepoId("BBS"); // TODO 첨부파일저장소아이디 임시설정, 설정값으로 변경해야.....
-            		atflVO.setDwldCnt(0);
-            		atflVO.setDelyn("N");
+            		atflVO.setAtflRepoId(CommConst.REPO_BBS);
             	}
 
             	// 첨부파일 저장
-            	attachFileDAO.insertAtflList(uploadFileList);
+            	attachFileService.insertAtflList(uploadFileList);
             }
 
             // 첨부파일 삭제

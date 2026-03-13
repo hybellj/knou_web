@@ -616,79 +616,79 @@
             // 등록/수정 확인 메시지
             var confirmMsg = isInsert ? "등록하시겠습니까?" : "수정하시겠습니까?";
             UiComm.showMessage(confirmMsg, "confirm")
-            .then(function(result) {
-                if (result) {
-                    // URL 및 파라미터 설정
-                    var url = isInsert ? cdInsertURL : cdUpdateURL;
-                    var param = {
-                        upCd: upCd,
-                        cd: cd,
-                        cdnm: cdnm,
-                        cdSeqno: cdSeqno || 0,
-                        useyn: useyn
-                    };
+                .then(function (result) {
+                    if (result) {
+                        // URL 및 파라미터 설정
+                        var url = isInsert ? cdInsertURL : cdUpdateURL;
+                        var param = {
+                            upCd: upCd,
+                            cd: cd,
+                            cdnm: cdnm,
+                            cdSeqno: cdSeqno || 0,
+                            useyn: useyn
+                        };
 
-                    // 수정일 경우 코드 ID 추가
-                    if (!isInsert) {
-                        param.cmmnCdId = cmmnCdId;
-                    }
-
-                    // 로딩 표시
-                    UiComm.showLoading(true);
-
-                    $.ajax({
-                        url: url,
-                        type: "POST",
-                        data: param,
-                        dataType: "json",
-                        success: function(data) {
-                            if (data.result > 0) {
-                                var successMsg = isInsert ? "등록되었습니다." : "수정되었습니다.";
-                                UiComm.showMessage(successMsg, "success")
-                                .then(function() {
-                                    // 초기화 및 목록 새로고침
-                                    resetmodifyCdArea();
-                                    listCdPaging(PAGE_INDEX, upCd);
-                                });
-                            } else {
-                                UiComm.showMessage(data.message || "처리 중 오류가 발생했습니다.", "error");
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            UiComm.showMessage("에러가 발생했습니다!", "error");
-                        },
-                        complete: function() {
-                            // 로딩 닫기
-                            UiComm.showLoading(false);
+                        // 수정일 경우 코드 ID 추가
+                        if (!isInsert) {
+                            param.cmmnCdId = cmmnCdId;
                         }
-                    });
-                }
-            });
+
+                        // 로딩 표시
+                        UiComm.showLoading(true);
+
+                        $.ajax({
+                            url: url,
+                            type: "POST",
+                            data: param,
+                            dataType: "json",
+                            success: function (data) {
+                                if (data.result > 0) {
+                                    var successMsg = isInsert ? "등록되었습니다." : "수정되었습니다.";
+                                    UiComm.showMessage(successMsg, "success")
+                                        .then(function () {
+                                            // 초기화 및 목록 새로고침
+                                            resetmodifyCdArea();
+                                            listCdPaging(PAGE_INDEX, upCd);
+                                        });
+                                } else {
+                                    UiComm.showMessage(data.message || "처리 중 오류가 발생했습니다.", "error");
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                UiComm.showMessage("에러가 발생했습니다!", "error");
+                            },
+                            complete: function () {
+                                // 로딩 닫기
+                                UiComm.showLoading(false);
+                            }
+                        });
+                    }
+                });
         }
 
         /* 코드 삭제 버튼 */
         function deleteCd(cmmnCdId, upCd) {
             UiComm.showMessage("삭제하시겠습니까?", "confirm")
-            .then(function(result) {
-                if (result) {
-                    // 로딩 표시
-                    UiComm.showLoading(true);
+                .then(function (result) {
+                    if (result) {
+                        // 로딩 표시
+                        UiComm.showLoading(true);
 
-                    $.ajax({
-                        url: cdDeleteURL,
-                        type: "POST",
-                        data: { cmmnCdId: cmmnCdId },
-                        dataType: "json",
-                        success: function(data) {
-                            if (data.result > 0) {
-                                UiComm.showMessage("삭제되었습니다.", "success")
-                                .then(function() {
-                                    // 공통코드 등록/수정 영역 초기화
-                                    resetmodifyCdArea();
-                                    // 목록 새로고침
-                                    listCdPaging(PAGE_INDEX, upCd);
-                                });
-                            } else {
+                        $.ajax({
+                            url: cdDeleteURL,
+                            type: "POST",
+                            data: {cmmnCdId: cmmnCdId},
+                            dataType: "json",
+                            success: function (data) {
+                                if (data.result > 0) {
+                                    UiComm.showMessage("삭제되었습니다.", "success")
+                                        .then(function () {
+                                            // 공통코드 등록/수정 영역 초기화
+                                            resetmodifyCdArea();
+                                            // 목록 새로고침
+                                            listCdPaging(PAGE_INDEX, upCd);
+                                        });
+                                } else {
                                 UiComm.showMessage(data.message || "삭제 중 오류가 발생했습니다.", "error");
                             }
                         },

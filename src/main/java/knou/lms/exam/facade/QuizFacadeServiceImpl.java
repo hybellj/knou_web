@@ -6,6 +6,7 @@ import knou.lms.cmmn.service.CmmnCdService;
 import knou.lms.cmmn.vo.CmmnCdVO;
 import knou.lms.exam.service.*;
 import knou.lms.exam.vo.ExamBscVO;
+import knou.lms.exam.vo.ExamDtlVO;
 import knou.lms.exam.vo.QstnVO;
 import knou.lms.exam.vo.TkexamVO;
 import knou.lms.exam.web.view.QuizMainView;
@@ -71,6 +72,16 @@ public class QuizFacadeServiceImpl extends ServiceBase implements QuizFacadeServ
     }
 
     @Override
+    public QuizMainView loadProfBfrQuizCopyPopup(ExamBscVO vo) throws Exception {
+    	QuizMainView quizMainView = new QuizMainView();
+
+    	// 퀴즈검색용학기기수목록조회
+    	quizMainView.setQuizSearchSmstrList(examService.qstnCopySmstrList());
+
+    	return quizMainView;
+    }
+
+    @Override
     public QuizMainView loadProfQuizQstnMngView(ExamBscVO vo, UserContext userCtx) throws Exception {
         QuizMainView quizMainView = new QuizMainView();
 
@@ -99,6 +110,16 @@ public class QuizFacadeServiceImpl extends ServiceBase implements QuizFacadeServ
         quizMainView.setCmmnCdList(cmmnCdList);
 
         return quizMainView;
+    }
+
+    @Override
+    public QuizMainView loadProfQuizQstnCopyPopup(ExamDtlVO vo) throws Exception {
+    	QuizMainView quizMainView = new QuizMainView();
+
+    	// 퀴즈검색용학기기수목록조회
+    	quizMainView.setQuizSearchSmstrList(examService.qstnCopySmstrList());
+
+    	return quizMainView;
     }
 
     @Override
@@ -173,7 +194,10 @@ public class QuizFacadeServiceImpl extends ServiceBase implements QuizFacadeServ
         quizMainView.setQuizExamnee(tkexamService.quizExamneeSelect((String) params.get("examDtlId"), (String) params.get("userId")));
 
         // 퀴즈응시목록조회
+        String userId = (String) params.get("userId");
+        params.remove("userId");
         quizMainView.setQuizTkexamList(tkexamService.quizTkexamList(params));
+        params.put("userId", userId);
 
         // 시험응시시험지답안목록조회
         quizMainView.setTkexamExampprAnswShtList(exampprService.tkexamExampprAnswShtList((String) quizMainView.getQuizExamnee().get("tkexamId"), (String) params.get("userId")));
@@ -206,6 +230,21 @@ public class QuizFacadeServiceImpl extends ServiceBase implements QuizFacadeServ
 
 		// 교수메모조회
 		quizMainView.setProfMemo(tkexamRsltService.profMemoSelect((String) params.get("tkexamId"), (String) params.get("userId")));
+
+		return quizMainView;
+	}
+
+	@Override
+	public QuizMainView loadProfQuizExampprBulkPrintPopup(Map<String, Object> params) throws Exception {
+		QuizMainView quizMainView = new QuizMainView();
+
+		// 퀴즈 정보 조회
+		ExamBscVO bscVO = new ExamBscVO();
+		bscVO.setExamBscId((String) params.get("examBscId"));
+		quizMainView.setExamBscVO(examService.quizSelect(bscVO));
+
+		// 퀴즈응시목록조회
+		quizMainView.setQuizTkexamList(tkexamService.quizTkexamList(params));
 
 		return quizMainView;
 	}

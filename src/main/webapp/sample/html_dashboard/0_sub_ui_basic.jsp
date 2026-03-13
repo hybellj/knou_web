@@ -27,7 +27,7 @@
 
                     <div class="sub-content">
                         <div class="page-info">
-                            <h2 class="page-title"><span>공통</span>요소</h2>
+                            <h2 class="page-title"><span>공통</span>컴포넌트</h2>
                             <div class="navi_bar">
                                 <ul>
                                     <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
@@ -38,41 +38,20 @@
                         </div>
 
 
-                        <h4 class="sub-title">상세페이지</h4>
-                        <!-- 상세 -->
-                        <div class="table_list">
-                            <ul class="list">
-                                <li class="head"><label>제목</label></li>
-                                <li>쪽지를 확인해주세요.</li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label>보낸사람</label></li>
-                                <li>관리자</li>
-                                <li class="head"><label>보낸날짜</label></li>
-                                <li>2025.10.28 10:00:00</li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label>내용</label></li>
-                                <li>데이터베이스의 이해와 활용 관련하여 안내 드립니다.<br>
-                                    현재 강의 진행하고 있는 강의실 변경이 있습니다. <br>
-                                    204호에서 201로 변경되오니 확인 후 참석해주세요.<br><br>
-                                    변경날짜: 11월 4일(월) ~ 강의 종료까지 <br><br>
-                                    감사합니다.
-                                </li>
-                            </ul>
-                        </div>
-
-                        <br><br><br>
-
-                        <h4 class="sub-title ">등록, 상세 _ 하단 중앙 버튼</h4>
-						<div class="btns">
-                            <button type="button" class="btn type1">저장</button>
-                            <button type="button" class="btn type2">목록</button>
-                        </div>
-
-                        <br><br><br>
-
                         <h4 class="sub-title">검색박스</h4>
+                        <!-- search typeA -->
+                        <div class="search-typeA">
+                            <div class="item">
+                                <span class="item_tit"><label for="selectSearch">검색어</label></span>
+                                <div class="itemList">
+                                    <input class="form-control wide" type="text" name="" id="inputSearch1" value="" placeholder="기관ID / 기관명 / 담당자입력">
+                                </div>
+                            </div>
+                            <div class="button-area">
+                                <button type="button" class="btn search">검색</button>
+                            </div>
+                        </div>
+
                         <!-- search typeA -->
                         <div class="search-typeA">
                             <div class="item">
@@ -103,57 +82,6 @@
                                 </div>
                             </div>
                             <div class="item">
-                                <span class="item_tit"><label for="selectDate">요청 일시</label></span>
-                                <div class="itemList">
-                                    <div class="date_area">
-                                        <label class="datepicker">
-                                            <input type="text" placeholder="시작일시" id="datetimepicker1">
-                                        </label>
-                                        <span class="txt-sort">~</span>
-                                        <label class="datepicker">
-                                            <input type="text" placeholder="종료일시" id="datetimepicker2">
-                                        </label>
-                                    </div>
-                                    <script>
-                                    $.datetimepicker.setLocale('ko');
-
-                                    $('#datetimepicker1').datetimepicker({
-                                        format: 'Y-m-d H:i',
-                                        step: 10,              // 10분 단위 간격
-                                        scrollMonth: false,
-                                        scrollTime: true,
-                                        scrollInput: false,
-                                        theme: '',
-                                        onShow: function(ct){
-                                            this.setOptions({
-                                                maxDate: $('#datetimepicker2').val() ? $('#datetimepicker2').val() : false
-                                            });
-                                        }
-                                    });
-
-                                    $('#datetimepicker2').datetimepicker({
-                                        format: 'Y-m-d H:i',
-                                        step: 10,
-                                        scrollMonth: false,
-                                        scrollTime: true,
-                                        scrollInput: false,
-                                        onShow: function(ct){
-                                            this.setOptions({
-                                                minDate: $('#datetimepicker1').val() ? $('#datetimepicker1').val() : false
-                                            });
-                                        }
-                                    });
-
-                                    $(document).on('click', '.xdsoft_month, .xdsoft_year', function(e) {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    return false;
-                                    });
-                                    </script>
-
-                                </div>
-                            </div>
-                            <div class="item">
                                 <span class="item_tit"><label for="selectSearch">검색 조건</label></span>
                                 <div class="itemList">
                                     <select class="form-select" id="selectSearch1">
@@ -170,85 +98,169 @@
                             </div>
                         </div>
 
-
                         <br><br><br>
 
-                        <h4 class="sub-title">탭버튼 + 오른쪽 버튼</h4>
-                        <!-- Tab btn -->
-                        <div class="tabs_top">
-                            <div class="tab_btn">
-                                <a href="#tab01" class="current">수신목록</a>
-                                <a href="#tab02">발신목록</a>
-                            </div>
-                            <div class="right-area">
-                                <button type="button" class="btn basic icon"><i class="xi-refresh"></i></button>
-                                <button type="button" class="btn basic">삭제</button>
-                                <button type="button" class="btn basic">엑셀 다운로드</button>
-                                <button type="button" class="btn type2">발신하기</button>
-                            </div>
-                        </div>
-                        <div id="tab01" class="tab-content">탭1 내용</div>
-                        <div id="tab02" class="tab-content" style="display:none;">탭2 내용</div>
-
-                        <br><br><br>
-
-                        <h4 class="sub-title">타이틀 + 조합</h4>
-                        <div class="board_top">
-                            <h3 class="board-title">PUSH 수신 내용</h3>
+                        <h4 class="sub-title">메시지 스타일 _ 기본(부가정보)</h4>
+                        <div class="msg-box basic">
+                            <ul class="list-asterisk">
+                                <li>운영교수 : 해당학기 시험, 과제 등의 실제 수업을 담당하는 교수</li>
+                                <li>개발교수 : 강의 콘텐츠(학습 동영상)를 제작하는 교수</li>
+                            </ul>
                         </div>
 
-                        <br><br><br>
+                        <div class="msg-box basic">
+                            <ul class="list-bullet">
+                                <li>미디어 일시정지/재생 : Space Bar</li>
+                                <li>재생 속도 : Z (1배속), X (느리게), C (빠르게)</li>
+                                <li>볼륨 : 위쪽 방향키 (크게), 아래쪽 방향키 (작게)</li>
+                                <li>이동 : 왼쪽 방향키 (10초 전), 오른쪽 방향키 (10초 후)</li>
+                                <li>전체 화면 : F</li>
+                            </ul>
+                        </div>
 
-                        <div class="board_top">
-                            <h3 class="board-title">PUSH 수신 목록</h3>
-                            <div class="right-area">
-                                <button type="button" class="btn type2">발신하기</button>
-                                <select class="form-select type-num" id="select" title="페이지당 리스트수를 선택하세요.">
-                                    <option value="ALL" selected="selected">10</option>
-                                    <option value="20">20</option>
-                                    <option value="30">30</option>
-                                </select>
-                            </div>
+                        <div class="msg-box basic">
+                            <ul class="list-dot">
+                                <li>미디어 일시정지/재생 : Space Bar</li>
+                                <li>재생 속도 : Z (1배속), X (느리게), C (빠르게)</li>
+                                <li>볼륨 : 위쪽 방향키 (크게), 아래쪽 방향키 (작게)</li>
+                                <li>이동 : 왼쪽 방향키 (10초 전), 오른쪽 방향키 (10초 후)</li>
+                                <li>전체 화면 : F</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="sub-title">메시지 스타일 _ 안내</h4>
+                        <div class="msg-box">
+                            <p class="txt"><strong>안내 : </strong>메시지 안내 스타일입니다.</p>
+                        </div>
+
+                        <h4 class="sub-title">메시지 스타일 _ 정보</h4>
+                        <div class="msg-box info">
+                            <p class="txt"><strong>안내 : </strong>메시지 정보 스타일입니다.</p>
+                        </div>
+
+                        <h4 class="sub-title">메시지 스타일 _ 승인</h4>
+                        <div class="msg-box success">
+                            <p class="txt"><strong>성공 : </strong>메시지 내용입니다.</p>
+                        </div>
+
+                        <h4 class="sub-title">메시지 스타일 _ 경고</h4>
+                        <div class="msg-box warning">
+                            <p class="txt"><strong>오류 위치 : </strong>교수 > 대시보드 > 강의실 > 과제 등록</p>
+                        </div>
+
+                        <div class="msg-box">
+                            <p class="txt"><i class="xi-error" aria-hidden="true"></i>예상 발신 비용 금액입니다. 참고하세요</p>
+                        </div>
+                        <div class="msg-box">
+                            <p class="txt"><i class="icon-svg-warning" aria-hidden="true"></i>예상 발신 비용 금액입니다. 참고하세요</p>
                         </div>
 
                         <br><br><br>
 
-                        <div class="board_top">
-                            <h3 class="board-title">과정(테넌시) 목록</h3>
-                            <div class="right-area">
-                                <button type="button" class="btn type2">등록</button>
-                                <select class="form-select type-num" id="select" title="페이지당 리스트수를 선택하세요.">
-                                    <option value="ALL" selected="selected">10</option>
-                                    <option value="20">20</option>
-                                    <option value="30">30</option>
-                                </select>
-                            </div>
+                        <h4 class="sub-title">상세페이지</h4>
+                        <!-- 상세 -->
+                        <div class="table_list">
+                            <ul class="list">
+                                <li class="head"><label>제목</label></li>
+                                <li>쪽지를 확인해주세요.</li>
+                            </ul>
+                            <ul class="list">
+                                <li class="head"><label>보낸사람</label></li>
+                                <li>관리자</li>
+                                <li class="head"><label>보낸날짜</label></li>
+                                <li>2025.10.28 10:00:00</li>
+                            </ul>
+                            <ul class="list">
+                                <li class="head"><label>내용</label></li>
+                                <li>데이터베이스의 이해와 활용 관련하여 안내 드립니다.<br>
+                                    현재 강의 진행하고 있는 강의실 변경이 있습니다. <br>
+                                    204호에서 201로 변경되오니 확인 후 참석해주세요.<br><br>
+                                    변경날짜: 11월 4일(월) ~ 강의 종료까지 <br><br>
+                                    감사합니다.
+                                </li>
+                            </ul>
                         </div>
 
                         <br><br><br>
 
-                        <div class="board_top">
-                            <i class="icon-svg-openbook"></i>
-                            <h3 class="board-title">강의목록</h3>
-                            <div class="right-area">
-                                <button type="button" class="btn basic">주차 접음</button>
-                                <select class="form-select">
-                                    <option value="전체 주차">전체 주차</option>
-                                    <option value="1주차">1주차</option>
-                                    <option value="2주차">2주차</option>
-                                    <option value="3주차">3주차</option>
-                                    <option value="4주차">4주차</option>
-                                    <option value="5주차">5주차</option>
-                                </select>
-                                <a href="#0" class="btn_list_type on" aria-label="리스트형 보기"><i class="icon-svg-list" aria-hidden="true"></i></a>
-                                <a href="#0" class="btn_list_type" aria-label="카드형 보기"><i class="icon-svg-grid" aria-hidden="true"></i></a>
-                            </div>
+                        <h4 class="sub-title">테이블 스타일 _ 정보성(1)</h4>
+                        <!-- 정보성 테이블 -->
+                        <div class="table-wrap">
+                            <table class="table-type1">
+                                <colgroup>
+                                    <col style="width:22%">
+                                    <col style="width:22%">
+                                    <col style="width:22%">
+                                    <col style="">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>교수</th>
+                                        <th>소속</th>
+                                        <th>연락처</th>
+                                        <th>이메일</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td data-th="교수">운영교수 : 홍길동</td>
+                                        <td data-th="소속">컴퓨터공학과</td>
+                                        <td data-th="연락처">02-5214-9853</td>
+                                        <td data-th="이메일">test@naver.com</td>
+                                    </tr>
+                                    <tr>
+                                        <td data-th="교수">공동교수 : 김교수</td>
+                                        <td data-th="소속">컴퓨터공학과</td>
+                                        <td data-th="연락처">02-5214-9853</td>
+                                        <td data-th="이메일">test@naver.com</td>
+                                    </tr>
+                                    <tr>
+                                        <td data-th="교수">개발교수 : 이교수</td>
+                                        <td data-th="소속">컴퓨터공학과</td>
+                                        <td data-th="연락처">02-5214-9853</td>
+                                        <td data-th="이메일">test@naver.com</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-
 
                         <br><br><br>
 
-                        <h4 class="sub-title">테이블 스타일 _ 테이블 버튼</h4>
+                         <h4 class="sub-title">테이블 스타일 _ 정보성(2)</h4>
+                        <!-- 정보성 테이블 -->
+                        <div class="table-wrap">
+                            <table class="table-type1">
+                                <colgroup>
+                                    <col style="width:10%">
+                                    <col style="">
+                                    <col style="width:15%">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>주차</th>
+                                        <th>강의 내용</th>
+                                        <th>담당교수</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th data-th="주차">1</th>
+                                        <td data-th="강의내용" class="t_left">일반화학 개요</td>
+                                        <td data-th="담당교수">홍길동</td>
+                                    </tr>
+                                    <tr>
+                                        <th data-th="주차">2</th>
+                                        <td data-th="강의내용" class="t_left">원소, 원자 및 이온</td>
+                                        <td data-th="담당교수">홍길동</td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <br><br><br>
+
+                        <h4 class="sub-title">리스트 스타일 _ 테이블 버튼</h4>
                         <!--table-type-->
                         <div class="table-wrap">
                             <table class="table-type2">
@@ -347,7 +359,7 @@
 
                         <br><br><br>
 
-                        <h4 class="sub-title">테이블 스타일 _ 링크</h4>
+                        <h4 class="sub-title">리스트 스타일 _ 링크</h4>
                         <!--table-type-->
                         <div class="table-wrap">
                             <table class="table-type2">
@@ -396,33 +408,36 @@
                                     </tr>
 
                                 </tbody>
-
                             </table>
+
+	                        <%-- 테이블의 페이징 정보 생성할때 아래 내용 참조하여 작업하고 아래와 같은 HTML 코드를 직접 만들지 않는다.
+	                        	1) UiTable() 함수를 사용하여 테이블 생성할경우는 해당 프로그램에서 페이지 정보 생성하도록 한다.
+	                        	2) Controller에서 페이지정보(PageInfo) 객체를 받아을 경우 <uiex:paging> 태그를 사용하여 생성한다.
+	                        	   <uiex:paging pageInfo="${pageInfo}" pageFunc="listPaging"/>
+	                        --%>
+	                        <!-- board foot -->
+							<div class="board_foot">
+								<div class="page_info">
+									<span class="total_page">전체 <b>12</b>건</span>
+									<span class="current_page">현재 페이지 <strong>1</strong>/10</span>
+								</div>
+								<div class="board_pager">
+									<span class="inner">
+										<button class="page" type="button" role="button" aria-label="First Page" title="처음 페이지" data-page="1" disabled=""><i class="icon-page-first"></i></button>
+										<button class="page" type="button" role="button" aria-label="Prev Page" title="이전 페이지" data-page="1" disabled=""><i class="icon-page-prev"></i></button>
+										<span class="pages">
+											<button class="page active" type="button" role="button" aria-label="Page 1" title="1 페이지" data-page="1">1</button>
+											<button class="page" type="button" role="button" aria-label="Page 2" title="2 페이지" data-page="2">2</button>
+											<button class="page" type="button" role="button" aria-label="Page 3" title="3 페이지" data-page="3">3</button>
+										</span>
+										<button class="page" type="button" role="button" aria-label="Next Page" title="다음 페이지" data-page="2"><i class="icon-page-next"></i></button>
+										<button class="page" type="button" role="button" aria-label="Last Page" title="마지막 페이지" data-page="3"><i class="icon-page-last"></i></button>
+									</span>
+								</div>
+							</div>
+
                         </div>
                         <!--//table-type-->
-
-                        <!-- board foot -->
-                        <div class="board_foot">
-                            <div class="page_info">
-                                <span class="total_page">전체 <b>12</b>건</span>
-                                <span class="current_page">현재 페이지 <strong>1</strong>/10</span>
-                            </div>
-
-                            <div class="board_pager">
-                                <span class="inner">
-                                    <a href="" class="page_first" title="첫페이지"><i class="xi-angle-left-min"></i><span class="sr_only">첫페이지</span></a>
-                                    <a href="" class="page_prev" title="이전페이지"><i class="xi-angle-left-min"></i><span class="sr_only">이전페이지</span></a>
-                                    <a href="" class="page_now" title="1페이지"><strong>1</strong></a>
-                                    <a href="" class="page_none" title="2페이지">2</a>
-                                    <a href="" class="page_none" title="3페이지">3</a>
-                                    <a href="" class="page_none" title="4페이지">4</a>
-                                    <a href="" class="page_none" title="5페이지">5</a>
-                                    <a href="" class="page_next" title="다음페이지"><i class="xi-angle-right-min"></i><span class="sr_only">다음페이지</span></a>
-                                    <a href="" class="page_last" title="마지막페이지"><i class="xi-angle-right-min"></i><span class="sr_only">마지막페이지</span></a>
-                                </span>
-                            </div>
-                        </div>
-
 
                         <br><br><br>
 
@@ -482,58 +497,6 @@
 
         </main>
         <!-- //dashboard-->
-
-
-
-        <!-- modal popup 보여주기 버튼(개발시 삭제) -->
-        <button type="button" class="btn modal__btn" data-modal-open="modal1">모달 1 샘플</button>
-        <button type="button" class="btn modal__btn" data-modal-open="modal2">모달 2 샘플</button>
-
-        <!-- Modal 1 -->
-        <div class="modal-overlay" id="modal1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
-            <div class="modal-content" tabindex="-1">
-                <div class="modal-header">
-                    <h2 id="modal1Title">모달 1</h2>
-                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
-                </div>
-                <div class="modal-body">
-                    모달 1 내용
-                    <div class="modal_btns">
-                        <button type="button" class="btn type1">수정</button>
-                        <button type="button" class="btn type2">닫기</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal 2 -->
-        <div class="modal-overlay" id="modal2" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal2Title" >
-            <div class="modal-content" tabindex="-1">
-                <div class="modal-header">
-                    <h2 id="modal2Title">모달 2</h2>
-                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
-                </div>
-                <div class="modal-body">
-                    <p>내용이 길어질 경우 자동으로 스크롤이 생깁니다.</p>
-                    <p>스크롤 테스트용 텍스트</p>
-                    <p>스크롤 테스트용 텍스트</p>
-                    <p>스크롤 테스트용 텍스트</p>
-                    <p>스크롤 테스트용 텍스트</p>
-                    <p>스크롤 테스트용 텍스트</p>
-                    <p>스크롤 테스트용 텍스트</p>
-                    <p>스크롤 테스트용 텍스트</p>
-                    <p>스크롤 테스트용 텍스트</p>
-                    <p>스크롤 테스트용 텍스트</p>
-
-                    <div class="modal_btns">
-                        <button type="button" class="btn type1">수정</button>
-                        <button type="button" class="btn type2">닫기</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <script src="<%=request.getContextPath()%>/webdoc/assets/js/modal.js" defer></script>
 
     </div>
 

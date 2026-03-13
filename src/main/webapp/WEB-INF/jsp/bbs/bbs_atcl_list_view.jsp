@@ -364,7 +364,7 @@
 
 								<div class="card-body">
 									<div class="desc">
-										<p><label class="label-title"><spring:message code='bbs.label.reg_date'/></label><strong>#[regDate]</strong></p>
+										<p><label class="label-title"><spring:message code='bbs.label.reg_date'/></label><strong>#[regDttm]</strong></p>
 										<p><label class="label-title"><spring:message code='bbs.label.reg_user'/></label><strong>#[rgtrnm]</strong></p>
 									</div>
 									<div class="etc">
@@ -390,7 +390,7 @@
 								//selectRow: "1",
 								//selectRowFunc: checkRowSelect,
 								sortFunc: atclListTableSort,
-								initialSort: [{column:"regDate", dir:"desc"}],
+								initialSort: [{column:"regDttm", dir:"desc"}],
 								pageFunc: listPaging,
 								columns: [
 									{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
@@ -439,6 +439,11 @@
 
     </div>
 
+<style>
+
+
+
+</style>
 
 </body>
 </html>

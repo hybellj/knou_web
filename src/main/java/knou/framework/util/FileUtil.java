@@ -944,7 +944,8 @@ public class FileUtil {
                 ext = getFileExtention(fileName);
 
                 atflVO = new AtflVO();
-                atflVO.setFileSavnm(fileObj.getString("fileId") + (!"".equals(ext) ? "."+ext : ""));
+                atflVO.setAtflId(IdGenerator.getNewId("ATFL"));
+                atflVO.setFileSavnm(fileObj.getString("fileId") + (!"".equals(ext) ? "." + ext : ""));
                 atflVO.setFilenm(fileName);
                 atflVO.setFileSize(fileObj.getLong("fileSize"));
                 atflVO.setFilePath(filePath);
@@ -952,6 +953,8 @@ public class FileUtil {
                 atflVO.setFileTycd(getFileType(fileName));
                 atflVO.setMimeTycd(getFileMimeType(fileName));
                 atflVO.setAtflSeqno(i+1);
+                atflVO.setDwldCnt(0);
+        		atflVO.setDelyn("N");
                 fileList.add(atflVO);
             }
         }

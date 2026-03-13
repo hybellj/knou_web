@@ -194,7 +194,7 @@
             return;
         }
 
-        if (!confirm('<spring:message code="msg.tmplt.label.delete"/>?')) return;
+        if (!confirm('<spring:message code="common.confirm.remove"/>')) return;
 
         ajaxCall('/msgTmpltDeleteAjax.do', { msgTmpltIds: checkedIds }, function(res) {
             if (res.result === 1) {
@@ -210,7 +210,7 @@
 
     /* 전체 삭제 */
     function fn_deleteAll() {
-        if (!confirm('<spring:message code="msg.tmplt.label.deleteAll"/>?')) return;
+        if (!confirm('<spring:message code="common.confirm.remove"/>')) return;
 
         ajaxCall('/msgTmpltAllDeleteAjax.do', { msgCtsGbncd: currentTab }, function(res) {
             if (res.result === 1) {
@@ -224,35 +224,24 @@
         }, true);
     }
 
-    /* TODO: 엑셀 기능 미정의 - 정의 후 주석 해제
+    /* 엑셀 다운로드 */
     function fn_excelDown() {
-        let param = {
-            searchText: $('#inputSearch1').val()
-        };
+        let excelGrid = { colModel: [] };
+        excelGrid.colModel.push({label: '<spring:message code="msg.tmplt.col.ttl"/>', name: 'msgTmpltTtl', align: 'left', width: '8000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.tmplt.col.cts"/>', name: 'msgTmpltCts', align: 'left', width: '15000'});
+        excelGrid.colModel.push({label: '<spring:message code="msg.tmplt.col.regDttm"/>', name: 'regDttm', align: 'center', width: '5000', formatter: 'date'});
 
-        ajaxCall('/msgTmpltExcelListAjax.do', param, function(res) {
-            if (res.result === 1 && res.returnList) {
-                fn_makeExcel(res.returnList);
-            }
-        }, function() {
-            alert('<spring:message code="fail.common.select"/>');
-        }, true);
+        let form = $("<form></form>");
+        form.attr("method", "POST");
+        form.attr("name", "excelForm");
+        form.attr("action", "/msgTmpltExcelDown.do");
+        form.append($('<input/>', { type: 'hidden', name: 'msgCtsGbncd', value: currentTab }));
+        form.append($('<input/>', { type: 'hidden', name: 'searchText', value: $('#inputSearch1').val() }));
+        form.append($('<input/>', { type: 'hidden', name: 'excelGrid', value: JSON.stringify(excelGrid) }));
+        form.appendTo("body");
+        form.submit();
+        $("form[name=excelForm]").remove();
     }
-
-    function fn_makeExcel(list) {
-        let csv = '\uFEFF<spring:message code="msg.tmplt.col.ttl"/>,<spring:message code="msg.tmplt.col.cts"/>,<spring:message code="msg.tmplt.col.regDttm"/>\n';
-        list.forEach(function(row) {
-            csv += '"' + (row.msgTmpltTtl || '').replace(/"/g, '""') + '",';
-            csv += '"' + (row.msgTmpltCts || '').replace(/"/g, '""') + '",';
-            csv += '"' + UiComm.formatDate(row.regDttm, "date") + '"\n';
-        });
-        let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        let link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = '<spring:message code="msg.tmplt.label.title"/>.csv';
-        link.click();
-    }
-    */
 
     /* 페이징 렌더링 */
     function fn_renderPaging(pageInfo) {
@@ -303,10 +292,10 @@
         let canEdit = !isOrgTab || isAdmin;
 
         if (canEdit) {
-            $('#btnDelete, #btnDeleteAll').show(); /* btnExcel: 엑셀 기능 미정의 */
+            $('#btnExcel, #btnDelete, #btnDeleteAll').show();
             $('.tmplt-form-area').show();
         } else {
-            $('#btnDelete, #btnDeleteAll').hide(); /* btnExcel: 엑셀 기능 미정의 */
+            $('#btnExcel, #btnDelete, #btnDeleteAll').hide();
             $('.tmplt-form-area').hide();
         }
 
@@ -371,9 +360,7 @@
                                     <input class="form-control" type="text" id="inputSearch1" value="<c:out value="${vo.searchText}"/>" placeholder="<spring:message code="msg.tmplt.label.searchPlaceholder" text="제목/내용 검색"/>" onkeydown="fn_searchKeydown(event)">
                                     <button type="button" class="btn basic icon search" aria-label="<spring:message code="msg.tmplt.label.search" text="검색"/>" onclick="fn_search()"><i class="icon-svg-search"></i></button>
                                 </div>
-                                <!-- TODO: 엑셀 기능 미정의
                                 <button type="button" id="btnExcel" class="btn basic" onclick="fn_excelDown()"><spring:message code="msg.tmplt.label.excelDown" text="엑셀 다운로드"/></button>
-                                -->
                                 <button type="button" id="btnDelete" class="btn basic" onclick="fn_deleteSelected()"><spring:message code="msg.tmplt.label.delete" text="삭제"/></button>
                                 <button type="button" id="btnDeleteAll" class="btn basic" onclick="fn_deleteAll()"><spring:message code="msg.tmplt.label.deleteAll" text="전체삭제"/></button>
                             </div>

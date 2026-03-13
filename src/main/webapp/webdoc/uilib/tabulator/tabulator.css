@@ -1689,3 +1689,11 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
     min-height: calc(100% - 8px);
     margin-top: 4px;
 }
+
+.tabulator.card .tabulator-table {
+	padding-bottom: 0px !important;
+}
+
+.tabulator.nopage .tabulator-footer {
+    display:none;
+}

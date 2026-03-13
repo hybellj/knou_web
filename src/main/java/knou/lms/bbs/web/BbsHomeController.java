@@ -1719,6 +1719,13 @@ public class BbsHomeController extends ControllerBase {
         model.addAttribute("bbsVO", bbsVO);
         model.addAttribute("templateUrl", TEMPLATE_URL);
 
+        // 테스트용 임시 작업
+        BbsAtclVO bbsAtclVO = new BbsAtclVO();
+        bbsAtclVO.setBbsId(bbsVO.getBbsId());
+        ProcessResultVO<BbsAtclVO> resultVO = bbsAtclService.selectBbsAtclList(bbsAtclVO);
+        model.addAttribute("pageInfo", resultVO.getPageInfo());
+        // 테스트용 임시 작업 end
+
         return "bbs/bbs_atcl_list_view";
     }
 
@@ -1995,6 +2002,9 @@ public class BbsHomeController extends ControllerBase {
 
         // 수정화면
         if ("edit".equals(gubun)) {
+        	// 첨부파일저장소 설정
+            bbsVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_BBS, bbsId));
+
         	url = "bbs/bbs_atcl_write";
         }
 

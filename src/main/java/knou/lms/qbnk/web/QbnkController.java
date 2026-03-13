@@ -79,10 +79,11 @@ public class QbnkController extends ControllerBase {
     @RequestMapping(value="/profQbnkCtgrListAjax.do")
     @ResponseBody
     public ProcessResultVO<QbnkCtgrVO> profQbnkCtgrListAjax(QbnkCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-
+    	String userRprsId = StringUtil.nvl(SessionInfo.getUserRprsId(request));
         ProcessResultVO<QbnkCtgrVO> resultVO = new ProcessResultVO<QbnkCtgrVO>();
 
         try {
+        	vo.setUserRprsId(userRprsId);
             List<QbnkCtgrVO> qbnkList = qbnkCtgrService.profQbnkCtgrList(vo);
             resultVO.setReturnList(qbnkList);
             resultVO.setResult(1);

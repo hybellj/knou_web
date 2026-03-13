@@ -1,6 +1,7 @@
 package knou.lms.exam.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
@@ -42,5 +43,15 @@ public interface QstnVwitmDAO {
 	 * @throws Exception
 	 */
 	public List<QstnVwitmVO> qstnVwitmBulkList(String examDtlId) throws Exception;
+
+	/**
+	 * 퀴즈문항보기항목가져오기
+	 *
+	 * @param copyType  	복사유형 ( qbnk : 문제은행, examppr : 다른 퀴즈 )
+     * @param copyQstnId 	복사문항아이디
+     * @param examDtlId 	시험상세아이디
+	 * @throws Exception
+	 */
+	public void quizQstnVwitmCopy(List<Map<String, Object>> list) throws Exception;
 
 }

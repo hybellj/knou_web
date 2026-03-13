@@ -12,7 +12,7 @@
 
     <typeAliases>
 		<typeAlias alias="egovMap" type="org.egovframe.rte.psl.dataaccess.util.EgovMap"/>
-		
+
 		<!-- VO Alias -->
 
 		<!-- framework 공통 -->
@@ -45,6 +45,21 @@
 
 		<!-- 대시보드 -->
 		<package name="knou.lms.dashboard.vo" />
+
+        <!-- 전체 수업현황 -->
+        <package name="knou.lms.std.vo.ClsAccessChartVO" />
+        <package name="knou.lms.std.vo.ClsActivityLogVO" />
+        <package name="knou.lms.std.vo.ClsAsmtSbmsnLogVO" />
+        <package name="knou.lms.std.vo.ClsChsiLrnVO" />
+        <package name="knou.lms.std.vo.ClsElemStatsVO" />
+        <package name="knou.lms.std.vo.ClsLrnLogVO" />
+        <package name="knou.lms.std.vo.ClsStdntInfoVO" />
+        <package name="knou.lms.std.vo.ClsStdntVO" />
+        <package name="knou.lms.std.vo.ClsVO" />
+        <package name="knou.lms.std.vo.ClsWkLrnVO" />
+        <package name="knou.lms.std.vo.ClsWklyStatsVO" />
+        <package name="knou.lms.std.vo.LearnStopRiskIndexVO" />
+        <package name="knou.lms.std.vo.StdVO" />
 
 		<!-- 시험 -->
 		<package name="knou.lms.exam.vo" />
@@ -88,6 +103,7 @@
 
 		<!-- 설문 -->
 		<package name="knou.lms.resh.vo" />
+		<package name="knou.lms.srvy.vo" />
 
 		<!-- 복습기간 -->
 		<package name="knou.lms.review.vo" />
@@ -99,7 +115,8 @@
 		<package name="knou.lms.contents.vo" />
 
 		<!-- 수강생 -->
-		<package name="knou.lms.std.vo" />
+		<package name="knou.lms.std.vo" /><!--asis-->
+		<package name="knou.lms.std2.vo" /><!--tobe-->
 
 		<!-- 시스템 -->
 		<package name="knou.lms.sys.vo" />
@@ -121,10 +138,10 @@
 
 		<!-- 시스템관리 -->
 		<package name="knou.lms.system.manager.vo" />
-		
+
 		<!-- 시스템 공통코드 관리 -->
 		<package name="knou.lms.system.code.vo" />
-		
+
 		<!-- 성적등급 -->
 		<package name="knou.lms.grade.vo" />
 

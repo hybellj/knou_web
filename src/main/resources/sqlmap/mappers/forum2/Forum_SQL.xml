@@ -79,7 +79,9 @@
                      WHERE C.DSCS_ID = A.DSCS_ID
                        AND C.DELYN = 'N'
                  )) AS forumCmntCnt
-            , (
+        , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'OK' AND B.ATCL_LV = 0) AS forumAtclPorsCnt
+        , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'NOTOK' AND B.ATCL_LV = 0) AS forumAtclConsCnt
+        , (
                 SELECT COUNT(*)
                     FROM TB_LMS_ATNDLC ATNDLC
                     JOIN TB_LMS_SBJCT SBJCT
@@ -259,7 +261,54 @@
           , MDFR_ID
           , MOD_DTTM
           , SBJCT_ID
-        FROM TB_LMS_DSCS
+          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumAtclCnt
+          , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
+             WHERE B.DELYN = 'N'
+               AND B.DSCS_ATCL_ID IN (
+                 SELECT C.DSCS_ATCL_ID
+                 FROM TB_LMS_DSCS_ATCL C
+                 WHERE C.DSCS_ID = A.DSCS_ID
+                   AND C.DELYN = 'N'
+             )) AS forumCmntCnt
+          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'OK' AND B.ATCL_LV = 0) AS forumAtclPorsCnt
+          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'NOTOK' AND B.ATCL_LV = 0) AS forumAtclConsCnt
+          , (
+            SELECT COUNT(*)
+            FROM TB_LMS_ATNDLC ATNDLC
+                     JOIN TB_LMS_SBJCT SBJCT
+                          ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+            WHERE ATNDLC.AUDITYN = 'N'
+              AND SBJCT.SBJCT_ID = #{sbjctId}
+            ) AS forumUserTotalCnt
+          , (
+            SELECT COUNT(1)
+            FROM TB_LMS_ATNDLC AA
+            WHERE AA.SBJCT_ID = #{sbjctId}
+              AND AA.ATNDLC_STSCD = 'S'
+              AND AA.AUDITYN = 'N'
+              AND (
+                EXISTS (
+                    SELECT 1
+                    FROM TB_LMS_DSCS_ATCL
+                    WHERE DSCS_ID = A.DSCS_ID
+                      AND USER_ID = AA.USER_ID
+                      AND DELYN = 'N'
+                )
+                    OR EXISTS (
+                    SELECT 1
+                    FROM TB_LMS_DSCS_CMNT
+                    WHERE USER_ID = AA.USER_ID
+                      AND DELYN = 'N'
+                      AND DSCS_ATCL_ID IN (
+                        SELECT DSCS_ATCL_ID
+                        FROM TB_LMS_DSCS_ATCL
+                        WHERE DSCS_ID = A.DSCS_ID
+                          AND DELYN = 'N'
+                    )
+                )
+                )
+        ) AS forumJoinUserCnt
+        FROM TB_LMS_DSCS A
         WHERE DSCS_ID = #{dscsId}
           AND DELYN = 'N'
     </select>

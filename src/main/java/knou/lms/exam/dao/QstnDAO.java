@@ -1,6 +1,7 @@
 package knou.lms.exam.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
@@ -100,7 +101,7 @@ public interface QstnDAO {
 	 *
 	 * @param examDtlId 	시험상세아이디
 	 * @param qstnSeqno 	문항순번
-	 * @param ㅂ 	시험상세아이디
+	 * @param examDtlId 	시험상세아이디
 	 * @throws Exception
 	 */
 	public void quizQstnScrModify(QstnVO vo) throws Exception;
@@ -115,6 +116,16 @@ public interface QstnDAO {
 	public void quizQstnScrBulkModify(QstnVO vo) throws Exception;
 
 	/**
+	 * 출제완료퀴즈문항점수일괄수정
+	 *
+     * @param examDtlId 시험상세아이디
+     * @param qstnSeqno 문항순번
+     * @param qstnScr 	문항점수
+	 * @throws Exception
+	 */
+	public void cmptnYQuizQstnScrBulkModify(List<Map<String, Object>> list) throws Exception;
+
+	/**
      * 교수문항복사퀴즈문항목록조회
      *
      * @param examDtlId 	시험상세아이디
@@ -122,5 +133,15 @@ public interface QstnDAO {
      * @throws Exception
      */
 	public List<EgovMap> profQstnCopyQuizQstnList(QstnVO vo) throws Exception;
+
+	/**
+	 * 퀴즈문항가져오기
+	 *
+	 * @param copyType  	복사유형 ( qbnk : 문제은행, examppr : 다른 퀴즈 )
+     * @param copyQstnId 	복사문항아이디
+     * @param examDtlId 	시험상세아이디
+	 * @throws Exception
+	 */
+	public void quizQstnCopy(List<Map<String, Object>> list) throws Exception;
 
 }

@@ -20,11 +20,6 @@
 					quizListSelect(1);
 				}
 			});
-
-			$("#listType").on("click", function() {
-				$(this).children("i").toggleClass("list th");
-				quizListSelect(1);
-			});
 		});
 
 		// list scale 변경
@@ -172,7 +167,7 @@
 				if(e.target.dataset.qstnscmptn == "N") {
 					if(e.target.checked) {
 						UiComm.showMessage("<spring:message code='exam.alert.already.qstn.submit' />", "info");/* 문항 출제 완료 후 성적 공개가 가능합니다. */
-						e.target.checked = false;
+						UiSwitcherOff(e.target.id);
 						return;
 					}
 				}
@@ -195,38 +190,6 @@
 				}, true);
 			}
 		});
-
-		/**
-		 * 성적 공개여부 수정
-		 * @param {Object} obj - 성적 공개 변경할 객체
-		 * @param {String} examQstnsCmptnyn - 시험문제출제완료여부
-		 */
-		function mrkOynModify(obj, examQstnsCmptnyn) {
-			if(examQstnsCmptnyn == "N") {
-				if(obj.checked) {
-					UiComm.showMessage("<spring:message code='exam.alert.already.qstn.submit' />", "info");/* 문항 출제 완료 후 성적 공개가 가능합니다. */
-					$(obj).prop("checked", false);
-				}
-			}
-			var examBscId	= $(obj).val();
-			var mrkOyn 		= obj.checked ? "Y" : "N";
-			var url  = "/quiz/quizMrkOynModifyAjax.do";
-			var data = {
-				"examBscId" 	: examBscId,
-				"mrkOyn" 		: mrkOyn,
-				"exampprOyn" 	: mrkOyn
-			};
-
-			ajaxCall(url, data, function(data) {
-				if (data.result > 0) {
-	        		quizListSelect(1);
-	            } else {
-	            	UiComm.showMessage(data.message, "error");
-	            }
-			}, function(xhr, status, error) {
-				UiComm.showMessage("<spring:message code='exam.error.score.open' />", "error");/* 성적 공개 변경 중 에러가 발생하였습니다. */
-			}, true);
-		}
 
 		/**
 		 * 퀴즈 화면 이동
