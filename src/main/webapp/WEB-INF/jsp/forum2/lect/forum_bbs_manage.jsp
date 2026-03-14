@@ -469,7 +469,7 @@
                 $("#uploadFiles").val(dx.getUploadFiles());
 
                 // 게시글 저장 호출
-                atclSave();
+                addActl();
             } else {
                 UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error"); // 업로드를 실패하였습니다.
             }
@@ -480,60 +480,44 @@
     }
 
     // 게시글 등록/수정
-    function addActl() {
-        var fileUploader = dx5.get("fileUploader");
-        var prosConsTypeCd = $("#prosConsTypeCd").val();
-        var cts = $("#atclCts").val();
-        var uploadPath = $("#uploadPath").val();
-        $("#copyFiles").val(fileUploader.getCopyFiles());
-        $("#delFileIdStr").val(fileUploader.getDelFileIdStr());
+    function addActl(atclStatus) {
+        let dx = dx5.get("fileUploader");
+        $("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
 
-        if(cts == "" || cts.trim() === ""){
-            alert("<spring:message code='forum.forumBBsViewWrite.atcl'/>"); //토론 내용을 입력해주시기 바랍니다.
-            return false;
-        } else {
-            if(atclStatus == 'E') { // 수정
-                var url = "/forum/forumLect/Form/editAtcl.do";
-                var data = $("#forumAtclForm").serialize();
+        var atclTypeCd = "<c:out value="${forumVo.forumCtgrCd}" />"  + "_" + "<c:out value="${forumVo.prosConsForumCfg}" />";
+        var param = [];
+        param = param.concat($("#forumListForm").serializeArray());
+        param = param.concat($("#forumAtclForm").serializeArray());
 
-                ajaxCall(url, data, function(data) {
-                    if(data.result > 0) {
-                        alert("<spring:message code='forum.alert.edit.forum.atcl_success'/>"); // 토론 게시글 수정에 성공하였습니다.
-                        listForum(1);
-                    } else {
-                        alert("<spring:message code='forum.alert.edit.forum.atcl_fail'/>"); // 토론 게시글에 수정에 실패하였습니다. 다시 시도해주시기 바랍니다.
-                    }
-                }, function(xhr, status, error) {
-                    alert("<spring:message code='forum.common.error'/>"); // 에러가 발생했습니다.
-                }, true);
-            } else { // 등록
-                var atclTypeCd = "'<c:out value="${forumVo.forumCtgrCd}" />'"  + "_" + "'<c:out value="${forumVo.prosConsForumCfg}" />'";
-                var url = "/forum/forumLect/Form/addAtcl.do";
-                var data = {
-                    "prosConsTypeCd" : prosConsTypeCd,
-                    "atclTypeCd"	: atclTypeCd,
-                    "cts" : cts,
-                    "forumCd" : '<c:out value="${forumVo.forumCd}" />',
-                    "userId" : '<c:out value = "${userId}" />',
-                    "crsCreCd" : '<c:out value = "${forumVo.crsCreCd}" />',
-                    "uploadFiles" : fileUploader.getUploadFiles(),
-                    "uploadPath" : uploadPath,
-                    "repoCd" : "FORUM"
-                };
+        // TODO : 03.14 추후 atclCts 로 변경 필요.
+        param.push({name:"cts", value:$("#atclCts").val()});
+        param.push({name:"atclTypeCd", value:atclTypeCd});
 
-                ajaxCall(url, data, function(data) {
-                    if(data.result > 0) {
-                        alert("<spring:message code='forum.alert.add.forum.atcl_success'/>"); // 토론 게시글 등록에 성공하였습니다.
-                        window.parent.closeModal();
-                        window.parent.listForum(1);
-                    } else {
-                        alert("<spring:message code='forum.alert.add.forum.atcl_fail'/>"); // 토론 게시글에 등록에 실패하였습니다. 다시 시도해주시기 바랍니다.
-                    }
-                }, function(xhr, status, error) {
-                    alert("<spring:message code='forum.common.error'/>"); // 에러가 발생했습니다.
-                }, true);
-            }
-            listForum(1);
+        if(atclStatus == 'E') { // 수정
+            var url = "/forum2/forumLect/Form/editAtcl.do";
+            ajaxCall(url, param, function(data) {
+                if(data.result > 0) {
+                    alert("<spring:message code='forum.alert.edit.forum.atcl_success'/>"); // 토론 게시글 수정에 성공하였습니다.
+                    listForum(1);
+                } else {
+                    alert("<spring:message code='forum.alert.edit.forum.atcl_fail'/>"); // 토론 게시글에 수정에 실패하였습니다. 다시 시도해주시기 바랍니다.
+                }
+            }, function(xhr, status, error) {
+                alert("<spring:message code='forum.common.error'/>"); // 에러가 발생했습니다.
+            }, true);
+        } else { // 등록
+            var url = "/forum2/forumLect/Form/addAtcl.do";
+
+            ajaxCall(url, param, function(data) {
+                if(data.result > 0) {
+                    alert("<spring:message code='forum.alert.add.forum.atcl_success'/>"); // 토론 게시글 등록에 성공하였습니다.
+                    listForum(1);
+                } else {
+                    alert("<spring:message code='forum.alert.add.forum.atcl_fail'/>"); // 토론 게시글에 등록에 실패하였습니다. 다시 시도해주시기 바랍니다.
+                }
+            }, function(xhr, status, error) {
+                alert("<spring:message code='forum.common.error'/>"); // 에러가 발생했습니다.
+            }, true);
         }
     }
 
