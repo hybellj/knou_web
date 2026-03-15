@@ -389,6 +389,11 @@ $(document).ready(function() {
     $("#listScale, #bbsTeamCd").on("change", listForum);
     switchTab("tab1");
 });
+
+function toggleComment(index) {
+    var target = $("#commentBox" + index);
+    target.toggle();
+}
 </script>
 
 <body>

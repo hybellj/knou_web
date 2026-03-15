@@ -178,8 +178,8 @@
     }
 
     function prosConsText(v) {
-        if (v === "P") return "찬성";
-        if (v === "C") return "반대";
+        if (v === "OK") return "<spring:message code='forum.label.pros'/>"; // 찬성
+        if (v === "NOTOK") return "<spring:message code='forum.label.cons'/>"; // 반대
         return "FeedBack";
     }
 
@@ -247,100 +247,208 @@
         $("#atclList").html(createForumListHTML(renderList));
     }
 
-    function toggleComment(index) {
-        var target = $("#commentBox" + index);
-        target.toggle();
-    }
-
     function createForumListHTML(forumList) {
         if (!forumList.length) {
-            return "<div class='cont-none'><span>등록된 내용이 없습니다.</span></div>";
+            return "<div class='cont-none'><span>?깅줉???댁슜???놁뒿?덈떎.</span></div>";
         }
 
         var html = "";
-        forumList.forEach(function(v, i) {
+        forumList.forEach(function(v) {
             html += "<div class='ui card wmax'>";
             html += "  <div class='content'>";
             html += "    <div class='flex fac'>";
             html += "      <span class='label mr10'>" + escapeHtml(v.regNm) + "(" + escapeHtml(v.userId) + ")</span>";
-            html += "      <span class='label mr10 fcBlue'>글자수: " + v.ctsLen + "자</span>";
-            html += "      <span class='label mr10'>작성일시: " + formatDttm(v.modDttm) + "</span>";
-            html += "      <span class='label mr10'>구분: " + prosConsText(v.prosConsTypeCd) + "</span>";
+            html += "      <span class='label mr10 fcBlue'><spring:message code='forum.label.length'/> : " + v.ctsLen + "??/span>";
+            html += "      <span class='label mr10'><spring:message code='forum.label.reg.dttm'/> : " + formatDttm(v.modDttm) + "</span>";
+            html += "      <span class='label mr10'>援щ텇: " + prosConsText(v.prosConsTypeCd) + "</span>";
             html += "    </div>";
             html += "  </div>";
             html += "  <div class='ui segment ml25 mr25 mt10 mb10 forumView'><pre>" + escapeHtml(v.cts) + "</pre></div>";
-            html += "  <div class='content comment border0 mt10'>";
-            html += "    <div class='ui box flex-item'>";
-            html += "      <div class='flex-item mra'>";
-            html += "        <div class='cur_point' onclick='toggleComment(" + i + ")'>";
-            html += "          댓글 " + v.cmntCount + "개 보기/숨기기";
-            html += "        </div>";
-            html += "      </div>";
-            html += "    </div>";
-            html += "    <div class='article p10 commentlist' id='commentBox" + i + "' style='display:none;'>";
-            html += renderForumCommentList(v.cmntList);
-            html += "    </div>";
-            html += "  </div>";
+            html += renderNoticeCommentBlock(v);
             html += "</div>";
         });
 
         return html;
     }
 
-
-    function renderForumCommentList(list) {
-        var $wrap = $("<div></div>");
-        (list || []).forEach(function(item, index) {
-            var $node = item.level === 2 ? createReplyNode(item, index) : createCommentNode(item, index);
-            $wrap.append($node);
+    function toCommentTree(list) {
+        var tree = [];
+        var current = null;
+        (list || []).forEach(function(item) {
+            if (item.level === 1 || current === null) {
+                current = {
+                    item: item,
+                    replies: []
+                };
+                tree.push(current);
+            } else {
+                current.replies.push(item);
+            }
         });
-        return $wrap.html();
+        return tree;
     }
 
-    function createCommentNode(item, index) {
-        var $node = $($.trim($("#comment-item-template").html()));
-        bindCommentNode($node, item, index);
-        return $node;
+    function renderNoticeCommentBlock(v) {
+        var tree = toCommentTree(v.cmntList);
+        var commentCount = typeof v.cmntCount === "number" ? v.cmntCount : (v.cmntList || []).length;
+        var html = "";
+        html += "  <div class='Comment'>";
+        html += "    <div class='top_area'>";
+        html += "      <button class='toggle_commentlist'><i class='icon-svg-message'></i>" + commentCount + "개의 댓글이 있습니다. <i class='icon-svg-arrow-down'></i></button>";
+        html += "      <button class='toggle_commentwrite btn basic'>댓글 작성</button>";
+        html += "    </div>";
+        html += "    <div class='comment_list'>";
+        html += "      <div class='recmt_form'>";
+        html += "        <fieldset>";
+        html += "          <legend class='sr_only'>댓글 등록</legend>";
+        html += "          <div class='memo'>";
+        html += "            <div class='simple_answer'>";
+        html += "              <span>간편 댓글</span>";
+        html += "              <div class='answer_btn'>";
+        html += "                <a href='#0' class='current'>수고하셨어요.</a>";
+        html += "                <a href='#0'>고생하셨어요.</a>";
+        html += "                <a href='#0'>감사합니다.</a>";
+        html += "              </div>";
+        html += "            </div>";
+        html += "            <textarea title='댓글을 등록하세요' class='comment' name='c_comment' rows='3' cols='76' placeholder='댓글을 입력해 주세요'></textarea>";
+        html += "            <div class='bottom_btn'>";
+        html += "              <span class='custom-input'>";
+        html += "                <input type='checkbox' name=''>";
+        html += "                <label>피드백 문의 <span class='small'>( 체크 시 문의로 등록되고 답변을 받을 수 있습니다. )</span></label>";
+        html += "              </span>";
+        html += "              <div class='right-area'>";
+        html += "                <button type='button' class='btn type2'>댓글 등록</button>";
+        html += "              </div>";
+        html += "            </div>";
+        html += "          </div>";
+        html += "        </fieldset>";
+        html += "      </div>";
+        html += "      <ul>";
+        tree.forEach(function(node) {
+            var item = node.item || {};
+            html += "        <li>";
+            html += "          <div class='item'>";
+            html += "            <div class='cmt_info'>";
+            html += "              <strong class='name'>" + escapeHtml(item.regNm || "") + "</strong>";
+            html += "              <span class='date'>" + escapeHtml(formatDttm(item.modDttm)) + "</span>";
+            html += "            </div>";
+            html += "            <span class='comment'>" + escapeHtml(item.cmntCts || "") + "</span>";
+            html += "            <span class='cmtBtnGroup'>";
+            html += "              <button class='cmtUpt'>수정</button>";
+            html += "              <button class='cmtDel'>삭제</button>";
+            html += "              <button class='cmtWri'>댓글</button>";
+            html += "            </span>";
+            html += "          </div>";
+            html += "          <div class='recmt_form'>";
+            html += "            <fieldset>";
+            html += "              <legend class='sr_only'>댓글 등록</legend>";
+            html += "              <div class='memo'>";
+            html += "                <textarea title='댓글을 등록하세요' class='comment' name='c_comment' rows='3' cols='76' placeholder='댓글을 입력해 주세요'></textarea>";
+            html += "                <button type='button' class='cmt_create'>댓글 등록</button>";
+            html += "              </div>";
+            html += "            </fieldset>";
+            html += "          </div>";
+            if (node.replies && node.replies.length) {
+                html += "          <ul class='re_comment_ul'>";
+                node.replies.forEach(function(reply) {
+                    html += "            <li class='re_comment'>";
+                    html += "              <div class='item'>";
+                    html += "                <div class='cmt_info'>";
+                    html += "                  <strong class='name'>" + escapeHtml(reply.regNm || "") + "</strong>";
+                    html += "                  <span class='date'>" + escapeHtml(formatDttm(reply.modDttm)) + "</span>";
+                    html += "                </div>";
+                    html += "                <span class='comment'>" + escapeHtml(reply.cmntCts || "") + "</span>";
+                    html += "                <span class='cmtBtnGroup'>";
+                    html += "                  <button class='cmtUpt'>수정</button>";
+                    html += "                  <button class='cmtDel'>삭제</button>";
+                    html += "                </span>";
+                    html += "              </div>";
+                    html += "            </li>";
+                });
+                html += "          </ul>";
+            }
+            html += "        </li>";
+        });
+        html += "      </ul>";
+        html += "    </div>";
+        html += "  </div>";
+        return html;
     }
 
-    function createReplyNode(item, index) {
-        var $node = $($.trim($("#reply-item-template").html()));
-        bindReplyNode($node, item, index);
-        return $node;
-    }
+document.addEventListener('DOMContentLoaded', function () {
 
-    function bindCommentNode($node, item, index) {
-        bindForumCommentNode($node, item, index, false);
-    }
+        document.addEventListener('click', function (e) {
 
-    function bindReplyNode($node, item, index) {
-        bindForumCommentNode($node, item, index, true);
-    }
+        /* 댓글 목록 토글 */
+        const listBtn = e.target.closest('.toggle_commentlist');
+        if (listBtn) {
+        const comment = listBtn.closest('.Comment');
+        if (!comment) return;
 
-    function bindForumCommentNode($node, item, index, isReply) {
-        $node.attr("data-dscs-cmnt-id", item.cmntSn || "");
-        $node.attr("data-comment-index", index);
-        $node.find("[data-field='rgtrNm']").text(item.regNm || "");
-        $node.find("[data-field='regDttm']").text(formatDttm(item.modDttm));
-        $node.find("[data-field='cmntCtsLen']").text(item.cmntCtsLen);
-        $node.find("[data-field='commentMeta']").text(formatDttm(item.modDttm) + " | 글자수: " + item.cmntCtsLen + "자");
-        $node.find("[data-field='atclCmntCts']").text(item.cmntCts || "");
-        $node.find("[data-field='dscsCmntId']").text(item.cmntSn || "");
+        const ul = comment.querySelector('.comment_list > ul');
+        if (!ul) return;
 
-        var $mention = $node.find("[data-role='parent-mention']");
-        if (isReply) {
-            $mention.find("[data-field='parRegNm']").text(item.parRegNm || "");
-            $mention.removeClass("dpn");
-        } else {
-            $mention.addClass("dpn");
+        ul.style.display =
+            ul.style.display === 'none' || !ul.style.display
+            ? 'block'
+            : 'none';
+
+        return;
         }
 
-        applyActionVisibility($node, item);
-    }
+        /* 상단 댓글 작성 폼 토글 */
+        const writeBtn = e.target.closest('.toggle_commentwrite');
+        if (writeBtn) {
+        const comment = writeBtn.closest('.Comment');
+        if (!comment) return;
 
-    function applyActionVisibility($node, item) {
-        $node.find("[data-role='btn-reply'], [data-role='btn-edit'], [data-role='btn-delete']").hide();
-    }
+        const form = comment.querySelector('.comment_list > .recmt_form');
+        if (!form) return;
+
+        form.style.display =
+            form.style.display === 'none' || !form.style.display
+            ? 'block'
+            : 'none';
+
+        if (form.style.display === 'block') {
+            form.querySelector('textarea')?.focus();
+        }
+
+        return;
+        }
+
+        /* 댓글 목록 안 대댓글 폼 토글 */
+        const replyBtn = e.target.closest('.cmtWri');
+        if (replyBtn) {
+        const li = replyBtn.closest('li');
+        if (!li) return;
+
+        const comment = replyBtn.closest('.Comment');
+        const replyForm = li.querySelector('.recmt_form');
+        if (!replyForm) return;
+
+        // 같은 Comment 안의 다른 대댓글 폼 닫기
+        comment
+            .querySelectorAll('.comment_list ul li .recmt_form')
+            .forEach(function (form) {
+            if (form !== replyForm) {
+                form.style.display = 'none';
+            }
+            });
+
+        replyForm.style.display =
+            replyForm.style.display === 'none' || !replyForm.style.display
+            ? 'block'
+            : 'none';
+
+        if (replyForm.style.display === 'block') {
+            replyForm.querySelector('textarea')?.focus();
+        }
+        }
+
+        });
+
+    });
 
     function listForumUser() {
         var html = "";
