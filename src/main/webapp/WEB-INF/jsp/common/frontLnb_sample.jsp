@@ -208,8 +208,8 @@
 							<li><a href="/score/scoreOverall/scoreOverallMainList.do"><i class="icon-paper-pencil ico" aria-hidden="true"></i></i><spring:message code="score.label.university.score" /></a></li><!-- 종합성적 -->
 							<li><a href="/score/scoreOverall/scoreOverallCourseMain.do"><i class="icon-paper-pencil ico" aria-hidden="true"></i></i><spring:message code="common.label.score.reconfirm" /></a></li><!-- 성적재확인 -->
 							<li><a href="/file/fileHome/Form/fileBox.do" title="<spring:message code="filemgr.label.my.file.box" />"><i class="icon-floppy-diskette ico" aria-hidden="true"></i><spring:message code="filemgr.label.my.file.box" /></a></li><!-- 개인자료실 -->
-							<li><a href="/dashboard/profDashboard.do?sample=1" title="<spring:message code="filemgr.label.my.file.box" />"><i class="icon-floppy-diskette ico" aria-hidden="true"></i>위젯 샘플1</a></li><!-- 위젯 샘플1 -->
-							<li><a href="/dashboard/profDashboard.do?sample=2" title="<spring:message code="filemgr.label.my.file.box" />"><i class="icon-floppy-diskette ico" aria-hidden="true"></i>위젯 샘플2</a></li><!-- 위젯 샘플2 -->
+							<li><a href="/dashboard/dashboard.do?sample=1" title="<spring:message code="filemgr.label.my.file.box" />"><i class="icon-floppy-diskette ico" aria-hidden="true"></i>위젯 샘플1</a></li><!-- 위젯 샘플1 -->
+							<li><a href="/dashboard/dashboard.do?sample=2" title="<spring:message code="filemgr.label.my.file.box" />"><i class="icon-floppy-diskette ico" aria-hidden="true"></i>위젯 샘플2</a></li><!-- 위젯 샘플2 -->
 						</ul>
 	
 					</div>

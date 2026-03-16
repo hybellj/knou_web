@@ -1,3 +1,5 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 
@@ -142,14 +144,57 @@
 							<c:choose>
 								<c:when test="${forumVo.forumCtgrCd eq 'TEAM'}">
 									<spring:message code='forum.common.yes'/><!-- 예 -->
+									<c:choose>
+										<c:when test="${forumVo.byteamSubdscsUseyn eq 'Y'}">
+											<br/><span><spring:message code='forum.label.lrngrp'/><%--학습그룹--%> : ${forumVo.dscsGrpnm}</span>
+											<br/><span><spring:message code='forum.label.lrngrp.dscs.setting'/><%--학습그룹별 토론 설정--%> : </span><spring:message code='forum.label.use.y'/><!-- 사용 -->
+											<table class="table-type2">
+												<colgroup>
+													<col style="width : 10%">
+													<col style="width : 15%">
+													<col style="width : 60%">
+													<col style="width : 15%">
+												</colgroup>
+												<thead>
+												<tr>
+													<th><spring:message code='forum.label.team'/></th><!-- 팀 -->
+													<th colspan="2"><spring:message code='forum.label.content'/></th><!-- 부주제 -->
+													<th><spring:message code='forum.label.lrngrp.mebers'/></th><!-- 학습그룹 구성원 -->
+												</tr>
+												</thead>
+												<tbody>
+												<c:forEach var="item" items="${forumVo.teamForumDtlList}" varStatus="status">
+													<tr>
+														<td rowspan="3">${item.teamnm}<spring:message code='forum.label.team'/></td><!-- 팀 -->
+														<td style="background-color:#f2f2f2;"><spring:message code='forum.label.content'/></td><!-- 부주제 -->
+														<td style="text-align:left; padding-left:10px;">${item.subdscsTtl}</td>
+														<td rowspan="3">${item.groupMembers}</td>
+													</tr>
+													<tr>
+														<td style="background-color:#f2f2f2;"><spring:message code='forum.label.content'/></td><!-- 내용 -->
+														<td style="text-align:left; padding:10px;">
+															<textarea style="width:95%; height:80px;resize: none; overflow-y: auto;" readonly>${item.subdscsCts}</textarea>
+														</td>
+													</tr>
+													<tr>
+														<td style="background-color:#f2f2f2;"><spring:message code='forum.label.attachFile'/></td><!-- 첨부파일 -->
+														<td style="text-align:left; padding-left:10px;">
+															<a href="#">첨부파일_sample_${status.index}.pdf</a> (143.26 KB)
+														</td>
+													</tr>
+												</c:forEach>
+												</tbody>
+											</table>
+										</c:when>
+										<c:otherwise>
+											<spring:message code='forum.label.use.n'/><!-- 미사용 -->
+										</c:otherwise>
+									</c:choose>
 								</c:when>
 								<c:otherwise>
 									<spring:message code='forum.common.no'/><!-- 아니오 -->
 								</c:otherwise>
 							</c:choose>
-							<c:if test="${forumVo.forumCtgrCd eq 'TEAM'}">
-								| ${forumVo.crsCreNm}<spring:message code='forum.label.team.member.info'/><!-- 반 팀구성 --> <button class="ui icon small button" onclick="teamMemberView('${forumVo.teamCtgrCd}')"><spring:message code='forum.label.team.member.view'/><!-- 팀 구성원 보기 --></button>
-							</c:if>
 						</td>
 					</tr>
 					<tr>

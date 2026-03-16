@@ -13,6 +13,7 @@ public class DefaultVO implements Serializable {
 
     // 공통
     private String		gubun;				// 공통 구분값 전달
+    private String		pageType;			// 페이지 형식 (normal, iframe)
 
     // 페이징
     private int		pageIndex = 1;		// 현재 페이지 번호
@@ -798,5 +799,13 @@ public class DefaultVO implements Serializable {
 
 	public void setFileCnt(int fileCnt) {
 		this.fileCnt = fileCnt;
+	}
+
+	public String getPageType() {
+		return pageType;
+	}
+
+	public void setPageType(String pageType) {
+		this.pageType = pageType;
 	}
 }

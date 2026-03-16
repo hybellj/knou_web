@@ -68,7 +68,7 @@
                         const tabContainer = document.querySelector(".page_tab");
                         const leftBtn = document.querySelector(".btn_arrow");
                         const rightBtn = document.querySelector(".btn_arrow2");
-                        const closeBtn = document.querySelector(".btn_close");  
+                        const closeBtn = document.querySelector(".btn_close");
 
                         // 탭 클릭 시 활성화
                         tabContainer.addEventListener("click", function (e) {
@@ -154,4 +154,3 @@
                         });
                     });
                     </script>
-	

@@ -22,7 +22,7 @@
             // authkey: Authentication Key string,
             // devlms.hycu.ac.kr
 			//authkey:"32zQObHcaaIwfGP5q6FsaSeB6ViF04lf/MYzQhg+qeApdK6eFyxnblwJDrZociDcPFMYR3BBsSUBIXygmZHY/QwBE62fEOjKteSVW/jkGDCMjEcUszaMLspBI/py9CrdQvP5LPFuzVm1uz+UZBax3seOv8dYcSdSIhnf8w8CnU8=",
-			authkey:"PfDZSVtXz9S/dTEy27syms1ro55YXu5aaGoI1iSLHwjNkp4nTruO3pfZ0mRAVKOo3DGI3rR5JAOZP5V/SDTtgBzyP8BdUy9pLWE/WF98bDyCUrWBb30xDwtrrCWaVfcQkWqxv0lXg5BPFX5HGVGjEncYcSH1AQvd5EXLNcMf4eY=",
+			authkey:"MsCdtzaN2RZmQxq6KwtpJ6fOfXdfoz+RYTwUzaCzHQ1F3nV3SYyY7YWJXCuwbJ5yNeq2V1v/UwNaaM5h0ugdRBKtOoUvjOhG3DgAHJFUGaTY8eAw4f1wXE3nDSlexfz6/ft796HjvNsqt2rUMAXihXzhKqwhUf4RrkU+xjpwkMw=",
 			// authkey:"sGceTUdmRDurpBCqPS9b8OxS1BE/92hb9DDlqpJ3Gggass72D9IQ2KFkQBLiIul6h0lzb4nYAuySqJln2b/FH04KwqTILcZHB6+ZTt0+yr8/RIrxClw4LrOVgAM/O8WFEC8qWiobKvWlsGXplhR9crMuZcXY0MrbVzkREQkEZVo=",
             version: "4.3.5.0",
             // productPath: DEXTUploadX5 location path (It MUST be a web address started with http or https.)

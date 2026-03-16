@@ -7,6 +7,7 @@
 <head>
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
         <jsp:param name="style" value="dashboard"/>
+        <jsp:param name="module" value="table"/>
     </jsp:include>
 </head>
 
@@ -61,11 +62,9 @@
                     </div>
 
                     <!-- ========================= -->
-                    <!-- TAB 1: 주차별 수업현황 -->
+                    <!-- 주차별 수업현황 -->
                     <!-- ========================= -->
                     <div id="tabWeekly" class="tab-content">
-                        <h4 class="sub-title" style="margin-top:10px;">학습현황</h4>
-
                         <div class="board_top" style="margin-top:10px;">
                             <h3 class="board-title">주차별 미학습자 비율</h3>
                             <div class="right-area">
@@ -133,22 +132,22 @@
 
                             <div class="item">
                                 <span class="item_tit">
-                                    <label for="absnFrom">결석횟수</label>
+                                    <label for="absnWknoFrom">결석주차</label>
                                 </span>
                                 <div class="itemList">
-                                    <input class="form-control"
-                                           type="text"
-                                           id="absnFrom"
-                                           placeholder="From"
-                                           style="width:80px"
-                                           inputmask="numeric">
+                                    <select class="form-control" id="absnWknoFrom" style="width:90px;">
+                                        <option value="0">전체</option>
+                                        <c:forEach begin="1" end="15" var="w">
+                                            <option value="${w}">${w}주차</option>
+                                        </c:forEach>
+                                    </select>
                                     <span class="txt-sort">~</span>
-                                    <input class="form-control"
-                                           type="text"
-                                           id="absnTo"
-                                           placeholder="To"
-                                           style="width:80px"
-                                           inputmask="numeric">
+                                    <select class="form-control" id="absnWknoTo" style="width:90px;">
+                                        <option value="0">전체</option>
+                                        <c:forEach begin="1" end="15" var="w">
+                                            <option value="${w}">${w}주차</option>
+                                        </c:forEach>
+                                    </select>
                                 </div>
                             </div>
 
@@ -208,19 +207,19 @@
                             <div class="board_pager">
                                 <span class="inner">
                                     <a href="#none" class="page_first" title="첫페이지" onclick="searchStdntList(1)">
-                                        <i class="icon-svg-arrow01"></i><span class="sr_only">첫페이지</span>
+                                        <i class="xi-angle-left-min"></i><i class="xi-angle-left-min" style="margin-left:-8px;"></i><span class="sr_only">첫페이지</span>
                                     </a>
                                     <a href="#none" class="page_prev" title="이전페이지" onclick="moveStdntPage('prev')">
-                                        <i class="icon-svg-arrow02"></i><span class="sr_only">이전페이지</span>
+                                        <i class="xi-angle-left-min"></i><span class="sr_only">이전페이지</span>
                                     </a>
                                     <a href="#none" class="page_now" title="현재페이지">
                                         <strong id="stdntCurPage2">1</strong>
                                     </a>
                                     <a href="#none" class="page_next" title="다음페이지" onclick="moveStdntPage('next')">
-                                        <i class="icon-svg-arrow03"></i><span class="sr_only">다음페이지</span>
+                                        <i class="xi-angle-right-min"></i><span class="sr_only">다음페이지</span>
                                     </a>
                                     <a href="#none" class="page_last" title="마지막페이지" onclick="searchStdntList(stdntTotalPageCount)">
-                                        <i class="icon-svg-arrow04"></i><span class="sr_only">마지막페이지</span>
+                                        <i class="xi-angle-right-min"></i><i class="xi-angle-right-min" style="margin-left:-8px;"></i><span class="sr_only">마지막페이지</span>
                                     </a>
                                 </span>
                             </div>
@@ -230,7 +229,7 @@
                     </div>
 
                     <!-- ========================= -->
-                    <!-- TAB 2: 학습요소 참여현황 -->
+                    <!-- 학습요소 참여현황 -->
                     <!-- ========================= -->
                     <div id="tabElement" class="tab-content" style="display:none;">
                         <div class="board_top" style="margin-top:16px;">
@@ -319,19 +318,19 @@
                             <div class="board_pager">
                                 <span class="inner">
                                     <a href="#none" class="page_first" title="첫페이지" onclick="searchElemStdntList(1)">
-                                        <i class="icon-svg-arrow01"></i><span class="sr_only">첫페이지</span>
+                                        <i class="xi-angle-left-min"></i><i class="xi-angle-left-min" style="margin-left:-8px;"></i><span class="sr_only">첫페이지</span>
                                     </a>
                                     <a href="#none" class="page_prev" title="이전페이지" onclick="return false;">
-                                        <i class="icon-svg-arrow02"></i><span class="sr_only">이전페이지</span>
+                                        <i class="xi-angle-left-min"></i><span class="sr_only">이전페이지</span>
                                     </a>
                                     <a href="#none" class="page_now" title="현재페이지">
                                         <strong id="elemStdntCurPage2">1</strong>
                                     </a>
                                     <a href="#none" class="page_next" title="다음페이지" onclick="return false;">
-                                        <i class="icon-svg-arrow03"></i><span class="sr_only">다음페이지</span>
+                                        <i class="xi-angle-right-min"></i><span class="sr_only">다음페이지</span>
                                     </a>
                                     <a href="#none" class="page_last" title="마지막페이지" onclick="return false;">
-                                        <i class="icon-svg-arrow04"></i><span class="sr_only">마지막페이지</span>
+                                        <i class="xi-angle-right-min"></i><i class="xi-angle-right-min" style="margin-left:-8px;"></i><span class="sr_only">마지막페이지</span>
                                     </a>
                                 </span>
                             </div>
@@ -378,7 +377,6 @@
     }
 
     $(function () {
-        $("#hdrDvclasNo").text(dvclasNo || "-");
 
         $("#clsTab a").on("click", function (e) {
             e.preventDefault();
@@ -401,7 +399,7 @@
             }
         });
 
-        loadHeader();
+        loadHeader();  /* ★ 탭 이벤트 등록 후 호출 */
 
         $("#srchKeyword2").on("keydown", function (e) {
             if (e.keyCode === 13) {
@@ -425,17 +423,14 @@
     });
 
     function loadHeader() {
-        $.ajax({
-            url: CTX + "/cls/selectClsDetail.do",
-            type: "GET",
-            dataType: "json",
-            data: { sbjctId: sbjctId },
-            success: function (res) {
-                if (res && res.result === 1 && res.returnVO) {
-                    $("#hdrSbjctNm").text(res.returnVO.sbjctnm || "과목명");
-                }
-            }
-        });
+        /* ★ URLSearchParams로 직접 파싱
+           → Controller forward 여부, EL 인코딩 문제 전부 무관하게 동작 */
+        var params  = new URLSearchParams(location.search);
+        var sbjctnm = params.get("sbjctnm")  || "";
+        var dvclsNo = params.get("dvclasNo") || "";
+
+        $("#hdrSbjctNm").text(sbjctnm || "과목명");
+        if (dvclsNo) $("#hdrDvclasNo").text(dvclsNo);
     }
 
     function reloadAll() {
@@ -444,7 +439,7 @@
     }
 
     /* ===========================
-       TAB1: 주차별 미학습자 비율
+       주차별 미학습자 비율
        =========================== */
     function loadWklyStats() {
         $.ajax({
@@ -505,7 +500,7 @@
     }
 
     /* ===========================
-       TAB1: 학습자 학습현황 목록
+       학습자 학습현황 목록
        =========================== */
     function searchStdntList(page) {
         stdntCurrentPageNo = page;
@@ -515,11 +510,11 @@
             type: "GET",
             dataType: "json",
             data: {
-                sbjctId: sbjctId,
-                srchKeyword: $("#srchKeyword2").val(),
-                absnWknoFrom: $("#absnFrom").val() || 0,
-                absnWknoTo: $("#absnTo").val() || 0,
-                pageIndex: page
+                sbjctId:      sbjctId,
+                srchKeyword:  $("#srchKeyword2").val(),
+                absnWknoFrom: parseInt($("#absnWknoFrom").val()) || 0,
+                absnWknoTo:   parseInt($("#absnWknoTo").val())   || 0,
+                pageIndex:    page
             },
             success: function (res) {
                 var $body = $("#stdntBody").empty();
@@ -567,25 +562,25 @@
                 }
 
                 list.forEach(function (item, idx) {
-                    var no = ((stdntCurrentPageNo - 1) * perPage) + idx + 1;
+                    var no  = ((stdntCurrentPageNo - 1) * perPage) + idx + 1;
                     var uid = (item.userId || '');
 
                     var row = '<tr>'
                         + '<td class="t_center">' + no + '</td>'
-                        + '<td class="t_center">' + (item.deptnm || '') + '</td>'
+                        + '<td class="t_center">' + (item.deptnm  || '') + '</td>'
                         + '<td class="t_center">' + (item.stdntNo || '') + '</td>'
                         + '<td class="t_center"><a href="#_" class="stdntName" data-user-id="' + uid + '" onclick="return false;">' + (item.usernm || '') + '</a></td>'
                         + '<td class="t_center">' + (item.entyR || '-') + '</td>'
-                        + '<td class="t_center">' + (item.scyr || '-') + '</td>'
-                        + wkCell(uid, 1, item.wk1Sts)
-                        + wkCell(uid, 2, item.wk2Sts)
-                        + wkCell(uid, 3, item.wk3Sts)
-                        + wkCell(uid, 4, item.wk4Sts)
-                        + wkCell(uid, 5, item.wk5Sts)
-                        + wkCell(uid, 6, item.wk6Sts)
-                        + wkCell(uid, 7, item.wk7Sts)
-                        + wkCell(uid, 8, item.wk8Sts)
-                        + wkCell(uid, 9, item.wk9Sts)
+                        + '<td class="t_center">' + (item.scyr  || '-') + '</td>'
+                        + wkCell(uid,  1, item.wk1Sts)
+                        + wkCell(uid,  2, item.wk2Sts)
+                        + wkCell(uid,  3, item.wk3Sts)
+                        + wkCell(uid,  4, item.wk4Sts)
+                        + wkCell(uid,  5, item.wk5Sts)
+                        + wkCell(uid,  6, item.wk6Sts)
+                        + wkCell(uid,  7, item.wk7Sts)
+                        + wkCell(uid,  8, item.wk8Sts)
+                        + wkCell(uid,  9, item.wk9Sts)
                         + wkCell(uid, 10, item.wk10Sts)
                         + wkCell(uid, 11, item.wk11Sts)
                         + wkCell(uid, 12, item.wk12Sts)
@@ -620,10 +615,7 @@
         e.preventDefault();
 
         var userId = $(this).data("userId");
-        if (!userId) {
-            showMsg("userId가 없습니다.", "warning");
-            return;
-        }
+        if (!userId) { showMsg("userId가 없습니다.", "warning"); return; }
 
         UiDialog("stdntWkPop", {
             title: "학습자 학습현황",
@@ -631,7 +623,7 @@
             height: 820,
             url: CTX + "/cls/selectStdntWkPopupView.do?sbjctId=" + encodeURIComponent(sbjctId)
                 + "&dvclasNo=" + encodeURIComponent(dvclasNo)
-                + "&userId=" + encodeURIComponent(userId)
+                + "&userId="   + encodeURIComponent(userId)
                 + "&wkNo=1"
         });
     });
@@ -643,12 +635,9 @@
         e.preventDefault();
 
         var userId = $(this).data("userId");
-        var wkNo = $(this).data("wkNo");
+        var wkNo   = $(this).data("wkNo");
 
-        if (!userId) {
-            showMsg("userId가 없습니다.", "warning");
-            return;
-        }
+        if (!userId) { showMsg("userId가 없습니다.", "warning"); return; }
 
         UiDialog("stdntWkDetailPop", {
             title: "학습자 주차별 학습현황",
@@ -656,8 +645,8 @@
             height: 820,
             url: CTX + "/cls/selectStdntWkDetailPopupView.do?sbjctId=" + encodeURIComponent(sbjctId)
                 + "&dvclasNo=" + encodeURIComponent(dvclasNo)
-                + "&userId=" + encodeURIComponent(userId)
-                + "&wkNo=" + wkNo
+                + "&userId="   + encodeURIComponent(userId)
+                + "&wkNo="     + wkNo
         });
     });
 
@@ -666,28 +655,27 @@
             showMsg("현재 조회된 학습자가 없습니다.", "warning");
             return;
         }
-
         showMsg("현재 조회된 학습자: " + lastStdntUserIds.length + "명\n(보내기 기능 연결 예정)", "info");
     }
 
     function downloadExcel() {
         var excelGrid = {
             colModel: [
-                {label:'No', name:'lineNo', align:'center', width:'3000'},
-                {label:'학과', name:'deptnm', align:'center', width:'7000'},
-                {label:'학번', name:'stdntNo', align:'center', width:'7000'},
-                {label:'이름', name:'usernm', align:'center', width:'6000'},
-                {label:'입학년도', name:'entyR', align:'center', width:'5000'},
-                {label:'학년', name:'scyr', align:'center', width:'3000'},
-                {label:'1', name:'wk1Sts', align:'center', width:'2500'},
-                {label:'2', name:'wk2Sts', align:'center', width:'2500'},
-                {label:'3', name:'wk3Sts', align:'center', width:'2500'},
-                {label:'4', name:'wk4Sts', align:'center', width:'2500'},
-                {label:'5', name:'wk5Sts', align:'center', width:'2500'},
-                {label:'6', name:'wk6Sts', align:'center', width:'2500'},
-                {label:'7', name:'wk7Sts', align:'center', width:'2500'},
-                {label:'8', name:'wk8Sts', align:'center', width:'2500'},
-                {label:'9', name:'wk9Sts', align:'center', width:'2500'},
+                {label:'No',       name:'lineNo',   align:'center', width:'3000'},
+                {label:'학과',     name:'deptnm',   align:'center', width:'7000'},
+                {label:'학번',     name:'stdntNo',  align:'center', width:'7000'},
+                {label:'이름',     name:'usernm',   align:'center', width:'6000'},
+                {label:'입학년도', name:'entyR',    align:'center', width:'5000'},
+                {label:'학년',     name:'scyr',     align:'center', width:'3000'},
+                {label:'1',  name:'wk1Sts',  align:'center', width:'2500'},
+                {label:'2',  name:'wk2Sts',  align:'center', width:'2500'},
+                {label:'3',  name:'wk3Sts',  align:'center', width:'2500'},
+                {label:'4',  name:'wk4Sts',  align:'center', width:'2500'},
+                {label:'5',  name:'wk5Sts',  align:'center', width:'2500'},
+                {label:'6',  name:'wk6Sts',  align:'center', width:'2500'},
+                {label:'7',  name:'wk7Sts',  align:'center', width:'2500'},
+                {label:'8',  name:'wk8Sts',  align:'center', width:'2500'},
+                {label:'9',  name:'wk9Sts',  align:'center', width:'2500'},
                 {label:'10', name:'wk10Sts', align:'center', width:'2500'},
                 {label:'11', name:'wk11Sts', align:'center', width:'2500'},
                 {label:'12', name:'wk12Sts', align:'center', width:'2500'},
@@ -701,22 +689,18 @@
         };
 
         $("form[name=excelForm]").remove();
-
         var excelForm = $('<form name="excelForm" method="post"></form>');
         excelForm.attr("action", CTX + "/cls/selectClsStdntListExcelDown.do");
-
-        excelForm.append($('<input/>', {type:'hidden', name:'sbjctId', value: sbjctId}));
-        excelForm.append($('<input/>', {type:'hidden', name:'srchKeyword', value: $("#srchKeyword2").val()}));
-        excelForm.append($('<input/>', {type:'hidden', name:'absnWknoFrom', value: $("#absnFrom").val() || 0}));
-        excelForm.append($('<input/>', {type:'hidden', name:'absnWknoTo', value: $("#absnTo").val() || 0}));
-        excelForm.append($('<input/>', {type:'hidden', name:'excelGrid', value: JSON.stringify(excelGrid)}));
-
-        excelForm.appendTo("body");
-        excelForm.submit();
+        excelForm.append($('<input/>', {type:'hidden', name:'sbjctId',      value: sbjctId}));
+        excelForm.append($('<input/>', {type:'hidden', name:'srchKeyword',  value: $("#srchKeyword2").val()}));
+        excelForm.append($('<input/>', {type:'hidden', name:'absnWknoFrom', value: parseInt($("#absnWknoFrom").val()) || 0}));
+        excelForm.append($('<input/>', {type:'hidden', name:'absnWknoTo',   value: parseInt($("#absnWknoTo").val())   || 0}));
+        excelForm.append($('<input/>', {type:'hidden', name:'excelGrid',    value: JSON.stringify(excelGrid)}));
+        excelForm.appendTo("body").submit();
     }
 
     /* ===========================
-       TAB2: 학습요소 참여현황
+       학습요소 참여현황
        =========================== */
     function searchElemStdntList(page) {
         elemStdntCurrentPageNo = page;
@@ -731,9 +715,8 @@
             },
             success: function (res) {
                 var $body = $("#elemStdntBody").empty();
-
-                var list = (res && res.returnList) ? res.returnList : [];
-                var cnt = list.length;
+                var list  = (res && res.returnList) ? res.returnList : [];
+                var cnt   = list.length;
 
                 elemStdntTotalPageCount = 1;
                 $("#elemStdntTotalCnt").text(cnt);
@@ -742,10 +725,7 @@
                 $("#elemStdntCurPage2").text(1);
                 $("#elemStdntTotalPage").text(1);
 
-                lastElemUserIds = list.map(function (x) {
-                    return x.userId;
-                }).filter(Boolean);
-
+                lastElemUserIds = list.map(function (x) { return x.userId; }).filter(Boolean);
                 window._lastElemUserIds = lastElemUserIds;
 
                 if (!res || res.result !== 1 || cnt === 0) {
@@ -758,10 +738,8 @@
                 }
 
                 list.forEach(function (r, idx) {
-                    var no = idx + 1;
-                    var uid = (r.userId || '');
-
-                    var qa   = (r.qaAnsCnt || 0) + '/' + (r.qaRegCnt || 0);
+                    var uid  = (r.userId || '');
+                    var qa   = (r.qaAnsCnt     || 0) + '/' + (r.qaRegCnt    || 0);
                     var asmt = (r.asmtSbmsnCnt || 0) + '/' + (r.asmtTrgtCnt || 0);
                     var quiz = (r.quizSbmsnCnt || 0) + '/' + (r.quizTrgtCnt || 0);
                     var srvy = (r.srvySbmsnCnt || 0) + '/' + (r.srvyTrgtCnt || 0);
@@ -769,17 +747,17 @@
 
                     $body.append(
                         '<tr>'
-                        + '<td class="t_center">' + no + '</td>'
-                        + '<td class="t_center">' + (r.deptnm || '') + '</td>'
+                        + '<td class="t_center">' + (idx + 1) + '</td>'
+                        + '<td class="t_center">' + (r.deptnm  || '') + '</td>'
                         + '<td class="t_center">' + (r.stdntNo || '') + '</td>'
                         + '<td class="t_center"><a href="#_" class="elemStdntName" data-user-id="' + uid + '" onclick="return false;">' + (r.usernm || '') + '</a></td>'
-                        + '<td class="t_center">' + linkCount(uid, qa, 'QNA') + '</td>'
+                        + '<td class="t_center">' + linkCount(uid, qa,   'QNA')  + '</td>'
                         + '<td class="t_center">' + (r.talkReplyCnt == null ? '0' : r.talkReplyCnt) + '</td>'
                         + '<td class="t_center">' + linkCount(uid, asmt, 'ASMT') + '</td>'
                         + '<td class="t_center">' + linkCount(uid, quiz, 'QUIZ') + '</td>'
                         + '<td class="t_center">' + linkCount(uid, srvy, 'SRVY') + '</td>'
                         + '<td class="t_center">' + linkCount(uid, dscc, 'DSCC') + '</td>'
-                        + '<td class="t_center">' + (r.midScore == null ? '-' : r.midScore) + '</td>'
+                        + '<td class="t_center">' + (r.midScore   == null ? '-' : r.midScore)   + '</td>'
                         + '<td class="t_center">' + (r.finalScore == null ? '-' : r.finalScore) + '</td>'
                         + '</tr>'
                     );
@@ -793,13 +771,8 @@
 
     $(document).on("click", ".elemStdntName", function (e) {
         e.preventDefault();
-
         var userId = $(this).data("userId");
-        if (!userId) {
-            showMsg("userId가 없습니다.", "warning");
-            return;
-        }
-
+        if (!userId) { showMsg("userId가 없습니다.", "warning"); return; }
         openStdntElemPopup(userId, "ASMT");
     });
 
@@ -810,7 +783,7 @@
             height: 820,
             url: CTX + "/cls/selectStdntElemPopupView.do?sbjctId=" + encodeURIComponent(sbjctId)
                 + "&dvclasNo=" + encodeURIComponent(dvclasNo)
-                + "&userId=" + encodeURIComponent(userId)
+                + "&userId="   + encodeURIComponent(userId)
                 + "&elemType=" + encodeURIComponent(elemType || "ASMT")
         });
     }
@@ -820,39 +793,34 @@
             showMsg("현재 조회된 학습자가 없습니다.", "warning");
             return;
         }
-
         showMsg("현재 조회된 학습자: " + lastElemUserIds.length + "명\n(보내기 기능 연결 예정)", "info");
     }
 
     function downloadElemStdntExcel() {
         var excelGrid = {
             colModel: [
-                {label:'No', name:'lineNo', align:'center', width:'3000'},
-                {label:'학과', name:'deptnm', align:'center', width:'7000'},
-                {label:'학번', name:'stdntNo', align:'center', width:'7000'},
-                {label:'이름', name:'usernm', align:'center', width:'6000'},
-                {label:'Q&A(답변/등록)', name:'qaText', align:'center', width:'6000'},
-                {label:'토론방(댓글수)', name:'talkReplyCnt', align:'center', width:'4000'},
-                {label:'과제(제출/전체)', name:'asmtText', align:'center', width:'6000'},
-                {label:'퀴즈(제출/전체)', name:'quizText', align:'center', width:'6000'},
-                {label:'설문(제출/전체)', name:'srvyText', align:'center', width:'6000'},
-                {label:'토론(제출/전체)', name:'dsccText', align:'center', width:'6000'},
-                {label:'중간고사', name:'midScore', align:'center', width:'4000'},
-                {label:'기말고사', name:'finalScore', align:'center', width:'4000'}
+                {label:'No',              name:'lineNo',       align:'center', width:'3000'},
+                {label:'학과',            name:'deptnm',       align:'center', width:'7000'},
+                {label:'학번',            name:'stdntNo',      align:'center', width:'7000'},
+                {label:'이름',            name:'usernm',       align:'center', width:'6000'},
+                {label:'Q&A(답변/등록)',  name:'qaText',       align:'center', width:'6000'},
+                {label:'토론방(댓글수)',  name:'talkReplyCnt', align:'center', width:'4000'},
+                {label:'과제(제출/전체)', name:'asmtText',     align:'center', width:'6000'},
+                {label:'퀴즈(제출/전체)', name:'quizText',     align:'center', width:'6000'},
+                {label:'설문(제출/전체)', name:'srvyText',     align:'center', width:'6000'},
+                {label:'토론(제출/전체)', name:'dsccText',     align:'center', width:'6000'},
+                {label:'중간고사',        name:'midScore',     align:'center', width:'4000'},
+                {label:'기말고사',        name:'finalScore',   align:'center', width:'4000'}
             ]
         };
 
         $("form[name=excelForm]").remove();
-
         var excelForm = $('<form name="excelForm" method="post"></form>');
         excelForm.attr("action", CTX + "/cls/selectClsElemStatsExcelDown.do");
-
-        excelForm.append($('<input/>', {type:'hidden', name:'sbjctId', value: sbjctId}));
-        excelForm.append($('<input/>', {type:'hidden', name:'keyword', value: $("#elemStdntKeyword").val()}));
+        excelForm.append($('<input/>', {type:'hidden', name:'sbjctId',   value: sbjctId}));
+        excelForm.append($('<input/>', {type:'hidden', name:'keyword',   value: $("#elemStdntKeyword").val()}));
         excelForm.append($('<input/>', {type:'hidden', name:'excelGrid', value: JSON.stringify(excelGrid)}));
-
-        excelForm.appendTo("body");
-        excelForm.submit();
+        excelForm.appendTo("body").submit();
     }
 </script>
 </body>

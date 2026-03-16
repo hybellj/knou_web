@@ -1,4 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+
+<c:if test="${pageType ne 'iframe' or param.view eq 'on'}">
 
 <footer id="bottom" class="footer">
 	<button type="button" class="go_top"><i class="xi-angle-up-min"></i><span>TOP</span></button>
@@ -12,3 +15,5 @@
 		</ul>            
 	</div>
 </footer>
+
+</c:if>

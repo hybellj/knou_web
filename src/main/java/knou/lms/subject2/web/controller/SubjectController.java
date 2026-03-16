@@ -33,8 +33,8 @@ public class SubjectController extends ControllerBase {
      * @return
      * @throws Exception
      */
-    @RequestMapping(value={"/subject2MainView.do"})
-    public String subject2MainView(HttpServletRequest request, ModelMap model) throws Exception {    	
+    @RequestMapping(value={"/subject.do"})
+    public String subject(HttpServletRequest request, ModelMap model) throws Exception {    	
     	
     	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");    	
     	if ( null == userCtx ) {

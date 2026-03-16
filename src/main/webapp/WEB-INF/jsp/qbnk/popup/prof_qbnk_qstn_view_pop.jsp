@@ -1,34 +1,11 @@
-<%@page import="knou.framework.common.SessionInfo"%>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 	<head>
-    	<%@ include file="/WEB-INF/jsp/common/modal_common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-    	<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
-    	<style type="text/css">
-    		.ui.checkbox label.question.multi:before {
-    			border-radius: 0;
-    		}
-    		.ui.checkbox label.question.multi:after {
-    			border-radius: 0;
-    		}
-    		.ui.checkbox input:checked ~ label.question.multi:after {
-    			border-radius: 0;
-    		}
-    		.dark .line-sortable-box .inventory-list .slot.item-disabled {
-    			background: none;
-    		}
-    		.dark .line-sortable-box .inventory-list .slot {
-    			background: none;
-    		}
-    		.dark .line-sortable-box .inventory-list {
-    			background: none;
-    		}
-    		.dark .line-sortable-box .inventory-list .slot span {
-    			background: none;
-    		}
-    	</style>
+		<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+			<jsp:param name="style" value="classroom"/>
+		</jsp:include>
     </head>
 
     <div id="loading_page">
@@ -38,7 +15,7 @@
 	<script type="text/javascript">
 		function createSortable() {
 	        var invalid 	= false;
-	        var $answers 	= $("div.slot[name=match], div.slot[name=opposite]");
+	        var $answers 	= $("div.slot[name=link], div.slot[name=opposite]");
 	        var $containner = $answers.closest("div.line-sortable-box");
 	        $answers.sortable({
 	            placeholder: "",
@@ -75,104 +52,97 @@
 	    }
 	</script>
 
-	<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
+	<body class="modal-page">
         <div id="wrap">
-            <ul class="tbl dt-sm">
-            	<li>
-            		<dl>
-            			<dt><spring:message code="exam.label.categori" /></dt><!-- 분류 -->
-            			<dd>
-            				<c:if test="${not empty qbnkQstnVO.upCtgrnm }">
+        	<table class="table-type1 margin-bottom-5">
+        		<colgroup>
+        			<col class="width-20per" />
+        			<col class="" />
+        		</colgroup>
+				<tbody>
+					<tr>
+						<th class="text-center"><spring:message code="exam.label.categori" /></th><!-- 분류 -->
+						<td>
+							<c:if test="${not empty qbnkQstnVO.upCtgrnm }">
             					${qbnkQstnVO.upCtgrnm } >
             				</c:if>
             				${qbnkQstnVO.ctgrnm }
-            			</dd>
-            		</dl>
-            	</li>
-            	<li>
-            		<dl>
-            			<dt><spring:message code="exam.label.rep" /></dt><!-- 담당 -->
-            			<dd>${qbnkQstnVO.sbjctnm } > ${qbnkQstnVO.usernm } <spring:message code="exam.label.tch" /></dd><!-- 교수 -->
-            		</dl>
-            	</li>
-            </ul>
-            <div class="ui form qstnList mt10">
-            	<div class="ui card wmax">
-		            <div class="fields content header2">
-		                <div class="field wf100 ">
-		                    <span><spring:message code="exam.label.qstn" /><!-- 문제 -->.</span> ${qbnkQstnVO.qstnTtl }
-		                </div>
-		            </div>
-		            <div class="content">
-		                <div class="mb20">${qbnkQstnVO.qstnCts}</div>
+						</td>
+					</tr>
+					<tr>
+						<th class="text-center"><spring:message code="exam.label.rep" /></th><!-- 담당 -->
+						<td>${qbnkQstnVO.sbjctnm } > ${qbnkQstnVO.usernm } <spring:message code="exam.label.tch" /></td><!-- 교수 -->
+					</tr>
+				</tbody>
+        	</table>
 
-		                <div class="ui divider"></div>
+        	<div class="border-1 margin-bottom-3 qstnList">
+        		<div class="board_top border-1 padding-3">
+        			<span>${qbnkQstnVO.qstnSeqno }. ${qbnkQstnVO.qstnTtl }</span>
+        		</div>
+        		<div class="padding-3 margin-top-0">
+        			<div class="margin-bottom-5">${qbnkQstnVO.qstnCts }</div>
 
-		                <c:if test="${qbnkQstnVO.qstnRspnsTycd eq 'OX_CHC' || qbnkQstnVO.qstnRspnsTycd eq 'MLT_CHC' }">
-							<c:forEach var="emplItem" step="1" begin="1" end="${vo.emplCnt}">
-								<c:set var="qstnNo" value="${vo.qstnNo}"/>
-								<c:set var="empl" value="empl${emplItem }" />
-								<div class="field" id="emplLi_${qstnNo}_${emplItem}">
-									<div class="ui checkbox">
-										<input type="${qbnkQstnVO.qstnRspnsTycd eq 'MLT_CHC' ? 'checkbox' : 'radio'}" name="rgtAnsr_CHOICE_${qstnNo}" id="rgtAnsr_${qstnNo}_${emplItem}">
-										<label class="question ${qbnkQstnVO.qstnRspnsTycd eq 'MLT_CHC' ? 'multi' : '' } empl" data-value="${emplItem }">${vo[empl]}</label>
+					<!-- 서술형 -->
+					<c:if test="${qbnkQstnVO.qstnRspnsTycd eq 'LONG_TEXT' }">
+						<textarea style="width:100%;height:70px" maxLenCheck="byte,4000,true,true"></textarea>
+		            </c:if>
+
+			        <!-- 단일, 다중선택형 -->
+			        <c:if test="${qbnkQstnVO.qstnRspnsTycd eq 'ONE_CHC' || qbnkQstnVO.qstnRspnsTycd eq 'MLT_CHC' }">
+				       	<c:forEach var="item" items="${qbnkQstnVwitmList }">
+						    <div class="margin-bottom-3">
+						    	<span class="custom-input">
+									<input type="${qbnkQstnVO.qstnRspnsTycd eq 'ONE_CHC' ? 'radio' : 'checkbox' }" name="vwitmSeqno" id="vwitmSeqno${item.vwitmSeqno }">
+									<label for="vwitmSeqno${item.vwitmSeqno }">${item.vwitmSeqno}. ${item.vwitmCts }</label>
+								</span>
+						    </div>
+				       	</c:forEach>
+			        </c:if>
+			        <!-- 단답형 -->
+			        <c:if test="${qbnkQstnVO.qstnRspnsTycd eq 'SHORT_TEXT' }">
+				       	<c:forEach var="item" items="${qbnkQstnVwitmList }">
+					    	<input type="text" class="width-100per" name="vwitmCts" inputmask="byte" maxLen="4000" placeholder="${item.vwitmSeqno }번 답">
+				       	</c:forEach>
+			        </c:if>
+			        <!-- OX선택형 -->
+			        <c:if test="${qbnkQstnVO.qstnRspnsTycd eq 'OX_CHC' }">
+				       	<c:forEach var="item" items="${qbnkQstnVwitmList }">
+					    	<span class="custom-input">
+								<input type="radio" name="vwitmSeqno" id="vwitmSeqno${item.vwitmSeqno }">
+								<label for="vwitmSeqno${item.vwitmSeqno }">${item.vwitmCts }</label>
+							</span>
+				       	</c:forEach>
+			        </c:if>
+			        <!-- 연결형 -->
+			        <c:if test="${qbnkQstnVO.qstnRspnsTycd eq 'LINK' }">
+				       	<div class="line-sortable-box flex">
+							<div class="account-list width-50per">
+								<c:forEach var="item" items="${qbnkQstnVwitmList }">
+									<div class="line-box border-1 margin-bottom-3 padding-3 flex">
+										<div class="question width-30per"><span><c:out value="${item.vwitmCts.split('[|]')[0]}" /></span></div>
+										<div class="slot margin-left-auto border-1 text-center width-100per" style="height:30px;" name="link"></div>
 									</div>
-								</div>
-							</c:forEach>
-	                    </c:if>
-	                    <c:if test="${qbnkQstnVO.qstnRspnsTycd eq 'SHORT_TEXT' }">
-			                <div class="equal width fields">
-			                	<c:set var="ansrCnt" value="5" />
-			                	<c:forEach var="idx" begin="1" end="5" step="1">
-			                		<c:set var="rgtAnsr" value="rgtAnsr${idx }" />
-			                		<c:if test="${fn:length(vo[rgtAnsr]) ne 0 }"><c:set var="ansrCnt" value="${idx }" /></c:if>
-			                	</c:forEach>
-					            <c:forEach var="idx" begin="1" end="${ansrCnt}" step="1">
-					                <div class="field">
-					                    <input type="text" name="short" maxlength="40" placeholder="${idx}<spring:message code='exam.label.answer.no' />"><!-- 번 답 -->
-					                </div>
-					            </c:forEach>
+								</c:forEach>
 			                </div>
-	                    </c:if>
-	                    <c:if test="${qbnkQstnVO.qstnRspnsTycd eq 'LONG_TEXT' }">
-						    <textarea rows="3" name="desc" maxlength="500"></textarea>
-	                    </c:if>
-	                    <c:if test="${qbnkQstnVO.qstnRspnsTycd eq 'OX_CHC' }">
-		                    <div class="checkImg">
-		                        <input id="oxChk_true" type="radio" name="oxChk" value="1">
-		                        <label class="imgChk true" for="oxChk_true"></label>
-		                        <input id="oxChk_false" type="radio" name="oxChk" value="2">
-		                        <label class="imgChk false" for="oxChk_false"></label>
-		                    </div>
-	                    </c:if>
-	                    <c:if test="${qbnkQstnVO.qstnRspnsTycd eq 'LINK' }">
-						    <div class="line-sortable-box">
-		                        <div class="account-list">
-		                    		<c:forEach var="emplItem" begin="1" end="${vo.emplCnt}" varStatus="idx">
-		                    			<c:set var="empl" value="empl${emplItem }" />
-						                <div class="line-box num0${emplItem }">
-			                                <div class="question"><span><c:out value='${vo[empl]}' /></span></div>
-				                            <div class="slot" name="match"></div>
-			                            </div>
-		                    		</c:forEach>
-		                        </div>
-		                        <div class="inventory-list w200">
-						            <c:forEach items="${fn:split(vo.rgtAnsr1,',')}" var="opposite" varStatus="idx">
-						                <div class="slot" name="opposite"><span><i class="ion-arrow-move"></i><c:out value='${opposite}' /></span></div>
-						            </c:forEach>
-		                        </div>
-		                    </div>
-		                    <script>
-		                        createSortable('${item.examQstnSn}');
-		                    </script>
-	                    </c:if>
-		            </div>
-		        </div>
-            </div>
+			                <div class="inventory-list w200 margin-left-auto">
+			                	<c:forEach var="item" items="${qbnkQstnVwitmList }">
+				                	<div class="slot border-1 text-center width-100per margin-bottom-3" style="height:30px;" name="opposite">
+				                		<span><i class="xi-arrows"></i><c:out value="${item.vwitmCts.split('[|]')[1]}" /></span>
+				                	</div>
+			                	</c:forEach>
+			                </div>
+						 </div>
+		                <script>
+		                    createSortable('${item.qstnId}');
+		                </script>
+			        </c:if>
+        		</div>
+        	</div>
 
-            <div class="bottom-content">
-                <button class="ui black cancel button" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
-            </div>
+			<div class="btns">
+                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
+			</div>
         </div>
 		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
 	</body>

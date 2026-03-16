@@ -84,9 +84,9 @@ if ("mobile".equals(deviceType)) {
 			var menuType = '<%=menuType%>';
 			
 			if(menuType.indexOf('PROFESSOR') > -1) {
-				returnUrl = "/dashboard/profDashboard.do?tabCd=" + crsTypeCd;
+				returnUrl = "/dashboard/dashboard.do?tabCd=" + crsTypeCd;
 			} else {
-				returnUrl = "/dashboard/stuDashboard.do?tabCd=" + crsTypeCd;
+				returnUrl = "/dashboard/dashboard.do?tabCd=" + crsTypeCd;
 			}
 		} else {
 			returnUrl = "/crs/crsHomeStd.do?crsCreCd=${lessonSchedule.crsCreCd}";

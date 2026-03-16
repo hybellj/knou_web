@@ -543,43 +543,37 @@
              SQL ID : ExamDAO.profAuthrtSbjctQuizList
              설  명  : 교수권한과목퀴즈목록조회
          */
-        SELECT * FROM (
-			SELECT ROW_NUMBER() OVER(ORDER BY EXAM_BSC.EXAM_BSC_ID DESC) AS LINE_NO
-				 , EXAM_BSC.EXAM_BSC_ID
-	             , EXAM_BSC.EXAM_TTL
-	             , SBJCT.SBJCT_ID
-	             , SBJCT.SBJCTNM
-	             , SBJCT.DVCLAS_NO
-	             , (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'EXAM_GBNCD' AND CD = EXAM_BSC.EXAM_GBNCD) AS EXAM_GBNNM
-	             , COUNT(1) OVER()	AS TOTAL_CNT
-	          FROM TB_LMS_SBJCT_ADM SBJCT_ADM
-	          JOIN TB_LMS_EXAM_BSC EXAM_BSC
-	            ON SBJCT_ADM.SBJCT_ID = EXAM_BSC.SBJCT_ID
-	           AND EXAM_BSC.DELYN = 'N'
-	           AND EXAM_BSC.USEYN = 'Y'
-	          JOIN TB_LMS_SBJCT SBJCT
-	            ON SBJCT.SBJCT_ID = EXAM_BSC.SBJCT_ID
-			  LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR_CHRT
-				ON (SBJCT.SMSTR_CHRT_ID = SMSTR_CHRT.SMSTR_CHRT_ID AND SBJCT.SBJCT_REF_TYCD = 'CHRT')
-	         WHERE SBJCT_ADM.USER_ID = #{userId}
-	           AND EXAM_BSC.EXAM_GBNCD IN ('QUIZ', 'QUIZ_TEAM')
-	           AND EXAM_BSC.EXAM_TYCD = 'QUIZ'
-	           AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
-	         <if test="smstrChrtId != null and smstrChrtId != ''">
-	           AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
-	         </if>
-	         <if test='sbjctId != null and sbjctId != ""'>
-	           AND SBJCT.SBJCT_ID = #{sbjctId}
-	         </if>
-	         <if test="searchValue != null and searchValue != ''">
-	           AND LOWER(EXAM_BSC.EXAM_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
-	         </if>
-	         ORDER BY EXAM_BSC.EXAM_BSC_ID
-         ) A
-		WHERE 1=1
-		<if test="listScale != null and listScale > 0">
-		  AND LINE_NO BETWEEN #{firstIndex} +1 AND #{firstIndex} + #{listScale}
-		</if>
+		SELECT ROW_NUMBER() OVER(ORDER BY EXAM_BSC.EXAM_BSC_ID DESC) AS LINE_NO
+			 , EXAM_BSC.EXAM_BSC_ID
+		     , EXAM_BSC.EXAM_TTL
+		     , SBJCT.SBJCT_ID
+		     , SBJCT.SBJCTNM
+		     , SBJCT.DVCLAS_NO
+		     , (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'EXAM_GBNCD' AND CD = EXAM_BSC.EXAM_GBNCD) AS EXAM_GBNNM
+		     , COUNT(1) OVER()	AS TOTAL_CNT
+		  FROM TB_LMS_SBJCT_ADM SBJCT_ADM
+		  JOIN TB_LMS_EXAM_BSC EXAM_BSC
+	  		ON SBJCT_ADM.SBJCT_ID = EXAM_BSC.SBJCT_ID
+	 	   AND EXAM_BSC.DELYN = 'N'
+	 	   AND EXAM_BSC.USEYN = 'Y'
+		  JOIN TB_LMS_SBJCT SBJCT
+	  		ON SBJCT.SBJCT_ID = EXAM_BSC.SBJCT_ID
+		  LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR_CHRT
+			ON (SBJCT.SMSTR_CHRT_ID = SMSTR_CHRT.SMSTR_CHRT_ID AND SBJCT.SBJCT_REF_TYCD = 'CHRT')
+		 WHERE SBJCT_ADM.USER_ID = #{userId}
+		   AND EXAM_BSC.EXAM_GBNCD IN ('QUIZ', 'QUIZ_TEAM')
+		   AND EXAM_BSC.EXAM_TYCD = 'QUIZ'
+		   AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
+		   <if test="smstrChrtId != null and smstrChrtId != ''">
+		     AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		   </if>
+		   <if test='sbjctId != null and sbjctId != ""'>
+		     AND SBJCT.SBJCT_ID = #{sbjctId}
+		   </if>
+		   <if test="searchValue != null and searchValue != ''">
+		     AND LOWER(EXAM_BSC.EXAM_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		   </if>
+		   ORDER BY EXAM_BSC.EXAM_BSC_ID
 	</select>
 
 	<select id="quizGrpSbjctList" parameterType="String" resultType="egovMap">

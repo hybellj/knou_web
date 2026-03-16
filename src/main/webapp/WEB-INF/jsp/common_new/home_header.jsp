@@ -1,5 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
+
+<c:if test="${pageType ne 'iframe' or param.view eq 'on'}">
+
 <div id="key_access">
     <ul>
         <li><a href="#gnb" title="주메뉴 위치로 바로가기">주메뉴 바로가기</a></li>
@@ -14,7 +17,6 @@
 
 
 <header class="common">
-
 	<button type="button" class="btn mobile-elem ctrl-gnb" aria-label="모바일 메뉴 버튼"><i class="icon-svg-menu fs-18px" aria-hidden="true"></i></button>
 
 	<h1 class="logo">
@@ -431,3 +433,5 @@
     </ul>
 
 </header>
+
+</c:if>

@@ -874,7 +874,7 @@
                                                             <span class="info_txt">튜터 김하늘</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">
@@ -930,7 +930,7 @@
                                                             <span class="info_txt">튜터 김하늘</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">
@@ -986,7 +986,7 @@
                                                             <span class="info_txt">튜터 한여름</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">간결하고 힘찬 영어 쓰기 - 품격 있는 영작</a></p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">간결하고 힘찬 영어 쓰기 - 품격 있는 영작</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">
@@ -1036,7 +1036,7 @@
                                                             <span class="info_txt">온라인</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">New TEPS 실전 연습-기본편</a></p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">New TEPS 실전 연습-기본편</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">
@@ -1088,7 +1088,7 @@
                                                             <span class="info_txt">튜터 김하늘</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 2반</a></p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 2반</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">
@@ -1144,7 +1144,7 @@
                                                             <span class="info_txt">튜터 김하늘</span>
                                                             <span class="info_txt">3학점</span>
                                                         </p>
-                                                        <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 2반</a></p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 2반</a></p>
                                                     </div>
                                                 </div>
                                                 <div class="extra">

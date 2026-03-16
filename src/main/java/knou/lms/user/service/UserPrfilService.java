@@ -23,4 +23,6 @@ public interface UserPrfilService {
     void modifyUserOrgAuthrt(UserPrfilVO vo) throws Exception;
 
     void uploadUserPhoto(UserPrfilVO vo) throws Exception;
+
+    void insertUserTelnoChgHstry(UserPrfilVO vo, String oldMblPhn, String newMblPhn) throws Exception;
 }

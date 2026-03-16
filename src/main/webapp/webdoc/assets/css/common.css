@@ -897,7 +897,7 @@ h4.sub-title::before {
 .search-typeA {position: relative; display: flex; padding: 2.5rem 4.5rem 2.5rem 4.5rem; flex-direction: column; background-color: #F0F2F6; margin-bottom: 4.5rem; border: 1px solid #E0E1E5; border-radius: var(--border-radius-10); }
 .search-typeA > .item + .item { margin-top: 1rem; }
 .search-typeA .item { display: flex; flex: 1; width: 100%; align-items: flex-start; align-items: center; gap: 3rem; }
-.search-typeA .item .item_tit { width: 8.5rem; font-weight: 600; color: #0055A2; font-size: 1.5rem; letter-spacing: -0.03em;}
+.search-typeA .item .item_tit { width: 8.5rem; font-weight: 600; color: #0055A2; font-size: 1.5rem; letter-spacing: -0.03em; white-space: nowrap;}
 .search-typeA .item .itemList { display: flex; /*flex: 1;*/ width: 55%; align-items: flex-start; align-content: flex-start; align-items: center; row-gap: 0.75rem; column-gap: .8rem; flex-wrap: wrap; }
 .search-typeA .item .itemList label { font-weight: 500; font-size: 1.5rem;}
 .search-typeA .item .itemList select.wide {flex: 1; }
@@ -1118,7 +1118,7 @@ h4.sub-title::before {
 .Comment .top_area {  padding: 0 0 2rem 0;  margin-top: 3rem; font-size: 1.8rem; display: flex; justify-content: space-between;}
 .Comment .top_area b { color: var(--blue-600); font-weight: 600;}
 .Comment .comment_list ul {border-top: 1px solid #555;}
-.Comment .comment_list ul li { border-bottom: 1px solid #e8e8e8; padding: 1.7rem 2rem 1.5rem 2rem; position: relative; }
+.Comment .comment_list ul li { padding: 1.7rem 2rem 1.5rem 2rem; position: relative; }
 .Comment .comment_list ul li .comment { display: block; margin-bottom: .2rem; }
 .Comment .comment_list ul li .cmt_info { margin-bottom: .8rem; }
 .Comment .comment_list ul li .cmt_info .name { color: #333; display: inline-block; }
@@ -1551,6 +1551,25 @@ textarea.show-count {
     border-bottom-left-radius: .4rem;
     border-bottom-right-radius: .4rem;
     text-align: right;
+}
+
+
+/* =======================================================================================
+iframe body style
+======================================================================================= */
+body.iframeBody {
+	background:none !important;
+}
+body.iframeBody .content-wrap.common {
+	padding:0;
+	margin:0;
+}
+body.iframeBody .content-wrap.common .sub-content {
+	padding:0;
+	border-radius:0;
+}
+body.iframeBody #wrap {
+	min-height: auto;
 }
 
 

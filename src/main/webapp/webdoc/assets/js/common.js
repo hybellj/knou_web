@@ -59,21 +59,6 @@ $(function () {
         });
     }
 
-    // 자동완성 끄기
-    $("input[type=text]").attr("autocomplete", "off");
-
-
-    // 외부 API 연동을 위해 domain 선언
-    if (window.location.hostname.indexOf("hycu.ac.kr") > -1) {
-        document.domain = "hycu.ac.kr";
-    }
-
-    /********** 페이지 로딩 **********/
-    // if ($('#loading_page').length == 0) {
-    // 	$("body").append("<div id='loading_page'><p><i class='notched circle loading icon'></i></p></div>");
-    // }
-
-    document.getElementById("loading_page").style.display = "none";
 
 
     /********** slick slider knou **********/

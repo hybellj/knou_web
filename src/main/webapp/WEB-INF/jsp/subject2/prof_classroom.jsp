@@ -83,21 +83,21 @@
                                     <div class="info">
                                         <p class="point">
                                             <span class="tit">중간고사:</span>
-                                            <span>${fnc:dateFormat(subjectVM.middleLastExamMap.midExamSdttm, '.')}</span>
+                                            <span>${fnc:dateFormat(subjectVM.middleLastExam.midExamSdttm, '.')}</span>
                                         </p>
                                         <p class="desc">
                                             <span class="tit">시간:</span>
-                                            <span>${subjectVM.middleLastExamMap.midExamMnts}분</span>
+                                            <span>${subjectVM.middleLastExam.midExamMnts}분</span>
                                         </p>
                                     </div>
                                     <div class="info">
                                         <p class="point">
                                             <span class="tit">기말고사:</span>
-                                            <span>${fnc:dateFormat(subjectVM.middleLastExamMap.lstExamSdttm, '.')}</span>
+                                            <span>${fnc:dateFormat(subjectVM.middleLastExam.lstExamSdttm, '.')}</span>
                                         </p>
                                         <p class="desc">
                                             <span class="tit">시간:</span>
-                                            <span>${subjectVM.middleLastExamMap.lstExamMnts}분</span>
+                                            <span>${subjectVM.middleLastExam.lstExamMnts}분</span>
                                         </p>
                                     </div>
                                 </div>

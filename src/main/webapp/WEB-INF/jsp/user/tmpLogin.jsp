@@ -40,9 +40,9 @@
 			  		alert(rData.userNm + "님으로 로그인합니다.");
 			  		
 			  		if("LEARNER" === rData.userType) {
-			  			//location.href = "/dashboard/stuDashboard.do";
+			  			//location.href = "/dashboard/dashboard.do";
 			  		} else {
-			  			//location.href = "/dashboard/tcrDashboard.do";
+			  			//location.href = "/dashboard/dashboard.do";
 			  		}
 			  		
 			  		/*

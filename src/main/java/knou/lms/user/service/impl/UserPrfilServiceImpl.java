@@ -6,10 +6,13 @@ import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenUtil;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
+import knou.lms.crs.semester.service.SemesterService;
+import knou.lms.crs.semester.vo.SmstrChrtVO;
 import knou.lms.user.dao.UserPrfilDAO;
 import knou.lms.user.dao.UsrUserAuthGrpDAO;
 import knou.lms.user.service.UserPrfilService;
 import knou.lms.user.vo.UserPrfilVO;
+import knou.lms.user.vo.UserTelnoChgHstryVO;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.imgscalr.Scalr;
@@ -24,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @Service("userPrfilService")
@@ -33,7 +37,8 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
     private UserPrfilDAO userPrfilDAO;
     @Resource(name="usrUserAuthGrpDAO")
     private UsrUserAuthGrpDAO usrUserAuthGrpDAO;
-
+    @Resource(name="semesterService")
+    private SemesterService semesterService;
 
     /**
      * 사용자프로필정보를 조회한다.
@@ -163,12 +168,24 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
         }
 
         // 모바일전화
+        String oldMblPhn = null;
+        String newMblPhn = null;
+        boolean mobileChanged = false;
+
         if(!ValidationUtils.isEmpty(vo.getMblPhn())) {
             UserPrfilVO cntct = new UserPrfilVO();
             cntct.setUserId(vo.getUserId());
             cntct.setCntctTycd("MBL_PHN");
             cntct.setCntct(vo.getMblPhn());
             list.add(cntct);
+
+            // 모바일전화번호 변경이력 저장
+            oldMblPhn = userPrfilDAO.userCntctSelect(cntct);
+            newMblPhn = vo.getMblPhn();
+            String oldCompare = oldMblPhn == null ? "" : oldMblPhn.replace("-", "");
+            String newCompare = newMblPhn == null ? "" : newMblPhn.replace("-", "");
+
+            mobileChanged = !oldCompare.equals(newCompare);
         }
 
         for(UserPrfilVO c : list) {
@@ -177,6 +194,11 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
             c.setUserCntctId(IdGenUtil.genNewId(IdPrefixType.USCTT));
 
             userPrfilDAO.mergeUserCntct(c);
+        }
+
+        // 모바일전화번호 변경 시 이력 저장
+        if(mobileChanged) {
+            insertUserTelnoChgHstry(vo, oldMblPhn, newMblPhn);
         }
     }
 
@@ -315,6 +337,57 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
             if(read > 0) {
                 //vo.setPhtFileByte(bytes);
             }
+        }
+    }
+
+    /**
+     * 핸드폰번호 변경 시 이력 저장
+     *
+     * @param vo
+     * @param oldMblPhn 기존핸드폰번호
+     * @param newMblPhn 새로입력한 핸드폰번호
+     * @throws Exception
+     */
+    @Override
+    public void insertUserTelnoChgHstry(UserPrfilVO vo, String oldMblPhn, String newMblPhn) throws Exception {
+        LinkedHashSet<String> orgIdSet = new LinkedHashSet<String>();
+
+        if(vo.getOrgIdList() != null) {
+            for(String orgId : vo.getOrgIdList()) {
+                if(!ValidationUtils.isEmpty(orgId)) {
+                    orgIdSet.add(orgId);
+                }
+            }
+        }
+
+        if(orgIdSet.isEmpty() && !ValidationUtils.isEmpty(vo.getOrgId())) {
+            orgIdSet.add(vo.getOrgId());
+        }
+
+        for(String orgId : orgIdSet) {
+            // 학위년도, 학위학기기수 조회
+            SmstrChrtVO tempVO = new SmstrChrtVO();
+            tempVO.setOrgId(orgId);
+            SmstrChrtVO smstrChrtVO = semesterService.selectCurrentSemester(tempVO);
+
+            if(smstrChrtVO == null) {
+                continue;
+            }
+
+            UserTelnoChgHstryVO histVo = new UserTelnoChgHstryVO();
+            histVo.setOrgId(orgId);
+            histVo.setUserTelnoChgHstryId(IdGenUtil.genNewId(IdPrefixType.USTHS));
+            histVo.setUserId(vo.getUserId());
+            histVo.setChgbfrMblTelno(oldMblPhn);
+            histVo.setChgaftMblTelno(newMblPhn);
+            histVo.setDgrsYr(smstrChrtVO.getDgrsYr());
+            histVo.setDgrsSmstrChrt(smstrChrtVO.getDgrsSmstrChrt());
+
+            histVo.setUserRprsId(vo.getUserRprsId());
+            histVo.setStdntNo(vo.getStdntNo());
+            histVo.setRgtrId(vo.getUserId());
+
+            userPrfilDAO.telnoChgHstryRegist(histVo);
         }
     }
 

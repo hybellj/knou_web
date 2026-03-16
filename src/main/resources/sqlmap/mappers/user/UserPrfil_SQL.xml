@@ -224,5 +224,54 @@
         </foreach>
     </delete>
 
+    <insert id="telnoChgHstryRegist" parameterType="userTelnoChgHstryVO">
+        /*
+            SQL ID : UserPrfilDAO.telnoChgHstryRegist
+            설 명 : 사용자전화번호변경이력 저장
+        */
+        INSERT INTO TB_LMS_USER_TELNO_CHG_HSTRY
+        (
+            USER_TELNO_CHG_HSTRY_ID
+            , USER_ID
+            , CHGBFR_MBL_TELNO
+            , CHGAFT_MBL_TELNO
+            , DGRS_YR
+            , DGRS_SMSTR_CHRT
+            , ORG_ID
+            , USER_RPRS_ID
+            , STDNT_NO
+            , RGTR_ID
+            , RGTR_DTTM
+            , CHG_DTTM
+        )
+        VALUES
+        (
+            #{userTelnoChgHstryId}
+            , #{userId}
+            , #{chgbfrMblTelno}
+            , #{chgaftMblTelno}
+            , #{dgrsYr}
+            , #{dgrsSmstrChrt}
+            , #{orgId}
+            , #{userRprsId}
+            , #{stdntNo}
+            , #{rgtrId}
+            , FN_DTTM()
+            , FN_DTTM()
+        )
+    </insert>
+
+    <select id="userCntctSelect" parameterType="userPrfilVO" resultType="string">
+        /*
+            SQL ID : UserPrfilDAO.userCntctSelect
+            설 명 : 사용자 연락처 조회
+        */
+        SELECT
+            CNTCT
+        FROM TB_LMS_USER_CNTCT
+        WHERE USER_ID = #{userId}
+        AND CNTCT_TYCD = #{cntctTycd}
+    </select>
+
 
 </mapper>

@@ -22,7 +22,8 @@
 
         listForum(1);
         if("${forumVo.forumCtgrCd}" == "TEAM") {
-            teamList();
+            // TODO : team 정보 보여주기(팀원 정보 등)
+            // teamList();
         }
 
         $(".accordion").accordion({
@@ -125,240 +126,232 @@
         }, true);
     }
 
-    // 토론 글 리스트 생성
-    function createForumListHTML(forumList) {
-        var listHtml = '';
 
-        if(forumList.length == 0) {
-            listHtml += "	<div class=\"flex-container\">";
-            listHtml += "		<div class=\"cont-none\">";
-            listHtml += "			<span><spring:message code='forum.common.empty' /></span>"; // 등록된 내용이 없습니다.
-            listHtml += "		</div>";
-            listHtml += "	</div>";
-        } else {
-            forumList.forEach(function(v, i) {
-                var userImg = v.phtFile != null ? v.phtFile : "/webdoc/img/icon-hycu-symbol-grey.svg";
-                listHtml += "<div class='ui card wmax'>";
-                listHtml += "	<div class='content card-item-center'>";
-                listHtml += "		<div class='flex fac flex-wrap wmax'>";
-                listHtml += "			<span class='label circle mr10'><img src='"+userImg+"' alt=\"<spring:message code='forum.common.user.img' />\"></span>"; // 학습자이미지
-                listHtml += "			<span class='label mr10'>"+ v.regNm +"("+ v.userId +")</span>";
-                listHtml += "			<span class='label mr10 fcBlue'><spring:message code='forum.label.length'/> : "+ v.ctsLen +"<spring:message code='forum.label.word'/></span>"; // 글자수, 자
-                if(v.atclTypeCd == "NORMAL_N" || v.atclTypeCd == "TEAM_N") {
-                    /*
-                    if(v.prosConsTypeCd == "F") {
-                        listHtml += "<span class='label mr10 fcOlive'>FeedBack</span>";
-                    }
-                    */
-                } else {
-                    if(v.prosConsTypeCd == "OK") {
-                        listHtml += "	<span class='label mr10 fcBlue'><spring:message code='forum.label.pros'/></span>"; // 찬성
-                    } else if(v.prosConsTypeCd == "NOTOK") {
-                        listHtml += "	<span class='label mr10 fcRed'><spring:message code='forum.label.cons'/></span>"; // 반대
-                    } else {
-                        //listHtml += "<span class='label mr10 fcOlive'>FeedBack</span>";
-                    }
-                }
-                var regDttm = v.regDttm.substring(0, 4) + '.' + v.regDttm.substring(4, 6) + '.' + v.regDttm.substring(6, 8) + ' (' + v.regDttm.substring(8, 10) + ':' + v.regDttm.substring(10, 12) + ')';
-                listHtml += "			<span class='label mr10'><spring:message code='forum.label.reg.dttm'/> : "+ regDttm +"</span>"; // 작성일시
-                listHtml += "			<span class='label mr10'><spring:message code='forum.label.attachFile'/> : "; // 첨부파일
-                v.fileList.forEach(function(item, index){
-                    if(index > 0) {
-                        listHtml += " | <a href=\"javascript:fileDown('"+ item.fileSn +"', '"+ item.repoCd +"');\" class=\"link\">"+ item.fileNm +"</a>";
-                    } else {
-                        listHtml += "<a href=\"javascript:fileDown('"+ item.fileSn +"', '"+ item.repoCd +"');\" class=\"link\">"+ item.fileNm +"</a>";
-                    }
-                });
-                listHtml +="			</span>";
-                //listHtml +="			<div class='mla'>";
-                //listHtml += "				<span class='label mr10'><spring:message code='common.label.same.rate'/> : " + (v.konanMaxCopyRate ? "<a class='fcBlue' href='${konanCopyScoreUrl}?domain=e_forum&docId=" + v.atclSn + "' target='_blank'>" + v.konanMaxCopyRate + "%</a>" : "-") + "</span>"; // 유사율
-                //listHtml +="			</div>";
-                listHtml += "		</div>";
-                if(v.rgtrId == "${userId}" && v.delYn == "N") {
-                    listHtml += "	<div class='ui top right pointing dropdown right-box'>";
-                    listHtml += "		<span class='bars'><spring:message code='forum.label.menu' /></span>"; // 메뉴
-                    listHtml += "		<div class='menu'>";
-                    listHtml += "			<a href=\"javascript:editAtclBtn('"+ v.atclSn +"','"+ v.rgtrId +"')\" class='item'><spring:message code='forum.button.mod'/></a>"; // 수정
-                    listHtml += "			<a href=\"javascript:delAtcl('"+ v.atclSn +"','"+ v.rgtrId +"')\" class='item'><spring:message code='forum.button.del'/></a>"; // 삭제
-                    listHtml += "		</div>";
-                    listHtml += "	</div>";
-                }
-                listHtml += "	</div>";
-                listHtml += "	<div class='ui segment ml25 mr25 mt10 mb10 forumView'>";
-                //var cts = v.cts.replaceAll("<", "&lt").replaceAll(">", "&gt");
-                console.log("${forumVo.prosConsForumCfg}")
-                if("${forumVo.prosConsForumCfg}" == "Y") {
-                    listHtml += "		<pre>" + v.cts + "</pre>";
-                } else {
-                    listHtml += "		" + v.cts;
-                }
-                if(v.delYn == "Y") {
-                    listHtml += " <span class=\"ui red label p4 f080\"><spring:message code='forum.label.sapn.del.content'/></span>"; // 삭제됨
-                } else {
-                }
-                listHtml += "	</div>";
+    // =========================================================
+    // 1. 유틸 함수
+    // =========================================================
 
-                // 댓글
-                listHtml += "	<div class='content comment border0'>";
-                listHtml += "		<div class='ui box flex-item'>";
-                listHtml += "			<div class='flex-item mra'>";
-                listHtml += "				<div class='cur_point' id='cmntOpen"+ i +"' onclick=\"cmntView('"+ v.atclSn +"', '"+ i +"')\">";
-                listHtml += "					<i class=\"xi-message-o f120 mr5\" aria-hidden=\"true\"></i>";
-                listHtml += "					"+ v.cmntCount +"<span class='desktop_elem'><spring:message code='forum.label.cnt.forum.cmnt'/></span>"; // 개의 댓글이 있습니다.
-                listHtml += "					<i class=\"xi-angle-down-min\" aria-hidden=\"true\"></i>";
-                listHtml += "				</div>";
-                listHtml += "			</div>";
-                listHtml += "			<div id='cmntWrite"+ i +"' onclick=\"cmntWirte('"+ v.atclSn +"', '"+ i +"')\" class=\"mla\">";
-                listHtml += "				<button class=\"ui basic small button toggle_commentwrite\"><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.write'/></button>"; // 댓글 작성하기
-                listHtml += "			</div>";
-                listHtml += "		</div>";
-
-                // 댓글 폼
-                listHtml += "	<div class=\"ui box\">";
-                listHtml += "		<div class=\"toggle_box pt10 commentwrite\" id='toggleBox"+ i +"' style=\"display: none;\">";
-                listHtml += "			<ul class=\"comment-write bcdark1Alpha05 p8\">";
-                listHtml += "				<li class=\"flex-item mra\">";
-                listHtml += "				<small class=\"pr4\"><spring:message code='forum.button.label.info' /></small>"; // 간편답글
-                listHtml += "					<a href=\"javascript:setCts(0, "+ i +");\" id='cts0' class=\"ui basic mini label\"><spring:message code='forum.button.cts0' /></a>"; // 수고했어요.
-                listHtml += "					<a href=\"javascript:setCts(1, "+ i +");\" id='cts1' class=\"ui basic mini label\"><spring:message code='forum.button.cts1' /></a>"; // 고생하셨어요.
-                listHtml += "					<a href=\"javascript:setCts(2, "+ i +");\" id='cts2' class=\"ui basic mini label\"><spring:message code='forum.button.cts2' /></a>"; // 감사합니다.
-                listHtml += "				</li>";
-                listHtml += "				<li><textarea rows=\"3\" class=\"wmax\" placeholder=\"<spring:message code='forum.label.input.cmnt'/>\" id='cmntText"+ i +"'></textarea></li>"; // 댓글을 입력하세요
-                listHtml += "				<li class=\"flex-item flex-wrap\">";
-                listHtml += "					<div class=\"ui checkbox f080 mra\">";
-    //			listHtml += "						<input type=\"checkbox\" tabindex=\"0\" class=\"hidden\" name='ansReqYn"+ i +"' id='ansReqYn"+ i +"'"+ (v.atclSn == "" ? " checked" : "") +">";
-    //			listHtml += "						<label><spring:message code='forum.checkbox.label.fdbk.request'/> <span class=\"\">( <spring:message code='forum.checkbox.label.fdbk.request.info'/>)</span></label>"; // 피드백 문의, 체크 시 문의로 등록되며 답변을 받을 수 있습니다.
-                listHtml += "					</div>";
-                listHtml += "					<a href=\"javascript:addCmnt('"+ v.atclSn +"','','"+ i +"');\" class=\"ui basic grey small button\"><spring:message code='forum.button.reg'/></a>"; // 등록
-                listHtml += "				</li>";
-                listHtml += "			</ul>";
-                listHtml += "		</div>";
-                listHtml += "	</div>";
-
-    //			listHtml += "			<div class='article p10 commentlist' id='article"+ i +"'></div>";
-                listHtml += "			<div class='article p10 commentlist' id='article"+ i +"'>";
-                v.cmntList.forEach(function(rs, index) {
-                    //날짜 format변환
-                    /*var yyyy = rs.modDttm.substring(0,4);
-                    var mm = rs.modDttm.substrring(4,2);
-                    var dd = rs.modDttm.substring(6,2);
-                    var h = rs.modDttm.substring(8,2);
-                    var m = rs.modDttm.substring(10,2);
-
-                    var regDate = yyyy + "." + mm + "." + dd + "(" + h + ":" + m + ")";*/
-                    var regDate = rs.modDttm.substring(0, 4) + '.' + rs.modDttm.substring(4, 6) + '.' + rs.modDttm.substring(6, 8) + ' (' + rs.modDttm.substring(8, 10) + ':' + rs.modDttm.substring(10, 12) + ')';
-
-                    if(rs.level == 1) {
-                        var userImg = rs.phtFile != null ? rs.phtFile : "/webdoc/img/icon-hycu-symbol-grey.svg";
-                        listHtml += "	<ul>";
-                        listHtml += "		<li class=\"imgBox\">";
-                        listHtml += "			<div class=\"label circle\"><img src='"+userImg+"' alt=\"<spring:message code='forum.common.user.img' />\"></div>";
-                        listHtml += "		</li>";
-                        listHtml += "		<li>";
-                        listHtml += "			<ul>";
-                        listHtml += "				<li class=\"flex-item\">";
-                        listHtml += "					<em class=\"mra mt0\">"+ rs.rgtrnm;
-                        listHtml += " 						<code>";
-                        listHtml += 							regDate;
-                        if(rs.delYn != "Y") {
-                            listHtml += " | <em class='fcBlue'><spring:message code='forum.label.length'/> : "+ rs.cmntCtsLen +"<spring:message code='forum.label.word'/></em>"; // 글자수, 자
-                        }
-                        listHtml += "						</code>";
-                        listHtml += "					</em>";
-
-                        if(rs.delYn != "Y") {
-                            listHtml += "				<button type=\"button\" class=\"toggle_btn\" onclick=\"btnAddCmnt('"+index+"','"+i+"','"+rs.atclSn+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.cmnt'/></button>"; // 댓글
-                            listHtml += "				<ul class=\"ui icon top right pointing dropdown\" tabindex=\"0\">";
-                            listHtml += "					<i class=\"xi-ellipsis-v p5\"></i>";
-                            listHtml += "					<div class=\"menu\" tabindex=\"-1\">";
-                            listHtml += "						<button type=\"button\" class=\"item\" onClick=\"editBtnClick('"+rs.atclSn+"','"+rs.rgtrId+"','"+rs.cmntSn+"','"+index+"','"+i+"','"+rs.level+"', '"+ rs.ansReqYn +"')\"><spring:message code='forum.button.mod'/></button>"; // 수정
-                            listHtml += "						<button type=\"button\" class=\"item\" onClick=\"delCmnt('"+rs.rgtrId+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.del'/></button>"; // 삭제
-                            listHtml += "					</div>";
-                            listHtml += "				</ul>";
-                        }
-                        listHtml += "				</li>";
-                        if(rs.delYn == "Y") {
-                            listHtml += "			<li><span class=\"ui red label\"><spring:message code='forum.label.del.forum.cmnt'/></span></li>"; // 삭제된 댓글 입니다.
-                        } else {
-                            listHtml += "			<li id=\"cmntContents"+index+i+"\">"+ rs.cmntCts + "</li>";
-                        }
-                        if(rs.delYn != "Y") {
-                            listHtml += "			<li class=\"toggle_box\" id=\"toggleCmnt"+ index + i +"\" >";
-                            listHtml += "				<ul class=\"comment-write\">";
-                            listHtml += "					<li>";
-                            listHtml += "						<textarea rows=\"3\" class=\"wmax\" id=\"cmntText"+ index + i +"\" placeholder=\"<spring:message code='forum.alert.input.forum_reply'/>\"></textarea>"; // 댓글을 입력하세요
-                            listHtml += "					</li>";
-                            listHtml += "					<li id=\"btnCmnt"+index+i+"\">";
-                            listHtml += "						<a href=\"javascript:addCmnt('"+rs.atclSn+"','"+rs.cmntSn+"','"+index+"','"+i+"'\" class=\"ui basic grey small button\"><spring:message code='forum.button.reg'/></a>"; // 등록
-                            listHtml += "					</li>";
-                            listHtml += "				</ul>";
-                            listHtml += "			</li>";
-                        }
-                        listHtml += "			</ul>";
-                        listHtml += "		</li>";
-                        listHtml += "	</ul>";
-                    } else {
-                        listHtml += "	<ul class=\"co_inner\">";
-                        listHtml += "		<li class=\"imgBox\">";
-                        var userImg = rs.phtFile != null ? rs.phtFile : "/webdoc/img/icon-hycu-symbol-grey.svg";
-                        listHtml += "			<div class=\"label circle\"><img src='"+userImg+"' alt=\"<spring:message code='forum.common.user.img' />\"></div>";
-                        listHtml += "		</li>";
-                        listHtml += "		<li>";
-                        listHtml += "			<ul>";
-                        listHtml += "				<li class=\"flex-item\">";
-                        listHtml += "					<em class=\"mra mt0\">"+ rs.rgtrnm;
-                        listHtml += " 						<code>";
-                        listHtml += 							regDate;
-                        if(rs.delYn != "Y") {
-                            listHtml += " | <em class='fcBlue'><spring:message code='forum.label.length'/> : "+ rs.cmntCtsLen +"<spring:message code='forum.label.word'/></em>"; // 글자수, 자
-                        }
-                        listHtml += "						</code>";
-                        listHtml += "					</em>";
-                        if(rs.delYn != "Y") {
-                            listHtml += "				<button type=\"button\" class=\"toggle_btn\" onclick=\"btnAddCmnt('"+index+"','"+i+"','"+rs.atclSn+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.cmnt'/></button>"; // 댓글
-                            listHtml += "				<ul class=\"ui icon top right pointing dropdown\" tabindex=\"0\">";
-                            listHtml += "					<i class=\"xi-ellipsis-v p5\"></i>";
-                            listHtml += "					<div class=\"menu\" tabindex=\"-1\">";
-                            listHtml += "						<button type=\"button\" class=\"item\" onClick=\"editBtnClick('"+rs.atclSn+"','"+rs.rgtrId+"','"+rs.cmntSn+"','"+index+"','"+i+"','"+rs.level+"', '"+ rs.ansReqYn +"')\"><spring:message code='forum.button.mod'/></button>"; // 수정
-                            listHtml += "						<button type=\"button\" class=\"item\" onClick=\"delCmnt('"+rs.rgtrId+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.del'/></button>"; // 삭제
-                            listHtml += "					</div>";
-                            listHtml += "				</ul>";
-                        }
-                        listHtml += "				</li>";
-                        if(rs.delYn == "Y") {
-                            listHtml += "			<li><span class=\"ui red label\"><spring:message code='forum.label.del.forum.cmnt'/></span></li>"; // 삭제된 댓글 입니다.
-                        } else {
-                            listHtml += "			<li id=\"cmntContents"+index+i+"\">" + rs.cmntCts + "</li>";
-                        }
-                        if(rs.delYn != "Y") {
-                            listHtml += "			<li class=\"toggle_box\" id=\"toggleCmnt"+ index + i +"\">";
-                            listHtml += "				<ul class=\"comment-write\">";
-                            listHtml += "					<li>";
-                            listHtml += "						<textarea rows=\"3\" class=\"wmax\" id=\"cmntText"+ index + i +"\" placeholder=\"<spring:message code='forum.alert.input.forum_reply'/>\"></textarea>"; // 댓글을 입력하세요
-                            listHtml += "					</li>";
-                            listHtml += "					<li id=\"btnCmnt"+index+i+"\">";
-                            listHtml += "						<a href=\"javascript:addCmnt('"+rs.atclSn+"','"+rs.cmntSn+"','"+index+"','"+i+"')\" class=\"ui basic grey small button\"><spring:message code='forum.button.reg'/></a>"; // 등록
-                            listHtml += "					</li>";
-                            listHtml += "				</ul>";
-                            listHtml += "			</li>";
-                        }
-                        listHtml += "			</ul>";
-                        listHtml += "		</li>";
-                        listHtml += "	</ul>";
-                    }
-                });
-                listHtml += "</div>";
-    //			listHtml += "		</div>";
-                listHtml += "	</div>";
-
-                listHtml += "</div>";
-
-            });
-        }
-        return listHtml;
+    // 날짜 포맷 변환 (내부유틸)
+    function _formatDttm(dttm) {
+        return dttm.substring(0, 4) + '.' + dttm.substring(4, 6) + '.' + dttm.substring(6, 8)
+             + ' (' + dttm.substring(8, 10) + ':' + dttm.substring(10, 12) + ')';
     }
 
-    // 팀 리스트
+    // 찬성/반대 뱃지 (내부유틸)
+    function _tmpl_prosConsBadge(v) {
+        if(v.atclTypeCd == "NORMAL_N" || v.atclTypeCd == "TEAM_N") {
+            return '';
+        }
+        if(v.prosConsTypeCd == "OK") {
+            return "<span class='label mr10 fcBlue'><spring:message code='forum.label.pros'/></span>";
+        } else if(v.prosConsTypeCd == "NOTOK") {
+            return "<span class='label mr10 fcRed'><spring:message code='forum.label.cons'/></span>";
+        }
+        return '';
+    }
+
+    // 댓글 수정/삭제 버튼 (내부유틸)
+    function _tmpl_cmntEditBtns(rs, index, i) {
+        if(rs.delYn == "Y") { return ''; }
+        return [
+            "<button type=\"button\" class=\"toggle_btn\" onclick=\"btnAddCmnt('"+index+"','"+i+"','"+rs.atclSn+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.cmnt'/></button>",
+            "<ul class=\"ui icon top right pointing dropdown\" tabindex=\"0\">",
+            "    <i class=\"xi-ellipsis-v p5\"></i>",
+            "    <div class=\"menu\" tabindex=\"-1\">",
+            "        <button type=\"button\" class=\"item\" onClick=\"editBtnClick('"+rs.atclSn+"','"+rs.rgtrId+"','"+rs.cmntSn+"','"+index+"','"+i+"','"+rs.level+"', '"+ rs.ansReqYn +"')\"><spring:message code='forum.button.mod'/></button>",
+            "        <button type=\"button\" class=\"item\" onClick=\"delCmnt('"+rs.rgtrId+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.del'/></button>",
+            "    </div>",
+            "</ul>"
+        ].join('');
+    }
+
+    // =========================================================
+    // 2. 템플릿 함수
+    // =========================================================
+
+    // 게시글 카드 상단 (작성자/날짜/뱃지)
+    function tmpl_atclHeader(v, i) {
+        var userImg = v.phtFile != null ? v.phtFile : "/webdoc/img/icon-hycu-symbol-grey.svg";
+        var regDttm = _formatDttm(v.regDttm);
+
+        var fileLinks = [];
+        v.fileList.forEach(function(item, index) {
+            if(index > 0) {
+                fileLinks.push(" | <a href=\"javascript:fileDown('"+ item.fileSn +"', '"+ item.repoCd +"');\" class=\"link\">"+ item.fileNm +"</a>");
+            } else {
+                fileLinks.push("<a href=\"javascript:fileDown('"+ item.fileSn +"', '"+ item.repoCd +"');\" class=\"link\">"+ item.fileNm +"</a>");
+            }
+        });
+
+        var menuBtns = '';
+        if(v.rgtrId == "${userId}" && v.delYn == "N") {
+            menuBtns = [
+                "<div class='ui top right pointing dropdown right-box'>",
+                "    <span class='bars'><spring:message code='forum.label.menu' /></span>",
+                "    <div class='menu'>",
+                "        <a href=\"javascript:editAtclBtn('"+ v.atclSn +"','"+ v.rgtrId +"')\" class='item'><spring:message code='forum.button.mod'/></a>",
+                "        <a href=\"javascript:delAtcl('"+ v.atclSn +"','"+ v.rgtrId +"')\" class='item'><spring:message code='forum.button.del'/></a>",
+                "    </div>",
+                "</div>"
+            ].join('');
+        }
+
+        return [
+            "<div class='content card-item-center'>",
+            "    <div class='flex fac flex-wrap wmax'>",
+            "        <div class='user'><span class='user_img'><img src='"+userImg+"' alt=\"<spring:message code='forum.common.user.img' />\"></span></div>",
+            "        <span class='label mr10'>"+ v.regNm +"("+ v.userId +")</span>",
+            "        <span class='label mr10 fcBlue'><spring:message code='forum.label.length'/> : "+ v.ctsLen +"<spring:message code='forum.label.word'/></span>",
+            _tmpl_prosConsBadge(v),
+            "        <span class='label mr10'><spring:message code='forum.label.reg.dttm'/> : "+ regDttm +"</span>",
+            "        <span class='label mr10'><spring:message code='forum.label.attachFile'/> : "+ fileLinks.join('') +"</span>",
+            "    </div>",
+            menuBtns,
+            "</div>"
+        ].join('');
+    }
+
+    // 게시글 본문
+    function tmpl_atclBody(v) {
+        var ctsHtml;
+        console.log("${forumVo.prosConsForumCfg}");
+        if("${forumVo.prosConsForumCfg}" == "Y") {
+            ctsHtml = "<pre>" + v.cts + "</pre>";
+        } else {
+            ctsHtml = v.cts;
+        }
+        var delBadge = (v.delYn == "Y")
+            ? " <span class=\"ui red label p4 f080\"><spring:message code='forum.label.sapn.del.content'/></span>"
+            : '';
+        return [
+            "<div class='ui segment ml25 mr25 mt10 mb10 forumView'>",
+            "    " + ctsHtml + delBadge,
+            "</div>"
+        ].join('');
+    }
+
+    // 댓글 입력 폼
+    function tmpl_cmntWriteForm(atclSn, i) {
+        return [
+            "<div class='content comment border0'>",
+            "    <div class='ui box flex-item'>",
+            "        <div class='flex-item mra'>",
+            "            <div class='cur_point' id='cmntOpen"+ i +"' onclick=\"cmntView('"+ atclSn +"', '"+ i +"')\">",
+            "                <i class=\"xi-message-o f120 mr5\" aria-hidden=\"true\"></i>",
+            "                <i class=\"xi-angle-down-min\" aria-hidden=\"true\"></i>",
+            "            </div>",
+            "        </div>",
+            "        <div id='cmntWrite"+ i +"' onclick=\"cmntWirte('"+ atclSn +"', '"+ i +"')\" class=\"mla\">",
+            "            <button class=\"ui basic small button toggle_commentwrite\"><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.write'/></button>",
+            "        </div>",
+            "    </div>",
+            "    <div class=\"ui box\">",
+            "        <div class=\"toggle_box pt10 commentwrite\" id='toggleBox"+ i +"' style=\"display: none;\">",
+            "            <ul class=\"comment-write bcdark1Alpha05 p8\">",
+            "                <li class=\"flex-item mra\">",
+            "                    <small class=\"pr4\"><spring:message code='forum.button.label.info' /></small>",
+            "                    <a href=\"javascript:setCts(0, "+ i +");\" id='cts0' class=\"ui basic mini label\"><spring:message code='forum.button.cts0' /></a>",
+            "                    <a href=\"javascript:setCts(1, "+ i +");\" id='cts1' class=\"ui basic mini label\"><spring:message code='forum.button.cts1' /></a>",
+            "                    <a href=\"javascript:setCts(2, "+ i +");\" id='cts2' class=\"ui basic mini label\"><spring:message code='forum.button.cts2' /></a>",
+            "                </li>",
+            "                <li><textarea rows=\"3\" class=\"wmax\" placeholder=\"<spring:message code='forum.label.input.cmnt'/>\" id='cmntText"+ i +"'></textarea></li>",
+            "                <li class=\"flex-item flex-wrap\">",
+            "                    <div class=\"ui checkbox f080 mra\"></div>",
+            "                    <a href=\"javascript:addCmnt('"+ atclSn +"','','"+ i +"');\" class=\"ui basic grey small button\"><spring:message code='forum.button.reg'/></a>",
+            "                </li>",
+            "            </ul>",
+            "        </div>",
+            "    </div>"
+        ].join('');
+    }
+
+    // 댓글/대댓글 한 줄
+    function tmpl_cmntItem(rs, index, i) {
+        var userImg = rs.phtFile != null ? rs.phtFile : "/webdoc/img/icon-hycu-symbol-grey.svg";
+        var regDate = _formatDttm(rs.modDttm);
+        var isReply = (rs.level != 1);
+        var ulClass = isReply ? "dash_item_listA" : "";
+
+        var lenBadge = (rs.delYn != "Y")
+            ? " | <em class='fcBlue'><spring:message code='forum.label.length'/> : "+ rs.cmntCtsLen +"<spring:message code='forum.label.word'/></em>"
+            : '';
+
+        var ctsRow = (rs.delYn == "Y")
+            ? "<li><span class=\"ui red label\"><spring:message code='forum.label.del.forum.cmnt'/></span></li>"
+            : "<li id=\"cmntContents"+index+i+"\">"+ rs.cmntCts + "</li>";
+
+        var replyForm = '';
+        if(rs.delYn != "Y") {
+            replyForm = [
+                "<li class=\"toggle_box\" id=\"toggleCmnt"+ index + i +"\">",
+                "    <ul class=\"comment-write\">",
+                "        <li>",
+                "            <textarea rows=\"3\" class=\"wmax\" id=\"cmntText"+ index + i +"\" placeholder=\"<spring:message code='forum.alert.input.forum_reply'/>\"></textarea>",
+                "        </li>",
+                "        <li id=\"btnCmnt"+index+i+"\">",
+                "            <a href=\"javascript:addCmnt('"+rs.atclSn+"','"+rs.cmntSn+"','"+index+"','"+i+"')\" class=\"ui basic grey small button\"><spring:message code='forum.button.reg'/></a>",
+                "        </li>",
+                "    </ul>",
+                "</li>"
+            ].join('');
+        }
+
+        return [
+            "<ul" + (ulClass ? " class=\""+ulClass+"\"" : "") + ">",
+            "    <li class=\"imgBox\">",
+            "        <div class='user'><span class='user_img'><img src='"+userImg+"' alt=\"<spring:message code='forum.common.user.img' />\"></span></div>",
+            "    </li>",
+            "    <li>",
+            "        <ul>",
+            "            <li class=\"flex-item\">",
+            "                <em class=\"mra mt0\">"+ rs.rgtrnm +" <code>"+ regDate + lenBadge +"</code></em>",
+            _tmpl_cmntEditBtns(rs, index, i),
+            "            </li>",
+            ctsRow,
+            replyForm,
+            "        </ul>",
+            "    </li>",
+            "</ul>"
+        ].join('');
+    }
+
+    // =========================================================
+    // 3. 조립 함수
+    // =========================================================
+
+    // 토론 글 리스트 생성
+    function createForumListHTML(forumList) {
+        if(forumList.length == 0) {
+            return [
+                "<div class=\"flex-container\">",
+                "    <div class=\"cont-none\">",
+                "        <span><spring:message code='forum.common.empty' /></span>",
+                "    </div>",
+                "</div>"
+            ].join('');
+        }
+
+        var parts = [];
+        forumList.forEach(function(v, i) {
+            var cmntRows = [];
+            v.cmntList.forEach(function(rs, index) {
+                cmntRows.push(tmpl_cmntItem(rs, index, i));
+            });
+
+            parts.push([
+                "<div class='ui card wmax'>",
+                tmpl_atclHeader(v, i),
+                tmpl_atclBody(v),
+                tmpl_cmntWriteForm(v.atclSn, i),
+                "    <div class='article p10 commentlist' id='article"+ i +"'>",
+                cmntRows.join(''),
+                "    </div>",
+                "</div>"
+            ].join(''));
+        });
+        return parts.join('');
+    }
+
     function teamList() {
         var url = "/forum2/forumLect/listTeamJson.do";
 
@@ -381,7 +374,7 @@
                 }
                 teamListText += '</select>';
                 $("#parentDiv").prepend(teamListText);
-                $("#selectTeam").dropdown();
+                // $("#selectTeam").dropdown();
 
                 if(returnList.length > 0) {
                     $("#selectTeam").change(function() {
@@ -561,102 +554,17 @@
         $("#article"+index).toggle();
     }
 
+
     // 토론 댓글 리스트 생성
     function createArticleListHTML(articleList, index) {
-        var htmlList = "";
-
+        var parts = [];
         $.each(articleList, function(i) {
-            rs = articleList[i];
-
-            //��¥ format��ȯ
-            var yyyy = rs.modDttm.substr(0,4);
-            var mm = rs.modDttm.substr(4,2);
-            var dd = rs.modDttm.substr(6,2);
-            var h = rs.modDttm.substr(8,2);
-            var m = rs.modDttm.substr(10,2);
-
-            var regDate = yyyy + "." + mm + "." + dd + "(" + h + ":" + m + ")";
-
-            if(rs.level == 1) {
-                htmlList += "	<ul>";
-                htmlList += "		<li class=\"imgBox\">";
-                htmlList += "			<div class=\"initial-img sm c-4\">"+ rs.userNm +"</div>";
-                htmlList += "		</li>";
-                htmlList += "		<li>";
-                htmlList += "			<ul>";
-                htmlList += "				<li class=\"flex-item\">";
-                htmlList += "					<em class=\"mra\">"+ rs.regNm +" <code>"+ regDate +" | <em class='fcBlue'><spring:message code='forum.label.length'/> : "+ rs.cmntCtsLen +"<spring:message code='forum.label.word'/></em></code></em>"; // 글자수, 자
-                htmlList += "					<button type=\"button\" class=\"toggle_btn\" onclick=\"btnAddCmnt('"+index+"','"+i+"','"+rs.atclSn+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.cmnt'/></button>"; // 댓글
-                if(rs.delYn != "Y") {
-                    htmlList += "					<ul class=\"ui icon top right pointing dropdown\" tabindex=\"0\">";
-                    htmlList += "						<i class=\"xi-ellipsis-v p5\"></i>";
-                    htmlList += "						<div class=\"menu\" tabindex=\"-1\">";
-                    htmlList += "							<button type=\"button\" class=\"item\" onClick=\"editBtnClick('"+rs.atclSn+"','"+rs.rgtrId+"','"+rs.cmntSn+"','"+index+"','"+i+"','"+rs.level+"', '"+ rs.ansReqYn +"')\"><spring:message code='forum.button.mod'/></button>"; // 수정
-                    htmlList += "							<button type=\"button\" class=\"item\" onClick=\"delCmnt('"+rs.rgtrId+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.del'/></button>"; // ����
-                    htmlList += "						</div>";
-                    htmlList += "					</ul>";
-                }
-                htmlList += "				</li>";
-                htmlList += "				<li id=\"cmntContents"+index+i+"\">"+ rs.cmntCts;
-                if(rs.delYn == "Y") {
-                    htmlList += " <span class=\"ui red label p4 f080\"><spring:message code='forum.label.sapn.del.content'/></span>"; // ������
-                }
-                htmlList += "</li>";
-                htmlList += "				<li class=\"toggle_box\" id=\"toggleCmnt"+ index + i +"\" >";
-                htmlList += "					<ul class=\"comment-write\">";
-                htmlList += "						<li>";
-                htmlList += "							<textarea rows=\"3\" class=\"wmax\" id=\"cmntText"+ index + i +"\" placeholder=\"<spring:message code='forum.alert.input.forum_reply'/>\"></textarea>"; // 댓글을 입력하세요
-                htmlList += "						</li>";
-                htmlList += "						<li id=\"btnCmnt"+index+i+"\">";
-                htmlList += "							<a href=\"javascript:addCmnt('"+rs.atclSn+"','"+rs.cmntSn+"','"+index+"','"+i+"'\" class=\"ui basic grey small button\"><spring:message code='forum.button.reg'/></a>"; // 등록
-                htmlList += "						</li>";
-                htmlList += "					</ul>";
-                htmlList += "				</li>";
-                htmlList += "			</ul>";
-                htmlList += "		</li>";
-                htmlList += "	</ul>";
-            } else {
-                htmlList += "	<ul class=\"co_inner\">";
-                htmlList += "		<li class=\"imgBox\">";
-                htmlList += "			<div class=\"initial-img sm c-4\">"+ rs.userNm +"</div>";
-                htmlList += "		</li>";
-                htmlList += "		<li>";
-                htmlList += "			<ul>";
-                htmlList += "				<li class=\"flex-item\">";
-                htmlList += "					<em class=\"mra\">"+ rs.regNm +" <code>"+ regDate +" | <em class='fcBlue'><spring:message code='forum.label.length'/> : "+ rs.cmntCtsLen +"<spring:message code='forum.label.word'/></em></code></em>"; // 글자수, 자
-                htmlList += "					<button type=\"button\" class=\"toggle_btn\" onclick=\"btnAddCmnt('"+index+"','"+i+"','"+rs.atclSn+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.cmnt'/></button>"; // 댓글
-                if(rs.delYn != "Y") {
-                    htmlList += "					<ul class=\"ui icon top right pointing dropdown\" tabindex=\"0\">";
-                    htmlList += "						<i class=\"xi-ellipsis-v p5\"></i>";
-                    htmlList += "						<div class=\"menu\" tabindex=\"-1\">";
-                    htmlList += "							<button type=\"button\" class=\"item\" onClick=\"editBtnClick('"+rs.atclSn+"','"+rs.rgtrId+"','"+rs.cmntSn+"','"+index+"','"+i+"','"+rs.level+"', '"+ rs.ansReqYn +"')\"><spring:message code='forum.button.mod'/></button>"; // 수정
-                    htmlList += "							<button type=\"button\" class=\"item\" onClick=\"delCmnt('"+rs.rgtrId+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.del'/></button>"; // 삭제
-                    htmlList += "						</div>";
-                    htmlList += "					</ul>";
-                }
-                htmlList += "				</li>";
-                htmlList += "				<li id=\"cmntContents"+index+i+"\">"+ rs.cmntCts;
-                if(rs.delYn == "Y") {
-                    htmlList += " <span class=\"ui red label p4 f080\"><spring:message code='forum.label.sapn.del.content'/></span>"; // 삭제됨
-                }
-                htmlList += "</li>";
-                htmlList += "				<li class=\"toggle_box\" id=\"toggleCmnt"+ index + i +"\">";
-                htmlList += "					<ul class=\"comment-write\">";
-                htmlList += "						<li>";
-                htmlList += "							<textarea rows=\"3\" class=\"wmax\" id=\"cmntText"+ index + i +"\" placeholder=\"<spring:message code='forum.alert.input.forum_reply'/>\"></textarea>"; // 댓글을 입력하세요
-                htmlList += "						</li>";
-                htmlList += "						<li id=\"btnCmnt"+index+i+"\">";
-                htmlList += "							<a href=\"javascript:addCmnt('"+rs.atclSn+"','"+rs.cmntSn+"','"+index+"','"+i+"')\" class=\"ui basic grey small button\"><spring:message code='forum.button.reg'/></a>"; /// 등록
-                htmlList += "						</li>";
-                htmlList += "					</ul>";
-                htmlList += "				</li>";
-                htmlList += "			</ul>";
-                htmlList += "		</li>";
-                htmlList += "	</ul>";
-            }
+            var rs = articleList[i];
+            parts.push(tmpl_cmntItem(rs, index, i));
         });
-        return htmlList;
+        return parts.join('');
     }
+
 
     //댓글 작성 버튼
     function cmntWirte(atclSn,index) {

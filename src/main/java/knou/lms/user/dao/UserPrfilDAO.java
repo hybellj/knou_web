@@ -2,6 +2,7 @@ package knou.lms.user.dao;
 
 
 import knou.lms.user.vo.UserPrfilVO;
+import knou.lms.user.vo.UserTelnoChgHstryVO;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
 import java.util.List;
@@ -63,5 +64,9 @@ public interface UserPrfilDAO {
 
     void modifyUserBasic(UserPrfilVO vo) throws Exception;
 
-    void mergeUserCntct(UserPrfilVO c) throws Exception;
+    void mergeUserCntct(UserPrfilVO vo) throws Exception;
+
+    void telnoChgHstryRegist(UserTelnoChgHstryVO vo) throws Exception;
+
+    String userCntctSelect(UserPrfilVO vo) throws Exception;
 }

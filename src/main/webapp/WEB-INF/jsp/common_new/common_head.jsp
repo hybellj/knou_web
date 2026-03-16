@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ page trimDirectiveWhitespaces="true" %>
+<%@ page import="knou.framework.util.SessionUtil" %>
 <%
 	String title = request.getParameter("title");
 	if (title == null || "".equals(title)) {
@@ -14,6 +15,12 @@
 	String webdoc = contextPath + "/webdoc";
 	String assets = webdoc + "/assets";
 	String uilib = webdoc + "/uilib";
+	
+	String pageType = (String)SessionUtil.getSessionValue(request, "PAGE_TYPE");
+	String bodyClass = (String)SessionUtil.getSessionValue(request, "BODY_CLASS");
+	
+	request.setAttribute("pageType", pageType);
+	request.setAttribute("bodyClass", bodyClass);
 %>
 
 
@@ -142,6 +149,12 @@ if (module != null && !"".equals(module)) {
 			%>
 			<link rel="stylesheet" href="<%=uilib%>/gridstack/gridstack.min.css">
 			<script src="<%=uilib%>/gridstack/gridstack-all.js"></script>
+			<%
+		}
+		// 탭메뉴
+		else if ("tabmenu".equals(name)) {
+			%>
+			<script src="<%=uilib%>/tabmenu/ui-tabmenu.js"></script>
 			<%
 		}
 	}

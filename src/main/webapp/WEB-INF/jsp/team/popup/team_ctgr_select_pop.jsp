@@ -1,11 +1,12 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 	<head>
-    	<%@ include file="/WEB-INF/jsp/common/modal_common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-    	<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
+    	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+			<jsp:param name="style" value="classroom"/>
+			<jsp:param name="module" value="table"/>
+		</jsp:include>
     </head>
 
     <div id="loading_page">
@@ -16,30 +17,35 @@
 		$(document).ready(function() {
 		});
 
-		function teamList() {
+		function teamList(lrnGrpId) {
+			if(lrnGrpId == "") {
+				teamListTable.clearData();
+				return;
+			}
+
 			var url  = "/team/teamHome/listTeam.do";
 			var data = {
-				"teamCtgrCd"  : $("#teamCtgrCd").val(),
+				"teamCtgrCd"  : lrnGrpId
 			};
 
 			ajaxCall(url, data, function(data) {
 				if(data.result > 0) {
 					var returnList = data.returnList || [];
-	        		var html = "";
+					var dataList = [];
 
 	        		if(returnList.length > 0) {
 	        			returnList.forEach(function(v, i) {
-	        				html += `<tr>`;
-	        				html += `	<td>\${v.lineNo}</td>`;
-	        				html += `	<td>\${v.teamNm}</td>`;
-	        				html += `	<td>\${v.leaderNm}</td>`;
-	        				html += `	<td>\${v.teamMbrCnt}<spring:message code='team.common.memberCnt'/></td>`; // 명
-	        				html += `</tr>`;
+	        				dataList.push({
+	    						no: 		v.lineNo,
+	    						teamNm: 	v.teamNm,
+	    						leaderNm: 	v.leaderNm,
+	    						teamMbrCnt: v.teamMbrCnt + "명"
+	    					});
 	        			});
 	        		}
 
-	        		$("#teamListBody").empty().html(html);
-	        		$("#teamListTable").footable();
+	        		teamListTable.clearData();
+	        		teamListTable.replaceData(dataList);
 	        	} else {
 	        		alert(data.message);
 	        	}
@@ -64,36 +70,38 @@
 		}
 	</script>
 
-	<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
+	<body class="modal-page">
         <div id="wrap">
-        	<div id="info-item-box">
-                <p>* <spring:message code='team.label.teamCtgr.info'/><!-- 팀배정이 완료된 팀 분류만 조회됩니다. --></p>
-                <div class="button-area">
-                	<select class="ui dropdown" id="teamCtgrCd" onchange="teamList()">
-                		<option value=""><spring:message code='team.label.teamCtgr.select'/><!-- 팀 분류를 선택하세요. --></option>
-                		<c:forEach var="list" items="${teamCtgrList }">
-                			<option value="${list.lrnGrpId }">${list.lrnGrpnm }</option>
-                		</c:forEach>
-                	</select>
-                </div>
-            </div>
-            <table class="table" id="teamListTable" data-sorting="false" data-paging="false" data-empty="<spring:message code='team.common.empty'/>"><!-- 등록된 내용이 없습니다. -->
-            	<thead>
-            		<tr>
-            			<th scope="col" class="tc"><spring:message code="main.common.number.no" /><!-- NO. --></th>
-            			<th scope="col" class="tc"><spring:message code='team.table.teamNm'/><!-- 팀명 --></th>
-            			<th scope="col" class="tc"><spring:message code='team.table.leaderNm'/><!-- 팀장 --></th>
-            			<th scope="col" class="tc"><spring:message code='team.table.memberCnt'/><!-- 인원수 --></th>
-            		</tr>
-            	</thead>
-            	<tbody id="teamListBody">
-            	</tbody>
-            </table>
+        	<small class="note2 margin-3">! 학습그룹 배정이 완료된 학습그룹만 조회됩니다.</small>
+        	<div class="board_top">
+        		<select class="form-select" id="teamCtgrCd" onchange="teamList(this.value)">
+                    <option value="" hidden>학습그룹 지정</option>
+            		<c:forEach var="item" items="${teamCtgrList }">
+						<option value="${item.lrnGrpId }">${item.lrnGrpnm }</option>
+					</c:forEach>
+                </select>
+        	</div>
 
-            <div class="bottom-content">
-                <button class="ui blue button" onclick="selectTeamCtgr();"><spring:message code='team.common.select'/><!-- 선택 --></button>
-                <button class="ui black cancel button" onclick="window.parent.closeDialog();"><spring:message code='team.common.close'/><!-- 닫기 --></button>
-            </div>
+			<div id="list"></div>
+
+			<script>
+				// 리스트 테이블
+				let teamListTable = UiTable("list", {
+					lang: "ko",
+					height: 200,
+					columns: [
+						{title:"NO.", 	field:"no",				headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},
+						{title:"팀명", 	field:"teamNm",			headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:100},
+						{title:"팀장", 	field:"leaderNm",		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},
+						{title:"인원수", 	field:"teamMbrCnt", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100}
+					]
+				});
+			</script>
+
+			<div class="btns">
+                <button class="btn type2" onclick="selectTeamCtgr();"><spring:message code='team.common.select'/><!-- 선택 --></button>
+                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code='team.common.close'/><!-- 닫기 --></button>
+			</div>
         </div>
 		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
 	</body>

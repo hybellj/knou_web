@@ -1304,7 +1304,7 @@
 				                                     		});
 				                                     		
 				                                     		var termCd = $("#courseTerm option:selected").val();
-				                                     		document.location.href = "<c:url value='/dashboard/profDashboard.do'/>?termCd="+termCd + "&tabCd=" + tabCd;
+				                                     		document.location.href = "<c:url value='/dashboard/dashboard.do'/>?termCd="+termCd + "&tabCd=" + tabCd;
 				                                     	}
 			                                        </script>
 		                                        </div>

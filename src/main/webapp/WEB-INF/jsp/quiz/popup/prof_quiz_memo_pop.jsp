@@ -1,11 +1,11 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 	<head>
-    	<%@ include file="/WEB-INF/jsp/common/modal_common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-    	<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
+    	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+		<jsp:param name="style" value="classroom"/>
+	</jsp:include>
     </head>
 
     <div id="loading_page">
@@ -47,22 +47,21 @@
 		}
 	</script>
 
-	<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
+	<body class="modal-page">
         <div id="wrap">
-        	<div class="ui message info-item-box gap4">
-        		${vo.sbjctnm } ${vo.dvclasNo }반
-		        <div class="mla fcBlue">
-		            <b>${quizExamnee.deptnm } ${quizExamnee.stdntNo } ${quizExamnee.usernm } <span class="f150">${quizExamnee.totScr }<spring:message code="exam.label.score.point" /></span><!-- 점 --></b>
-		        </div>
-		    </div>
-        	<div>
-        		<textarea id="profMemo" rows="10" cols="30">${profMemo.profMemo }</textarea>
-        	</div>
-
-            <div class="bottom-content mt70">
-                <button class="ui blue button" onclick="profMemoRegist()"><spring:message code="exam.button.save" /></button><!-- 저장 -->
-                <button class="ui black cancel button" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
+        	<div class="msg-box basic board_top">
+        		<span>${vo.sbjctnm } ${vo.dvclasNo }반</span>
+        		<div class="right-area fcBlue">
+        			<b>${quizExamnee.deptnm } ${quizExamnee.stdntNo } ${quizExamnee.usernm } <span class="f150">${quizExamnee.totScr }<spring:message code="exam.label.score.point" /></span><!-- 점 --></b>
+        		</div>
             </div>
+
+            <textarea class="form-control" id="profMemo" style="width:100%;height:100px" maxLenCheck="byte,4000,true,true">${profMemo.profMemo }</textarea>
+
+			<div class="btns">
+                <button class="btn type1" onclick="profMemoRegist()"><spring:message code="exam.button.save" /></button><!-- 저장 -->
+                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
+			</div>
         </div>
 		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
 	</body>

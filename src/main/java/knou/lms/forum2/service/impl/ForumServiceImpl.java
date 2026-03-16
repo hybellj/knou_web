@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import knou.lms.forum2.vo.*;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.PageInfo;
@@ -15,10 +16,6 @@ import knou.framework.util.StringUtil;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.forum2.dao.Forum2DAO;
 import knou.lms.forum2.service.ForumService;
-import knou.lms.forum2.vo.Forum2DvclasSelVO;
-import knou.lms.forum2.vo.Forum2ListVO;
-import knou.lms.forum2.vo.Forum2LrnGrpVO;
-import knou.lms.forum2.vo.Forum2VO;
 
 @Service("forum2Service")
 public class ForumServiceImpl extends ServiceBase implements ForumService {
@@ -60,7 +57,12 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      */
     @Override
     public Forum2VO selectForum(Forum2VO vo) throws Exception {
-        return forumDAO.selectForum(vo);
+        Forum2VO  resultVo = forumDAO.selectForum(vo);
+        // 부토론 존재여부 체크
+        if (resultVo.getByteamSubdscsUseyn().equalsIgnoreCase("Y")) {
+            resultVo.setTeamForumDtlList(forumDAO.selectTeamDscsList(vo.getDscsId()));
+        }
+        return resultVo;
     }
 
     /**
@@ -181,6 +183,19 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                 vo.setDvclsNo(dvclsNo);
                 forumDAO.insertForum(vo);
 
+                // TODO : 팀별 부주제 정보 저장(저장 정보 체크)
+                // - 분반 * 팀갯수만큼 토론 생성되는 것으로 변경 예정(26.3.16)
+                /*
+                if (vo.getByteamSubdscsUseyn().equalsIgnoreCase("Y")) {
+                    for (Forum2TeamDtlVO teamDtlVO : vo.getTeamForumDtlList()) {
+                        String newSubDscsId = IdGenerator.getNewId("SUBDSCS");
+                        teamDtlVO.setSubdscsId(newSubDscsId);
+                        teamDtlVO.setDscsId(newDscsId);
+                        forumDAO.insertSubDscs(teamDtlVO);
+                    }
+                }
+                */
+
                 if (firstDscsId == null) {
                     // 입력된 분반 선택 순서 기준으로 첫 번째 DSCS를 대표 dscsId로 사용
                     firstDscsId = newDscsId;
@@ -194,11 +209,14 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
             vo.setDscsId(firstDscsId);
         }
 
-        Forum2VO detailParam = new Forum2VO();
+        // TODO : 확인용 코드 제거.
+        /*Forum2VO detailParam = new Forum2VO();
         detailParam.setDscsId(vo.getDscsId());
+        if (vo.getByteamSubdscsUseyn().equalsIgnoreCase("Y")) {
+            detailParam.setTeamForumDtlList(forumDAO.selectTeamDscsList(vo.getDscsId()));
+        }
         Forum2VO detailVO = forumDAO.selectForum(detailParam);
-
-        resultVO.setReturnVO(detailVO);
+        resultVO.setReturnVO(detailVO);*/
         resultVO.setResultSuccess();
 
         return resultVO;

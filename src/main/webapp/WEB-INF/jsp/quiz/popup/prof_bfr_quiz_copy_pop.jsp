@@ -1,11 +1,12 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 	<head>
-    	<%@ include file="/WEB-INF/jsp/common/modal_common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-    	<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
+    	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+			<jsp:param name="style" value="classroom"/>
+			<jsp:param name="module" value="table"/>
+		</jsp:include>
     </head>
 
     <div id="loading_page">
@@ -16,32 +17,29 @@
 		$(document).ready(function() {
 			$("#searchValue").on("keyup", function(e) {
 				if(e.keyCode == 13) {
-					bfrQuizListSelect(1);
+					bfrQuizListSelect();
 				}
 			});
 		});
 
 		/**
 		 * 이전 퀴즈 목록 조회
-		 * @param {Integer} pageIndex 		- 현재 페이지
 		 * @param {String}  smstrChrtId 	- 학사년도/학기
 		 * @param {String}  sbjctId	 		- 과목아이디
-		 * @param {String}  listScale 		- 페이징 목록 수
 		 * @param {String}  searchValue 	- 검색어 ( 퀴즈명 )
 		 * @param {String}  userId 			- 사용자아이디
 		 * @returns {list} 퀴즈 목록
 		 */
-    	function bfrQuizListSelect(page) {
+    	function bfrQuizListSelect() {
     		var url  = "/quiz/profAuthrtSbjctQuizListAjax.do";
     		var data = {
-    			"pageIndex"   	: page,
     			"smstrChrtId" 	: $("#smstrChrtId").val(),
     			"sbjctId" 		: $("#sbjctId").val(),
-    			"listScale"   	: $("#listScale").val(),
     			"searchValue" 	: $("#searchValue").val(),
     			"userId"		: "${vo.userId}"
     		};
 
+    		UiComm.showLoading(true);
 			$.ajax({
 		        url 	  : url,
 		        async	  : false,
@@ -50,43 +48,34 @@
 		        data 	  : JSON.stringify(data),
 		        contentType: "application/json; charset=UTF-8",
 		    }).done(function(data) {
+		    	UiComm.showLoading(false);
 	        	if (data.result > 0) {
 	        		var returnList = data.returnList || [];
-            		var html = "";
+	        		var dataList = [];
 
-            		if(returnList.length > 0) {
-            			returnList.forEach(function(v, i) {
-							html += "<tr>";
-							html += "	<td>" + v.lineNo + "</td>";
-							html += "	<td>" + v.sbjctnm + "</td>";
-							html += "	<td>" + v.dvclasNo + "<spring:message code='exam.label.decls' /></td>";/* 반 */
-							html += "	<td>" + v.examGbnnm + "</td>";
-							html += "	<td class='tl'>" + v.examTtl + "</td>";
-							html += "	<td><a href='javascript:window.parent.quizCopy(\"" + v.examBscId + "\")' class='ui blue button roundBtntype2'><spring:message code='exam.button.select' />​</a></td>";/* 선택 */
-							html += "</tr>";
-            			});
-            		}
+	        		if(returnList.length > 0) {
+	        			returnList.forEach(function(v, i) {
+							var selectBtn = "<a href='javascript:window.parent.quizCopy(\"" + v.examBscId + "\")' class='btn basic small'>선택​</a>";
 
-            		$("#copyList").empty().html(html);
-	    	    	$(".table").footable();
-	    	    	if($("#listScale").val() != "0") {
-	    	    		$("#paging").show();
-		    	    	var params = {
-			    			totalCount 	  : data.pageInfo.totalRecordCount,
-			    			listScale 	  : data.pageInfo.pageSize,
-			    			currentPageNo : data.pageInfo.currentPageNo,
-			    			eventName 	  : "bfrQuizListSelect"
-			    		};
+	        				dataList.push({
+	    						no: 		v.lineNo,
+	    						sbjctnm: 	v.sbjctnm,
+	    						dvclasNo: 	v.dvclasNo + "반",
+	    						examGbnnm: 	v.examGbnnm,
+	    						examTtl: 	v.examTtl,
+	    						selectBtn: 	selectBtn
+	    					});
+	        			});
+	        		}
 
-			    		gfn_renderPaging(params);
-	    	    	} else {
-	    	    		$("#paging").hide();
-	    	    	}
+	        		quizListTable.clearData();
+	        		quizListTable.replaceData(dataList);
 	            } else {
-	            	alert(data.message);
+	            	UiComm.showMessage(data.message, "error");
 	            }
 		    }).fail(function() {
-		    	alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
+		    	UiComm.showLoading(false);
+	        	UiComm.showMessage("<spring:message code='exam.error.list' />", "error");/* 리스트 조회 중 에러가 발생하였습니다. */
 		    });
     	}
 
@@ -105,16 +94,16 @@
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
 			    		var returnList = data.returnList || [];
-			    		var html = "";
+			    		var html = "<option value='' selected><spring:message code='exam.label.sel.crs' /></option>";/* 과목 선택 */
 
 			    		if(returnList.length > 0) {
-			    			html += "<option value='' selected><spring:message code='exam.label.sel.crs' /></option>";/* 과목 선택 */
 			    			returnList.forEach(function(v, i) {
 							html += "<option value='" + v.sbjctId + "'>" + v.sbjctnm + " " + v.dvclasNo + "반</option>";
 			    			});
 			    		}
 
 			    		$("#sbjctId").empty().append(html);
+			    		$("#sbjctId").val('').trigger("chosen:updated");
 			        } else {
 			         	alert(data.message);
 			        }
@@ -124,67 +113,46 @@
 		}
 	</script>
 
-	<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
+	<body class="modal-page">
         <div id="wrap">
-        	<p class="ui small error message">
-                <i class="info circle icon"></i><spring:message code="exam.label.select.copy.info" /><!-- 선택 시 정보가 복사됩니다. -->
-            </p>
-            <div class="option-content mb10 mt20">
-            	<select class="ui dropdown mr5" id="smstrChrtId" onchange="quizSmstrChrtChc(this.value)">
-            		<option value=""><spring:message code="exam.label.open.crs.year.term" /> <spring:message code="exam.button.select" /></option><!-- 개설년도_학기 --><!-- 선택 -->
+        	<div class="msg-box info">
+                <p class="txt"><i class="xi-error" aria-hidden="true"></i><spring:message code="exam.label.select.copy.info" /><!-- 선택 시 정보가 복사됩니다. --></p>
+            </div>
+            <div class="board_top">
+                <select class="form-select" id="smstrChrtId" onchange="quizSmstrChrtChc(this.value)">
+                    <option value=""><spring:message code="exam.label.open.crs.year.term" /> <spring:message code="exam.button.select" /></option><!-- 개설년도_학기 --><!-- 선택 -->
             		<c:forEach var="item" items="${quizSearchSmstrList }">
 						<option value="${item.smstrChrtId }">${item.smstrChrtnm }</option>
 					</c:forEach>
-            	</select>
-                <select class="ui dropdown mr5 w250" id="sbjctId" onchange="bfrQuizListSelect(1)">
-                	<option value=""><spring:message code='crs.label.crecrs.sel' /></option><!-- 과목 선택 -->
                 </select>
-
-                <div class="ui action input search-box mr5">
-                    <input type="text" placeholder="<spring:message code='exam.label.quiz' /><spring:message code='exam.label.nm' /> <spring:message code='exam.label.input' />" id="searchValue"><!-- 퀴즈 --><!-- 명 --><!-- 입력 -->
-                    <button class="ui black icon button" onclick="bfrQuizListSelect(1)"><i class="search icon"></i></button>
-                </div>
-
-                <div class="mla">
-	                <select class="ui dropdown mr5 list-num" id="listScale" onchange="bfrQuizListSelect(1)">
-	                    <option value="10">10</option>
-	                    <option value="20">20</option>
-	                    <option value="30">30</option>
-	                    <option value="50">50</option>
-	                    <option value="0"><spring:message code="exam.common.search.all" /><!-- 전체 --></option>
-	                </select>
-                </div>
+                <select class="form-select" id="sbjctId" onchange="bfrQuizListSelect()">
+                    <option value=""><spring:message code='crs.label.crecrs.sel' /></option><!-- 과목 선택 -->
+                </select>
+                <input class="form-control wide" type="text" id="searchValue" placeholder="퀴즈명 입력">
+                <button type="button" class="btn basic icon search" aria-label="검색" onclick="bfrQuizListSelect()"><i class="icon-svg-search"></i></button>
             </div>
 
-            <div class="ui form">
-	            <table class="table type2" data-sorting="true" data-paging="false" data-empty="<spring:message code='exam.common.empty' />"><!-- 등록된 내용이 없습니다. -->
-	            	<colgroup>
-	            		<col width="7%">
-	            		<col width="15%">
-	            		<col width="10%">
-	            		<col width="10%">
-	            		<col width="*">
-	            		<col width="10%">
-	            	</colgroup>
-					<thead>
-						<tr>
-							<th scope="col" class="num tc"><spring:message code="common.number.no" /><!-- NO. --></th>
-							<th scope="col" class="tc"><spring:message code="crs.label.crecrs.nm" /><!-- 과목명 --></th>
-							<th scope="col" class="tc"><spring:message code="crs.label.decls" /><!-- 분반 --></th>
-							<th scope="col" class="tc"><spring:message code="exam.label.quiz" /><!-- 퀴즈 --> <spring:message code="exam.label.stare.type" /><!-- 구분 --></th>
-							<th scope="col" class="tc"><spring:message code="exam.label.quiz" /><spring:message code="exam.label.nm" /></th><!-- 퀴즈 --><!-- 명 -->
-							<th scope="col" class="tc"><spring:message code="exam.button.select" /></th><!-- 선택 -->
-						</tr>
-					</thead>
-					<tbody id="copyList">
-					</tbody>
-				</table>
-				<div id="paging" class="paging"></div>
-            </div>
+            <div id="list"></div>
 
-            <div class="bottom-content">
-                <button class="ui black cancel button" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
-            </div>
+            <script>
+				// 리스트 테이블
+				let quizListTable = UiTable("list", {
+					lang: "ko",
+					height: 400,
+					columns: [
+						{title:"No", 		field:"no",				headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},
+						{title:"과목명", 		field:"sbjctnm",		headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:100},
+						{title:"분반", 		field:"dvclasNo",		headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+						{title:"퀴즈 구분", 	field:"examGbnnm", 		headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100},
+						{title:"퀴즈명", 		field:"examTtl", 		headerHozAlign:"center", hozAlign:"left", 	width:0,	minWidth:250},
+						{title:"선택", 		field:"selectBtn", 		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100}
+					]
+				});
+			</script>
+
+			<div class="btns">
+                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
+			</div>
         </div>
 		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
 	</body>

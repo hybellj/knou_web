@@ -181,7 +181,7 @@ if ("mobile".equals(deviceType)) {
 			var url = "";
 			
 			if(crsTypeCd != "UNI") {
-				url = "/dashboard/profDashboard.do?tabCd=" + crsTypeCd;
+				url = "/dashboard/dashboard.do?tabCd=" + crsTypeCd;
 			} else {
 				url = "/crs/crsHomeProf.do?crsCreCd=${lessonSchedule.crsCreCd}";
 			}

@@ -792,34 +792,12 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     * @param smstrChrtId 	학기기수아이디
     * @param sbjctId 		과목아이디
     * @param searchValue 	검색내용(퀴즈명)
-    * @param listScale	 	페이지크기
-    * @return 퀴즈목록 페이징
+    * @return 퀴즈목록
     * @throws Exception
     */
     @Override
-    public ProcessResultVO<EgovMap> profAuthrtSbjctQuizList(Map<String, Object> params) throws Exception {
-        PaginationInfo paginationInfo = new PaginationInfo();
-        paginationInfo.setCurrentPageNo((Integer) params.get("pageIndex"));
-        paginationInfo.setRecordCountPerPage(Integer.parseInt((String) params.get("listScale")));
-        paginationInfo.setPageSize(Integer.parseInt((String) params.get("listScale")));
-
-        params.put("firstIndex", paginationInfo.getFirstRecordIndex());
-        params.put("lastIndex", paginationInfo.getLastRecordIndex());
-
-        List<EgovMap> quizList = examDAO.profAuthrtSbjctQuizList(params);
-
-        if(quizList.size() > 0) {
-        	paginationInfo.setTotalRecordCount(((BigDecimal) quizList.get(0).get("totalCnt")).intValue());
-        } else {
-            paginationInfo.setTotalRecordCount(0);
-        }
-
-        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
-
-        resultVO.setReturnList(quizList);
-        resultVO.setPageInfo(paginationInfo);
-
-        return resultVO;
+    public List<EgovMap> profAuthrtSbjctQuizList(Map<String, Object> params) throws Exception {
+        return examDAO.profAuthrtSbjctQuizList(params);
     }
 
     /**

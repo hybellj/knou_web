@@ -744,7 +744,7 @@
                                               </p>
 
                                               <p class="tit">
-                                              <a href="/subject2MainView.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a>
+                                              <a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a>
                                               </p>
                                           </div>
                                       </div>
@@ -801,7 +801,7 @@
                                               <span class="info_txt">튜터 김하늘</span>
                                               <span class="info_txt">3학점</span>
                                           </p>
-                                          <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
+                                          <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
                                       </div>
                                   </div>
                                   <div class="extra">
@@ -1072,7 +1072,7 @@
                                                   <span class="info_txt">튜터 김하늘</span>
                                                   <span class="info_txt">3학점</span>
                                               </p>
-                                              <p class="tit"><a href="/subject2MainView.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
+                                              <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
                                           </div>
                                           <div class="extra">
                                               <div class="my_prog_rate">

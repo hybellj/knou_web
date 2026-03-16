@@ -2,6 +2,7 @@ package knou.lms.forum2.dao;
 
 import java.util.List;
 
+import knou.lms.forum2.vo.Forum2TeamDtlVO;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
 import knou.lms.forum2.vo.Forum2ListVO;
@@ -19,4 +20,6 @@ public interface Forum2DAO {
     void updateForumMrkRfltrt(List<Forum2VO> list);
     int deleteForum(Forum2VO vo);
     int copyForum(Forum2VO vo);
+
+    List<Forum2TeamDtlVO> selectTeamDscsList(String dscsId);
 }

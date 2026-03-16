@@ -256,7 +256,7 @@
     }
 </script>
 
-<body class="home colorA">
+<body class="home colorA ${bodyClass}">
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
@@ -272,10 +272,6 @@
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <div class="dashboard_sub">
-
-                    <!-- page_tab -->
-                    <jsp:include page="/WEB-INF/jsp/common_new/home_page_tab.jsp"/>
-                    <!-- //page_tab -->
 
                     <div class="sub-content">
                         <div class="page-info">

@@ -116,11 +116,10 @@ public interface ExamService {
 	* @param smstrChrtId 	학기기수아이디
 	* @param sbjctId 		과목아이디
 	* @param searchValue 	검색내용(퀴즈명)
-	* @param listScale	 	페이지크기
-	* @return 퀴즈목록 페이징
+	* @return 퀴즈목록
 	* @throws Exception
 	*/
-	public ProcessResultVO<EgovMap> profAuthrtSbjctQuizList(Map<String, Object> params) throws Exception;
+	public List<EgovMap> profAuthrtSbjctQuizList(Map<String, Object> params) throws Exception;
 
 	/**
 	* 퀴즈그룹과목목록조회

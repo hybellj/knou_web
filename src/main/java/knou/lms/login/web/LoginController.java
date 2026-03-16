@@ -115,7 +115,7 @@ public class LoginController extends ControllerBase {
 		// 로그인 되어 있을 경우 마이페이지로 이동
 		if(!"".equals(userId) && loginIp.equals(remoteIp)) {
 			// 컨텍스트 변경 URL (context name, url, httpServletRequest)
-			return "redirect:"+ new URLBuilder("dashboard", "/profDashboard.do",request).toString();
+			return "redirect:"+ new URLBuilder("dashboard", "/dashboard.do",request).toString();
 		}
 
 		List<LoginVO> orgList = loginService.selectOrgList();
@@ -442,7 +442,8 @@ public class LoginController extends ControllerBase {
         request.getSession().setAttribute("userCtx", userCtx);
         /*	Session에 저장 end */
 
-        return "redirect:/dashboard/main.do";
+        //return "redirect:/dashboard/main.do";
+        return "redirect:/dashboard/dashboard.do";
     }
 	
 	

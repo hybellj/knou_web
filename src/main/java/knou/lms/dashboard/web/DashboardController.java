@@ -203,7 +203,7 @@ public class DashboardController extends ControllerBase {
             returnUri = "/adminDashboard.do";
         } else if (menuType.contains("PROF")) {
             //교수
-            returnUri = "/profDashboard.do";
+            returnUri = "/dashboard.do";
         } else {
             String loginGbn = SessionInfo.getLoginGbn(request);
             String chk = CommConst.LOGINGBN_CHECK_YN;
@@ -223,7 +223,7 @@ public class DashboardController extends ControllerBase {
                 return "redirect:/";
             } else {
                 //학생
-                returnUri = "/stuDashboard.do";
+                returnUri = "/dashboard.do";
             }
         }
 
@@ -244,6 +244,8 @@ public class DashboardController extends ControllerBase {
                 }
             }
         }
+        
+        System.out.println("returnUri>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>=" + returnUri);
 
 
         return "redirect:/dashboard" + returnUri;
@@ -506,11 +508,7 @@ public class DashboardController extends ControllerBase {
     /**
      * ***************************************************
      * 교수대시보드화면
-     * @param request
-     * @param response
-     * @param model
-     * @return
-     * @throws Exception ****************************************************
+     * TODO: TOBE 개발완료시 삭제예정
      */
     @RequestMapping(value = "/profDashboardView.do")
     public String profDashboardView(HttpServletRequest request, HttpServletResponse response, DashboardVO dashboardVO, ModelMap model) throws Exception {
@@ -520,13 +518,10 @@ public class DashboardController extends ControllerBase {
     /**
      * ***************************************************
      * 교수대시보드조회
-     * TODO: 메쏘드를 분리해보자.
-     * @param request
-     * @param response
-     * @param model
-     * @return
-     * @throws Exception ****************************************************
+     * TODO: TOBE 개발완료시 삭제예정
      */
+    //////////////////////////////////////////////////////////////////////////////// 서비스하지 않는 Request입니다. 단 ASIS 소스 분석을 위해서 남겨둡니다.
+    //////////////////////////////////////////////////////////////////////////////// 대시보드개발이 완료되면 삭제, TOBE에서는 사용하지 않습니다. written by jinkoon 260313
     @RequestMapping(value = "/profDashboard.do")
     public String profDashboard(HttpServletRequest request, HttpServletResponse response,
     		DashboardVO dashboardVO, ModelMap model) throws Exception {
@@ -549,7 +544,7 @@ public class DashboardController extends ControllerBase {
     											SessionInfo.getLastLogin(request));
 
     	// 현재 홈정보 저장
-        SessionInfo.setCurUserHome(request, "/dashboard/profDashboard.do");
+        SessionInfo.setCurUserHome(request, "/dashboard/dashboard.do");
 
         // 과목세션정보 초기화
         SessionInfo.removeCourseInfo(request);
@@ -935,13 +930,10 @@ public class DashboardController extends ControllerBase {
     /**
      * ***************************************************
      * 학생 대시보드
-     *
-     * @param request
-     * @param response
-     * @param model
-     * @return
-     * @throws Exception ****************************************************
+     * TODO: TOBE 개발완료시 삭제예정
      */
+    //////////////////////////////////////////////////////////////////////////////// 서비스하지 않는 Request입니다. 단 ASIS 소스 분석을 위해서 남겨둡니다.
+    //////////////////////////////////////////////////////////////////////////////// 대시보드개발이 완료되면 삭제, TOBE에서는 사용하지 않습니다. written by jinkoon 260313
     @RequestMapping(value = "/stuDashboard.do")
     public String stuDashboard(HttpServletRequest request, HttpServletResponse response, DashboardVO dashboardVO, ModelMap model) throws Exception {
         boolean reloginChk = true;
@@ -986,7 +978,7 @@ public class DashboardController extends ControllerBase {
         }
 
         // 현재 홈정보 저장
-        SessionInfo.setCurUserHome(request, "/dashboard/stuDashboard.do");
+        SessionInfo.setCurUserHome(request, "/dashboard/dashboard.do");
         // 과목세션정보 초기화
         SessionInfo.removeCourseInfo(request);
         //사용자 접속 장치 설정
@@ -2377,8 +2369,8 @@ public class DashboardController extends ControllerBase {
         }
 
         return result;
-    }    
-    
+    }
+
     /**
      * ***************************************************
      * 대시보드2
@@ -2387,14 +2379,14 @@ public class DashboardController extends ControllerBase {
      * @return
      * @throws Exception *********************************
      */
-    @RequestMapping(value = "/dashboard2.do")    
+    @RequestMapping(value = "/dashboard.do")
     public String dashBoard2(HttpServletRequest request, ModelMap model) throws Exception {
-    	
+
     	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
-    	
+
     	if ( null == userCtx ) {
     		return "redirect:" + new URLBuilder("", "login.do",request).toString();
-    	}    	
+    	}
 
     	BaseParam param = new DashboardParam(userCtx.getOrgId(), userCtx.getUserId(), 3);
 
@@ -2404,6 +2396,29 @@ public class DashboardController extends ControllerBase {
     	model.addAttribute("dashVM", dashVM);
 
     	return dashVM.getViewName();
+
+    }
+
+    /**
+     * 메인 탭페이지
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/mainTabpage.do")
+    public String mainTabpage(HttpServletRequest request, ModelMap model) throws Exception {
+    	String menuUrl = StringUtil.nvl(request.getParameter("menuUrl"));
+    	String menuNm = StringUtil.nvl(request.getParameter("menuNm"));
+    	String upMenuId = StringUtil.nvl(request.getParameter("upMenuId"));
+    	String menuId = StringUtil.nvl(request.getParameter("menuId"));
+
+    	model.addAttribute("menuUrl", menuUrl);
+    	model.addAttribute("menuNm", menuNm);
+    	model.addAttribute("upMenuId", upMenuId);
+    	model.addAttribute("menuId", menuId);
+
+    	return "dashboard/main_tabpage";
 
     }
 }

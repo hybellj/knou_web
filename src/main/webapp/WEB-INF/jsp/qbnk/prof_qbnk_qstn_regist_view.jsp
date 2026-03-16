@@ -6,8 +6,7 @@
 <head>
 	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
 		<jsp:param name="style" value="classroom"/>
-		<jsp:param name="module" value="editor"/>
-		<jsp:param name="module" value="fileuploader"/>
+		<jsp:param name="module" value="editor,fileuploader"/>
 	</jsp:include>
 
 	<script type="text/javascript">

@@ -108,7 +108,7 @@ public class ClsController extends ControllerBase {
         model.addAttribute("pageInfo", resultVO.getPageInfo());
         model.addAttribute("vo", vo);
 
-        return "std/cls";
+        return "std/cls_list";
     }
 
     /*****************************************************

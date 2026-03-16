@@ -169,6 +169,10 @@
 	        		atclListTable.clearData();
 	        		atclListTable.replaceData(dataList);
 	        		atclListTable.setPageInfo(data.pageInfo);
+
+
+	        		//let frameId = window.frameElement ? window.frameElement.id : "";
+	        		//parent.resizeIframe(frameId);
 	            } else {
 	             	showMessage(data.message, "error"); // 에러가 발생했습니다!
 	            }
@@ -289,7 +293,7 @@
 	</script>
 </head>
 
-<body class="home colorA "  style=""><!-- 컬러선택시 클래스변경 -->
+<body class="home colorA ${bodyClass}"  style=""><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
@@ -305,10 +309,6 @@
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <div class="dashboard_sub">
-
-                    <!-- page_tab -->
-                    <jsp:include page="/WEB-INF/jsp/common_new/home_page_tab.jsp"/>
-                    <!-- //page_tab -->
 
                     <div class="sub-content">
                         <div class="page-info">
@@ -386,16 +386,16 @@
 								//tableMode: "list",
 								//rowHeight: 30,
 								//height: 400,
-								selectRow: "checkbox",
+								//selectRow: "checkbox",
 								//selectRow: "1",
 								//selectRowFunc: checkRowSelect,
-								sortFunc: atclListTableSort,
-								initialSort: [{column:"regDttm", dir:"desc"}],
+								//sortFunc: atclListTableSort,
+								//initialSort: [{column:"regDttm", dir:"desc"}],
 								pageFunc: listPaging,
 								columns: [
 									{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
-									{title:"<spring:message code='bbs.label.form_title'/>", field:"atclTtl",	headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200, 	headerSort:true},	// 제목
-									{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDttm", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	headerSort:true,	formatter:"date"},	// 등록일자
+									{title:"<spring:message code='bbs.label.form_title'/>", field:"atclTtl",	headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200},	// 제목
+									{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDttm", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	formatter:"date"},	// 등록일자
 									{title:"<spring:message code='bbs.label.reg_user'/>", 	field:"rgtrnm", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 작성자
 									{title:"<spring:message code='bbs.label.attach'/>", 	field:"attach", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 첨부
 									{title:"<spring:message code='bbs.label.view'/>", 		field:"inqCnt", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 조회
@@ -438,12 +438,6 @@
         <!-- //dashboard-->
 
     </div>
-
-<style>
-
-
-
-</style>
 
 </body>
 </html>

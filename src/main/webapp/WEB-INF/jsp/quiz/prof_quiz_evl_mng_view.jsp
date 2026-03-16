@@ -192,8 +192,8 @@
 
 			dialog = UiDialog("dialog1", {
 				title: "응시기록 보기",
-				width: 600,
-				height: 500,
+				width: 800,
+				height: 300,
 				url: "/quiz/profQuizTkexamHstryPopup.do?"+data,
 				autoresize: true
 			});
@@ -332,7 +332,7 @@
 			dialog = UiDialog("dialog1", {
 				title: "메모",
 				width: 600,
-				height: 500,
+				height: 300,
 				url: "/quiz/profQuizMemoPopup.do?"+data,
 				autoresize: true
 			});

@@ -132,6 +132,7 @@ public class QbnkController extends ControllerBase {
     public String profBfrQuizCopyPopup(QbnkQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
     	QbnkMainView qbnkMainView = qbnkFacadeService.loadProfQbnkQstnViewPopup(vo);
     	model.addAttribute("qbnkQstnVO", qbnkMainView.getQbnkQstnVO());
+    	model.addAttribute("qbnkQstnVwitmList", qbnkMainView.getQbnkQstnVwitmList());
 
         return "qbnk/popup/prof_qbnk_qstn_view_pop";
     }

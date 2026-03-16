@@ -37,7 +37,7 @@ function UiDialog(id, opts) {
 
 	let title		= (opts.title === undefined || !opts.title) ? "<i class='xi-bars'></i>" : opts.title;
 	let autoresize	= (opts.autoresize === undefined || !opts.autoresize) ? false : opts.autoresize;
-	
+
 	/**
 	 * Dialog 생성
 	 */
@@ -53,13 +53,22 @@ function UiDialog(id, opts) {
 			$(this).parent().find('.ui-dialog-title').html(title);
 			$(this).parent().addClass("dialog-box");
 			UiComm.showTopLayer($(this).parent());
-			
+
 			if (autoresize && opts.url) {
 				let thisDialog = $(this);
 				let iframe = $(this).children("iframe");
 				if (iframe.length > 0) {
 					iframe.on("load", function() {
-						thisDialog.dialog("option", "height", ($(this).contents().find("body").height() + 100));
+						let frameBody = this.contentWindow.document.body;
+
+						let updateHeight = () => {
+							thisDialog.dialog("option", "height", $(frameBody).outerHeight(true) + 80);
+						};
+
+						updateHeight();
+
+						let observer = new MutationObserver(updateHeight);
+						observer.observe(frameBody, {childList: true, subtree: true, attributes: true});
 					});
 				}
 			}
@@ -77,7 +86,7 @@ function UiDialog(id, opts) {
 	}
 
 	//dialog.open();
-	
+
 	return dialog;
 }
 

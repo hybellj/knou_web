@@ -1,11 +1,12 @@
+<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@page import="knou.lms.user.vo.UsrUserInfoVO"%>
 <%@page import="java.util.List"%>
 <%@page import="knou.lms.menu.vo.SysMenuVO"%>
 <%@page import="knou.framework.common.MenuInfo"%>
 <%@page import="knou.framework.common.SessionInfo"%>
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
-
 <%@include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+
+<c:if test="${pageType ne 'iframe' or param.view eq 'on'}">
 
 <%
 String orgId = SessionInfo.getOrgId(request);
@@ -32,7 +33,12 @@ pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
 </script>
 
 	<aside id="gnb" class="common gnb-menu expanded">
-		<form id="moveForm" method="post"></form>
+		<form id="moveForm" method="post">
+			<input name="menuNm" type="hidden" value="">
+			<input name="menuUrl" type="hidden" value="">
+			<input name="upMenuId" type="hidden" value="">
+			<input name="menuId" type="hidden" value="">
+		</form>
 
 		<div class="option-control-wrap">
 			<button type="button" class="btn border-0 btn-close ctrl-gnb">
@@ -60,12 +66,13 @@ pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
 
 			<!-- gnb menu -->
 			<nav class="gnb">
-			    <c:forEach items="${menuInfo.subList}" var="menu">
+			    <c:forEach items="${menuInfo.subList}" var="menu" varStatus="status">
 			        <div class="gnb-item">
 			            <!-- 상위 메뉴 -->
-			            <a href="#class_lnb"
+			            <a href="#class_lnb" index="${status.index}"
 			                class="<c:if test='${menu.menuId == curUpMenuId}'>current</c:if>"
-			                onclick="if('${menu.menuUrl}' != ''){ moveMenu('${menu.menuUrl}','${menu.upMenuId}', '${menu.menuId}'); } return false;"
+			                menuUrl="${menu.menuUrl}" upMenuId="${menu.upMenuId}" menuId="${menu.menuId}"
+			                onclick="if('${menu.menuUrl}' != ''){ moveMenu(this, '${menu.menuUrl}','${menu.upMenuId}', '${menu.menuId}'); } return false;"
 			                title="${menu.menuNm}">
 			                <i class="${menu.menuImgFileId}" aria-hidden="true"></i>
 			                <span>${menu.menuNm}</span>
@@ -78,7 +85,7 @@ pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
 			                        <li id="${sub.menuId}">
 			                            <a href="#class_lnb"
 			                                class="<c:if test='${sub.menuId == curUpMenuId}'>active</c:if>"
-			                                onclick="moveMenu('${sub.menuUrl}', '${sub.upMenuId}', '${sub.menuId}'); return false;"
+			                                onclick="moveMenu(this, '${sub.menuUrl}', '${sub.upMenuId}', '${sub.menuId}'); return false;"
 			                                title="${sub.menuNm}">
 			                                <span>${sub.menuNm}</span>
 			                            </a>
@@ -110,15 +117,39 @@ pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
         });
     }
 
-	function moveMenu(menuUrl, upMenuId, menuId){
+	// 메뉴 이동
+	function moveMenu(obj, menuUrl, upMenuId, menuId){
+		let index = $(obj).attr("index");
+		let menuNm = $(obj).children("span").html();
+
 		if (menuUrl.indexOf("?") > -1) {
 			menuUrl += "&param="+btoa("MENU,"+upMenuId+","+menuId);
 		}
 		else {
 			menuUrl += "?param="+btoa("MENU,"+upMenuId+","+menuId);
 		}
+		
+		$("#moveForm input[name=menuNm]").val(menuNm);
+		$("#moveForm input[name=menuUrl]").val(menuUrl);
+		$("#moveForm input[name=upMenuId]").val(upMenuId);
+		$("#moveForm input[name=menuId]").val(menuId);
 
-		$("#moveForm").attr("action", menuUrl);
-		$("#moveForm").submit();
+		if (index == "0") { 
+			$("#moveForm").attr("action", menuUrl);
+			$("#moveForm").submit();
+		}
+		else {
+			if (typeof TAB_MENU == 'undefined') {
+				let url = "/dashboard/mainTabpage.do"
+				$("#moveForm").attr("action", url);
+				$("#moveForm").submit();
+			}
+			else {
+				TAB_MENU.addTabMenu(menuNm, menuUrl, upMenuId, menuId)
+			}
+		}
 	}
+
 	</script>
+	
+</c:if>

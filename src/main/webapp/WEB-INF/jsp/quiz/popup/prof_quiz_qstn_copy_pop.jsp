@@ -1,11 +1,12 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 	<head>
-    	<%@ include file="/WEB-INF/jsp/common/modal_common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-    	<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
+    	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+			<jsp:param name="style" value="classroom"/>
+			<jsp:param name="module" value="table"/>
+		</jsp:include>
     </head>
 
     <div id="loading_page">
@@ -15,47 +16,29 @@
 	<script type="text/javascript">
 		$(document).ready(function() {
 			$(".qstnList").css("display", "none");
+			quizCopyTypeChk();
 			qbnkCtgrList('upCtgrId');
 		});
 
-		// 체크박스 이벤트
-		function changeCheckBox(obj) {
-			if(obj.value == "all") {
-				$(".chk").prop("checked", obj.checked);
-				if(obj.checked) {
-					$(".chk").closest("tr").addClass("on");
-				} else {
-					$(".chk").closest("tr").removeClass("on");
-				}
-			} else {
-				if(obj.checked) {
-					$(obj).closest("tr").addClass("on");
-				} else {
-					$(obj).closest("tr").removeClass("on");
-				}
-				$("input:checkbox[name=allCheck]").prop("checked", $(".chk").length == $(".chk:checked").length);
-			}
-		}
-
 		// 퀴즈 가져오기 위치 선택
 		function quizCopyTypeChk() {
+			$(".listDiv").hide();
 			var type = $("#copyType").val();
-			$(".qstnList").find("input[name=allCheck]").prop("checked", false).trigger("change");
 
 			// 문제 은행
 			if(type == "qbnk") {
-				$("#qbnkCopy").css("display", "list-item");
-				$("#exampprCopy").css("display", "none");
-				$(".copyQuizList").css("display", "none");
-				$(".qstnList").css("display", "none");
+				$(".qbnkCopy").css("display", "table-row");
+				$(".exampprCopy").css("display", "none");
+				$("#qbnkList").show();
 				qbnkCtgrList('upCtgrId');
 			// 다른 시험
 			} else if(type == "examppr") {
-				$("#qbnkCopy").css("display", "none");
-				$("#exampprCopy").css("display", "list-item");
-				$(".copyQuizList").css("display", "none");
-				$(".qstnList").css("display", "none");
+				$(".qbnkCopy").css("display", "none");
+				$(".exampprCopy").css("display", "table-row");
+				$("#quizList").show();
 			}
+			qbnkQstnListTable.clearData();
+			quizQstnListTable.clearData();
 		}
 
 		/**
@@ -66,7 +49,7 @@
 		 * @returns {list} 문제은행분류 목록
 		 */
 		function qbnkCtgrList(type) {
-			$(".qstnList").find("input[name=allCheck]").prop("checked", false).trigger("change");
+			qbnkQstnListTable.clearData();
 			var url = "/qbnk/profQbnkCtgrListAjax.do";
 			var upQbnkCtgrId = type == "ctgrId" ? $("#upQbnkCtgrId").val() : "";
 
@@ -78,7 +61,12 @@
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
 	        		var returnList = data.returnList || [];
-	        		var html = "<option value='' selected><spring:message code='exam.label.sel.categori' /></option>";/* 분류 선택 */
+	        		var html = "";
+		        	if(type == "upCtgrId") {
+						html += "<option value=''><spring:message code='exam.label.upper.categori' /></option>";	// 상위분류
+		        	} else if(type == "ctgrId") {
+						html += "<option value=''><spring:message code='exam.label.sub.categori' /></option>";		// 하위분류
+		        	}
 
 	        		if(returnList.length > 0) {
 	        			returnList.forEach(function(v, i) {
@@ -88,10 +76,10 @@
 
 	        		if(type == "upCtgrId") {
 	        			$("#upQbnkCtgrId").empty().append(html);
-	        			$("#upQbnkCtgrId").dropdown("clear");
+	        			$("#upQbnkCtgrId").val('').trigger("chosen:updated");
 	        		} else if(type == "ctgrId") {
 	        			$("#qbnkCtgrId").empty().append(html);
-	        			$("#qbnkCtgrId").dropdown("clear");
+	        			$("#qbnkCtgrId").val('').trigger("chosen:updated");
 	        		}
 	            } else {
 	             	alert(data.message);
@@ -126,7 +114,9 @@
 	        		$("div.qstnList").css("display", "none");
 	    			$("table.qstnList").css("display", "none");
 	    			var returnList = data.returnList || [];
-	    			createQuizQstnListHTML(returnList, "qbnk");	// 퀴즈문항 리스트 HTML 생성
+	    			var dataList = createQuizQstnListHTML(returnList, "qbnk");	// 퀴즈문항 리스트 HTML 생성
+	    			qbnkQstnListTable.clearData();
+					qbnkQstnListTable.replaceData(dataList);
 	            } else {
 	             	alert(data.message);
 	            }
@@ -152,16 +142,16 @@
 	        		var returnList = data.returnList || [];
 	        		var html = "";
 
+	        		html += "<option value=''>과목</option>";
 	        		if(returnList.length > 0) {
-	        			html += "<option value='' selected><spring:message code='exam.label.sel.crs' /></option>";/* 과목 선택 */
 	        			returnList.forEach(function(v, i) {
 							html += "<option value='" + v.sbjctId + "'>" + v.sbjctnm + " " + v.dvclasNo + "반</option>";
 	        			});
 	        		}
 
 	        		$("#copySbjctId").empty().append(html);
-	        		$(".copyQuizList").css("display", "none");
-	        		$(".qstnList").find("input[name=allCheck]").prop("checked", false).trigger("change");
+	        		$("#copySbjctId").val('').trigger("chosen:updated");
+	    			quizQstnListTable.clearData();
 	            } else {
 	             	alert(data.message);
 	            }
@@ -183,18 +173,17 @@
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
 	        		var returnList = data.returnList || [];
-	        		var html = "";
+	        		var html = "<option value=''>시험지</option>";
 
 	        		if(returnList.length > 0) {
-	        			html += "<option value='' selected><spring:message code='exam.label.sel.paper' /></option>";/* 시험지 선택 */
 	        			returnList.forEach(function(v, i) {
 							html += "<option value='" + v.examDtlId + "'>" + v.examTtl + "</option>";
 	        			});
 	        		}
 
 	        		$("#quizQstnPage").empty().append(html);
-	        		$(".copyQuizList").css("display", "none");
-	        		$(".qstnList").find("input[name=allCheck]").prop("checked", false).trigger("change");
+	        		$("#quizQstnPage").val('').trigger("chosen:updated");
+	    			quizQstnListTable.clearData();
 	            } else {
 	             	alert(data.message);
 	            }
@@ -215,11 +204,10 @@
 
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
-	        		$(".copyQuizList").css("display", "block");
-	        		$(".copyQuizList > ul.tbl-simple").hide();
-	        		$(".qstnList").find("input[name=allCheck]").prop("checked", false).trigger("change");
 	        		var returnList = data.returnList || [];
-	        		createQuizQstnListHTML(returnList, "examppr");	// 퀴즈문항 리스트 HTML 생성
+	        		var dataList = createQuizQstnListHTML(returnList, "examppr");	// 퀴즈문항 리스트 HTML 생성
+	        		quizQstnListTable.clearData();
+					quizQstnListTable.replaceData(dataList);
 	            } else {
 	             	alert(data.message);
 	            }
@@ -230,66 +218,35 @@
 
 		// 퀴즈문항 리스트 HTML 생성
 		function createQuizQstnListHTML(list, type) {
-			var html  = "<thead>";
-				html += "	<tr>";
-				html += "		<th class='tr'>";
-				html += "			<div class='ui checkbox'>";
-				html += "				<input type='checkbox' id='allCheck' name='allCheck' value='all' tabindex='0' class='hidden' onchange='changeCheckBox(this)' />";
-				html += "				<label for='allCheck'></label>";
-				html += "			</div>";
-				html += "		</th>";
-				if(type == "qbnk") {
-					html += "	<th>상위분류</th>";
-					html += "	<th>하위분류</th>";
-					html += "	<th>문제유형</th>";
-					html += "	<th>제목</th>";
-					html += "	<th>난이도</th>";
-				} else if(type == "examppr") {
-					html += "	<th>학사년도</th>";
-					html += "	<th>학기</th>";
-					html += "	<th>문제유형</th>";
-					html += "	<th>문제번호</th>";
-					html += "	<th>후보문제번호</th>";
-					html += "	<th>제목</th>";
-					html += "	<th>난이도</th>";
-				}
-				html += "	</tr>";
-				html += "</thead>";
-				html += "<tbody id='quizListTable'>";
+			var dataList = [];
+
 			if(list.length > 0) {
 				list.forEach(function(v, i) {
-					html += "<tr>";
-					html += "	<td>";
-					html += "		<div class='ui checkbox'>";
-					html += "			<input type='checkbox' tabindex='0' id='chk_" + v.qstnId + "' name='qstnId' data-id='" + v.qstnId + "' class='hidden chk' onchange='changeCheckBox(this)' />";
-					html += "			<label for='chk_" + v.qstnId + "'></label>";
-					html += "		</div>";
-					html += "	</td>";
 					if(type == "qbnk") {
-						html += "<td class='tl'>" + v.upQbnkCtgrnm + "</td>";
-						html += "<td class='tl'>" + v.qbnkCtgrnm + "</td>";
-						html += "<td class='tl'>" + v.qstnRspnsTynm + "</td>";
-						html += "<td class='tl'>" + v.qstnTtl + "</td>";
-						html += "<td class='tl'>" + v.qstnDfctlvTynm + "</td>";
+						dataList.push({
+							upQbnkCtgrnm: 	v.upQbnkCtgrnm,
+							qbnkCtgrnm: 	v.qbnkCtgrnm,
+							qstnRspnsTynm: 	v.qstnRspnsTynm,
+							qstnTtl: 		v.qstnTtl,
+							qstnDfctlvTynm: v.qstnDfctlvTynm,
+							qstnId:			v.qstnId
+    					});
 					} else if(type == "examppr") {
-						html += "<td class='tl'>" + v.sbjctYr + "</td>";
-						html += "<td class='tl'>" + v.sbjctSmstr + "</td>";
-						html += "<td class='tl'>" + v.qstnRspnsTynm + "</td>";
-						html += "<td class='tl'>" + v.qstnSeqno + "</td>";
-						html += "<td class='tl'>" + v.qstnCnddtSeqno + "</td>";
-						html += "<td class='tl'>" + v.qstnTtl + "</td>";
-						html += "<td class='tl'>" + v.qstnDfctlvTynm + "</td>";
+						dataList.push({
+							sbjctYr: 		v.sbjctYr,
+							sbjctSmstr: 	v.sbjctSmstr,
+							qstnRspnsTynm: 	v.qstnRspnsTynm,
+							qstnSeqno: 		v.qstnSeqno,
+    						qstnCnddtSeqno: v.qstnCnddtSeqno,
+    						qstnTtl: 		v.qstnTtl,
+    						qstnDfctlvTynm: v.qstnDfctlvTynm,
+    						qstnId:			v.qstnId
+    					});
 					}
-					html += "</tr>";
 				});
 			}
-				html += "</tbody>"
 
-	        $("#quizQstnTable").empty().html(html);
-	        $("#quizQstnTable").addClass("table type2");
-	        $("div.qstnList").css("display", "block");
-		    $("#quizQstnTable").footable();
-		    $(".qstnList").find("input[name=allCheck]").prop("checked", false).trigger("change");
+			return dataList;
 		}
 
 		/**
@@ -302,17 +259,17 @@
 				return false;
 			}
 
+			var copyType = $("#copyType").val();
 			const qstns = [];	// 문항 가져오기용
 
-			// 여기 할 차례
-			$("#quizListTable").find("input[name=qstnId]:checked").each(function(i){
-				const map = {
-					  copyQstnId: 	$(this).attr("data-id")
-					, examDtlId: 	"${vo.examDtlId}"
+			var tmp = copyType == "qbnk" ? qbnkQstnListTable : quizQstnListTable;
+			for(var i = 0; i < tmp.getSelectedData("qstnId").length; i++) {
+				var map = {
+					copyQstnId 	: tmp.getSelectedData("qstnId")[i],
+					examDtlId	: "${vo.examDtlId}"
 				};
-
 				qstns.push(map);
-			});
+			}
 
 			var url  = "/quiz/profQuizQstnCopyAjax.do";
 
@@ -342,6 +299,10 @@
 					alert("<spring:message code='exam.alert.select.upper.categori' />");/* 상위 분류를 선택하세요. */
 					return false;
 				}
+				if(qbnkQstnListTable.getSelectedData("qstnId").length == 0) {
+					UiComm.showMessage("<spring:message code='exam.alert.select.copy.qstn' />", "info");/* 복사할 문항을 선택하세요. */
+					return;
+				}
 			// 다른 시험
 			} else if(copyType == "examppr") {
 				if($("#copySmstrChrtId").val() == "") {
@@ -356,94 +317,113 @@
 					alert("<spring:message code='exam.alert.select.paper' />");/* 시험지를 선택하세요. */
 					return false;
 				}
+				if(quizQstnListTable.getSelectedData("qstnId").length == 0) {
+					UiComm.showMessage("<spring:message code='exam.alert.select.copy.qstn' />", "info");/* 복사할 문항을 선택하세요. */
+					return;
+				}
 			}
 
-			if($("#quizListTable").find("input[name=qstnId]:checked").length == 0) {
-				alert("<spring:message code='exam.alert.select.copy.qstn' />");/* 복사할 문항을 선택하세요. */
-				return false;
-			}
 			return isChk;
 		}
 	</script>
 
-	<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
+	<body class="modal-page">
         <div id="wrap">
-        	<div class="option-content pb35">
-	            <ul class="tbl-simple">
-					<li>
-						<dl>
-							<dt class="tc">
-								<label for="teamLabel"><spring:message code="exam.label.locate" /></label><!-- 위치 -->
-							</dt>
-							<dd>
-								<select class="ui dropdown wmax" id="copyType" name="copyType" onchange="quizCopyTypeChk()">
-						            <option value="qbnk"><spring:message code="exam.label.copy.qbank" /></option><!-- 문제은행에서 가져오기 -->
-						            <option value="examppr"><spring:message code="exam.label.copy.another.exam" /></option><!-- 다른 퀴즈에서 가져오기 -->
-						        </select>
-							</dd>
-						</dl>
-					</li>
-					<li id="qbnkCopy">
-						<dl class="mb20">
-							<dt class="tc">
-								<label for="teamLabel"><spring:message code="exam.label.sel.categori" /></label><!-- 분류 선택 -->
-							</dt>
-							<dd>
-								<select class="ui dropdown p_w40" id="upQbnkCtgrId" onchange="qbnkCtgrChc(this)">
-						            <option value=""><spring:message code="exam.label.upper.categori" /></option><!-- 상위분류 -->
-						        </select>
-								<select class="ui dropdown p_w40" id="qbnkCtgrId" onchange="qbnkCtgrChc(this)">
-						            <option value=""><spring:message code="exam.label.sub.categori" /></option><!-- 하위분류 -->
-						        </select>
-							</dd>
-						</dl>
-					</li>
-					<li id="exampprCopy" style="display:none;">
-						<dl class="mb20">
-							<dt class="tc">
-								<label for="teamLabel"><spring:message code="exam.label.open.crs.year.term" /></label><!-- 개설년도_학기 -->
-							</dt>
-							<dd>
-								<select class="ui dropdown wmax" id="copySmstrChrtId" onchange="quizSmstrChrtChc(this.value)">
-						            <option value=""><spring:message code="exam.label.open.crs.year.term" /> <spring:message code="exam.button.select" /></option><!-- 개설년도_학기 --><!-- 선택 -->
-						            <c:forEach var="item" items="${quizSearchSmstrList }">
-						            	<option value="${item.smstrChrtId }">${item.smstrChrtnm }</option>
-						            </c:forEach>
-						        </select>
-							</dd>
-						</dl>
-						<dl class="mb20">
-							<dt class="tc">
-								<label for="teamLabel"><spring:message code="crs.label.crecrs" /></label><!-- 과목 -->
-							</dt>
-							<dd>
-								<select class="ui dropdown wmax" id="copySbjctId" onchange="quizSbjctChc(this.value)">
-						            <option value=""><spring:message code="crs.label.crecrs.sel" /></option><!-- 과목 선택 -->
-						        </select>
-							</dd>
-						</dl>
-						<dl class="mb20">
-							<dt class="tc">
-								<label for="teamLabel"><spring:message code="exam.label.paper" /></label><!-- 시험지 -->
-							</dt>
-							<dd>
-								<select class="ui dropdown wmax" id="quizQstnPage" onchange="quizChc(this.value)">
-						            <option value=""><spring:message code="exam.label.sel.paper" /></option><!-- 시험지 선택 -->
-						        </select>
-							</dd>
-						</dl>
-					</li>
-				</ul>
-				<div class="ui form copyQuizList wmax" style="display:none;">
-					<table class="mt20 qstnList" id="quizQstnTable" data-sorting="false" data-paging="false">
-					</table>
-				</div>
-        	</div>
+        	<table class="table-type2">
+        		<colgroup>
+        			<col class="width-15per" />
+        			<col class="" />
+        		</colgroup>
+        		<tbody>
+        			<tr>
+        				<th>위치</th>
+        				<td class="t_left">
+        					<select class="form-select width-100per" id="copyType" onchange="quizCopyTypeChk()">
+			                    <option value="qbnk"><spring:message code="exam.label.copy.qbank" /></option><!-- 문제은행에서 가져오기 -->
+						    	<option value="examppr"><spring:message code="exam.label.copy.another.exam" /></option><!-- 다른 퀴즈에서 가져오기 -->
+			                </select>
+        				</td>
+        			</tr>
+        			<tr class="qbnkCopy">
+        				<th>분류</th>
+        				<td class="t_left">
+        					<select class="form-select width-45per" id="upQbnkCtgrId" onchange="qbnkCtgrChc(this)">
+			                    <option value=""><spring:message code="exam.label.upper.categori" /></option><!-- 상위분류 -->
+			                </select>
+        					<select class="form-select width-50per" id="qbnkCtgrId" onchange="qbnkCtgrChc(this)">
+			                    <option value=""><spring:message code="exam.label.sub.categori" /></option><!-- 하위분류 -->
+			                </select>
+        				</td>
+        			</tr>
+        			<tr class="exampprCopy">
+        				<th>학사년도/학기</th>
+        				<td class="t_left">
+        					<select class="form-select width-100per" id="copySmstrChrtId" onchange="quizSmstrChrtChc(this.value)">
+			                    <option value="">학사년도/학기 선택</option>
+						        <c:forEach var="item" items="${quizSearchSmstrList }">
+						        	<option value="${item.smstrChrtId }">${item.smstrChrtnm }</option>
+						        </c:forEach>
+			                </select>
+        				</td>
+        			</tr>
+        			<tr class="exampprCopy">
+        				<th>과목</th>
+        				<td class="t_left">
+        					<select class="form-select width-100per" id="copySbjctId" onchange="quizSbjctChc(this.value)">
+			                    <option value="">과목</option>
+			                </select>
+        				</td>
+        			</tr>
+        			<tr class="exampprCopy">
+        				<th>시험지</th>
+        				<td class="t_left">
+        					<select class="form-select width-100per" id="quizQstnPage" onchange="quizChc(this.value)">
+			                    <option value="">시험지</option>
+			                </select>
+        				</td>
+        			</tr>
+        		</tbody>
+        	</table>
 
-            <div class="bottom-content">
-                <button class="ui blue button" onclick="quizQstnCopy()"><spring:message code="exam.label.copy" /></button><!-- 가져오기 -->
-                <button class="ui black cancel button" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
-            </div>
+			<div id="quizList" class="listDiv"></div>
+			<div id="qbnkList" class="listDiv"></div>
+
+			<script>
+				// 퀴즈문항리스트 테이블
+				let quizQstnListTable = UiTable("quizList", {
+					lang: "ko",
+					height: 300,
+					selectRow: "checkbox",
+					columns: [
+						{title:"학사년도", 	field:"sbjctYr",			headerHozAlign:"center", hozAlign:"center", width:80,	minWidth:80},
+						{title:"학기", 		field:"sbjctSmstr",			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+						{title:"문제유형", 	field:"qstnRspnsTynm",		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},
+						{title:"문제번호", 	field:"qstnSeqno", 			headerHozAlign:"center", hozAlign:"center", width:80, 	minWidth:80},
+						{title:"후보문제번호", 	field:"qstnCnddtSeqno", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},
+						{title:"제목", 		field:"qstnTtl", 			headerHozAlign:"center", hozAlign:"left", 	width:0,	minWidth:200},
+						{title:"난이도", 		field:"qstnDfctlvTynm", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},
+					]
+				});
+
+				// 문제은행문항리스트 테이블
+				let qbnkQstnListTable = UiTable("qbnkList", {
+					lang: "ko",
+					height: 300,
+					selectRow: "checkbox",
+					columns: [
+						{title:"상위분류", 	field:"upQbnkCtgrnm",		headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:130},
+						{title:"하위분류", 	field:"qbnkCtgrnm",			headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:130},
+						{title:"문제유형", 	field:"qstnRspnsTynm",		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},
+						{title:"제목", 		field:"qstnTtl", 			headerHozAlign:"center", hozAlign:"left", 	width:0, 	minWidth:200},
+						{title:"난이도", 		field:"qstnDfctlvTynm", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100}
+					]
+				});
+			</script>
+
+			<div class="btns">
+                <button class="btn type1" onclick="quizQstnCopy()"><spring:message code="exam.label.copy" /></button><!-- 가져오기 -->
+                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
+			</div>
         </div>
 		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
 	</body>

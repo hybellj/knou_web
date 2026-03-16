@@ -398,7 +398,7 @@
 	</script>
 </head>
 
-<body class="home colorA"  style=""><!-- 컬러선택시 클래스변경 -->
+<body class="home colorA ${bodyClass}"  style=""><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
         <%@ include file="/WEB-INF/jsp/common_new/home_header.jsp" %>
@@ -414,11 +414,6 @@
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <div class="dashboard_sub">
-
-                    <!-- page_tab -->
-                    <%@ include file="/WEB-INF/jsp/common_new/home_page_tab.jsp" %>
-                    <!-- //page_tab -->
-
                     <div class="sub-content">
                         <div class="page-info">
                             <h2 class="page-title">${bbsVO.bbsNm}</h2>
@@ -478,7 +473,6 @@
 									<div class="board_top">
 			                            <h3 class="board-title">-</h3>
 			                            <div class="right-area">
- 											<button type="button" class="btn type2" onclick="checkSelect()" style="white-space: nowrap;">선택데이터확인</button>
 			                                <button type="button" class="btn type2" style="white-space: nowrap;">등록</button>
 
 											<%-- 리스트/카드 선택 버튼 --%>
@@ -535,47 +529,17 @@
 									// 게시글 리스트 테이블
 									let atclListTable = UiTable("atclList", {
 										lang: "ko",
-										//tableMode: "list",
-										//rowHeight: 30,
-										//height: 400,
-										selectRow: "checkbox",
-										//selectRow: "1",
-										//selectRowFunc: checkRowSelect,
-										sortFunc: atclListTableSort,
-										initialSort: [{column:"regDate", dir:"desc"}],
 										pageFunc: listPaging,
 										columns: [
 											{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
-											{title:"<spring:message code='bbs.label.form_title'/>", field:"title",		headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200, 	headerSort:true},	// 제목
-											{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDate", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	headerSort:true,	formatter:"date"},	// 등록일자
+											{title:"<spring:message code='bbs.label.form_title'/>", field:"title",		headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200},	// 제목
+											{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDate", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	formatter:"date"},	// 등록일자
 											{title:"<spring:message code='bbs.label.reg_user'/>", 	field:"regNm", 		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 작성자
 											{title:"<spring:message code='bbs.label.attach'/>", 	field:"attach", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 첨부
 											{title:"<spring:message code='bbs.label.view'/>", 		field:"hits", 		headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 조회
 											{title:"<spring:message code='bbs.label.comment'/>", 	field:"comment", 	headerHozAlign:"center", hozAlign:"center",	width:60,	minWidth:60},	// 댓글
 										]
 									});
-
-
-									function atclListTableSort(sortInfo) {
-										console.log("field="+sortInfo.field+", dir="+sortInfo.dir);
-
-										listPaging(1);
-									}
-
-									function checkSelect() {
-										// 선택된값 array로 가져온다.
-										let data = atclListTable.getSelectedData("valAtclId"); // "valAtclId" 키로 설정된 값
-										alert(data);
-									}
-
-									function checkRowSelect(data) {
-										let value = data["valAtclId"]; // "valAtclId" 키로 설정된 값
-										alert(value);
-									}
-
-									function changePage(page) {
-										alert("페이지 "+page);
-									}
 
 									</script>
 								</div>

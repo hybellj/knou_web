@@ -105,6 +105,7 @@ public enum IdPrefixType {
     USAUT("USAUT", "사용자권한"),
     USTPW("USTPW", "사용자임시비밀번호"),
     USCTT("USCTT", "사용자연락처"),
+    USTHS("USTHS", "사용자전화번호변경이력"),
 
     // 문제은행
     QB("QB", "문제은행"),

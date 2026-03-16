@@ -37,6 +37,7 @@ public class Forum2VO extends DefaultVO {
     private String modDttm; // 수정일시
     private String sbjctId; // 과목아이디
     private String dvclasNo; // 분반아이디
+    private String byteamSubdscsUseyn; // 팀별부토론사용여부
 
     private String sourceDscssId; // 복사용: 원본 토론ID
     private String targetCrsId; // 복사용: 대상 과목ID
@@ -303,6 +304,14 @@ public class Forum2VO extends DefaultVO {
 
     public void setDvclasNo(String dvclasNo) {
         this.dvclasNo = dvclasNo;
+    }
+
+    public String getByteamSubdscsUseyn() {
+        return byteamSubdscsUseyn;
+    }
+
+    public void setByteamSubdscsUseyn(String byteamSubdscsUseyn) {
+        this.byteamSubdscsUseyn = byteamSubdscsUseyn;
     }
 
     public String getSourceDscssId() {

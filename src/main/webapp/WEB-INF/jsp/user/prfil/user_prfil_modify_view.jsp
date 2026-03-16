@@ -2,9 +2,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%@ include file="/WEB-INF/jsp/common_new/home_common.jsp" %>
-<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
-<link rel="stylesheet" type="text/css" href="/webdoc/assets/css/dashboard.css"/>
 <head>
     <title></title>
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
@@ -12,7 +10,7 @@
         <jsp:param name="style" value="dashboard"/>
     </jsp:include>
 </head>
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home colorA ${bodyClass}"><!-- 컬러선택시 클래스변경 -->
 <div id="wrap" class="main">
     <!-- common header -->
     <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
@@ -28,11 +26,6 @@
         <!-- content -->
         <div id="content" class="content-wrap common">
             <div class="dashboard_sub">
-
-                <!-- page_tab -->
-                <jsp:include page="/WEB-INF/jsp/common_new/home_page_tab.jsp"/>
-                <!-- //page_tab -->
-
                 <div class="sub-content">
                     <div class="page-info">
                         <h2 class="page-title">프로필</h2>
@@ -49,6 +42,7 @@
 
                         <input type="hidden" id="indvEml" name="indvEml" value="${vo.indvEml}"/>
                         <input type="hidden" id="mblPhn" name="mblPhn" value="${vo.mblPhn}"/>
+                        <input type="hidden" id="userRprsId" name="userRprsId" value="${vo.userRprsId}"/>
                         <input type="hidden" name="uploadFiles"/>
                         <input type="hidden" name="copyFiles"/>
                         <input type="hidden" name="uploadPath"/>
@@ -309,39 +303,7 @@
 
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <th><label for="attchFile">테스트<spring:message
-                                                code="user.title.userinfo.profile.image"/></label><!--프로필사진--></th>
-                                        <td>
-                                            <uiex:dextuploader
-                                                    id="fileUploader"
-                                                    path="/user/${vo.userId }"
-                                                    limitCount="1"
-                                                    limitSize="3"
-                                                    oneLimitSize="3"
-                                                    listSize="1"
-                                                    finishFunc="finishUpload()"
-                                                    useFileBox="false"
-                                                    allowedTypes="jpg,jpeg,png,gif"
-                                                    style="single"
-                                            />
 
-
-                                            <small class="note2 flex margin-top-2">! 프로필 사진 첨부시 기존 프로필 사진은 업데이트
-                                                됩니다. </small>
-
-                                            <c:if test="${not empty vo.photoFileId}">
-                                                <div class="checkbox_type margin-top-4">
-                                                    <span class="custom-input">
-                                                        <input type="checkbox"
-                                                               id="photoFileDelyn" name="photoFileDelyn">
-                                                        <label for="photoFileDelyn">현 프로필 사진 삭제 ( 삭제시 기본 이미지로 교체됩니다. )</label>
-                                                    </span>
-                                                </div>
-                                            </c:if>
-
-                                        </td>
-                                    </tr>
                                     </tbody>
 
                                 </table>
@@ -640,13 +602,13 @@
 
                 // 패스워드 체크 -> 파일업로드 -> 저장
                 checkPswdMtch(function () {
-                    const fileUploader = dx5.get("fileUploader");
-
-                    if (fileUploader.getFileCount() > 0) {
-                        fileUploader.startUpload(); // finishUpload로 이어짐
-                    } else {
-                        saveUserProfileAjax();  // 파일 없이 저장
-                    }
+                    // const fileUploader = dx5.get("fileUploader");
+                    //
+                    // if (fileUploader.getFileCount() > 0) {
+                    //     fileUploader.startUpload(); // finishUpload로 이어짐
+                    // } else {
+                    saveUserProfileAjax();  // 파일 없이 저장
+                    // }
                 });
 
             } else {

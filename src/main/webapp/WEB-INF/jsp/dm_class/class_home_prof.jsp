@@ -72,7 +72,7 @@
                         <div class="sec">
                             <button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
                             <button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-							<button type="button" class="btn type1" onclick="location.href='/dashboard/profDashboard.do'"><i class="xi-info-o"></i>강의실 나가기</button>
+							<button type="button" class="btn type1" onclick="location.href='/dashboard/dashboard.do'"><i class="xi-info-o"></i>강의실 나가기</button>
                         </div>                        
                     </div>
                 </div>  

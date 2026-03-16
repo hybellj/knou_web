@@ -61,6 +61,9 @@ public class QbnkFacadeServiceImpl extends ServiceBase implements QbnkFacadeServ
 		// 문제은행문항조회
 		qbnkMainView.setQbnkQstnVO(qbnkQstnService.qbnkQstnSelect(vo));
 
+		// 문제은행문항보기항목목록조회
+		qbnkMainView.setQbnkQstnVwitmList(qbnkQstnVwitmService.qbnkQstnVwitmList(vo));
+
         return qbnkMainView;
 	}
 

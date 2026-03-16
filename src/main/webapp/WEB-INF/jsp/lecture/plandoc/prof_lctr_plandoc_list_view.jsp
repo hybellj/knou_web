@@ -9,7 +9,7 @@
     </jsp:include>
 </head>
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home colorA ${bodyClass}"><!-- 컬러선택시 클래스변경 -->
 <div id="wrap" class="main">
     <!-- common header -->
     <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
@@ -25,11 +25,6 @@
         <!-- content -->
         <div id="content" class="content-wrap common">
             <div class="dashboard_sub">
-
-                <!-- page_tab -->
-                <jsp:include page="/WEB-INF/jsp/common_new/home_page_tab.jsp"/>
-                <!-- //page_tab -->
-
                 <div class="sub-content">
                     <div class="page-info">
                         <h2 class="page-title">강의계획서</h2>
@@ -140,14 +135,13 @@
 
 </div>
 <script type="text/javascript">
-    var PAGE_INDEX = '<c:out value="${plandocVO.pageIndex}" />';
-    var LIST_SCALE = '<c:out value="${plandocVO.listScale}" />';
-    var plandocListTable;
+    let PAGE_INDEX = '<c:out value="${plandocVO.pageIndex}" />';
+    let LIST_SCALE = '<c:out value="${plandocVO.listScale}" />';
+    let plandocListTable;
 
     $(function () {
         // 강의계획서 리스트 테이블
         plandocListTable = UiTable("plandocList", {
-            sortFunc: plandocListTableSort,
             pageFunc: listPaging,
             columns: [
                 {
@@ -190,19 +184,19 @@
                     title: "강의계획서", field: "lsnplanyn", headerHozAlign: "center", hozAlign: "center", width: 80, formatter: "ynToOx"
                 }   // 강의계획서 (O / X)
             ],
-            selectRow: "1",
-            selectRowFunc:
-            checkRowSelect,
+            // selectRow: "1",
+            // selectRowFunc: checkRowSelect,
         });
 
         listPaging(1);
     })
     ;
 
-    function plandocListTableSort(sortInfo) {
-        listPaging(1);
-    }
-
+    /**
+     * 로우 선택 시 강의계획서 확인
+     * 사용X => 과목명에 link 넣는 것으로 변경
+     * @param data 선택 row
+     */
     function checkRowSelect(data) {
         if (data.lsnplanyn !== "Y") {
             UiComm.showMessage("강의계획서가 등록되지 않았습니다.", "info");
@@ -211,11 +205,15 @@
         viewPlandoc(data.valSbjctId);
     }
 
+    /**
+     * 페이지 불러오기
+     * @param pageIndex
+     */
     function listPaging(pageIndex) {
         PAGE_INDEX = pageIndex;
-        var url = "/lctr/plandoc/profLctrPlandocListAjax.do";
+        const url = "/lctr/plandoc/profLctrPlandocListAjax.do";
 
-        var param = {
+        const param = {
             sbjctYr: "2026"
             , sbjctSmstr: "1"
             , pageIndex: PAGE_INDEX
@@ -239,6 +237,12 @@
 
     }
 
+    /**
+     * 강의계획서 html 렌더링 데이터 생성
+     * @param list
+     * @param pageInfo
+     * @returns {*[]}
+     */
     function createPlandocListHTML(list, pageInfo) {
         let dataList = [];
 
@@ -247,11 +251,11 @@
         }
 
         list.forEach(function (v, i) {
-            var lineNo = pageInfo.totalRecordCount - v.lineNo + 1;
+            const lineNo = pageInfo.totalRecordCount - v.lineNo + 1;
 
             // 상세 이동 링크
-            var linkUrl = "javascript:viewPlandoc('" + v.sbjctId + "')";
-            var sbjctnm = (v.sbjctnm || "").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+            let sbjctnm = (v.sbjctnm || "").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+            let linkSbjctnm = v.lsnplanyn === "Y" ? "<a href='#0' class='link' onclick='viewPlandoc(\"" + v.sbjctId + "\"); return false;'>" + sbjctnm + "</a>" : sbjctnm;
 
             dataList.push({
                 no: lineNo,
@@ -260,7 +264,7 @@
                 orgnm: v.orgnm,
                 deptnm: v.deptnm,
                 sbjctCd: v.sbjctCd,          // 과목코드
-                sbjctnm: sbjctnm,        // 과목명 (링크)
+                sbjctnm: linkSbjctnm,        // 과목명 (링크)
                 dvclasNo: v.dvclasNo,        // 분반
                 crdts: v.crdts,              // 학점
                 coprofUsernm: v.coprofUsernm,    // 공동교수
@@ -275,6 +279,19 @@
         return dataList;
     }
 
+    /**
+     * listScale 변경
+     * @param scale
+     */
+    function changeListScale(scale) {
+        LIST_SCALE = scale;
+        listPaging(1);
+    }
+
+    /**
+     * 상세페이지 이동
+     * @param sbjctId
+     */
     function viewPlandoc(sbjctId) {
         // 상세 페이지로 이동
         location.href = "/lctr/plandoc/profLctrPlandocView.do?sbjctId=" + encodeURIComponent(sbjctId);

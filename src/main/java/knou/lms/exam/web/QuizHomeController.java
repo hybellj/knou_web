@@ -418,8 +418,7 @@ public class QuizHomeController extends ControllerBase {
      * @param smstrChrtId 	학사년도/학기
      * @param sbjctId       과목아이디
      * @param searchValue   검색내용(퀴즈명)
-     * @param listScale     페이지크기
-     * @return 퀴즈목록 페이징
+     * @return 퀴즈목록
      * @throws Exception
      */
     @RequestMapping(value="/profAuthrtSbjctQuizListAjax.do")
@@ -429,7 +428,7 @@ public class QuizHomeController extends ControllerBase {
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
 
         try {
-            resultVO = examService.profAuthrtSbjctQuizList(params);
+            resultVO.setReturnList(examService.profAuthrtSbjctQuizList(params));
             resultVO.setResult(1);
         } catch(Exception e) {
             resultVO.setResult(-1);
@@ -1054,6 +1053,22 @@ public class QuizHomeController extends ControllerBase {
             resultVO.setMessage("리스트 조회 중 에러가 발생하였습니다.");
         }
         return resultVO;
+    }
+
+    /**
+     * 교수퀴즈문항엑셀업로드팝업
+     *
+     * @param examDtlId	시험상세아이디
+     * @return prof_quiz_qstn_excel_upload_pop.jsp
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizQstnExcelUploadPopup.do")
+    public String profQuizQstnExcelUploadPopup(ExamDtlVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    	String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        vo.setUserId(userId);
+        model.addAttribute("vo", vo);
+
+        return "quiz/popup/prof_quiz_qstn_excel_upload_pop";
     }
 
     /**
@@ -2008,8 +2023,6 @@ public class QuizHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/quizExcelUploadSampleDownload.do")
     public String quizExcelUploadSampleDownload(ExamQstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        // 사용자 접속상태 저장
-        logUserConnService.saveUserConnState(request, CommConst.CONN_QUIZ);
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         vo.setMdfrId(userId);

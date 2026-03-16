@@ -234,34 +234,38 @@
             설명 : 토론정보조회(1건)
         */
         SELECT
-            DSCS_ID
-          , DSCS_GRP_ID
-          , DSCS_GBNCD
-          , DSCS_UNIT_TYCD
-          , EVL_SCR_TYCD
-          , DSCS_TTL
-          , DSCS_CTS
-          , DSCS_SDTTM
-          , DSCS_EDTTM
-          , DVCLS_NO
-          , LRN_GRP_ID
-          , DELYN
-          , OATCL_INQYN
-          , OKNOK_STNGYN
-          , OKNOKRT_OYN
-          , OKNOK_MODYN
-          , MLT_OPNN_REGYN
-          , OKNOK_RGTR_OYN
-          , CMNT_RSPNS_REQYN
-          , MRK_RFLTYN
-          , MRK_RFLTRT
-          , MRK_OYN
-          , RGTR_ID
-          , REG_DTTM
-          , MDFR_ID
-          , MOD_DTTM
-          , SBJCT_ID
+            A.DSCS_ID
+          , A.DSCS_GRP_ID
+          , G.DSCS_GRPNM
+          , A.DSCS_GBNCD
+          , A.DSCS_UNIT_TYCD
+          , A.EVL_SCR_TYCD
+          , A.DSCS_TTL
+          , A.DSCS_CTS
+          , A.DSCS_SDTTM
+          , A.DSCS_EDTTM
+          , A.DVCLS_NO
+          , A.LRN_GRP_ID
+          , A.DELYN
+          , A.OATCL_INQYN
+          , A.OKNOK_STNGYN
+          , A.OKNOKRT_OYN
+          , A.OKNOK_MODYN
+          , A.MLT_OPNN_REGYN
+          , A.OKNOK_RGTR_OYN
+          , A.CMNT_RSPNS_REQYN
+          , A.MRK_RFLTYN
+          , A.MRK_RFLTRT
+          , A.MRK_OYN
+          , A.RGTR_ID
+          , A.REG_DTTM
+          , A.MDFR_ID
+          , A.MOD_DTTM
+          , A.SBJCT_ID
+          , A.BYTEAM_SUBDSCS_USEYN
+          /* 게시글 수 조회 */
           , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumAtclCnt
+          /* 댓글 수 조회 */
           , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
              WHERE B.DELYN = 'N'
                AND B.DSCS_ATCL_ID IN (
@@ -270,8 +274,11 @@
                  WHERE C.DSCS_ID = A.DSCS_ID
                    AND C.DELYN = 'N'
              )) AS forumCmntCnt
+          /* 찬성 수 조회 */
           , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'OK' AND B.ATCL_LV = 0) AS forumAtclPorsCnt
+          /* 반대 수 조회 */
           , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'NOTOK' AND B.ATCL_LV = 0) AS forumAtclConsCnt
+          /* 전체 수강생 수 조회 */
           , (
             SELECT COUNT(*)
             FROM TB_LMS_ATNDLC ATNDLC
@@ -280,6 +287,7 @@
             WHERE ATNDLC.AUDITYN = 'N'
               AND SBJCT.SBJCT_ID = #{sbjctId}
             ) AS forumUserTotalCnt
+          /* 참여 인원 수 조회 (글 또는 댓글 작성자) */
           , (
             SELECT COUNT(1)
             FROM TB_LMS_ATNDLC AA
@@ -309,8 +317,9 @@
                 )
         ) AS forumJoinUserCnt
         FROM TB_LMS_DSCS A
-        WHERE DSCS_ID = #{dscsId}
-          AND DELYN = 'N'
+        LEFT OUTER JOIN TB_LMS_DSCS_GRP G ON A.DSCS_GRP_ID = G.DSCS_GRP_ID
+        WHERE A.DSCS_ID = #{dscsId}
+          AND A.DELYN = 'N'
     </select>
 
     <insert id="insertForumGrp" parameterType="forum2VO">
@@ -364,6 +373,7 @@
           , MDFR_ID
           , MOD_DTTM
           , SBJCT_ID
+          , BYTEAM_SUBDSCS_USEYN
         ) VALUES (
             #{dscsId}
           , #{dscsGrpId}
@@ -392,6 +402,7 @@
           , NVL(#{mdfrId}, #{rgtrId})
           , FN_DTTM()
           , #{sbjctId}
+          , #{byteamSubdscsUseyn}
         )
     </insert>
 
@@ -466,6 +477,9 @@
         <if test="sbjctId != null and sbjctId != ''">
           , SBJCT_ID = #{sbjctId}
         </if>
+        <if test="byteamSubdscsUseyn != null and byteamSubdscsUseyn != ''">
+          , BYTEAM_SUBDSCS_USEYN = #{byteamSubdscsUseyn}
+        </if>
         WHERE DSCS_ID = #{dscsId}
     </update>
 
@@ -502,6 +516,7 @@
           , MDFR_ID
           , MOD_DTTM
           , SBJCT_ID
+          , BYTEAM_SUBDSCS_USEYN
         )
         SELECT
             #{dscsId}
@@ -530,6 +545,7 @@
           , NVL(#{mdfrId}, #{rgtrId})
           , FN_DTTM()
           , #{sbjctId}
+          , #{byteamSubdscsUseyn}
         FROM TB_LMS_DSCS
         WHERE DSCS_ID = #{copydscsId}
     </insert>
@@ -575,6 +591,56 @@
         WHERE DSCS_ID = #{dscsId}
     </update>
 
+    <select id="selectTeamDscsList" parameterType="String" resultType="Forum2TeamDtlVO">
+        /*
+            SQL ID : ForumDAO.selectTeamDscsList
+            설명 : 팀토론현황정보조회
+        */
+        SELECT
+            A.DSCS_ID
+            , A.UP_DSCS_ID
+            , A.TEAM_ID
+            , T.TEAMNM
+            , A.DSCS_TTL
+            , A.DSCS_CTS
+            , A.TEAM_DSCS_OYN
+            /* 1. 팀장명 조회 */
+            , (SELECT U.USERNM
+                FROM TB_LMS_TEAM_MBR M
+                JOIN TB_LMS_USER U ON M.USER_ID = U.USER_ID
+                WHERE M.TEAM_ID = A.TEAM_ID
+                AND M.LDRYN = 'Y'
+                AND ROWNUM = 1) AS leaderNm
+            /* 2. 팀원 수 조회 */
+            , (SELECT COUNT(*)
+                FROM TB_LMS_TEAM_MBR M1
+                WHERE M1.TEAM_ID = A.TEAM_ID) AS teamMbrCnt
+            /* 3. 해당 팀원들이 작성한 참여글 수 */
+            , (SELECT COUNT(*)
+                FROM TB_LMS_DSCS_ATCL AT1
+                WHERE AT1.DSCS_ID = A.DSCS_ID
+                AND AT1.DELYN = 'N'
+                AND EXISTS (SELECT 1
+                FROM TB_LMS_TEAM_MBR M2
+                WHERE M2.TEAM_ID = A.TEAM_ID
+                AND M2.USER_ID = AT1.USER_ID)) AS atclCnt
+            /* 4. 해당 팀원들이 작성한 댓글 수 */
+            , (SELECT COUNT(*)
+                FROM TB_LMS_DSCS_CMNT CM1
+                WHERE CM1.DELYN = 'N'
+                AND EXISTS (SELECT 1
+                FROM TB_LMS_TEAM_MBR M3
+                WHERE M3.TEAM_ID = A.TEAM_ID
+                AND M3.USER_ID = CM1.USER_ID)
+                AND EXISTS (SELECT 1
+                FROM TB_LMS_DSCS_ATCL AT2
+                WHERE AT2.DSCS_ATCL_ID = CM1.DSCS_ATCL_ID
+                AND AT2.DSCS_ID = A.DSCS_ID)) AS cmntCnt
+        FROM TB_LMS_DSCS A
+        JOIN TB_LMS_TEAM T ON A.TEAM_ID = T.TEAM_ID
+        WHERE A.UP_DSCS_ID = #{upDscsId}
+        ORDER BY T.REG_DTTM ASC
+    </select>
 </mapper>
 
 

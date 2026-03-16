@@ -64,13 +64,18 @@ public class ControllerBase {
 	 */
 	public void init(HttpServletRequest request, ModelMap modelMap, Object paramVO) {
 		try {
-			this.request 	= request;
-			this.session 	= request.getSession();
-			this.modelMap 	= modelMap;
-			this.message 	= new Message(request);
-			this.eparam 	= request.getParameter("eparam");
-			this.eparamMap 	= new HashMap<>();
-
+			this.request 		= request;
+			this.session 		= request.getSession();
+			this.modelMap 		= modelMap;
+			this.message 		= new Message(request);
+			this.eparam 		= request.getParameter("eparam");
+			this.eparamMap 		= new HashMap<>();
+			String pageType		= request.getParameter("pageType");
+			String referer 		= request.getHeader("referer");
+			String uri			= request.getRequestURI();
+			String type 		= "";
+			boolean isMain		= false;
+			
 			// 암호화 파라메터가 있는 경우 값을 VO에 세팅
 			if (paramVO != null) {
 				// 암호화 파라메터 VO에 설정
@@ -87,7 +92,33 @@ public class ControllerBase {
 				}
 			}
 
+			// URL이 대시보드 이면,
+			if (uri.indexOf("Dashboard.do") > -1) {
+				isMain = true;
+				SessionUtil.setSessionValue(request, "PAGE_TYPE", "normal");
+			}
+			else {
+				type = StringUtil.nvl((String)SessionUtil.getSessionValue(request, "PAGE_TYPE"));
+			}
+			
+			// 메인 탭메뉴 페이지 이면 iframe 타입 지정
+			if (referer.indexOf("/mainTabpage.do") > -1 && !isMain) {
+				type = "iframe";
+				SessionUtil.setSessionValue(request, "PAGE_TYPE", type);
+				addEparam("pageType", "iframe");
+			}
+			
+			String bodyClass = "";
+			if ("iframe".equals(type)) {
+				bodyClass = "iframeBody";
+			}
+
 			modelMap.addAttribute("eparam", this.eparam);
+			//modelMap.addAttribute("pageType", type);
+			//modelMap.addAttribute("bodyClass", bodyClass);
+			
+			SessionUtil.setSessionValue(request, "PAGE_TYPE", type);
+			SessionUtil.setSessionValue(request, "BODY_CLASS", bodyClass);
 
 			// menu 파라메터가 있을 경우 처리
 			String menu = request.getParameter("menu");

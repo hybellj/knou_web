@@ -501,7 +501,7 @@
           , DGRS_YR = #{dgrsYr}
           , SMSTR = #{smstr}
           , MDFR_ID = #{mdfrId}
-          , MDFCN_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          , MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
         WHERE MSG_ID = #{msgId}
     </update>
 
@@ -523,7 +523,7 @@
         SET RSRV_SNDNG_CNCL_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
           , RSRV_SNDNG_CNCL_RSN = #{rsrvSndngCnclRsn}
           , MDFR_ID = #{mdfrId}
-          , MDFCN_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          , MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
         WHERE MSG_ID = #{msgId}
           AND RSRV_SNDNG_SDTTM IS NOT NULL
           AND RSRV_SNDNG_CNCL_DTTM IS NULL

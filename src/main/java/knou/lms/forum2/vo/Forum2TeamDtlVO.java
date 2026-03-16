@@ -1,42 +1,55 @@
 package knou.lms.forum2.vo;
 
-import java.io.Serializable;
+import knou.lms.common.vo.DefaultVO;
 
-public class Forum2TeamDtlVO implements Serializable {
+public class Forum2TeamDtlVO extends DefaultVO {
 
     private static final long serialVersionUID = 1L;
 
-    private String dvclasNo;      // 분반번호
-    private String sbjctId;       // 과목아이디
-    private String lrnGrpId;      // 학습그룹아이디
-    private String teamId;        // 팀아이디
-    private String teamNm;        // 팀명
-    private String teamTtl;       // 팀주제
-    private String teamCts;       // 팀토론내용
-    private String attchFileId;   // 첨부파일아이디(1개)
+    private String subdscsId;  // 부토론아이디
+    private String dscsId;     // 토론아이디
+    private String subdscsTtl; // 부토론제목
+    private String subdscsCts; // 부토론내용
+    private String teamId;     // 팀아이디
+    private String teamnm;     // 팀이름
+    private String rgtrId;     // 등록자아이디
+    private String regDttm;    // 등록일시 (YYYYMMDDHH24MISS)
+    private String mdfrId;     // 수정자아이디
+    private String modDttm;    // 수정일시 (YYYYMMDDHH24MISS)
 
-    public String getDvclasNo() {
-        return dvclasNo;
+    // DB Field 외의 값.
+    private String groupMembers; // 학습그룹 구성원 요약(Ex: 홍팀장1 외 11)
+
+    public String getSubdscsId() {
+        return subdscsId;
     }
 
-    public void setDvclasNo(String dvclasNo) {
-        this.dvclasNo = dvclasNo;
+    public void setSubdscsId(String subdscsId) {
+        this.subdscsId = subdscsId;
     }
 
-    public String getSbjctId() {
-        return sbjctId;
+    public String getDscsId() {
+        return dscsId;
     }
 
-    public void setSbjctId(String sbjctId) {
-        this.sbjctId = sbjctId;
+    public void setDscsId(String dscsId) {
+        this.dscsId = dscsId;
     }
 
-    public String getLrnGrpId() {
-        return lrnGrpId;
+    public String getSubdscsTtl() {
+        return subdscsTtl;
     }
 
-    public void setLrnGrpId(String lrnGrpId) {
-        this.lrnGrpId = lrnGrpId;
+    public void setSubdscsTtl(String subdscsTtl) {
+        this.subdscsTtl = subdscsTtl;
+    }
+
+    public String getSubdscsCts() {
+        return subdscsCts;
+    }
+
+    public void setSubdscsCts(String subdscsCts) {
+        this.subdscsCts = subdscsCts;
     }
 
     public String getTeamId() {
@@ -47,35 +60,51 @@ public class Forum2TeamDtlVO implements Serializable {
         this.teamId = teamId;
     }
 
-    public String getTeamNm() {
-        return teamNm;
+    public String getTeamnm() {
+        return teamnm;
     }
 
-    public void setTeamNm(String teamNm) {
-        this.teamNm = teamNm;
+    public void setTeamnm(String teamnm) {
+        this.teamnm = teamnm;
     }
 
-    public String getTeamTtl() {
-        return teamTtl;
+    public String getRgtrId() {
+        return rgtrId;
     }
 
-    public void setTeamTtl(String teamTtl) {
-        this.teamTtl = teamTtl;
+    public void setRgtrId(String rgtrId) {
+        this.rgtrId = rgtrId;
     }
 
-    public String getTeamCts() {
-        return teamCts;
+    public String getRegDttm() {
+        return regDttm;
     }
 
-    public void setTeamCts(String teamCts) {
-        this.teamCts = teamCts;
+    public void setRegDttm(String regDttm) {
+        this.regDttm = regDttm;
     }
 
-    public String getAttchFileId() {
-        return attchFileId;
+    public String getMdfrId() {
+        return mdfrId;
     }
 
-    public void setAttchFileId(String attchFileId) {
-        this.attchFileId = attchFileId;
+    public void setMdfrId(String mdfrId) {
+        this.mdfrId = mdfrId;
+    }
+
+    public String getModDttm() {
+        return modDttm;
+    }
+
+    public void setModDttm(String modDttm) {
+        this.modDttm = modDttm;
+    }
+
+    public String getGroupMembers() {
+        return groupMembers;
+    }
+
+    public void setGroupMembers(String groupMembers) {
+        this.groupMembers = groupMembers;
     }
 }

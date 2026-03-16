@@ -532,7 +532,7 @@
 		$("#userMoveForm").attr("action","/user/userHome/loginUserByCourseStd.do");
 		$("#userMoveForm > input[name='userId']").val(userId);
 		$("#userMoveForm > input[name='userId']").val(userId);
-		$("#userMoveForm > input[name='goUrl']").val("/dashboard/stuDashboard.do");
+		$("#userMoveForm > input[name='goUrl']").val("/dashboard/dashboard.do");
 		$('#userMoveForm').submit();
 		$("#virtualSupport").show();
 		

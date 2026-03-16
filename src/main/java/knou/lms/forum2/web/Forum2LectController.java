@@ -4,12 +4,26 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import java.util.Locale;
 
 import knou.framework.common.CommConst;
 import knou.framework.common.RepoInfo;
+import knou.framework.util.LocaleUtil;
+import knou.framework.util.ValidationUtils;
+import knou.lms.forum.web.ForumLectController;
 import knou.lms.forum2.service.impl.ForumServiceImpl;
+import knou.lms.log.userconn.service.LogUserConnService;
+import knou.lms.team.service.TeamCtgrService;
+import knou.lms.team.service.TeamMemberService;
+import knou.lms.team.service.TeamService;
+import knou.lms.team.vo.TeamCtgrVO;
+import knou.lms.team.vo.TeamMemberVO;
+import knou.lms.team.vo.TeamVO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,6 +50,10 @@ import knou.lms.forum2.vo.Forum2VO;
 @Controller
 @RequestMapping(value = "/forum2/forumLect")
 public class Forum2LectController extends ControllerBase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ForumLectController.class);
+
+    @Resource(name="messageSource")
+    private MessageSource messageSource;
 
     @Resource(name = "forum2Service")
     private ForumService forumService;
@@ -45,6 +63,18 @@ public class Forum2LectController extends ControllerBase {
     private ForumCmntService forum2CmntService;
     @Resource(name = "sysFileService")
     private SysFileService sysFileService;
+
+    @Resource(name="teamService")
+    private TeamService teamService;
+
+    @Resource(name="teamCtgrService")
+    private TeamCtgrService teamCtgrService;
+
+    @Resource(name="teamMemberService")
+    private TeamMemberService teamMemberService;
+
+    @Resource(name="logUserConnService")
+    private LogUserConnService logUserConnService;
 
     private String test_sbjctId = "SBJCT_OFRNG_ID1";
     private String test_lrnGrpId = "LRN_GRP_01";
@@ -555,6 +585,7 @@ public class Forum2LectController extends ControllerBase {
         return returnVo;
     }
 
+    // 토론방 댓글 삭제
     @RequestMapping(value = "/Form/delCmnt.do")
     @ResponseBody
     public ProcessResultVO<DefaultVO> delCmnt(ForumVO forumVO, HttpServletRequest request) throws Exception {
@@ -570,6 +601,87 @@ public class Forum2LectController extends ControllerBase {
             returnVo.setMessage(getCommonFailMessage());
         }
         return returnVo;
+    }
+
+    // 팀토론 토론방 팀리스트
+    @RequestMapping(value="/listTeamJson.do")
+    @ResponseBody
+    public ProcessResultVO<TeamVO> listTeamJson(TeamCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        ProcessResultVO<TeamVO> returnVO = new ProcessResultVO<>();
+        try {
+            String teamCtgrCd = vo.getTeamCtgrCd();
+
+            if(ValidationUtils.isNotEmpty(teamCtgrCd)) {
+                TeamVO teamVO = new TeamVO();
+                teamVO.setTeamCtgrCd(teamCtgrCd);
+                List<TeamVO> list = teamService.teamList(teamVO);
+                returnVO.setReturnList(list);
+            }
+
+            returnVO.setResult(1);
+        } catch(Exception e) {
+            e.printStackTrace();
+            returnVO.setResult(-1);
+        }
+        return returnVO;
+    }
+
+    // 팀 구성원 보기
+    @RequestMapping(value="/teamMemberList.do")
+    public String teamMemberList(TeamCtgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        List<TeamCtgrVO> teamCtgrList = teamCtgrService.teamList(vo);
+        request.setAttribute("teamCtgrList", teamCtgrList);
+
+        return "forum/popup/team_member_list_pop";
+    }
+
+    // 팀 구성원 ajax
+    @RequestMapping(value="/teamMember.do")
+    @ResponseBody
+    public ProcessResultVO<TeamMemberVO> listTeam(TeamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<TeamMemberVO> resultVO = new ProcessResultVO<>();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        vo.setUserId(userId);
+
+        try {
+            // List<TeamMemberVO> list = teamService.list(vo);
+            List<TeamMemberVO> list = teamMemberService.selectTeamMemberList(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.common.error"); // 오류가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    // 팀토론 일경우 검색 조건 추가
+    @RequestMapping(value="/teamSelectList.do")
+    @ResponseBody
+    public ProcessResultVO<TeamVO> teamSelectList(TeamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<TeamVO> resultVO = new ProcessResultVO<>();
+        Locale locale = LocaleUtil.getLocale(request);
+
+        try {
+            List<TeamVO> list = teamService.list(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(messageSource.getMessage("forum.common.error", null, locale)); // 오류가 발생했습니다!
+        }
+
+        return resultVO;
     }
 
     private void setCommonSessionValue(Forum2ListVO vo, HttpServletRequest request) {
@@ -620,6 +732,8 @@ public class Forum2LectController extends ControllerBase {
         dest.setRegOpenYn(src.getOknokRgtrOyn());       // 작성자 공개(찬반)
         dest.setMultiAtclYn(src.getMltOpnnRegyn());     // 의견글 복수 등록(찬반)
         dest.setProsConsModYn(src.getOknokModyn());     // 의견 변경(찬반)
+        dest.setByteamSubdscsUseyn(src.getByteamSubdscsUseyn()); // 팀별부토론사용여부
+        dest.setDscsGrpnm(src.getDscsGrpnm());          // 학습그룹이름.
 
         // DB 외 변수들
         dest.setForumAtclCnt(src.getForumAtclCnt());
@@ -633,6 +747,7 @@ public class Forum2LectController extends ControllerBase {
         dest.setForumMyScore(src.getForumMyScore());
         dest.setForumMyFdbk(src.getForumMyFdbk());
         dest.setForumEvalCnt(src.getForumEvalCnt());
+        dest.setTeamForumDtlList(src.getTeamForumDtlList());
 
         // 필요 시 추가 매핑
         return dest;
