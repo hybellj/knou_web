@@ -10,8 +10,11 @@ import knou.framework.common.CommConst;
 import knou.framework.common.RepoInfo;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.ValidationUtils;
+import knou.lms.forum2.service.ForumFdbkService;
+import knou.lms.forum2.service.ForumJoinUserService;
+import knou.lms.forum.vo.ForumJoinUserVO;
 import knou.lms.forum.web.ForumLectController;
-import knou.lms.forum2.service.impl.ForumServiceImpl;
+import knou.lms.forum2.vo.Forum2TeamDscsVO;
 import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.team.service.TeamCtgrService;
 import knou.lms.team.service.TeamMemberService;
@@ -22,7 +25,6 @@ import knou.lms.team.vo.TeamVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -56,11 +58,18 @@ public class Forum2LectController extends ControllerBase {
     private MessageSource messageSource;
 
     @Resource(name = "forum2Service")
-    private ForumService forumService;
+    private ForumService forum2Service;
     @Resource(name = "forum2AtclService")
     private ForumAtclService forum2AtclService;
     @Resource(name = "forum2CmntService")
     private ForumCmntService forum2CmntService;
+
+    @Resource(name="forum2JoinUserService")
+    private ForumJoinUserService forum2JoinUserService;
+
+    @Resource(name="forum2FdbkService")
+    private ForumFdbkService forum2FdbkService;
+
     @Resource(name = "sysFileService")
     private SysFileService sysFileService;
 
@@ -122,7 +131,7 @@ public class Forum2LectController extends ControllerBase {
 
         // TODO : Test Code 값 추후 수정 예정.(setSbjctId, setLrnGrpId)
         forum2VO.setSbjctId(test_sbjctId);
-        List<Forum2VO> dvclasList = forumService.selectForumDvclasList(forum2VO);
+        List<Forum2VO> dvclasList = forum2Service.selectForumDvclasList(forum2VO);
         model.addAttribute("dvclasList", dvclasList);
 
         forum2VO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
@@ -156,7 +165,7 @@ public class Forum2LectController extends ControllerBase {
 
         try {
             setCommonSessionValue(vo, request);
-            resultVO = forumService.selectForumList(vo);
+            resultVO = forum2Service.selectForumList(vo);
             if (resultVO.getResult() == 0) {
                 resultVO.setResultSuccess();
             }
@@ -181,7 +190,7 @@ public class Forum2LectController extends ControllerBase {
 
         try {
             setCommonSessionValue(vo, request);
-            resultVO = forumService.saveForum(vo);
+            resultVO = forum2Service.saveForum(vo);
             resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
             resultVO.setResultSuccess();
         } catch (Exception e) {
@@ -210,7 +219,7 @@ public class Forum2LectController extends ControllerBase {
         if (!StringUtil.isNull(forum2VO.getDscsId())) {
             setCommonSessionValue(forum2VO, request);
 
-            forum2VO = forumService.selectForum(forum2VO);
+            forum2VO = forum2Service.selectForum(forum2VO);
             // 첨부파일저장소 설정
             forum2VO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
 
@@ -234,7 +243,7 @@ public class Forum2LectController extends ControllerBase {
 
         try {
             setCommonSessionValue(vo, request);
-            resultVO = forumService.saveForum(vo);
+            resultVO = forum2Service.saveForum(vo);
             resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
             resultVO.setResultSuccess();
         } catch (Exception e) {
@@ -273,8 +282,9 @@ public class Forum2LectController extends ControllerBase {
                 return resultVO;
             }
 
+            setCommonSessionValue(vo, request);
             vo.setMrkOyn(mrkOyn);
-            resultVO = forumService.modifyForumMrkOyn(vo);
+            resultVO = forum2Service.modifyForumMrkOyn(vo);
         } catch (Exception e) {
             resultVO.setResultFailed(e.getMessage());
         }
@@ -297,9 +307,10 @@ public class Forum2LectController extends ControllerBase {
 
         try {
             for (Forum2VO vo : list) {
+                setCommonSessionValue(vo, request);
                 vo.setMdfrId(userId);
             }
-            forumService.updateForumMrkRfltrt(list);
+            forum2Service.updateForumMrkRfltrt(list);
             resultVO.setResultSuccess();
         } catch (Exception e) {
             resultVO.setResultFailed(e.getMessage());
@@ -322,7 +333,7 @@ public class Forum2LectController extends ControllerBase {
 
         try {
             setCommonSessionValue(vo, request);
-            resultVO = forumService.deleteForum(vo);
+            resultVO = forum2Service.deleteForum(vo);
             if (resultVO.getResult() == 0) {
                 resultVO.setResultSuccess();
             }
@@ -353,7 +364,7 @@ public class Forum2LectController extends ControllerBase {
                 return resultVO;
             }
 
-            resultVO = forumService.copyForum(vo);
+            resultVO = forum2Service.copyForum(vo);
             if (resultVO.getResult() == 0) {
                 resultVO.setResultSuccess();
             }
@@ -385,13 +396,13 @@ public class Forum2LectController extends ControllerBase {
          */
         /*
 
-        ProcessResultVO<Forum2VO> forumRs = forumService.selectForum(param);
+        ProcessResultVO<Forum2VO> forumRs = forum2Service.selectForum(param);
         Forum2VO dscs = forumRs.getReturnVO();
         */
         // TODO : 26.3.10 test value 삭제 예정.
 //        param.setDscsId(test_DscsId);
         param.setDscsId(forumVO.getForumCd());
-        Forum2VO tempForum2VO = forumService.selectForum(param);
+        Forum2VO tempForum2VO = forum2Service.selectForum(param);
         forumVO = convertForum2VOtoForumVO(tempForum2VO) ;
 
         // 첨부파일저장소 설정
@@ -463,12 +474,17 @@ public class Forum2LectController extends ControllerBase {
         return "forum2/lect/forum_bbs_view_write";
     }
 
+    /**
+     * 토론방게시글저장
+     * @param vo
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/Form/addAtcl.do")
     @ResponseBody
     public ProcessResultVO<DefaultVO> addAtcl(ForumVO vo, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
-
-
         String atclSn = IdGenerator.getNewId("ATCL");
 
         try {
@@ -498,6 +514,13 @@ public class Forum2LectController extends ControllerBase {
         return resultVO;
     }
 
+    /**
+     * 토론게시글수정
+     * @param vo
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/Form/editAtcl.do")
     @ResponseBody
     public ProcessResultVO<DefaultVO> editAtcl(ForumVO vo, HttpServletRequest request) throws Exception {
@@ -524,6 +547,13 @@ public class Forum2LectController extends ControllerBase {
         return resultVO;
     }
 
+    /**
+     * 토론게시글삭제
+     * @param forumVO
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/Form/delAtcl.do")
     @ResponseBody
     public ProcessResultVO<DefaultVO> delAtcl(ForumVO forumVO, HttpServletRequest request) throws Exception {
@@ -542,6 +572,13 @@ public class Forum2LectController extends ControllerBase {
         return returnVo;
     }
 
+    /**
+     * 토론댓글등록
+     * @param forumVO
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/Form/addCmnt.do")
     @ResponseBody
     public ProcessResultVO<DefaultVO> addCmnt(ForumVO forumVO, HttpServletRequest request) throws Exception {
@@ -566,6 +603,13 @@ public class Forum2LectController extends ControllerBase {
         return returnVo;
     }
 
+    /**
+     * 토론댓글수정
+     * @param forumVO
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/Form/editCmnt.do")
     @ResponseBody
     public ProcessResultVO<DefaultVO> editCmnt(ForumVO forumVO, HttpServletRequest request) throws Exception {
@@ -585,7 +629,13 @@ public class Forum2LectController extends ControllerBase {
         return returnVo;
     }
 
-    // 토론방 댓글 삭제
+    /**
+     * 토론방댓글삭제
+     * @param forumVO
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/Form/delCmnt.do")
     @ResponseBody
     public ProcessResultVO<DefaultVO> delCmnt(ForumVO forumVO, HttpServletRequest request) throws Exception {
@@ -601,6 +651,45 @@ public class Forum2LectController extends ControllerBase {
             returnVo.setMessage(getCommonFailMessage());
         }
         return returnVo;
+    }
+
+    /**
+     * 팀토론토론방OPEN여부 수정
+     * @param vo
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/profTeamDscsOynModify.do")
+    @ResponseBody
+    public ProcessResultVO<Forum2TeamDscsVO> profTeamDscsOynModify(Forum2TeamDscsVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<Forum2TeamDscsVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            if (StringUtil.isNull(vo.getDscsId())) {
+                resultVO.setResultFailed("dscsId is required");
+                return resultVO;
+            }
+
+            String mrkOyn = StringUtil.nvl(vo.getTeamDscsOyn());
+            if (StringUtil.isNull(mrkOyn)) {
+                mrkOyn = StringUtil.nvl(request.getParameter("mrkOyn"));
+            }
+            mrkOyn = mrkOyn.toUpperCase();
+
+            if (!"Y".equals(mrkOyn) && !"N".equals(mrkOyn)) {
+                resultVO.setResultFailed("수정 중 에러가 발생하였습니다.");
+                return resultVO;
+            }
+            String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+            vo.setMdfrId(userId);
+            vo.setTeamDscsOyn(mrkOyn);
+            resultVO = forum2Service.modifyTeamDscsOyn(vo);
+        } catch (Exception e) {
+            resultVO.setResultFailed(e.getMessage());
+        }
+
+        return resultVO;
     }
 
     // 팀토론 토론방 팀리스트
@@ -684,6 +773,27 @@ public class Forum2LectController extends ControllerBase {
         return resultVO;
     }
 
+    /*****************************************************
+     * 토론 참여 사용자 리스트 가져오기 ajax
+     * @param ForumJoinUserVO
+     * @return ProcessResultVO<ForumJoinUserVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/forumJoinUserList.do")
+    @ResponseBody
+    public ProcessResultVO<ForumJoinUserVO> forumJoinUserList(ForumJoinUserVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ForumJoinUserVO> resultVO = new ProcessResultVO<>();
+        try {
+            resultVO = forum2JoinUserService.listPaging(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.common.error"); // 오류가 발생했습니다!
+        }
+        return resultVO;
+    }
+
     private void setCommonSessionValue(Forum2ListVO vo, HttpServletRequest request) {
         vo.setOrgId(SessionInfo.getOrgId(request));
         vo.setLangCd(SessionInfo.getLocaleKey(request));
@@ -732,7 +842,7 @@ public class Forum2LectController extends ControllerBase {
         dest.setRegOpenYn(src.getOknokRgtrOyn());       // 작성자 공개(찬반)
         dest.setMultiAtclYn(src.getMltOpnnRegyn());     // 의견글 복수 등록(찬반)
         dest.setProsConsModYn(src.getOknokModyn());     // 의견 변경(찬반)
-        dest.setByteamSubdscsUseyn(src.getByteamSubdscsUseyn()); // 팀별부토론사용여부
+        dest.setByteamDscsUseyn(src.getByteamDscsUseyn()); // 팀별부토론사용여부
         dest.setDscsGrpnm(src.getDscsGrpnm());          // 학습그룹이름.
 
         // DB 외 변수들
@@ -747,7 +857,7 @@ public class Forum2LectController extends ControllerBase {
         dest.setForumMyScore(src.getForumMyScore());
         dest.setForumMyFdbk(src.getForumMyFdbk());
         dest.setForumEvalCnt(src.getForumEvalCnt());
-        dest.setTeamForumDtlList(src.getTeamForumDtlList());
+        dest.setTeamDscsList(src.getTeamDscsList());
 
         // 필요 시 추가 매핑
         return dest;

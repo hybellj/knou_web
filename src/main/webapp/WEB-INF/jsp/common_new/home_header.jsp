@@ -43,7 +43,7 @@
 			<a href="#0" data-medi-ui="widget"><i class="icon-svg-widget" aria-hidden="true"></i>위젯설정</a>
 
 			<div class="menu">
-				<div class="widgetStngGrp"></div>
+				<div class="widgetStngGrp" style="border:1px solid #cdcdcd;" ></div>
 				<div class="widgetStngGrpColr"></div>
 
 				<div class="info-txt2">
@@ -57,7 +57,7 @@
 			</div>
 
 		</li>
-		<li class="info_time"><span>이전로그인 2022.07.18 15:17 (211.157.234.211)</span></li>
+		<li class="info_time"><span>이전로그인 2026.03.17 15:01 (61.43.234.211)</span></li>
 		<li class="zoom-control">
 			<div class="icon_btns">
 				<div class="zoom_btn" aria-label="확대"><i class="xi-zoom-in"></i></div>
@@ -73,60 +73,63 @@
 			   	});
 
 				function widgetStngPopView() {
-					// 과제 유형에 따라 URL 분기(개인, 팀)
-			        var url = "/dashboard/widgetStngPopView.do";
-					var data = {};
+				    var url = "/dashboard/widgetStngPopView.do";
+				    var data = {};
 
-				   	ajaxCall(url, data, function(res) {
-						if(res.sessChkYn == 'Y') {
-					        var widgetList = res.data.widgetStngCts;
+				    ajaxCall(url, data, function(res) {
+				        if(res.sessChkYn == 'Y') {
+				            var widgetList = res.data.widgetStngCts;
 
-						    if (typeof widgetList === "string") {
-						        widgetList = JSON.parse(widgetList);
-						    }
+				            // 문자열일 경우 파싱 처리
+				            if (typeof widgetList === "string") {
+				                widgetList = JSON.parse(widgetList);
+				            }
 
-						    if (widgetList && Array.isArray(widgetList)) {
-					            var html = "";
-						            html += "<div class='info-tit'>";
-						            html += "    <span>사용할 위젯을 선택하세요</span>";
-						            html += "</div>";
-						            html += "<div class='widget-list'>";
+				            if (widgetList && Array.isArray(widgetList)) {
+				                var html = "";
 
-					            $.each(widgetList, function(index, item) {
-					            	var checked = (item.visibleYn === 'Y') ? "checked" : "";
+				                // 상단 타이틀 영역
+				                html += "<div class='info-tit'>";
+				                html += "    <span>사용할 위젯을 선택하세요</span>";
+				                html += "</div>";
 
-					                html += "    <span class='custom-input'>";
-					                html += "        <input type='checkbox' ";
-					                html += "               id='" + item.widgetId + "' ";
-					                html += "               name='" + item.widgetId + "' ";
-					                html += "               data-posx='" + item.posX + "' ";
-					                html += "               data-posy='" + item.posY + "' ";
-					                html += "               data-posw='" + item.posW + "' ";
-					                html += "               data-posh='" + item.posH + "' ";
-					                html += "               data-visible-yn='" + (item.visibleYn || 'N') + "' ";
-					                html += "               data-widget-name='" + item.widgetNm + "' " + checked + ">";
-					                html += "        <label for='" + item.widgetId + "'>" + item.widgetNm + "</label>";
-					                html += "    </span>";
-					            });
+				                // 리스트 컨테이너
+				                html += "<div class='widget-list-container' style='margin-top:10px;'>";
 
-					            html += "</div>";
+				                $.each(widgetList, function(index, item) {
+				                    // [핵심 수정] pvsnyn 값이 'Y'이면 checked 속성 추가
+				                    var checkedAttr = (item.pvsnyn === 'Y') ? "checked" : "";
 
-					            /* $.each(widgetList, function(index, item) {
-					                html += "<span class='custom-input'>";
-					                html += "    <input type='checkbox' id='" + item.widgetId + "' data-widget-name='" + item.widgetNm + "'>";
-					                html += "    <label for='" + item.widgetId + "'>" + item.widgetNm + "</label>";
-					                html += "</span>";
-					            }); */
+				                    html += "    <div class='widget-item' style='margin-bottom:8px;'>";
+				                    html += "        <span class='custom-input'>";
+				                    html += "            <input type='checkbox' ";
+				                    html += "                   id='" + item.widgetId + "' ";
+				                    html += "                   name='widget_chk' "; // 일괄 관리를 위한 name 통일
+				                    html += "                   data-widget-id='" + item.widgetId + "' ";
+				                    html += "                   data-posx='" + item.posX + "' ";
+				                    html += "                   data-posy='" + item.posY + "' ";
+				                    html += "                   data-posw='" + item.posW + "' ";
+				                    html += "                   data-posh='" + item.posH + "' ";
+				                    html += "                   data-widget-nm='" + item.widgetNm + "' " + checkedAttr + ">";
+				                    html += "            <label for='" + item.widgetId + "' style='margin-left:5px; cursor:pointer;'>" + item.widgetNm + "</label>";
+				                    html += "        </span>";
+				                    html += "    </div>";
+				                });
 
-					            $(".widgetStngGrp").empty().append(html);
-					        } else {
-					            console.error("widgetStngCts가 배열이 아닙니다:", widgetList);
-					        }
-						} else {
-							console.error("세션이 존재하지 않습니다.");
-						}
+				                html += "</div>";
+
+				                // 대상 영역에 렌더링
+				                $(".widgetStngGrp").empty().append(html);
+
+				            } else {
+				                console.error("데이터가 배열 형태가 아닙니다.", widgetList);
+				            }
+				        } else {
+				            console.error("세션이 만료되었습니다.");
+				            // alert("로그인이 필요합니다.");
+				        }
 				    });
-				};
+				}
 
 				function widgetStngColrPopView() {
 					// 과제 유형에 따라 URL 분기(개인, 팀)
@@ -227,6 +230,66 @@
 				document.querySelector('[aria-label="확대"]').addEventListener('click', zoomIn);
 				document.querySelector('[aria-label="축소"]').addEventListener('click', zoomOut);
 				document.querySelector('[aria-label="새로고침"]').addEventListener('click', zoomReset);
+
+				function widgetStngChange() {
+				    // 1. 현재 GridStack 레이아웃 정보 가져오기
+				    const currentLayout = grid.save(true);
+				    var updatedList = [];
+
+				    // 2. 체크박스 순회
+				    $(".widgetStngGrp input[name='widget_chk']").each(function() {
+				        var $this = $(this);
+				        var widgetId = $this.attr("id");
+				        var isChecked = $this.is(":checked");
+
+				        // 3. 이름(widgetNm) 가져오기: data 속성 우선, 없으면 label 텍스트 사용
+				        var widgetNm = $this.data("widget-name") || $this.next("label").text();
+
+				        // 4. 현재 화면에 있는 위젯인지 확인하여 좌표 결정
+				        var layoutItem = currentLayout.find(item => item.id === widgetId);
+
+				        updatedList.push({
+				            widgetId : widgetId,
+				            widgetNm : widgetNm,
+				            pvsnyn   : isChecked ? "Y" : "N",
+				            // 화면에 있으면 실시간 좌표(x, y, w, h), 없으면 input에 심어둔 data 값 사용
+				            posX     : layoutItem ? layoutItem.x : $this.data("posx"),
+				            posY     : layoutItem ? layoutItem.y : $this.data("posy"),
+				            posW     : layoutItem ? layoutItem.w : $this.data("posw"),
+				            posH     : layoutItem ? layoutItem.h : $this.data("posh"),
+				            userId   : "${userId}",
+				            visibleYn: isChecked ? "Y" : "N" // 기존 코드에서 사용하던 visibleYn도 함께 갱신
+				        });
+				    });
+
+				    var url = "/dashboard/widgetStngChange.do";
+				    var data = {
+				        userId            : "${userId}",
+				        widgetUseId       : "PROF",
+				        widgetId          : "PROF",
+				        widgetNm          : "PROF",
+				        orgId             : "LMSBASIC",
+				        widgetUserStngCts : JSON.stringify(updatedList)
+				    };
+
+				    ajaxCall(url, data, function(res) {
+				        // res.result가 숫자일 수도 있고 "success" 문자열일 수도 있으니 상황에 맞게 조건 수정
+				        if (res.result > 0 || res.result === "success") {
+				            // 팝업 닫기 (함수명이 다를 수 있으니 확인 필요)
+				            if (typeof layerPopClose === 'function') {
+				                layerPopClose();
+				            }
+				            // 화면 새로고침하여 반영
+				            location.reload();
+				        } else {
+				            alert("저장이 실패하였습니다.");
+				        }
+				    });
+				}
+
+				function closeModal() {
+				    $(".widget_setting").removeClass("on");
+				}
 			</script>
 
 		</li>

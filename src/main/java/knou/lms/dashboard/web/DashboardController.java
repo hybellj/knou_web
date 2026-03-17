@@ -203,7 +203,7 @@ public class DashboardController extends ControllerBase {
             returnUri = "/adminDashboard.do";
         } else if (menuType.contains("PROF")) {
             //교수
-            returnUri = "/dashboard.do";
+            returnUri = "/profDashboard.do";
         } else {
             String loginGbn = SessionInfo.getLoginGbn(request);
             String chk = CommConst.LOGINGBN_CHECK_YN;
@@ -223,7 +223,7 @@ public class DashboardController extends ControllerBase {
                 return "redirect:/";
             } else {
                 //학생
-                returnUri = "/dashboard.do";
+                returnUri = "/stuDashboard.do";
             }
         }
 
@@ -544,7 +544,7 @@ public class DashboardController extends ControllerBase {
     											SessionInfo.getLastLogin(request));
 
     	// 현재 홈정보 저장
-        SessionInfo.setCurUserHome(request, "/dashboard/dashboard.do");
+        SessionInfo.setCurUserHome(request, "/dashboard/profDashboard.do");
 
         // 과목세션정보 초기화
         SessionInfo.removeCourseInfo(request);
@@ -978,7 +978,7 @@ public class DashboardController extends ControllerBase {
         }
 
         // 현재 홈정보 저장
-        SessionInfo.setCurUserHome(request, "/dashboard/dashboard.do");
+        SessionInfo.setCurUserHome(request, "/dashboard/stuDashboard.do");
         // 과목세션정보 초기화
         SessionInfo.removeCourseInfo(request);
         //사용자 접속 장치 설정

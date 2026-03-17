@@ -10,6 +10,7 @@ function UiTabMenu(pageTabId, pageFrameId) {
         pageFrames: $("#"+pageFrameId),
 		menuTabs: [],
 		currentMenuId: "",
+		scrollAmount: 160,
 
 		// 탭메뉴 추가
 		addTabMenu: function(menuNm, menuUrl, upMenuId, menuId) {
@@ -67,7 +68,7 @@ function UiTabMenu(pageTabId, pageFrameId) {
 					let observer = new MutationObserver(updateHeight);
 					observer.observe(frameBody, {childList: true, subtree: true, attributes: false});
 				});
-				
+
 				/*
 				$frame.on("load", function() {
 			        let frameBody = this.contentWindow.document.body;
@@ -102,6 +103,11 @@ function UiTabMenu(pageTabId, pageFrameId) {
 				let tabMenuId = $(this).attr("menuId");
 				thisObj.onTabMenu(tabMenuId);
         	});
+
+			this.scrollLast();
+			setTimeout(() => {
+				this.scrollLast();
+			},1000);
 		},
 
 		// 탭메뉴 닫기
@@ -115,10 +121,14 @@ function UiTabMenu(pageTabId, pageFrameId) {
 				$("#TAB_"+menuId).remove();
 				$("#FRAME_"+menuId).remove();
 
-				let lastId = this.menuTabs.at(-1);
-				$("#TAB_"+lastId).addClass("select");
-				$("#FRAME_"+lastId).show();
-				this.currentMenuId = lastId;
+				if (this.currentMenuId === menuId) {
+					let lastId = this.menuTabs.at(-1);
+					$("#TAB_"+lastId).addClass("select");
+					$("#FRAME_"+lastId).show();
+
+					this.currentMenuId = lastId;
+					this.scrollLast();
+				}
 			}
 		},
 
@@ -137,6 +147,29 @@ function UiTabMenu(pageTabId, pageFrameId) {
 		// 모든메뉴 닫기
 		closeAllMenu: function() {
 			document.location.href = "/";
+		},
+
+		// 왼쪽으로 스크롤
+		scrollLeft: function() {
+			this.pageTabs.animate({
+	            scrollLeft: this.pageTabs.scrollLeft() - this.scrollAmount
+	        }, 200);
+		},
+
+		// 오른쪽으로 스크롤
+		scrollRight: function() {
+			this.pageTabs.animate({
+	            scrollLeft: this.pageTabs.scrollLeft() + this.scrollAmount
+	        }, 200);
+		},
+
+		// 마지막으로 스크롤
+		scrollLast: function() {
+			let fullWidth = this.pageTabs.prop('scrollWidth');
+
+			this.pageTabs.animate({
+	            scrollLeft: fullWidth
+	        }, 200);
 		}
 	};
 

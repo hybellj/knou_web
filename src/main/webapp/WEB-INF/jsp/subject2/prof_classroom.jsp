@@ -11,51 +11,51 @@
 <link rel="stylesheet" type="text/css" href="/webdoc/assets/css/classroom.css" />
 <body class="class colorA "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
-    
+
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
         <!-- //common header -->
-    
+
         <!-- classroom -->
         <main class="common">
 
 			<!-- gnb -->
 			<jsp:include page="/WEB-INF/jsp/common_new/class_gnb_prof.jsp"/>
 			<!-- //gnb -->
-			
+
 			<!-- content -->
 			<div id="content" class="content-wrap common">
 				<div class="class_sub_top">
-					<div class="navi_bar">                                
+					<div class="navi_bar">
 						<ul>
 							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
 							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>                                 
-						</ul>                                                                         
-					</div>  
+							<li><span class="current">내강의실</span></li>
+						</ul>
+					</div>
 					<div class="btn-wrap">
 						<div class="first">
 							<select class="form-select">
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
+								<option value="2026년 1학기">2026년 1학기</option>
+								<option value="2026년 2학기">2026년 2학기</option>
 							</select>
 							<select class="form-select wide">
 								<option value="">강의실 바로가기</option>
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
+								<option value="2026년 1학기">2026년 1학기</option>
+								<option value="2026년 2학기">2026년 2학기</option>
 							</select>
 						</div>
 						<div class="sec">
 							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
 							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>                        
+						</div>
 					</div>
-				</div>  
-				
+				</div>
+
 				<!-- class_sub -->
 				<div class="class_sub">
-				
-					<!-- 강의실 상단 -->	
+
+					<!-- 강의실 상단 -->
 					<div class="segment class-area">
 
 						<!-- info-left -->
@@ -77,7 +77,7 @@
                                         <span>${item.ttlKo}</span>
                                         <div class="num_txt">${item.cnt}</div>
                                     </a>
-                                    </c:forEach>                                  
+                                    </c:forEach>
                                 </div>
                                 <div class="info-set">
                                     <div class="info">
@@ -104,21 +104,21 @@
                             </div>
 						</div>
 						<!--//info-left -->
-						
+
 						<!-- info-right-->
 						<div class="info-right">
-							
+
 							<!-- flex -->
 							<div class="flex">
-								
+
 								<!-- item user-->
-								<div class="item user">							
+								<div class="item user">
                                     <div class="item_icon"><i class="icon-svg-group" aria-hidden="true"></i></div>
-                                    
+
                                     <!-- item_tit -->
                                     <div class="item_tit">
 	                                    <a href="#0" class="btn ">접속현황<i class="xi-angle-down-min"></i></a><!-- 접속현황 -->
-	                                    
+
 	                                    <!-- 접속현황레이어팝업-->
 	                                    <div class="user-option-wrap">
 	                                        <div class="option_head">
@@ -208,12 +208,12 @@
                                                     </div>
                                                 </li>
                                             </ul>
-                                            
+
                                         </div>
                                         <!-- //접속현황레이어팝업-->
                                     </div>
                                     <!-- //item_tit -->
-                                    
+
                                     <div class="item_info">
                                         <span class="big">37</span><!-- 현재접속자수 -->
                                         <span class="small">250</span><!-- 전체접속자수 -->
@@ -239,18 +239,18 @@
                                        </div>
                                 </div>
 							</div>
-							<!-- //flex -->							
-							
+							<!-- //flex -->
+
 						</div>
 						<!-- info-right-->
-					
+
 					</div>
 					<!-- //강의실 상단 -->
-					
-					
+
+
 					<!-- segment row -->
 					<div class="segment-row">
-					
+
 						<!-- 과목공지사항 -->
 						<div class="segment">
                             <div class="box_title">
@@ -266,7 +266,7 @@
 									    <c:when test="${empty subjectVM.subjectTopNoticeList}">
 									        <li>과목공지사항이 없습니다</li>
 									    </c:when>
-									    <c:otherwise>									        
+									    <c:otherwise>
 		                                	<c:forEach var="item" items="${subjectVM.subjectTopNoticeList}">
 		                                		<c:set var="cnt" value="0"/>
 			                                    <c:if test="${item.topic eq 'SUBJECT_TOP_NOTICE' and cnt lt 3}">
@@ -290,7 +290,7 @@
 				                                    </li>
 				                                    <c:set var="cnt" value="${cnt + 1}"/>
 				                            	</c:if>
-		                                    </c:forEach>	                                	
+		                                    </c:forEach>
 									    </c:otherwise>
 									</c:choose>
 								</ul>
@@ -307,12 +307,12 @@
                                     <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.qnaBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
-                            <div class="box_content">                            
+                            <div class="box_content">
                             	<c:choose>
 								    <c:when test="${empty subjectVM.subjectTopLctrQnaList}">
 								        <li>QNA가 없습니다</li>
 								    </c:when>
-								    <c:otherwise>								    
+								    <c:otherwise>
 								        <ul class="dash_item_listA">
 		                                	<c:forEach var="item" items="${subjectVM.subjectTopLctrQnaList}">
 		                                		<c:set var="cnt" value="0"/>
@@ -337,10 +337,10 @@
 											         				<label class="label check_reply">답변</label>
 											         			</c:otherwise>
 											         		</c:choose>
-											         	</div>										         
+											         	</div>
 				                                    </li>
 				                                    <c:set var="cnt" value="${cnt + 1}"/>
-				                            	</c:if>                                   
+				                            	</c:if>
 		                                    </c:forEach>
 	                                	</ul>
 								    </c:otherwise>
@@ -364,8 +364,8 @@
 									    <c:when test="${empty subjectVM.profSubjectTopOneOnOneList}">
 									        <li>1:1 상담이 없습니다</li>
 									    </c:when>
-									    <c:otherwise>		                                  
-		                                	<c:forEach var="item" items="${subjectVM.profSubjectTopOneOnOneList}">                                  
+									    <c:otherwise>
+		                                	<c:forEach var="item" items="${subjectVM.profSubjectTopOneOnOneList}">
 			                                    <c:set var="cnt" value="0"/>
 													<c:if test="${item.topic eq 'PROF_SUBJECT_TOP_1ON1' and cnt lt 3}">
 													<li>
@@ -392,24 +392,24 @@
 				                                    </li>
 				                                    <c:set var="cnt" value="${cnt + 1}"/>
 				                            	</c:if>
-			                                </c:forEach> 
+			                                </c:forEach>
 	                               		</c:otherwise>
 	                            	</c:choose>
 	                            </ul>
 							</div>
                         </div>
                         <!-- //1대1상담 -->
-                        
+
                     </div>
-					<!-- //segment row -->					
+					<!-- //segment row -->
 
 
 					<!-- lecture_segment 강의목록-->
-					<div class="segment">                    	
+					<div class="segment">
 						<div class="board_top">
                             <i class="icon-svg-openbook"></i>
-                            <h3 class="board-title">강의목록</h3>                                                                             
-                        </div>                        
+                            <h3 class="board-title">강의목록</h3>
+                        </div>
                         <div class="week_attend_list">
                         	<c:choose>
 							    <c:when test="${empty subjectVM.profLectureScheduleList}">
@@ -417,9 +417,9 @@
 							    </c:when>
 							    <c:otherwise>
 		                        	<c:forEach var="item" items="${subjectVM.profLectureScheduleList}">
-			                            <div class="state">                                
+			                            <div class="state">
 			                                <span class="week">${item.lctrWkno}</span>
-			                                <span class="percent">교수10%</span>                                                                  
+			                                <span class="percent">교수10%</span>
 			                            </div>
 		                            </c:forEach>
 		                        </c:otherwise>
@@ -438,28 +438,28 @@
                             <div class="right-area">
                                 <button type="button" class="btn basic icon" aria-label="주차 오름차순"><i class="xi-sort-asc"></i></button>
                                 <button type="button" class="btn basic icon" aria-label="주차 내림차순"><i class="xi-sort-desc"></i></button>
-                            </div>                         
+                            </div>
                         </div>
-                        
+
                         <!--  -->
                         <div style="display:none;">
 	                        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="" />
-	
+
 							<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
-							    
+
 							    <!-- 주차 -->
 							    <c:if test="${item.firstOrd == 0}">
 							        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${item.LCTR_WKNO_SCHDL_ID}" />
-							
+
 							        <div class="week">
 							            <h3>
 							                ${item.seqno}주차. ${item.nm}
 							            </h3>
 							        </div>
-							
+
 							        <ul class="week-contents">
 							    </c:if>
-							
+
 							    <!-- 주차 하위 콘텐츠 -->
 							    <c:if test="${item.firstOrd == 1}">
 							        <li class="content type-${item.srcTbl}">
@@ -472,42 +472,42 @@
 							                    <c:when test="${item.srcTbl == 'TB_LMS_SMNR'}">세미나</c:when>
 							                </c:choose>
 							            </span>
-							
+
 							            <span class="title">
 							                ${item.nm}
 							            </span>
 							        </li>
 							    </c:if>
-							
+
 							    <!-- 다음 주차가 나오면 닫기 -->
 							    <c:if test="${item.firstOrd == 0 && PREV_LCTR_WKNO_SCHDL_ID != ''}">
 							        </ul>
 							    </c:if>
-							
+
 							</c:forEach>
                         </div>
-                        
-                        <!-- course_list -->                        
+
+                        <!-- course_list -->
                         <div class="course_list">
                             <ul class="accordion course_week">
-                                
+
                                 <!--active 추가 -->
-                                <li class="active">                                    
-                                    <div class="title-wrap"> 
+                                <li class="active">
+                                    <div class="title-wrap">
                                         <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
+                                            <i class="arrow xi-angle-down"></i>
                                             <strong>1주차</strong>
                                             <p class="labels">
                                                 <label class="label s_online">온라인</label>
                                                 <label class="label s_finish">마감</label>
-                                     	       </p>                                             
+                                     	       </p>
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span>출석<strong>35</strong></span>
                                                 <span>지각<strong>3</strong></span>
                                                 <span>결석<strong>2</strong></span>
                                             </p>
-                                        </a>                                        
+                                        </a>
                                         <div class="btn_right">
                                             <button class="btn s_basic down">음성</button>
                                             <button class="btn s_basic down">강의노트</button>
@@ -521,18 +521,18 @@
                                                     <div class="item"><a href="#0">주차 수정</a></div>
                                                     <div class="item"><a href="#0">주차 추가</a></div>
                                                 </div>
-                                            </div>	
-                                        </div>                                                                    
+                                            </div>
+                                        </div>
                                     </div>
 
 									<!-- div cont -->
-                                    <div class="cont">                                    
+                                    <div class="cont">
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
                                                 <p class="labels">
                                                     <label class="label s_chasi">1차시</label>
                                                     <label class="label s_basic">동영상</label>
-                                                </p>   
+                                                </p>
                                                 <strong>우리 생활 주변의 데이터베이스</strong>
                                             </div>
                                             <div class="btn_right">
@@ -548,7 +548,7 @@
                                                         <div class="item"><a href="#0">차시 수정</a></div>
                                                         <div class="item"><a href="#0">차시 삭제</a></div>
                                                     </div>
-                                                </div>	
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="lecture_box">
@@ -556,7 +556,7 @@
                                                 <p class="labels">
                                                     <label class="label s_chasi">2차시</label>
                                                     <label class="label s_basic">PDF</label>
-                                                </p>   
+                                                </p>
                                                 <strong>데이터베이스 관리 시스템</strong>
                                             </div>
                                             <div class="btn_right">
@@ -572,14 +572,14 @@
                                                         <div class="item"><a href="#0">차시 수정</a></div>
                                                         <div class="item"><a href="#0">차시 삭제</a></div>
                                                     </div>
-                                                </div>	
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
                                                 <p class="labels">
                                                     <label class="label s_work">과제</label>
-                                                </p>   
+                                                </p>
                                                 <strong>ER 다이어그램을 그리고 그것을 관계형 모델로 변환해보기</strong>
                                             </div>
                                             <div class="btn_right mr">
@@ -588,14 +588,14 @@
                                                     <span>지각<strong>12</strong></span>
                                                     <span>미제출<strong>2</strong></span>
                                                 </div>
-                                                <button class="btn s_basic set">과제관리</button>                                                
+                                                <button class="btn s_basic set">과제관리</button>
                                             </div>
                                         </div>
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_debate">토론</label>
-                                                </p>   
+                                                </p>
                                                 <strong>찬반토론</strong>
                                             </div>
                                             <div class="btn_right mr">
@@ -603,29 +603,29 @@
                                                     <span>참여<strong>18</strong></span>
                                                     <span>미참여<strong>2</strong></span>
                                                 </div>
-                                                <button class="btn s_basic set">토론관리</button>                                                
+                                                <button class="btn s_basic set">토론관리</button>
                                             </div>
                                         </div>
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_basic">자료</label>
-                                                </p>   
+                                                </p>
                                                 <strong>PDF : 학습자료제목</strong>
                                             </div>
-                                            <div class="btn_right mr">                                               
-                                                <button class="btn s_basic set">학습자료</button>                                                
+                                            <div class="btn_right mr">
+                                                <button class="btn s_basic set">학습자료</button>
                                             </div>
                                         </div>
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_basic">자료</label>
-                                                </p>   
+                                                </p>
                                                 <strong>웹링크 : 학습자료제목 학습자료제목 2</strong>
                                             </div>
-                                            <div class="btn_right mr">                                               
-                                                <button class="btn s_basic set">학습자료</button>                                                
+                                            <div class="btn_right mr">
+                                                <button class="btn s_basic set">학습자료</button>
                                             </div>
                                         </div>
 
@@ -695,23 +695,23 @@
                                     <!--//div cont -->
                                 </li>
                                 <!--active 추가 -->
-                                
+
                                 <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
+                                    <div class="title-wrap">
                                         <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
+                                            <i class="arrow xi-angle-down"></i>
                                             <strong>2주차</strong>
                                             <p class="labels">
                                                 <label class="label s_online">온라인</label>
                                                 <label class="label s_ing">공개</label>
-                                            </p>                                             
+                                            </p>
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span>출석<strong>35</strong></span>
                                                 <span>지각<strong>3</strong></span>
                                                 <span>결석<strong>2</strong></span>
                                             </p>
-                                        </a>                                        
+                                        </a>
                                         <div class="btn_right">
                                             <button class="btn s_basic down">강의노트</button>
                                             <button class="btn s_type1">출결관리</button>
@@ -724,17 +724,17 @@
                                                     <div class="item"><a href="#0">주차 수정</a></div>
                                                     <div class="item"><a href="#0">주차 추가</a></div>
                                                 </div>
-                                            </div>	
-                                        </div>                                                                    
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="cont">                                        
+                                    <div class="cont">
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
                                                 <p class="labels">
                                                     <label class="label s_chasi">1차시</label>
                                                     <label class="label s_basic">동영상</label>
-                                                </p>   
+                                                </p>
                                                 <strong>우리 생활 주변의 데이터베이스</strong>
                                             </div>
                                             <div class="btn_right">
@@ -750,9 +750,9 @@
                                                         <div class="item"><a href="#0">차시 수정</a></div>
                                                         <div class="item"><a href="#0">차시 삭제</a></div>
                                                     </div>
-                                                </div>	
+                                                </div>
                                             </div>
-                                        </div>                                        
+                                        </div>
 
                                         <div class="lecture_add_box">
                                             <div class="box_item">
@@ -817,25 +817,25 @@
                                         </div>
 
                                     </div>
-                                </li>  
-                                
+                                </li>
+
                                 <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
+                                    <div class="title-wrap">
                                         <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
+                                            <i class="arrow xi-angle-down"></i>
                                             <strong>3주차</strong>
                                             <p class="labels">
                                                 <label class="label s_online">온라인</label>
-                                            </p>                                             
+                                            </p>
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span>출석<strong>35</strong></span>
                                                 <span>지각<strong>3</strong></span>
                                                 <span>결석<strong>2</strong></span>
                                             </p>
-                                        </a>                                        
-                                        <div class="btn_right">                                        
-                                            <button class="btn s_type1">세미나 출결관리</button>                                          
+                                        </a>
+                                        <div class="btn_right">
+                                            <button class="btn s_type1">세미나 출결관리</button>
                                             <div class="dropdown">
                                                 <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
                                                     <i class="xi-ellipsis-v"></i>
@@ -844,16 +844,16 @@
                                                     <div class="item"><a href="#0">주차 수정</a></div>
                                                     <div class="item"><a href="#0">주차 추가</a></div>
                                                 </div>
-                                            </div>	
-                                        </div>                                                                    
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="cont">                                        
+                                    <div class="cont">
                                         <div class="lecture_box seminar">
                                             <div class="lecture_tit">
                                                 <p class="labels">
                                                     <label class="label s_seminar">세미나</label>
-                                                </p>   
+                                                </p>
                                                 <strong>화상세미나</strong>
                                             </div>
                                             <div class="btn_right mr">
@@ -862,7 +862,7 @@
                                                     <span>지각<strong>3</strong></span>
                                                     <span>결석<strong>1</strong></span>
                                                 </div>
-                                                <button class="btn s_basic set">세미나관리</button>                                                
+                                                <button class="btn s_basic set">세미나관리</button>
                                             </div>
 
                                             <div class="seminar_detail">
@@ -875,7 +875,7 @@
                                                 </div>
                                                 <div class="row message red">
                                                     [중요] 반드시 Zoom Meeting 프로그램을 실행하여 참가해 주세요.<br>
-                                                    <span class="caution">Zoom 프로그램이 아닌 브라우저 상의 "브라우저에서 참가"를 클릭하여 입장한 경우에는 출결이 기록되지 않습니다.</span> 
+                                                    <span class="caution">Zoom 프로그램이 아닌 브라우저 상의 "브라우저에서 참가"를 클릭하여 입장한 경우에는 출결이 기록되지 않습니다.</span>
                                                 </div>
                                                 <div class="row message">
                                                     <div class="list-tit">참가에 실패하는 경우</div>
@@ -893,7 +893,7 @@
 
                                             </div>
 
-                                        </div>                                        
+                                        </div>
 
                                         <div class="lecture_add_box">
                                             <div class="box_item">
@@ -958,23 +958,23 @@
                                         </div>
 
                                     </div>
-                                </li> 
-                                
+                                </li>
+
                                 <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
+                                    <div class="title-wrap">
                                         <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
+                                            <i class="arrow xi-angle-down"></i>
                                             <strong>4주차</strong>
                                             <p class="labels">
                                                 <label class="label s_offline">오프라인</label>
-                                            </p>                                             
+                                            </p>
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span>출석<strong>-</strong></span>
                                                 <span>지각<strong>-</strong></span>
                                                 <span>결석<strong>-</strong></span>
                                             </p>
-                                        </a>                                        
+                                        </a>
                                         <div class="btn_right">
                                             <button class="btn s_type1">출결관리</button>
                                             <div class="dropdown">
@@ -985,22 +985,22 @@
                                                     <div class="item"><a href="#0">주차 수정</a></div>
                                                     <div class="item"><a href="#0">주차 추가</a></div>
                                                 </div>
-                                            </div>	
-                                        </div>                                                                    
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="cont">                                        
+                                    <div class="cont">
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_basic">자료</label>
-                                                </p>   
+                                                </p>
                                                 <strong>PDF : 학습자료제목</strong>
                                             </div>
-                                            <div class="btn_right">                                               
-                                                <button class="btn s_basic set">학습자료</button>                                                
+                                            <div class="btn_right">
+                                                <button class="btn s_basic set">학습자료</button>
                                             </div>
-                                        </div>                                     
+                                        </div>
 
                                         <div class="lecture_add_box">
                                             <div class="box_item">
@@ -1065,23 +1065,23 @@
                                         </div>
 
                                     </div>
-                                </li>   
+                                </li>
 
                                 <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
+                                    <div class="title-wrap">
                                         <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
+                                            <i class="arrow xi-angle-down"></i>
                                             <strong>15주차</strong>
                                             <p class="labels">
                                                 <label class="label s_online">온라인</label>
-                                            </p>                                             
+                                            </p>
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span>출석<strong>-</strong></span>
                                                 <span>지각<strong>-</strong></span>
                                                 <span>결석<strong>-</strong></span>
                                             </p>
-                                        </a>                                        
+                                        </a>
                                         <div class="btn_right">
                                             <button class="btn s_type1">결시원 현황</button>
                                             <button class="btn s_type1">장애인/고령자 지원현황</button>
@@ -1093,31 +1093,31 @@
                                                     <div class="item"><a href="#0">주차 수정</a></div>
                                                     <div class="item"><a href="#0">주차 추가</a></div>
                                                 </div>
-                                            </div>	
-                                        </div>                                                                    
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="cont">                                        
+                                    <div class="cont">
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_test">시험</label>
-                                                </p>   
+                                                </p>
                                                 <strong>실시간시험 기말고사</strong>
                                             </div>
                                             <div class="btn_right">
                                                 <div class="desc_info">
                                                     <span>응시<strong>20</strong></span>
                                                     <span>미응시<strong>2</strong></span>
-                                                </div>                                               
-                                                <button class="btn s_basic set">시험관리</button>                                                
+                                                </div>
+                                                <button class="btn s_basic set">시험관리</button>
                                             </div>
-                                        </div> 
+                                        </div>
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_test">대체과제</label>
-                                                </p>   
+                                                </p>
                                                 <strong>대체과제명</strong>
                                             </div>
                                             <div class="btn_right">
@@ -1125,10 +1125,10 @@
                                                     <span>제출<strong>20</strong></span>
                                                     <span>지각<strong>2</strong></span>
                                                     <span>미제출<strong>2</strong></span>
-                                                </div>                                               
-                                                <button class="btn s_basic set">과제관리</button>                                                
+                                                </div>
+                                                <button class="btn s_basic set">과제관리</button>
                                             </div>
-                                        </div>                                    
+                                        </div>
 
                                         <div class="lecture_add_box">
                                             <div class="box_item">
@@ -1195,13 +1195,13 @@
                             </ul>
                         </div>
                         <!-- //course_list -->
-                                         
-					</div>  
+
+					</div>
 					<!-- //lecture_segment 강의목록 -->
-					
+
 				</div>
 				<!-- //class_sub -->
-				
+
 			</div>
 			<!-- //content -->
         </main>

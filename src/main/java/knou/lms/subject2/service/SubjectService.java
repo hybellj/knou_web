@@ -23,4 +23,6 @@ public interface SubjectService {
     public EgovMap middleLastExamSelect(BaseParam param) throws Exception;
 
     public EgovMap subjectBbsIdsSelect(BaseParam param) throws Exception;
+
+	public List<EgovMap> subjectSummaryList(BaseParam param) throws Exception;
 }

@@ -145,7 +145,7 @@
 								<c:when test="${forumVo.forumCtgrCd eq 'TEAM'}">
 									<spring:message code='forum.common.yes'/><!-- 예 -->
 									<c:choose>
-										<c:when test="${forumVo.byteamSubdscsUseyn eq 'Y'}">
+										<c:when test="${forumVo.byteamDscsUseyn eq 'Y'}">
 											<br/><span><spring:message code='forum.label.lrngrp'/><%--학습그룹--%> : ${forumVo.dscsGrpnm}</span>
 											<br/><span><spring:message code='forum.label.lrngrp.dscs.setting'/><%--학습그룹별 토론 설정--%> : </span><spring:message code='forum.label.use.y'/><!-- 사용 -->
 											<table class="table-type2">
@@ -158,22 +158,22 @@
 												<thead>
 												<tr>
 													<th><spring:message code='forum.label.team'/></th><!-- 팀 -->
-													<th colspan="2"><spring:message code='forum.label.content'/></th><!-- 부주제 -->
+													<th colspan="2"><spring:message code='forum.label.team.ttl'/></th><!-- 부주제 -->
 													<th><spring:message code='forum.label.lrngrp.mebers'/></th><!-- 학습그룹 구성원 -->
 												</tr>
 												</thead>
 												<tbody>
-												<c:forEach var="item" items="${forumVo.teamForumDtlList}" varStatus="status">
+												<c:forEach var="item" items="${forumVo.teamDscsList}" varStatus="status">
 													<tr>
-														<td rowspan="3">${item.teamnm}<spring:message code='forum.label.team'/></td><!-- 팀 -->
-														<td style="background-color:#f2f2f2;"><spring:message code='forum.label.content'/></td><!-- 부주제 -->
-														<td style="text-align:left; padding-left:10px;">${item.subdscsTtl}</td>
-														<td rowspan="3">${item.groupMembers}</td>
+														<td rowspan="3">${item.teamnm}</td><!-- 팀 -->
+														<td style="background-color:#f2f2f2;"><spring:message code='forum.label.team.ttl'/></td><!-- 부주제 -->
+														<td style="text-align:left; padding-left:10px;">${item.dscsTtl}</td>
+														<td rowspan="3">${item.leaderNm} 외 ${item.teamMbrCnt}</td>
 													</tr>
 													<tr>
 														<td style="background-color:#f2f2f2;"><spring:message code='forum.label.content'/></td><!-- 내용 -->
 														<td style="text-align:left; padding:10px;">
-															<textarea style="width:95%; height:80px;resize: none; overflow-y: auto;" readonly>${item.subdscsCts}</textarea>
+															<textarea style="width:95%; height:80px;resize: none; overflow-y: auto;" readonly>${item.dscsCts}</textarea>
 														</td>
 													</tr>
 													<tr>

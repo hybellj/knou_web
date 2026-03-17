@@ -7,6 +7,7 @@
 <html lang="ko">
 <head>
 	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+		<jsp:param name="module" value="widget,chart"/>
 		<jsp:param name="style" value="dashboard"/>
 	</jsp:include>
 </head>
@@ -26,7 +27,7 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-                
+
                 <!-- dashboard -->
                 <div class="dashboard">
 
@@ -318,7 +319,7 @@
 
                         <!-- 공지사항 -->
                         <div class="box notice">
-                        
+
                             <div class="box_title">
                                 <i class="xi-arrows m_handle" aria-label="위젯 이동" role="button" tabindex="0" aria-grabbed="false"></i>
                                 <h3 class="h3">공지사항</h3>
@@ -332,7 +333,7 @@
                                     <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=NTC" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
-                            
+
                             <!-- box_content -->
                             <div class="box_content">
                                 <div id="tab21" class="tab-content" style="display: block;">
@@ -341,7 +342,7 @@
 										    <c:when test="${empty dashVM.stdntDashAllNoticeList}">
 										        <li>최신공지사항이 없습니다</li>
 										    </c:when>
-										    <c:otherwise>								        
+										    <c:otherwise>
 			                                	<c:forEach var="item" items="${dashVM.stdntDashAllNoticeList}">
 												    <!-- 3건만 출력 -->
 												    <c:set var="cnt" value="0"/>
@@ -358,7 +359,7 @@
 														            </c:otherwise>
 														    	</c:choose>
 												            </div>
-												
+
 												            <!-- 공지 링크 및 내용 -->
 												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 												                <p class="tit">${item.atclTtl}</p>
@@ -374,7 +375,7 @@
 												                    </c:choose>
 												                </p>
 												            </a>
-												            													
+
 												            <!-- 읽음/읽지않음 표시 -->
 												            <div class="state">
 												                <c:choose>
@@ -389,7 +390,7 @@
 												        </li>
 												        <c:set var="cnt" value="${cnt + 1}"/>
 												    </c:if>
-												</c:forEach>	                                	
+												</c:forEach>
 										    </c:otherwise>
 										</c:choose>
                                     </ul>
@@ -401,7 +402,7 @@
 										    <c:when test="${empty dashVM.dashCrsNoticeList}">
 										        <li>전체공지사항이 없습니다</li>
 										    </c:when>
-										    <c:otherwise>							        
+										    <c:otherwise>
 			                                	<!-- 3건만 출력 -->
 												<c:set var="cnt" value="0"/>
 												<c:forEach var="item" items="${dashVM.dashCrsNoticeList}">
@@ -412,7 +413,7 @@
 												            <div class="noti_label">
 												                <label class="labelA">전체</label>
 												            </div>
-												
+
 												            <!-- 공지 링크 및 내용 -->
 												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 												                <p class="tit">${item.atclTtl}</p>
@@ -420,7 +421,7 @@
 												                    <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 												                </p>
 												            </a>
-												
+
 												            <!-- 읽음/읽지않음 표시 -->
 												            <div class="state">
 												                <c:choose>
@@ -430,14 +431,14 @@
 														            <c:otherwise>
 														            	<label class="label check_no">읽음</label>
 														            </c:otherwise>
-														    	</c:choose>	
+														    	</c:choose>
 												            </div>
 												        </li>
-												
+
 												        <!-- 카운터 증가 -->
 												        <c:set var="cnt" value="${cnt + 1}" />
 												    </c:if>
-												</c:forEach>	                                	
+												</c:forEach>
 										    </c:otherwise>
 										</c:choose>
                                     </ul>
@@ -450,7 +451,7 @@
 										    <c:when test="${empty dashVM.stdntDashSubjectNoticeList}">
 										        <li>과목공지사항이 없습니다</li>
 										    </c:when>
-										    <c:otherwise>								        
+										    <c:otherwise>
                                 				<c:set var="cnt" value="0" />
 												<c:forEach var="item" items="${dashVM.stdntDashSubjectNoticeList}">
 												    <!-- 과목공지만 출력 -->
@@ -460,7 +461,7 @@
 												            <div class="noti_label">
 												                <label class="labelB">과목</label>
 												            </div>
-												
+
 												            <!-- 공지 링크/내용 -->
 												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 												                <p class="tit">${item.atclTtl}</p>
@@ -469,7 +470,7 @@
 												                    <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 												                </p>
 												            </a>
-												
+
 												            <!-- 읽음/읽지않음 -->
 												            <div class="state">
 												                <c:choose>
@@ -479,29 +480,29 @@
 														            <c:otherwise>
 														            	<label class="label check_no">읽음</label>
 														            </c:otherwise>
-														    	</c:choose>															    	
+														    	</c:choose>
 												            </div>
 												        </li>
-												
+
 												        <!-- 카운터 증가 -->
 												        <c:set var="cnt" value="${cnt + 1}" />
 												    </c:if>
-												</c:forEach>                                	
+												</c:forEach>
 										    </c:otherwise>
 										</c:choose>
                                     </ul>
                                 </div>
                                 <!--//tab23 -->
-                                
+
                             </div>
                             <!--//box_content -->
-                            
-                        </div>                        
+
+                        </div>
                         <!--//공지사항 -->
-                        
+
                     </div>
                     <!-- //grid inline -->
-                    
+
 
 					<!-- grid inline -->
                     <div class="grid inline">
@@ -689,7 +690,7 @@
 	                                	<c:otherwise>
 		                                	<c:forEach var="item" items="${dashVM.stdntDashLctrQnaList}">
 		                                	<c:set var="cnt" value="0"/>
-												<c:if test="${item.topic eq 'STDNT_DASH_LCTR_QNA' and cnt lt 3}">  
+												<c:if test="${item.topic eq 'STDNT_DASH_LCTR_QNA' and cnt lt 3}">
 				                                    <li>
 				                                        <div class="user">
 				                                           <span class="${item.userThumbnail}"></span>
@@ -710,11 +711,11 @@
 											         				<label class="label check_reply">답변</label>
 											         			</c:otherwise>
 											         		</c:choose>
-											         	</div>		
+											         	</div>
 				                                    </li>
 				                                    <c:set var="cnt" value="${cnt + 1}"/>
 			                                    </c:if>
-                                    		</c:forEach>	                                	
+                                    		</c:forEach>
 									    </c:otherwise>
 									</c:choose>
                                 </ul>
@@ -730,7 +731,7 @@
                                     <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=DATARM" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
-                            
+
                             <!-- box_content -->
                             <div class="box_content">
                                 <ul class="dash_item_listA">
@@ -741,7 +742,7 @@
 	                                	<c:otherwise>
 		                                	<c:forEach var="item" items="${dashVM.stdntDashDatarmList}">
 		                                	<c:set var="cnt" value="0"/>
-												<c:if test="${item.topic eq 'STDNT_DASH_DATARM' and cnt lt 3}">  
+												<c:if test="${item.topic eq 'STDNT_DASH_DATARM' and cnt lt 3}">
 				                                    <li>
 				                                        <div class="user">
 				                                           <span class="user_img"></span>
@@ -755,20 +756,20 @@
 				                                        </a>
 				                                        <div class="state">
 					                                        <a href="#0" class="btn btn_down">다운로드</a>
-											         	</div>		
+											         	</div>
 				                                    </li>
 				                                    <c:set var="cnt" value="${cnt + 1}"/>
 			                                    </c:if>
-                                    		</c:forEach>	                                	
+                                    		</c:forEach>
 									    </c:otherwise>
 									</c:choose>
                                 </ul>
                             </div>
                             <!--//box_content -->
-                            
+
                         </div>
                         <!-- //강의자료실 -->
-                        
+
                     </div>
                     <!-- //grid inline -->
 
@@ -830,7 +831,7 @@
                                     </ul>
                                 </div>
                                 <!--//box_content -->
-                                
+
                             </div>
                             <!-- 강의 이어듣기 -->
 
@@ -1216,7 +1217,7 @@
 
                 </div>
                 <!-- //dashboard -->
-                
+
             </div>
             <!-- //content -->
 

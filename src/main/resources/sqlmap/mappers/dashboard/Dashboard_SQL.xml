@@ -3693,7 +3693,7 @@
 				    ON TLW.WIDGET_ID = TLWU.WIDGET_ID
 				ORDER BY TO_NUMBER(REGEXP_SUBSTR(TLW.WIDGET_ID, '[0-9]+'))
 		) A
-		WHERE 1=1
+		WHERE 1=1 AND ROWNUM = 1
 		<if test='authrtGrpcd != null and authrtGrpcd != ""'>
 			AND WIDGET_TYCD = #{authrtGrpcd}
 		</if>
@@ -3763,6 +3763,10 @@
     </select>
 
     <select id="widgetStngPopView" parameterType="DashboardVO" resultType="egovMap">
+    	/*
+			 SQL ID : DashboardDAO.widgetStngPopView
+			 설  명 : 상단 위젯 설정 팝업(위젯)
+	 	*/
 		SELECT
 			TLWU.WIDGET_USER_STNG_CTS AS WIDGET_STNG_CTS
 		  FROM TB_LMS_WIDGET_USE TLWU
@@ -3774,6 +3778,10 @@
 	</select>
 
 	<select id="widgetStngColrPopView" parameterType="DashboardVO" resultType="egovMap">
+		/*
+			 SQL ID : DashboardDAO.widgetStngColrPopView
+			 설  명 : 상단 위젯 설정 팝업(색상)
+	 	*/
 		SELECT
 			TLWU.WIDGET_USER_STNG_CTS AS WIDGET_STNG_CTS
 		  FROM TB_LMS_WIDGET_USE TLWU

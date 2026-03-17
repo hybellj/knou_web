@@ -75,7 +75,9 @@ public class ControllerBase {
 			String uri			= request.getRequestURI();
 			String type 		= "";
 			boolean isMain		= false;
-			
+			String upMenuId		= StringUtil.nvl(request.getParameter("upMenuId"));
+			String menuId		= StringUtil.nvl(request.getParameter("menuId"));
+
 			// 암호화 파라메터가 있는 경우 값을 VO에 세팅
 			if (paramVO != null) {
 				// 암호화 파라메터 VO에 설정
@@ -100,14 +102,14 @@ public class ControllerBase {
 			else {
 				type = StringUtil.nvl((String)SessionUtil.getSessionValue(request, "PAGE_TYPE"));
 			}
-			
+
 			// 메인 탭메뉴 페이지 이면 iframe 타입 지정
 			if (referer.indexOf("/mainTabpage.do") > -1 && !isMain) {
 				type = "iframe";
 				SessionUtil.setSessionValue(request, "PAGE_TYPE", type);
 				addEparam("pageType", "iframe");
 			}
-			
+
 			String bodyClass = "";
 			if ("iframe".equals(type)) {
 				bodyClass = "iframeBody";
@@ -116,7 +118,16 @@ public class ControllerBase {
 			modelMap.addAttribute("eparam", this.eparam);
 			//modelMap.addAttribute("pageType", type);
 			//modelMap.addAttribute("bodyClass", bodyClass);
-			
+
+			if (!"".equals(upMenuId)) {
+				//modelMap.addAttribute("curUpMenuId", upMenuId);
+				modelMap.addAttribute("curMenuId", menuId);
+			}
+			if (!"".equals(menuId)) {
+				//modelMap.addAttribute("curUpMenuId", upMenuId);
+				modelMap.addAttribute("curMenuId", menuId);
+			}
+
 			SessionUtil.setSessionValue(request, "PAGE_TYPE", type);
 			SessionUtil.setSessionValue(request, "BODY_CLASS", bodyClass);
 

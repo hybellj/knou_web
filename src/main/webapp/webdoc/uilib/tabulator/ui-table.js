@@ -182,7 +182,8 @@ function UiTable(tableId, opts) {
             let listBtnArea = $table.prev().find(".list-card-button");
             if (listBtnArea.length > 0) {
                 // 리스트/카드 선택 버튼 생성
-                let listCardBtn = $(`<button class='btn_list_type${tableMode === MODE_CARD ? " " + MODE_CARD : ""}' type='button' role='button' aria-label='List/Card' title='${UiTableUtil.getMsg("type_btn_title")}'><i class='icon-svg-list' aria-hidden='true'></i></button>`);
+                let listCardBtn = $(`<button class='btn_list_type${tableMode === MODE_CARD ? " " + MODE_CARD : ""}' type='button' role='button' aria-label='List/Card' title='${UiTableUtil.getMsg("type_btn_title")}'>`
+					+ `<i class='${"card" ? "icon-svg-list" : "icon-svg-grid"}' aria-hidden='true'></i></button>`);
                 uiTable.listCardBtn = listCardBtn;
                 listBtnArea.append(listCardBtn);
                 listCardBtn.on('click', function () {
@@ -210,6 +211,8 @@ function UiTable(tableId, opts) {
                 if (uiTable.listCardBtn) {
                     uiTable.listCardBtn.show();
                     uiTable.listCardBtn.addClass(MODE_CARD);
+					uiTable.listCardBtn.find("i").addClass("icon-svg-list");
+					uiTable.listCardBtn.find("i").removeClass("icon-svg-grid");
                 }
             } else {
                 $table.removeClass(MODE_MOBILE);
@@ -218,6 +221,8 @@ function UiTable(tableId, opts) {
                 if (uiTable.listCardBtn) {
                     uiTable.listCardBtn.show();
                     uiTable.listCardBtn.removeClass(MODE_CARD);
+					uiTable.listCardBtn.find("i").removeClass("icon-svg-list");
+					uiTable.listCardBtn.find("i").addClass("icon-svg-grid");
                 }
             }
         }

@@ -76,7 +76,7 @@
     </sql>
 
     <!-- ============================================================ -->
-    <!--  운영과목 목록                                    -->
+    <!--  운영과목 목록                                                -->
     <!-- ============================================================ -->
 
     <!-- 현재 기관의 기본 학년도/학기 조회 -->
@@ -97,6 +97,43 @@
                  ORDER BY T.DGRS_YR DESC, T.DGRS_SMSTR_COHORT DESC
              )
         WHERE ROWNUM = 1
+    </select>
+
+    <!-- 과목 상세 단건 조회 (★ 신규 추가) -->
+    <select id="selectClsDetail"
+            parameterType="knou.lms.std.vo.ClsVO"
+            resultType="knou.lms.std.vo.ClsVO">
+        SELECT
+            A.SBJCT_ID          AS sbjctId
+             , A.SBJCT_YR          AS sbjctYr
+             , TRIM(A.SBJCT_SMSTR) AS sbjctSmstr
+             , A.DEPT_ID           AS deptId
+             , D.DEPTNM            AS deptnm
+             , A.CRCLMN_NO         AS crclmnNo
+             , A.SBJCTNM           AS sbjctnm
+             , A.DVCLAS_NO         AS dvclasNo
+             , A.DVCLAS_NCKNM      AS dvclasNcknm
+             , A.CRDTS             AS crdts
+             , A.WHOL_WK_CNT       AS wkCnt
+             , B.USERNM            AS usernm
+             , A.SMSTR_CHRT_ID     AS smstrChrtId
+             , A.USEYN             AS useyn
+             , (
+            SELECT LISTAGG(U2.USERNM, ', ')
+                       WITHIN GROUP (ORDER BY SA.SBJCT_ADM_SEQNO)
+        FROM TB_LMS_SBJCT_ADM SA
+            JOIN TB_LMS_USER U2
+        ON U2.USER_ID = SA.USER_ID
+        WHERE SA.SBJCT_ID = A.SBJCT_ID
+          AND SA.SBJCT_ADM_TYCD = 'TUT'
+            )                   AS tutor
+        FROM TB_LMS_SBJCT A
+            LEFT JOIN TB_LMS_USER B
+        ON A.PROF_ID = B.USER_ID
+            LEFT JOIN TB_LMS_DEPT D
+            ON A.DEPT_ID = D.DEPT_ID
+        WHERE A.SBJCT_ID = #{sbjctId}
+          AND NVL(A.DELYN, 'N') = 'N'
     </select>
 
     <!-- 전체수업현황 운영과목 목록 건수 조회 -->
@@ -157,7 +194,7 @@
         ORDER BY A.SBJCTNM ASC, A.DVCLAS_NO ASC
     </select>
 
-    <!-- 전체수업현황 운영과목 목록 페이징 조회 -->
+    <!-- 전체수업현황 운영과목 목록 페이징 조회 (★ orgNm 추가) -->
     <select id="selectClsListPaging"
             parameterType="knou.lms.std.vo.ClsVO"
             resultType="knou.lms.std.vo.ClsVO">
@@ -192,11 +229,14 @@
         AND SA.SBJCT_ADM_TYCD = 'TUT'
         )                   AS tutor
         , NULL                AS asst
+        , O.ORGNM             AS orgNm
         FROM TB_LMS_SBJCT A
         LEFT JOIN TB_LMS_USER B
         ON A.PROF_ID = B.USER_ID
         LEFT JOIN TB_LMS_DEPT D
         ON A.DEPT_ID = D.DEPT_ID
+        LEFT JOIN TB_LMS_ORG O
+        ON O.ORG_ID = B.ORG_ID
         WHERE NVL(A.DELYN, 'N') = 'N'
         AND A.SBJCT_YR = #{searchYr}
         AND TRIM(A.SBJCT_SMSTR) IN (#{searchSmstr}, LPAD(#{searchSmstr}, 2, '0'))
@@ -225,10 +265,9 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  주차별 수강생 목록 (전체, 엑셀용)                 -->
+    <!--  주차별 수강생 목록 (전체, 엑셀용) - ★ 주차 상태/출결 집계 추가 -->
     <!-- ============================================================ -->
 
-    <!-- 주차별 학습현황 전체 수강생 목록 조회(엑셀용) -->
     <select id="selectClsStdntList"
             parameterType="knou.lms.std.vo.ClsStdntVO"
             resultType="knou.lms.std.vo.ClsStdntVO">
@@ -236,42 +275,66 @@
         <include refid="wkUserLrnSts"/>,
         <include refid="prgrtToSts"/>
         SELECT
-        ROW_NUMBER() OVER(ORDER BY U.STDNT_NO ASC) AS lineNo
-        , U.USER_ID                                  AS userId
-        , U.USERNM                                   AS usernm
-        , U.STDNT_NO                                 AS stdntNo
-        , D.DEPTNM                                   AS deptnm
-        , NULL                                       AS entyR
-        , NULL                                       AS scyr
-        , COALESCE(AB.ABSNCE_CNT, 0)                 AS absnCnt
+        ROW_NUMBER() OVER(ORDER BY U.STDNT_NO ASC)  AS lineNo
+        , U.USER_ID                                    AS userId
+        , U.USERNM                                     AS usernm
+        , U.STDNT_NO                                   AS stdntNo
+        , D.DEPTNM                                     AS deptnm
+        , NULL                                         AS entyR
+        , NULL                                         AS scyr
+        , MAX(CASE WHEN W.WKNO = 1  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk1Sts
+        , MAX(CASE WHEN W.WKNO = 2  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk2Sts
+        , MAX(CASE WHEN W.WKNO = 3  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk3Sts
+        , MAX(CASE WHEN W.WKNO = 4  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk4Sts
+        , MAX(CASE WHEN W.WKNO = 5  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk5Sts
+        , MAX(CASE WHEN W.WKNO = 6  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk6Sts
+        , MAX(CASE WHEN W.WKNO = 7  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk7Sts
+        , MAX(CASE WHEN W.WKNO = 8  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk8Sts
+        , MAX(CASE WHEN W.WKNO = 9  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk9Sts
+        , MAX(CASE WHEN W.WKNO = 10 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk10Sts
+        , MAX(CASE WHEN W.WKNO = 11 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk11Sts
+        , MAX(CASE WHEN W.WKNO = 12 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk12Sts
+        , MAX(CASE WHEN W.WKNO = 13 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk13Sts
+        , MAX(CASE WHEN W.WKNO = 14 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk14Sts
+        , MAX(CASE WHEN W.WKNO = 15 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS wk15Sts
+        , SUM(CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 1 ELSE 0 END) AS atndCnt
+        , SUM(CASE
+        WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60)
+        AND W.LRN_PRGRT  &lt; NVL(C.ATND_MIN_PRGRT,80)
+        THEN 1 ELSE 0 END)                                     AS lateCnt
+        , COALESCE(AB.ABSNCE_CNT, 0)                                  AS absnCnt
         FROM TB_LMS_ATNDLC E
         JOIN TB_LMS_USER U
         ON U.USER_ID = E.USER_ID
         JOIN TB_LMS_DEPT D
         ON D.DEPT_ID = U.DEPT_ID
+        LEFT JOIN WK_USER_LRN_STS W
+        ON W.USER_ID = U.USER_ID
+        LEFT JOIN PRGRT_TO_STS C
+        ON C.SBJCT_ID = W.SBJCT_ID
         LEFT JOIN (
         SELECT
-        W.USER_ID
+        W2.USER_ID
         , SUM(
         CASE
-        WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT, 80) THEN 0
-        WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT, 60) THEN 0
+        WHEN W2.LRN_PRGRT >= NVL(C2.ATND_MIN_PRGRT, 80) THEN 0
+        WHEN W2.LRN_PRGRT >= NVL(C2.LATE_MIN_PRGRT, 60) THEN 0
         ELSE 1
         END
         ) AS ABSNCE_CNT
-        FROM WK_USER_LRN_STS W
-        LEFT JOIN PRGRT_TO_STS C
-        ON C.SBJCT_ID = W.SBJCT_ID
-        GROUP BY W.USER_ID
-        ) AB
-        ON AB.USER_ID = U.USER_ID
+        FROM WK_USER_LRN_STS W2
+        LEFT JOIN PRGRT_TO_STS C2
+        ON C2.SBJCT_ID = W2.SBJCT_ID
+        GROUP BY W2.USER_ID
+        ) AB ON AB.USER_ID = U.USER_ID
         WHERE E.SBJCT_ID = #{sbjctId}
         <include refid="clsSearchCondition"/>
+        GROUP BY U.USER_ID, U.USERNM, U.STDNT_NO, D.DEPTNM, COALESCE(AB.ABSNCE_CNT, 0)
         ORDER BY U.STDNT_NO ASC
     </select>
 
     <!-- ============================================================ -->
-    <!--  주차별 수강생 목록 (카운트)                        -->
+    <!--  주차별 수강생 목록 (카운트)                                  -->
     <!-- ============================================================ -->
 
     <!-- 주차별 학습현황 수강생 목록 건수 조회 -->
@@ -308,7 +371,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  주차별 수강생 목록 (페이징)                        -->
+    <!--  주차별 수강생 목록 (페이징)                                  -->
     <!-- ============================================================ -->
 
     <!-- 주차별 학습현황 수강생 목록 페이징 조회 -->
@@ -418,7 +481,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  주차별 통계                                      -->
+    <!--  주차별 통계                                                  -->
     <!-- ============================================================ -->
 
     <!-- 주차별 미학습자 통계 조회 -->
@@ -462,7 +525,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  미학습자 팝업                                    -->
+    <!--  미학습자 팝업                                               -->
     <!-- ============================================================ -->
 
     <!-- 특정 주차 미학습자 목록 조회 -->
@@ -497,7 +560,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  학습요소 참여현황                                 -->
+    <!--  학습요소 참여현황                                            -->
     <!-- ============================================================ -->
 
     <!-- 학습요소 참여현황 수강생 목록 조회 -->
@@ -699,7 +762,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  학습자 정보                                      -->
+    <!--  학습자 정보                                                  -->
     <!-- ============================================================ -->
 
     <!-- 학습자 기본정보 조회 -->
@@ -724,7 +787,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  접속현황 차트                                    -->
+    <!--  접속현황 차트                                               -->
     <!-- ============================================================ -->
 
     <!-- 학습자 일별 강의실 접속현황 차트 조회 -->
@@ -781,7 +844,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  강의실 활동기록                                  -->
+    <!--  강의실 활동기록                                             -->
     <!-- ============================================================ -->
 
     <!-- 학습자 강의실 활동기록 건수 조회 -->
@@ -841,7 +904,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  주차별 학습현황 요약                              -->
+    <!--  주차별 학습현황 요약                                        -->
     <!-- ============================================================ -->
 
     <!-- 학습자 주차별 학습요약 정보 조회 -->
@@ -886,7 +949,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  차시별 학습현황                                  -->
+    <!--  차시별 학습현황                                             -->
     <!-- ============================================================ -->
 
     <!-- 학습자 주차별 차시 학습현황 목록 조회 -->
@@ -924,7 +987,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  차시 학습로그                                    -->
+    <!--  차시 학습로그                                               -->
     <!-- ============================================================ -->
 
     <!-- 학습자 차시별 학습로그 조회 -->
@@ -945,7 +1008,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  출석처리 / 취소                                  -->
+    <!--  출석처리 / 취소                                             -->
     <!-- ============================================================ -->
 
     <!-- 학습자 수강상태 출석 처리 -->
@@ -969,7 +1032,7 @@
     </update>
 
     <!-- ============================================================ -->
-    <!--  학습요소 목록 (elemType 분기)                    -->
+    <!--  학습요소 목록 (elemType 분기)                               -->
     <!-- ============================================================ -->
 
     <!-- 학습요소 유형별 제출/참여 목록 조회 -->
@@ -1024,7 +1087,7 @@
                 FROM TB_LMS_BBS_ATCL A
                 JOIN TB_LMS_BBS B
                 ON B.BBS_ID = A.BBS_ID
-                WHERE B.SBJCT_ID = #{sbjctId}
+                WHERE A.ATCL_ID = #{cntntsId}
                 AND A.USER_ID = #{userId}
                 AND NVL(B.DELYN,'N')='N'
                 AND NVL(A.DELYN,'N')='N'
@@ -1104,7 +1167,7 @@
     </select>
 
     <!-- ============================================================ -->
-    <!--  요소별 제출기록 (elemType 분기)                   -->
+    <!--  요소별 제출기록 (elemType 분기)                              -->
     <!-- ============================================================ -->
 
     <!-- 학습요소 유형별 제출/참여 이력 조회 -->

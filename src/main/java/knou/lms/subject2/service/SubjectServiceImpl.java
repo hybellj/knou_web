@@ -62,4 +62,9 @@ public class SubjectServiceImpl extends ServiceBase implements SubjectService {
     public EgovMap subjectBbsIdsSelect(BaseParam param) throws Exception {
         return subjectDAO.subjectBbsIdsSelect(param);
     }
+    
+    @Override
+    public List<EgovMap> subjectSummaryList(BaseParam param) throws Exception {
+        return subjectDAO.subjectSummaryList(param);
+    }
 }

@@ -7,6 +7,13 @@
 		<jsp:param name="module" value="widget"/>
 		<jsp:param name="style" value="dashboard"/>
 	</jsp:include>
+
+	<style>
+	.course-card {
+		height: 100%;
+		overflow: auto;
+	}
+	</style>
 </head>
 
 <c:set var="userId" value="${userId}"/>
@@ -46,7 +53,6 @@
     let isResizing = false; // 전역 플래그 선언
 
     $(document).ready(function() {
-
 	  grid = GridStack.init({
 	   	    handle: '.xi-arrows m_handle, .star-handle',
 	   	    column: 12, // 12 컬럼 유지
@@ -77,85 +83,90 @@
       });
 
       function widgetStngSelect() {
-	      var url = "/dashboard/widgetStngSelect.do";
-	      var data = {
-	      		userId: "${userId}",
-		  		authrtGrpcd: "${authrtGrpcd}"
-		  };
+    	    var url = "/dashboard/widgetStngSelect.do";
+    	    var data = {
+    	        userId: "${userId}",
+    	        authrtGrpcd: "${authrtGrpcd}"
+    	    };
 
-	      ajaxCall(url, data, function(res) {
-	          if (res.result > 0) {
-	              // 1. 데이터가 문자열인 경우 파싱, 이미 객체(배열)라면 그대로 사용
-	              let rawData = res.dataList;
-	              if (typeof rawData === 'string') {
-	                  try {
-	                      rawData = JSON.parse(rawData);
-	                  } catch (e) {
-	                      console.error("데이터 파싱 중 오류 발생:", e);
-	                  }
-	              }
+    	    ajaxCall(url, data, function(res) {
+    	        if (res.result > 0) {
+    	            let rawData = res.dataList;
+    	            if (typeof rawData === 'string') {
+    	                try {
+    	                    rawData = JSON.parse(rawData);
+    	                } catch (e) {
+    	                    console.error("데이터 파싱 중 오류 발생:", e);
+    	                }
+    	            }
 
-	              // 2. 파싱 후에도 배열인지 확인
-	              if (!Array.isArray(rawData)) {
-	                  console.error("dataList가 배열 형식이 아닙니다.");
-	                  return;
-	              }
+    	            if (!Array.isArray(rawData)) {
+    	                console.error("dataList가 배열 형식이 아닙니다.");
+    	                return;
+    	            }
 
-	              const items = rawData.map(o => {
-            	    const courseCard = document.createElement('div');
-            	    courseCard.className = 'course-card';
+    	            const items = rawData
+    	                .filter(o => o.pvsnyn === 'Y') // 사용여부가 'Y'인 위젯만 화면에 그리도록 필터링
+    	                .map(o => {
+    	                    const courseCard = document.createElement('div');
+    	                    courseCard.className = 'course-card';
 
-            	    // 데이터의 실제 키(대문자+언더바)에 맞춰 수정
-            	    const widgetId = o.widgetId;
-            	    const widgetNm = o.widgetNm;
-            	    const posX = o.posX;
-            	    const posY = o.posY;
-            	    const posW = o.posW;
-            	    const posH = o.posH;
-            	    const content = document.createElement('div');
-            	    content.className = 'card-content';
-            	    courseCard.appendChild(content);
+    	                    const widgetId = o.widgetId;
+    	                    const widgetNm = o.widgetNm;
+    	                    const posX = o.posX;
+    	                    const posY = o.posY;
+    	                    const posW = o.posW;
+    	                    const posH = o.posH;
 
-            	    widgetContsCreate(widgetId, content, res);
+    	                    const content = document.createElement('div');
+    	                    content.className = 'card-content';
+    	                    // 중요: 나중에 위치 저장 시 이름을 찾을 수 있도록 data-nm 속성 부여
+    	                    content.setAttribute('data-nm', widgetNm);
+    	                    courseCard.appendChild(content);
 
-            	    const contentWrapper = document.createElement('div');
-            	    contentWrapper.className = 'grid-stack-item-content';
-            	    contentWrapper.appendChild(courseCard);
+    	                    widgetContsCreate(widgetId, content, res);
 
-            	    const gridItem = document.createElement('div');
-            	    gridItem.className = 'grid-stack-item';
-            	    gridItem.appendChild(contentWrapper);
+    	                    const contentWrapper = document.createElement('div');
+    	                    contentWrapper.className = 'grid-stack-item-content';
+    	                    contentWrapper.appendChild(courseCard);
 
-            	    return {
-            	    	widgetId: widgetId,
-            	    	widgetNm: widgetNm,
-            	        x: posX,
-            	        y: posY,
-            	        w: posW,
-            	        h: posH,
-            	        minW: 1,
-            	        maxW: 12,
-            	        el: gridItem
-            	    };
-            	  });
+    	                    const gridItem = document.createElement('div');
+    	                    gridItem.className = 'grid-stack-item';
+    	                    // GridStack의 ID 매칭을 위해 속성 추가
+    	                    gridItem.setAttribute('gs-id', widgetId);
+    	                    gridItem.appendChild(contentWrapper);
 
-	              grid.removeAll();
-	              grid.load(items);
+    	                    return {
+    	                        id: widgetId, // grid.save() 시 식별자로 사용
+    	                        widgetId: widgetId,
+    	                        widgetNm: widgetNm,
+    	                        x: posX,
+    	                        y: posY,
+    	                        w: posW,
+    	                        h: posH,
+    	                        minW: 1,
+    	                        maxW: 12,
+    	                        el: gridItem
+    	                    };
+    	                });
 
-	              setTimeout(() => {
-	                  $('.slider_list li').not('.slick-initialized').slick({
-	                      slidesToShow: 1,
-	                      autoplay: true
-	                  });
-	              }, 50);
+    	            grid.removeAll();
+    	            grid.load(items);
 
-	          } else {
-	              alert(res.message);
-	          }
-	      }, function(xhr, status, error) {
-	          alert("<spring:message code='fail.common.msg' />");
-	      }, true);
-	  	};
+    	            setTimeout(() => {
+    	                $('.slider_list li').not('.slick-initialized').slick({
+    	                    slidesToShow: 1,
+    	                    autoplay: true
+    	                });
+    	            }, 50);
+
+    	        } else {
+    	            alert(res.message);
+    	        }
+    	    }, function(xhr, status, error) {
+    	        alert("<spring:message code='fail.common.msg' />");
+    	    }, true);
+    	};
 
         function widgetStngChange(items) {
     	    const currentLayout = grid.save(true);
@@ -173,7 +184,8 @@
     	            posY: item.y,
     	            posW: item.w,
     	            posH: item.h,
-    	            userId: "${userId}"
+    	            userId: "${userId}",
+    	            pvsnyn: 'Y'
     	        };
     	    });
 
@@ -223,11 +235,11 @@
 			        </div>
 			        <div class="box_content">
 			            <div class="today_line">
-			                <div class="item today">
+			                <div class="item today" style="padding: .6rem 2rem .6rem 2rem;">
 			                    <div class="item_tit">Today</div>
 			                    <div class="item_info">\${todayDate}</div>
 			                </div>
-			                <div class="item user">
+			                <div class="item user" style="padding: .6rem 2rem .6rem 2rem;">
 			                    <div class="item_tit">
 			                        <a href="#0" class="btn">접속 <i class="xi-angle-down-min"></i></a>
 			                        <div class="user-option-wrap">
@@ -244,7 +256,7 @@
 			                    </div>
 			                </div>
 			            </div>
-			            <div class="today_subject">
+			            <div class="today_subject" style="padding:.4rem 2rem 0rem 2rem">
 			                <ul class="slider_list">
 				                <li>
 		                            <div class="slide">

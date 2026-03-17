@@ -21,12 +21,28 @@
 				TAB_MENU = UiTabMenu("pageTabs", "pageFrames");
 				TAB_MENU.addTabMenu(menuNm, menuUrl, upMenuId, menuId);
 			}
+
+			// 탭메뉴 왼쪽 이동
+			$("#moveLeftBtn").on('click', function () {
+				TAB_MENU.scrollLeft();
+        	});
+
+			// 탭메뉴 오른쪽 이동
+			$("#moveRightBtn").on('click', function () {
+				TAB_MENU.scrollRight();
+        	});
+
+			if (menuId != "") {
+				$("#MENU_"+menuId).addClass("current");
+				$("#SUBMENU_"+menuId).addClass("current");
+				$("#SUB_"+upMenuId).show();
+			}
 		});
 
 		function moveMain() {
 			document.location.href = "/";
 		}
-		
+
 	</script>
 </head>
 

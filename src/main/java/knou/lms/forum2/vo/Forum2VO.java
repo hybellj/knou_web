@@ -37,7 +37,7 @@ public class Forum2VO extends DefaultVO {
     private String modDttm; // 수정일시
     private String sbjctId; // 과목아이디
     private String dvclasNo; // 분반아이디
-    private String byteamSubdscsUseyn; // 팀별부토론사용여부
+    private String byteamDscsUseyn; // 팀별부토론사용여부
 
     private String sourceDscssId; // 복사용: 원본 토론ID
     private String targetCrsId; // 복사용: 대상 과목ID
@@ -49,7 +49,7 @@ public class Forum2VO extends DefaultVO {
     private String[] lrnGrpIdList; // 분반별 학습그룹 ID 목록
     private List<Forum2DvclasSelVO> dvclasSelList; // 분반선택 목록(sbjctIds)
     private List<Forum2LrnGrpVO> lrnGrpInfoList; // 학습그룹선택 목록(teamForumDiv)
-    private List<Forum2TeamDtlVO> teamForumDtlList; // 팀토론 상세목록
+    private List<Forum2TeamDscsVO> teamDscsList; // 팀토론 상세목록
 
     /*DB와 관계없는 파라미터*/
     private Integer forumAtclCnt;               // 게시글 갯수
@@ -306,12 +306,12 @@ public class Forum2VO extends DefaultVO {
         this.dvclasNo = dvclasNo;
     }
 
-    public String getByteamSubdscsUseyn() {
-        return byteamSubdscsUseyn;
+    public String getByteamDscsUseyn() {
+        return byteamDscsUseyn;
     }
 
-    public void setByteamSubdscsUseyn(String byteamSubdscsUseyn) {
-        this.byteamSubdscsUseyn = byteamSubdscsUseyn;
+    public void setByteamDscsUseyn(String byteamDscsUseyn) {
+        this.byteamDscsUseyn = byteamDscsUseyn;
     }
 
     public String getSourceDscssId() {
@@ -386,12 +386,12 @@ public class Forum2VO extends DefaultVO {
         this.lrnGrpInfoList = lrnGrpInfoList;
     }
 
-    public List<Forum2TeamDtlVO> getTeamForumDtlList() {
-        return teamForumDtlList;
+    public List<Forum2TeamDscsVO> getTeamDscsList() {
+        return teamDscsList;
     }
 
-    public void setTeamForumDtlList(List<Forum2TeamDtlVO> teamForumDtlList) {
-        this.teamForumDtlList = teamForumDtlList;
+    public void setTeamDscsList(List<Forum2TeamDscsVO> teamDscsList) {
+        this.teamDscsList = teamDscsList;
     }
 
     public Integer getForumAtclCnt() {

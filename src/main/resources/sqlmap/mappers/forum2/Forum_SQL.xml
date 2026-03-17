@@ -262,7 +262,7 @@
           , A.MDFR_ID
           , A.MOD_DTTM
           , A.SBJCT_ID
-          , A.BYTEAM_SUBDSCS_USEYN
+          , A.BYTEAM_DSCS_USEYN
           /* 게시글 수 조회 */
           , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumAtclCnt
           /* 댓글 수 조회 */
@@ -373,7 +373,7 @@
           , MDFR_ID
           , MOD_DTTM
           , SBJCT_ID
-          , BYTEAM_SUBDSCS_USEYN
+          , BYTEAM_DSCS_USEYN
         ) VALUES (
             #{dscsId}
           , #{dscsGrpId}
@@ -402,7 +402,7 @@
           , NVL(#{mdfrId}, #{rgtrId})
           , FN_DTTM()
           , #{sbjctId}
-          , #{byteamSubdscsUseyn}
+          , #{byteamDscsUseyn}
         )
     </insert>
 
@@ -477,8 +477,8 @@
         <if test="sbjctId != null and sbjctId != ''">
           , SBJCT_ID = #{sbjctId}
         </if>
-        <if test="byteamSubdscsUseyn != null and byteamSubdscsUseyn != ''">
-          , BYTEAM_SUBDSCS_USEYN = #{byteamSubdscsUseyn}
+        <if test="byteamDdscsUseyn != null and byteamDdscsUseyn != ''">
+          , BYTEAM_DSCS_USEYN = #{byteamDdscsUseyn}
         </if>
         WHERE DSCS_ID = #{dscsId}
     </update>
@@ -516,7 +516,7 @@
           , MDFR_ID
           , MOD_DTTM
           , SBJCT_ID
-          , BYTEAM_SUBDSCS_USEYN
+          , BYTEAM_DSCS_USEYN
         )
         SELECT
             #{dscsId}
@@ -545,11 +545,10 @@
           , NVL(#{mdfrId}, #{rgtrId})
           , FN_DTTM()
           , #{sbjctId}
-          , #{byteamSubdscsUseyn}
+          , #{byteamDscsUseyn}
         FROM TB_LMS_DSCS
         WHERE DSCS_ID = #{copydscsId}
     </insert>
-
 
     <update id="updateForumMrkOyn" parameterType="forum2VO">
         /*
@@ -591,56 +590,61 @@
         WHERE DSCS_ID = #{dscsId}
     </update>
 
-    <select id="selectTeamDscsList" parameterType="String" resultType="Forum2TeamDtlVO">
+    <select id="selectTeamDscsList" parameterType="String" resultType="Forum2TeamDscsVO">
         /*
             SQL ID : ForumDAO.selectTeamDscsList
             설명 : 팀토론현황정보조회
         */
         SELECT
             A.DSCS_ID
-            , A.UP_DSCS_ID
-            , A.TEAM_ID
-            , T.TEAMNM
-            , A.DSCS_TTL
-            , A.DSCS_CTS
-            , A.TEAM_DSCS_OYN
-            /* 1. 팀장명 조회 */
-            , (SELECT U.USERNM
-                FROM TB_LMS_TEAM_MBR M
-                JOIN TB_LMS_USER U ON M.USER_ID = U.USER_ID
-                WHERE M.TEAM_ID = A.TEAM_ID
-                AND M.LDRYN = 'Y'
-                AND ROWNUM = 1) AS leaderNm
-            /* 2. 팀원 수 조회 */
-            , (SELECT COUNT(*)
+             , A.UP_DSCS_ID
+             , A.TEAM_ID
+             , T.TEAMNM
+             , A.DSCS_TTL
+             , A.DSCS_CTS
+             , A.TEAM_DSCS_OYN
+            /* 1. 팀장명: LDRYN='Y'인 사용자 1명의 이름만 조회 */
+             , (SELECT MAX(U.USERNM)
                 FROM TB_LMS_TEAM_MBR M1
-                WHERE M1.TEAM_ID = A.TEAM_ID) AS teamMbrCnt
-            /* 3. 해당 팀원들이 작성한 참여글 수 */
-            , (SELECT COUNT(*)
-                FROM TB_LMS_DSCS_ATCL AT1
-                WHERE AT1.DSCS_ID = A.DSCS_ID
-                AND AT1.DELYN = 'N'
-                AND EXISTS (SELECT 1
+                         JOIN TB_LMS_USER U ON M1.USER_ID = U.USER_ID
+                WHERE M1.TEAM_ID = A.TEAM_ID
+                  AND M1.LDRYN = 'Y'
+                  AND ROWNUM = 1)    AS LEADER_NM
+            /* 2. 팀원 수: 팀장(Y)을 제외한 순수 팀원(N)의 총 인원수 */
+             , (SELECT COUNT(*)
                 FROM TB_LMS_TEAM_MBR M2
                 WHERE M2.TEAM_ID = A.TEAM_ID
-                AND M2.USER_ID = AT1.USER_ID)) AS atclCnt
-            /* 4. 해당 팀원들이 작성한 댓글 수 */
-            , (SELECT COUNT(*)
+                  AND M2.LDRYN = 'N') AS TEAM_MBR_CNT
+            /* 3. 참여글 수: 해당 팀 구성원들의 게시글 합계 */
+             , (SELECT COUNT(*)
+                FROM TB_LMS_DSCS_ATCL AT1
+                WHERE AT1.DSCS_ID = A.DSCS_ID
+                  AND AT1.DELYN = 'N'
+                  AND AT1.USER_ID IN (SELECT M3.USER_ID FROM TB_LMS_TEAM_MBR M3 WHERE M3.TEAM_ID = A.TEAM_ID)) AS ATCL_CNT
+            /* 4. 댓글 수: 해당 팀 구성원들의 댓글 합계 */
+             , (SELECT COUNT(*)
                 FROM TB_LMS_DSCS_CMNT CM1
                 WHERE CM1.DELYN = 'N'
-                AND EXISTS (SELECT 1
-                FROM TB_LMS_TEAM_MBR M3
-                WHERE M3.TEAM_ID = A.TEAM_ID
-                AND M3.USER_ID = CM1.USER_ID)
-                AND EXISTS (SELECT 1
-                FROM TB_LMS_DSCS_ATCL AT2
-                WHERE AT2.DSCS_ATCL_ID = CM1.DSCS_ATCL_ID
-                AND AT2.DSCS_ID = A.DSCS_ID)) AS cmntCnt
+                  AND CM1.USER_ID IN (SELECT M4.USER_ID FROM TB_LMS_TEAM_MBR M4 WHERE M4.TEAM_ID = A.TEAM_ID)
+                  AND EXISTS (SELECT 1 FROM TB_LMS_DSCS_ATCL AT2 WHERE AT2.DSCS_ATCL_ID = CM1.DSCS_ATCL_ID AND AT2.DSCS_ID = A.DSCS_ID)) AS CMNT_CNT
         FROM TB_LMS_DSCS A
-        JOIN TB_LMS_TEAM T ON A.TEAM_ID = T.TEAM_ID
+                 JOIN TB_LMS_TEAM T ON A.TEAM_ID = T.TEAM_ID
         WHERE A.UP_DSCS_ID = #{upDscsId}
         ORDER BY T.REG_DTTM ASC
     </select>
+
+    <update id="updateTeamDscsOyn" parameterType="Forum2TeamDscsVO">
+        /*
+            SQL ID : Forum2DAO.updateTeamDscsOyn
+            설명 : 팀토론토론방OPEN여부 수정
+        */
+        UPDATE TB_LMS_DSCS
+        SET TEAM_DSCS_OYN = #{teamDscsOyn}
+          , MDFR_ID = NVL(#{mdfrId}, #{rgtrId})
+          , MOD_DTTM = FN_DTTM()
+        WHERE DSCS_ID = #{dscsId}
+          AND DELYN = 'N'
+    </update>
 </mapper>
 
 

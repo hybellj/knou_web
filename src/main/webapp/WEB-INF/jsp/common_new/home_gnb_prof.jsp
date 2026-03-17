@@ -22,8 +22,8 @@ pageContext.setAttribute("menuInfo", menuInfo);
 pageContext.setAttribute("disablilityYn", SessionInfo.getDisablilityYn(request)); // 장애인여부
 pageContext.setAttribute("auditYn", SessionInfo.getAuditYn(request)); // 청강생여부
 
-pageContext.setAttribute("curUpMenuId", SessionInfo.getCurUpMenuId(request));
-pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
+//pageContext.setAttribute("curUpMenuId", SessionInfo.getCurUpMenuId(request));
+//pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
 
 %>
 <script type="text/javascript">
@@ -69,10 +69,10 @@ pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
 			    <c:forEach items="${menuInfo.subList}" var="menu" varStatus="status">
 			        <div class="gnb-item">
 			            <!-- 상위 메뉴 -->
-			            <a href="#class_lnb" index="${status.index}"
-			                class="<c:if test='${menu.menuId == curUpMenuId}'>current</c:if>"
+			            <a id="MENU_${menu.menuId}" href="#class_lnb" index="${status.index}"
+			                class="<c:if test='${menu.menuId == curMenuId}'>current</c:if>"
 			                menuUrl="${menu.menuUrl}" upMenuId="${menu.upMenuId}" menuId="${menu.menuId}"
-			                onclick="if('${menu.menuUrl}' != ''){ moveMenu(this, '${menu.menuUrl}','${menu.upMenuId}', '${menu.menuId}'); } return false;"
+			                onclick="moveMenu(this, '${menu.menuUrl}','${menu.upMenuId}', '${menu.menuId}');return false;"
 			                title="${menu.menuNm}">
 			                <i class="${menu.menuImgFileId}" aria-hidden="true"></i>
 			                <span>${menu.menuNm}</span>
@@ -80,11 +80,11 @@ pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
 
 			            <!-- 서브 메뉴 -->
 			            <c:if test="${not empty menu.subList}">
-			                <ul>
+			                <ul id="SUB_${menu.menuId}">
 			                    <c:forEach items="${menu.subList}" var="sub">
 			                        <li id="${sub.menuId}">
-			                            <a href="#class_lnb"
-			                                class="<c:if test='${sub.menuId == curUpMenuId}'>active</c:if>"
+			                            <a id="SUBMENU_${sub.menuId}" href="#class_lnb"
+			                                class="<c:if test='${sub.menuId == curMenuId}'>current</c:if>"
 			                                onclick="moveMenu(this, '${sub.menuUrl}', '${sub.upMenuId}', '${sub.menuId}'); return false;"
 			                                title="${sub.menuNm}">
 			                                <span>${sub.menuNm}</span>
@@ -119,6 +119,10 @@ pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
 
 	// 메뉴 이동
 	function moveMenu(obj, menuUrl, upMenuId, menuId){
+		if (menuUrl === '') {
+			return;
+		}
+
 		let index = $(obj).attr("index");
 		let menuNm = $(obj).children("span").html();
 
@@ -128,13 +132,13 @@ pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
 		else {
 			menuUrl += "?param="+btoa("MENU,"+upMenuId+","+menuId);
 		}
-		
+
 		$("#moveForm input[name=menuNm]").val(menuNm);
 		$("#moveForm input[name=menuUrl]").val(menuUrl);
 		$("#moveForm input[name=upMenuId]").val(upMenuId);
 		$("#moveForm input[name=menuId]").val(menuId);
 
-		if (index == "0") { 
+		if (index == "0") {
 			$("#moveForm").attr("action", menuUrl);
 			$("#moveForm").submit();
 		}
@@ -151,5 +155,5 @@ pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
 	}
 
 	</script>
-	
+
 </c:if>

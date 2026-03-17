@@ -7,6 +7,7 @@
 <html lang="ko">
 <head>
 	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+		<jsp:param name="module" value="widget"/>
 		<jsp:param name="style" value="dashboard"/>
 	</jsp:include>
 </head>
@@ -764,329 +765,77 @@
                                 <div id="tab31" class="tab-content" style="display: block;">
                                     <!-- 강의목록 -->
                                     <ul class="lecture_list">
-                                        <li>
-                                            <div class="card_item">
-                                                <div class="item_header">
-                                                    <div class="title_area">
-                                                        <p class="info_detail">
-                                                            <span class="label uniA">대학원</span>
-                                                            <span class="info_txt">수강 50명</span>
-                                                            <span class="info_txt">튜터 김하늘</span>
-                                                            <span class="info_txt">3학점</span>
-                                                        </p>
-                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
-                                                    </div>
-                                                </div>
-                                                <div class="extra">
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">중간고사:</span>
-                                                            <span>2025.04.26 16:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">기말고사:</span>
-                                                            <span>2025.06.07 17:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="my_prog_rate">
-                                                        <div class="progress">
-                                                            <div class="bar blue_type" style="width: 40%;"></div>
-                                                        </div>
-                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
-                                                    </div>
-                                                </div>
-                                                <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                        <a href="#0">세미나<span>2</span></a>
-                                                        <a href="#0">퀴즈<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="card_item">
-                                                <div class="item_header">
-                                                    <div class="title_area">
-                                                        <p class="info_detail">
-                                                            <span class="label uniA">대학원</span>
-                                                            <span class="info_txt">수강 50명</span>
-                                                            <span class="info_txt">튜터 김하늘</span>
-                                                            <span class="info_txt">3학점</span>
-                                                        </p>
-                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
-                                                    </div>
-                                                </div>
-                                                <div class="extra">
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">중간고사:</span>
-                                                            <span>2025.04.26 16:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">기말고사:</span>
-                                                            <span>2025.06.07 17:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="my_prog_rate">
-                                                        <div class="progress">
-                                                            <div class="bar blue_type" style="width: 40%;"></div>
-                                                        </div>
-                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
-                                                    </div>
-                                                </div>
-                                                <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                        <a href="#0">세미나<span>2</span></a>
-                                                        <a href="#0">퀴즈<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="card_item">
-                                                <div class="item_header">
-                                                    <div class="title_area">
-                                                        <p class="info_detail">
-                                                            <span class="label uniB">평생교육</span>
-                                                            <span class="info_txt">수강 200명</span>
-                                                            <span class="info_txt">튜터 한여름</span>
-                                                            <span class="info_txt">3학점</span>
-                                                        </p>
-                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">간결하고 힘찬 영어 쓰기 - 품격 있는 영작</a></p>
-                                                    </div>
-                                                </div>
-                                                <div class="extra">
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">과제제출:</span>
-                                                            <span>2025.04.26 16:00</span>
-                                                        </p>
-
-                                                    </div>
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">기말고사:</span>
-                                                            <span>2025.06.07 17:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="my_prog_rate">
-                                                        <div class="progress">
-                                                            <div class="bar blue_type" style="width: 40%;"></div>
-                                                        </div>
-                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
-                                                    </div>
-                                                </div>
-                                                <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="card_item">
-                                                <div class="item_header">
-                                                    <div class="title_area">
-                                                        <p class="info_detail">
-                                                            <span class="label uniB">평생교육</span>
-                                                            <span class="info_txt">수강 200명</span>
-                                                            <span class="info_txt">온라인</span>
-                                                            <span class="info_txt">3학점</span>
-                                                        </p>
-                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">New TEPS 실전 연습-기본편</a></p>
-                                                    </div>
-                                                </div>
-                                                <div class="extra">
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">중간고사:</span>
-                                                            <span>2025.04.26 16:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">기말고사:</span>
-                                                            <span>2025.06.07 17:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="my_prog_rate">
-                                                        <div class="progress">
-                                                            <div class="bar blue_type" style="width: 40%;"></div>
-                                                        </div>
-                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
-                                                    </div>
-                                                </div>
-                                                <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="card_item">
-                                                <div class="item_header">
-                                                    <div class="title_area">
-                                                        <p class="info_detail">
-                                                            <span class="label uniC">학위과정</span>
-                                                            <span class="info_txt">수강 50명</span>
-                                                            <span class="info_txt">튜터 김하늘</span>
-                                                            <span class="info_txt">3학점</span>
-                                                        </p>
-                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 2반</a></p>
-                                                    </div>
-                                                </div>
-                                                <div class="extra">
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">중간고사:</span>
-                                                            <span>2025.04.26 16:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">기말고사:</span>
-                                                            <span>2025.06.07 17:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="my_prog_rate">
-                                                        <div class="progress">
-                                                            <div class="bar blue_type" style="width: 40%;"></div>
-                                                        </div>
-                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
-                                                    </div>
-                                                </div>
-                                                <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                        <a href="#0">세미나<span>2</span></a>
-                                                        <a href="#0">퀴즈<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="card_item">
-                                                <div class="item_header">
-                                                    <div class="title_area">
-                                                        <p class="info_detail">
-                                                            <span class="label uniC">학위과정</span>
-                                                            <span class="info_txt">수강 50명</span>
-                                                            <span class="info_txt">튜터 김하늘</span>
-                                                            <span class="info_txt">3학점</span>
-                                                        </p>
-                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 2반</a></p>
-                                                    </div>
-                                                </div>
-                                                <div class="extra">
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">중간고사:</span>
-                                                            <span>2025.04.26 16:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">기말고사:</span>
-                                                            <span>2025.06.07 17:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="my_prog_rate">
-                                                        <div class="progress">
-                                                            <div class="bar blue_type" style="width: 40%;"></div>
-                                                        </div>
-                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
-                                                    </div>
-                                                </div>
-                                                <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
+                                        <c:choose>
+										    <c:when test="${empty dashVM.profLctrSbjctSummaryList}">
+										        <li>강의과목이 없습니다</li>
+										    </c:when>
+										    <c:otherwise>										    
+										    	<c:set var="cnt" value="0" />
+												<c:forEach var="item" items="${dashVM.profLctrSbjctSummaryList}">
+												    <!-- 과목공지만 출력 -->
+				                                        <li>
+				                                            <div class="card_item">
+				                                                <div class="item_header">
+				                                                    <div class="title_area">
+				                                                        <p class="info_detail">
+				                                                            <span class="label uniA">${item.orgnm}</span>
+				                                                            <span class="info_txt">수강 ${item.atndlcCnt}명</span>
+				                                                            <span class="info_txt">튜터 ${item.tutUsernm}</span>
+				                                                            <span class="info_txt">${item.crdts}학점</span>
+				                                                        </p>
+				                                                        <p class="tit"><a href="/subject.do?subjectId=${item.subjectId}">${item.sbjctnm}</a></p>
+				                                                    </div>
+				                                                </div>
+				                                                <div class="extra">
+				                                                    <div class="info">
+				                                                        <p class="point">
+				                                                            <span class="tit">중간고사:</span>
+				                                                            <span>${item.midExamSdttm}</span>
+				                                                        </p>
+				                                                        <p class="desc">
+				                                                            <span class="tit">시간:</span>
+				                                                            <span>${item.midExamMnts}분</span>
+				                                                        </p>
+				                                                    </div>
+				                                                    <div class="info">
+				                                                        <p class="point">
+				                                                            <span class="tit">기말고사:</span>
+				                                                            <span>${item.lstExamSdttm}</span>
+				                                                        </p>
+				                                                        <p class="desc">
+				                                                            <span class="tit">시간:</span>
+				                                                            <span>${item.lstExamMnts}분</span>
+				                                                        </p>
+				                                                    </div>
+				                                                    <div class="my_prog_rate">
+				                                                        <div class="progress">
+				                                                            <div class="bar blue_type" style="width: 40%;"></div>
+				                                                        </div>
+				                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+				                                                    </div>
+				                                                </div>
+				                                                <div class="bottom_button">
+				                                                   <div class="card_btns">
+				                                                        <a href="#0">공지<span>2</span></a>
+				                                                        <a href="#0">Q&A<span>2</span></a>
+				                                                        <a href="#0">1 : 1<span>2</span></a>
+				                                                        <a href="#0">과제<span>2</span></a>
+				                                                        <a href="#0">토론<span>2</span></a>
+				                                                        <a href="#0">세미나<span>2</span></a>
+				                                                        <a href="#0">퀴즈<span>2</span></a>
+				                                                        <a href="#0">설문<span>2</span></a>
+				                                                        <a href="#0">시험<span>2</span></a>
+				                                                    </div>
+				                                                </div>
+				                                            </div>
+				                                        </li>
+				                                 </c:forEach>
+				                                 
+		                                     </c:otherwise>
+		                                     
+		                                 </c:choose>
                                     </ul>
+                                    <!-- //강의목록 -->
                                 </div>
 
                                 <div id="tab32" class="tab-content" style="display: none;">

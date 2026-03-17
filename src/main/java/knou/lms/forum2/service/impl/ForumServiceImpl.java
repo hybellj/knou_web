@@ -59,8 +59,8 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
     public Forum2VO selectForum(Forum2VO vo) throws Exception {
         Forum2VO  resultVo = forumDAO.selectForum(vo);
         // 부토론 존재여부 체크
-        if (resultVo.getByteamSubdscsUseyn().equalsIgnoreCase("Y")) {
-            resultVo.setTeamForumDtlList(forumDAO.selectTeamDscsList(vo.getDscsId()));
+        if (resultVo.getByteamDscsUseyn().equalsIgnoreCase("Y")) {
+            resultVo.setTeamDscsList(forumDAO.selectTeamDscsList(vo.getDscsId()));
         }
         return resultVo;
     }
@@ -86,11 +86,22 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         return resultVO;
     }
 
+    /**
+     * 토론성적반영비율 수정
+     * @param list
+     * @throws Exception
+     */
     @Override
     public void updateForumMrkRfltrt(List<Forum2VO> list) throws Exception {
         forumDAO.updateForumMrkRfltrt(list);
     }
 
+    /**
+     * 토론등록/수정
+     * @param vo
+     * @return
+     * @throws Exception
+     */
     @Override
     public ProcessResultVO<Forum2VO> saveForum(Forum2VO vo) throws Exception {
         ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
@@ -187,7 +198,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                 // - 분반 * 팀갯수만큼 토론 생성되는 것으로 변경 예정(26.3.16)
                 /*
                 if (vo.getByteamSubdscsUseyn().equalsIgnoreCase("Y")) {
-                    for (Forum2TeamDtlVO teamDtlVO : vo.getTeamForumDtlList()) {
+                    for (Forum2TeamDscsVO teamDtlVO : vo.getTeamForumDtlList()) {
                         String newSubDscsId = IdGenerator.getNewId("SUBDSCS");
                         teamDtlVO.setSubdscsId(newSubDscsId);
                         teamDtlVO.setDscsId(newDscsId);
@@ -213,7 +224,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         /*Forum2VO detailParam = new Forum2VO();
         detailParam.setDscsId(vo.getDscsId());
         if (vo.getByteamSubdscsUseyn().equalsIgnoreCase("Y")) {
-            detailParam.setTeamForumDtlList(forumDAO.selectTeamDscsList(vo.getDscsId()));
+            detailParam.setTeamDscsList(vo.getDscsId());
         }
         Forum2VO detailVO = forumDAO.selectForum(detailParam);
         resultVO.setReturnVO(detailVO);*/
@@ -238,6 +249,27 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
             resultVO.setResultSuccess();
         } else {
             resultVO.setResultFailed("delete target not found");
+        }
+
+        return resultVO;
+    }
+
+    /**
+     * 팀토론토론방OPEN여부 수정
+     * @param vo
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public ProcessResultVO<Forum2TeamDscsVO> modifyTeamDscsOyn(Forum2TeamDscsVO vo) throws Exception {
+        ProcessResultVO<Forum2TeamDscsVO> resultVO = new ProcessResultVO<>();
+
+        int affected = forumDAO.updateTeamDscsOyn(vo);
+        if (affected > 0) {
+            resultVO.setReturnVO(vo);
+            resultVO.setResultSuccess();
+        } else {
+            resultVO.setResultFailed("update target not found");
         }
 
         return resultVO;

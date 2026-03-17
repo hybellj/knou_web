@@ -2,7 +2,12 @@ package knou.lms.mrk.facade;
 
 import javax.annotation.Resource;
 
+import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.mrk.dao.MarkSubjectDAO;
+import knou.lms.mrk.service.MarkItemSettingService;
+import knou.lms.mrk.vo.MarkItemSettingVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.ServiceBase;
@@ -14,6 +19,9 @@ import knou.lms.org.service.OrgInfoService;
 import knou.lms.org.vo.OrgInfoVO;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.vo.UsrDeptCdVO;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service("markFacadeService")
 public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeService {
@@ -27,7 +35,12 @@ public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeServ
 	@Resource(name="usrDeptCdService")
 	private UsrDeptCdService usrDeptCdService;
 
-	@Override
+    @Resource(name="markItemSettingService")
+    private MarkItemSettingService markItemSettingService;
+    @Autowired
+    private MarkSubjectDAO markSubjectDAO;
+
+    @Override
 	public EgovMap loadFilterOptions(UserContext userCtx) throws Exception {
 		
 		EgovMap filterOptions = new EgovMap();
@@ -61,4 +74,57 @@ public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeServ
 		return filterOptions;
 	}
 
+    @Override
+    public ProcessResultVO<EgovMap> stdMrkListSelect(String orgId, String sbjctId, String searchType) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+
+        // 미평가, 결시신청 따로 조회
+        String[] stdNos = null;
+
+        switch (searchType) {
+            case "btnZero" :
+                stdNos = new String[]{"user001", "user002"};
+                break;
+
+            case "btnApprove" :
+                stdNos = new String[]{"user001", "user002"};
+                break;
+
+            case "btnApplicate" :
+                stdNos = new String[]{"user001", "user002"};
+                break;
+
+            default:
+                stdNos = new String[]{""};
+                break;
+        };
+
+        // 학생 수 -> ReturnVO
+        int totCnt = 0;
+        totCnt = markSubjectDAO.stdMrkListCntSelect(sbjctId);
+        EgovMap listCnt = new EgovMap();
+        listCnt.put("totCnt", totCnt);
+        resultVO.setReturnVO(listCnt);
+
+        // 학생 성적 목록 -> ReturnListVO
+        EgovMap searchMap = new EgovMap();
+        searchMap.put("searchType", searchType);
+        searchMap.put("sbjctId", sbjctId);
+        searchMap.put("stdNos", stdNos);
+
+        List<EgovMap> listStdMrk = new ArrayList<>();
+        listStdMrk = markSubjectDAO.stdMrkList(searchMap);
+        resultVO.setReturnList(listStdMrk);
+
+        // 성적반영비율 -> ReturnSubVO
+        MarkItemSettingVO mrkItmStngVO = new MarkItemSettingVO();
+        mrkItmStngVO.setSbjctId(sbjctId);
+        mrkItmStngVO.setOrgId(orgId);
+        mrkItmStngVO.setMrkItmUseyn("Y");
+
+        List<EgovMap> mrkItmStngList = markItemSettingService.mrkItmStngList(mrkItmStngVO);
+        resultVO.setReturnSubVO(mrkItmStngList);
+
+        return resultVO;
+    }
 }

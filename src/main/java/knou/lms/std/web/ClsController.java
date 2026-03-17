@@ -142,7 +142,12 @@ public class ClsController extends ControllerBase {
 
         try {
             resultVO = clsService.selectClsListPaging(vo);
-            resultVO.setResultSuccess();
+            if (resultVO.getResult() >= 0) {
+                resultVO.setResultSuccess();
+            } else {
+                resultVO.setResultFailed();
+                resultVO.setMessage(getCommonFailMessage());
+            }
         } catch (Exception e) {
             LOGGER.error("[selectClsListPaging] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -198,13 +203,19 @@ public class ClsController extends ControllerBase {
     public String selectClsStdntListView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         String sessionOrgId = SessionInfo.getOrgId(request);
-
         model.addAttribute("orgId", sessionOrgId);
         model.addAttribute("menuType", "ADM");
         model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-
         model.addAttribute("sbjctId", vo.getSbjctId());
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
+
+        //WHOL_WK_CNT 조회
+        ClsVO clsVO = new ClsVO();
+        clsVO.setSbjctId(vo.getSbjctId());
+        clsVO.setOrgId(sessionOrgId);
+        ClsVO clsDetail = clsService.selectClsDetail(clsVO);
+        int wkCnt = (clsDetail != null && clsDetail.getWkCnt() > 0) ? clsDetail.getWkCnt() : 15;
+        model.addAttribute("wkCnt", wkCnt);
 
         return "std/cls_weekly";
     }
@@ -227,12 +238,18 @@ public class ClsController extends ControllerBase {
         try {
             // wkList 세팅은 ServiceImpl의 setDefaultWkList()에서 처리
             resultVO = clsService.selectClsStdntListPaging(vo);
-            resultVO.setResultSuccess();
+            if (resultVO.getResult() >= 0) {
+                resultVO.setResultSuccess();
+            } else {
+                resultVO.setResultFailed();
+                resultVO.setMessage(getCommonFailMessage());
+            }
         } catch (Exception e) {
             LOGGER.error("[selectClsStdntListPaging] fail, vo={}", vo, e);
             resultVO.setResultFailed();
             resultVO.setMessage(getCommonFailMessage());
         }
+
         return resultVO;
     }
 
@@ -582,7 +599,12 @@ public class ClsController extends ControllerBase {
 
         try {
             resultVO = clsService.selectStdntActivityLogPaging(vo);
-            resultVO.setResultSuccess();
+            if (resultVO.getResult() >= 0) {
+                resultVO.setResultSuccess();
+            } else {
+                resultVO.setResultFailed();
+                resultVO.setMessage(getCommonFailMessage());
+            }
         } catch (Exception e) {
             LOGGER.error("[selectStdntActivityLog] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -650,13 +672,21 @@ public class ClsController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/selectStdntWkDetailPopupView.do")
     public String selectStdntWkDetailPopupView(ModelMap model, HttpServletRequest request) throws Exception {
-        model.addAttribute("sbjctId",  request.getParameter("sbjctId"));
+        String sbjctId = request.getParameter("sbjctId");
+        model.addAttribute("sbjctId",  sbjctId);
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
         model.addAttribute("userId",   request.getParameter("userId"));
         model.addAttribute("wkNo",     request.getParameter("wkNo"));
+
+        // 추가
+        ClsVO clsVO = new ClsVO();
+        clsVO.setSbjctId(sbjctId);
+        ClsVO clsDetail = clsService.selectClsDetail(clsVO);
+        int wkCnt = (clsDetail != null && clsDetail.getWkCnt() > 0) ? clsDetail.getWkCnt() : 15;
+        model.addAttribute("wkCnt", wkCnt);
+
         return "std/popup/cls_stdnt_wk_detail_popup";
     }
-
     /*****************************************************
      * 주차 학습 요약 + 차시 목록 + 3분 로그 조회 (Ajax)
      * URL: /cls/selectStdntWkLrnSummary.do

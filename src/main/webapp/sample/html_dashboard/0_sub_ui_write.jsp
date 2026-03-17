@@ -363,6 +363,7 @@
 									<tr>
 										<th><label for="attchFile">첨부파일</label></th>
 										<td>
+											<%-- 파일업로더 --%>
 											<uiex:dextuploader
 												id="fileUploader"
 												path="/bbs"

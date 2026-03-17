@@ -23,4 +23,5 @@ public interface SubjectDAO {
 
 	public EgovMap subjectBbsIdsSelect(BaseParam param) throws Exception;
 
+	public List<EgovMap> subjectSummaryList(BaseParam param) throws Exception;
 }

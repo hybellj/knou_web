@@ -1,4 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="uiex" uri="http://uiextension/tags" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
@@ -20,10 +21,17 @@
             $(this).closest('.comment').find('.commentwrite').toggle();
         });
 
-        listForum(1);
         if("${forumVo.forumCtgrCd}" == "TEAM") {
-            // TODO : team 정보 보여주기(팀원 정보 등)
-            // teamList();
+            if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+                $('.team_selected_nm').prop('disabled', true);
+                $('#join_write_input_area').hide();
+            } else {
+                // TODO : team 정보 보여주기(팀원 정보 등)
+                // teamList();
+                listForum(1);        // Team 토론시 팀토론 코드로 변경
+            }
+        } else {
+            listForum(1);
         }
 
         $(".accordion").accordion({
@@ -43,6 +51,45 @@
             }
         });
     });
+
+    // 팀토론토론방OPEN여부 수정
+    function modifyTeamDscsOyn(el, dscsId) {
+        var $el = $(el);
+        var isChecked = $el.is(":checked");
+
+        $el.prop("disabled", true);
+        var param = {
+            dscsId          : dscsId
+        ,   teamDscsOyn     : isChecked ? 'Y' : 'N'
+        };
+        alert("토론방 open 여부 변경 :" + isChecked);
+        var url  = "/forum2/forumLect/profTeamDscsOynModify.do";
+        ajaxCall(url, param, function(data) {
+            $el.prop("disabled", false);
+            if (data.result > 0) {
+                // do something
+            } else {
+                $el.prop("checked", !isChecked);
+                UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
+            }
+        }, function(xhr, status, error) {
+            $el.prop("disabled", false);
+            UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
+        });
+    }
+
+    // 팀토론 참여시 토론방 이름 활성화
+    function joinTeamDscsBtn(teamDscsId, teamnmId, teamnm) {
+        $('.team_selected_nm').prop('disabled', true);
+        $('#' + teamnmId).prop('disabled', false);
+        // 토론방 참여글 작성 영역 타이틀 변경
+        $('#team_selected_name').text(' : ' + teamnm);
+        $('#join_write_input_area').show();
+
+        // 조회할 토론 ID 를 설정 한다.
+        $('#team_selected_name').attr('teamSelectedDscsId', teamDscsId);
+        listForum(1);
+    }
 
     function forumView(tab) {
         var urlMap = {
@@ -83,12 +130,18 @@
             searchValue = $("#searchValue").val();
         }
 
+        // Team 토론시 팀토론 코드로 변경
+        var forumCd = "${forumVo.forumCd}";
+        if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+            forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
+        }
+
         var url = "/forum2/forumLect/Form/forumBbsViewList.do";
         var data = {
             "pageIndex" : page,
             "listScale" : $("#listScale").val(),
             "searchValue" : searchValue,
-            "forumCd" : "${forumVo.forumCd}",
+            "forumCd" : forumCd,
             "forumCtgrCd" : "${forumVo.forumCtgrCd}",
             "crsCreCd" : "${forumVo.crsCreCd}",
             "userId" : "${userId}",
@@ -477,6 +530,12 @@
         let dx = dx5.get("fileUploader");
         $("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
 
+        // Team 토론시 팀토론 코드로 변경
+        if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+            var teamDscsId = $('#team_selected_name').attr('teamSelectedDscsId');
+            $("input[name='forumCd']").val(teamDscsId);
+        }
+
         var atclTypeCd = "<c:out value="${forumVo.forumCtgrCd}" />"  + "_" + "<c:out value="${forumVo.prosConsForumCfg}" />";
         var param = [];
         param = param.concat($("#forumListForm").serializeArray());
@@ -490,6 +549,9 @@
             var url = "/forum2/forumLect/Form/editAtcl.do";
             ajaxCall(url, param, function(data) {
                 if(data.result > 0) {
+                    // 입력내용 clear
+                    editor.openHTML("");
+
                     alert("<spring:message code='forum.alert.edit.forum.atcl_success'/>"); // 토론 게시글 수정에 성공하였습니다.
                     listForum(1);
                 } else {
@@ -503,6 +565,9 @@
 
             ajaxCall(url, param, function(data) {
                 if(data.result > 0) {
+                    // 입력내용 clear
+                    editor.openHTML("");
+
                     alert("<spring:message code='forum.alert.add.forum.atcl_success'/>"); // 토론 게시글 등록에 성공하였습니다.
                     listForum(1);
                 } else {
@@ -519,10 +584,16 @@
         var result = confirm("<spring:message code='forum.button.confirm.del' />"); // 정말 삭제하시겠습니까?
         if(!result) { return false; }
 
+        // Team 토론시 팀토론 코드로 변경
+        var forumCd = "${forumVo.forumCd}";
+        if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+            forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
+        }
+
         var url = "/forum2/forumLect/Form/delAtcl.do";
         var data = {
             "atclSn" : atclSn,
-            "forumCd" : "${forumVo.forumCd}",
+            "forumCd" : forumCd,
             "userId" : "${userId}"
         };
 
@@ -583,22 +654,29 @@
     function addCmnt(atclSn, parCmntSn ,index,i) {
         var ansReqYn = "N";
         var cmntCts ="";
-        if(parCmntSn == null || parCmntSn == ''){
+        if (parCmntSn == null || parCmntSn == '') {
             if($("#ansReqYn"+ index).is(":checked") == true) {
                 ansReqYn = "Y";
             }
             cmntCts = $("#cmntText" + index).val();
-        }else{
-            if($("#ansReqYn"+ index + i).is(":checked") == true) {
+        } else {
+            if ($("#ansReqYn"+ index + i).is(":checked") == true) {
                 ansReqYn = "Y";
             }
             cmntCts = $("#cmntText"+index+i).val().trim();
         }
+
         if(cmntCts == null || cmntCts == ""){
             alert("<spring:message code='forum.alert.input.reply'/>");//댓글을 입력해주시기 바랍니다.
             $("#toggleBox"+index ).addClass("off").removeClass("on");
         }else{
             $("#cmntText" + index).val('');
+
+            // Team 토론시 팀토론 코드로 변경
+            var forumCd = "${forumVo.forumCd}";
+            if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+                forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
+            }
 
             var url = "/forum2/forumLect/Form/addCmnt.do";
             var data = {
@@ -606,7 +684,7 @@
                 "atclSn" : atclSn,
                 "cmntCts" : cmntCts,
                 "parCmntSn" : parCmntSn,
-                "forumCd" : "${forumVo.forumCd}",
+                "forumCd" : forumCd,
                 "userId" : "${userId}",
                 "userName" : "${userName}",
                 "crsCreCd" : "${forumVo.crsCreCd}"
@@ -781,6 +859,12 @@
 
     //게시글 수정 버튼
     function editAtclBtn(atclSn,rgtrId){
+        // Team 토론시 팀토론 코드로 변경
+        if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+            var teamDscsId = $('#team_selected_name').attr('teamSelectedDscsId');
+            $("input[name='forumCd']").val(teamDscsId);
+        }
+
         $("#atclSn").val(atclSn);
         $("#forumListForm").attr("target", "forumAtclIfm");
         $("#forumListForm").attr("action", "/forum2/forumLect/Form/editForumBbs.do");
@@ -861,7 +945,13 @@
         form.attr("name", "excelForm");
         form.attr("action", url);
 
-        form.append($('<input/>', {type: 'hidden', name: 'forumCd',		value: "${forumVo.forumCd}"}));
+        // Team 토론시 팀토론 코드로 변경
+        var forumCd = "${forumVo.forumCd}";
+        if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+            forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
+        }
+
+        form.append($('<input/>', {type: 'hidden', name: 'forumCd',		value: forumCd}));
         form.append($('<input/>', {type: 'hidden', name: 'excelGrid',   value: JSON.stringify(excelGrid)}));
         form.appendTo("body");
         form.submit();
@@ -941,8 +1031,8 @@
 
                         <div class="listTab">
                             <ul>
-                                <li class="mw120 select"><a  href="javascript:void(0)" onclick="forumView(1)"><spring:message code='forum.label.forum.bbs'/><!-- 토론방 --></a></li>
                                 <li class="mw120"><a href="javascript:void(0)" onclick="forumView(2)"><spring:message code='forum.label.forum.info.score'/><!-- 토론정보 및 평가 --></a></li>
+                                <li class="mw120 select"><a  href="javascript:void(0)" onclick="forumView(1)"><spring:message code='forum.label.forum.bbs'/><!-- 토론방 --></a></li>
                             </ul>
                         </div>
                         <!-- 토론정보 시작 -->
@@ -998,76 +1088,148 @@
                         <!-- 팀별 학습자 리스트 끝 -->
                         <!-- 토론정보 끝 -->
 
-                        <!-- 토론방 <참여글 저장> -->
-                        <div class="board_top margin-top-4 padding-2 bcLgrey4">
-                            <h4>토론방</h4>
-                            <div class="right-area">
-                                <a href="javascript:addAtclBtn('A')" class="btn basic small">
-                                    <spring:message code='forum.label.forum.joinCnt'/><spring:message code='forum.button.save'/><!-- 참여글 저장 -->
-                                </a>
-                            </div>
+                        <!-- 팀토론일경우 학습그룹 정보 표시 시작 -->
+                        <div id="teamDscsList">
+                            <c:choose>
+                                <c:when test="${forumVo.byteamDscsUseyn eq 'Y'}">
+                                    <br/><span><spring:message code='forum.label.lrngrp'/><%--학습그룹--%></span>
+                                    <table class="table-type2">
+                                        <colgroup>
+                                            <col style="width : 10%">
+                                            <col >
+                                            <col style="width : 10%">
+                                            <col style="width : 10%">
+                                            <col style="width : 10%">
+                                            <col style="width : 10%">
+                                            <col style="width : 10%">
+                                            <col style="width : 10%">
+                                        </colgroup>
+                                        <thead>
+                                        <tr>
+                                            <th><spring:message code='forum.label.forum.bbs'/></th><!-- 토론방 -->
+                                            <th><spring:message code='forum.label.team.ttl'/></th><!-- 부주제 -->
+                                            <th><spring:message code='forum.label.team.leader'/></th><!-- 팀장 -->
+                                            <th><spring:message code='forum.label.team.member'/></th><!-- 팀원 -->
+                                            <th><spring:message code='forum.label.forum.joinCnt'/></th><!-- 참여글 -->
+                                            <th><spring:message code='forum.button.cmnt'/></th><!-- 댓글 -->
+                                            <th><spring:message code='forum.label.join'/></th><!-- 참여 -->
+                                            <th><spring:message code='forum.label.dscs.open'/></th><!-- 토론방 OPEN -->
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <c:forEach var="item" items="${forumVo.teamDscsList}" varStatus="status">
+                                            <tr>
+                                                <td>
+                                                    <button class="btn basic small team_selected_nm" id="team_selected_nm_${status.index}">${item.teamnm}</button>
+                                                </td>
+                                                <td>${item.dscsTtl}</td>
+                                                <td>${item.leaderNm}</td>
+                                                <td>${item.teamMbrCnt}</td>
+                                                <td>${item.atclCnt}</td>
+                                                <td>${item.cmntCnt}</td>
+                                                <td>
+                                                    <button class="btn basic small" onclick="joinTeamDscsBtn('${item.dscsId}', 'team_selected_nm_${status.index}', '${item.teamnm}')"><spring:message code='forum.label.join'/></button><!-- 참여 -->
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${item.teamDscsOyn eq 'Y'}">
+                                                            <input type="checkbox" class="switch small" onchange="modifyTeamDscsOyn(this, '${item.dscsId}')" checked>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <input type="checkbox" class="switch small" onchange="modifyTeamDscsOyn(this, '${item.dscsId}')">
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                        </tbody>
+                                    </table>
+                                </c:when>
+                                <c:otherwise>
+                                    <spring:message code='forum.label.use.n'/><!-- 미사용 -->
+                                </c:otherwise>
+                            </c:choose>
                         </div>
+                        <!-- 팀토론일경우 학습그룹 정보 표시 끝 -->
 
-                        <form id="forumAtclForm" name="forumAtclForm" onsubmit="return false;">
-                            <input type="hidden" name="uploadFiles"  id="uploadFiles" value="" />
-                            <input type="hidden" name="uploadPath"   id="uploadPath"  value="${forumVo.uploadPath}" />
-                            <input type="hidden" name="delFileIdStr" id="delFileIdStr"  value="" />
-                            <div class="ui segment">
-                                <div class="editor-box">
-                                    <%-- TODO : 참여글 Editor Box --%>
-                                    <uiex:htmlEditor
-                                            id="atclCts"
-                                            name="atclCts"
-                                            uploadPath="${forum2VO.uploadPath}"
-                                            value=""
-                                            height="200px"
-                                    />
-                                </div>
-                                <div id="uploaderBox" class="mt10">
-                                    <!-- TODO : 참여글 File Uplaod -->
-                                    <uiex:dextuploader
-                                            id="fileUploader"
-                                            path="/bbs"
-                                            limitCount="5"
-                                            limitSize="100"
-                                            oneLimitSize="100"
-                                            listSize="3"
-                                            fileList=""
-                                            finishFunc="finishUpload()"
-                                            allowedTypes="*"
-                                    />
+                        <!-- 토론방 참여 영역:시작 -->
+                        <div id="join_write_input_area">
+                            <!-- 토론방 <참여글 저장> -->
+                            <div class="board_top margin-top-4 padding-2 bcLgrey4">
+                                <h4>
+                                    <spring:message code='forum.label.forum.bbs'/><span id="team_selected_name" teamSelectedDscsId=""></span>
+                                </h4><!-- 토론방 -->
+                                <div class="right-area">
+                                    <a href="javascript:addAtclBtn('A')" class="btn basic small">
+                                        <spring:message code='forum.label.forum.joinCnt'/><spring:message code='forum.button.save'/><!-- 참여글 저장 -->
+                                    </a>
                                 </div>
                             </div>
-                        </form>
-                        <!-- 토론 참여글 끝 -->
 
-                        <!-- 학생, 이름 검색 -->
-                        <div>
-                            <!-- search small -->
-                            <div class="search-typeC">
-                                <input class="form-control" type="text" placeholder="<spring:message code='forum.label.user.no' />, <spring:message code='forum.label.user_nm' /> <spring:message code='forum.label.input' />" class="w250"
-                                       id="searchValue"><!-- 학번, 이름 입력 -->
-                                <button type="button" class="btn basic icon search" aria-label="검색" onclick="listForum(1)"><i class="icon-svg-search"></i></button>
-                            </div>
-                            <div class="right-area">
-                                <div class="flex-left-auto">
-                                    <%--<a href="javascript:void(0)" onclick="downExcel();" class="ui green button"><spring:message code="common.button.excel_down" /><!-- 엑셀 다운로드 --></a>--%>
-                                    <select class="ui dropdown list-num" id="listScale" onchange="listForum();">
-                                        <option value="10">10</option>
-                                        <option value="20">20</option>
-                                        <option value="50">50</option>
-                                        <option value="100">100</option>
-                                    </select>
+                            <form id="forumAtclForm" name="forumAtclForm" onsubmit="return false;">
+                                <input type="hidden" name="uploadFiles"  id="uploadFiles" value="" />
+                                <input type="hidden" name="uploadPath"   id="uploadPath"  value="${forumVo.uploadPath}" />
+                                <input type="hidden" name="delFileIdStr" id="delFileIdStr"  value="" />
+                                <div class="ui segment">
+                                    <div class="editor-box">
+                                        <%-- TODO : 참여글 Editor Box --%>
+                                        <label for="atclCts" class="hide">Content</label>
+                                        <textarea id="atclCts" name="atclCts" required="true"></textarea>
+                                        <script>
+                                            // HTML 에디터
+                                            let editor = UiEditor({
+                                                targetId: "atclCts",
+                                                uploadPath: "${forum2VO.uploadPath}",
+                                                height: "200px"
+                                            });
+                                        </script>
+                                    </div>
+                                    <div id="uploaderBox" class="mt10">
+                                        <!-- TODO : 참여글 File Uplaod -->
+                                        <uiex:dextuploader
+                                                id="fileUploader"
+                                                path="/bbs"
+                                                limitCount="5"
+                                                limitSize="100"
+                                                oneLimitSize="100"
+                                                listSize="3"
+                                                fileList=""
+                                                finishFunc="finishUpload()"
+                                                allowedTypes="*"
+                                        />
+                                    </div>
+                                </div>
+                            </form>
+                            <!-- 토론 참여글 끝 -->
+
+                            <!-- 학생, 이름 검색 -->
+                            <div>
+                                <!-- search small -->
+                                <div class="search-typeC">
+                                    <input class="form-control" type="text" placeholder="<spring:message code='forum.label.user.no' />, <spring:message code='forum.label.user_nm' /> <spring:message code='forum.label.input' />" class="w250"
+                                           id="searchValue"><!-- 학번, 이름 입력 -->
+                                    <button type="button" class="btn basic icon search" aria-label="검색" onclick="listForum(1)"><i class="icon-svg-search"></i></button>
+                                </div>
+                                <div class="right-area">
+                                    <div class="flex-left-auto">
+                                        <%--<a href="javascript:void(0)" onclick="downExcel();" class="ui green button"><spring:message code="common.button.excel_down" /><!-- 엑셀 다운로드 --></a>--%>
+                                        <select class="ui dropdown list-num" id="listScale" onchange="listForum();">
+                                            <option value="10">10</option>
+                                            <option value="20">20</option>
+                                            <option value="50">50</option>
+                                            <option value="100">100</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
+
+                            <div class="ui attached message element">
+                                <div id="atclList" class="mt20"></div>
+                                <div id="paging" class="paging"></div>
+                            </div>
+                            <!-- 토론 참여글 끝-->
                         </div>
-
-                        <div class="ui attached message element">
-                            <div id="atclList" class="mt20"></div>
-                            <div id="paging" class="paging"></div>
-                        </div>
-                        <!-- 토론 참여글 끝-->
-
+                        <!-- 토론방 참여 영역:끝 -->
                     </div>
                 </div>
             </div>

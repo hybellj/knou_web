@@ -696,6 +696,8 @@ public class CommConst {
     // 사용자 접속상태 체크값
     public static final String[][] CONN_CHECK_LIST = {
     		{"/dashboard.do", CONN_HOME},
+    		{"/dashboard/profDashboard.do", CONN_HOME},
+    		{"/dashboard/stuDashboard.do", CONN_HOME},
             {"/dashboard/widgetStngChange.do", CONN_HOME},
             {"/dashboard/widgetStngPopView.do", CONN_HOME},
             {"/dashboard/widgetStngSelect.do", CONN_HOME},

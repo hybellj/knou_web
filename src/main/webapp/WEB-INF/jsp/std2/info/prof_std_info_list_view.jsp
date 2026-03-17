@@ -252,7 +252,7 @@
             return;
         }
 
-        const url = "/std/info/stdLrnStatPopView.do"
+        const url = "/cls/selectStdntWkPopupView.do"
             + "?sbjctId=" + encodeURIComponent(SBJCT_ID)
             + "&userId=" + encodeURIComponent(userId);
 
@@ -263,7 +263,7 @@
             , modal: true
             , resizable: true
             , draggable: true
-            , autoresize: true
+            , autoresize: false
             , url: url
         });
     }

@@ -24,7 +24,7 @@
           AND CD.ORG_ID  = #{orgId}
           AND CD.LANG_CD = NVL(#{langCd}, 'ko')
         <if test="mrkItmUseyn != null and mrkItmUseyn != ''">
-          AND STNG.MRK_ITM_USEYN = #{mrkItemUseyn}
+          AND STNG.MRK_ITM_USEYN = #{mrkItmUseyn}
         </if>
         ORDER BY
               CD.CD_SEQNO

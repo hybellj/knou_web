@@ -28,6 +28,8 @@ public class ClsVO extends DefaultVO {
     private String tutor;   // TB_LMS_SBJCT_ADM SBJCT_ADM_TYCD = 'TUTOR'
     private String asst;    // TB_LMS_SBJCT_ADM SBJCT_ADM_TYCD = 'ASST'
 
+    private int wkCnt;  // 전체 주차 수 (TB_LMS_SBJCT.WHOL_WK_CNT)
+
     public String getSbjctId() { return sbjctId; }
     public void setSbjctId(String sbjctId) { this.sbjctId = sbjctId; }
 
@@ -90,4 +92,7 @@ public class ClsVO extends DefaultVO {
 
     public String getAsst() { return asst; }
     public void setAsst(String asst) { this.asst = asst; }
+
+    public int getWkCnt() { return wkCnt; }
+    public void setWkCnt(int wkCnt) { this.wkCnt = wkCnt; }
 }

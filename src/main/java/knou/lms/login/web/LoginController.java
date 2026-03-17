@@ -442,8 +442,8 @@ public class LoginController extends ControllerBase {
         request.getSession().setAttribute("userCtx", userCtx);
         /*	Session에 저장 end */
 
-        //return "redirect:/dashboard/main.do";
-        return "redirect:/dashboard/dashboard.do";
+        return "redirect:/dashboard/main.do";
+        //return "redirect:/dashboard/dashboard.do";
     }
 	
 	

@@ -5,7 +5,7 @@ import java.util.List;
 import javax.validation.constraints.Size;
 
 import knou.lms.common.vo.DefaultVO;
-import knou.lms.forum2.vo.Forum2TeamDtlVO;
+import knou.lms.forum2.vo.Forum2TeamDscsVO;
 
 public class ForumVO extends DefaultVO {
 
@@ -55,8 +55,8 @@ public class ForumVO extends DefaultVO {
     private String prosConsModYn;               // 찬성반대수정여부
     private String rowNum;                      // 수정자 이름
     // 26.3.16 : 팀별부토론사용여부 추가.
-    private String byteamSubdscsUseyn;          // 팀별부토론사용여부
-    private List<Forum2TeamDtlVO> teamForumDtlList; // 팀토론 상세목록
+    private String byteamDscsUseyn;          // 팀별부토론사용여부
+    private List<Forum2TeamDscsVO> teamDscsList; // 팀토론 상세목록
     private String dscsGrpnm;                   // 팀토론그룹명(=학습그룹명)
 
     private String orgEvalCd;                   // 평가방식 루브릭 수정전 고유 코드
@@ -352,20 +352,20 @@ public class ForumVO extends DefaultVO {
         this.rowNum = rowNum;
     }
 
-    public String getByteamSubdscsUseyn() {
-        return byteamSubdscsUseyn;
+    public String getByteamDscsUseyn() {
+        return byteamDscsUseyn;
     }
 
-    public void setByteamSubdscsUseyn(String byteamSubdscsUseyn) {
-        this.byteamSubdscsUseyn = byteamSubdscsUseyn;
+    public void setByteamDscsUseyn(String byteamDscsUseyn) {
+        this.byteamDscsUseyn = byteamDscsUseyn;
     }
 
-    public List<Forum2TeamDtlVO> getTeamForumDtlList() {
-        return teamForumDtlList;
+    public List<Forum2TeamDscsVO> getTeamDscsList() {
+        return teamDscsList;
     }
 
-    public void setTeamForumDtlList(List<Forum2TeamDtlVO> teamForumDtlList) {
-        this.teamForumDtlList = teamForumDtlList;
+    public void setTeamDscsList(List<Forum2TeamDscsVO> teamDscsList) {
+        this.teamDscsList = teamDscsList;
     }
 
     public String getDscsGrpnm() {

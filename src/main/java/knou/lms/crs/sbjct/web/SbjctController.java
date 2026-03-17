@@ -3,6 +3,7 @@ package knou.lms.crs.sbjct.web;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.util.StringUtil;
+import knou.framework.util.ValidationUtils;
 import knou.lms.cmmn.service.CmmnCdService;
 import knou.lms.cmmn.vo.CmmnCdVO;
 import knou.lms.common.vo.ProcessResultVO;
@@ -13,6 +14,9 @@ import knou.lms.crs.sbjct.vo.SbjctUseYnUpdateVO;
 import knou.lms.crs.sbjct.vo.SbjctVO;
 import knou.lms.org.service.OrgInfoService;
 import knou.lms.org.vo.OrgInfoVO;
+import knou.lms.subject2.service.SubjectServiceImpl;
+import knou.lms.subject2.vo.SubjectVO;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +24,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Controller
@@ -41,6 +48,9 @@ public class SbjctController extends ControllerBase {
 
     @Resource(name="cmmnCdService")
     private CmmnCdService cmmnCdService;
+
+    @Resource(name="subjectService")
+    private SubjectServiceImpl subjectService;
 
     /**
      * 과목 등록 > 목록 화면
@@ -202,5 +212,43 @@ public class SbjctController extends ControllerBase {
         vo.setData(Integer.valueOf(delCnt));
         vo.setTotal(delCnt);*/
         return vo;
+    }
+
+
+    /**
+     * 과목 정보 조회
+     * @param subjectId
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping("/sbjctMrkProcPeriodSelectAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> sbjctMrkProcPeriodSelectAjax(@RequestParam("subjectId") String subjectId) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+
+        SubjectVO sbjctVO = subjectService.subjectSelect(subjectId);
+
+        if (ValidationUtils.isNull(sbjctVO)) {
+            resultVO.setResultFailed(getMessage("exam.error.not.exists.crs"));
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime sDttm = LocalDateTime.parse(sbjctVO.getMrkProcSdttm(), formatter);
+        LocalDateTime eDttm = LocalDateTime.parse(sbjctVO.getMrkProcEdttm(), formatter);
+
+        String isMrkProcPeriod = (now.compareTo(sDttm) >= 0 && eDttm.compareTo(now) >= 0) ? "Y" : "N";
+        String mrkProcSdttm = sDttm.format(formatter);
+        String mrkProcEdttm = eDttm.format(formatter);
+
+        EgovMap map = new EgovMap();
+        map.put("mrkProcSdttm", mrkProcSdttm);
+        map.put("mrkProcEdttm", mrkProcEdttm);
+        map.put("isMrkProcPeriod", isMrkProcPeriod);
+
+        resultVO.setReturnVO(map);
+        resultVO.setResultSuccess();
+
+        return resultVO;
     }
 }

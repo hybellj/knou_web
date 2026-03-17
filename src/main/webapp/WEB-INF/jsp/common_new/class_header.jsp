@@ -17,7 +17,7 @@
 	<button type="button" class="btn mobile-elem ctrl-gnb" aria-label="모바일 메뉴 버튼"><i class="icon-svg-menu fs-18px" aria-hidden="true"></i></button>
 
 	<h1 class="logo">
-		<a href="#0">
+		<a href="/">
 			<img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.png" aria-hidden="true" alt="한국방송통신대학교">
 		</a>
 	</h1>
@@ -262,7 +262,7 @@
 			<a href="#0" data-medi-ui="mode"><i class="icon-svg-moon-star" aria-hidden="true"></i></a>
 		</li>
 		<li class="log">
-			<a href="#0"><i class="icon-svg-logout" aria-hidden="true"></i></a>
+			<a href="/user/userHome/logout.do"><i class="icon-svg-logout" aria-hidden="true"></i></a>
 		</li>
 
 	</ul>
