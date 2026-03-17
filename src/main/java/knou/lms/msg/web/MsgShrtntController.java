@@ -1,0 +1,1000 @@
+package knou.lms.msg.web;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import knou.framework.common.ControllerBase;
+import knou.framework.common.SessionInfo;
+import knou.framework.context2.UserContext;
+import knou.framework.exception.BadRequestUrlException;
+import knou.framework.util.ExcelUtilPoi;
+import knou.framework.util.FileUtil;
+import knou.framework.util.StringUtil;
+import knou.framework.common.CommConst;
+import knou.framework.common.RepoInfo;
+import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.file.vo.AtflVO;
+import knou.lms.msg.facade.MsgShrtntFacadeService;
+import knou.lms.msg.vo.MsgShrtntVO;
+import knou.lms.org.vo.OrgInfoVO;
+
+@Controller
+public class MsgShrtntController extends ControllerBase {
+
+    @Resource(name = "msgShrtntFacadeService")
+    private MsgShrtntFacadeService msgShrtntFacadeService;
+
+    private static final int PAGE_SIZE = 10;
+
+    private UserContext getUserContext(HttpServletRequest request) {
+        return new UserContext(
+                SessionInfo.getOrgId(request),
+                SessionInfo.getUserId(request),
+                SessionInfo.getAuthrtCd(request),
+                SessionInfo.getAuthrtGrpcd(request),
+                SessionInfo.getUserRprsId(request),
+                SessionInfo.getLastLogin(request));
+    }
+
+    private boolean isAdmin(UserContext userCtx) {
+        if (userCtx == null) return false;
+        String authrtGrpcd = userCtx.getAuthrtGrpcd();
+        return authrtGrpcd != null && authrtGrpcd.contains("ADM");
+    }
+
+    private boolean checkAdmProfAuth(ProcessResultVO<?> resultVO, UserContext userCtx) {
+        if (userCtx == null) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getCommonNoAuthMessage());
+            return false;
+        }
+        String authrtGrpcd = StringUtil.nvl(userCtx.getAuthrtGrpcd());
+        if (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF")) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getCommonNoAuthMessage());
+            return false;
+        }
+        return true;
+    }
+
+    private void applySearchConstraints(MsgShrtntVO vo, UserContext userCtx) {
+        vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
+        String authrtGrpcd = StringUtil.nvl(userCtx.getAuthrtGrpcd());
+        if (authrtGrpcd.contains("PROF") && !authrtGrpcd.contains("ADM")) {
+            vo.setUserId(StringUtil.nvl(userCtx.getUserId()));
+        }
+    }
+
+    private String handleSndngRegistView(ModelMap model, HttpServletRequest request, boolean requireAdmin, String jspPath) throws Exception {
+        UserContext userCtx = getUserContext(request);
+
+        if (requireAdmin && !isAdmin(userCtx)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
+        String msgId = request.getParameter("msgId");
+        String replyMsgShrtntSndngId = request.getParameter("replyMsgShrtntSndngId");
+        String refId = StringUtil.nvl(msgId, "new");
+        model.addAttribute("msgId", msgId);
+        model.addAttribute("replyMsgShrtntSndngId", replyMsgShrtntSndngId);
+        model.addAttribute("orgId", StringUtil.nvl(userCtx.getOrgId()));
+        model.addAttribute("userCtx", userCtx);
+        model.addAttribute("usernm", StringUtil.nvl(SessionInfo.getUserNm(request)));
+        model.addAttribute("uploadPath", RepoInfo.getAtflRepo(request, CommConst.REPO_MSG, refId));
+
+        if (StringUtil.isNotNull(msgId)) {
+            model.addAttribute("fileList", msgShrtntFacadeService.selectAtflListByRefId(msgId));
+        }
+
+        return jspPath;
+    }
+
+    // ========== View 메서드 ==========
+
+    /*****************************************************
+     * 교수 쪽지 목록 화면
+     * @param model
+     * @param request
+     * @return "msg2/prof_msg_shrtnt_list"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/profMsgShrtntListView.do")
+    public String profMsgShrtntListView(ModelMap model, HttpServletRequest request) throws Exception {
+        UserContext userCtx = getUserContext(request);
+
+        model.addAttribute("orgId", StringUtil.nvl(userCtx.getOrgId()));
+        model.addAttribute("pageSize", PAGE_SIZE);
+
+        return "msg2/prof_msg_shrtnt_list";
+    }
+
+    /*****************************************************
+     * 관리자 쪽지 목록 화면
+     * @param model
+     * @param request
+     * @return "msg2/mngr_msg_shrtnt_list"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/mngrMsgShrtntListView.do")
+    public String mngrMsgShrtntListView(ModelMap model, HttpServletRequest request) throws Exception {
+        UserContext userCtx = getUserContext(request);
+
+        if (!isAdmin(userCtx)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
+        model.addAttribute("orgId", StringUtil.nvl(userCtx.getOrgId()));
+        model.addAttribute("pageSize", PAGE_SIZE);
+
+        return "msg2/mngr_msg_shrtnt_list";
+    }
+
+    /*****************************************************
+     * 교수 쪽지 수신 상세 화면
+     * @param model
+     * @param request
+     * @return "msg2/prof_msg_shrtnt_rcvn_detail"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/profMsgShrtntRcvnDetail.do")
+    public String profMsgShrtntRcvnDetail(ModelMap model, HttpServletRequest request) throws Exception {
+        String msgShrtntSndngId = request.getParameter("msgShrtntSndngId");
+        model.addAttribute("msgShrtntSndngId", msgShrtntSndngId);
+
+        return "msg2/prof_msg_shrtnt_rcvn_detail";
+    }
+
+    /*****************************************************
+     * 관리자 쪽지 수신 상세 화면
+     * @param model
+     * @param request
+     * @return "msg2/mngr_msg_shrtnt_rcvn_detail"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/mngrMsgShrtntRcvnDetail.do")
+    public String mngrMsgShrtntRcvnDetail(ModelMap model, HttpServletRequest request) throws Exception {
+        UserContext userCtx = getUserContext(request);
+
+        if (!isAdmin(userCtx)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
+        String msgShrtntSndngId = request.getParameter("msgShrtntSndngId");
+        model.addAttribute("msgShrtntSndngId", msgShrtntSndngId);
+
+        return "msg2/mngr_msg_shrtnt_rcvn_detail";
+    }
+
+    /*****************************************************
+     * 교수 쪽지 발신 상세 화면
+     * @param model
+     * @param request
+     * @return "msg2/prof_msg_shrtnt_sndng_detail"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/profMsgShrtntSndngDetail.do")
+    public String profMsgShrtntSndngDetail(ModelMap model, HttpServletRequest request) throws Exception {
+        String msgId = request.getParameter("msgId");
+        model.addAttribute("msgId", msgId);
+
+        return "msg2/prof_msg_shrtnt_sndng_detail";
+    }
+
+    /*****************************************************
+     * 관리자 쪽지 발신 상세 화면
+     * @param model
+     * @param request
+     * @return "msg2/mngr_msg_shrtnt_sndng_detail"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/mngrMsgShrtntSndngDetail.do")
+    public String mngrMsgShrtntSndngDetail(ModelMap model, HttpServletRequest request) throws Exception {
+        UserContext userCtx = getUserContext(request);
+
+        if (!isAdmin(userCtx)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
+        String msgId = request.getParameter("msgId");
+        model.addAttribute("msgId", msgId);
+
+        return "msg2/mngr_msg_shrtnt_sndng_detail";
+    }
+
+    /*****************************************************
+     * 교수 쪽지 발신하기 화면
+     * @param model
+     * @param request
+     * @return "msg2/prof_msg_shrtnt_sndng_regist"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/profMsgShrtntSndngRegistView.do")
+    public String profMsgShrtntSndngRegistView(ModelMap model, HttpServletRequest request) throws Exception {
+        return handleSndngRegistView(model, request, false, "msg2/prof_msg_shrtnt_sndng_regist");
+    }
+
+    /*****************************************************
+     * 관리자 쪽지 발신하기 화면
+     * @param model
+     * @param request
+     * @return "msg2/mngr_msg_shrtnt_sndng_regist"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/mngrMsgShrtntSndngRegistView.do")
+    public String mngrMsgShrtntSndngRegistView(ModelMap model, HttpServletRequest request) throws Exception {
+        return handleSndngRegistView(model, request, true, "msg2/mngr_msg_shrtnt_sndng_regist");
+    }
+
+    /*****************************************************
+     * 받는 사람 검색 팝업 화면
+     * @param model
+     * @param request
+     * @return "msg2/msg_shrtnt_rcvr_popup"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntRcvrPopupView.do")
+    public String msgShrtntRcvrPopupView(ModelMap model, HttpServletRequest request) throws Exception {
+        UserContext userCtx = getUserContext(request);
+        model.addAttribute("orgId", userCtx != null ? StringUtil.nvl(userCtx.getOrgId()) : "");
+
+        return "msg2/msg_shrtnt_rcvr_popup";
+    }
+
+    /*****************************************************
+     * 메시지 불러오기 팝업 화면
+     * @param model
+     * @param request
+     * @return "msg2/msg_shrtnt_tmplt_popup"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntTmpltPopupView.do")
+    public String msgShrtntTmpltPopupView(ModelMap model, HttpServletRequest request) throws Exception {
+        return "msg2/msg_shrtnt_tmplt_popup";
+    }
+
+    /*****************************************************
+     * 템플릿에 저장 팝업 화면
+     * @param model
+     * @param request
+     * @return "msg2/msg_shrtnt_tmplt_save_popup"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntTmpltSavePopupView.do")
+    public String msgShrtntTmpltSavePopupView(ModelMap model, HttpServletRequest request) throws Exception {
+        return "msg2/msg_shrtnt_tmplt_save_popup";
+    }
+
+    // ========== AJAX 메서드 ==========
+
+    /*****************************************************
+     * 기관 목록 AJAX 조회
+     * @param request
+     * @return ProcessResultVO<OrgInfoVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntOrgListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<OrgInfoVO> msgShrtntOrgListAjax(HttpServletRequest request) throws Exception {
+        ProcessResultVO<OrgInfoVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            List<OrgInfoVO> list = msgShrtntFacadeService.selectActiveOrgList();
+            resultVO.setReturnList(list);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 쪽지 수신 목록 AJAX 조회
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntRcvnListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvnListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
+            vo.setRcvrId(StringUtil.nvl(userCtx.getUserId()));
+            applySearchConstraints(vo, userCtx);
+
+            resultVO = msgShrtntFacadeService.selectShrtntRcvnListPage(vo);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 쪽지 발신 목록 AJAX 조회
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntSndngListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
+            applySearchConstraints(vo, userCtx);
+            vo.setSndngrId(StringUtil.nvl(userCtx.getUserId()));
+
+            resultVO = msgShrtntFacadeService.selectShrtntSndngListPage(vo);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 쪽지 수신 상세 AJAX 조회
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntRcvnDetailAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvnDetailAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            vo.setRcvrId(StringUtil.nvl(userCtx.getUserId()));
+
+            MsgShrtntVO detail = msgShrtntFacadeService.selectShrtntRcvnDetailWithFiles(vo);
+            resultVO.setReturnVO(detail);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 쪽지 발신 상세 AJAX 조회
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntSndngDetailAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngDetailAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            MsgShrtntVO detail = msgShrtntFacadeService.selectShrtntSndngDetailWithFiles(vo);
+            resultVO.setReturnVO(detail);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 쪽지 발신 수신자 목록 AJAX 조회
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntSndngRcvrListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngRcvrListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
+
+            resultVO = msgShrtntFacadeService.selectShrtntSndngRcvrListPage(vo);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 쪽지 읽음 처리 AJAX
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntReadAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntReadAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            vo.setRcvrId(StringUtil.nvl(userCtx.getUserId()));
+            msgShrtntFacadeService.updateShrtntReadDttm(vo);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.update"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 쪽지 삭제 AJAX (수신/발신 구분)
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntDeleteAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntDeleteAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            String userId = StringUtil.nvl(userCtx.getUserId());
+
+            if ("RCVN".equals(vo.getListType())) {
+                vo.setRcvrId(userId);
+                msgShrtntFacadeService.updateShrtntRcvrDelyn(vo);
+            } else {
+                vo.setSndngrId(userId);
+                msgShrtntFacadeService.updateShrtntSndngrDelyn(vo);
+            }
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.delete"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학사년도 목록 AJAX 조회
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntYrListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntYrListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            applySearchConstraints(vo, userCtx);
+
+            List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntYrList(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학기 목록 AJAX 조회
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<EgovMap>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntSmstrListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> msgShrtntSmstrListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            applySearchConstraints(vo, userCtx);
+
+            List<EgovMap> list = msgShrtntFacadeService.selectShrtntSmstrList(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학과 목록 AJAX 조회
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntDeptListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntDeptListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            if ("POPUP".equals(vo.getGubun())) {
+                vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
+            } else {
+                applySearchConstraints(vo, userCtx);
+            }
+
+            List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntDeptList(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 운영과목 목록 AJAX 조회
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntSbjctListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSbjctListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            if ("POPUP".equals(vo.getGubun())) {
+                vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
+            } else {
+                applySearchConstraints(vo, userCtx);
+            }
+
+            List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntSbjctList(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 쪽지 발신 수신자 엑셀 다운로드
+     * @param vo
+     * @param model
+     * @param request
+     * @return "excelView"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/downExcelMsgShrtntRcvr.do")
+    public String downExcelMsgShrtntRcvr(MsgShrtntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        UserContext userCtx = getUserContext(request);
+        String authrtGrpcd = StringUtil.nvl(userCtx.getAuthrtGrpcd());
+        if (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF")) {
+            throw new BadRequestUrlException(getCommonNoAuthMessage());
+        }
+
+        List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntSndngRcvrExcelList(vo);
+
+        String title = getMessage("msg.shrtnt.label.rcvrList");
+        Date today = new Date();
+        SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd");
+
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("title", title);
+        map.put("sheetName", title);
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list", list);
+
+        HashMap<String, Object> modelMap = new HashMap<String, Object>();
+        modelMap.put("outFileName", title + "_" + date.format(today));
+        modelMap.put("sheetName", title);
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /*****************************************************
+     * 쪽지 발신 등록 AJAX
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntSndngRegistAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngRegistAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+        String uploadFiles = vo.getUploadFiles();
+        String uploadPath = vo.getUploadPath();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            String userId = StringUtil.nvl(userCtx.getUserId());
+            String userNm = StringUtil.nvl(SessionInfo.getUserNm(request));
+
+            vo.setRgtrId(userId);
+            vo.setSndngrId(userId);
+            vo.setSndngnm(userNm);
+            vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
+            vo.setDgrsYr(vo.getSbjctYr());
+            vo.setSmstr(vo.getSbjctSmstr());
+
+            List<AtflVO> fileList = null;
+            if (StringUtil.isNotNull(uploadFiles)) {
+                fileList = FileUtil.getUploadAtflList(uploadFiles, uploadPath);
+                for (AtflVO atfl : fileList) {
+                    atfl.setRgtrId(userId);
+                    atfl.setAtflRepoId(CommConst.REPO_MSG);
+                }
+            }
+
+            msgShrtntFacadeService.registShrtntSndngWithFiles(vo, fileList);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.insert"));
+            if (StringUtil.isNotNull(uploadFiles) && StringUtil.isNotNull(uploadPath)) {
+                FileUtil.delUploadFileList(uploadFiles, uploadPath);
+            }
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 쪽지 발신 수정 AJAX
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntSndngModifyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngModifyAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+        String uploadFiles = vo.getUploadFiles();
+        String uploadPath = vo.getUploadPath();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            String userId = StringUtil.nvl(userCtx.getUserId());
+            String userNm = StringUtil.nvl(SessionInfo.getUserNm(request));
+
+            vo.setMdfrId(userId);
+            vo.setSndngrId(userId);
+            vo.setSndngnm(userNm);
+            vo.setDgrsYr(vo.getSbjctYr());
+            vo.setSmstr(vo.getSbjctSmstr());
+
+            List<AtflVO> fileList = null;
+            if (StringUtil.isNotNull(uploadFiles)) {
+                fileList = FileUtil.getUploadAtflList(uploadFiles, uploadPath);
+                for (AtflVO atfl : fileList) {
+                    atfl.setRgtrId(userId);
+                    atfl.setMdfrId(userId);
+                    atfl.setAtflRepoId(CommConst.REPO_MSG);
+                }
+            }
+
+            msgShrtntFacadeService.modifyShrtntSndngWithFiles(vo, fileList, vo.getDelFileIds());
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.update"));
+            if (StringUtil.isNotNull(uploadFiles) && StringUtil.isNotNull(uploadPath)) {
+                FileUtil.delUploadFileList(uploadFiles, uploadPath);
+            }
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 쪽지 예약 취소 AJAX
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntRsrvCnclAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRsrvCnclAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            vo.setMdfrId(StringUtil.nvl(userCtx.getUserId()));
+            msgShrtntFacadeService.updateMsgRsrvCncl(vo);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.update"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 받는 사람 검색 AJAX
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntRcvrSearchAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvrSearchAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            if ("POPUP".equals(vo.getGubun())) {
+                if (!isAdmin(userCtx) && StringUtil.isNull(vo.getOrgId())) {
+                    vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
+                }
+            } else {
+                applySearchConstraints(vo, userCtx);
+            }
+            if (isAdmin(userCtx)) {
+                vo.setAdminYn("Y");
+            }
+            vo.setSndngrId(StringUtil.nvl(userCtx.getUserId()));
+            vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
+
+            resultVO = msgShrtntFacadeService.selectShrtntRcvrSearchListPage(vo);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 수신 대상자 목록 AJAX 조회 (수정 폼용)
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntRcvTrgtrListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvTrgtrListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            List<MsgShrtntVO> list = msgShrtntFacadeService.selectMsgRcvTrgtrList(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 수신자 엑셀 업로드 양식 다운로드
+     * @param model
+     * @param request
+     * @return "excelView"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/downExcelMsgShrtntRcvrTmplt.do")
+    public String downExcelMsgShrtntRcvrTmplt(ModelMap model, HttpServletRequest request) throws Exception {
+        UserContext userCtx = getUserContext(request);
+        String authrtGrpcd = StringUtil.nvl(userCtx.getAuthrtGrpcd());
+        if (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF")) {
+            throw new BadRequestUrlException(getCommonNoAuthMessage());
+        }
+
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet(getMessage("msg.shrtnt.label.rcvrList"));
+
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue(getMessage("msg.shrtnt.label.userId"));
+        sheet.setColumnWidth(0, 6000);
+
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", getMessage("msg.shrtnt.label.rcvrUploadTmplt"));
+        modelMap.put("sheetName", getMessage("msg.shrtnt.label.rcvrList"));
+        modelMap.put("workbook", workbook);
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /*****************************************************
+     * 수신자 엑셀 업로드 AJAX
+     * @param excelFile
+     * @param request
+     * @return ProcessResultVO<MsgShrtntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgShrtntRcvrExcelUploadAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvrExcelUploadAjax(
+            @RequestParam("excelFile") MultipartFile excelFile,
+            HttpServletRequest request) throws Exception {
+        ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            UserContext userCtx = getUserContext(request);
+            if (!checkAdmProfAuth(resultVO, userCtx)) {
+                return resultVO;
+            }
+
+            Workbook workbook = WorkbookFactory.create(excelFile.getInputStream());
+            Sheet sheet = workbook.getSheetAt(0);
+
+            DataFormatter formatter = new DataFormatter();
+            List<String> userIdList = new ArrayList<>();
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+                String userId = formatter.formatCellValue(row.getCell(0)).trim();
+                if (!userId.isEmpty()) {
+                    userIdList.add(userId);
+                }
+            }
+            workbook.close();
+
+            if (userIdList.isEmpty()) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getMessage("common.content.not_found"));
+                return resultVO;
+            }
+
+            MsgShrtntVO vo = new MsgShrtntVO();
+            vo.setUserIdList(userIdList);
+
+            List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntRcvrByUserIds(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+}

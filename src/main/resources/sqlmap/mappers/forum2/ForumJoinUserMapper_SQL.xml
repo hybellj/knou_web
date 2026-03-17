@@ -1,0 +1,733 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.forum2.dao.ForumJoinUserDAO">
+
+	<select id="selectForumScoreStatus" parameterType="forumJoinUserVO" resultType="egovMap">
+		/*
+			토론 현황 조회
+			ForumJoinUserDAO.selectForumScoreStatus
+		*/
+		SELECT
+			IFNULL(SUM(IF(T.atclCnt = 0 AND T.cmntCnt = 0, 1, 0)), 0) AS noStareCnt
+			, IFNULL(SUM(IF(T.atclCnt > 0 OR T.cmntCnt > 0, 1, 0)), 0)  AS completeCnt
+			, IFNULL(ROUND(AVG(T.SCR)), 0) 			 				 AS avgScore
+			, IFNULL(MAX(T.SCR), 0) 					 				 AS maxScore
+			, IFNULL(MIN(T.SCR), 0) 					 				 AS minScore
+		FROM (
+			SELECT
+				A.STD_ID 			 AS stdNo
+				, IFNULL(C.SCR, 0) AS SCR
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = #{forumCd} AND B.STD_ID = A.STD_ID AND B.DELYN = 'N' ) AS atclCnt
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = #{forumCd} AND B.STD_ID = A.STD_ID AND B.DELYN = 'N' ) AS cmntCnt
+			FROM TB_LMS_ATNDLC_SBJCT AS A
+			LEFT JOIN TB_LMS_DSCS_PTCP AS C
+				ON A.STD_ID = C.STD_ID
+				AND C.DSCS_ID = #{forumCd}
+			WHERE A.SBJCT_ID = #{crsCreCd}
+				AND A.ATNDLC_STSCD = 'S'
+		)T
+	</select>
+
+	<select id="listPaging" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+		/*
+			토론 참여 목록 조회
+			ForumJoinUserDAO.listPaging
+		*/
+		SELECT
+			<if test='forumCtgrCd != "TEAM"'>
+			ROW_NUMBER() OVER(ORDER BY userNm) AS LINE_NO
+			</if>
+			<if test='forumCtgrCd == "TEAM"'>
+			ROW_NUMBER() OVER(ORDER BY LENGTH(teamNm), teamNm, userNm) AS LINE_NO
+			</if>
+			, forumCd
+			, deptNm
+			, stdNo
+			, userId
+			, userNm
+			, SCR
+			, scoreNull
+			, (
+				CASE
+					WHEN afterAtclCnt > 0 THEN '지각참여'
+					WHEN actlCnt > 0 THEN '참여'
+					ELSE '미참여'
+				END
+			) AS joinStatus
+			, actlCnt
+			, cmntCnt
+			, userId
+			, teamCd
+			, COUNT(1) OVER() AS totalCnt
+			, forumFdbkCd
+			, fdbkCts
+			, profMemo
+			, teamNm
+			<!-- , memberRole -->
+			, CASE WHEN memberRole = 'Y' THEN '팀장' ELSE '팀원' END AS memberRole
+			, mutCnt
+			, mutAvg
+			, mutSn
+<!--
+			, (SELECT MOBILE_NO FROM TB_LMS_USR WHERE USER_ID = T.userId) AS mobileNo
+			, (SELECT EMAIL FROM TB_LMS_USR WHERE USER_ID = T.userId) AS email
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = #{forumCd} AND DELYN = 'N' AND RGTR_ID = T.userId) AS forumMyAtclCnt
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = #{forumCd} AND DELYN = 'N') AS forumAtclCnt
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = #{forumCd} AND DELYN = 'N' AND RGTR_ID = T.userId) AS forumMyCmntCnt
+			, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = #{forumCd} AND DELYN = 'N') AS forumCmntCnt
+ -->
+			, mobileNo
+			, email
+			, forumMyAtclCnt
+			, forumAtclCnt
+			, forumMyCmntCnt
+			, forumCmntCnt
+			, evalRsltOpenYn
+			, evalStartDttm
+			, evalEndDttm
+		    , SCYR
+			, ENTR_YY
+			, ENTR_HY
+			, ENTR_GBN
+			, ENTR_GBN_NM
+			, GDSC_DGRS_CRS_GBNCD
+			, GRSC_DEGR_CORS_GBN_NM
+		FROM (
+			SELECT
+				C.DSCS_ID					AS forumCd
+				<!-- , FN_GET_STD_DEPT_NM(A.STD_ID) 	AS deptNm -->
+				, U.DEPTNM					AS deptNm
+				, A.STD_ID 					AS stdNo
+				, A.USER_ID 				AS userId
+				<!-- , FN_GET_STD_USER_NM(A.STD_ID) 	AS userNm -->
+				, U.USERNM					AS userNm
+				, NVL((SELECT SCR FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND STD_ID = A.STD_ID), 0)		AS SCR
+				, NVL((SELECT SCR FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND STD_ID = A.STD_ID), '-')		AS scoreNull
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = C.DSCS_ID AND B.RGTR_ID = A.USER_ID AND B.DELYN = 'N' ) AS actlCnt
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = C.DSCS_ID AND B.RGTR_ID = A.USER_ID AND B.DELYN = 'N' ) AS cmntCnt
+				, (SELECT NVL(USER_ID, A.USER_ID) FROM TB_LMS_USER_ACNT WHERE USER_ID = A.USER_ID) as userId
+				, (SELECT TEAM_ID FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND STD_ID = A.STD_ID) AS teamCd
+				, (SELECT DSCS_FDBK_ID FROM TB_LMS_DSCS_FDBK AS B WHERE B.DSCS_ID = C.DSCS_ID AND B.STD_ID = A.STD_ID AND B.DELYN = 'N' AND B.PAR_FORUM_FDBK_CD IS NULL ORDER BY MOD_DTTM DESC LIMIT 1) 	AS forumFdbkCd
+				, (SELECT FDBK_CTS FROM TB_LMS_DSCS_FDBK AS B WHERE B.DSCS_ID = C.DSCS_ID AND B.STD_ID = A.STD_ID AND B.DELYN = 'N' AND B.PAR_FORUM_FDBK_CD IS NULL ORDER BY MOD_DTTM DESC LIMIT 1) 		AS fdbkCts
+				, (SELECT SCR_MEMO FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND STD_ID = A.STD_ID) AS profMemo
+				, (SELECT BB.TEAMNM FROM TB_LMS_TEAM_MBR B LEFT JOIN TB_LMS_TEAM BB ON B.TEAM_ID = BB.TEAM_ID LEFT JOIN TB_LMS_DSCS BBB ON BB.TEAM_TYCD = BBB.TEAM_TYCD WHERE B.STD_ID = A.STD_ID AND BBB.DSCS_ID = C.DSCS_ID) AS teamNm
+				, (SELECT B.TEAM_LDRYN FROM TB_LMS_TEAM_MBR B LEFT JOIN TB_LMS_TEAM BB ON B.TEAM_ID = BB.TEAM_ID LEFT JOIN TB_LMS_DSCS BBB ON BB.TEAM_TYCD = BBB.TEAM_TYCD WHERE B.STD_ID = A.STD_ID AND BBB.DSCS_ID = C.DSCS_ID) AS memberRole
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_MTL_EVL B WHERE B.STD_ID = A.STD_ID AND B.DSCS_ID = C.DSCS_ID) AS mutCnt
+				, (SELECT NVL(ROUND(AVG(SCR)), 0) FROM TB_LMS_DSCS_MTL_EVL B WHERE B.STD_ID = A.STD_ID AND B.DSCS_ID = C.DSCS_ID) AS mutAvg
+				, (SELECT B.MTL_EVL_ID FROM TB_LMS_DSCS_MTL_EVL B WHERE B.DSCS_ID = C.DSCS_ID AND B.STD_ID = A.STD_ID AND RGTR_ID = #{userId}) AS mutSn
+				, U.MOBILE_NO AS mobileNo
+				, U.EMAIL AS email
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N' AND RGTR_ID = A.USER_ID) AS forumMyAtclCnt
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N') AS forumAtclCnt
+				, (
+					SELECT COUNT(1)
+					FROM TB_LMS_DSCS_ATCL AA
+						LEFT JOIN TB_LMS_DSCS BB
+						ON AA.DSCS_ID = BB.DSCS_ID
+					WHERE AA.DSCS_ID = C.DSCS_ID
+						AND AA.STD_ID = A.STD_ID
+						AND AA.DELYN = 'N'
+						AND AA.FRST_INQ_DTTM >= BB.DSCS_EDTTM
+				) AS afterAtclCnt
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N' AND RGTR_ID = A.USER_ID) AS forumMyCmntCnt
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N') AS forumCmntCnt
+				, (
+					SELECT COUNT(1)
+					FROM TB_LMS_DSCS_CMNT AA
+						LEFT JOIN TB_LMS_DSCS BB
+						ON AA.DSCS_ID = BB.DSCS_ID
+					WHERE AA.DSCS_ID = C.DSCS_ID
+						AND AA.STD_ID = U.USER_ID
+						AND AA.DELYN = 'N'
+						AND AA.FRST_INQ_DTTM >= BB.DSCS_EDTTM
+				) AS afterCmntCnt
+				, (SELECT EVL_RSLT_OYN FROM TB_LMS_DSCS WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N') AS evalRsltOpenYn
+				, (SELECT EVL_SDTTM FROM TB_LMS_DSCS WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N') AS evalStartDttm
+				, (SELECT EVL_EDTTM FROM TB_LMS_DSCS WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N') AS evalEndDttm
+				, IFNULL(A.SCYR,'-') SCYR
+				, IFNULL(U.ENTR_YY,'-') ENTR_YY
+				, IFNULL(U.ENTR_HY,'-') ENTR_HY
+				, IFNULL(U.ENTR_GBN,'-') ENTR_GBN
+				, IFNULL(U.ENTR_GBN_NM,'-') ENTR_GBN_NM
+				, A.GDSC_DGRS_CRS_GBNCD
+				, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'GDSC_DGRS_CRS_GBNCD' AND CD = A.GDSC_DGRS_CRS_GBNCD) AS GRSC_DEGR_CORS_GBN_NM
+			FROM TB_LMS_ATNDLC_SBJCT AS A
+				<!-- <if test='forumCtgrCd == "TEAM"'>
+				JOIN TB_LMS_DSCS_PTCP AS C
+				</if>
+				<if test='forumCtgrCd == "NOMAL"'> -->
+			JOIN TB_LMS_DSCS AS C
+				<!-- </if> -->
+			  ON C.DSCS_ID = #{forumCd}
+		     AND C.DELYN = 'N'
+			JOIN TB_LMS_USR U
+			  ON A.USER_ID = U.USER_ID
+<!--
+				LEFT JOIN TB_LMS_USER_ACNT AS L
+					ON A.USER_ID = L.USER_ID
+					AND L.ACNT_STSCD = 'U'
+ -->
+			WHERE A.SBJCT_ID = #{crsCreCd}
+				AND A.ATNDLC_STSCD = 'S'
+				AND A.AUDITYN = 'N'
+				<if test="forumCtgrCd == 'SUBS'">
+				AND A.STD_ID IN (
+					SELECT
+						D.STD_ID
+					FROM TB_LMS_EXAM_STARE D
+				    JOIN TB_LMS_EXAM_BSC E
+					  ON D.EXAM_ID = E.EXAM_ID
+				   WHERE 1 = 1
+					 AND E.EXAM_SBST_REF_ID = #{forumCd}
+					 AND D.REEXAMYN = 'Y'
+				)
+				</if>
+		) T
+		WHERE 1 = 1
+		<if test='searchKey != null and searchKey != "" and searchKey != "all"'>
+			<if test='searchKey == "joinY"'>
+				AND actlCnt > 0
+				AND afterAtclCnt = 0
+			</if>
+			<if test='searchKey == "joinN"'>
+				AND actlCnt = 0
+			</if>
+			<if test='searchKey == "after"'>
+				AND afterAtclCnt > 0
+			</if>
+			<if test='searchKey == "leader"'>
+				<!-- AND EXISTS (SELECT 1 FROM TB_LMS_TEAM_MBR WHERE TEAM_ID = T.teamCd AND STD_ID = T.stdNo AND TEAM_LDRYN = 'Y') -->
+				AND T.memberRole = 'Y'
+			</if>
+			<if test='searchKey == "member"'>
+				<!-- AND EXISTS (SELECT 1 FROM TB_LMS_TEAM_MBR WHERE TEAM_ID = T.teamCd AND STD_ID = T.stdNo AND TEAM_LDRYN = 'N') -->
+				AND T.memberRole != 'Y'
+			</if>
+		</if>
+		<if test='searchSort != null and searchSort != "" and searchSort != "all"'>
+			<if test='searchSort == "evalY"'>
+				AND T.scoreNull != '-'
+			</if>
+			<if test='searchSort == "evalN"'>
+				AND T.scoreNull = '-'
+			</if>
+		</if>
+		<if test="searchValue != null and searchValue != ''">
+			AND (
+				   LOWER(deptNm) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				OR LOWER(userId) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+				OR LOWER(userNm) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			)
+		</if>
+		ORDER BY lineNo ASC
+		<if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
+			<!-- LIMIT #{firstIndex}, #{listScale} -->
+		</if>
+	</select>
+
+	<insert id="insertStdScore" parameterType="forumJoinUserVO">
+		/*
+			토론 참여 점수 반영
+			ForumJoinUserDAO.insertStdScore
+		*/
+		<!-- INSERT INTO TB_LMS_DSCS_PTCP (
+			STD_ID
+			, DSCS_ID
+			, TEAM_ID
+			, SCR
+			, EVLYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+			, DELYN
+			)
+		VALUES (
+			<choose>
+				<when test="stdNo != null and stdNo != ''">
+					#{stdNo}
+				</when>
+				<otherwise>
+					FN_GET_STD_NO(#{userId},#{crsCreCd})
+				</otherwise>
+			</choose>
+			, #{forumCd}
+			, #{teamCd}
+			, CASE
+				WHEN #{SCR} <![CDATA[<]]> 0 THEN 0
+				WHEN #{SCR} <![CDATA[>]]> 100 THEN 100
+				ELSE #{SCR}
+			END
+			, 'Y'
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+			, 'N'
+			)
+		ON DUPLICATE KEY UPDATE
+			SCR =
+			CASE
+				WHEN #{SCR} <![CDATA[<]]> 0 THEN 0
+				WHEN #{SCR} <![CDATA[>]]> 100 THEN 100
+				ELSE #{SCR}
+			END
+			, TEAM_ID = #{teamCd}
+			, EVLYN = 'Y'
+			, MDFR_ID = #{mdfrId}, MOD_DTTM = FN_DTTM()
+			<choose>
+				<when test="stdNo != null and stdNo != ''">
+					, STD_ID = #{stdNo}
+				</when>
+				<otherwise>
+					, STD_ID = FN_GET_STD_NO(#{userId},#{crsCreCd})
+				</otherwise>
+			</choose> -->
+
+	    MERGE INTO TB_LMS_DSCS_PTCP T
+	    USING (
+	        SELECT
+	            <choose>
+	                <when test="stdNo != null and stdNo != ''">
+	                    #{stdNo} AS STD_ID
+	                </when>
+	                <otherwise>
+	                    FN_GET_STD_NO(#{userId}, #{crsCreCd}) AS STD_ID
+	                </otherwise>
+	            </choose>,
+	            #{forumCd} AS DSCS_ID
+	        FROM DUAL
+	    ) S
+	    ON (
+	        T.STD_ID = S.STD_ID
+	        AND T.DSCS_ID = S.DSCS_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	            T.SCR = CASE
+                    WHEN CAST(NULL AS NUMBER) <![CDATA[<]]> 0 THEN 0
+                    WHEN CAST(NULL AS NUMBER) <![CDATA[>]]> 100 THEN 100
+                    ELSE CAST(NULL AS NUMBER)
+                  END,
+	            T.TEAM_ID = #{teamCd},
+	            T.EVLYN = 'Y',
+	            T.MDFR_ID = #{mdfrId},
+	            T.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	            STD_ID,
+	            DSCS_ID,
+	            TEAM_ID,
+	            SCR,
+	            EVLYN,
+	            RGTR_ID,
+	            FRST_INQ_DTTM,
+	            MDFR_ID,
+	            MOD_DTTM,
+	            DELYN
+	        )
+	        VALUES (
+	            <choose>
+	                <when test="stdNo != null and stdNo != ''">
+	                    #{stdNo}
+	                </when>
+	                <otherwise>
+	                    FN_GET_STD_NO(#{userId}, #{crsCreCd})
+	                </otherwise>
+	            </choose>,
+	            #{forumCd},
+	            #{teamCd},
+	            CASE
+		            WHEN CAST(NULL AS NUMBER) <![CDATA[<]]> 0 THEN 0
+		            WHEN CAST(NULL AS NUMBER) <![CDATA[>]]> 100 THEN 100
+		            ELSE CAST(NULL AS NUMBER)
+		        END,
+	            'Y',
+	            #{rgtrId},
+	            FN_DTTM(),
+	            #{mdfrId},
+	            FN_DTTM(),
+	            'N'
+	        )
+	</insert>
+
+	<select id="listStdScore" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+		/*
+			토론 참여 목록 조회
+			ForumJoinUserDAO.listStdScore
+		*/
+		SELECT
+			ROW_NUMBER() OVER()  	AS lineNo
+			, stdNo
+			, SCR
+			, CASE WHEN atclCnt > 0 OR cmntCnt > 0 THEN '참여' ELSE '미참여' eND AS joinStatus
+			, atclCnt
+			, cmntCnt
+			, teamCd
+		FROM (
+			SELECT
+				A.STD_ID 				AS stdNo
+				, IFNULL(C.SCR, 0) 	AS SCR
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = #{forumCd} AND B.STD_ID = A.STD_ID AND B.DELYN = 'N' ) 	as atclCnt
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = #{forumCd} AND B.STD_ID = A.STD_ID AND B.DELYN = 'N') 	as cmntCnt
+				, C.TEAM_ID				AS teamCd
+			FROM TB_LMS_ATNDLC_SBJCT AS A
+				LEFT JOIN TB_LMS_DSCS_PTCP AS C
+					ON A.STD_ID = C.STD_ID
+					AND C.DSCS_ID = #{forumCd}
+			WHERE A.SBJCT_ID = #{crsCreCd}
+				AND ATNDLC_STSCD = 'S'
+		)T
+		WHERE 1 = 1
+		<if test='conditionType != null and conditionType != ""'>
+			<if test='conditionType == "checked"'>
+				AND stdNo IN
+				<foreach collection="stdNoList" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test='conditionType == "joinY"'>
+				AND ( atclCnt > 0 or  cmntCnt > 0 )
+			</if>
+			<if test='conditionType == "joinN"'>
+				AND ( atclCnt = 0 and  cmntCnt = 0 )
+			</if>
+		</if>
+		<if test='stdNo != null and stdNo != ""'>
+			AND stdNo = #{stdNo}
+		</if>
+	</select>
+
+	<select id="selectForumJoinUser" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+		/*
+			토론 참여 정보 조회
+			ForumJoinUserDAO.selectForumJoinUser
+		*/
+		SELECT
+			STD_ID 						AS stdNo
+			, DSCS_ID 						AS forumCd
+			, SCR 						AS SCR
+			, EVLYN						AS evalYn
+			, RGTR_ID 						AS rgtrId
+			, FRST_INQ_DTTM 						AS regDttm
+			, MDFR_ID 						AS mdfrId
+			, MOD_DTTM 						AS modDttm
+			, DELYN 						AS delYn
+			, (
+				SELECT B.USER_ID
+				FROM TB_LMS_USER_ACNT AS B
+				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC_SBJCT AS C WHERE C.STD_ID = A.STD_ID)
+			) AS userId
+			, (
+				SELECT B.USER_ID
+				FROM TB_LMS_USER_ACNT AS B
+				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC_SBJCT AS C WHERE C.STD_ID = A.STD_ID)
+			) AS userId
+			, (
+				SELECT B.USERNM
+				FROM TB_LMS_USR B
+				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC_SBJCT AS C WHERE C.STD_ID = A.STD_ID)
+			) AS userNm
+			, (
+				SELECT B.DEPTNM
+				FROM TB_LMS_USR B
+				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC_SBJCT AS C WHERE C.STD_ID = A.STD_ID)
+			) AS deptNm
+			,(SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN ='N' AND B.STD_ID = A.DSCS_ID) AS atclCnt
+			,(SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN ='N' AND B.STD_ID = A.DSCS_ID) AS cmntCnt
+			,(SELECT MTL_EVLYN FROM TB_LMS_DSCS WHERE DSCS_ID = A.DSCS_ID AND DELYN = 'N' ) AS mutEvalYn
+			,(SELECT IFNULL(ROUND(AVG(SCR)), 0) FROM TB_LMS_DSCS_MTL_EVL WHERE STD_ID = A.STD_ID AND DSCS_ID = A.DSCS_ID) AS mutAvg
+		FROM TB_LMS_DSCS_PTCP AS A
+		WHERE STD_ID = #{stdNo}
+			AND DSCS_ID = #{forumCd}
+	</select>
+
+	<select id="forumJoinUserList" parameterType="forumJoinUserVO" resultType="egovMap">
+		/*
+			수강생 토론 성적 조회
+			ForumJoinUserDAO.forumJoinUserList
+		*/
+		SELECT U.STD_ID 	AS stdNo
+			, DSCS_ID 	AS forumCd
+			, IFNULL(SCR, 0)	AS SCR
+			, EVLYN	AS evalYn
+			, U.RGTR_ID 	AS rgtrId
+			, U.FRST_INQ_DTTM 	AS regDttm
+			, U.MDFR_ID 	AS mdfrId
+			, U.MOD_DTTM 	AS modDttm
+			, U.DELYN 	AS delYn
+			, (SELECT IFNULL(USER_ID, S.USER_ID) FROM TB_LMS_USER_ACNT WHERE USER_ID = S.USER_ID) AS userId
+		FROM TB_LMS_DSCS_PTCP U, TB_LMS_ATNDLC_SBJCT S
+		WHERE U.DSCS_ID = #{forumCd}
+			AND U.STD_ID = S.STD_ID
+			AND S.ATNDLC_STSCD = 'S'
+	</select>
+
+	<select id="selectProfMemo" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+		/*
+			교수 메모 팝업창 정보
+			ForumJoinUserDAO.selectProfMemo
+		*/
+		SELECT
+			(
+				SELECT DEPTNM
+				FROM TB_LMS_USR
+				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = A.STD_ID)
+			) AS deptNm
+			, (
+				SELECT USER_ID
+				FROM TB_LMS_USER_ACNT
+				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = A.STD_ID)
+			) AS userId
+			, (
+				SELECT USERNM
+				FROM TB_LMS_USR
+				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = A.STD_ID)
+			) AS userNm
+			, NVL(A.SCR, 0)			AS SCR
+			, B.SBJCT_ID 					AS crsCreCd
+			, B.DSCS_TTL					AS forumTitle
+			, B.DSCS_SDTTM 			AS forumStartDttm
+			, B.DSCS_EDTTM 				AS forumEndDttm
+			, A.SCR_MEMO 					AS profMemo
+		FROM TB_LMS_DSCS_PTCP A
+			LEFT JOIN TB_LMS_DSCS B
+				ON A.DSCS_ID = B.DSCS_ID
+		WHERE 1 = 1
+			AND A.DSCS_ID = #{forumCd}
+			AND A.STD_ID = #{stdNo}
+	</select>
+
+	<update id="editForumProfMemo" parameterType="forumJoinUserVO">
+		/*
+			교수 메모 수정
+			ForumJoinUserDAO.editForumProfMemo
+		*/
+		UPDATE TB_LMS_DSCS_PTCP SET
+			MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+			, SCR_MEMO = #{profMemo}
+		WHERE DSCS_ID = #{forumCd}
+			AND STD_ID = #{stdNo}
+	</update>
+
+	<select id="getForumJoinUser" resultType="int">
+		/*
+			토론 참여자 테이블에 해당 참여자가 있는지 체크
+			ForumJoinUserDAO.getForumJoinUser
+		*/
+		SELECT
+			COUNT(*)
+		FROM TB_LMS_DSCS_PTCP
+		WHERE STD_ID = #{stdNo}
+			AND DSCS_ID = #{forumCd}
+	</select>
+
+	<select id="getMemo" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+		/*
+			메모
+			ForumJoinUserDAO.getMemo
+		*/
+		SELECT
+			SCR_MEMO as profMemo
+		FROM TB_LMS_DSCS_PTCP
+		WHERE STD_ID = #{stdNo}
+			AND DSCS_ID = #{forumCd}
+	</select>
+
+	<select id="getSelectCtsLen" parameterType="forumJoinUserVO" resultType="int">
+		/*
+			넘겨 받은 글자수에 해당하는 토론 참여자 조회
+			ForumJoinUserDAO.getSelectCtsLen
+		*/
+		SELECT
+			COUNT(*)
+		FROM TB_LMS_DSCS_PTCP A
+			LEFT JOIN TB_LMS_DSCS_ATCL B
+			ON (A.DSCS_ID = B.DSCS_ID AND A.STD_ID = B.STD_ID AND B.DELYN = 'N')
+			<if test='chkCmnt == "Y"'>
+			LEFT JOIN TB_LMS_DSCS_CMNT C
+			ON (A.DSCS_ID = C.DSCS_ID AND A.STD_ID = C.STD_ID AND C.DELYN = 'N')
+			</if>
+		WHERE A.DSCS_ID = #{forumCd}
+			AND A.STD_ID = #{stdNo}
+			AND B.ATCL_CTS_LEN >= #{ctsLen}
+			<if test='chkCmnt == "Y"'>
+			AND (B.ATCL_CTS_LEN >= #{ctsLen} OR C.CMNT_CTS_LEN >= #{ctsLen})
+			</if>
+	</select>
+
+	<insert id="chkStdNoInsert" parameterType="forumMutVO">
+		/*
+			참여자가 없을 때 토론 참여자 테이블 삽입
+			ForumJoinUserDAO.chkStdNoInsert
+		*/
+		INSERT INTO TB_LMS_DSCS_PTCP (
+			STD_ID
+			, DSCS_ID
+			, RGTR_ID
+			, FRST_INQ_DTTM
+		)
+		SELECT
+			#{stdNo}
+			, #{forumCd}
+			, 'ADMIN'
+			, FN_DTTM()
+		FROM TB_LMS_DSCS_PTCP
+		WHERE NOT EXISTS (
+			SELECT
+				STD_ID
+			FROM TB_LMS_DSCS_PTCP
+			WHERE STD_ID = #{stdNo}
+				AND DSCS_ID = #{forumCd}
+		) LIMIT 1
+	</insert>
+
+	<insert id="insertJoinUser" parameterType="forumMutVO">
+		/*
+			모든 참여자를 토론 참여자 테이블에 삽입
+			ForumJoinUserDAO.insertJoinUser
+		*/
+		INSERT INTO TB_LMS_DSCS_PTCP (
+			STD_ID
+			, DSCS_ID
+			, TEAM_ID
+			<if test='searchKey != null and searchKey != "" and searchKey == "INSERT"'>
+			, SCR
+			, EVLYN
+			</if>
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		)
+		SELECT
+			A.STD_ID
+			, B.DSCS_ID
+			, (
+				SELECT
+				E.TEAM_ID
+				FROM TB_LMS_TEAM_CTGR C
+					LEFT JOIN TB_LMS_TEAM D
+					ON C.TEAM_TYCD = D.TEAM_TYCD
+					LEFT JOIN TB_LMS_TEAM_MBR E
+					ON D.TEAM_ID = E.TEAM_ID
+				WHERE 1 = 1
+					AND C.TEAM_TYCD = B.TEAM_TYCD
+					AND E.STD_ID = A.STD_ID
+			) AS teamCd
+			<if test='searchKey != null and searchKey != "" and searchKey == "INSERT"'>
+			, 100
+			, 'Y'
+			</if>
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{rgtrId}
+			, FN_DTTM()
+		FROM TB_LMS_ATNDLC_SBJCT A
+			LEFT JOIN TB_LMS_DSCS B
+			ON A.SBJCT_ID = B.SBJCT_ID
+		WHERE A.SBJCT_ID = #{crsCreCd}
+			AND A.ATNDLC_STSCD = 'S'
+			AND B.DELYN = 'N'
+			AND B.DSCS_ID = #{forumCd}
+			<if test="stdNo != null and stdNo != ''">
+			AND A.STD_ID = #{stdNo}
+			</if>
+		ON DUPLICATE KEY UPDATE
+		  STD_ID = A.STD_ID
+		, DSCS_ID = B.DSCS_ID
+		<if test='searchKey != null and searchKey != "" and searchKey == "INSERT"'>
+		, SCR = 100
+		, EVLYN = 'Y'
+		</if>
+	</insert>
+
+	<insert id="participateScore" parameterType="forumMutVO">
+		/*
+			참여형 일괄평가
+			ForumJoinUserDAO.participateScore
+		*/
+		INSERT INTO TB_LMS_DSCS_PTCP (
+			STD_ID
+			, DSCS_ID
+			, TEAM_ID
+			, SCR
+			, EVLYN
+			, RGTR_ID
+			, FRST_INQ_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		)
+		(
+			SELECT
+				T.STD_ID
+				, T.DSCS_ID
+				, T.TEAM_ID
+				, T.SCR
+				, 'Y'
+				, #{rgtrId}
+				, FN_DTTM()
+				, #{rgtrId}
+				, FN_DTTM()
+			FROM
+			(
+				SELECT
+					*
+					, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.DSCS_ID AND DELYN = 'N' AND STD_ID = A.STD_ID) AS atclCnt
+					, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = A.DSCS_ID AND DELYN = 'N' AND STD_ID = A.STD_ID) AS cmntCnt
+				FROM TB_LMS_DSCS_PTCP A
+				WHERE A.DSCS_ID = #{forumCd}
+				<if test='searchMenu != null and searchMenu != "" and searchMenu == "ONCE"'>
+				  AND A.EVLYN = 'N'
+				</if>
+			) T
+			WHERE 1 = 1
+			<choose>
+				<when test="searchKey == 'NOTJOIN'">
+				  AND T.atclCnt = 0
+				</when>
+				<otherwise>
+				  AND T.atclCnt > 0
+				</otherwise>
+			</choose>
+		)
+		ON DUPLICATE KEY UPDATE
+			  STD_ID = T.STD_ID
+			, DSCS_ID = T.DSCS_ID
+			, EVLYN = 'Y'
+			<choose>
+				<when test="searchKey == 'NOTJOIN'">
+			, SCR = 0
+				</when>
+				<otherwise>
+			, SCR = 100
+				</otherwise>
+			</choose>
+	</insert>
+	
+	<update id="updateStdTeam" parameterType="forumJoinUserVO">
+		/*
+			학습자 팀 수정
+			ForumJoinUserDAO.updateStdTeam
+		*/
+		UPDATE TB_LMS_DSCS_PTCP SET
+			TEAM_ID = #{teamCd}
+		 WHERE DSCS_ID = #{forumCd}
+		   AND STD_ID = #{stdNo}
+	</update>
+
+	<update id="updateJoinUserEvalN" parameterType="forumJoinUserVO">
+		/*
+			평가여부 초기화
+			ForumJoinUserDAO.updateJoinUserEvalN
+		*/
+		UPDATE TB_LMS_DSCS_PTCP SET
+			  EVLYN = 'N'
+			, SCR = NULL
+			, MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+		 WHERE DSCS_ID = #{forumCd}
+		   AND STD_ID = #{stdNo}
+	</update>
+</mapper>

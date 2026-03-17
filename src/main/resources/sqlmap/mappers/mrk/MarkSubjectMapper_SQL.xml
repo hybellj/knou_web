@@ -1,0 +1,417 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.mrk.dao.MarkSubjectDAO">
+
+    <sql id="scoreOverallQuery">
+        <![CDATA[
+        SELECT
+            X.USER_ID
+             , X.STDNT_NO
+             , X.SBJCT_ID
+             , X.SCR_CNVS_STSCD
+             , X.SCR_MRK_GRDCD
+             , X.DEPTNM
+             , X.USERNM
+             , X.TOT_SCR
+             , X.LST_SCR
+             , X.ATNDC_SCORE
+             , X.ATNDC_SCORE_RATIO
+             , ROUND((CAST(CASE WHEN X.ATNDC_SCORE < 0 THEN 0 ELSE X.ATNDC_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.ATNDC_SCORE_RATIO AS NUMBER(5, 2)), 2) AS ATNDC_SCORE_AVG
+             , X.ATNDC_ITEM_ID
+             , X.MIDEXAM_SCORE
+             , X.MIDEXAM_SCORE_RATIO
+             , ROUND((CAST(CASE WHEN X.MIDEXAM_SCORE < 0 THEN 0 ELSE X.MIDEXAM_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.MIDEXAM_SCORE_RATIO AS NUMBER(5, 2)), 2) AS MIDEXAM_SCORE_AVG
+             , X.MIDEXAM_ITEM_ID
+             , X.LSTEXAM_SCORE
+             , X.LSTEXAM_SCORE_RATIO
+             , ROUND((CAST(CASE WHEN X.LSTEXAM_SCORE < 0 THEN 0 ELSE X.LSTEXAM_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.LSTEXAM_SCORE_RATIO AS NUMBER(5, 2)), 2) AS LSTEXAM_SCORE_AVG
+             , X.LSTEXAM_ITEM_ID
+             , X.ASMT_SCORE
+             , X.ASMT_SCORE_RATIO
+             , ROUND((CAST(CASE WHEN X.ASMT_SCORE < 0 THEN 0 ELSE X.ASMT_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.ASMT_SCORE_RATIO AS NUMBER(5, 2)), 2) AS ASMT_SCORE_AVG
+             , X.ASMT_ITEM_ID
+             , X.DSCS_SCORE
+             , X.DSCS_SCORE_RATIO
+             , ROUND((CAST(CASE WHEN X.DSCS_SCORE < 0 THEN 0 ELSE X.DSCS_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.DSCS_SCORE_RATIO AS NUMBER(5, 2)), 2) AS DSCS_SCORE_AVG
+             , X.DSCS_ITEM_ID
+             , X.QUIZ_SCORE
+             , X.QUIZ_SCORE_RATIO
+             , ROUND((CAST(CASE WHEN X.QUIZ_SCORE < 0 THEN 0 ELSE X.QUIZ_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.QUIZ_SCORE_RATIO AS NUMBER(5, 2)), 2) AS QUIZ_SCORE_AVG
+             , X.QUIZ_ITEM_ID
+             , X.SRVY_SCORE
+             , X.SRVY_SCORE_RATIO
+             , ROUND((CAST(CASE WHEN X.SRVY_SCORE < 0 THEN 0 ELSE X.SRVY_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.SRVY_SCORE_RATIO AS NUMBER(5, 2)), 2) AS SRVY_SCORE_AVG
+             , X.SRVY_ITEM_ID
+             , X.SMNR_SCORE
+             , X.SMNR_SCORE_RATIO
+             , ROUND((CAST(CASE WHEN X.SMNR_SCORE < 0 THEN 0 ELSE X.SMNR_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.SMNR_SCORE_RATIO AS NUMBER(5, 2)), 2) AS SMNR_SCORE_AVG
+             , X.SMNR_ITEM_ID
+             , X.ETC_SCORE
+             , X.PROF_MEMO
+             , ROUND(
+                  ROUND((CAST(CASE WHEN X.ATNDC_SCORE < 0 THEN 0 ELSE X.ATNDC_SCORE END     AS NUMBER(5, 2)) / 100) * CAST(X.ATNDC_SCORE_RATIO 		AS NUMBER(5, 2)), 2)
+                + ROUND((CAST(CASE WHEN X.MIDEXAM_SCORE < 0 THEN 0 ELSE X.MIDEXAM_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.MIDEXAM_SCORE_RATIO 	AS NUMBER(5, 2)), 2)
+                + ROUND((CAST(CASE WHEN X.LSTEXAM_SCORE < 0 THEN 0 ELSE X.LSTEXAM_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.LSTEXAM_SCORE_RATIO 	AS NUMBER(5, 2)), 2)
+                + ROUND((CAST(CASE WHEN X.ASMT_SCORE < 0 THEN 0 ELSE X.ASMT_SCORE END       AS NUMBER(5, 2)) / 100) * CAST(X.ASMT_SCORE_RATIO       AS NUMBER(5, 2)), 2)
+                + ROUND((CAST(CASE WHEN X.DSCS_SCORE < 0 THEN 0 ELSE X.DSCS_SCORE END       AS NUMBER(5, 2)) / 100) * CAST(X.DSCS_SCORE_RATIO 		AS NUMBER(5, 2)), 2)
+                + ROUND((CAST(CASE WHEN X.QUIZ_SCORE < 0 THEN 0 ELSE X.QUIZ_SCORE END		AS NUMBER(5, 2)) / 100) * CAST(X.QUIZ_SCORE_RATIO 	    AS NUMBER(5, 2)), 2)
+                + ROUND((CAST(CASE WHEN X.SRVY_SCORE < 0 THEN 0 ELSE X.SRVY_SCORE END		AS NUMBER(5, 2)) / 100) * CAST(X.SRVY_SCORE_RATIO 	    AS NUMBER(5, 2)), 2)
+                + ROUND((CAST(CASE WHEN X.SMNR_SCORE < 0 THEN 0 ELSE X.SMNR_SCORE END		AS NUMBER(5, 2)) / 100) * CAST(X.SMNR_SCORE_RATIO 	    AS NUMBER(5, 2)), 2)
+            , 2) AS CAL_TOT_SCR
+             , X.MIDDLE_TEST_USE_YN
+             , X.LAST_TEST_USE_YN
+             , X.MIDDLE_TEST_NO_YN_2
+             , X.LAST_TEST_NO_YN_2
+        FROM (
+            SELECT
+                  A.USER_ID
+                , USR.STDNT_NO
+                , D.SBJCT_ID
+                , MAX(A.SCR_CNVS_STSCD) AS SCR_CNVS_STSCD
+                , MAX(A.SCR_MRK_GRDCD) AS SCR_MRK_GRDCD
+                , MAX(DEPT.DEPTNM) AS DEPTNM
+                --    , MAX(NVL(SCYR, '-')) AS SCYR
+                , MAX(USR.USERNM) AS USERNM
+                --    , MAX(USR.MOBILE_NO) AS MOBILE_NO
+                --    , MAX(USR.EMAIL) AS EMAIL
+                , MAX(A.TOT_SCR) AS TOT_SCR
+                , MAX(A.LST_SCR) AS LST_SCR
+                , MAX(NVL(A.ADTN_SCR, 0)) AS ETC_SCORE
+                , MAX(A.PROF_MEMO) AS PROF_MEMO
+                --
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'MIDEXAM' THEN B.SCR ELSE 0 END) AS MIDEXAM_SCORE
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'LSTEXAM' THEN B.SCR ELSE 0 END) AS LSTEXAM_SCORE
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'ATNDC' THEN B.SCR ELSE 0 END) AS ATNDC_SCORE
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'ASMT' THEN B.SCR ELSE 0 END) AS ASMT_SCORE
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'DSCS' THEN B.SCR ELSE 0 END) AS DSCS_SCORE
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'QUIZ' THEN B.SCR ELSE 0 END) AS QUIZ_SCORE
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'SRVY' THEN B.SCR ELSE 0 END) AS SRVY_SCORE
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'SMNR' THEN B.SCR ELSE 0 END) AS SMNR_SCORE
+                --
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'MIDEXAM' THEN C.MRK_RFLTRT   ELSE 0 END) AS MIDEXAM_SCORE_RATIO
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'MIDEXAM' THEN B.MRK_SBJCT_DTL_ID ELSE '-' END) AS MIDEXAM_ITEM_ID
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'LSTEXAM' THEN C.MRK_RFLTRT   ELSE 0 END) AS LSTEXAM_SCORE_RATIO
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'LSTEXAM' THEN B.MRK_SBJCT_DTL_ID ELSE '-' END) AS LSTEXAM_ITEM_ID
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'ATNDC' THEN C.MRK_RFLTRT   ELSE 0 END) AS ATNDC_SCORE_RATIO
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'ATNDC' THEN B.MRK_SBJCT_DTL_ID ELSE '-' END) AS ATNDC_ITEM_ID
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'ASMT' THEN C.MRK_RFLTRT   ELSE 0 END) AS ASMT_SCORE_RATIO
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'ASMT' THEN B.MRK_SBJCT_DTL_ID ELSE '-' END) AS ASMT_ITEM_ID
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'DSCS' THEN C.MRK_RFLTRT   ELSE 0 END) AS DSCS_SCORE_RATIO
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'DSCS' THEN B.MRK_SBJCT_DTL_ID ELSE '-' END) AS DSCS_ITEM_ID
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'QUIZ' THEN C.MRK_RFLTRT   ELSE 0 END) AS QUIZ_SCORE_RATIO
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'QUIZ' THEN B.MRK_SBJCT_DTL_ID ELSE '-' END) AS QUIZ_ITEM_ID
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'SRVY' THEN C.MRK_RFLTRT   ELSE 0 END) AS SRVY_SCORE_RATIO
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'SRVY' THEN B.MRK_SBJCT_DTL_ID ELSE '-' END) AS SRVY_ITEM_ID
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'SMNR' THEN C.MRK_RFLTRT   ELSE 0 END) AS SMNR_SCORE_RATIO
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'SMNR' THEN B.MRK_SBJCT_DTL_ID ELSE '-' END) AS SMNR_ITEM_ID
+                --
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'MIDEXAM' AND NVL(C.MRK_RFLTRT, 0) > 0 THEN 'Y' ELSE 'N'END) AS MIDDLE_TEST_USE_YN
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'LSTEXAM' AND NVL(C.MRK_RFLTRT, 0) > 0 THEN 'Y' ELSE 'N'END) AS LAST_TEST_USE_YN
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'MIDEXAM' AND NVL(C.MRK_RFLTRT, 0) > 0 AND B.SCR = -1 THEN 'Y' ELSE 'N' END) AS MIDDLE_TEST_NO_YN_2
+                , MAX(CASE WHEN C.MRK_ITM_TYCD = 'LSTEXAM' AND NVL(C.MRK_RFLTRT, 0) > 0 AND B.SCR = -1 THEN 'Y' ELSE 'N' END) AS LAST_TEST_NO_YN_2
+            FROM TB_LMS_MRK_SBJCT A
+                JOIN TB_LMS_MRK_SBJCT_DTL B ON (A.MRK_SBJCT_ID = B.MRK_SBJCT_ID)
+                JOIN TB_LMS_MRK_ITM_STNG C ON (A.SBJCT_ID = C.SBJCT_ID AND B.MRK_ITM_TYCD = C.MRK_ITM_TYCD)
+                JOIN TB_LMS_ATNDLC D ON (D.USER_ID = A.USER_ID AND D.ATNDLC_STSCD = 'ATNDLC' AND D.AUDITYN = 'N' AND D.SBJCT_ID = #{sbjctId})
+                JOIN TB_LMS_USER USR ON (D.USER_ID = USR.USER_ID)
+                JOIN TB_LMS_DEPT DEPT ON (USR.DEPT_ID = DEPT.DEPT_ID)
+            GROUP BY A.USER_ID, USR.STDNT_NO, D.SBJCT_ID
+        ) X
+        WHERE 1=1
+        ]]>
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+            X.DEPTNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            OR X.USER_ID LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            OR X.USERNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <if test="stdNos != null">
+            AND X.USER_ID IN (
+            <foreach collection="stdNos" item="stdNos" separator=",">
+                #{stdNos}
+            </foreach>
+            )
+        </if>
+    </sql>
+
+
+    <sql id="noEvalQuery">
+        <![CDATA[
+        SELECT
+            STD.USER_ID
+            , NVL(( -- 중간고사 시험 미평가
+                SELECT COUNT(1)
+                FROM TB_LMS_EXAM_BSC AA
+                JOIN TB_LMS_EXAM_DTL DTL
+                    ON AA.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                JOIN TB_LMS_TKEXAM TK
+                    ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                JOIN TB_LMS_TKEXAM_RSLT RSLT
+                    ON TK.TKEXAM_ID = RSLT.TKEXAM_ID
+                    AND TK.USER_ID = RSLT.USER_ID
+                    AND RSLT.EVLYN = 'N'
+                WHERE 1=1
+                    AND AA.USEYN = 'Y'
+                    AND AA.DELYN = 'N'
+                    AND AA.MRK_RFLTYN = 'Y'
+                    AND AA.MRK_RFLTRT > 0
+                    AND AA.EXAM_QSTNS_CMPTNYN = 'Y'
+                    AND AA.EXAM_GBNCD IN ('EXAM_MID', 'QUIZ_EXAM_MID', 'EXAM_MID_TEAM')
+                    AND AA.SBJCT_ID = STD.SBJCT_ID
+                    AND TK.USER_ID = STD.USER_ID
+                ),0) + NVL((
+                --	중간고사 대체퀴즈 미평가
+                    SELECT COUNT(1)
+                    FROM TB_LMS_EXAM_BSC AA
+                    JOIN TB_LMS_EXAM_DTL DTL
+                        ON AA.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                    JOIN TB_LMS_TKEXAM TK
+                        ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                    JOIN TB_LMS_TKEXAM_RSLT RSLT
+                        ON TK.TKEXAM_ID = RSLT.TKEXAM_ID
+                        AND TK.USER_ID = RSLT.USER_ID
+                        AND RSLT.EVLYN = 'N'
+                    WHERE 1=1
+                        AND AA.USEYN = 'Y'
+                        AND AA.DELYN = 'N'
+                        AND AA.MRK_RFLTYN = 'Y'
+                        AND AA.MRK_RFLTRT > 0
+                        AND AA.EXAM_QSTNS_CMPTNYN = 'Y'
+                        AND AA.EXAM_GBNCD IN ('QUIZ_SBST_EXAM_MID')
+                        AND AA.SBJCT_ID = STD.SBJCT_ID
+                        AND TK.USER_ID = STD.USER_ID
+                ),0) + NVL((
+                --	중간고사 대체과제 미평가
+                    SELECT COUNT(1)
+                    FROM TB_LMS_ASMT AA
+                    JOIN TB_LMS_ASMT_SBMSN SBM
+                        ON AA.ASMT_ID = SBM.ASMT_ID
+                    JOIN TB_LMS_ASMT_EVL EVL
+                        ON SBM.ASMT_SBMSN_ID = EVL.ASMT_SBMSN_ID
+                        AND EVL.EVLYN = 'N'
+                    WHERE AA.DELYN = 'N'
+                        AND AA.MRK_RFLTYN = 'Y'
+                        AND AA.MRK_RFLTRT > 0
+                        AND AA.ASMT_GBNCD = 'MID_EXAM_SBST_ASMT'
+                        AND AA.SBJCT_ID = STD.SBJCT_ID
+                        AND SBM.USER_ID = STD.USER_ID
+                ),0) AS MID_NO_EVL_CNT
+            , NVL(( -- 기말고사 미평가
+                -- 기말고사 시험 미평가
+                SELECT COUNT(1)
+                FROM TB_LMS_EXAM_BSC AA
+                    JOIN TB_LMS_EXAM_DTL DTL
+                        ON AA.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                    JOIN TB_LMS_TKEXAM TK
+                        ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                    JOIN TB_LMS_TKEXAM_RSLT RSLT
+                        ON TK.TKEXAM_ID = RSLT.TKEXAM_ID
+                        AND TK.USER_ID = RSLT.USER_ID
+                        AND RSLT.EVLYN = 'N'
+                    WHERE AA.USEYN = 'Y'
+                        AND AA.DELYN = 'N'
+                        AND AA.MRK_RFLTYN = 'Y'
+                        AND AA.MRK_RFLTRT > 0
+                        AND AA.EXAM_QSTNS_CMPTNYN = 'Y'
+                        AND AA.EXAM_GBNCD IN ('EXAM_LST', 'QUIZ_EXAM_LST', 'EXAM_LST_TEAM')
+                        AND AA.SBJCT_ID = STD.SBJCT_ID
+                        AND TK.USER_ID = STD.USER_ID
+                ),0) + NVL((
+                    -- 기말고사 대체퀴즈 미평가
+                    SELECT COUNT(1)
+                    FROM TB_LMS_EXAM_BSC AA
+                    JOIN TB_LMS_EXAM_DTL DTL
+                        ON AA.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                    JOIN TB_LMS_TKEXAM TK
+                        ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                    JOIN TB_LMS_TKEXAM_RSLT RSLT
+                        ON TK.TKEXAM_ID = RSLT.TKEXAM_ID
+                        AND TK.USER_ID = RSLT.USER_ID
+                        AND RSLT.EVLYN = 'N'
+                    WHERE AA.USEYN = 'Y'
+                        AND AA.DELYN = 'N'
+                        AND AA.MRK_RFLTYN = 'Y'
+                        AND AA.MRK_RFLTRT > 0
+                        AND AA.EXAM_QSTNS_CMPTNYN = 'Y'
+                        AND AA.EXAM_GBNCD IN ('QUIZ_SBST_EXAM_LST')
+                        AND AA.SBJCT_ID = STD.SBJCT_ID
+                        AND TK.USER_ID = STD.USER_ID
+                ),0) + NVL((
+                    -- 기말고사 대체과제 미평가
+                    SELECT COUNT(1)
+                    FROM TB_LMS_ASMT AA
+                    JOIN TB_LMS_ASMT_SBMSN SBM
+                        ON AA.ASMT_ID = SBM.ASMT_ID
+                    JOIN TB_LMS_ASMT_EVL EVL
+                        ON SBM.ASMT_SBMSN_ID = EVL.ASMT_SBMSN_ID
+                        AND EVL.EVLYN = 'N'
+                    WHERE AA.DELYN = 'N'
+                        AND AA.MRK_RFLTYN = 'Y'
+                        AND AA.MRK_RFLTRT > 0
+                        AND AA.ASMT_GBNCD = 'LST_EXAM_SBST_ASMT'
+                        AND AA.SBJCT_ID = STD.SBJCT_ID
+                        AND SBM.USER_ID = STD.USER_ID
+            ),0) AS LAST_NO_EVL_CNT
+            , ( --	세미나 미평가
+--                 SELECT COUNT(1)
+--                 FROM TB_LMS_SMNR AA
+--                 JOIN TB_LMS_LCTR_WKNO_SCHDL WK
+--                 ON AA.LCTR_WKNO_SCHDL_ID = WK.LCTR_WKNO_SCHDL_ID
+--                 WHERE WK.SBJCT_ID = STD.SBJCT_ID
+                0 --  -> 컬럼 변경 작업 전으로 우선 0 처리
+            ) AS SMNR_NO_EVL_CNT
+            , ( --	과제 미평가
+                SELECT COUNT(1)
+                FROM TB_LMS_ASMT AA
+                JOIN TB_LMS_ASMT_SBMSN SBM
+                    ON AA.ASMT_ID = SBM.ASMT_ID
+                JOIN TB_LMS_ASMT_EVL EVL
+                    ON SBM.ASMT_SBMSN_ID = EVL.ASMT_SBMSN_ID
+                    AND EVL.EVLYN = 'N'
+                WHERE AA.DELYN = 'N'
+                    AND AA.MRK_RFLTYN = 'Y'
+                    AND AA.MRK_RFLTRT > 0
+                    AND AA.ASMT_GBNCD IN ('ASMT', 'ASMT_TEAM', 'PRCTC_ASMT', 'PRCTC_ASMT_TEAM', 'INDV_ASMT')
+                    AND EVL.EVLYN = 'N'
+                    AND AA.SBJCT_ID = STD.SBJCT_ID
+                    AND SBM.USER_ID = STD.USER_ID
+            )AS ASMT_NO_EVL_CNT
+            , ( --	토론 미평가
+                SELECT COUNT(1)
+                FROM TB_LMS_DSCS AA
+                JOIN TB_LMS_DSCS_PTCP PT
+                    ON AA.DSCS_ID = PT.DSCS_ID
+                    AND PT.EVLYN = 'N'
+                WHERE AA.DELYN = 'N'
+                    AND AA.MRK_RFLTYN = 'Y'
+                    AND AA.MRK_RFLTRT > 0
+                    AND AA.SBJCT_ID = STD.SBJCT_ID
+                    AND PT.USER_ID = STD.USER_ID
+            ) AS DSCS_NO_EVL_CNT
+            , (--	퀴즈 미평가
+                SELECT COUNT(1)
+                FROM TB_LMS_EXAM_BSC AA
+                JOIN TB_LMS_EXAM_DTL DTL
+                    ON AA.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                JOIN TB_LMS_TKEXAM TK
+                    ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                JOIN TB_LMS_TKEXAM_RSLT RSLT
+                    ON TK.TKEXAM_ID = RSLT.TKEXAM_ID
+                    AND TK.USER_ID = RSLT.USER_ID
+                    AND RSLT.EVLYN = 'N'
+                WHERE AA.USEYN = 'Y'
+                    AND AA.DELYN = 'N'
+                    AND AA.MRK_RFLTYN = 'Y'
+                    AND AA.MRK_RFLTRT > 0
+                    AND AA.EXAM_QSTNS_CMPTNYN = 'Y'
+                    AND AA.EXAM_GBNCD IN ('QUIZ', 'QUIZ_TEAM')
+                    AND AA.SBJCT_ID = STD.SBJCT_ID
+                    AND TK.USER_ID = STD.USER_ID
+            ) AS QUIZ_NO_EVL_CNT
+            , ( --	설문 미평가
+                SELECT COUNT(1)
+                FROM TB_LMS_SRVY AA
+                JOIN TB_LMS_LCTR_WKNO_SCHDL WK
+                    ON AA.LCTR_WKNO_SCHDL_ID = WK.LCTR_WKNO_SCHDL_ID
+                JOIN TB_LMS_SRVY_PTCP PT
+                    ON AA.SRVY_ID = PT.SRVY_ID
+                    AND PT.SRVY_PTCP_EVLYN = 'N'
+                WHERE AA.DELYN = 'N'
+                    AND AA.USEYN = 'Y'
+                    AND AA.MRK_RFLTYN = 'Y'
+                    AND AA.MRK_RFLTRT > 0
+                    AND AA.SRVY_QSTNS_CMPTNYN = 'Y'
+                    AND WK.SBJCT_ID = STD.SBJCT_ID
+                    AND PT.USER_ID = STD.USER_ID
+            ) AS SRVY_NO_EVL_CNT
+        FROM TB_LMS_ATNDLC STD
+        WHERE 1=1
+            AND STD.SBJCT_ID = 'SBJCT_OFRNG_ID2'
+            AND STD.ATNDLC_CNCL_DTTM IS NULL
+            AND STD.AUDITYN  = 'N'
+        ]]>
+    </sql>
+
+    <select id="stdMrkList" parameterType="egovMap" resultType="EgovMap">
+        /*
+        SQL ID : MarkSubjectDAO.stdMrkList
+        설  명 :
+        */
+        WITH EXAM_ABSNCE_T AS ( /*결시 신청*/
+            SELECT *
+            FROM (
+                SELECT
+                      ROW_NUMBER()OVER(PARTITION BY A.EXAM_BSC_ID, A.USER_ID ORDER BY A.REG_DTTM DESC ) AS RN
+                    , A.USER_ID
+                    , A.APLY_STSCD
+                    , B.EXAM_GBNCD
+                    , B.TKEXAM_MTHD_CD
+                FROM TB_LMS_EXAM_ABSNCE A
+                JOIN TB_LMS_EXAM_BSC B
+                    ON A.EXAM_BSC_ID = B.EXAM_BSC_ID
+                    AND B.SBJCT_ID = 'SBJCT_OFRNG_ID2'
+                    AND B.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_MID_TEAM','EXAM_LST', 'EXAM_LST_TEAM')
+                    AND B.TKEXAM_MTHD_CD = 'RLTM'
+                WHERE 1=1
+                    AND A.APLY_STSCD IN ('APLY', 'RE_APLY', 'APRV')
+            )A
+            WHERE A.RN = 1
+        ), NO_EVL_T AS (
+            <include refid="noEvalQuery" />
+        )
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY XXX.USERNM ASC) AS LINE_NO
+            , XXX.*
+        FROM (
+            SELECT
+                XX.*
+                , (SELECT APLY_STSCD FROM EXAM_ABSNCE_T WHERE USER_ID = XX.USER_ID AND TKEXAM_MTHD_CD = 'M') AS APPR_STAT_M
+                , (SELECT APLY_STSCD FROM EXAM_ABSNCE_T WHERE USER_ID = XX.USER_ID AND TKEXAM_MTHD_CD = 'L') AS APPR_STAT_L
+                , (SELECT MID_NO_EVL_CNT   FROM NO_EVL_T WHERE USER_ID = XX.USER_ID) AS MID_NO_EVL_CNT
+                , (SELECT LAST_NO_EVL_CNT  FROM NO_EVL_T WHERE USER_ID = XX.USER_ID) AS LAST_NO_EVL_CNT
+                , (SELECT ASMT_NO_EVL_CNT FROM NO_EVL_T WHERE USER_ID = XX.USER_ID) AS ASMT_NO_EVL_CNT
+                , (SELECT DSCS_NO_EVL_CNT FROM NO_EVL_T WHERE USER_ID = XX.USER_ID) AS DSCS_NO_EVL_CNT
+                , (SELECT QUIZ_NO_EVL_CNT  FROM NO_EVL_T WHERE USER_ID = XX.USER_ID) AS QUIZ_NO_EVL_CNT
+                , (SELECT SRVY_NO_EVL_CNT FROM NO_EVL_T WHERE USER_ID = XX.USER_ID) AS SRVY_NO_EVL_CNT
+                , (SELECT SMNR_NO_EVL_CNT  FROM NO_EVL_T WHERE USER_ID = XX.USER_ID) AS SMNR_NO_EVL_CNT
+            FROM (
+                <include refid="scoreOverallQuery" />
+            ) XX
+        ) XXX
+        WHERE 1=1
+        <if test="searchType == 'btnZero'.toString()">
+            AND (MID_NO_EVAL_CNT + LAST_NO_EVAL_CNT + ASMNT_NO_EVAL_CNT + FORUM_NO_EVAL_CNT + QUIZ_NO_EVAL_CNT + TEST_NO_EVAL_CNT + RESCH_NO_EVAL_CNT) &gt; 0
+        </if>
+<!--        <if test="searchType == 'btnF'.toString()">
+            AND (
+            ((LESSON_SCORE_AVG + MIDDLE_TEST_SCORE_AVG + LAST_TEST_SCORE_AVG + TEST_SCORE_AVG + ASSIGNMENT_SCORE_AVG + FORUM_SCORE_AVG + QUIZ_SCORE_AVG + RESH_SCORE_AVG) &lt; 10)
+            OR (MIDDLE_TEST_USE_YN = 'Y' AND LAST_TEST_USE_YN = 'Y' AND MIDDLE_TEST_NO_YN = 'Y' AND LAST_TEST_NO_YN = 'Y')
+            OR (MIDDLE_TEST_USE_YN = 'Y' AND LAST_TEST_USE_YN = 'N' AND MIDDLE_TEST_NO_YN = 'Y')
+            OR (MIDDLE_TEST_USE_YN = 'N' AND LAST_TEST_USE_YN = 'Y' AND LAST_TEST_NO_YN = 'Y')
+            )
+        </if>-->
+    </select>
+
+    <select id="stdMrkListCntSelect" parameterType="String" resultType="int" >
+        /*
+			 SQL ID: stdMrkListCntSelect
+			 설  명 : 학생 성적 목록 수를 가져온다.
+		*/
+        SELECT COUNT(1)
+        FROM (
+            SELECT 1
+            FROM TB_LMS_ATNDLC STD
+                JOIN TB_LMS_MRK_SBJCT A ON STD.USER_ID = A.USER_ID
+                JOIN TB_LMS_MRK_SBJCT_DTL B ON (A.MRK_SBJCT_ID = A.MRK_SBJCT_ID)
+                JOIN TB_LMS_MRK_ITM_STNG C ON (A.SBJCT_ID = C.SBJCT_ID AND B.MRK_ITM_TYCD = C.MRK_ITM_TYCD)
+                JOIN TB_LMS_USER USR ON (STD.USER_ID = USR.USER_ID)
+            WHERE 1=1
+                AND STD.ATNDLC_CNCL_DTTM IS NOT NULL
+                AND STD.AUDITYN = 'N'
+                AND STD.SBJCT_ID = #{sbjctId}
+            GROUP BY A.USER_ID, C.SBJCT_ID
+        ) A
+    </select>
+
+</mapper>
