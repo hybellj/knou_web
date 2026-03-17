@@ -22,7 +22,7 @@
         });
 
         if("${forumVo.forumCtgrCd}" == "TEAM") {
-            if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+            if (${forumVo.byteamDscsUseyn eq 'Y'}) {
                 $('.team_selected_nm').prop('disabled', true);
                 $('#join_write_input_area').hide();
             } else {
@@ -132,7 +132,7 @@
 
         // Team 토론시 팀토론 코드로 변경
         var forumCd = "${forumVo.forumCd}";
-        if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+        if (${forumVo.byteamDscsUseyn eq 'Y'}) {
             forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
         }
 
@@ -203,18 +203,18 @@
         return '';
     }
 
-    // 댓글 수정/삭제 버튼 (내부유틸)
+    // 댓글 수정/삭제/대댓글 버튼 (내부유틸)
     function _tmpl_cmntEditBtns(rs, index, i) {
         if(rs.delYn == "Y") { return ''; }
+        var replyBtn = (rs.level == 1)
+            ? "<button class=\"cmtWri\" onclick=\"btnAddCmnt('"+index+"','"+i+"','"+ rs.atclSn +"','"+ rs.cmntSn +"')\"><spring:message code='forum.button.cmnt'/></button>"
+            : '';
         return [
-            "<button type=\"button\" class=\"toggle_btn\" onclick=\"btnAddCmnt('"+index+"','"+i+"','"+rs.atclSn+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.cmnt'/></button>",
-            "<ul class=\"ui icon top right pointing dropdown\" tabindex=\"0\">",
-            "    <i class=\"xi-ellipsis-v p5\"></i>",
-            "    <div class=\"menu\" tabindex=\"-1\">",
-            "        <button type=\"button\" class=\"item\" onClick=\"editBtnClick('"+rs.atclSn+"','"+rs.rgtrId+"','"+rs.cmntSn+"','"+index+"','"+i+"','"+rs.level+"', '"+ rs.ansReqYn +"')\"><spring:message code='forum.button.mod'/></button>",
-            "        <button type=\"button\" class=\"item\" onClick=\"delCmnt('"+rs.rgtrId+"','"+rs.cmntSn+"')\"><spring:message code='forum.button.del'/></button>",
-            "    </div>",
-            "</ul>"
+            "<span class=\"cmtBtnGroup\">",
+            "    <button class=\"cmtUpt\" onclick=\"editBtnClick('"+ rs.atclSn +"','"+ rs.rgtrId +"','"+ rs.cmntSn +"','"+ index +"','"+ i +"','"+ rs.level +"','"+ rs.ansReqYn +"')\"><spring:message code='forum.button.mod'/></button>",
+            "    <button class=\"cmtDel\" onclick=\"delCmnt('"+ rs.rgtrId +"','"+ rs.cmntSn +"')\"><spring:message code='forum.button.del'/></button>",
+            replyBtn,
+            "</span>"
         ].join('');
     }
 
@@ -222,49 +222,25 @@
     // 2. 템플릿 함수
     // =========================================================
 
-    // 게시글 카드 상단 (작성자/날짜/뱃지)
+    // 게시글 상단 -> .answer > .title_area
     function tmpl_atclHeader(v, i) {
-        var userImg = v.phtFile != null ? v.phtFile : "/webdoc/img/icon-hycu-symbol-grey.svg";
         var regDttm = _formatDttm(v.regDttm);
-
         var fileLinks = [];
-        v.fileList.forEach(function(item, index) {
-            if(index > 0) {
-                fileLinks.push(" | <a href=\"javascript:fileDown('"+ item.fileSn +"', '"+ item.repoCd +"');\" class=\"link\">"+ item.fileNm +"</a>");
-            } else {
-                fileLinks.push("<a href=\"javascript:fileDown('"+ item.fileSn +"', '"+ item.repoCd +"');\" class=\"link\">"+ item.fileNm +"</a>");
-            }
+        v.fileList.forEach(function(item, fIdx) {
+            var sep = fIdx > 0 ? " | " : "";
+            fileLinks.push(sep + "<a href=\"javascript:fileDown('"+ item.fileSn +"', '"+ item.repoCd +"');\" class=\"link\">"+ item.fileNm +"</a>");
         });
-
-        var menuBtns = '';
-        if(v.rgtrId == "${userId}" && v.delYn == "N") {
-            menuBtns = [
-                "<div class='ui top right pointing dropdown right-box'>",
-                "    <span class='bars'><spring:message code='forum.label.menu' /></span>",
-                "    <div class='menu'>",
-                "        <a href=\"javascript:editAtclBtn('"+ v.atclSn +"','"+ v.rgtrId +"')\" class='item'><spring:message code='forum.button.mod'/></a>",
-                "        <a href=\"javascript:delAtcl('"+ v.atclSn +"','"+ v.rgtrId +"')\" class='item'><spring:message code='forum.button.del'/></a>",
-                "    </div>",
-                "</div>"
-            ].join('');
-        }
-
+        var titleText = v.regNm + "(" + v.userId + ")" + _tmpl_prosConsBadge(v);
+        if(fileLinks.length > 0) titleText += " | " + fileLinks.join('');
         return [
-            "<div class='content card-item-center'>",
-            "    <div class='flex fac flex-wrap wmax'>",
-            "        <div class='user'><span class='user_img'><img src='"+userImg+"' alt=\"<spring:message code='forum.common.user.img' />\"></span></div>",
-            "        <span class='label mr10'>"+ v.regNm +"("+ v.userId +")</span>",
-            "        <span class='label mr10 fcBlue'><spring:message code='forum.label.length'/> : "+ v.ctsLen +"<spring:message code='forum.label.word'/></span>",
-            _tmpl_prosConsBadge(v),
-            "        <span class='label mr10'><spring:message code='forum.label.reg.dttm'/> : "+ regDttm +"</span>",
-            "        <span class='label mr10'><spring:message code='forum.label.attachFile'/> : "+ fileLinks.join('') +"</span>",
-            "    </div>",
-            menuBtns,
+            "<div class='title_area'>",
+            "    <strong class='title'>" + titleText + "</strong>",
+            "    <span class='date'><b>" + v.regNm + "</b><em>" + regDttm + "</em></span>",
             "</div>"
         ].join('');
     }
 
-    // 게시글 본문
+    // 게시글 본문 -> .answer > .cont
     function tmpl_atclBody(v) {
         var ctsHtml;
         console.log("${forumVo.prosConsForumCfg}");
@@ -276,95 +252,101 @@
         var delBadge = (v.delYn == "Y")
             ? " <span class=\"ui red label p4 f080\"><spring:message code='forum.label.sapn.del.content'/></span>"
             : '';
+        var editBtns = '';
+        if(v.rgtrId == "${userId}" && v.delYn == "N") {
+            editBtns = [
+                "<div class='bottom_btn'>",
+                "    <div class='right-area'>",
+                "        <button type='button' class='btn basic' onclick=\"editAtclBtn('"+ v.atclSn +"','"+ v.rgtrId +"')\"><spring:message code='forum.button.mod'/></button>",
+                "        <button type='button' class='btn basic' onclick=\"delAtcl('"+ v.atclSn +"','"+ v.rgtrId +"')\"><spring:message code='forum.button.del'/></button>",
+                "    </div>",
+                "</div>"
+            ].join('');
+        }
         return [
-            "<div class='ui segment ml25 mr25 mt10 mb10 forumView'>",
+            "<div class='cont'>",
             "    " + ctsHtml + delBadge,
+            editBtns,
             "</div>"
         ].join('');
     }
 
-    // 댓글 입력 폼
-    function tmpl_cmntWriteForm(atclSn, i) {
+    // 댓글 영역 -> .Comment (top_area + comment_list 상단 작성폼, 닫는 div 2개는 createForumListHTML에서 추가)
+    function tmpl_cmntWriteForm(atclSn, i, cmntCount) {
         return [
-            "<div class='content comment border0'>",
-            "    <div class='ui box flex-item'>",
-            "        <div class='flex-item mra'>",
-            "            <div class='cur_point' id='cmntOpen"+ i +"' onclick=\"cmntView('"+ atclSn +"', '"+ i +"')\">",
-            "                <i class=\"xi-message-o f120 mr5\" aria-hidden=\"true\"></i>",
-            "                <i class=\"xi-angle-down-min\" aria-hidden=\"true\"></i>",
-            "            </div>",
-            "        </div>",
-            "        <div id='cmntWrite"+ i +"' onclick=\"cmntWirte('"+ atclSn +"', '"+ i +"')\" class=\"mla\">",
-            "            <button class=\"ui basic small button toggle_commentwrite\"><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.write'/></button>",
-            "        </div>",
+            "<div class='Comment'>",
+            "    <div class='top_area'>",
+            "        <button class='toggle_commentlist' id='cmntOpen"+ i +"' onclick=\"cmntView('"+ atclSn +"', '"+ i +"')\">",
+            "            <i class='icon-svg-message'></i>" + cmntCount + "개의 댓글이 있습니다. <i class='icon-svg-arrow-down'></i>",
+            "        </button>",
+            "        <button class='toggle_commentwrite btn basic' onclick=\"cmntWirte('"+ atclSn +"', '"+ i +"')\"><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.write'/></button>",
             "    </div>",
-            "    <div class=\"ui box\">",
-            "        <div class=\"toggle_box pt10 commentwrite\" id='toggleBox"+ i +"' style=\"display: none;\">",
-            "            <ul class=\"comment-write bcdark1Alpha05 p8\">",
-            "                <li class=\"flex-item mra\">",
-            "                    <small class=\"pr4\"><spring:message code='forum.button.label.info' /></small>",
-            "                    <a href=\"javascript:setCts(0, "+ i +");\" id='cts0' class=\"ui basic mini label\"><spring:message code='forum.button.cts0' /></a>",
-            "                    <a href=\"javascript:setCts(1, "+ i +");\" id='cts1' class=\"ui basic mini label\"><spring:message code='forum.button.cts1' /></a>",
-            "                    <a href=\"javascript:setCts(2, "+ i +");\" id='cts2' class=\"ui basic mini label\"><spring:message code='forum.button.cts2' /></a>",
-            "                </li>",
-            "                <li><textarea rows=\"3\" class=\"wmax\" placeholder=\"<spring:message code='forum.label.input.cmnt'/>\" id='cmntText"+ i +"'></textarea></li>",
-            "                <li class=\"flex-item flex-wrap\">",
-            "                    <div class=\"ui checkbox f080 mra\"></div>",
-            "                    <a href=\"javascript:addCmnt('"+ atclSn +"','','"+ i +"');\" class=\"ui basic grey small button\"><spring:message code='forum.button.reg'/></a>",
-            "                </li>",
-            "            </ul>",
-            "        </div>",
-            "    </div>"
+            "    <div class='comment_list'>",
+            "        <div class='recmt_form' id='toggleBox"+ i +"' style='display:none;'>",
+            "            <fieldset>",
+            "                <legend class='sr_only'>댓글등록</legend>",
+            "                <div class='memo'>",
+            "                    <div class='simple_answer'>",
+            "                        <span><spring:message code='forum.button.label.info' /></span>",
+            "                        <div class='answer_btn'>",
+            "                            <a href='#0' onclick=\"setCts(0, "+ i +");\"><spring:message code='forum.button.cts0' /></a>",
+            "                            <a href='#0' onclick=\"setCts(1, "+ i +");\"><spring:message code='forum.button.cts1' /></a>",
+            "                            <a href='#0' onclick=\"setCts(2, "+ i +");\"><spring:message code='forum.button.cts2' /></a>",
+            "                        </div>",
+            "                    </div>",
+            "                    <textarea title='<spring:message code="forum.label.input.cmnt"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.label.input.cmnt"/>' id='cmntText"+ i +"'></textarea>",
+            "                    <div class='bottom_btn'>",
+            "                        <span class='custom-input'>",
+            "                            <input type='checkbox' id='ansReqYn"+ i +"' name='ansReqYn'>",
+            "                            <label for='ansReqYn"+ i +"'>피드백 문의 <span class='small'>( 체크 시 문의로 등록되며 답변을 받을 수 있습니다. )</span></label>",
+            "                        </span>",
+            "                        <div class='right-area'>",
+            "                            <button type='button' class='btn type2' onclick=\"addCmnt('"+ atclSn +"','','"+ i +"');\"><spring:message code='forum.button.reg'/></button>",
+            "                        </div>",
+            "                    </div>",
+            "                </div>",
+            "            </fieldset>",
+            "        </div>"
         ].join('');
     }
 
-    // 댓글/대댓글 한 줄
+    // 댓글/대댓글 한 줄 -> level==1: <li>, level>1: <li class="re_comment">
     function tmpl_cmntItem(rs, index, i) {
-        var userImg = rs.phtFile != null ? rs.phtFile : "/webdoc/img/icon-hycu-symbol-grey.svg";
         var regDate = _formatDttm(rs.modDttm);
         var isReply = (rs.level != 1);
-        var ulClass = isReply ? "dash_item_listA" : "";
+        var liClass = isReply ? " class='re_comment'" : "";
 
-        var lenBadge = (rs.delYn != "Y")
-            ? " | <em class='fcBlue'><spring:message code='forum.label.length'/> : "+ rs.cmntCtsLen +"<spring:message code='forum.label.word'/></em>"
-            : '';
-
-        var ctsRow = (rs.delYn == "Y")
-            ? "<li><span class=\"ui red label\"><spring:message code='forum.label.del.forum.cmnt'/></span></li>"
-            : "<li id=\"cmntContents"+index+i+"\">"+ rs.cmntCts + "</li>";
+        var ctsSpan = (rs.delYn == "Y")
+            ? "<span class='comment'><span class='ui red label'><spring:message code='forum.label.del.forum.cmnt'/></span></span>"
+            : "<span class='comment' id='cmntContents"+index+i+"'>"+ rs.cmntCts +"</span>";
 
         var replyForm = '';
         if(rs.delYn != "Y") {
             replyForm = [
-                "<li class=\"toggle_box\" id=\"toggleCmnt"+ index + i +"\">",
-                "    <ul class=\"comment-write\">",
-                "        <li>",
-                "            <textarea rows=\"3\" class=\"wmax\" id=\"cmntText"+ index + i +"\" placeholder=\"<spring:message code='forum.alert.input.forum_reply'/>\"></textarea>",
-                "        </li>",
-                "        <li id=\"btnCmnt"+index+i+"\">",
-                "            <a href=\"javascript:addCmnt('"+rs.atclSn+"','"+rs.cmntSn+"','"+index+"','"+i+"')\" class=\"ui basic grey small button\"><spring:message code='forum.button.reg'/></a>",
-                "        </li>",
-                "    </ul>",
-                "</li>"
+                "<div class='recmt_form' id='toggleCmnt"+ index + i +"'>",
+                "    <fieldset>",
+                "        <legend class='sr_only'>댓글등록</legend>",
+                "        <div class='memo'>",
+                "            <textarea title='<spring:message code="forum.alert.input.forum_reply"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.alert.input.forum_reply"/>' id='cmntText"+ index + i +"'></textarea>",
+                "            <button type='button' class='cmt_create' id='btnCmnt"+ index + i +"' onclick=\"addCmnt('"+ rs.atclSn +"','"+ rs.cmntSn +"','"+ index +"','"+ i +"')\"><spring:message code='forum.button.reg'/></button>",
+                "        </div>",
+                "    </fieldset>",
+                "</div>"
             ].join('');
         }
 
         return [
-            "<ul" + (ulClass ? " class=\""+ulClass+"\"" : "") + ">",
-            "    <li class=\"imgBox\">",
-            "        <div class='user'><span class='user_img'><img src='"+userImg+"' alt=\"<spring:message code='forum.common.user.img' />\"></span></div>",
-            "    </li>",
-            "    <li>",
-            "        <ul>",
-            "            <li class=\"flex-item\">",
-            "                <em class=\"mra mt0\">"+ rs.rgtrnm +" <code>"+ regDate + lenBadge +"</code></em>",
+            "<li"+ liClass +">",
+            "    <div class='item'>",
+            "        <div class='cmt_info'>",
+            "            <strong class='name'>"+ rs.rgtrnm +"</strong>",
+            "            <span class='date'>"+ regDate +"</span>",
+            "        </div>",
+            ctsSpan,
             _tmpl_cmntEditBtns(rs, index, i),
-            "            </li>",
-            ctsRow,
+            "    </div>",
             replyForm,
-            "        </ul>",
-            "    </li>",
-            "</ul>"
+            "</li>"
         ].join('');
     }
 
@@ -386,18 +368,41 @@
 
         var parts = [];
         forumList.forEach(function(v, i) {
-            var cmntRows = [];
-            v.cmntList.forEach(function(rs, index) {
-                cmntRows.push(tmpl_cmntItem(rs, index, i));
+            // level-1/level-2 그룹핑 (flat index 유지 - JS ID 호환)
+            var grouped = [];
+            var curL1 = null;
+            v.cmntList.forEach(function(rs, flatIdx) {
+                if(rs.level == 0) {
+                    curL1 = { rs: rs, flatIdx: flatIdx, replies: [] };
+                    grouped.push(curL1);
+                } else {
+                    if(curL1) curL1.replies.push({ rs: rs, flatIdx: flatIdx });
+                }
+            });
+
+            var cmntCount = grouped.length;
+
+            var cmntItemsHTML = '';
+            grouped.forEach(function(g) {
+                var l1Html = tmpl_cmntItem(g.rs, i, g.flatIdx);
+                if(g.replies.length > 0) {
+                    var replyItems = g.replies.map(function(r) {
+                        return tmpl_cmntItem(r.rs, i, r.flatIdx);
+                    }).join('');
+                    l1Html = l1Html.replace(/<\/li>$/, "<ul class='re_comment_ul'>" + replyItems + "</ul></li>");
+                }
+                cmntItemsHTML += l1Html;
             });
 
             parts.push([
-                "<div class='ui card wmax'>",
+                "<div class='answer'>",
                 tmpl_atclHeader(v, i),
                 tmpl_atclBody(v),
-                tmpl_cmntWriteForm(v.atclSn, i),
-                "    <div class='article p10 commentlist' id='article"+ i +"'>",
-                cmntRows.join(''),
+                "</div>",
+                tmpl_cmntWriteForm(v.atclSn, i, cmntCount),
+                "<ul class='commentlist' id='article"+ i +"'>",
+                cmntItemsHTML,
+                "</ul>",
                 "    </div>",
                 "</div>"
             ].join(''));
@@ -531,7 +536,7 @@
         $("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
 
         // Team 토론시 팀토론 코드로 변경
-        if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+        if (${forumVo.byteamDscsUseyn eq 'Y'}) {
             var teamDscsId = $('#team_selected_name').attr('teamSelectedDscsId');
             $("input[name='forumCd']").val(teamDscsId);
         }
@@ -586,7 +591,7 @@
 
         // Team 토론시 팀토론 코드로 변경
         var forumCd = "${forumVo.forumCd}";
-        if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+        if (${forumVo.byteamDscsUseyn eq 'Y'}) {
             forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
         }
 
@@ -674,7 +679,7 @@
 
             // Team 토론시 팀토론 코드로 변경
             var forumCd = "${forumVo.forumCd}";
-            if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+            if (${forumVo.byteamDscsUseyn eq 'Y'}) {
                 forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
             }
 
@@ -860,7 +865,7 @@
     //게시글 수정 버튼
     function editAtclBtn(atclSn,rgtrId){
         // Team 토론시 팀토론 코드로 변경
-        if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+        if (${forumVo.byteamDscsUseyn eq 'Y'}) {
             var teamDscsId = $('#team_selected_name').attr('teamSelectedDscsId');
             $("input[name='forumCd']").val(teamDscsId);
         }
@@ -947,7 +952,7 @@
 
         // Team 토론시 팀토론 코드로 변경
         var forumCd = "${forumVo.forumCd}";
-        if ("${forumVo.byteamDscsUseyn eq 'Y'}") {
+        if (${forumVo.byteamDscsUseyn eq 'Y'}) {
             forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
         }
 
