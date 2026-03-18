@@ -237,15 +237,13 @@
 				var html  = "<tr>";
 		    		html += "	<th>정답 입력</th>";
 		    		html += "	<td class='t_left'>";
-		    		html += "		<div class='list_view_box width-50per'>";
-		    		html += "			<span class='checkImg'>";
-		    							for(var idx = 1; idx <= 2; idx++) {
-		    								var oxClass = idx == 1 ? "true" : "false";
-		    		html += "				<input type='radio' name='qstnVwitmCts' id='"+formId+"_"+oxClass+"' value='" + (idx == 1 ? "O" : "X") + "' >";
-		    		html += "				<label for='"+formId+"_"+oxClass+"' class='imgChk "+oxClass+"'></label>";
-		    							}
-		    		html += "			</span>";
-		    		html += "		</div>";
+		    						for(var idx = 1; idx <= 2; idx++) {
+		    							var oxClass = idx == 1 ? "true" : "false";
+				 	html += "			<span class='custom-input'>";
+					html += "				<input type='radio' name='qstnVwitmCts' id='"+formId+"_"+oxClass+"' value='" + (idx == 1 ? "O" : "X") + "' />";
+					html += "				<label for='"+formId+"_"+oxClass+"'>" + (idx == 1 ? "O" : "X") + "</label>";
+					html += "			</span>";
+		    						}
 		    		html += "	</td>";
 		    		html += "</tr>";
 		    	$("#"+formId+" .qstnTypeDiv > table > tbody").append(html);
@@ -1344,6 +1342,7 @@
 	    /**
 		 * 퀴즈출제완료수정
 		 * @param {String} type	- 저장 구분 ( save : 저장, edit : 수정 )
+		 * @param {String} gbn	- 구분 ( bsc : 전체, dtl : 팀 )
 		 */
 	    function quizQstnsCmptnModify(type, gbn) {
 			if($("#qstnTotalScore").text() != "100" && type == "save") {

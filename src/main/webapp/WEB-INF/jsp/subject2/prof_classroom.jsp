@@ -416,10 +416,10 @@
 							        <li>학습주차일정정보가 없습니다.</li>
 							    </c:when>
 							    <c:otherwise>
-		                        	<c:forEach var="item" items="${subjectVM.profLectureScheduleList}">
+		                        	<c:forEach var="item" items="${subjectVM.profLectureScheduleList}" varStatus="status">
 			                            <div class="state">
 			                                <span class="week">${item.lctrWkno}</span>
-			                                <span class="percent">교수10%</span>
+			                                <span class="percent">${status.index < 4 ? "100%" : status.index < 6 ? "10%" : "0%"}</span>
 			                            </div>
 		                            </c:forEach>
 		                        </c:otherwise>

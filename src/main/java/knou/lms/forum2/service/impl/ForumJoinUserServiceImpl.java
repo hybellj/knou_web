@@ -1,5 +1,6 @@
 package knou.lms.forum2.service.impl;
 
+import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.StringUtil;
@@ -210,7 +211,7 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
                 } else {
                     // 피드백 등록
                     if(!"".equals(fdbkCts)) {
-                        forumFdbkCd = IdGenerator.getNewId("FFDBK");
+                        forumFdbkCd = IdGenerator.getNewId(IdPrefixType.DSFDK.getCode());
                         forumFdbkVO.setForumFdbkCd(forumFdbkCd);
                         forumFdbkVO.setFdbkCts(fdbkCts);
                         forumFdbkVO.setDelYn("N");

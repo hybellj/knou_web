@@ -131,15 +131,30 @@ public interface SrvyDAO {
 	/**
 	* 교수권한과목설문목록조회
 	*
-	* @param orgId 			기관아이디
 	* @param userId 		교수아이디
 	* @param smstrChrtId 	학기기수아이디
 	* @param sbjctId	 	과목아이디
 	* @param searchValue 	검색내용(설문명)
-	* @param listScale	 	페이지크기
-	* @return 설문목록 페이징
+	* @return 설문목록
 	* @throws Exception
 	*/
 	public List<EgovMap> profAuthrtSbjctSrvyList(Map<String, Object> params) throws Exception;
+
+	/**
+	* 설문팀문제출제완료여부조회
+	*
+	* @param srvyId 	설문아이디
+	* @throws Exception
+	*/
+	public Boolean srvyTeamQstnsCmptnynSelect(String srvyId) throws Exception;
+
+	/**
+	* 문제가져오기설문목록조회
+	*
+    * @param sbjctId 		과목이이디
+	* @return 설문목록
+	* @throws Exception
+	*/
+	public List<SrvyVO> qstnCopySrvyList(@Param("sbjctId") String sbjctId) throws Exception;
 
 }

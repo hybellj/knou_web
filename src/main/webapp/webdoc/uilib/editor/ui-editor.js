@@ -78,6 +78,7 @@ function UiEditor(option) {
 
 	synapEditorConfig["editor.size.width"] = (option.width === undefined || !option.width) ? "100%" : option.width;
 	synapEditorConfig["editor.size.height"] = (option.height === undefined || !option.height) ? "400px" : option.height;
+	synapEditorConfig["editor.external.container.selector"] = "body";
 
 	// 에디터 설정
 	let snapEditor = new SynapEditor(option.targetId, synapEditorConfig, text, eventListeners);

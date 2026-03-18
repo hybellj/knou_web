@@ -23,7 +23,7 @@
 	var dialog;
 
 	$(document).ready(function() {
-		audioRecord = UiAudioRecorder("audioRecord");
+		/*audioRecord = UiAudioRecorder("audioRecord");
 		audioRecord.formName = "recordForm";
 		audioRecord.dataName = "audioData";
 		audioRecord.fileName = "audioFile";
@@ -38,7 +38,7 @@
 		$(".audio-header").remove();
 		$(".audio-btm .btm-btn").remove();
 
-		audioRecord.recorderBox.show();
+		audioRecord.recorderBox.show();*/
 
 		listForumUser();
 
@@ -88,8 +88,8 @@
 	function forumView(tab) {
 		var urlMap = {
 			"0" : "/forum/forumLect/Form/infoManage.do",		// 토론정보
-			"1" : "/forum/forumLect/Form/bbsManage.do",		// 토론방
-			"2" : "/forum/forumLect/Form/scoreManage.do",	// 토론평가
+			"1" : "/forum2/forumLect/Form/bbsManage.do",		// 토론방
+			"2" : "/forum2/forumLect/Form/scoreManage.do",	// 토론평가
 			"3" : "/forum/forumLect/Form/mutEvalResult.do",	// 상호평가
 		};
 
@@ -159,7 +159,8 @@
 						html += '<td class="tc word_break_none">' + (v.grscDegrCorsGbnNm || '-') + '</td>';
 					}
 					html += "	<td class='tc word_break_none' data-sort-value='"+v.userNm+"'>"+ v.userNm;
-					html +=     userInfoIcon("<%=SessionInfo.isKnou(request)%>", "userInfoPop('" + v.userId + "')");
+					// TODO : 26.3.18 AS-IS 기능.(막음 처리)
+					<%--html +=     userInfoIcon("<%=SessionInfo.isKnou(request)%>", "userInfoPop('" + v.userId + "')");--%>
 					html += "   </td>";
 					html += "	<td class='tc' data-sort-value='"+v.entrYy+"'>"+ v.entrYy +"</td>";
 					html += "	<td class='tc' data-sort-value='"+v.entrHy+"'>"+ v.entrHy +"</td>";
@@ -1081,236 +1082,240 @@
 						<jsp:include page="/WEB-INF/jsp/forum2/common/forum_info_inc.jsp" />
 						<!-- 토론정보 끝 -->
 
-					</div>
-				</div>
-
-					<div class="ui form">
-						<div class="layout2">
-
-							<div id="info-item-box"> <!--  class="ui sticky" -->
-								<script>
-									// set location
-									setLocationBar("<spring:message code='forum.label.forum'/>", "<spring:message code='forum.label.forum.info.score'/>");
-								</script>
-
-								<h2 class="page-title flex-item flex-wrap gap4 columngap16">
-								   <spring:message code='forum.label.forum'/><!-- 토론 -->
-									<%--
-									<div class="ui breadcrumb small">
-										<small class="section"><spring:message code='forum.label.forum.info.score'/><!-- 토론정보 및 평가 --></small>
-									</div>
-									--%>
-								</h2>
-								<div class="button-area">
-								<div class="button-area">
-									<a href="javascript:void(0)" class="ui blue button" onclick="editForum('${forumVo.forumCd}','${forumVo.forumStartDttm}')"><spring:message code='forum.button.mod'/><!-- 수정 --></a>
-									<a href="javascript:void(0)" class="ui basic button" onclick="delForum('${forumVo.forumCd}');"><spring:message code='forum.button.del'/><!-- 삭제 --></a>
-									<a href="javascript:void(0)" class="ui basic button" onclick="viewForumList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
+						<!-- 토론평가 검색:시작 -->
+						<div class="search-typeA margin-bottom-4">
+							<div class="text-center">
+								<select class="ui compact dropdown mr10" id="searchKey" onchange="listForumUser(1)">
+									<option value="all"><spring:message code='forum.common.search.all'/><!-- 전체 --></option>
+									<option value="joinY"><spring:message code='forum.label.join'/><!-- 참여 --></option>
+									<option value="after"><spring:message code='forum.label.after.join'/><!-- 지각참여 --></option>
+									<option value="joinN"><spring:message code='forum.label.not.join'/><!-- 미참여 --></option>
+									<c:if test="${forumVo.forumCtgrCd eq 'TEAM'}">
+										<option value="leader"><spring:message code='forum.label.team.leader'/><!-- 팀장 --></option>
+										<option value="member"><spring:message code='forum.label.team.member'/><!-- 팀원 --></option>
+									</c:if>
+								</select>
+								<select class="ui compact dropdown mr10" id="searchSort" onchange="listForumUser(1)">
+									<option value="all"><spring:message code='forum.common.search.all'/><!-- 전체 --></option>
+									<option value="evalY"><spring:message code='forum.label.eval'/><!-- 평가 --></option>
+									<option value="evalN"><spring:message code='forum.label.not.eval'/><!-- 미평가 --></option>
+								</select>
+								<div class="ui action input search-box">
+									<input type="text" placeholder="<spring:message code='forum.label.dept.nm' />, <spring:message code='forum.label.user.no' />, <spring:message code='forum.label.user_nm' /> <spring:message code='forum.label.input' />" class="w250" id="searchValue"><!-- 학과, 학번, 이름 입력 -->
+									<button class="ui icon button" onclick="listForumUser(1)"><i class="search icon"></i></button>
 								</div>
-								</div>
-							</div>
-
-					<div class="ui segment">
-						<div class="option-content mb15">
-
-						</div>
-						<div class="option-content">
-							<select class="ui compact dropdown mr10" id="searchKey" onchange="listForumUser(1)">
-								<option value="all"><spring:message code='forum.common.search.all'/><!-- 전체 --></option>
-								<option value="joinY"><spring:message code='forum.label.join'/><!-- 참여 --></option>
-								<option value="after"><spring:message code='forum.label.after.join'/><!-- 지각참여 --></option>
-								<option value="joinN"><spring:message code='forum.label.not.join'/><!-- 미참여 --></option>
-								<c:if test="${forumVo.forumCtgrCd eq 'TEAM'}">
-									<option value="leader"><spring:message code='forum.label.team.leader'/><!-- 팀장 --></option>
-									<option value="member"><spring:message code='forum.label.team.member'/><!-- 팀원 --></option>
-								</c:if>
-							</select>
-							<select class="ui compact dropdown mr10" id="searchSort" onchange="listForumUser(1)">
-								<option value="all"><spring:message code='forum.common.search.all'/><!-- 전체 --></option>
-								<option value="evalY"><spring:message code='forum.label.eval'/><!-- 평가 --></option>
-								<option value="evalN"><spring:message code='forum.label.not.eval'/><!-- 미평가 --></option>
-							</select>
-							<div class="ui action input search-box">
-								<input type="text" placeholder="<spring:message code='forum.label.dept.nm' />, <spring:message code='forum.label.user.no' />, <spring:message code='forum.label.user_nm' /> <spring:message code='forum.label.input' />" class="w250" id="searchValue"><!-- 학과, 학번, 이름 입력 -->
-								<button class="ui icon button" onclick="listForumUser(1)"><i class="search icon"></i></button>
-							</div>
 								<%-- <c:if test="${!fn:contains(authGrpCd, 'TUT') }"> --%>
-									<a href="javascript:ezGraderPop()" class="ui basic small button mla">EZ-Grader</a>
+								<a href="javascript:ezGraderPop()" class="ui basic small button mla">EZ-Grader</a>
 								<%-- </c:if> --%>
 								<%-- <a href="javascript:allFeedback()" class="ui button"><spring:message code="forum.button.all.feedback" /></a><!-- 일괄 피드백 --> --%>
 								<a href="javascript:callScoreExcelUpload()" class="ui basic small button"><spring:message code="forum.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
 
-							<uiex:msgSendBtn func="sendMsg()" styleClass="ui basic small button"/><!-- 메시지 -->
-							<a href="javascript:void(0)" class="ui basic small button" onclick="viewForumList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
-						</div>
-						<c:if test="${!fn:contains(authGrpCd, 'TUT') }">
-						<div class="ui segment">
-							<div class="ui form">
-								<div class="fields">
-									<div class="field">
-										<div class="fields">
-											<div class="field">
-												<spring:message code="common.label.batch.score.process" /><!-- 일괄 점수처리 -->
-												<div class="ui radio checkbox pl10 pr10" onclick="plusMinusIconControl('batch');">
-													<input type="radio" name="scoreType" value="batch" tabindex="0" class="hidden" checked>
-													<label for="scoreBatch"><spring:message code="forum.label.reg.scoring" /></label><!-- 점수 등록 -->
-												</div>
-												<div class="ui radio checkbox" onclick="plusMinusIconControl('addition');">
-													<input type="radio" name="scoreType" value="addition" tabindex="0" class="hidden">
-													<label for="scoreAddition"><spring:message code="forum.label.plus.minus.scoring" /></label><!-- 점수 가감 -->
-												</div>
-											</div>
-											<div class="field ml15">
-												<spring:message code="forum.label.score" /> <!-- 점수 -->
-												<div class="ui left icon input p_w60">
-													<i class="ion-plus link icon toggle-icon" style="display:none;"></i>
-													<input type="text" id="scoreValue" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');" class="w100" maxlength="3" />
-												</div>
-												 <spring:message code="forum.label.point" /><!-- 점 -->
-											</div>
-											<div class="field">
-												<a href="javascript:void(0)" class="ui blue button" onclick="submitScore()"><spring:message code="common.label.batch.score.save" /></a><!-- 일괄 점수저장 -->
-											</div>
-										</div>
-									</div>
-									<!-- 글자수로 점수 주기 -->
-									<div class="btnModalForm">
-										<button type="button" class="ui basic button flex-item gap4"><spring:message code='forum.button.length.score'/><!-- 글자수로 점수 주기 --><i class="icon dropdown"></i></button>
-										<div class="modalform" style="z-index:2000">
-											<div class="flex flex-column gap8 transition hidden">
-												<div class="ui right labeled input w200">
-													<input type="text" name="ctsLen" id="ctsLen" placeholder="<spring:message code='forum.alert.len.input'/>" class="flex1" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');"><!-- 글자수 입력 -->
-													<div class="ui basic label"><spring:message code='forum.label.lt'/><!-- 이상 --></div>
-												</div>
-												<div class="ui checkbox">
-													<input type="checkbox" name="chkCmnt" id="chkCmnt" value="Y" tabindex="0" class="hidden">
-													<label><spring:message code='forum.label.comment.include'/><!-- 댓글포함 --></label>
-												</div>
-												<div class="ui right labeled input w200">
-																	<input type="text" name="lenScore" id="lenScore"
-																		placeholder="<spring:message code='forum.label.score'/>"
-																		class="flex1"
-																		onKeyup="this.value=this.value.replace(/[^0-9]/g,'');">
-																	<!-- 점수 -->
-													<div class="ui basic label"><spring:message code='forum.label.point'/><!-- 점 --></div>
-												</div>
-												<button type="button" class="ui blue button active" onclick="lenScore();"><spring:message code='forum.button.all.score'/><!-- 일괄 점수 주기 --></button>
-											</div>
-										</div>
-									</div>
-									<script>
-									$('.btnModalForm').accordion({
-										selector: {
-											title   : '.button',
-											trigger : '.button',
-											content : '.modalform'
-										}
-									});
-
-									function lenScore() {
-										var chkCmnt = "N";
-										// 글자수 입력
-										if($("#ctsLen").val() == "" || $("#ctsLen").val() == undefined){
-											alert("<spring:message code='forum.alert.input.ctsLen' />"); // 글자수를 입력하세요.
-											return false;
-										}
-
-										if($("#ctsLen").val() < 1 ){
-											alert("<spring:message code='forum.alert.sts.len.min_1' />");/* 글자수는 1자 이상 입력 가능 합니다. */
-											return false;
-										}
-
-										// 점수 입력
-										if($("#lenScore").val() == "" || $("#lenScore").val() == undefined){
-											alert("<spring:message code='forum.alert.input.score' />"); // 점수를 입력하세요.
-											return false;
-										}
-
-										if($("#lenScore").val() > 100 ){
-											alert("<spring:message code='forum.alert.score.max_100' />");/* 점수는 100점 까지 입력 가능 합니다. */
-											return false;
-										}
-
-										// 학습자 선택
-										if($("input[name=check]:checked").length == 0) {
-											alert("<spring:message code='forum.alert.select.std' />");/* 학습자를 선택해 주세요. */
-											return false;
-										}
-
-										if($("input[name=chkCmnt]:checked").val() == "Y") {
-											chkCmnt = "Y";
-										}
-
-										var stdNos = $("#stdNos").val();
-										var url = "/forum/forumLect/updateForumJoinUserLenScore.do";
-
-										var data = {
-											"forumCd" : "${forumVo.forumCd}",
-											"crsCreCd" : "${forumVo.crsCreCd}",
-											"teamCtgrCd" : "${forumVo.teamCtgrCd}",
-											"stdNos" : stdNos,
-											"score" : $("#lenScore").val(),
-											"ctsLen" : $("#ctsLen").val(),
-											"chkCmnt" : chkCmnt
-										};
-
-										ajaxCall(url, data, function(data) {
-											if(data.result > 0) {
-												alert("<spring:message code='forum.alert.length.score.success' />"); // 글자수로 점수 주기를 성공하였습니다.
-												$("#stdNos").val("");
-												listForumUser(1);
-												// scoreChartSet();
-												//글자수로 점수 주기 폼 초기화
-												$("#ctsLen").val("");
-												$("input:checkbox[id='chkCmnt']").prop("checked", false);
-												$("#lenScore").val("");
-												$(".modalform").removeClass('active');
-											} else {
-												alert("<spring:message code='forum.alert.length.score.fail' />"); // 글자수로 점수 주기가 실패하였습니다!! 다시 시도해주시기 바랍니다.
-											}
-										}, function(xhr, status, error) {
-											alert("<spring:message code='forum.common.error' />"); // 오류가 발생했습니다!
-										}, true);
-									}
-									</script>
-									<!-- 글자수로 점수 주기 -->
-									<!-- 참여형 일괄평가 -->
-									<c:if test="${forumVo.evalCtgr == 'R'}">
-									<div>
-										<div class="field">
-											<a href="javascript:void(0)" class="ui blue button" onclick="partiScore()"><spring:message code="forum.label.evalctgr.participate.all" /></a><!-- 참여형 일괄평가 -->
-										</div>
-									</div>
-									<script>
-									function partiScore() {
-										if(window.confirm(`<spring:message code="forum.confirm.parti.score" />`)) {/* 기존 점수는 초기화되고\r\n토론 참여글 등록 수강생은 100점,\r\n미등록 수강생과 댓글만 작성한 수강생은 0점 처리됩니다.\r\n처리하시겠습니까? */
-											var url = "/forum/forumLect/participateScore.do";
-
-											var data = {
-												"forumCd" : "${forumVo.forumCd}",
-												"crsCreCd" : "${forumVo.crsCreCd}",
-											};
-
-											ajaxCall(url, data, function(data) {
-												if(data.result > 0) {
-													alert("<spring:message code='forum.alert.evalctgr.participate.all' />"); // 참여형 일괄평가가 완료되었습니다.
-													listForumUser(1);
-													// scoreChartSet();
-												} else {
-													alert(data.message);
-												}
-											}, function(xhr, status, error) {
-												alert("<spring:message code='forum.common.error' />"); // 오류가 발생했습니다!
-											}, true);
-										}
-									}
-									</script>
-									</c:if>
-									<!-- 참여형 일괄평가 -->
-								</div>
+								<%--<uiex:msgSendBtn func="sendMsg()" styleClass="ui basic small button"/><!-- 메시지 -->--%>
+								<a href="javascript:sendMsg()" class="btn basic small">보내기</a>
+								<a href="javascript:void(0)" class="ui basic small button" onclick="viewForumList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
 							</div>
 						</div>
-					</c:if>
+						<!-- 토론평가 검색:끝 -->
+
+						<!-- 토론평가 점수처리 영역:시작 -->
+						<%--<table class="table-type1 fs-14px">
+							<colgroup>
+								<col class="width-20per" />
+								<col class="" />
+							</colgroup>
+							<tbody>
+							<tr>
+								<th>일괄 성적처리</th>
+								<td>
+									<form id="scoreForm" onsubmit="return false;">
+										<div class="form-inline">
+												<span class="custom-input">
+													<input type="radio" name="scoreType" id="scoreBatch" onchange="plusMinusIconControl(this.value)" value="batch" required="true" />
+													<label for="scoreBatch">점수 등록</label>
+												</span>
+											<span class="custom-input">
+													<input type="radio" name="scoreType" id="scoreAddition" onchange="plusMinusIconControl(this.value)" value="addition" required="true" />
+													<label for="scoreAddition">점수 가감</label>
+												</span>
+											점수
+											<button class='btn small basic icon' id="scr-toggle-icon"><i class='xi-plus'></i></button>
+											<input type="text" id="scoreValue" class="w100" inputmask="numeric" mask="999.99" maxVal="100" required="true" />
+											점
+											<a href="javascript:EvlScrBulkModify()" class="btn type7">저장</a>
+										</div>
+									</form>
+								</td>
+							</tr>
+							</tbody>
+						</table>--%>
+						<c:if test="${!fn:contains(authGrpCd, 'TUT') }">
+						<div class="ui segment">
+								<div class="ui form">
+									<div class="fields">
+										<div class="field">
+											<div class="fields">
+												<div class="field">
+													<spring:message code="common.label.batch.score.process" /><!-- 일괄 점수처리 -->
+													<div class="ui radio checkbox pl10 pr10" onclick="plusMinusIconControl('batch');">
+														<input type="radio" name="scoreType" value="batch" tabindex="0" class="hidden" checked>
+														<label for="scoreBatch"><spring:message code="forum.label.reg.scoring" /></label><!-- 점수 등록 -->
+													</div>
+													<div class="ui radio checkbox" onclick="plusMinusIconControl('addition');">
+														<input type="radio" name="scoreType" value="addition" tabindex="0" class="hidden">
+														<label for="scoreAddition"><spring:message code="forum.label.plus.minus.scoring" /></label><!-- 점수 가감 -->
+													</div>
+												</div>
+												<div class="field ml15">
+													<spring:message code="forum.label.score" /> <!-- 점수 -->
+													<div class="ui left icon input p_w60">
+														<i class="ion-plus link icon toggle-icon" style="display:none;"></i>
+														<input type="text" id="scoreValue" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');" class="w100" maxlength="3" />
+													</div>
+													<spring:message code="forum.label.point" /><!-- 점 -->
+												</div>
+												<div class="field">
+													<a href="javascript:void(0)" class="ui blue button" onclick="submitScore()"><spring:message code="common.label.batch.score.save" /></a><!-- 일괄 점수저장 -->
+												</div>
+											</div>
+										</div>
+										<!-- 글자수로 점수 주기 -->
+										<div class="btnModalForm">
+											<button type="button" class="ui basic button flex-item gap4"><spring:message code='forum.button.length.score'/><!-- 글자수로 점수 주기 --><i class="icon dropdown"></i></button>
+											<div class="modalform" style="z-index:2000">
+												<div class="flex flex-column gap8 transition hidden">
+													<div class="ui right labeled input w200">
+														<input type="text" name="ctsLen" id="ctsLen" placeholder="<spring:message code='forum.alert.len.input'/>" class="flex1" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');"><!-- 글자수 입력 -->
+														<div class="ui basic label"><spring:message code='forum.label.lt'/><!-- 이상 --></div>
+													</div>
+													<div class="ui checkbox">
+														<input type="checkbox" name="chkCmnt" id="chkCmnt" value="Y" tabindex="0" class="hidden">
+														<label><spring:message code='forum.label.comment.include'/><!-- 댓글포함 --></label>
+													</div>
+													<div class="ui right labeled input w200">
+														<input type="text" name="lenScore" id="lenScore"
+															   placeholder="<spring:message code='forum.label.score'/>"
+															   class="flex1"
+															   onKeyup="this.value=this.value.replace(/[^0-9]/g,'');">
+														<!-- 점수 -->
+														<div class="ui basic label"><spring:message code='forum.label.point'/><!-- 점 --></div>
+													</div>
+													<button type="button" class="ui blue button active" onclick="lenScore();"><spring:message code='forum.button.all.score'/><!-- 일괄 점수 주기 --></button>
+												</div>
+											</div>
+										</div>
+										<script>
+											$('.btnModalForm').accordion({
+												selector: {
+													title   : '.button',
+													trigger : '.button',
+													content : '.modalform'
+												}
+											});
+
+											function lenScore() {
+												var chkCmnt = "N";
+												// 글자수 입력
+												if($("#ctsLen").val() == "" || $("#ctsLen").val() == undefined){
+													alert("<spring:message code='forum.alert.input.ctsLen' />"); // 글자수를 입력하세요.
+													return false;
+												}
+
+												if($("#ctsLen").val() < 1 ){
+													alert("<spring:message code='forum.alert.sts.len.min_1' />");/* 글자수는 1자 이상 입력 가능 합니다. */
+													return false;
+												}
+
+												// 점수 입력
+												if($("#lenScore").val() == "" || $("#lenScore").val() == undefined){
+													alert("<spring:message code='forum.alert.input.score' />"); // 점수를 입력하세요.
+													return false;
+												}
+
+												if($("#lenScore").val() > 100 ){
+													alert("<spring:message code='forum.alert.score.max_100' />");/* 점수는 100점 까지 입력 가능 합니다. */
+													return false;
+												}
+
+												// 학습자 선택
+												if($("input[name=check]:checked").length == 0) {
+													alert("<spring:message code='forum.alert.select.std' />");/* 학습자를 선택해 주세요. */
+													return false;
+												}
+
+												if($("input[name=chkCmnt]:checked").val() == "Y") {
+													chkCmnt = "Y";
+												}
+
+												var stdNos = $("#stdNos").val();
+												var url = "/forum/forumLect/updateForumJoinUserLenScore.do";
+
+												var data = {
+													"forumCd" : "${forumVo.forumCd}",
+													"crsCreCd" : "${forumVo.crsCreCd}",
+													"teamCtgrCd" : "${forumVo.teamCtgrCd}",
+													"stdNos" : stdNos,
+													"score" : $("#lenScore").val(),
+													"ctsLen" : $("#ctsLen").val(),
+													"chkCmnt" : chkCmnt
+												};
+
+												ajaxCall(url, data, function(data) {
+													if(data.result > 0) {
+														alert("<spring:message code='forum.alert.length.score.success' />"); // 글자수로 점수 주기를 성공하였습니다.
+														$("#stdNos").val("");
+														listForumUser(1);
+														// scoreChartSet();
+														//글자수로 점수 주기 폼 초기화
+														$("#ctsLen").val("");
+														$("input:checkbox[id='chkCmnt']").prop("checked", false);
+														$("#lenScore").val("");
+														$(".modalform").removeClass('active');
+													} else {
+														alert("<spring:message code='forum.alert.length.score.fail' />"); // 글자수로 점수 주기가 실패하였습니다!! 다시 시도해주시기 바랍니다.
+													}
+												}, function(xhr, status, error) {
+													alert("<spring:message code='forum.common.error' />"); // 오류가 발생했습니다!
+												}, true);
+											}
+										</script>
+										<!-- 글자수로 점수 주기 -->
+										<!-- 참여형 일괄평가 -->
+										<c:if test="${forumVo.evalCtgr == 'R'}">
+											<div>
+												<div class="field">
+													<a href="javascript:void(0)" class="ui blue button" onclick="partiScore()"><spring:message code="forum.label.evalctgr.participate.all" /></a><!-- 참여형 일괄평가 -->
+												</div>
+											</div>
+											<script>
+												function partiScore() {
+													if(window.confirm(`<spring:message code="forum.confirm.parti.score" />`)) {/* 기존 점수는 초기화되고\r\n토론 참여글 등록 수강생은 100점,\r\n미등록 수강생과 댓글만 작성한 수강생은 0점 처리됩니다.\r\n처리하시겠습니까? */
+														var url = "/forum/forumLect/participateScore.do";
+
+														var data = {
+															"forumCd" : "${forumVo.forumCd}",
+															"crsCreCd" : "${forumVo.crsCreCd}",
+														};
+
+														ajaxCall(url, data, function(data) {
+															if(data.result > 0) {
+																alert("<spring:message code='forum.alert.evalctgr.participate.all' />"); // 참여형 일괄평가가 완료되었습니다.
+																listForumUser(1);
+																// scoreChartSet();
+															} else {
+																alert(data.message);
+															}
+														}, function(xhr, status, error) {
+															alert("<spring:message code='forum.common.error' />"); // 오류가 발생했습니다!
+														}, true);
+													}
+												}
+											</script>
+										</c:if>
+										<!-- 참여형 일괄평가 -->
+									</div>
+								</div>
+							</div>
+						</c:if>
 						<div class="ui segment">
 							<div class="ui form">
 								<div class="mt10 flex">
@@ -1335,17 +1340,16 @@
 													<div id="fdbkFileUp" style="position:absolute;top:0;left:0;visibility:hidden;">
 														<div class="flex1 fileUpBox" style="display:inline-block;">
 															<uiex:dextuploader
-																id="fileUploader"
-																path="${path}"
-																limitCount="1"
-																limitSize="1024"
-																oneLimitSize="1024"
-																listSize="1"
-																finishFunc="finishUpload()"
-																allowedTypes="*"
-																bigSize="false"
-																useFileBox="true"
-																uiMode="simple"
+																	id="fileUploader"
+																	path="${path}"
+																	limitCount="1"
+																	limitSize="100"
+																	oneLimitSize="100"
+																	listSize="1"
+																	finishFunc="finishUpload()"
+																	allowedTypes="*"
+																	bigSize="false"
+																	uiMode="simple"
 															/>
 														</div>
 														<div class="flex1" style="display:inline-block;vertical-align:top">
@@ -1376,58 +1380,64 @@
 								<!-- 피드백 끝 -->
 							</div>
 						</div>
-						<div class="option-content mb10">
-							<div class="button-area flex flex1 ml0">
+						<div class="board_top margin-top-4">
+							<div class="right-area">
 								<%-- <div class="sec_head mra"><spring:message code="forum.label.submit.status" /><!-- 토론현황 --></div> --%>
 								<a href="javascript:forumChartView()" class="ui blue button"><spring:message code="forum.label.submit.status" /></a><!-- 토론현황 -->
 								<h4 class="ml5">(<spring:message code="common.page.total" /><!-- 총 -->&nbsp;:&nbsp;<span id="totalCntText">0</span><spring:message code="message.person" /><!-- 명 -->)</h4>
 								<a href="javascript:forumExcelDown()" class="ui blue button mla"><spring:message code="forum.label.excel.download" /></a><!-- 엑셀다운로드 -->
 							</div>
 						</div>
+						<!-- 토론평가 점수처리 영역:끝 -->
+
+						<!-- 검색결과 영역-버튼들:시작 -->
+						<div class="board_top margin-top-4">
+							<div class="right-area">
+								<a href="javascript:quizExampprBulkPrintPopup()" class="btn type1">시험지 일괄 인쇄</a>
+								<a href="javascript:quizExampprBlukExcelDown()" class="btn type1">시험지 일괄 엑셀 다운로드</a>
+								<a href="javascript:quizTkexamStatusExcelDown()" class="btn type1">엑셀 다운로드</a>
+								<a href="javascript:quizChartPop()" class="btn type1">응시현황 그래프</a>
+							</div>
+						</div>
+						<!-- 검색결과 영역-버튼들:끝 -->
+
+						<!-- 검색결과 영역:시작 -->
 						<table class="table type2" data-sorting="true" data-paging="false" data-empty="<spring:message code='forum.common.search.no.std' />"><!-- 조건에 맞는 수강생이 없습니다. -->
 							<thead>
-								<tr>
-									<th scope="col" class="tc wf5" data-sortable="false">
-										<div class="ui checkbox allCheck">
-											<input type="hidden" id="stdNos" name="stdNos">
-											<input type="checkbox" id="allCheck" name="allEvalChk" onchange="checkAllStdNoToggle(this)">
-											<label class="toggle_btn" for="allCheck"></label>
-										</div>
-									</th>
-									<th scope="col" class="tc wf5 num" data-sortable="false" data-type="number">No</th>
-									<th scope="col" class="tc wf10" data-breakpoints="xs"><spring:message code="forum.label.dept.nm" /><!-- 학과 --></th>
-									<th scope="col" class="tc"><spring:message code="forum.label.user.no" /><!-- 학번 --></th>
-									<th scope="col" class="tc" data-breakpoints="xs"><spring:message code="forum.label.user.grade" /><!-- 학년 --></th>
-									<c:if test="${creCrsVO.univGbn eq '3' or creCrsVO.univGbn eq '4'}">
-										<th scope="col" class="tc" data-breakpoints="xs"><spring:message code="common.label.grsc.degr.cors.gbn" /><!-- 학위과정 --></th>
-									</c:if>
-									<th scope="col" class="tc"><spring:message code="forum.label.user_nm" /><!-- 이름 --></th>
-									<th scope="col" class="tc" data-breakpoints="xs sm"><spring:message code="forum.label.user.entr.yy" /><!-- 입학년도 --></th>
-									<th scope="col" class="tc" data-breakpoints="xs sm"><spring:message code="forum.label.user.entr.hy" /><!-- 입학학년 --></th>
-									<th scope="col" class="tc" data-breakpoints="xs sm"><spring:message code="forum.label.user.entr.gbn" /><!-- 입학구분 --></th>
-									<th scope="col" class="tc wf15" data-breakpoints="xs sm md"><spring:message code="forum.label.eval.score" /><!-- 평가점수 --></th>
-									<th scope="col" class="tc" data-breakpoints="xs sm md"><spring:message code="forum.label.status" /><!-- 상태 --></th>
-									<th scope="col" class="tc"><spring:message code="forum.label.forum.joinCnt" />/<spring:message code="forum.label.forum.commCnt" /><!-- 참여글/댓글수 --></th>
-									<th scope="col" class="tc" data-sortable="false" data-breakpoints="xs sm md"><spring:message code="forum.label.manage" /><!-- 관리 --></th>
-								</tr>
+							<tr>
+								<th scope="col" class="tc wf5" data-sortable="false">
+									<div class="ui checkbox allCheck">
+										<input type="hidden" id="stdNos" name="stdNos">
+										<input type="checkbox" id="allCheck" name="allEvalChk" onchange="checkAllStdNoToggle(this)">
+										<label class="toggle_btn" for="allCheck"></label>
+									</div>
+								</th>
+								<th scope="col" class="tc wf5 num" data-sortable="false" data-type="number">No</th>
+								<th scope="col" class="tc wf10" data-breakpoints="xs"><spring:message code="forum.label.dept.nm" /><!-- 학과 --></th>
+								<th scope="col" class="tc"><spring:message code="forum.label.user.no" /><!-- 학번 --></th>
+								<th scope="col" class="tc" data-breakpoints="xs"><spring:message code="forum.label.user.grade" /><!-- 학년 --></th>
+								<c:if test="${creCrsVO.univGbn eq '3' or creCrsVO.univGbn eq '4'}">
+									<th scope="col" class="tc" data-breakpoints="xs"><spring:message code="common.label.grsc.degr.cors.gbn" /><!-- 학위과정 --></th>
+								</c:if>
+								<th scope="col" class="tc"><spring:message code="forum.label.user_nm" /><!-- 이름 --></th>
+								<th scope="col" class="tc" data-breakpoints="xs sm"><spring:message code="forum.label.user.entr.yy" /><!-- 입학년도 --></th>
+								<th scope="col" class="tc" data-breakpoints="xs sm"><spring:message code="forum.label.user.entr.hy" /><!-- 입학학년 --></th>
+								<th scope="col" class="tc" data-breakpoints="xs sm"><spring:message code="forum.label.user.entr.gbn" /><!-- 입학구분 --></th>
+								<th scope="col" class="tc wf15" data-breakpoints="xs sm md"><spring:message code="forum.label.eval.score" /><!-- 평가점수 --></th>
+								<th scope="col" class="tc" data-breakpoints="xs sm md"><spring:message code="forum.label.status" /><!-- 상태 --></th>
+								<th scope="col" class="tc"><spring:message code="forum.label.forum.joinCnt" />/<spring:message code="forum.label.forum.commCnt" /><!-- 참여글/댓글수 --></th>
+								<th scope="col" class="tc" data-sortable="false" data-breakpoints="xs sm md"><spring:message code="forum.label.manage" /><!-- 관리 --></th>
+							</tr>
 							</thead>
 							<tbody id="forumStareUserList">
 							</tbody>
 						</table>
-						<!-- <div id="paging" class="paging"></div> -->
+						<!-- 검색결과 영역:끝 -->
 					</div>
-
-								</div>
-							</div>
-						</div>
-			</div>
-
 				</div>
-
 			</div>
-			<!-- //본문 content 부분 -->
 		</main>
-		<!-- //classroom-->
+		<!-- classroom-->
 	</div>
 
 
@@ -1486,11 +1496,6 @@
 	</div>
 	<!-- 팀 구성원 보기 모달 -->
 
-	<%--<script>
-	$('iframe').iFrameResize();
-	window.closeModal = function() {
-		$('.modal').modal('hide');
-	};
-	</script>--%>
+
 </body>
 </html>

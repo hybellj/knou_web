@@ -351,9 +351,8 @@
                 <!-- modal popup 보여주기 버튼(개발시 삭제) -->
                 <div class="modal-btn-box">
                     <button type="button" class="btn modal__btn" data-modal-open="modal1">학습자 학습현황</button>
-                    <!-- <button type="button" class="btn modal__btn" data-modal-open="modal2">메시지 불러오기</button>
-                    <button type="button" class="btn modal__btn" data-modal-open="modal3">발신 예약 취소</button>
-                    <button type="button" class="btn modal__btn" data-modal-open="modal4">받는 사람 추가</button> -->
+                    <button type="button" class="btn modal__btn" data-modal-open="modal2">학습자 주차 학습현황</button>      
+                    <button type="button" class="btn modal__btn" data-modal-open="modal3">학습자 학습요소 참여현황</button>             
                 </div>
                 <!--// modal popup 보여주기 버튼(개발시 삭제) -->
 
@@ -737,7 +736,6 @@
                         </script>
                     </div>
 
-
                     <div class="sub-box">
                         <div class="board_top">
                             <h3 class="board-title">강의실 활동기록</h3>
@@ -837,6 +835,475 @@
 						</div>
                     </div>
 
+                    <div class="modal_btns">
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal 2 -->
+        <div class="modal-overlay" id="modal2" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-xl" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">학습자 주차 학습현황</h2>
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="board_top class">
+                        <h3 class="class-title">데이터베이스의 이해 활용 1반 </h3>                       
+                    </div>
+
+                    <div class="sub-box">
+                        <div class="board_top">
+                            <h3 class="board-title">수강생 정보</h3>
+                            <div class="right-area">
+                                <button type="button" class="btn basic">메시지 보내기</button>
+                            </div>
+                        </div>
+                        <div class="user-wrap mb10">
+                            <div class="user-img">
+                                <div class="user-photo">
+                                    <!--프로필 사진-->
+                                    <img src="/lms_design_sample/webdoc/assets/img/common/photo_user_sample.png" alt="사진">
+                                </div>
+                            </div>
+
+                            <div class="table_list">
+                                <ul class="list">
+                                    <li class="head"><label>기관</label></li>
+                                    <li>대학원 / 평생교육원 / 학위과정</li>
+                                </ul>
+                                <ul class="list">
+                                    <li class="head"><label>이름</label></li>
+                                    <li>학습자4</li>
+                                </ul>
+                                <ul class="list">
+                                    <li class="head"><label>학번</label></li>
+                                    <li>2021215478</li>
+                                </ul>
+                                <ul class="list">
+                                    <li class="head"><label>아이디</label></li>
+                                    <li>TESTID04</li>
+                                </ul>
+                                <ul class="list">
+                                    <li class="head"><label>휴대폰번호</label></li>
+                                    <li>010-1234-5698</li>
+                                </ul>
+                                <ul class="list">
+                                    <li class="head"><label>사용 이메일</label></li>
+                                    <li>k202154774@knou.ac.kr (연계 이메일)</li>
+                                </ul>
+                            </div>
+
+                        </div>
+                    </div>
+                    
+                    <div class="board_top">
+                        <h3 class="board-title">주차별 학습기록</h3>
+                        <span class="info_inline">
+                            <select class="form-select" id="selectDate1">
+                                <option value="3주차">3주차</option>
+                            </select>
+                        </span>                            
+                        <div class="right-area">
+                            <div class="state-txt-label">
+                                <p><span class="state_ok" aria-label="출석">○</span> 출석</p>
+                                <p><span class="state_late" aria-label="지각">△</span> 지각</p>
+                                <p><span class="state_no" aria-label="결석">X</span> 결석</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="course_history">
+                        <div class="h_top">
+                            <div class="h_left">
+                                <strong class="tit">3주차 학습기록</strong>
+                                <p class="desc">
+                                    <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
+                                    <span><strong>106분</strong></span>
+                                    <span><strong>순차학습</strong></span>
+                                </p>
+                            </div>
+                            <div class="h_right">
+                                <p class="desc">
+                                    <span><span class="state_no" aria-label="결석">X</span><strong>결석</strong></span>
+                                    <span><strong>60분</strong></span>
+                                    <span>학습시간<strong>10분 30초 ( 기간 후 : 5분 30초 )</strong></span>                                        
+                                </p>                                    
+                                <button class="btn s_type2">출석처리</button>
+                            </div>
+                        </div>
+                        <div class="h_content">
+                            <ul class="accordion course_week">
+                                <li class="active"><!-- 클릭시 active 추가 -->
+                                    <div class="title-wrap">
+                                        <div class="chasi_tit">[ 1차시 ] 차시제목1</div>
+                                        <a class="title" href="#">                                                
+                                            <div class="lecture_box">
+                                                <div class="lecture_tit">
+                                                    <p class="labels">
+                                                        <label class="label s_basic">동영상</label>
+                                                    </p>
+                                                    <strong>우리 생활 주변의 데이터베이스</strong>
+                                                </div>
+                                                <div class="btn_right">
+                                                    <label class="state">학습완료</label>
+                                                </div>
+                                                <i class="arrow xi-angle-down"></i>
+                                            </div>
+                                        </a>                                            
+                                    </div>
+                                    <div class="cont">
+                                        <div class="table-wrap scroll">
+                                            <table class="table-type1">
+                                                <colgroup>
+                                                    <col style="width:7%">
+                                                    <col style="width:20%">
+                                                    <col style="width:10%">
+                                                    <col style="width:14%">
+                                                    <col style="">
+                                                    <col style="width:16%">                                                        
+                                                </colgroup>
+                                                <thead>
+                                                    <tr>
+                                                        <th colspan="6" class="all">학습기록</th>                                                                                          
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td data-th="번호">316</td>
+                                                        <td data-th="접속일시">2026.03.15 16:28:32</td>
+                                                        <td data-th="학습시간">[1] 25:34</td>
+                                                        <td data-th="운영체제">Window10</td> 
+                                                        <td data-th="내용">chome, Play, 1.2X (PAGE:3, start 16:13:02)</td> 
+                                                        <td data-th="IP">125.207.131.148</td>                                   
+                                                    </tr>
+                                                    <tr>
+                                                        <td data-th="번호">316</td>
+                                                        <td data-th="접속일시">2026.03.15 16:28:32</td>
+                                                        <td data-th="학습시간">[1] 25:34</td>
+                                                        <td data-th="운영체제">Window10</td> 
+                                                        <td data-th="내용">chome, Play, 1.2X (PAGE:3, start 16:13:02)</td> 
+                                                        <td data-th="IP">125.207.131.148</td>                                   
+                                                    </tr>
+                                                    <tr>
+                                                        <td data-th="번호">316</td>
+                                                        <td data-th="접속일시">2026.03.15 16:28:32</td>
+                                                        <td data-th="학습시간">[1] 25:34</td>
+                                                        <td data-th="운영체제">Window10</td> 
+                                                        <td data-th="내용">chome, Play, 1.2X (PAGE:3, start 16:13:02)</td> 
+                                                        <td data-th="IP">125.207.131.148</td>                                   
+                                                    </tr>
+                                                    <tr>
+                                                        <td data-th="번호">316</td>
+                                                        <td data-th="접속일시">2026.03.15 16:28:32</td>
+                                                        <td data-th="학습시간">[1] 25:34</td>
+                                                        <td data-th="운영체제">Window10</td> 
+                                                        <td data-th="내용">chome, Play, 1.2X (PAGE:3, start 16:13:02)</td> 
+                                                        <td data-th="IP">125.207.131.148</td>                                   
+                                                    </tr>                                
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </li>                               
+                                <li class=""><!-- 클릭시 active 추가 -->
+                                    <div class="title-wrap">
+                                        <div class="chasi_tit">[ 2차시 ] 차시제목1</div>
+                                        <a class="title" href="#">
+                                            
+                                            <div class="lecture_box">
+                                                <div class="lecture_tit">
+                                                    <p class="labels">
+                                                        <label class="label s_basic">동영상</label>
+                                                    </p>
+                                                    <strong>데이터베이스 관리 시스템</strong>
+                                                </div>
+                                                <div class="btn_right">
+                                                    <label class="state">학습중</label>
+                                                </div>
+                                                <i class="arrow xi-angle-down"></i>
+                                            </div>
+                                        </a>                                            
+                                    </div>
+                                    <div class="cont">
+                                        <div class="table-wrap scroll">
+                                            <table class="table-type1">
+                                                <colgroup>
+                                                    <col style="width:7%">
+                                                    <col style="width:20%">
+                                                    <col style="width:10%">
+                                                    <col style="width:14%">
+                                                    <col style="">
+                                                    <col style="width:16%">                                                        
+                                                </colgroup>
+                                                <thead>
+                                                    <tr>
+                                                        <th colspan="6" class="all">학습기록</th>                                                                                          
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td data-th="번호">316</td>
+                                                        <td data-th="접속일시">2026.03.15 16:28:32</td>
+                                                        <td data-th="학습시간">[1] 25:34</td>
+                                                        <td data-th="운영체제">Window10</td> 
+                                                        <td data-th="내용">chome, Play, 1.2X (PAGE:3, start 16:13:02)</td> 
+                                                        <td data-th="IP">125.207.131.148</td>                                   
+                                                    </tr> 
+                                                    <tr>
+                                                        <td data-th="번호">316</td>
+                                                        <td data-th="접속일시">2026.03.15 16:28:32</td>
+                                                        <td data-th="학습시간">[1] 25:34</td>
+                                                        <td data-th="운영체제">Window10</td> 
+                                                        <td data-th="내용">chome, Play, 1.2X (PAGE:3, start 16:13:02)</td> 
+                                                        <td data-th="IP">125.207.131.148</td>                                   
+                                                    </tr> 
+                                                    <tr>
+                                                        <td data-th="번호">316</td>
+                                                        <td data-th="접속일시">2026.03.15 16:28:32</td>
+                                                        <td data-th="학습시간">[1] 25:34</td>
+                                                        <td data-th="운영체제">Window10</td> 
+                                                        <td data-th="내용">chome, Play, 1.2X (PAGE:3, start 16:13:02)</td> 
+                                                        <td data-th="IP">125.207.131.148</td>                                   
+                                                    </tr> 
+                                                    <tr>
+                                                        <td data-th="번호">316</td>
+                                                        <td data-th="접속일시">2026.03.15 16:28:32</td>
+                                                        <td data-th="학습시간">[1] 25:34</td>
+                                                        <td data-th="운영체제">Window10</td> 
+                                                        <td data-th="내용">chome, Play, 1.2X (PAGE:3, start 16:13:02)</td> 
+                                                        <td data-th="IP">125.207.131.148</td>                                   
+                                                    </tr>                                                                                  
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+
+                        </div>
+                    </div>
+
+                    <div class="modal_btns">
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal 3 -->
+        <div class="modal-overlay" id="modal3" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-xl" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">학습자 학습요소 참여현황</h2>
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="board_top class">
+                        <h3 class="class-title">데이터베이스의 이해 활용 1반 </h3>                       
+                    </div>
+
+                    <div class="sub-box">
+                        <div class="board_top">
+                            <h3 class="board-title">수강생 정보</h3>
+                            <div class="right-area">
+                                <button type="button" class="btn basic">메시지 보내기</button>
+                            </div>
+                        </div>
+                        <div class="user-wrap mb10">
+                            <div class="user-img">
+                                <div class="user-photo">
+                                    <!--프로필 사진-->
+                                    <img src="/lms_design_sample/webdoc/assets/img/common/photo_user_sample.png" alt="사진">
+                                </div>
+                            </div>
+
+                            <div class="table_list">
+                                <ul class="list">
+                                    <li class="head"><label>기관</label></li>
+                                    <li>대학원 / 평생교육원 / 학위과정</li>
+                                </ul>
+                                <ul class="list">
+                                    <li class="head"><label>이름</label></li>
+                                    <li>학습자4</li>
+                                </ul>
+                                <ul class="list">
+                                    <li class="head"><label>학번</label></li>
+                                    <li>2021215478</li>
+                                </ul>
+                                <ul class="list">
+                                    <li class="head"><label>아이디</label></li>
+                                    <li>TESTID04</li>
+                                </ul>
+                                <ul class="list">
+                                    <li class="head"><label>휴대폰번호</label></li>
+                                    <li>010-1234-5698</li>
+                                </ul>
+                                <ul class="list">
+                                    <li class="head"><label>사용 이메일</label></li>
+                                    <li>k202154774@knou.ac.kr (연계 이메일)</li>
+                                </ul>
+                            </div>
+
+                        </div>
+                    </div>
+                    
+                    <div class="board_top">
+                        <h3 class="board-title">학습요소 참여 현황</h3>                        
+                    </div>
+                    <div class="course_history">
+                        <div class="h_top">
+                            <div class="h_left">
+                                <strong class="tit">과제 참여현황</strong>                                
+                            </div>                            
+                        </div>
+                        <div class="h_content">
+                            <ul class="accordion course_week">
+                                <li class="active"><!-- 클릭시 active 추가 -->
+                                    <div class="title-wrap">                                      
+                                        <a class="title" href="#">                                                
+                                            <div class="lecture_box work">
+                                                <div class="lecture_tit">
+                                                    <p class="labels">
+                                                        <label class="label s_work">과제</label>
+                                                    </p>
+                                                    <strong>과제제목이 나옵니다. 과제제목이 나옵니다.</strong>                                                    
+                                                </div>
+                                                <p class="desc">
+                                                    <span>제출기간<strong>2026.03.10 10:00 ~ 2026.03.16 22:00</strong></span>                                    
+                                                </p>
+                                                <div class="btn_right">
+                                                    <span class="state score">89점</span>
+                                                    <label class="state">학습종료</label>
+                                                </div>
+                                                <i class="arrow xi-angle-down"></i>
+                                            </div>
+                                        </a>                                            
+                                    </div>
+                                    <div class="cont">
+                                        <div class="table-wrap">
+                                            <table class="table-type1">
+                                                <colgroup>
+                                                    <col style="width:8%">                                                    
+                                                    <col style="width:20%">
+                                                    <col style="">
+                                                    <col style="width:15%">                                                    
+                                                    <col style="width:15%">                                                        
+                                                </colgroup>
+                                                <thead>
+                                                    <tr>
+                                                        <th colspan="5" class="all">제출기록</th>                                                                                          
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td data-th="번호">3</td>
+                                                        <td data-th="제출일시">2026.03.15 18:36</td>
+                                                        <td data-th="첨부파일">첨부파일_202603151836.pdf</td>
+                                                        <td data-th="크기">157.35KB</td> 
+                                                        <td data-th="다운로드">
+                                                            <button class="btn basic small">다운로드</button>
+                                                        </td>                                                                                        
+                                                    </tr>
+                                                    <tr>
+                                                        <td data-th="번호">2</td>
+                                                        <td data-th="제출일시">2026.03.15 18:36</td>
+                                                        <td data-th="첨부파일">첨부파일_202603151836.pdf</td>
+                                                        <td data-th="크기">157.35KB</td> 
+                                                        <td data-th="다운로드">
+                                                            <button class="btn basic small">다운로드</button>
+                                                        </td>                                                                                        
+                                                    </tr>
+                                                    <tr>
+                                                        <td data-th="번호">1</td>
+                                                        <td data-th="제출일시">2026.03.15 18:36</td>
+                                                        <td data-th="첨부파일">첨부파일_202603151836.pdf</td>
+                                                        <td data-th="크기">157.35KB</td> 
+                                                        <td data-th="다운로드">
+                                                            <button class="btn basic small">다운로드</button>
+                                                        </td>                                                                                        
+                                                    </tr>                                                                                   
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </li>                               
+                                <li class=""><!-- 클릭시 active 추가 -->
+                                    <div class="title-wrap">                                      
+                                        <a class="title" href="#">                                                
+                                            <div class="lecture_box work">
+                                                <div class="lecture_tit">
+                                                    <p class="labels">
+                                                        <label class="label s_work">과제</label>
+                                                    </p>
+                                                    <strong>과제제목이 나옵니다.</strong>                                                    
+                                                </div>
+                                                <p class="desc">
+                                                    <span>제출기간<strong>2026.03.10 10:00 ~ 2026.03.16 22:00</strong></span>                                    
+                                                </p>
+                                                <div class="btn_right">
+                                                    <span class="state score">89점</span>
+                                                    <label class="state">학습종료</label>
+                                                </div>
+                                                <i class="arrow xi-angle-down"></i>
+                                            </div>
+                                        </a>                                            
+                                    </div>
+                                    <div class="cont">
+                                        <div class="table-wrap">
+                                            <table class="table-type1">
+                                                <colgroup>
+                                                    <col style="width:8%">                                                    
+                                                    <col style="width:20%">
+                                                    <col style="">
+                                                    <col style="width:15%">                                                    
+                                                    <col style="width:15%">                                                        
+                                                </colgroup>
+                                                <thead>
+                                                    <tr>
+                                                        <th colspan="5" class="all">제출기록</th>                                                                                          
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td data-th="번호">3</td>
+                                                        <td data-th="제출일시">2026.03.15 18:36</td>
+                                                        <td data-th="첨부파일"> 첨부파일_202603151836 첨부파일_202603151836 첨부파일_202603151836.pdf</td>
+                                                        <td data-th="크기">157.35KB</td> 
+                                                        <td data-th="다운로드">
+                                                            <button class="btn basic small">다운로드</button>
+                                                        </td>                                                                                        
+                                                    </tr>
+                                                    <tr>
+                                                        <td data-th="번호">2</td>
+                                                        <td data-th="제출일시">2026.03.15 18:36</td>
+                                                        <td data-th="첨부파일">첨부파일_202603151836.pdf</td>
+                                                        <td data-th="크기">157.35KB</td> 
+                                                        <td data-th="다운로드">
+                                                            <button class="btn basic small">다운로드</button>
+                                                        </td>                                                                                        
+                                                    </tr>
+                                                    <tr>
+                                                        <td data-th="번호">1</td>
+                                                        <td data-th="제출일시">2026.03.15 18:36</td>
+                                                        <td data-th="첨부파일">첨부파일_202603151836.pdf</td>
+                                                        <td data-th="크기">157.35KB</td> 
+                                                        <td data-th="다운로드">
+                                                            <button class="btn basic small">다운로드</button>
+                                                        </td>                                                                                        
+                                                    </tr>                                                                                   
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </li>   
+                            </ul>
+
+                        </div>
+                    </div>
 
                     <div class="modal_btns">
                         <button type="button" class="btn type2">닫기</button>

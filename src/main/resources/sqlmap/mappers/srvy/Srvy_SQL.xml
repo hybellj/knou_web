@@ -350,6 +350,7 @@
          		) AS PTCP_USER_CNT
 			, (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_SRVY_TRGT WHERE SRVY_ID = (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = SRVY.SRVY_ID AND DELYN = 'N' AND USEYN ='Y' AND ROWNUM = 1))) AS LRN_GRP_ID
 			, (SELECT LRN_GRPNM FROM TB_LMS_TEAM_GRP WHERE USEYN = 'Y' AND DELYN = 'N' AND SBJCT_ID = SRVY.SBJCT_ID AND LRN_GRP_ID = (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_SRVY_TRGT WHERE SRVY_ID = (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = SRVY.SRVY_ID AND DELYN = 'N' AND USEYN ='Y' AND ROWNUM = 1)))) LRN_GRPNM
+			, NVL((SELECT SRVY_ID FROM SUB_SRVY WHERE UP_SRVY_ID = SRVY.SRVY_ID AND ROWNUM = 1), SRVY.SRVY_ID) AS SUB_SRVY_ID
            FROM TB_LMS_SRVY SRVY
           WHERE SRVY_ID = #{srvyId}
     </select>
@@ -441,51 +442,90 @@
              SQL ID : SrvyDAO.profAuthrtSbjctSrvyList
              설  명  : 교수권한과목설문목록조회
          */
-        SELECT * FROM (
-        	WITH SUB_SRVY AS (
-			    SELECT SRVY_ID, UP_SRVY_ID
-			    FROM TB_LMS_SRVY
-			    WHERE DELYN = 'N'
-			      AND USEYN = 'Y'
-			      AND UP_SRVY_ID IS NOT NULL
-			)
-			SELECT ROW_NUMBER() OVER(ORDER BY SRVY.SRVY_ID DESC) AS LINE_NO
-				 , SRVY.SRVY_ID
-	             , SRVY.SRVY_TTL
-	             , SBJCT.SBJCT_ID
-	             , SBJCT.SBJCTNM
-	             , SBJCT.DVCLAS_NO
-	             , CASE WHEN EXISTS (SELECT 1 FROM SUB_SRVY SS WHERE SS.UP_SRVY_ID = SRVY.SRVY_ID)
-		               THEN 'SRVY_TEAM' ELSE 'SRVY' END AS SRVY_GBN
-	             , COUNT(1) OVER()	AS TOTAL_CNT
-	          FROM TB_LMS_SBJCT_ADM SBJCT_ADM
-	          JOIN TB_LMS_SRVY SRVY
-	            ON SBJCT_ADM.SBJCT_ID = SRVY.SBJCT_ID
-	           AND SRVY.DELYN = 'N'
-	           AND SRVY.USEYN = 'Y'
-	          JOIN TB_LMS_SBJCT SBJCT
-	            ON SBJCT.SBJCT_ID = SRVY.SBJCT_ID
-			  LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR_CHRT
-				ON (SBJCT.SMSTR_CHRT_ID = SMSTR_CHRT.SMSTR_CHRT_ID AND SBJCT.SBJCT_REF_TYCD = 'CHRT')
-	         WHERE SBJCT_ADM.USER_ID = #{userId}
-	           AND SRVY.SRVY_GBNCD = 'LCTR_SRVY'
-	           AND SRVY.UP_SRVY_ID IS NULL
-	           AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
-	         <if test="smstrChrtId != null and smstrChrtId != ''">
-	           AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
-	         </if>
-	         <if test='sbjctId != null and sbjctId != ""'>
-	           AND SBJCT.SBJCT_ID = #{sbjctId}
-	         </if>
-	         <if test="searchValue != null and searchValue != ''">
-	           AND LOWER(SRVY.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
-	         </if>
-	         ORDER BY SRVY.SRVY_ID
-         ) A
-		WHERE 1=1
-		<if test="listScale != null and listScale > 0">
-		  AND LINE_NO BETWEEN #{firstIndex} +1 AND #{firstIndex} + #{listScale}
-		</if>
+	    WITH SUB_SRVY AS (
+		    SELECT SRVY_ID, UP_SRVY_ID
+		      FROM TB_LMS_SRVY
+		     WHERE DELYN = 'N'
+		       AND USEYN = 'Y'
+		       AND UP_SRVY_ID IS NOT NULL
+		)
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY SRVY.SRVY_ID DESC) AS LINE_NO
+			, SRVY.SRVY_ID
+			, SRVY.SRVY_TTL
+			, SBJCT.SBJCT_ID
+			, SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+			, CASE WHEN EXISTS (SELECT 1 FROM SUB_SRVY SS WHERE SS.UP_SRVY_ID = SRVY.SRVY_ID)
+		      THEN 'SRVY_TEAM' ELSE 'SRVY' END AS SRVY_GBN
+			, COUNT(1) OVER()	AS TOTAL_CNT
+		  FROM TB_LMS_SBJCT_ADM SBJCT_ADM
+		  JOIN TB_LMS_SRVY SRVY
+		    ON SBJCT_ADM.SBJCT_ID = SRVY.SBJCT_ID
+		   AND SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		  JOIN TB_LMS_SBJCT SBJCT
+		    ON SBJCT.SBJCT_ID = SRVY.SBJCT_ID
+		  LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR_CHRT
+			ON (SBJCT.SMSTR_CHRT_ID = SMSTR_CHRT.SMSTR_CHRT_ID AND SBJCT.SBJCT_REF_TYCD = 'CHRT')
+		 WHERE SBJCT_ADM.USER_ID = #{userId}
+		   AND SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+		   AND SRVY.UP_SRVY_ID IS NULL
+		   AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
+		   <if test="smstrChrtId != null and smstrChrtId != ''">
+		     AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		   </if>
+		   <if test='sbjctId != null and sbjctId != ""'>
+		     AND SBJCT.SBJCT_ID = #{sbjctId}
+		   </if>
+		   <if test="searchValue != null and searchValue != ''">
+		     AND LOWER(SRVY.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		   </if>
+		 ORDER BY SRVY.SRVY_ID
+	</select>
+
+	<select id="srvyTeamQstnsCmptnynSelect" parameterType="String" resultType="Boolean">
+    	/*
+             SQL ID : SrvyDAO.quizTeamQstnsCmptnynSelect
+             설  명  : 설문팀문제출제완료여부조회
+         */
+    	SELECT
+			CASE
+				WHEN COUNT(*) = COUNT(CASE WHEN SRVY_QSTNS_CMPTNYN = 'Y' THEN 1 END) THEN 1
+				ELSE 0
+			END
+		  FROM TB_LMS_SRVY
+		 WHERE UP_SRVY_ID = #{srvyId}
+		   AND DELYN = 'N'
+		   AND USEYN = 'Y'
+    </select>
+
+    <select id="qstnCopySrvyList" parameterType="String" resultType="srvyVO">
+		/*
+             SQL ID : SrvyDAO.qstnCopySrvyList
+             	설  명 : 문제가져오기설문목록조회
+         */
+		SELECT
+			  NVL(SUB_SRVY.SRVY_ID, SRVY.SRVY_ID) AS SRVY_ID
+			, NVL(SUB_SRVY.SRVY_TTL, SRVY.SRVY_TTL) AS SRVY_TTL
+		  FROM TB_LMS_SBJCT SBJCT
+		  JOIN TB_LMS_SRVY SRVY
+		    ON SBJCT.SBJCT_ID = SRVY.SBJCT_ID
+		   AND SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   AND SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+		   AND SRVY.UP_SRVY_ID IS NULL
+		   AND SRVY.SRVY_QSTNS_CMPTNYN = 'Y'
+		   AND SRVY.UP_SRVY_ID IS NULL
+		  LEFT JOIN TB_LMS_SRVY SUB_SRVY
+		    ON SRVY.SRVY_ID = SUB_SRVY.UP_SRVY_ID
+		   AND SUB_SRVY.DELYN = 'N'
+		   AND SUB_SRVY.USEYN = 'Y'
+		   AND SUB_SRVY.SRVY_QSTNS_CMPTNYN = 'Y'
+		   AND SUB_SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+		 WHERE SBJCT.DELYN = 'N'
+		   AND SBJCT.USEYN = 'Y'
+		   AND SBJCT.SBJCT_ID = #{sbjctId}
 	</select>
 
 </mapper>

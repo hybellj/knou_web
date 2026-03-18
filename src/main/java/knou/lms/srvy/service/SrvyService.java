@@ -106,11 +106,10 @@ public interface SrvyService {
 	* @param smstrChrtId 	학기기수아이디
 	* @param sbjctId 		과목아이디
 	* @param searchValue 	검색내용(설문명)
-	* @param listScale	 	페이지크기
-	* @return 설문목록 페이징
+	* @return 설문목록
 	* @throws Exception
 	*/
-	public ProcessResultVO<EgovMap> profAuthrtSbjctSrvyList(Map<String, Object> params) throws Exception;
+	public List<EgovMap> profAuthrtSbjctSrvyList(Map<String, Object> params) throws Exception;
 
 	/**
      * 설문삭제
@@ -120,5 +119,43 @@ public interface SrvyService {
      * @throws Exception
      */
 	public void srvyDelete(SrvyVO vo) throws Exception;
+
+	/**
+	* 설문팀목록조회
+	*
+	* @param srvyId 	설문아이디
+	* @return 설문팀목록
+	* @throws Exception
+	*/
+	public List<EgovMap> srvyTeamList(String srvyId) throws Exception;
+
+	/**
+	* 설문팀문제출제완료여부조회
+	*
+	* @param srvyId 	설문아이디
+	* @throws Exception
+	*/
+	public Boolean srvyTeamQstnsCmptnynSelect(String srvyId) throws Exception;
+
+	/**
+	* 문제가져오기설문목록조회
+	*
+    * @param sbjctId 		과목이이디
+	* @return 설문목록
+	* @throws Exception
+	*/
+	public List<SrvyVO> qstnCopySrvyList(String sbjctId) throws Exception;
+
+	/**
+     * 설문문제출제완료수정
+     *
+     * @param upSrvyId   	상위설문아이디
+     * @param srvyId   		설문아이디
+     * @param srvyGbncd   	설문팀구분코드 ( SRVY_TEAM, SRVY )
+     * @param searchGubun 	수정상태 ( save, edit )
+     * @param searchKey 	( bsc, dtl )
+     * @throws Exception
+     */
+	public void srvyQstnsCmptnModify(SrvyVO vo) throws Exception;
 
 }

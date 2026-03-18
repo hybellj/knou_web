@@ -8,20 +8,20 @@
 			ForumJoinUserDAO.selectForumScoreStatus
 		*/
 		SELECT
-			IFNULL(SUM(IF(T.atclCnt = 0 AND T.cmntCnt = 0, 1, 0)), 0) AS noStareCnt
-			, IFNULL(SUM(IF(T.atclCnt > 0 OR T.cmntCnt > 0, 1, 0)), 0)  AS completeCnt
-			, IFNULL(ROUND(AVG(T.SCR)), 0) 			 				 AS avgScore
-			, IFNULL(MAX(T.SCR), 0) 					 				 AS maxScore
-			, IFNULL(MIN(T.SCR), 0) 					 				 AS minScore
+			NVL(SUM(IF(T.atclCnt = 0 AND T.cmntCnt = 0, 1, 0)), 0) AS noStareCnt
+			, NVL(SUM(IF(T.atclCnt > 0 OR T.cmntCnt > 0, 1, 0)), 0)  AS completeCnt
+			, NVL(ROUND(AVG(T.SCR)), 0) 			 				 AS avgScore
+			, NVL(MAX(T.SCR), 0) 					 				 AS maxScore
+			, NVL(MIN(T.SCR), 0) 					 				 AS minScore
 		FROM (
 			SELECT
-				A.STD_ID 			 AS stdNo
-				, IFNULL(C.SCR, 0) AS SCR
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = #{forumCd} AND B.STD_ID = A.STD_ID AND B.DELYN = 'N' ) AS atclCnt
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = #{forumCd} AND B.STD_ID = A.STD_ID AND B.DELYN = 'N' ) AS cmntCnt
-			FROM TB_LMS_ATNDLC_SBJCT AS A
+				A.USER_ID 			 AS stdNo
+				, NVL(C.SCR, 0) AS SCR
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' ) AS atclCnt
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' ) AS cmntCnt
+			FROM TB_LMS_ATNDLC AS A
 			LEFT JOIN TB_LMS_DSCS_PTCP AS C
-				ON A.STD_ID = C.STD_ID
+				ON A.USER_ID = C.USER_ID
 				AND C.DSCS_ID = #{forumCd}
 			WHERE A.SBJCT_ID = #{crsCreCd}
 				AND A.ATNDLC_STSCD = 'S'
@@ -30,7 +30,7 @@
 
 	<select id="listPaging" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
 		/*
-			토론 참여 목록 조회
+			토론 참여 목록 조회2
 			ForumJoinUserDAO.listPaging
 		*/
 		SELECT
@@ -68,14 +68,6 @@
 			, mutCnt
 			, mutAvg
 			, mutSn
-<!--
-			, (SELECT MOBILE_NO FROM TB_LMS_USR WHERE USER_ID = T.userId) AS mobileNo
-			, (SELECT EMAIL FROM TB_LMS_USR WHERE USER_ID = T.userId) AS email
-			, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = #{forumCd} AND DELYN = 'N' AND RGTR_ID = T.userId) AS forumMyAtclCnt
-			, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = #{forumCd} AND DELYN = 'N') AS forumAtclCnt
-			, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = #{forumCd} AND DELYN = 'N' AND RGTR_ID = T.userId) AS forumMyCmntCnt
-			, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = #{forumCd} AND DELYN = 'N') AS forumCmntCnt
- -->
 			, mobileNo
 			, email
 			, forumMyAtclCnt
@@ -90,31 +82,33 @@
 			, ENTR_HY
 			, ENTR_GBN
 			, ENTR_GBN_NM
-			, GDSC_DGRS_CRS_GBNCD
+			, DGRS_CRS_GBNCD
 			, GRSC_DEGR_CORS_GBN_NM
 		FROM (
 			SELECT
 				C.DSCS_ID					AS forumCd
-				<!-- , FN_GET_STD_DEPT_NM(A.STD_ID) 	AS deptNm -->
+				<!-- , FN_GET_STD_DEPT_NM(A.USER_ID) 	AS deptNm -->
 				, U.DEPTNM					AS deptNm
-				, A.STD_ID 					AS stdNo
+				, A.USER_ID 					AS stdNo
 				, A.USER_ID 				AS userId
-				<!-- , FN_GET_STD_USER_NM(A.STD_ID) 	AS userNm -->
+				<!-- , FN_GET_STD_USER_NM(A.USER_ID) 	AS userNm -->
 				, U.USERNM					AS userNm
-				, NVL((SELECT SCR FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND STD_ID = A.STD_ID), 0)		AS SCR
-				, NVL((SELECT SCR FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND STD_ID = A.STD_ID), '-')		AS scoreNull
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = C.DSCS_ID AND B.RGTR_ID = A.USER_ID AND B.DELYN = 'N' ) AS actlCnt
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = C.DSCS_ID AND B.RGTR_ID = A.USER_ID AND B.DELYN = 'N' ) AS cmntCnt
-				, (SELECT NVL(USER_ID, A.USER_ID) FROM TB_LMS_USER_ACNT WHERE USER_ID = A.USER_ID) as userId
-				, (SELECT TEAM_ID FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND STD_ID = A.STD_ID) AS teamCd
-				, (SELECT DSCS_FDBK_ID FROM TB_LMS_DSCS_FDBK AS B WHERE B.DSCS_ID = C.DSCS_ID AND B.STD_ID = A.STD_ID AND B.DELYN = 'N' AND B.PAR_FORUM_FDBK_CD IS NULL ORDER BY MOD_DTTM DESC LIMIT 1) 	AS forumFdbkCd
-				, (SELECT FDBK_CTS FROM TB_LMS_DSCS_FDBK AS B WHERE B.DSCS_ID = C.DSCS_ID AND B.STD_ID = A.STD_ID AND B.DELYN = 'N' AND B.PAR_FORUM_FDBK_CD IS NULL ORDER BY MOD_DTTM DESC LIMIT 1) 		AS fdbkCts
-				, (SELECT SCR_MEMO FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND STD_ID = A.STD_ID) AS profMemo
-				, (SELECT BB.TEAMNM FROM TB_LMS_TEAM_MBR B LEFT JOIN TB_LMS_TEAM BB ON B.TEAM_ID = BB.TEAM_ID LEFT JOIN TB_LMS_DSCS BBB ON BB.TEAM_TYCD = BBB.TEAM_TYCD WHERE B.STD_ID = A.STD_ID AND BBB.DSCS_ID = C.DSCS_ID) AS teamNm
-				, (SELECT B.TEAM_LDRYN FROM TB_LMS_TEAM_MBR B LEFT JOIN TB_LMS_TEAM BB ON B.TEAM_ID = BB.TEAM_ID LEFT JOIN TB_LMS_DSCS BBB ON BB.TEAM_TYCD = BBB.TEAM_TYCD WHERE B.STD_ID = A.STD_ID AND BBB.DSCS_ID = C.DSCS_ID) AS memberRole
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_MTL_EVL B WHERE B.STD_ID = A.STD_ID AND B.DSCS_ID = C.DSCS_ID) AS mutCnt
-				, (SELECT NVL(ROUND(AVG(SCR)), 0) FROM TB_LMS_DSCS_MTL_EVL B WHERE B.STD_ID = A.STD_ID AND B.DSCS_ID = C.DSCS_ID) AS mutAvg
-				, (SELECT B.MTL_EVL_ID FROM TB_LMS_DSCS_MTL_EVL B WHERE B.DSCS_ID = C.DSCS_ID AND B.STD_ID = A.STD_ID AND RGTR_ID = #{userId}) AS mutSn
+				, NVL((SELECT SCR FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND USER_ID = A.USER_ID), 0)		AS SCR
+				, NVL((SELECT SCR FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND USER_ID = A.USER_ID), '-')		AS scoreNull
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = C.DSCS_ID AND B.RGTR_ID = A.USER_ID AND B.DELYN = 'N' ) AS actlCnt
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B WHERE B.DSCS_ID = C.DSCS_ID AND B.RGTR_ID = A.USER_ID AND B.DELYN = 'N' ) AS cmntCnt
+				, (SELECT NVL(USER_ID, A.USER_ID) FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) as userId
+				, (SELECT TEAM_ID FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND USER_ID = A.USER_ID) AS teamCd
+				, (SELECT DSCS_FDBK_ID FROM (SELECT DSCS_FDBK_ID FROM TB_LMS_DSCS_FDBK B WHERE B.DSCS_ID = C.DSCS_ID AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' AND B.PAR_FORUM_FDBK_CD IS NULL ORDER BY MOD_DTTM) WHERE ROWNUM = 1) 	AS forumFdbkCd
+				, (SELECT FDBK_CTS FROM (SELECT FDBK_CTS FROM TB_LMS_DSCS_FDBK B WHERE B.DSCS_ID = C.DSCS_ID AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' AND B.PAR_FORUM_FDBK_CD IS NULL ORDER BY MOD_DTTM DESC ) WHERE ROWNUM = 1) 		AS fdbkCts
+				, (SELECT SCR_MEMO FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND USER_ID = A.USER_ID) AS profMemo
+				, (SELECT BB.TEAMNM FROM TB_LMS_TEAM_MBR B LEFT JOIN TB_LMS_TEAM BB ON B.TEAM_ID = BB.TEAM_ID LEFT JOIN TB_LMS_DSCS BBB ON BB.TEAM_TYCD = BBB.TEAM_TYCD WHERE B.USER_ID = A.USER_ID AND BBB.DSCS_ID = C.DSCS_ID) AS teamNm
+				, (SELECT B.TEAM_LDRYN FROM TB_LMS_TEAM_MBR B LEFT JOIN TB_LMS_TEAM BB ON B.TEAM_ID = BB.TEAM_ID LEFT JOIN TB_LMS_DSCS BBB ON BB.TEAM_TYCD = BBB.TEAM_TYCD WHERE B.USER_ID = A.USER_ID AND BBB.DSCS_ID = C.DSCS_ID) AS memberRole
+				/*, (SELECT COUNT(*) FROM TB_LMS_DSCS_MTL_EVL B WHERE B.USER_ID = A.USER_ID AND B.DSCS_ID = C.DSCS_ID) AS mutCnt*/
+				, 0 AS mutCnt
+				, (SELECT NVL(ROUND(AVG(SCR)), 0) FROM TB_LMS_DSCS_MTL_EVL B WHERE B.USER_ID = A.USER_ID AND B.DSCS_ID = C.DSCS_ID) AS mutAvg
+				/*, (SELECT B.MTL_EVL_ID FROM TB_LMS_DSCS_MTL_EVL B WHERE B.DSCS_ID = C.DSCS_ID AND B.USER_ID = A.USER_ID AND RGTR_ID = #{userId}) AS mutSn*/
+		   		, '' AS mutSn
 				, U.MOBILE_NO AS mobileNo
 				, U.EMAIL AS email
 				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N' AND RGTR_ID = A.USER_ID) AS forumMyAtclCnt
@@ -125,7 +119,7 @@
 						LEFT JOIN TB_LMS_DSCS BB
 						ON AA.DSCS_ID = BB.DSCS_ID
 					WHERE AA.DSCS_ID = C.DSCS_ID
-						AND AA.STD_ID = A.STD_ID
+						AND AA.USER_ID = A.USER_ID
 						AND AA.DELYN = 'N'
 						AND AA.FRST_INQ_DTTM >= BB.DSCS_EDTTM
 				) AS afterAtclCnt
@@ -137,43 +131,33 @@
 						LEFT JOIN TB_LMS_DSCS BB
 						ON AA.DSCS_ID = BB.DSCS_ID
 					WHERE AA.DSCS_ID = C.DSCS_ID
-						AND AA.STD_ID = U.USER_ID
+						AND AA.USER_ID = U.USER_ID
 						AND AA.DELYN = 'N'
 						AND AA.FRST_INQ_DTTM >= BB.DSCS_EDTTM
 				) AS afterCmntCnt
 				, (SELECT EVL_RSLT_OYN FROM TB_LMS_DSCS WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N') AS evalRsltOpenYn
 				, (SELECT EVL_SDTTM FROM TB_LMS_DSCS WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N') AS evalStartDttm
 				, (SELECT EVL_EDTTM FROM TB_LMS_DSCS WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N') AS evalEndDttm
-				, IFNULL(A.SCYR,'-') SCYR
-				, IFNULL(U.ENTR_YY,'-') ENTR_YY
-				, IFNULL(U.ENTR_HY,'-') ENTR_HY
-				, IFNULL(U.ENTR_GBN,'-') ENTR_GBN
-				, IFNULL(U.ENTR_GBN_NM,'-') ENTR_GBN_NM
-				, A.GDSC_DGRS_CRS_GBNCD
-				, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'GDSC_DGRS_CRS_GBNCD' AND CD = A.GDSC_DGRS_CRS_GBNCD) AS GRSC_DEGR_CORS_GBN_NM
-			FROM TB_LMS_ATNDLC_SBJCT AS A
-				<!-- <if test='forumCtgrCd == "TEAM"'>
-				JOIN TB_LMS_DSCS_PTCP AS C
-				</if>
-				<if test='forumCtgrCd == "NOMAL"'> -->
-			JOIN TB_LMS_DSCS AS C
-				<!-- </if> -->
+				, NVL(A.SCYR,'-') SCYR
+				, NVL(U.ENTR_YY,'-') ENTR_YY
+				, NVL(U.ENTR_HY,'-') ENTR_HY
+				, NVL(U.ENTR_GBN,'-') ENTR_GBN
+				, NVL(U.ENTR_GBN_NM,'-') ENTR_GBN_NM
+				, A.DGRS_CRS_GBNCD
+				, (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = A.ORG_ID AND CTGRCD = 'GDSC_DGRS_CRS_GBNCD' AND CD = A.DGRS_CRS_GBNCD) AS GRSC_DEGR_CORS_GBN_NM
+			FROM TB_LMS_ATNDLC A
+			JOIN TB_LMS_DSCS C
 			  ON C.DSCS_ID = #{forumCd}
 		     AND C.DELYN = 'N'
 			JOIN TB_LMS_USR U
 			  ON A.USER_ID = U.USER_ID
-<!--
-				LEFT JOIN TB_LMS_USER_ACNT AS L
-					ON A.USER_ID = L.USER_ID
-					AND L.ACNT_STSCD = 'U'
- -->
 			WHERE A.SBJCT_ID = #{crsCreCd}
 				AND A.ATNDLC_STSCD = 'S'
 				AND A.AUDITYN = 'N'
-				<if test="forumCtgrCd == 'SUBS'">
-				AND A.STD_ID IN (
+				<!--<if test="forumCtgrCd == 'SUBS'">
+				AND A.USER_ID IN (
 					SELECT
-						D.STD_ID
+						D.USER_ID
 					FROM TB_LMS_EXAM_STARE D
 				    JOIN TB_LMS_EXAM_BSC E
 					  ON D.EXAM_ID = E.EXAM_ID
@@ -181,7 +165,7 @@
 					 AND E.EXAM_SBST_REF_ID = #{forumCd}
 					 AND D.REEXAMYN = 'Y'
 				)
-				</if>
+				</if>-->
 		) T
 		WHERE 1 = 1
 		<if test='searchKey != null and searchKey != "" and searchKey != "all"'>
@@ -196,11 +180,11 @@
 				AND afterAtclCnt > 0
 			</if>
 			<if test='searchKey == "leader"'>
-				<!-- AND EXISTS (SELECT 1 FROM TB_LMS_TEAM_MBR WHERE TEAM_ID = T.teamCd AND STD_ID = T.stdNo AND TEAM_LDRYN = 'Y') -->
+				<!-- AND EXISTS (SELECT 1 FROM TB_LMS_TEAM_MBR WHERE TEAM_ID = T.teamCd AND USER_ID = T.stdNo AND TEAM_LDRYN = 'Y') -->
 				AND T.memberRole = 'Y'
 			</if>
 			<if test='searchKey == "member"'>
-				<!-- AND EXISTS (SELECT 1 FROM TB_LMS_TEAM_MBR WHERE TEAM_ID = T.teamCd AND STD_ID = T.stdNo AND TEAM_LDRYN = 'N') -->
+				<!-- AND EXISTS (SELECT 1 FROM TB_LMS_TEAM_MBR WHERE TEAM_ID = T.teamCd AND USER_ID = T.stdNo AND TEAM_LDRYN = 'N') -->
 				AND T.memberRole != 'Y'
 			</if>
 		</if>
@@ -219,7 +203,7 @@
 				OR LOWER(userNm) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
 			)
 		</if>
-		ORDER BY lineNo ASC
+		ORDER BY LINE_NO ASC
 		<if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
 			<!-- LIMIT #{firstIndex}, #{listScale} -->
 		</if>
@@ -231,7 +215,7 @@
 			ForumJoinUserDAO.insertStdScore
 		*/
 		<!-- INSERT INTO TB_LMS_DSCS_PTCP (
-			STD_ID
+			USER_ID
 			, DSCS_ID
 			, TEAM_ID
 			, SCR
@@ -277,10 +261,10 @@
 			, MDFR_ID = #{mdfrId}, MOD_DTTM = FN_DTTM()
 			<choose>
 				<when test="stdNo != null and stdNo != ''">
-					, STD_ID = #{stdNo}
+					, USER_ID = #{stdNo}
 				</when>
 				<otherwise>
-					, STD_ID = FN_GET_STD_NO(#{userId},#{crsCreCd})
+					, USER_ID = FN_GET_STD_NO(#{userId},#{crsCreCd})
 				</otherwise>
 			</choose> -->
 
@@ -289,17 +273,17 @@
 	        SELECT
 	            <choose>
 	                <when test="stdNo != null and stdNo != ''">
-	                    #{stdNo} AS STD_ID
+	                    #{stdNo} AS USER_ID
 	                </when>
 	                <otherwise>
-	                    FN_GET_STD_NO(#{userId}, #{crsCreCd}) AS STD_ID
+	                    FN_GET_STD_NO(#{userId}, #{crsCreCd}) AS USER_ID
 	                </otherwise>
 	            </choose>,
 	            #{forumCd} AS DSCS_ID
 	        FROM DUAL
 	    ) S
 	    ON (
-	        T.STD_ID = S.STD_ID
+	        T.USER_ID = S.USER_ID
 	        AND T.DSCS_ID = S.DSCS_ID
 	    )
 	    WHEN MATCHED THEN
@@ -315,7 +299,7 @@
 	            T.MOD_DTTM = FN_DTTM()
 	    WHEN NOT MATCHED THEN
 	        INSERT (
-	            STD_ID,
+	            USER_ID,
 	            DSCS_ID,
 	            TEAM_ID,
 	            SCR,
@@ -366,14 +350,14 @@
 			, teamCd
 		FROM (
 			SELECT
-				A.STD_ID 				AS stdNo
-				, IFNULL(C.SCR, 0) 	AS SCR
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = #{forumCd} AND B.STD_ID = A.STD_ID AND B.DELYN = 'N' ) 	as atclCnt
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = #{forumCd} AND B.STD_ID = A.STD_ID AND B.DELYN = 'N') 	as cmntCnt
+				A.USER_ID 				AS stdNo
+				, NVL(C.SCR, 0) 	AS SCR
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' ) 	as atclCnt
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N') 	as cmntCnt
 				, C.TEAM_ID				AS teamCd
-			FROM TB_LMS_ATNDLC_SBJCT AS A
+			FROM TB_LMS_ATNDLC AS A
 				LEFT JOIN TB_LMS_DSCS_PTCP AS C
-					ON A.STD_ID = C.STD_ID
+					ON A.USER_ID = C.USER_ID
 					AND C.DSCS_ID = #{forumCd}
 			WHERE A.SBJCT_ID = #{crsCreCd}
 				AND ATNDLC_STSCD = 'S'
@@ -404,7 +388,7 @@
 			ForumJoinUserDAO.selectForumJoinUser
 		*/
 		SELECT
-			STD_ID 						AS stdNo
+			USER_ID 						AS stdNo
 			, DSCS_ID 						AS forumCd
 			, SCR 						AS SCR
 			, EVLYN						AS evalYn
@@ -415,51 +399,52 @@
 			, DELYN 						AS delYn
 			, (
 				SELECT B.USER_ID
-				FROM TB_LMS_USER_ACNT AS B
-				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC_SBJCT AS C WHERE C.STD_ID = A.STD_ID)
+				FROM TB_LMS_USER AS B
+				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC AS C WHERE C.USER_ID = A.USER_ID)
 			) AS userId
 			, (
 				SELECT B.USER_ID
-				FROM TB_LMS_USER_ACNT AS B
-				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC_SBJCT AS C WHERE C.STD_ID = A.STD_ID)
+				FROM TB_LMS_USER AS B
+				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC AS C WHERE C.USER_ID = A.USER_ID)
 			) AS userId
 			, (
 				SELECT B.USERNM
 				FROM TB_LMS_USR B
-				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC_SBJCT AS C WHERE C.STD_ID = A.STD_ID)
+				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC AS C WHERE C.USER_ID = A.USER_ID)
 			) AS userNm
 			, (
 				SELECT B.DEPTNM
 				FROM TB_LMS_USR B
-				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC_SBJCT AS C WHERE C.STD_ID = A.STD_ID)
+				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC AS C WHERE C.USER_ID = A.USER_ID)
 			) AS deptNm
-			,(SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN ='N' AND B.STD_ID = A.DSCS_ID) AS atclCnt
-			,(SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN ='N' AND B.STD_ID = A.DSCS_ID) AS cmntCnt
+			,(SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN ='N' AND B.USER_ID = A.DSCS_ID) AS atclCnt
+			,(SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN ='N' AND B.USER_ID = A.DSCS_ID) AS cmntCnt
 			,(SELECT MTL_EVLYN FROM TB_LMS_DSCS WHERE DSCS_ID = A.DSCS_ID AND DELYN = 'N' ) AS mutEvalYn
-			,(SELECT IFNULL(ROUND(AVG(SCR)), 0) FROM TB_LMS_DSCS_MTL_EVL WHERE STD_ID = A.STD_ID AND DSCS_ID = A.DSCS_ID) AS mutAvg
+			/*,(SELECT NVL(ROUND(AVG(SCR)), 0) FROM TB_LMS_DSCS_MTL_EVL WHERE USER_ID = A.USER_ID AND DSCS_ID = A.DSCS_ID) AS mutAvg*/
+			,0 AS mutAvg
 		FROM TB_LMS_DSCS_PTCP AS A
-		WHERE STD_ID = #{stdNo}
+		WHERE USER_ID = #{stdNo}
 			AND DSCS_ID = #{forumCd}
 	</select>
 
 	<select id="forumJoinUserList" parameterType="forumJoinUserVO" resultType="egovMap">
 		/*
-			수강생 토론 성적 조회
+			수강생 토론 성적 조회2
 			ForumJoinUserDAO.forumJoinUserList
 		*/
-		SELECT U.STD_ID 	AS stdNo
+		SELECT U.USER_ID 	AS stdNo
 			, DSCS_ID 	AS forumCd
-			, IFNULL(SCR, 0)	AS SCR
+			, NVL(SCR, 0)	AS SCR
 			, EVLYN	AS evalYn
 			, U.RGTR_ID 	AS rgtrId
-			, U.FRST_INQ_DTTM 	AS regDttm
+			, U.REG_DTTM 	AS regDttm
 			, U.MDFR_ID 	AS mdfrId
 			, U.MOD_DTTM 	AS modDttm
 			, U.DELYN 	AS delYn
-			, (SELECT IFNULL(USER_ID, S.USER_ID) FROM TB_LMS_USER_ACNT WHERE USER_ID = S.USER_ID) AS userId
-		FROM TB_LMS_DSCS_PTCP U, TB_LMS_ATNDLC_SBJCT S
+			, (SELECT NVL(USER_ID, S.USER_ID) FROM TB_LMS_USER WHERE USER_ID = S.USER_ID) AS userId
+		FROM TB_LMS_DSCS_PTCP U, TB_LMS_ATNDLC S
 		WHERE U.DSCS_ID = #{forumCd}
-			AND U.STD_ID = S.STD_ID
+			AND U.USER_ID = S.USER_ID
 			AND S.ATNDLC_STSCD = 'S'
 	</select>
 
@@ -472,17 +457,17 @@
 			(
 				SELECT DEPTNM
 				FROM TB_LMS_USR
-				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = A.STD_ID)
+				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC WHERE USER_ID = A.USER_ID)
 			) AS deptNm
 			, (
 				SELECT USER_ID
-				FROM TB_LMS_USER_ACNT
-				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = A.STD_ID)
+				FROM TB_LMS_USER
+				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC WHERE USER_ID = A.USER_ID)
 			) AS userId
 			, (
 				SELECT USERNM
 				FROM TB_LMS_USR
-				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC_SBJCT WHERE STD_ID = A.STD_ID)
+				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC WHERE USER_ID = A.USER_ID)
 			) AS userNm
 			, NVL(A.SCR, 0)			AS SCR
 			, B.SBJCT_ID 					AS crsCreCd
@@ -495,7 +480,7 @@
 				ON A.DSCS_ID = B.DSCS_ID
 		WHERE 1 = 1
 			AND A.DSCS_ID = #{forumCd}
-			AND A.STD_ID = #{stdNo}
+			AND A.USER_ID = #{stdNo}
 	</select>
 
 	<update id="editForumProfMemo" parameterType="forumJoinUserVO">
@@ -508,7 +493,7 @@
 			, MOD_DTTM = FN_DTTM()
 			, SCR_MEMO = #{profMemo}
 		WHERE DSCS_ID = #{forumCd}
-			AND STD_ID = #{stdNo}
+			AND USER_ID = #{stdNo}
 	</update>
 
 	<select id="getForumJoinUser" resultType="int">
@@ -519,7 +504,7 @@
 		SELECT
 			COUNT(*)
 		FROM TB_LMS_DSCS_PTCP
-		WHERE STD_ID = #{stdNo}
+		WHERE USER_ID = #{stdNo}
 			AND DSCS_ID = #{forumCd}
 	</select>
 
@@ -531,7 +516,7 @@
 		SELECT
 			SCR_MEMO as profMemo
 		FROM TB_LMS_DSCS_PTCP
-		WHERE STD_ID = #{stdNo}
+		WHERE USER_ID = #{stdNo}
 			AND DSCS_ID = #{forumCd}
 	</select>
 
@@ -544,13 +529,13 @@
 			COUNT(*)
 		FROM TB_LMS_DSCS_PTCP A
 			LEFT JOIN TB_LMS_DSCS_ATCL B
-			ON (A.DSCS_ID = B.DSCS_ID AND A.STD_ID = B.STD_ID AND B.DELYN = 'N')
+			ON (A.DSCS_ID = B.DSCS_ID AND A.USER_ID = B.USER_ID AND B.DELYN = 'N')
 			<if test='chkCmnt == "Y"'>
 			LEFT JOIN TB_LMS_DSCS_CMNT C
-			ON (A.DSCS_ID = C.DSCS_ID AND A.STD_ID = C.STD_ID AND C.DELYN = 'N')
+			ON (A.DSCS_ID = C.DSCS_ID AND A.USER_ID = C.USER_ID AND C.DELYN = 'N')
 			</if>
 		WHERE A.DSCS_ID = #{forumCd}
-			AND A.STD_ID = #{stdNo}
+			AND A.USER_ID = #{stdNo}
 			AND B.ATCL_CTS_LEN >= #{ctsLen}
 			<if test='chkCmnt == "Y"'>
 			AND (B.ATCL_CTS_LEN >= #{ctsLen} OR C.CMNT_CTS_LEN >= #{ctsLen})
@@ -563,7 +548,7 @@
 			ForumJoinUserDAO.chkStdNoInsert
 		*/
 		INSERT INTO TB_LMS_DSCS_PTCP (
-			STD_ID
+			USER_ID
 			, DSCS_ID
 			, RGTR_ID
 			, FRST_INQ_DTTM
@@ -576,11 +561,11 @@
 		FROM TB_LMS_DSCS_PTCP
 		WHERE NOT EXISTS (
 			SELECT
-				STD_ID
+				USER_ID
 			FROM TB_LMS_DSCS_PTCP
-			WHERE STD_ID = #{stdNo}
+			WHERE USER_ID = #{stdNo}
 				AND DSCS_ID = #{forumCd}
-		) LIMIT 1
+		) ROWNUM = 1
 	</insert>
 
 	<insert id="insertJoinUser" parameterType="forumMutVO">
@@ -589,7 +574,7 @@
 			ForumJoinUserDAO.insertJoinUser
 		*/
 		INSERT INTO TB_LMS_DSCS_PTCP (
-			STD_ID
+			USER_ID
 			, DSCS_ID
 			, TEAM_ID
 			<if test='searchKey != null and searchKey != "" and searchKey == "INSERT"'>
@@ -602,7 +587,7 @@
 			, MOD_DTTM
 		)
 		SELECT
-			A.STD_ID
+			A.USER_ID
 			, B.DSCS_ID
 			, (
 				SELECT
@@ -614,7 +599,7 @@
 					ON D.TEAM_ID = E.TEAM_ID
 				WHERE 1 = 1
 					AND C.TEAM_TYCD = B.TEAM_TYCD
-					AND E.STD_ID = A.STD_ID
+					AND E.USER_ID = A.USER_ID
 			) AS teamCd
 			<if test='searchKey != null and searchKey != "" and searchKey == "INSERT"'>
 			, 100
@@ -624,7 +609,7 @@
 			, FN_DTTM()
 			, #{rgtrId}
 			, FN_DTTM()
-		FROM TB_LMS_ATNDLC_SBJCT A
+		FROM TB_LMS_ATNDLC A
 			LEFT JOIN TB_LMS_DSCS B
 			ON A.SBJCT_ID = B.SBJCT_ID
 		WHERE A.SBJCT_ID = #{crsCreCd}
@@ -632,10 +617,10 @@
 			AND B.DELYN = 'N'
 			AND B.DSCS_ID = #{forumCd}
 			<if test="stdNo != null and stdNo != ''">
-			AND A.STD_ID = #{stdNo}
+			AND A.USER_ID = #{stdNo}
 			</if>
 		ON DUPLICATE KEY UPDATE
-		  STD_ID = A.STD_ID
+		  USER_ID = A.USER_ID
 		, DSCS_ID = B.DSCS_ID
 		<if test='searchKey != null and searchKey != "" and searchKey == "INSERT"'>
 		, SCR = 100
@@ -649,7 +634,7 @@
 			ForumJoinUserDAO.participateScore
 		*/
 		INSERT INTO TB_LMS_DSCS_PTCP (
-			STD_ID
+			USER_ID
 			, DSCS_ID
 			, TEAM_ID
 			, SCR
@@ -661,7 +646,7 @@
 		)
 		(
 			SELECT
-				T.STD_ID
+				T.USER_ID
 				, T.DSCS_ID
 				, T.TEAM_ID
 				, T.SCR
@@ -674,8 +659,8 @@
 			(
 				SELECT
 					*
-					, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.DSCS_ID AND DELYN = 'N' AND STD_ID = A.STD_ID) AS atclCnt
-					, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = A.DSCS_ID AND DELYN = 'N' AND STD_ID = A.STD_ID) AS cmntCnt
+					, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.DSCS_ID AND DELYN = 'N' AND USER_ID = A.USER_ID) AS atclCnt
+					, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DSCS_ID = A.DSCS_ID AND DELYN = 'N' AND USER_ID = A.USER_ID) AS cmntCnt
 				FROM TB_LMS_DSCS_PTCP A
 				WHERE A.DSCS_ID = #{forumCd}
 				<if test='searchMenu != null and searchMenu != "" and searchMenu == "ONCE"'>
@@ -693,7 +678,7 @@
 			</choose>
 		)
 		ON DUPLICATE KEY UPDATE
-			  STD_ID = T.STD_ID
+			  USER_ID = T.USER_ID
 			, DSCS_ID = T.DSCS_ID
 			, EVLYN = 'Y'
 			<choose>
@@ -714,7 +699,7 @@
 		UPDATE TB_LMS_DSCS_PTCP SET
 			TEAM_ID = #{teamCd}
 		 WHERE DSCS_ID = #{forumCd}
-		   AND STD_ID = #{stdNo}
+		   AND USER_ID = #{stdNo}
 	</update>
 
 	<update id="updateJoinUserEvalN" parameterType="forumJoinUserVO">
@@ -728,6 +713,6 @@
 			, MDFR_ID = #{mdfrId}
 			, MOD_DTTM = FN_DTTM()
 		 WHERE DSCS_ID = #{forumCd}
-		   AND STD_ID = #{stdNo}
+		   AND USER_ID = #{stdNo}
 	</update>
 </mapper>

@@ -11,6 +11,26 @@
         <jsp:param name="module" value="table,editor,fileuploader"/>
     </jsp:include>
 
+    <style>
+        /* 1. 아이콘을 오른쪽으로 배치 */
+        .ui-accordion .ui-accordion-header {
+            padding-left: 1em; /* 왼쪽 패딩 복구 */
+            padding-right: 2.5em; /* 아이콘이 들어갈 오른쪽 공간 확보 */
+        }
+
+        .ui-accordion .ui-accordion-header-icon {
+            left: auto !important; /* 기본 왼쪽 고정 해제 */
+            right: 0.5em !important; /* 오른쪽 끝에서 약간 띄움 */
+        }
+
+        /* 필요시 아이콘 자체의 여백 조정 */
+        .ui-accordion-header-icon.ui-icon {
+            position: absolute;
+            top: 50%;
+            margin-top: -8px; /* 세로 중앙 정렬 */
+        }
+    </style>
+
     <script type="text/javascript">
     var dialog;
     $(document).ready(function() {
@@ -36,6 +56,10 @@
 
         $(".accordion").accordion({
             header: "> .title",
+            icons: {
+                "header": "ui-icon-triangle-1-s",    // 닫혀있을 때 (아래 방향)
+                "activeHeader": "ui-icon-triangle-1-n" // 열려있을 때 (위 방향)
+            },
             collapsible: true,
             active: false,
             heightStyle: "content",
@@ -100,6 +124,7 @@
         };
 
         var url  = urlMap[tab];
+        /*
         var form = $("<form></form>");
         form.attr("method", "POST");
         form.attr("name", "manageForm");
@@ -107,7 +132,8 @@
         form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: '<c:out value="${forumVo.crsCreCd}" />'}));
         form.append($('<input/>', {type: 'hidden', name: 'forumCd',  value: '<c:out value="${forumVo.forumCd}" />'}));
         form.appendTo("body");
-        form.submit();
+        form.submit();*/
+        location.href = url;
     }
 
     //토론글 리스트
@@ -259,6 +285,34 @@
                 "    <div class='right-area'>",
                 "        <button type='button' class='btn basic' onclick=\"editAtclBtn('"+ v.atclSn +"','"+ v.rgtrId +"')\"><spring:message code='forum.button.mod'/></button>",
                 "        <button type='button' class='btn basic' onclick=\"delAtcl('"+ v.atclSn +"','"+ v.rgtrId +"')\"><spring:message code='forum.button.del'/></button>",
+                "        <!-- more menu 추가 -->",
+                "        <div class='dropdown'>",
+                "            <button class='settingBtn' onclick=\"this.nextElementSibling.classList.toggle('show')\"></button>",
+                "            <div class='option-wrap'>",
+                "                <div class='item'><a href='javascript:void(0)' onclick='forumView(1)'>토론방</a></div>",
+                "                <div class='item'><a href='javascript:void(0)' onclick='forumView(2)'>토론평가</a></div>",
+                "                <div class='item'><a href='javascript:void(0)' onclick=\"editAtclBtn('"+ v.atclSn +"','"+ v.rgtrId +"')\">수정</a></div>",
+                "                <div class='item'><a href='javascript:void(0)' onclick=\"delAtcl('"+ v.atclSn +"','"+ v.rgtrId +"')\">삭제</a></div>",
+                "            </div>",
+                "        </div>",
+                "    </div>",
+                "</div>"
+            ].join('');
+        } else {
+            // more menu 추가 - 권한 없어도 dropdown 표시
+            editBtns = [
+                "<div class='bottom_btn'>",
+                "    <div class='right-area'>",
+                "        <!-- more menu 추가 -->",
+                "        <div class='dropdown'>",
+                "            <button class='settingBtn' onclick=\"this.nextElementSibling.classList.toggle('show')\"></button>",
+                "            <div class='option-wrap'>",
+                "                <div class='item'><a href='javascript:void(0)' onclick='forumView(1)'>토론방</a></div>",
+                "                <div class='item'><a href='javascript:void(0)' onclick='forumView(2)'>토론평가</a></div>",
+                "                <div class='item'><a href='javascript:void(0)' onclick=\"editAtclBtn('"+ v.atclSn +"','"+ v.rgtrId +"')\">수정</a></div>",
+                "                <div class='item'><a href='javascript:void(0)' onclick=\"delAtcl('"+ v.atclSn +"','"+ v.rgtrId +"')\">삭제</a></div>",
+                "            </div>",
+                "        </div>",
                 "    </div>",
                 "</div>"
             ].join('');
@@ -298,7 +352,7 @@
             "                    <div class='bottom_btn'>",
             "                        <span class='custom-input'>",
             "                            <input type='checkbox' id='ansReqYn"+ i +"' name='ansReqYn'>",
-            "                            <label for='ansReqYn"+ i +"'>피드백 문의 <span class='small'>( 체크 시 문의로 등록되며 답변을 받을 수 있습니다. )</span></label>",
+            "                            <label for='ansReqYn"+ i +"'><span class='small'><spring:message code='forum.checkbox.label.request' /></span></label>",
             "                        </span>",
             "                        <div class='right-area'>",
             "                            <button type='button' class='btn type2' onclick=\"addCmnt('"+ atclSn +"','','"+ i +"');\"><spring:message code='forum.button.reg'/></button>",
@@ -1208,7 +1262,7 @@
                             <!-- 토론 참여글 끝 -->
 
                             <!-- 학생, 이름 검색 -->
-                            <div>
+                            <div class="board_top">
                                 <!-- search small -->
                                 <div class="search-typeC">
                                     <input class="form-control" type="text" placeholder="<spring:message code='forum.label.user.no' />, <spring:message code='forum.label.user_nm' /> <spring:message code='forum.label.input' />" class="w250"

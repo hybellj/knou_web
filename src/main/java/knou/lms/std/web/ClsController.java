@@ -3,6 +3,8 @@ package knou.lms.std.web;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.util.ExcelUtilPoi;
+import knou.framework.exception.AccessDeniedException;
+import knou.framework.util.ValidationUtils;
 import knou.lms.std.service.ClsService;
 import knou.lms.std.vo.*;
 import knou.lms.common.vo.ProcessResultVO;
@@ -27,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 
 
 /**
@@ -824,6 +827,37 @@ public class ClsController extends ControllerBase {
             resultVO.setResultFailed();
             resultVO.setMessage(getCommonFailMessage());
         }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학습자 주차별 학습현황 단건 조회 (Ajax)
+     * 팝업: cls_stdnt_weekly_popup.jsp
+     ******************************************************/
+    @RequestMapping(value = "/selectClsStdntWeeklyInfo.do")
+    @ResponseBody
+    public ProcessResultVO<ClsStdntVO> selectClsStdntWeeklyInfo(ClsStdntVO vo, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ClsStdntVO> resultVO = new ProcessResultVO<>();
+
+        vo.setOrgId(SessionInfo.getOrgId(request));
+
+        try {
+            // 파라미터 체크
+            if (ValidationUtils.isEmpty(vo.getSbjctId()) || ValidationUtils.isEmpty(vo.getUserId())) {
+                throw new AccessDeniedException(getMessage("common.system.error"));
+            }
+
+            ClsStdntVO result = clsService.selectClsStdntWeeklyInfo(vo);
+
+            resultVO.setReturnVO(result);
+            resultVO.setResultSuccess();
+        } catch (Exception e) {
+            LOGGER.error("[selectClsStdntWeeklyInfo] fail, vo={}", vo, e);
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());
+        }
+
         return resultVO;
     }
 }

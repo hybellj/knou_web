@@ -19,6 +19,9 @@ public interface ExamDAO {
     /*****************************************************
      * 신규 작성 DAO 영역
      *****************************************************/
+    // 시험기본등록 (시험 화면 전용)
+    public void examBscRegist2(ExamBscVO vo) throws Exception;
+
     // 교수 시험목록 조회
     public List<ExamVO> listProfExam (ExamVO vo) throws Exception;
 

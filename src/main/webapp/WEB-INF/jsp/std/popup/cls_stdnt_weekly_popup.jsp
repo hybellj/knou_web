@@ -417,36 +417,52 @@
         });
     }
 
+    /* 추가 - 학습자 주차별 학습현황 단건 조회 */
     function loadWklyData() {
         $.ajax({
-            url: CTX + "/cls/selectClsStdntListPaging.do",
-            type: "GET", dataType: "json",
-            data: { sbjctId: sbjctId, userId: userId, pageIndex: 1, listScale: 1 },
+            url: CTX + "/cls/selectClsStdntWeeklyInfo.do",
+            type: "GET",
+            dataType: "json",
+            data: {
+                sbjctId: sbjctId,
+                userId: userId
+            },
             success: function (res) {
-                if (!res || res.result !== 1 || !res.returnList || res.returnList.length === 0) return;
-                var d = res.returnList[0];
+                if (!res || res.result !== 1 || !res.returnVO) return;
+
+                var d = res.returnVO;
 
                 var info = "";
                 if (d.stdntNo) info += "학번 " + d.stdntNo;
                 if (d.entyR && d.entyR !== "-") info += " / 입학년도 " + d.entyR;
-                if (d.scyr  && d.scyr  !== "-") info += " / " + d.scyr + "학년";
+                if (d.scyr && d.scyr !== "-") info += " / " + d.scyr + "학년";
                 $("#wkInfoRow").text(info);
 
                 for (var w = 1; w <= 15; w++) {
                     var v = d['wk' + w + 'Sts'] || null;
                     var html;
-                    if      (!v)       html = '-';
-                    else if (v === 'O')  html = '<span class="state_ok" aria-label="출석">○</span>';
-                    else if (v === '△') html = '<span class="state_late" aria-label="지각">△</span>';
-                    else                 html = '<span class="state_no" aria-label="결석">X</span>';
-                    if (w === initWkNo) html = '<span style="background:#fff9c4;border-radius:3px;padding:0 2px;">' + html + '</span>';
+
+                    if (!v) {
+                        html = '-';
+                    } else if (v === 'O') {
+                        html = '<span class="state_ok" aria-label="출석">○</span>';
+                    } else if (v === '△') {
+                        html = '<span class="state_late" aria-label="지각">△</span>';
+                    } else {
+                        html = '<span class="state_no" aria-label="결석">X</span>';
+                    }
+
+                    if (w === initWkNo) {
+                        html = '<span style="background:#fff9c4;border-radius:3px;padding:0 2px;">' + html + '</span>';
+                    }
+
                     $("#wkSts" + w).html(html);
                 }
 
                 $("#wkSummary").html(
-                    '<span class="state_ok total_label" aria-label="출석">'   + (d.atndCnt || 0) + '</span>'
+                    '<span class="state_ok total_label" aria-label="출석">' + (d.atndCnt || 0) + '</span>'
                     + '<span class="state_late total_label" aria-label="지각">' + (d.lateCnt || 0) + '</span>'
-                    + '<span class="state_no total_label" aria-label="결석">'  + (d.absnCnt || 0) + '</span>'
+                    + '<span class="state_no total_label" aria-label="결석">' + (d.absnCnt || 0) + '</span>'
                 );
             }
         });

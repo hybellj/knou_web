@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
-<%@ include file="/WEB-INF/jsp/quiz/common/quiz_common_inc.jsp" %>
+<%@ include file="/WEB-INF/jsp/srvy/common/srvy_common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>

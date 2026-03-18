@@ -244,7 +244,7 @@ public class DashboardController extends ControllerBase {
                 }
             }
         }
-        
+
         System.out.println("returnUri>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>=" + returnUri);
 
 
@@ -2369,6 +2369,28 @@ public class DashboardController extends ControllerBase {
         }
 
         return result;
+    }
+
+    /*****************************************************
+     * 위젯 삭제
+     * @param DashboardVO
+     * @return ProcessResultVO<DashboardVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/widgetStngReset.do")
+    @ResponseBody
+    public ProcessResultVO<DashboardVO> widgetStngDelete(DashboardVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        ProcessResultVO<DashboardVO> resultVO = new ProcessResultVO<DashboardVO>();
+
+        try {
+        	dashboardService.widgetStngReset(vo);
+            resultVO.setReturnVO(vo);
+            resultVO.setResult(1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultVO.setResult(-1);
+        }
+        return resultVO;
     }
 
     /**

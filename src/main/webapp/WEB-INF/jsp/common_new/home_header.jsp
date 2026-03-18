@@ -20,7 +20,7 @@
 	<button type="button" class="btn mobile-elem ctrl-gnb" aria-label="모바일 메뉴 버튼"><i class="icon-svg-menu fs-18px" aria-hidden="true"></i></button>
 
 	<h1 class="logo">
-		<a href="#0">
+		<a href="/">
 			<img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.png" aria-hidden="true" alt="한국방송통신대학교">
 		</a>
 	</h1>
@@ -53,6 +53,7 @@
 				<div class="btns">
 					<button type="button" class="btn type5" onclick="widgetStngChange()">저장</button>
 					<button type="button" class="btn gray2" onclick="closeModal()">취소</button>
+					<button type="button" class="btn gray2" onclick="widgetReset()">초기화</button>
 				</div>
 			</div>
 
@@ -290,6 +291,27 @@
 				function closeModal() {
 				    $(".widget_setting").removeClass("on");
 				}
+
+				function widgetReset() {
+					UiComm.showMessage("설정하신 내용이 모두 초기화됩니다. 정말 초기화 하시겠습니까?", "confirm", "550")
+					.then(function(result) {
+						if (result) {
+							var url = "/dashboard/widgetStngReset.do";
+			    			var data = {
+			    				  userId	: "${userId}"
+			    			};
+
+			    			ajaxCall(url, data, function(res) {
+						       if (res.result > 0 || res.result === "success") {
+						           // 화면 새로고침하여 반영
+						           location.reload();
+						       } else {
+						       }
+						    });
+						} else {
+						}
+					});
+		    	};
 			</script>
 
 		</li>

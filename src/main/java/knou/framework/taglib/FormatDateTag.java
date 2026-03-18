@@ -21,17 +21,22 @@ import knou.framework.util.LocaleUtil;
  *
  * value : 문자열(yyyyMMddHHmmss) 또는 Date
  * type : 출력형식
- * 		date(날짜) : "yyyy-MM-dd"
- * 		time(시간) : "HH:mm:ss"
- * 		datetime(날짜시간) : "yyyy-MM-dd HH:mm:ss"
+ * 		date 		: "yyyy-MM-dd" (날짜)
+ * 		time 		: "HH:mm:ss"(시간)
+ *		time2 		: "HH:mm"(시간,분)
+ * 		datetime 	: "yyyy-MM-dd HH:mm:ss" (날짜시간)
+ * 		datetime2 	: "yyyy-MM-dd HH:mm" (날짜시간,분)
+ * 		monthday 	: "MM-dd" (월일)
  */
 public class FormatDateTag extends TagSupport {
 	private static final long serialVersionUID = 7464535428125890961L;
 	private static Log log = LogFactory.getLog(FormatDateTag.class);
 
-	private static final String DATE_PATTEN_KO = "yyyy-MM-dd";
-	private static final String DATE_PATTEN_EN = "MM-dd-yyyy";
-	private static final String TIME_PATTEN = "HH:mm:ss";
+	private static final String DATE_PATTEN_KO	= "yyyy-MM-dd";
+	private static final String DATE_PATTEN_EN	= "MM-dd-yyyy";
+	private static final String TIME_PATTEN		= "HH:mm:ss";
+	private static final String TIME2_PATTEN		= "HH:mm";
+	private static final String MONTHDAY_PATTEN = "MM-dd";
 
 	private Object value;
 	private String type;
@@ -65,8 +70,17 @@ public class FormatDateTag extends TagSupport {
 				if ("time".equals(type)) {
 					dateFormat = TIME_PATTEN;
 				}
+				else if ("time2".equals(type)) {
+					dateFormat = TIME2_PATTEN;
+				}
 				else if ("datetime".equals(type)) {
 					dateFormat += " " + TIME_PATTEN;
+				}
+				else if ("datetime2".equals(type)) {
+					dateFormat += " " + TIME2_PATTEN;
+				}
+				else if ("monthday".equals(type)) {
+					dateFormat = MONTHDAY_PATTEN;
 				}
 
 				DateTimeFormatter inputFmt = DateTimeFormatter.ofPattern(datePtn);

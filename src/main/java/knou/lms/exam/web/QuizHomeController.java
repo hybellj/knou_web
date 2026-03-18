@@ -154,7 +154,8 @@ public class QuizHomeController extends ControllerBase {
      */
     @RequestMapping(value="/profQuizListView.do")
     public String profQuizListView(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        model.addAttribute("sbjctId", "SBJCT_OFRNG_ID1");    // 과목아이디
+    	String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID1" : vo.getSbjctId();
+        model.addAttribute("sbjctId", sbjctId);    // 과목아이디
         model.addAttribute("menuTycd", "PROF");
 
         return "quiz/prof_quiz_list_view";
@@ -249,6 +250,8 @@ public class QuizHomeController extends ControllerBase {
 
         QuizMainView quizMainView = quizFacadeService.loadProfQuizRegistView(vo);
         model.addAttribute("dvclasList", quizMainView.getSbjctDcvlasList());
+        vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM));	// 첨부파일저장소 설정
+        model.addAttribute("vo", vo);
 
         model.addAttribute("menuTycd", "PROF");
         model.addAttribute("sbjctId", vo.getSbjctId());    // 과목아이디

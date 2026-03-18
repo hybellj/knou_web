@@ -349,4 +349,17 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     public List<ClsAsmtSbmsnLogVO> selectStdntElemSbmsnLog(ClsAsmtSbmsnLogVO vo) throws Exception {
         return clsDAO.selectStdntElemSbmsnLog(vo);
     }
+
+    /*****************************************************
+     * 학습자 주차별 학습현황 단건 정보를 조회한다.
+     * @param ClsStdntVO
+     * @return ClsStdntVO
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ClsStdntVO selectClsStdntWeeklyInfo(ClsStdntVO vo) throws Exception {
+        // 주차 리스트 기본값 설정
+        setDefaultWkList(vo);
+        return clsDAO.selectClsStdntWeeklyInfo(vo);
+    }
 }

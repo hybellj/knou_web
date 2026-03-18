@@ -12,23 +12,23 @@
 	<script type="text/javascript">
 		var PAGE_INDEX = 1;
 		var LIST_SCALE = 10;
-		var isRatioEditMode = false; // 반영비율 편집 모드 상태
 
 		$(document).ready(function() {
+            /* 초기 시험 목록 가져오기 */
 			loadExamList();
 
-			/* 시험 등록 버튼 */
-			$("#exam-add-btn").on("click", function() {
-				location.href = "/exam/Form/examWrite.do";
-			});
+            /* 검색 영역 엔터키 입력 */
+            $("#examTtl").on("keyup", function(e) {
+                if(e.keyCode === 13) {
+                    loadExamList(1);
+                }
+            });
 		});
 
         /**
          * 시험 화면 이동
-         * @param {String}  examBscId              - 시험기본아이디
-         * @param {String}  tkexamMthdCd           - 응시방법코드
-         * @param {String}  byteamSubrexamUseyn    - 팀대체시험사용여부
-         * @param {Number}  tab                    - 탭 번호
+         * - 인자 1개 (tab)          : exam 컨텍스트 없이 이동 (예: 시험 등록) → isModify=N
+         * - 인자 4개 (examBscId, tkexamMthdCd, byteamSubrexamUseyn, tab) : 특정 시험 컨텍스트로 이동 → isModify=Y
          */
         function examViewMv(examBscId, tkexamMthdCd, byteamSubrexamUseyn, tab) {
             var urlMap = {
@@ -37,14 +37,22 @@
                 "3" : "/exam/profExamAbsnceView.do",    // 시험 상세 [결시 내용 및 현황 탭]
                 "4" : "/exam/profExamDsblView.do",      // 시험 상세 [장애인/고령자 지원 현황 탭]
                 "5" : "/exam/profExamQuizMngView.do",   // 시험 상세 [퀴즈 관리 탭]
-                "9" : "/exam/profExamWriteView.do"      // 시험 등록 화면
+                "9" : "/exam/profExamWriteView.do"      // 시험 등록/수정 화면
             };
 
             var kvArr = [];
 
-            kvArr.push({'key' : 'examBscId',          'val' : examBscId});
-            kvArr.push({'key' : 'tkexamMthdCd',       'val' : tkexamMthdCd});
-            kvArr.push({'key' : 'byteamSubrexamUseyn','val' : byteamSubrexamUseyn});
+            if (arguments.length === 1) {
+                // tab 번호만 전달된 경우 (시험 등록)
+                tab = examBscId;
+                kvArr.push({'key' : 'isModify', 'val' : 'N'});
+            } else {
+                // 시험 컨텍스트와 함께 전달된 경우 (시험 수정)
+                kvArr.push({'key' : 'examBscId',          'val' : examBscId});
+                kvArr.push({'key' : 'tkexamMthdCd',       'val' : tkexamMthdCd});
+                kvArr.push({'key' : 'byteamSubrexamUseyn','val' : byteamSubrexamUseyn});
+                kvArr.push({'key' : 'isModify',           'val' : 'Y'});
+            }
 
             submitForm(urlMap[tab], "", "", kvArr);
         }
@@ -142,9 +150,13 @@
                                         + "<a href='javascript:examViewMv(" + _p + ", 3)' class='btn basic small'>결시현황</a>";
                     var manageCardBtnDefault = "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>응시현황</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>시험지 보기</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'>결시현황</a></div>";
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'>결시현황</a></div>"
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>삭제</a></div>";
                     var manageBtnQuiz = "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>퀴즈정보 및 평가</a>";
-                    var manageCardBtnQuiz = "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>퀴즈정보 및 평가</a></div>";
+                    var manageCardBtnQuiz = "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>퀴즈정보 및 평가</a></div>"
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>삭제</a></div>";
                     var manageBtnExam = "<a href='javascript:examViewMv(" + _p + ", 2)' class='btn basic small'>시험대체</a>"
                                         + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>응시현황</a>"
                                         + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>시험지 보기</a>"
@@ -154,7 +166,9 @@
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>응시현황</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>시험지 보기</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 4)'>장애인/고령자 지원현황</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'>결시현황</a></div>";
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'>결시현황</a></div>"
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>삭제</a></div>";
 
                     var manage = "-";
                     var manageBtn = "";
@@ -459,7 +473,7 @@
                                         <spring:message code="exam.label.score.aply.rate" /> <!-- 반영비율 -->
                                         <spring:message code="exam.button.adju" /><!-- 조정 -->
                                     </a>
-                                    <button type="button" id = "exam-add-btn" class="btn type2">시험 등록</button>
+                                    <button type="button" class="btn type2" onclick = "examViewMv(9)">시험 등록</button>
                                     <button type="button" class="btn basic">시험 맛보기</button>
                                     <%-- 리스트/카드 전환 버튼 (UiTable 자동 렌더링) --%>
                                     <span class="list-card-button"></span>

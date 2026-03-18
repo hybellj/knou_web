@@ -97,6 +97,91 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      *****************************************************/
 
     /*****************************************************
+     * 시험 등록
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public ExamBscVO examRegist(ExamBscVO vo) throws Exception {
+        String bscId = IdGenUtil.genNewId(IdPrefixType.EXBSC);  // 시험 기본 ID 생성
+
+        vo.setExamBscId(bscId);
+        vo.getExamDtlVO().setExamBscId(vo.getExamBscId());
+        vo.getExamDtlVO().setExamtmLmtyn("Y");  // 시험시간 제한여부    (임시)
+        vo.getExamDtlVO().setCnsdrAddMnts(0);   // 배려 추가시간       (임시)
+        vo.getExamDtlVO().setReexamyn("N");     // 재시험 가능여부     (임시)
+        System.out.println("bscId ? " + bscId);
+
+        // 1. 팀 여부 분기
+        switch (vo.getByteamSubrexamUseyn()) {
+            // case 1. 팀 시험일 경우 - 시험상세 등록 & 시험 대상자 등록
+            case "Y":
+                // 구분 코드를 팀 구분 코드로 변경
+                switch (vo.getExamGbncd()) {
+                    case "EXAM_MID": vo.setExamGbncd("EXAM_MID_TEAM"); break;   // 팀 중간고사
+                    case "EXAM_LST": vo.setExamGbncd("EXAM_LST_TEAM"); break;   // 팀 기말고사
+                    case "EXAM":     vo.setExamGbncd("EXAM_TEAM");     break;   // 팀 시험
+                    case "EXAM_CMP": vo.setExamGbncd("EXAM_CMP_TEAM"); break;   // 팀 종합시험 (졸업시험)
+                }
+                // 2. 시험기본 등록 (BSC)
+                examDAO.examBscRegist2(vo);
+
+                vo.getLrnGrpIds().removeIf(item -> "".equals(item));	// 빈 값 제거
+                Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
+
+                for(String lrnGrp : vo.getLrnGrpIds()) {
+                    if(lrnGrp.split(":")[1].equals(vo.getSbjctId())) {
+                        TeamVO teamVO = new TeamVO();
+                        teamVO.setTeamCtgrCd(lrnGrp.split(":")[0]);
+                        List<TeamVO> teamList = teamDAO.list(teamVO);    // 팀 목록 조회
+                        for (TeamVO team : teamList) {
+                            vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL)); // 시험 상세 ID 생성
+                            Map<String, Object> target = idMap.get(team.getTeamId());    // 팀아이디로 조회
+                            if (target != null) {
+                                // 학습그룹별 시험 설정 [O] - 시험지 + 주제가 다름
+                                vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
+                                vo.getExamDtlVO().setExamCts((String) target.get("cts"));
+                            } else {
+                                // 학습그룹별 시험 설정 [X] - 주제는 같지만 시험지가 다름
+                                vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
+                                vo.getExamDtlVO().setExamCts(vo.getExamCts());
+                            }
+                            System.out.println("dtlId ? " + vo.getExamDtlVO().getExamDtlId());
+                            System.out.println("teamId ? " + vo.getExamDtlVO().getExamTtl());
+                            System.out.println("teamId ? " + vo.getExamDtlVO().getExamCts());
+
+
+                            examDAO.examDtlRegist(vo.getExamDtlVO());	// 시험 상세 등록
+
+                            // 시험 대상자 등록에 사용할 param 생성
+                            ExamTrgtrVO trgtr = new ExamTrgtrVO();
+                            trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));   // 시험 대상자 ID 생성
+                            trgtr.setTeamId(team.getTeamId());
+                            trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
+                            trgtr.setRgtrId(vo.getRgtrId());
+
+                            System.out.println("getExamTrgtrId ? " + trgtr.getExamTrgtrId());
+                            System.out.println("getTeamId ? " + trgtr.getTeamId());
+                            System.out.println("getExamDtlId ? " + trgtr.getExamDtlId());
+                            System.out.println("getRgtrId ? " + trgtr.getRgtrId());
+                            examDAO.examTrgtrRegist(trgtr);		// 시험 대상자 등록
+                        }
+                    }
+                }
+                break;
+            // case 2. 팀 시험이 아닐 경우 - 시험 상세만 등록
+            case "N":
+                System.out.println("It's not Team Exam @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ");
+                vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
+                // 2. 시험기본 등록 (BSC)
+                examDAO.examBscRegist2(vo);
+                examDAO.examDtlRegist(vo.getExamDtlVO());
+                break;
+        }
+        vo.setExamBscId(bscId);
+        return vo;
+    }
+
+    /*****************************************************
      * 교수 시험목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>

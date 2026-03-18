@@ -1,5 +1,6 @@
 package knou.lms.srvy.facade;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,10 +10,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import knou.framework.common.ServiceBase;
+import knou.framework.context2.UserContext;
+import knou.lms.cmmn.service.CmmnCdService;
+import knou.lms.cmmn.vo.CmmnCdVO;
 import knou.lms.exam.service.ExamService;
+import knou.lms.srvy.service.SrvyQstnService;
+import knou.lms.srvy.service.SrvyQstnVwitmLvlService;
+import knou.lms.srvy.service.SrvyRspnsService;
 import knou.lms.srvy.service.SrvyService;
+import knou.lms.srvy.service.SrvyVwitmService;
+import knou.lms.srvy.service.SrvypprService;
+import knou.lms.srvy.vo.SrvyQstnVO;
 import knou.lms.srvy.vo.SrvyVO;
+import knou.lms.srvy.vo.SrvypprVO;
 import knou.lms.srvy.web.view.SrvyMainView;
 
 @Service("srvyFacadeService")
@@ -23,8 +37,26 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
 	@Resource(name="srvyService")
 	private SrvyService srvyService;
 
+	@Resource(name="srvypprService")
+	private SrvypprService srvypprService;
+
+	@Resource(name="srvyQstnService")
+	private SrvyQstnService srvyQstnService;
+
+	@Resource(name="srvyQstnVwitmLvlService")
+	private SrvyQstnVwitmLvlService srvyQstnVwitmLvlService;
+
+	@Resource(name="srvyRspnsService")
+	private SrvyRspnsService srvyRspnsService;
+
+	@Resource(name="srvyVwitmService")
+	private SrvyVwitmService srvyVwitmService;
+
 	@Resource(name="examService")
 	private ExamService examService;
+
+	@Resource(name="cmmnCdService")
+	private CmmnCdService cmmnCdService;
 
 	@Override
 	public SrvyMainView getProfSrvyList(SrvyVO vo) throws Exception {
@@ -155,6 +187,220 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
 	public SrvyMainView loadProfSrvypprPreviewPopup(SrvyVO vo) throws Exception {
 		SrvyMainView srvyMainView = new SrvyMainView();
 		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView loadProfSrvyQstnMngView(SrvyVO vo, UserContext userCtx) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문정보조회
+		srvyMainView.setSrvyEgovMap(srvyService.srvySelect(vo));
+
+        if("SRVY_TEAM".equals(srvyMainView.getSrvyEgovMap().get("srvyGbn"))) {
+            // 설문팀목록조회
+        	srvyMainView.setSrvyTeamList(srvyService.srvyTeamList(vo.getSrvyId()));
+
+            // 설문팀문제출제완료여부조회
+        	srvyMainView.setIsQstnsCmptn(srvyService.srvyTeamQstnsCmptnynSelect(vo.getSrvyId()));
+        }
+
+        Map<String, List<CmmnCdVO>> cmmnCdList = new HashMap<String, List<CmmnCdVO>>();
+        // 문항답변유형코드 목록 조회
+        List<CmmnCdVO> qstnRspnsTycdList = cmmnCdService.listCode(userCtx.getOrgId(), "QSTN_RSPNS_TYCD").getReturnList();
+        qstnRspnsTycdList.removeIf(item -> "QUIZ".equals(item.getGrpcd()) || item.getCdSeqno() == 0);
+        cmmnCdList.put("qstnRspnsTycd", qstnRspnsTycdList);
+
+        // 문항난이도유형코드 목록 조회
+        List<CmmnCdVO> qstnDfctlvTycdList = cmmnCdService.listCode(userCtx.getOrgId(), "QSTN_DFCTLV_TYCD").getReturnList();
+        qstnDfctlvTycdList.removeIf(item -> item.getCdSeqno() == 0);
+        cmmnCdList.put("qstnDfctlvTycd", qstnDfctlvTycdList);
+
+        srvyMainView.setCmmnCdList(cmmnCdList);
+
+        return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView getSrvypprQstnList(SrvyVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문지 목록 조회
+		srvyMainView.setSrvypprList(srvypprService.srvypprList(vo.getSrvyId()));
+
+		// 설문문항 목록 조회
+		srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList(vo.getSrvyId()));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public void srvypprRegist(SrvypprVO vo) throws Exception {
+		// 설문지등록
+		srvypprService.srvypprRegist(vo);
+	}
+
+	@Override
+	public SrvyMainView loadProfSrvypprModifyPopup(SrvypprVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문지조회
+		srvyMainView.setSrvypprVO(srvypprService.srvypprSelect(vo.getSrvypprId()));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public Integer getSrvypprPtcpCntSelect(SrvypprVO vo) throws Exception {
+		return srvypprService.srvypprPtcpCntSelect(vo);
+	}
+
+	@Override
+	public void srvypprDelete(SrvypprVO vo) throws Exception {
+		// 1. 설문지문항목록조회
+		List<SrvyQstnVO> qstnList = srvyQstnService.srvypprQstnList(vo.getSrvypprId());
+
+		if(qstnList.size() > 0) {
+			// 2. 설문문항목록보기항목레벨삭제
+			srvyQstnVwitmLvlService.srvyQstnListVwitmLvlDelete(qstnList);
+
+			// 3. 설문문항목록답변삭제
+			srvyRspnsService.srvyQstnListRspnsDelete(qstnList);
+
+			// 4. 설문문항목록보기항목삭제
+			srvyVwitmService.srvyQstnListVwitmDelete(qstnList);
+		}
+
+		// 5. 설문지문항삭제
+		srvyQstnService.srvypprQstnDelete(vo.getSrvypprId());
+
+		// 6. 설문지삭제
+		srvypprService.srvypprDelete(vo);
+	}
+
+	@Override
+    public SrvyMainView loadProfSrvyQstnCopyPopup(SrvyVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+    	// 설문검색용학기기수목록조회
+		srvyMainView.setSrvySearchSmstrList(examService.qstnCopySmstrList());
+
+    	return srvyMainView;
+    }
+
+	@Override
+	public SrvyMainView getQstnCopySrvyList(SrvyVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 문제가져오기설문목록조회
+		srvyMainView.setQstnCopySrvyList(srvyService.qstnCopySrvyList(vo.getSbjctId()));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView getQstnCopySrvypprList(SrvypprVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문지목록조회
+		srvyMainView.setSrvypprList(srvypprService.srvypprList(vo.getSrvyId()));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView getQstnCopySrvyQstnList(SrvyQstnVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문문항목록조회
+		srvyMainView.setSrvyQstnList(srvyQstnService.profQstnCopySrvyQstnList(vo));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public void srvyQstnRegist(SrvyQstnVO vo, String qstnsStr, String lvlsStr) throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+
+		List<Map<String, Object>> qstns = mapper.readValue(qstnsStr, new TypeReference<List<Map<String, Object>>>() {});
+		List<Map<String, Object>> lvls = mapper.readValue(lvlsStr, new TypeReference<List<Map<String, Object>>>() {});
+
+		// 1. 설문문항등록
+		vo = srvyQstnService.srvyQstnRegist(vo);
+
+		// 2. 설문보기항목등록
+		srvyVwitmService.srvyVwitmRegist(vo, qstns);
+
+		// 레벨형
+		if("LEVEL".equals(vo.getQstnRspnsTycd())) {
+			// 3. 설문문항보기항목레벨등록
+			srvyQstnVwitmLvlService.srvyQstnVwitmLvlRegist(vo, lvls);
+		}
+	}
+
+	@Override
+	public void srvyQstnModify(SrvyQstnVO vo, String qstnsStr, String lvlsStr) throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+
+		List<Map<String, Object>> qstns = mapper.readValue(qstnsStr, new TypeReference<List<Map<String, Object>>>() {});
+		List<Map<String, Object>> lvls = mapper.readValue(lvlsStr, new TypeReference<List<Map<String, Object>>>() {});
+
+		// 1. 설문문항수정
+		if(vo.getEsntlRspnsyn() == null) vo.setEsntlRspnsyn("N");
+		if(vo.getEtcInptUseyn() == null) vo.setEtcInptUseyn("N");
+		if(vo.getSrvyMvmnUseyn() == null) vo.setSrvyMvmnUseyn("N");
+		srvyQstnService.srvyQstnModify(vo);
+
+		// 2. 설문보기항목수정
+		srvyVwitmService.srvyVwitmModify(vo, qstns);
+
+		// 3. 설문문항보기항목레벨삭제
+		srvyQstnVwitmLvlService.srvyQstnVwitmLvlDelete(vo.getSrvyQstnId());
+
+		// 레벨형
+		if("LEVEL".equals(vo.getQstnRspnsTycd())) {
+			// 3. 설문문항보기항목레벨등록
+			srvyQstnVwitmLvlService.srvyQstnVwitmLvlRegist(vo, lvls);
+		}
+	}
+
+	@Override
+	public void srvyQstnDelete(SrvyQstnVO vo) throws Exception {
+		// 설문문항삭제
+		srvyQstnService.srvyQstnDelete(vo);
+	}
+
+	@Override
+	public SrvyMainView getSrvyQstn(SrvyQstnVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 1. 설문문항조회
+		srvyMainView.setSrvyQstnVO(srvyQstnService.srvyQstnSelect(vo));
+
+		// 2. 설문보기항목목록조회
+		srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmList(vo.getSrvyQstnId()));
+
+		// 3. 설문문항보기항목레벨목록조회
+		srvyMainView.setSrvyQstnVwitmLvlList(srvyQstnVwitmLvlService.srvyQstnVwitmLvlList(vo.getSrvyQstnId()));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public void srvySeqnoModify(SrvypprVO vo) throws Exception {
+		// 설문지순번수정
+		srvypprService.srvySeqnoModify(vo);
+	}
+
+	@Override
+	public void qstnSeqnoModify(SrvyQstnVO vo) throws Exception {
+		// 문항순번수정
+		srvyQstnService.qstnSeqnoModify(vo);
+	}
+
+	@Override
+	public void srvyQstnsCmptnModify(SrvyVO vo) throws Exception {
+		// 설문문제출제완료수정
+		srvyService.srvyQstnsCmptnModify(vo);
 	}
 
 }

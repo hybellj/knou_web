@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
-<%@ include file="/WEB-INF/jsp/quiz/common/quiz_common_inc.jsp" %>
+<%@ include file="/WEB-INF/jsp/srvy/common/srvy_common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -204,8 +204,8 @@
 		 */
 		function srvyViewMv(srvyId, tab) {
 			var urlMap = {
-				"1" : "/quiz/profQuizQstnMngView.do",		// 퀴즈 문항 관리 화면
-				"2" : "/quiz/profQuizEvlMngView.do",		// 퀴즈 평가 관리 화면
+				"1" : "/srvy/profSrvyQstnMngView.do",		// 설문 문항 관리 화면
+				"2" : "/srvy/profSrvyEvlMngView.do",		// 설문 평가 관리 화면
 				"8" : "/srvy/profSrvyRegistView.do", 		// 설문 등록 화면
 				"9" : "/srvy/profSrvyModifyView.do" 		// 설문 수정 화면
 			};

@@ -68,6 +68,7 @@
         }
 
         function loadExamInfoList(pageIndex) {
+            initExamInfoListTable();
             PAGE_INDEX = pageIndex || PAGE_INDEX;
             UiComm.showLoading(true);
             $.ajax({
@@ -154,6 +155,7 @@
         }
 
 		$(document).ready(function() {
+            loadExamInfoList();
             /*
              * 아코디언 관련 로직
              * 1. 아코디언 기능 include
@@ -351,7 +353,7 @@
                     <!-- 콘텐츠 영역 -->
                     <div class="box span-2 subject">
                         <div class="box_content">
-                            <div class="segment">
+                            <div class="sub-content">
                                 <!-- 콘텐츠 상단 탭 버튼 영역 -->
                                 <div class="listTab">
                                     <ul>
@@ -532,7 +534,7 @@
                                         <button type="button" class="btn type1" onclick="resetListSelect()">수강생 전체</button>
                                     </div>
                                 </div>
-                                <table class="table-type1 fs-14px">
+                                <table class="table-type1 fs-14px mb10">
                                     <colgroup>
                                         <col class="width-20per" />
                                         <col class="" />
@@ -572,7 +574,7 @@
                                         <uiex:listScale func="changeInfoListScale" value="10" />
                                     </div>
                                 </div>
-                                <div id = "info-list-area">
+                                <div id = "examListArea">
                                     <div id="examInfoList"></div>
                                 </div>
                             </div>

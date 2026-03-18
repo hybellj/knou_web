@@ -198,4 +198,12 @@ public interface ClsService {
      * @throws Exception
      ******************************************************/
     public List<ClsAsmtSbmsnLogVO> selectStdntElemSbmsnLog(ClsAsmtSbmsnLogVO vo) throws Exception;
+
+    /*****************************************************
+     * 학습자 주차별 학습현황 단건 정보를 조회한다.
+     * @param ClsStdntVO
+     * @return ClsStdntVO
+     * @throws Exception
+     ******************************************************/
+    public ClsStdntVO selectClsStdntWeeklyInfo(ClsStdntVO vo) throws Exception;
 }

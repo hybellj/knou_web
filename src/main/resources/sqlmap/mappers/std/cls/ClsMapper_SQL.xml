@@ -533,26 +533,44 @@
             parameterType="knou.lms.std.vo.ClsStdntVO"
             resultType="knou.lms.std.vo.ClsStdntVO">
         WITH
-        <include refid="wkUserLrnSts"/>
+        <include refid="wkUserLrnSts"/>,
+        <include refid="prgrtToSts"/>
         SELECT
         ROW_NUMBER() OVER(ORDER BY U.STDNT_NO ASC) AS lineNo
-        , U.USER_ID
-        , U.USERNM
-        , U.STDNT_NO
-        , D.DEPTNM
-        , NULL AS entyR
-        , NULL AS scyr
+        , U.USER_ID                                  AS userId
+        , U.USERNM                                   AS usernm
+        , U.STDNT_NO                                 AS stdntNo
+        , D.DEPTNM                                   AS deptnm
+        , NULL                                       AS entyR
+        , NULL                                       AS scyr
         FROM TB_LMS_ATNDLC A
         JOIN TB_LMS_USER U
         ON U.USER_ID = A.USER_ID
         JOIN TB_LMS_DEPT D
         ON D.DEPT_ID = U.DEPT_ID
-        LEFT JOIN WK_USER_LRN_STS W
+
+        <!--
+            주차별 미학습자 팝업은 상단 미학습자 비율(selectClsWklyStats)과
+            동일한 기준으로 조회한다.
+
+            - 해당 주차 학습 row가 존재하는 학생만 대상으로 삼는다.
+            - 출석/지각 인정 진도율에도 미달한 경우만 미학습자로 본다.
+            - 학습 row가 없는 학생을 NVL(NULL, 0)로 미학습 처리하지 않도록
+              LEFT JOIN 대신 JOIN을 사용한다.
+        -->
+        JOIN WK_USER_LRN_STS W
         ON W.USER_ID = A.USER_ID
         AND W.SBJCT_ID = A.SBJCT_ID
         AND W.WKNO = #{wkNo}
+        LEFT JOIN PRGRT_TO_STS C
+        ON C.SBJCT_ID = A.SBJCT_ID
+
         WHERE A.SBJCT_ID = #{sbjctId}
-        AND NVL(W.CMPTN_YN_NUM, 0) = 0
+        AND CASE
+        WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT, 80) THEN 0
+        WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT, 60) THEN 0
+        ELSE 1
+        END = 1
         <if test="orgId != null and orgId != ''">
             AND U.ORG_ID = #{orgId}
         </if>
@@ -770,13 +788,38 @@
             parameterType="knou.lms.std.vo.ClsStdntInfoVO"
             resultType="knou.lms.std.vo.ClsStdntInfoVO">
         SELECT
-        U.USER_ID         AS "userId"
-        , U.USERNM          AS "usernm"
-        , U.STDNT_NO        AS "stdntNo"
-        , NULL              AS "mobileNo"
-        , NULL              AS "email"
+        U.USER_ID AS "userId"
+        , U.USERNM AS "usernm"
+        , U.STDNT_NO AS "stdntNo"
+        , (SELECT MAX(C.CNTCT)
+        FROM TB_LMS_USER_CNTCT C
+        WHERE C.USER_ID = U.USER_ID
+        AND C.CNTCT_TYCD = 'MBL_PHN') AS "mobileNo"
+        , CASE
+        WHEN U.USE_EML_GBNCD = 'LNKG' THEN
+        (SELECT MAX(C.CNTCT)
+        FROM TB_LMS_USER_CNTCT C
+        WHERE C.USER_ID = U.USER_ID
+        AND C.CNTCT_TYCD = 'LNKG_EML')
+        WHEN U.USE_EML_GBNCD = 'INDV' THEN
+        (SELECT MAX(C.CNTCT)
+        FROM TB_LMS_USER_CNTCT C
+        WHERE C.USER_ID = U.USER_ID
+        AND C.CNTCT_TYCD = 'INDV_EML')
+        ELSE
+        COALESCE(
+        (SELECT MAX(C.CNTCT)
+        FROM TB_LMS_USER_CNTCT C
+        WHERE C.USER_ID = U.USER_ID
+        AND C.CNTCT_TYCD = 'LNKG_EML'),
+        (SELECT MAX(C.CNTCT)
+        FROM TB_LMS_USER_CNTCT C
+        WHERE C.USER_ID = U.USER_ID
+        AND C.CNTCT_TYCD = 'INDV_EML')
+        )
+        END AS "email"
         , NVL(O.ORGNM, '-') AS "orgNm"
-        , NULL              AS "photoUrl"
+        , NULL AS "photoUrl"
         FROM TB_LMS_USER U
         LEFT JOIN TB_LMS_ORG O
         ON O.ORG_ID = U.ORG_ID
@@ -1200,7 +1243,7 @@
                 FROM TB_LMS_BBS_ATCL A
                 JOIN TB_LMS_BBS B
                 ON B.BBS_ID = A.BBS_ID
-                WHERE B.SBJCT_ID = #{cntntsId}
+                WHERE A.ATCL_ID = #{cntntsId}
                 AND A.USER_ID = #{userId}
                 AND NVL(B.DELYN,'N')='N'
                 AND NVL(A.DELYN,'N')='N'
@@ -1248,6 +1291,107 @@
                 ORDER BY S.SBMSN_DTTM DESC, F.ATFL_SEQNO ASC
             </otherwise>
         </choose>
+    </select>
+
+    <!-- ============================================================ -->
+    <!--  학습자 주차별 학습현황 단건 조회                              -->
+    <!-- ============================================================ -->
+
+    <!-- 학습자 주차별 학습현황 단건 조회 -->
+    <select id="selectClsStdntWeeklyInfo"
+            parameterType="knou.lms.std.vo.ClsStdntVO"
+            resultType="knou.lms.std.vo.ClsStdntVO">
+        WITH
+        <include refid="wkUserLrnSts"/>,
+        <include refid="prgrtToSts"/>,
+        STDNT_BASE AS (
+        SELECT
+        U.USER_ID
+        , U.USERNM
+        , U.STDNT_NO
+        , D.DEPTNM
+        , NULL AS ENTYR
+        , NULL AS SCYR
+        , COALESCE(AB.ABSNCE_CNT, 0) AS ABSNCE_CNT
+        , MAX(CASE WHEN W.WKNO = 1  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK1_STS
+        , MAX(CASE WHEN W.WKNO = 2  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK2_STS
+        , MAX(CASE WHEN W.WKNO = 3  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK3_STS
+        , MAX(CASE WHEN W.WKNO = 4  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK4_STS
+        , MAX(CASE WHEN W.WKNO = 5  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK5_STS
+        , MAX(CASE WHEN W.WKNO = 6  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK6_STS
+        , MAX(CASE WHEN W.WKNO = 7  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK7_STS
+        , MAX(CASE WHEN W.WKNO = 8  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK8_STS
+        , MAX(CASE WHEN W.WKNO = 9  THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK9_STS
+        , MAX(CASE WHEN W.WKNO = 10 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK10_STS
+        , MAX(CASE WHEN W.WKNO = 11 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK11_STS
+        , MAX(CASE WHEN W.WKNO = 12 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK12_STS
+        , MAX(CASE WHEN W.WKNO = 13 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK13_STS
+        , MAX(CASE WHEN W.WKNO = 14 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK14_STS
+        , MAX(CASE WHEN W.WKNO = 15 THEN CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 'O' WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60) THEN '△' ELSE 'X' END END) AS WK15_STS
+        , SUM(CASE WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT,80) THEN 1 ELSE 0 END) AS ATND_CNT
+        , SUM(
+        CASE
+        WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT,60)
+        AND W.LRN_PRGRT &lt; NVL(C.ATND_MIN_PRGRT,80)
+        THEN 1
+        ELSE 0
+        END
+        ) AS LATE_CNT
+        FROM TB_LMS_ATNDLC E
+        JOIN TB_LMS_USER U
+        ON U.USER_ID = E.USER_ID
+        JOIN TB_LMS_DEPT D
+        ON D.DEPT_ID = U.DEPT_ID
+        LEFT JOIN WK_USER_LRN_STS W
+        ON W.USER_ID = U.USER_ID
+        LEFT JOIN PRGRT_TO_STS C
+        ON C.SBJCT_ID = W.SBJCT_ID
+        LEFT JOIN (
+        SELECT
+        W2.USER_ID
+        , SUM(
+        CASE
+        WHEN W2.LRN_PRGRT >= NVL(C2.ATND_MIN_PRGRT, 80) THEN 0
+        WHEN W2.LRN_PRGRT >= NVL(C2.LATE_MIN_PRGRT, 60) THEN 0
+        ELSE 1
+        END
+        ) AS ABSNCE_CNT
+        FROM WK_USER_LRN_STS W2
+        LEFT JOIN PRGRT_TO_STS C2
+        ON C2.SBJCT_ID = W2.SBJCT_ID
+        GROUP BY W2.USER_ID
+        ) AB
+        ON AB.USER_ID = U.USER_ID
+        WHERE E.SBJCT_ID = #{sbjctId}
+        AND U.USER_ID = #{userId}
+        GROUP BY U.USER_ID, U.USERNM, U.STDNT_NO, D.DEPTNM, COALESCE(AB.ABSNCE_CNT, 0)
+        )
+        SELECT
+        USER_ID    AS userId
+        , USERNM     AS usernm
+        , STDNT_NO   AS stdntNo
+        , DEPTNM     AS deptnm
+        , ENTYR      AS entyR
+        , SCYR       AS scyr
+        , ABSNCE_CNT AS absnCnt
+        , ATND_CNT   AS atndCnt
+        , LATE_CNT   AS lateCnt
+        , WK1_STS    AS wk1Sts
+        , WK2_STS    AS wk2Sts
+        , WK3_STS    AS wk3Sts
+        , WK4_STS    AS wk4Sts
+        , WK5_STS    AS wk5Sts
+        , WK6_STS    AS wk6Sts
+        , WK7_STS    AS wk7Sts
+        , WK8_STS    AS wk8Sts
+        , WK9_STS    AS wk9Sts
+        , WK10_STS   AS wk10Sts
+        , WK11_STS   AS wk11Sts
+        , WK12_STS   AS wk12Sts
+        , WK13_STS   AS wk13Sts
+        , WK14_STS   AS wk14Sts
+        , WK15_STS   AS wk15Sts
+        FROM STDNT_BASE
     </select>
 
 </mapper>

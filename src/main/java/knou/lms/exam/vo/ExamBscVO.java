@@ -57,6 +57,7 @@ public class ExamBscVO extends DefaultVO {
     private List<String> lrnGrpSubasmtStngyns;	// 학습그룹부과제설정여부용 여부:개설과목아이디 목록
     private String  lrnGrpId;					// 학습그룹아이디
     private String  lrnGrpnm;					// 학습그룹명
+    private String  byteamSubrexamUseyn;        // 팀시험여부
 
     private ExamDtlVO examDtlVO;				// 시험상세정보VO
 
@@ -444,4 +445,10 @@ public class ExamBscVO extends DefaultVO {
 		this.lrnGrpSubasmtStngyns = lrnGrpSubasmtStngyns;
 	}
 
+    public String getByteamSubrexamUseyn() {
+        return byteamSubrexamUseyn;
+    }
+    public void setByteamSubrexamUseyn(String byteamSubrexamUseyn) {
+        this.byteamSubrexamUseyn = byteamSubrexamUseyn;
+    }
 }

@@ -12,12 +12,12 @@
 <body>
 <div class="pop-body">
 
-    <!-- 팝업 타이틀 + 보내기 -->
-    <div class="board_top">
+    <!-- 타이틀 + 보내기 -->
+    <div class="board_top" style="margin-bottom:8px;">
         <h3 class="board-title" id="popMainTitle">학습자 학습요소 참여현황</h3>
         <div class="right-area">
             <button type="button" class="btn basic" onclick="doSendMsg()">
-                <i class="xi-mail-o"></i> 보내기
+                메시지 보내기
             </button>
         </div>
     </div>
@@ -40,7 +40,7 @@
                 </ul>
                 <ul class="list">
                     <li class="head"><label>이름</label></li>
-                    <li id="infoNm" style="color:#e74c3c; font-weight:bold;">-</li>
+                    <li id="infoNm" class="fcRed fweb">-</li>
                 </ul>
                 <ul class="list">
                     <li class="head"><label>학번</label></li>
@@ -62,23 +62,19 @@
         </div>
     </div>
 
-    <!-- ② 학습요소 참여현황 목록 -->
+    <!-- ② 학습요소 참여현황 -->
     <div class="sub-box">
         <div class="board_top">
             <h3 class="board-title" id="elemSectionTitle">학습요소 참여현황</h3>
         </div>
-
         <div id="elemListArea">
-            <div style="text-align:center; padding:30px; color:#aaa;">조회 중...</div>
+            <div class="t_center" style="padding:20px; color:#aaa;">조회 중...</div>
         </div>
     </div>
 
-    <!-- 닫기 버튼 -->
+    <!-- 닫기 -->
     <div class="modal_btns">
-        <button type="button" class="btn type2"
-                onclick="closePopup()">
-            닫기
-        </button>
+        <button type="button" class="btn type2" onclick="closePopup()">닫기</button>
     </div>
 
 </div>
@@ -91,29 +87,30 @@
     var userId   = _p.get("userId")   || "";
     var elemType = _p.get("elemType") || "ASMT";
 
-    var elemTypeNmMap = {
-        QNA:  'Q&A',
-        ASMT: '과제',
-        QUIZ: '퀴즈',
-        SRVY: '설문',
-        DSCC: '토론'
-    };
+    var elemTypeNmMap = { QNA:'Q&A', ASMT:'과제', QUIZ:'퀴즈', SRVY:'설문', DSCC:'토론' };
 
-    /* ==========================================
-       초기화
-       ========================================== */
     $(function () {
         var typeNm = elemTypeNmMap[elemType] || '학습요소';
         $("#popMainTitle").text("학습자 " + typeNm + " 참여현황");
-        $("#elemSectionTitle").text(typeNm + " 참여 현황");
-
+        $("#elemSectionTitle").text(typeNm + " 참여현황");
         loadStdntInfo();
         loadElemSbmsnList();
     });
 
-    /* ==========================================
-       수강생 기본정보 로드
-       ========================================== */
+    function closePopup() {
+        try {
+            var dlgId = null;
+            if (window.frameElement) {
+                dlgId = $(window.frameElement).closest('[data-dialog-id]').data('dialog-id');
+            }
+            if (dlgId && window.parent && typeof window.parent.UiDialog === 'function') {
+                var dlg = window.parent.UiDialog(dlgId);
+                if (dlg && typeof dlg.close === 'function') { dlg.close(); return; }
+            }
+            $(window.frameElement).closest('.ui-dialog').find('.ui-dialog-titlebar-close').trigger('click');
+        } catch(e) { window.close(); }
+    }
+
     function loadStdntInfo() {
         $.ajax({
             url: CTX + "/cls/selectClsStdntInfo.do",
@@ -133,9 +130,6 @@
         });
     }
 
-    /* ==========================================
-       학습요소 목록 로드
-       ========================================== */
     function loadElemSbmsnList() {
         $.ajax({
             url: CTX + "/cls/selectStdntElemSbmsnList.do",
@@ -148,14 +142,10 @@
         });
     }
 
-    /* ==========================================
-       학습요소 목록 렌더링
-       ========================================== */
     function renderElemList(list) {
         var $area = $("#elemListArea").empty();
-
         if (!list || list.length === 0) {
-            $area.html('<div style="text-align:center; padding:20px; color:#aaa;">학습요소 정보가 없습니다.</div>');
+            $area.html('<div class="t_center" style="padding:20px; color:#aaa;">학습요소 정보가 없습니다.</div>');
             return;
         }
 
@@ -164,55 +154,48 @@
             var bodyId = "elemBody_" + idx;
             var iconId = "elemIcon_" + idx;
 
-            // 상태 클래스
-            var stsClass = elem.lrnSts === "제출완료" ? "fcBlue"
+            var stsCls = elem.lrnSts === "제출완료" ? "fcBlue"
                 : elem.lrnSts === "학습종료" ? "fcGrey" : "fcRed";
 
-            var $block = $('<div style="margin-bottom:8px; border:1px solid #dde3ee; border-radius:6px; overflow:hidden;"></div>');
+            var scoreHtml = elem.scoreText ? '&nbsp;<span class="fcBlue fweb">' + escHtml(elem.scoreText) + '</span>' : '';
 
-            // 헤더
-            var scoreHtml = elem.scoreText
-                ? '<span style="display:inline-block; background:#1d4ed8; color:#fff; border-radius:10px; padding:1px 10px; font-size:12px; font-weight:bold;">' + escHtml(elem.scoreText) + '</span>'
-                : '';
+            var $block = $('<div style="border:1px solid #dde3ee; border-radius:4px; margin-bottom:8px; overflow:hidden;"></div>');
 
             var $hd = $(
                 '<div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#f4f6fb; cursor:pointer;">'
-                + '<span style="font-weight:bold; font-size:13px;">[ ' + escHtml(elem.cntntsTypeNm || elemTypeNmMap[elemType] || '학습요소') + ' ] '
+                + '<span class="fweb">[ ' + escHtml(elem.cntntsTypeNm || '') + ' ] '
                 + escHtml(elem.cntntsTitle || '') + '</span>'
                 + '<span style="display:flex; align-items:center; gap:8px; font-size:12px;">'
                 + scoreHtml
-                + '<span class="' + stsClass + '">' + escHtml(elem.lrnSts || '') + '</span>'
+                + '<span class="' + stsCls + '">' + escHtml(elem.lrnSts || '') + '</span>'
                 + '<i class="xi-angle-' + (isOpen ? 'up' : 'down') + '-thin" id="' + iconId + '"></i>'
-                + '</span>'
-                + '</div>'
+                + '</span></div>'
             );
             $hd.on("click", function () { toggleElem(idx, bodyId, iconId); });
 
-            // 바디
             var $bd = $('<div id="' + bodyId + '" style="padding:12px 14px; border-top:1px solid #e5e7eb; display:' + (isOpen ? 'block' : 'none') + ';"></div>');
 
-            // 제출기간
             if (elem.lrnStDt) {
-                var periodText = "제출기간 " + escHtml(elem.lrnStDt || '-');
-                if (elem.lrnEndDt) periodText += " ~ " + escHtml(elem.lrnEndDt);
-                $bd.append('<div style="font-size:12px; color:#666; margin-bottom:10px;">' + periodText + '</div>');
+                $bd.append(
+                    '<div class="fs-sm fcGrey" style="margin-bottom:10px;">'
+                    + '제출기간 ' + escHtml(elem.lrnStDt)
+                    + (elem.lrnEndDt ? ' ~ ' + escHtml(elem.lrnEndDt) : '')
+                    + '</div>'
+                );
             }
 
-            // 제출기록 테이블
-            var $tbl = $('<div class="table-wrap"></div>');
-            var $table = $(
-                '<table class="table-type2">'
+            var $tbl = $(
+                '<div class="table-wrap">'
+                + '<table class="table-type2">'
                 + '<thead><tr>' + getTableHeader(elemType) + '</tr></thead>'
                 + '<tbody id="sbmsnBody_' + idx + '"></tbody>'
-                + '</table>'
+                + '</table></div>'
             );
-            $tbl.append($table);
-
-            var $tbody = $table.find('tbody');
+            var $tbody = $tbl.find('tbody');
             if (elem.cntntsId) {
                 loadSbmsnLog(elem.cntntsId, elemType, $tbody);
             } else {
-                $tbody.html('<tr><td colspan="5" class="t_center" style="color:#aaa;">제출 기록이 없습니다.</td></tr>');
+                $tbody.html('<tr><td colspan="5" class="t_center fcGrey">제출 기록이 없습니다.</td></tr>');
             }
 
             $bd.append($tbl);
@@ -221,38 +204,23 @@
         });
     }
 
-    /* ==========================================
-       elemType별 테이블 헤더
-       ========================================== */
     function getTableHeader(type) {
         if (type === 'ASMT') {
-            return '<th style="width:8%">No</th>'
-                + '<th style="width:30%">제출일시</th>'
-                + '<th style="width:38%">파일명</th>'
-                + '<th style="width:12%">크기</th>'
-                + '<th style="width:12%">다운로드</th>';
+            return '<th style="width:8%">No</th><th style="width:28%">제출일시</th>'
+                + '<th style="width:36%">파일명</th><th style="width:14%">크기</th><th style="width:14%">다운로드</th>';
         } else if (type === 'QUIZ') {
-            return '<th style="width:8%">No</th>'
-                + '<th style="width:32%">제출일시</th>'
-                + '<th style="width:30%">점수</th>'
-                + '<th style="width:30%">결과</th>';
+            return '<th style="width:8%">No</th><th style="width:32%">제출일시</th>'
+                + '<th style="width:30%">점수</th><th style="width:30%">결과</th>';
         } else if (type === 'QNA') {
-            return '<th style="width:8%">No</th>'
-                + '<th style="width:32%">등록일시</th>'
-                + '<th style="width:60%">제목</th>';
+            return '<th style="width:8%">No</th><th style="width:32%">등록일시</th><th style="width:60%">제목</th>';
         } else {
-            return '<th style="width:8%">No</th>'
-                + '<th style="width:32%">제출일시</th>'
-                + '<th style="width:60%">내용</th>';
+            return '<th style="width:8%">No</th><th style="width:32%">제출일시</th><th style="width:60%">내용</th>';
         }
     }
 
-    /* ==========================================
-       elemType별 제출기록 Ajax 로드
-       ========================================== */
     function loadSbmsnLog(cntntsId, type, $tbody) {
         var colSpan = (type === 'ASMT') ? 5 : (type === 'QUIZ') ? 4 : 3;
-        $tbody.html('<tr><td colspan="' + colSpan + '" class="t_center" style="color:#aaa;"><spring:message code="common.processing"/></td></tr>');
+        $tbody.html('<tr><td colspan="' + colSpan + '" class="t_center fcGrey"><spring:message code="common.processing"/></td></tr>');
 
         $.ajax({
             url: CTX + "/cls/selectStdntElemSbmsnLog.do",
@@ -261,50 +229,37 @@
             success: function (res) {
                 $tbody.empty();
                 var list = res && res.returnList ? res.returnList : [];
-
                 if (list.length === 0) {
-                    $tbody.html('<tr><td colspan="' + colSpan + '" class="t_center" style="color:#aaa;">제출 기록이 없습니다.</td></tr>');
+                    $tbody.html('<tr><td colspan="' + colSpan + '" class="t_center fcGrey">제출 기록이 없습니다.</td></tr>');
                     return;
                 }
-
                 list.forEach(function (r, i) {
-                    var row = '<tr>'
-                        + '<td class="t_center">' + (i + 1) + '</td>'
+                    var row = '<tr><td class="t_center">' + (i + 1) + '</td>'
                         + '<td class="t_center">' + escHtml(r.sbmsnDttm || '') + '</td>';
-
                     if (type === 'ASMT') {
                         row += '<td class="t_left">' + escHtml(r.fileNm || '') + '</td>'
                             + '<td class="t_center">' + escHtml(r.fileSzText || '') + '</td>'
-                            + '<td class="t_center">'
-                            + '<button type="button" class="btn basic small" onclick="downloadFile(\'' + escJs(r.fileId) + '\')">'
-                            + '<i class="xi-download"></i>'
-                            + '</button>'
-                            + '</td>';
+                            + '<td class="t_center"><button type="button" class="btn basic small" onclick="downloadFile(\'' + escJs(r.fileId) + '\')"><i class="xi-download"></i></button></td>';
                     } else if (type === 'QUIZ') {
-                        row += '<td class="t_center">' + escHtml(r.score      || '-') + '</td>'
+                        row += '<td class="t_center">' + escHtml(r.score || '-') + '</td>'
                             + '<td class="t_center">' + escHtml(r.resultText || '-') + '</td>';
                     } else if (type === 'QNA') {
                         row += '<td class="t_left">' + escHtml(r.title || '') + '</td>';
                     } else {
                         row += '<td class="t_left">' + escHtml(r.contents || '') + '</td>';
                     }
-
                     row += '</tr>';
                     $tbody.append(row);
                 });
             },
             error: function () {
-                $tbody.html('<tr><td colspan="' + colSpan + '" class="t_center" style="color:#aaa;">제출 기록이 없습니다.</td></tr>');
+                $tbody.html('<tr><td colspan="' + colSpan + '" class="t_center fcGrey">제출 기록이 없습니다.</td></tr>');
             }
         });
     }
 
-    /* ==========================================
-       펼침 / 접힘 토글
-       ========================================== */
     function toggleElem(idx, bodyId, iconId) {
-        var $bd   = $("#" + bodyId);
-        var $icon = $("#" + iconId);
+        var $bd = $("#" + bodyId), $icon = $("#" + iconId);
         if ($bd.is(":visible")) {
             $bd.slideUp(150);
             $icon.removeClass("xi-angle-up-thin").addClass("xi-angle-down-thin");
@@ -314,58 +269,28 @@
         }
     }
 
-    /* ==========================================
-       파일 다운로드 (ASMT 전용)
-       ========================================== */
     function downloadFile(fileId) {
         if (!fileId) return;
         location.href = CTX + "/common/fileDown.do?fileId=" + encodeURIComponent(fileId);
     }
 
-    /* ==========================================
-       보내기
-       ========================================== */
-    function closePopup() {
-        try {
-            // UiDialog 반환값 기반 닫기
-            var dlgId = null;
-            if (window.frameElement) {
-                dlgId = $(window.frameElement).closest('[data-dialog-id]').data('dialog-id');
-            }
-            if (dlgId && window.parent && typeof window.parent.UiDialog === 'function') {
-                var dlg = window.parent.UiDialog(dlgId);
-                if (dlg && typeof dlg.close === 'function') { dlg.close(); return; }
-            }
-            // fallback: X버튼 트리거
-            $(window.frameElement).closest('.ui-dialog').find('.ui-dialog-titlebar-close').trigger('click');
-        } catch(e) {
-            window.close();
-        }
-    }
-
     function doSendMsg() {
         if (!userId) { alert("학습자 정보가 없습니다."); return; }
-
-        var usernm         = $("#infoNm").text() || "";
-        var rcvUserInfoStr = userId + ";" + usernm + ";;";
-
+        var rcvUserInfoStr = userId + ";" + ($("#infoNm").text() || "") + ";;";
         var form = window.parent.alarmForm;
         form.action = '<%=CommConst.SYSMSG_URL_SEND%>';
         form.target = "msgWindow";
         form[name='alarmType'].value      = "S";
         form[name='rcvUserInfoStr'].value = rcvUserInfoStr;
-        form.onsubmit = window.open("about:blank", "msgWindow",
-            "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
+        form.onsubmit = window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
         form.submit();
     }
 
     function escHtml(v) {
-        return String(v)
-            .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
     function escJs(v) {
-        return String(v || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        return String(v || "").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
     }
 </script>
 </body>

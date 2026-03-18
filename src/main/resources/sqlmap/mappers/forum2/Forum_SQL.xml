@@ -402,7 +402,7 @@
           , NVL(#{mdfrId}, #{rgtrId})
           , FN_DTTM()
           , #{sbjctId}
-          , #{byteamDscsUseyn}
+          , NVL(#{byteamDscsUseyn}, 'N')
         )
     </insert>
 
@@ -477,8 +477,8 @@
         <if test="sbjctId != null and sbjctId != ''">
           , SBJCT_ID = #{sbjctId}
         </if>
-        <if test="byteamDdscsUseyn != null and byteamDdscsUseyn != ''">
-          , BYTEAM_DSCS_USEYN = #{byteamDdscsUseyn}
+        <if test="byteamDscsUseyn != null and byteamDscsUseyn != ''">
+          , BYTEAM_DSCS_USEYN = #{byteamDscsUseyn}
         </if>
         WHERE DSCS_ID = #{dscsId}
     </update>
@@ -545,7 +545,7 @@
           , NVL(#{mdfrId}, #{rgtrId})
           , FN_DTTM()
           , #{sbjctId}
-          , #{byteamDscsUseyn}
+          , NVL(#{byteamDscsUseyn}, 'N')
         FROM TB_LMS_DSCS
         WHERE DSCS_ID = #{copydscsId}
     </insert>

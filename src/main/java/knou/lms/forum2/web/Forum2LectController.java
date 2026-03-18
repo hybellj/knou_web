@@ -3,13 +3,14 @@ package knou.lms.forum2.web;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 
-import knou.framework.common.CommConst;
-import knou.framework.common.RepoInfo;
+import knou.framework.common.*;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.ValidationUtils;
+import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.forum2.service.ForumFdbkService;
 import knou.lms.forum2.service.ForumJoinUserService;
 import knou.lms.forum.vo.ForumJoinUserVO;
@@ -22,6 +23,7 @@ import knou.lms.team.service.TeamService;
 import knou.lms.team.vo.TeamCtgrVO;
 import knou.lms.team.vo.TeamMemberVO;
 import knou.lms.team.vo.TeamVO;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -32,8 +34,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import knou.framework.common.ControllerBase;
-import knou.framework.common.SessionInfo;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.StringUtil;
 import knou.framework.vo.FileVO;
@@ -444,7 +444,7 @@ public class Forum2LectController extends ControllerBase {
     public String addForumBbs(ForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
-        String atclSn = IdGenerator.getNewId("ATCL");
+        String atclSn = IdGenerator.getNewId(IdPrefixType.DSATC.getCode());
         model.addAttribute("userId", userId);
         model.addAttribute("userName", userName);
         model.addAttribute("atclSn", atclSn);
@@ -485,8 +485,8 @@ public class Forum2LectController extends ControllerBase {
     @ResponseBody
     public ProcessResultVO<DefaultVO> addAtcl(ForumVO vo, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
-        String atclSn = IdGenerator.getNewId("ATCL");
 
+        String atclSn = IdGenerator.getNewId(IdPrefixType.DSATC.getCode());
         try {
             String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
@@ -586,7 +586,7 @@ public class Forum2LectController extends ControllerBase {
         try {
             String userId = StringUtil.nvl(SessionInfo.getUserId(request));
             ForumCmntVO forumCmntVO = new ForumCmntVO();
-            forumCmntVO.setCmntSn(IdGenerator.getNewId("CMNT"));
+            forumCmntVO.setCmntSn(IdGenerator.getNewId(IdPrefixType.DSCMT.getCode()));
             forumCmntVO.setForumCd(forumVO.getForumCd());
             forumCmntVO.setAtclSn(request.getParameter("atclSn"));
             forumCmntVO.setParCmntSn(request.getParameter("parCmntSn"));
@@ -773,6 +773,125 @@ public class Forum2LectController extends ControllerBase {
         return resultVO;
     }
 
+    // 성적평가
+    @RequestMapping(value="/Form/scoreManage.do")
+    public String scoreManage(ForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        model.addAttribute("tab", request.getParameter("tab"));
+        String rltnCd = request.getParameter("rltnCd");
+
+        String crsCreCd = forumVO.getCrsCreCd();
+
+        if(rltnCd == null || rltnCd.equals("")) {
+        } else {
+            forumVO.setForumCd(rltnCd);
+            forumVO.setOrgId(orgId);
+        }
+
+        // TODO : 26.3.18 (임시로 복사 처리함)
+        Forum2VO param = new Forum2VO();
+        param.setDscsId(forumVO.getForumCd());
+//        forumVO = forum2Service.selectForum(forumVO);
+        Forum2VO tempForum2VO = forum2Service.selectForum(param);
+        forumVO = convertForum2VOtoForumVO(tempForum2VO);
+
+        /*  강의실에서 토론 진입시 교수자ID */
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        /* 강의실에서 토론 진입시 교수자이름 */
+        String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
+
+        model.addAttribute("orgId", SessionInfo.getOrgId(request));
+        model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
+        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
+        // TODO : 26.3.18 (임시로 과목 코드 연결)
+//        model.addAttribute("crsCreCd", forumVO.getCrsCreCd());
+        model.addAttribute("crsCreCd", test_sbjctId);
+
+                model.addAttribute("userId", userId);
+        model.addAttribute("userName", userName);
+
+        if("PTCP_FULL_SCR".equals(StringUtil.nvl(forumVO.getEvalCtgr()))) {
+            // 모든 토론 참여자를 토론 참여자 테이블에 삽입
+            ForumVO fvo = new ForumVO();
+            fvo.setRgtrId(userId);
+            fvo.setCrsCreCd(forumVO.getCrsCreCd());
+            fvo.setForumCd(forumVO.getForumCd());
+            forum2JoinUserService.insertJoinUser(fvo);
+
+            ForumJoinUserVO joinUserVO = new ForumJoinUserVO();
+            joinUserVO.setSearchMenu("ONCE");
+            joinUserVO.setRgtrId(userId);
+            joinUserVO.setForumCd(forumVO.getForumCd());
+            joinUserVO.setSearchKey("JOIN");
+            forum2JoinUserService.participateScore(joinUserVO);
+            //joinUserVO.setSearchKey("NOTJOIN");
+            //forumJoinUserService.participateScore(joinUserVO);
+        }
+        ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+        forumJoinUserVO.setForumCd(forumVO.getForumCd());
+
+        // 성적분포현황차트
+        List<?> forumJoinUserList = forum2JoinUserService.forumJoinUserList(forumJoinUserVO);
+        int minScore = 0;
+        int maxScore = 0;
+        int totalScore = 0;
+        int score = 0;
+        int avgScore = 0;
+
+        if(forumJoinUserList.size() > 0) {
+            for(int i = 0; i < forumJoinUserList.size(); i++) {
+                EgovMap egovMap = (EgovMap) forumJoinUserList.get(i);
+
+                // long tmpScore = (long)egovMap.get("score");
+                // score = Long.valueOf(tmpScore).intValue();
+                BigDecimal tmpScore = (BigDecimal) egovMap.get("score");
+                long befScore = tmpScore.longValue();
+                score = Long.valueOf(befScore).intValue();
+
+                if(i == 0) {
+                    minScore = score;
+                    maxScore = score;
+                } else {
+                    if(minScore > score) {
+                        minScore = score;
+                    }
+
+                    if(maxScore < score) {
+                        maxScore = score;
+                    }
+                }
+                totalScore = totalScore + score;
+            }
+            avgScore = totalScore / forumJoinUserList.size();
+        }
+
+        model.addAttribute("minScore", minScore);
+        model.addAttribute("maxScore", maxScore);
+        model.addAttribute("avgScore", avgScore);
+
+        // 찬반현황 차트용
+        forumVO.setOrgId(orgId);
+        // TODO : 26.3.16 (앞에서 읽었는데 또 다시 읽어야 하나?-joinUserCount 가 달라지는가?)
+        /*
+        forumVO = forum2Service.selectForum(param);
+         */
+        forumVO.setCrsCreCd(crsCreCd);
+
+        model.addAttribute("forumVo", forumVO);
+        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(crsCreCd);
+        // TODO : 26.3.18 불필요한 코드(필요시 test_sbjctId 로 변경할 것)
+        //creCrsVO = crecrsService.select(creCrsVO);
+        model.addAttribute("creCrsVO", creCrsVO);
+
+        return "forum2/lect/forum_score_manage";
+    }
+
     /*****************************************************
      * 토론 참여 사용자 리스트 가져오기 ajax
      * @param ForumJoinUserVO
@@ -793,7 +912,6 @@ public class Forum2LectController extends ControllerBase {
         }
         return resultVO;
     }
-
     private void setCommonSessionValue(Forum2ListVO vo, HttpServletRequest request) {
         vo.setOrgId(SessionInfo.getOrgId(request));
         vo.setLangCd(SessionInfo.getLocaleKey(request));

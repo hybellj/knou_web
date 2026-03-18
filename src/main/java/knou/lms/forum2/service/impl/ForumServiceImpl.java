@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import knou.framework.common.IdPrefixType;
 import knou.lms.forum2.vo.*;
 import org.springframework.stereotype.Service;
 
@@ -178,7 +179,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                         resultVO.setResultFailed("팀토론 등록 시 분반별 학습그룹 정보가 필요합니다.");
                         return resultVO;
                     }
-                    String dscsGrpId = IdGenerator.getNewId("DGRP");
+                    String dscsGrpId = IdGenerator.getNewId(IdPrefixType.DSGRP.getCode());
                     vo.setDscsGrpId(dscsGrpId);
                     vo.setLrnGrpId(lrnGrpId);
                     vo.setDscsGrpnm(lrnGrpnm);
@@ -189,7 +190,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                     vo.setDscsGrpnm(null);
                 }
 
-                String newDscsId = IdGenerator.getNewId("DSCS");
+                String newDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
                 vo.setDscsId(newDscsId);
                 vo.setDvclsNo(dvclsNo);
                 forumDAO.insertForum(vo);
@@ -285,7 +286,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
     public ProcessResultVO<Forum2VO> copyForum(Forum2VO vo) throws Exception {
         ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
 
-        String newDscsId = IdGenerator.getNewId("DSCS");
+        String newDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
         vo.setDscsId(newDscsId);
 
         /*TODO_copyForum파라미터매핑프로젝트표준확정필요*/

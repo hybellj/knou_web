@@ -1,11 +1,17 @@
 package knou.lms.srvy.web.view;
 
 import java.util.List;
+import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
+import knou.lms.cmmn.vo.CmmnCdVO;
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.srvy.vo.SrvyQstnVO;
+import knou.lms.srvy.vo.SrvyQstnVwitmLvlVO;
 import knou.lms.srvy.vo.SrvyVO;
+import knou.lms.srvy.vo.SrvyVwitmVO;
+import knou.lms.srvy.vo.SrvypprVO;
 
 public class SrvyMainView {
 
@@ -23,7 +29,27 @@ public class SrvyMainView {
 
 	List<EgovMap> srvySearchSmstrList;
 
-	ProcessResultVO<EgovMap> profAuthrtSbjctSrvyList;
+	List<EgovMap> profAuthrtSbjctSrvyList;
+
+	Map<String, List<CmmnCdVO>> cmmnCdList;
+
+	List<EgovMap> srvyTeamList;
+
+	Boolean isQstnsCmptn;
+
+	List<SrvypprVO> srvypprList;
+
+	List<EgovMap> srvyQstnList;
+
+	SrvypprVO srvypprVO;
+
+	List<SrvyVO> qstnCopySrvyList;
+
+	SrvyQstnVO srvyQstnVO;
+
+	List<SrvyVwitmVO> srvyVwitmList;
+
+	List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList;
 
 	public ProcessResultVO<EgovMap> getProfSrvyList() {
 		return profSrvyList;
@@ -81,12 +107,92 @@ public class SrvyMainView {
 		this.srvySearchSmstrList = srvySearchSmstrList;
 	}
 
-	public ProcessResultVO<EgovMap> getProfAuthrtSbjctSrvyList() {
+	public List<EgovMap> getProfAuthrtSbjctSrvyList() {
 		return profAuthrtSbjctSrvyList;
 	}
 
-	public void setProfAuthrtSbjctSrvyList(ProcessResultVO<EgovMap> profAuthrtSbjctSrvyList) {
+	public void setProfAuthrtSbjctSrvyList(List<EgovMap> profAuthrtSbjctSrvyList) {
 		this.profAuthrtSbjctSrvyList = profAuthrtSbjctSrvyList;
+	}
+
+	public Map<String, List<CmmnCdVO>> getCmmnCdList() {
+		return cmmnCdList;
+	}
+
+	public void setCmmnCdList(Map<String, List<CmmnCdVO>> cmmnCdList) {
+		this.cmmnCdList = cmmnCdList;
+	}
+
+	public List<EgovMap> getSrvyTeamList() {
+		return srvyTeamList;
+	}
+
+	public void setSrvyTeamList(List<EgovMap> srvyTeamList) {
+		this.srvyTeamList = srvyTeamList;
+	}
+
+	public Boolean getIsQstnsCmptn() {
+		return isQstnsCmptn;
+	}
+
+	public void setIsQstnsCmptn(Boolean isQstnsCmptn) {
+		this.isQstnsCmptn = isQstnsCmptn;
+	}
+
+	public List<SrvypprVO> getSrvypprList() {
+		return srvypprList;
+	}
+
+	public void setSrvypprList(List<SrvypprVO> srvypprList) {
+		this.srvypprList = srvypprList;
+	}
+
+	public List<EgovMap> getSrvyQstnList() {
+		return srvyQstnList;
+	}
+
+	public void setSrvyQstnList(List<EgovMap> srvyQstnList) {
+		this.srvyQstnList = srvyQstnList;
+	}
+
+	public SrvypprVO getSrvypprVO() {
+		return srvypprVO;
+	}
+
+	public void setSrvypprVO(SrvypprVO srvypprVO) {
+		this.srvypprVO = srvypprVO;
+	}
+
+	public List<SrvyVO> getQstnCopySrvyList() {
+		return qstnCopySrvyList;
+	}
+
+	public void setQstnCopySrvyList(List<SrvyVO> qstnCopySrvyList) {
+		this.qstnCopySrvyList = qstnCopySrvyList;
+	}
+
+	public SrvyQstnVO getSrvyQstnVO() {
+		return srvyQstnVO;
+	}
+
+	public void setSrvyQstnVO(SrvyQstnVO srvyQstnVO) {
+		this.srvyQstnVO = srvyQstnVO;
+	}
+
+	public List<SrvyVwitmVO> getSrvyVwitmList() {
+		return srvyVwitmList;
+	}
+
+	public void setSrvyVwitmList(List<SrvyVwitmVO> srvyVwitmList) {
+		this.srvyVwitmList = srvyVwitmList;
+	}
+
+	public List<SrvyQstnVwitmLvlVO> getSrvyQstnVwitmLvlList() {
+		return srvyQstnVwitmLvlList;
+	}
+
+	public void setSrvyQstnVwitmLvlList(List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList) {
+		this.srvyQstnVwitmLvlList = srvyQstnVwitmLvlList;
 	}
 
 }

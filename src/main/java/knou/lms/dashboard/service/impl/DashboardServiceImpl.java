@@ -1078,4 +1078,16 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
     public List<EgovMap> sbjctList(DashboardVO vo) throws Exception {
         return dashboardDAO.sbjctList(vo);
     }
+
+    /*****************************************************
+     * 위젯 초기화 - user 테이블 삭제
+     *
+     * @param DashboardVO
+     * @return void
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void widgetStngReset(DashboardVO vo) throws Exception {
+    	dashboardDAO.widgetStngReset(vo);
+    }
 }

@@ -268,4 +268,12 @@ public interface DashboardService {
       * @throws Exception
       ******************************************************/
      public List<EgovMap> sbjctList(DashboardVO vo) throws Exception;
+
+     /*****************************************************
+      * 위젯 초기화 - user 테이블 삭제
+      * @param AcadSchVO
+      * @return void
+      * @throws Exception
+      ******************************************************/
+     public void widgetStngReset(DashboardVO vo) throws Exception;
 }

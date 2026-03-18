@@ -1,5 +1,6 @@
 package knou.lms.forum2.service.impl;
 
+import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenerator;
 import knou.framework.vo.FileVO;
@@ -108,7 +109,7 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
             if(stdArr.length > 0) {
                 for(int i = 0; i < stdArr.length; i++) {
                     vo.setStdId(stdArr[i]);
-                    vo.setForumFdbkCd(IdGenerator.getNewId("FFDBK"));
+                    vo.setForumFdbkCd(IdGenerator.getNewId(IdPrefixType.DSFDK.getCode()));
                     
                     /*
                     // 토론 참여자(tb_lms_forum_join_user) 테이블에 등록

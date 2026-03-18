@@ -1,5 +1,7 @@
 package knou.lms.exam.web;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.RepoInfo;
@@ -39,10 +41,7 @@ import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,17 +177,29 @@ public class ExamHomeController extends ControllerBase {
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
-        String isModify = "N";
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+        String sbjctId = "SBJCT_OFRNG_ID2";    // 임시 하드코딩
+//        String sbjctId = StringUtil.nvl(vo.getCrsCreCd());
+        String isModify = null;
 
+        if (examBscId.isEmpty()) {
+            isModify = "N";
+        } else {
+            isModify = "Y";
+        }
         if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
             throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
         }
 
+        System.out.println("isModify ? " + isModify);
         model.addAttribute("vo", vo);
+        model.addAttribute("isModify", isModify); // 등록|수정 여부
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("crsCreCd", sbjctId);
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
 
         // 임시로 prof 경로 추가
@@ -414,6 +425,60 @@ public class ExamHomeController extends ControllerBase {
         // 임시로 prof 경로 추가
         return "exam/prof/exam_info_quiz_mng";
     }
+
+    /*****************************************************
+     * 시험 등록
+     * @param vo
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/examRegist.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamBscVO> examRegist(ExamBscVO vo, @RequestParam(value = "dtlInfos", defaultValue = "[]") String dtlInfoStr, ModelMap model, HttpServletRequest request) throws Exception{
+        ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
+        ObjectMapper mapper = new ObjectMapper();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+            if(ValidationUtils.isEmpty(userId)) {
+                throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
+            }
+
+            vo.setSbjctId("SBJCT_OFRNG_ID2");       // 과목 ID (임시 하드코딩 추후 vo 에서 가져오도록 설정)
+            vo.setLctrWknoSchdlId(null);            // 강의주차 일정 아이디  (임시)
+            vo.setExamGrpId(null);                  // 시험 그룹 ID (임시)
+            vo.setQstnDsplyGbncd("WHOL");           // 문항 화면표시 구분코드 (임시)
+            vo.setAvgMrkOyn(null);                  // 평균성적 공개여부 (임시)
+            vo.setMrkOpenSdttm(null);               // 성적공개 시작일시 (임시)
+            vo.setImdtAnswShtInqyn(null);           // 즉시답안 조회여부 (임시)
+            vo.setMaxTkexamCnt(99);                 // 최대응시 횟수 (임시)
+            vo.setQstnRndmyn("N");                  // 문항 무작위 여부 (임시)
+            vo.setQstnVwitmRndmyn("N");             // 문항보기 항목 무작위 여부 (임시)
+            vo.setQstnCnddtUseyn("N");              // 문항후보 사용여부 (임시)
+            vo.setMrkRfltrt(0);                     // 성적 반영비율 (임시)
+            vo.setLrnGrpSubasmtStngyn("N");         // 학습그룹 부과제 설정여부 (임시)
+            vo.setExamTycd("EXAM");                 // 시험 유형코드 (시험만 등록되므로 하드코딩)
+
+            vo.setExamtmAllocGbncd("REMAINDER");    // 시험시간 배정 구분코드
+            vo.setExamtmExpsrTycd("LEFT");          // 시험시간 노출 유형코드
+            vo.setRgtrId(userId);                   // (세션) 등록자 ID
+            vo.getExamDtlVO().setRgtrId(userId);    // (세션) 등록자 ID
+            vo.getExamDtlVO().setDtlInfos(mapper.readValue(dtlInfoStr, new TypeReference<List<Map<String, Object>>>() {
+            }));
+
+            resultVO.setReturnVO(examService.examRegist(vo));
+            resultVO.setResultSuccess();
+        } catch (MediopiaDefineException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
+        } catch (Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
+
 
     /*****************************************************
      * 교수 시험목록 페이징

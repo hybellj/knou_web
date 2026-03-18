@@ -546,9 +546,10 @@ public class SrvyServiceImpl extends ServiceBase implements SrvyService {
 	 * @param List<SrvyVO>
 	 * @throws Exception
 	 */
-	 public void srvyMrkRfltrtListModify(List<SrvyVO> list) throws Exception {
-		 srvyDAO.srvyMrkRfltrtListModify(list);
-	 }
+	@Override
+	public void srvyMrkRfltrtListModify(List<SrvyVO> list) throws Exception {
+		srvyDAO.srvyMrkRfltrtListModify(list);
+	}
 
 	/**
 	* 설문그룹과목목록조회
@@ -557,6 +558,7 @@ public class SrvyServiceImpl extends ServiceBase implements SrvyService {
 	* @return 과목 목록
 	* @throws Exception
 	*/
+	@Override
 	public List<EgovMap> srvyGrpSbjctList(String srvyId) throws Exception {
 		return srvyDAO.srvyGrpSbjctList(srvyId);
 	}
@@ -568,6 +570,7 @@ public class SrvyServiceImpl extends ServiceBase implements SrvyService {
 	* @return 설문정보
 	* @throws Exception
 	*/
+	@Override
 	public EgovMap srvySelect(SrvyVO vo) throws Exception {
 		return srvyDAO.srvySelect(vo);
 	}
@@ -580,6 +583,7 @@ public class SrvyServiceImpl extends ServiceBase implements SrvyService {
 	* @return 설문부과제목록
 	* @throws Exception
 	*/
+	@Override
 	public List<EgovMap> srvyLrnGrpSubAsmtList(Map<String, Object> params) throws Exception {
 		return srvyDAO.srvyLrnGrpSubAsmtList(params);
 	}
@@ -591,34 +595,12 @@ public class SrvyServiceImpl extends ServiceBase implements SrvyService {
 	* @param smstrChrtId 	학기기수아이디
 	* @param sbjctId 		과목아이디
 	* @param searchValue 	검색내용(설문명)
-	* @param listScale	 	페이지크기
-	* @return 설문목록 페이징
+	* @return 설문목록
 	* @throws Exception
 	*/
 	@Override
-	public ProcessResultVO<EgovMap> profAuthrtSbjctSrvyList(Map<String, Object> params) throws Exception {
-	    PaginationInfo paginationInfo = new PaginationInfo();
-	    paginationInfo.setCurrentPageNo((Integer) params.get("pageIndex"));
-	    paginationInfo.setRecordCountPerPage(Integer.parseInt((String) params.get("listScale")));
-	    paginationInfo.setPageSize(Integer.parseInt((String) params.get("listScale")));
-
-	    params.put("firstIndex", paginationInfo.getFirstRecordIndex());
-	    params.put("lastIndex", paginationInfo.getLastRecordIndex());
-
-	    List<EgovMap> srvyList = srvyDAO.profAuthrtSbjctSrvyList(params);
-
-	    if(srvyList.size() > 0) {
-	    	paginationInfo.setTotalRecordCount(((BigDecimal) srvyList.get(0).get("totalCnt")).intValue());
-	    } else {
-	        paginationInfo.setTotalRecordCount(0);
-	    }
-
-	    ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
-
-	    resultVO.setReturnList(srvyList);
-	    resultVO.setPageInfo(paginationInfo);
-
-	    return resultVO;
+	public List<EgovMap> profAuthrtSbjctSrvyList(Map<String, Object> params) throws Exception {
+	    return srvyDAO.profAuthrtSbjctSrvyList(params);
 	}
 
 	/**
@@ -635,6 +617,68 @@ public class SrvyServiceImpl extends ServiceBase implements SrvyService {
 
 		// 2. 하위설문삭제여부수정
 		srvyDAO.subSrvyDelynModify(vo);
+	}
+
+	/**
+	* 설문팀목록조회
+	*
+	* @param srvyId 	설문아이디
+	* @return 설문팀목록
+	* @throws Exception
+	*/
+	@Override
+	public List<EgovMap> srvyTeamList(String srvyId) throws Exception {
+		return srvyDAO.srvyTeamList(srvyId);
+	}
+
+	/**
+	* 설문팀문제출제완료여부조회
+	*
+	* @param srvyId 	설문아이디
+	* @throws Exception
+	*/
+	@Override
+	public Boolean srvyTeamQstnsCmptnynSelect(String srvyId) throws Exception {
+		return srvyDAO.srvyTeamQstnsCmptnynSelect(srvyId);
+	}
+
+	/**
+	* 문제가져오기설문목록조회
+	*
+    * @param sbjctId 		과목이이디
+	* @return 설문목록
+	* @throws Exception
+	*/
+	@Override
+	public List<SrvyVO> qstnCopySrvyList(String sbjctId) throws Exception {
+		return srvyDAO.qstnCopySrvyList(sbjctId);
+	}
+
+	/**
+     * 설문문제출제완료수정
+     *
+     * @param upSrvyId   	상위설문아이디
+     * @param srvyId   		설문아이디
+     * @param srvyGbncd   	설문팀구분코드 ( SRVY_TEAM, SRVY )
+     * @param searchGubun 	수정상태 ( save, edit )
+     * @param searchKey 	( bsc, dtl )
+     * @throws Exception
+     */
+	@Override
+	public void srvyQstnsCmptnModify(SrvyVO vo) throws Exception {
+		vo.setSrvyQstnsCmptnyn("edit".equals(StringUtil.nvl(vo.getSearchGubun())) ? "M" : "Y");
+		String upSrvyId = vo.getUpSrvyId();
+		String srvyGbn = vo.getSrvyGbncd();
+		vo.setUpSrvyId("");
+		vo.setSrvyGbncd("");
+
+    	// 팀설문 and 상위설문시
+    	if("SRVY_TEAM".equals(srvyGbn) && "bsc".equals(vo.getSearchKey())) {
+    		vo.setSrvyId(upSrvyId);
+    	}
+
+    	// 설문수정
+    	srvyDAO.srvyModify(vo);
 	}
 
 }

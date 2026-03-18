@@ -20,6 +20,9 @@ public interface ExamService {
      * 신규 작성 Service 영역
      *****************************************************/
 
+    // 시험 등록
+    public ExamBscVO examRegist(ExamBscVO vo) throws Exception;
+
     // 교수 시험목록 페이징
     public ProcessResultVO<ExamVO> listProfExamPaging(ExamVO vo) throws Exception;
 
@@ -37,6 +40,7 @@ public interface ExamService {
 
     // 성적 공개여부 수정
     public void updateMrkOyn(ExamVO vo) throws Exception;
+
     /*****************************************************
      * 기존에 있던 Service 영역
      *****************************************************/

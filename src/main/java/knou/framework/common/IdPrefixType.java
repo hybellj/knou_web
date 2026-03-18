@@ -18,6 +18,7 @@ public enum IdPrefixType {
     SRRSP("SRRSP", "설문응답"),
     SRTGT("SRTGT", "설문대상"),
     SRGRP("SRGRP", "설문그룹"),
+    SRQVL("SRQVL", "설문문항보기항목레벨"),
 
     // 학습
     LN("LN", "학습"),
@@ -176,6 +177,7 @@ public enum IdPrefixType {
     // 토론
     DS("DS", "토론"),
     DSCS("DSCS", "토론"),
+    DSGRP("DSGRP", "토론그룹"),
     DSPTC("DSPTC", "토론참여"),
     DSATC("DSATC", "토론게시글"),
     DSCMT("DSCMT", "토론댓글"),
@@ -236,13 +238,15 @@ public enum IdPrefixType {
     MSG("MSG", "메시지"),
     MBL("MBL", "모바일"),
     EML("EML", "이메일"),
-    SHTNT("SHTNT", "쪽지"),
+    SHRTNT("SHRTNT", "쪽지"),
     MSSNG("MSSNG", "메시지발신"),
     MSAT("MSAT", "메시지첨부파일"),
     MSTGT("MSTGT", "메시지수신대상자"),
     MSTGP("MSTGP", "메시지수신자그룹"),
     MSRCV("MSRCV", "메시지수신자"),
     MSTML("MSTML", "메시지탬플릿"),
+    AAMSG("AAMSG", "자동알림메시지"),
+    AATGT("AATGT", "자동알림메시지대상"),
 
     // 교재
     TB("TB", "교재"),

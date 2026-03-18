@@ -697,7 +697,6 @@ common - button
 .btn.gray1:hover { background: #343434; color: #fff; border: 1px solid #343434; }
 .btn.basic.small {font-size: 1.4rem; padding: .6rem 1.1rem;}
 
-
 .btns { display: flex; justify-content: center; gap: 1rem; margin-top: 3rem; }
 .btns.justify { justify-content: space-between; }
 .btns.left { justify-content: flex-start; }
@@ -712,6 +711,14 @@ common - button
 .btn_list_type { display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1rem; min-height: 3.7rem; border: 1px solid #BDBDBD; border-radius: .4rem; }
 .btn_list_type:hover {color: var(--primary2); border-color: var(--primary2)}
 .btn_list_type.on {color: var(--primary2); border-color: var(--primary2)}
+.btn.s_type1 { position: relative; font-size: 1.4rem; padding: .6rem 2.5rem .6rem 1.3rem; line-height: 1.4; border-radius: var(--border-radius-5); background: #0090D0; color: #fff; border-color: #0090D0; }
+.btn.s_type1:hover { background: #0079ac; color: #fff; border: 1px solid #0079ac; }
+.btn.s_type1:after { position: absolute; display: inline-block; margin-left: .25rem; font-size: 1.2rem; font-family: xeicon; font-weight: 300; content: "\e93e"; transform: translate(0, -50%); top: 50%; right: .7rem; }
+
+.btn.s_type2 { position: relative; font-size: 1.4rem; min-width: 8.8rem; padding: .6rem 1.3rem .6rem 1.3rem; line-height: 1.4; border-radius: var(--border-radius-5); background: #3D5480; color: #fff; border-color: #3D5480; }
+.btn.s_type2:hover { background: #2d4064; color: #fff; border: 1px solid #2d4064; }
+
+
 
 /* label */
 .label.uniA {display: inline-flex; justify-content: center; color: #fff; padding:.3rem .5rem ; width: 5.5rem; font-size: 1.2rem; background: #00A4D8; border-radius: 100em;}
@@ -975,7 +982,7 @@ h4.sub-title::before {
 /* table-view 타입 */
 .table_list {color: #666; border-top: 2px solid #0055a2;}
 .table_list ul.list {display: flex; border-bottom: 1px solid #D4D6D6;}
-.table_list ul.list > li {display: flex; align-items: center; padding: 1.8rem 1.5rem; border-right: 1px solid #D4D6D6;}
+.table_list ul.list > li {display: flex; align-items: center; padding: 1.5rem 1.5rem; border-right: 1px solid #D4D6D6;}
 .table_list ul.list > li.head {width: 20%;}
 .table_list ul.list > li label {font-weight: 500; color: var(--txt_02);}
 .table_list ul.list > li:nth-child(odd) {background: #f0f2f6;}
@@ -986,10 +993,13 @@ h4.sub-title::before {
 .table_list ul.list .tb_content {display: flex; flex-direction: column; width: 100%;}
 .table_list ul.list .fileSize {margin-left: auto; font-size: 1.4rem;}
 .table_list ul.list > li:nth-child(odd):has( .tb_content) {background: #fff;}
+@media (max-width:1024px) {
+	.table_list ul.list > li {font-size: 1.5rem; padding: 1.2rem 1.5rem; }
+}
 @media (max-width:480px) {
 	.table_list ul.list {flex-direction: column;  border-bottom: 1px solid #D4D6D6;}
-    .table_list ul.list li.head {width: 100%;}
-    .table_list ul.list li {/*padding: .75rem;*/ border-right: 0; border-bottom: none;}
+    .table_list ul.list li.head {width: 100%; padding: .75rem 1.5rem; }
+    .table_list ul.list li {border-right: 0; border-bottom: none;}
 	.table_list ul.list > li:nth-child(odd) {background: #f3f4f7;}
 }
 
@@ -1198,6 +1208,7 @@ h4.sub-title::before {
 .board_top { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; width: 100%; margin-bottom: 1rem; }
 .board_top h4.sub-title {margin-bottom: 0;}
 .board_top i + .board-title {margin-left: .4rem;}
+.board_top .info_inline {position: relative; margin-left: 1.7rem;}
 .board_top .total_num {position: relative; margin-left: 1.7rem;}
 .board_top .total_num::before { content: ''; display: block; background-color: #ddd; width: 1px; height: 1.4rem; position: absolute; transform: translate(0, -50%); left: -1rem; top: 50%; }
 .board_top .right-area {margin-left: auto; display: flex; gap: .6rem; align-items: center; flex-wrap: wrap;}
@@ -1368,6 +1379,7 @@ msg style
 }
 .sub-box { padding: 2.2rem 2.5rem; background-color: #fff; width: 100%; max-width: 100%; border-radius: 10px; border: 1px solid #D0D0D0; }
 .sub-box + .sub-box {margin-top: 2rem;}
+.sub-box + .board_top {margin-top: 2rem;}
 
 /* ===========================================================================================
 error style

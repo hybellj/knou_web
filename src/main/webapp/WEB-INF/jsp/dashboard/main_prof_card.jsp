@@ -316,7 +316,7 @@
                                   <p class="tit">과제 제출 언제까지 인가요?</p>
                                   <p class="desc">
                                       <span class="name">[대학원] 경영수리와 통계1반</span>
-                                      <span class="date">2025.05.17</span>
+                                      <span class="date">2026.05.17</span>
                                   </p>
                               </a>
                               <div class="state">
@@ -331,7 +331,7 @@
                                   <p class="tit">강의 내용 중에 이해가 안되는 부분이 있습니다.</p>
                                   <p class="desc">
                                       <span class="name">[대학원] 경영수리와 통계1반</span>
-                                      <span class="date">2025.05.17</span>
+                                      <span class="date">2026.05.17</span>
                                   </p>
                               </a>
                               <div class="state">
@@ -346,7 +346,7 @@
                                   <p class="tit">과제 제출 언제까지 인가요?</p>
                                   <p class="desc">
                                       <span class="name">[평생교육] 광고와 이미지 마케팅</span>
-                                      <span class="date">2025.05.17</span>
+                                      <span class="date">2026.05.17</span>
                                   </p>
                               </a>
                               <div class="state">
@@ -381,7 +381,7 @@
                                   <p class="tit">교수님~ 평가항목에 대해 궁금한게 있어요​</p>
                                   <p class="desc">
                                       <span class="name">[대학원] 경영수리와 통계1반</span>
-                                      <span class="date">2025.05.17</span>
+                                      <span class="date">2026.05.17</span>
                                   </p>
                               </a>
                               <div class="state">
@@ -396,7 +396,7 @@
                                   <p class="tit">성적 처리 기준에 대해 질문이 있습니다.</p>
                                   <p class="desc">
                                       <span class="name">[대학원] 경영수리와 통계1반</span>
-                                      <span class="date">2025.05.17</span>
+                                      <span class="date">2026.05.17</span>
                                   </p>
                               </a>
                               <div class="state">
@@ -411,7 +411,7 @@
                                   <p class="tit">이번 수업 정말 잘 들었습니다. 많은 도움이 되었어요</p>
                                   <p class="desc">
                                       <span class="name">[평생교육] New TEPS 실전 연습-기본편</span>
-                                      <span class="date">2025.05.17</span>
+                                      <span class="date">2026.05.17</span>
                                   </p>
                               </a>
                               <div class="state">
@@ -510,7 +510,7 @@
                                   <a href="#0" class="item_txt">
                                       <p class="tit">1학기 성적처리 기준 안내입니다.</p>
                                       <p class="desc">
-                                          <span class="date">2025.05.17</span>
+                                          <span class="date">2026.05.17</span>
                                       </p>
                                   </a>
                                   <div class="state">
@@ -525,7 +525,7 @@
                                       <p class="tit">성적 처리 기준에 대해 질문이 있습니다.</p>
                                       <p class="desc">
                                           <span class="name">[대학원] 경영수리와 통계1반</span>
-                                          <span class="date">2025.05.17</span>
+                                          <span class="date">2026.05.17</span>
                                       </p>
                                   </a>
                                   <div class="state">
@@ -540,7 +540,7 @@
                                       <p class="tit">이번 수업 정말 잘 들었습니다. 많은 도움이 되었어요</p>
                                       <p class="desc">
                                           <span class="name">[평생교육] New TEPS 실전 연습-기본편</span>
-                                          <span class="date">2025.05.17</span>
+                                          <span class="date">2026.05.17</span>
                                       </p>
                                   </a>
                                   <div class="state">
@@ -559,7 +559,7 @@
                                   <a href="#0" class="item_txt">
                                       <p class="tit">1학기 성적처리 기준 안내입니다.</p>
                                       <p class="desc">
-                                          <span class="date">2025.05.17</span>
+                                          <span class="date">2026.05.17</span>
                                       </p>
                                   </a>
                                   <div class="state">
@@ -573,7 +573,7 @@
                                   <a href="#0" class="item_txt">
                                       <p class="tit">1학기 성적처리 기준 안내입니다.</p>
                                       <p class="desc">
-                                          <span class="date">2025.05.17</span>
+                                          <span class="date">2026.05.17</span>
                                       </p>
                                   </a>
                                   <div class="state">
@@ -587,7 +587,7 @@
                                   <a href="#0" class="item_txt">
                                       <p class="tit">1학기 성적처리 기준 안내입니다.</p>
                                       <p class="desc">
-                                          <span class="date">2025.05.17</span>
+                                          <span class="date">2026.05.17</span>
                                       </p>
                                   </a>
                                   <div class="state">
@@ -607,7 +607,7 @@
                                       <p class="tit">이번 수업 정말 잘 들었습니다. 많은 도움이 되었어요</p>
                                       <p class="desc">
                                           <span class="name">[평생교육] New TEPS 실전 연습-기본편</span>
-                                          <span class="date">2025.05.17</span>
+                                          <span class="date">2026.05.17</span>
                                       </p>
                                   </a>
                                   <div class="state">
@@ -622,7 +622,7 @@
                                       <p class="tit">성적 처리 기준에 대해 질문이 있습니다.</p>
                                       <p class="desc">
                                           <span class="name">[대학원] 경영수리와 통계1반</span>
-                                          <span class="date">2025.05.17</span>
+                                          <span class="date">2026.05.17</span>
                                       </p>
                                   </a>
                                   <div class="state">
@@ -637,7 +637,7 @@
                                       <p class="tit">이번 수업 정말 잘 들었습니다. 많은 도움이 되었어요</p>
                                       <p class="desc">
                                           <span class="name">[평생교육] New TEPS 실전 연습-기본편</span>
-                                          <span class="date">2025.05.17</span>
+                                          <span class="date">2026.05.17</span>
                                       </p>
                                   </a>
                                   <div class="state">
@@ -664,7 +664,7 @@
                       <div class="btn-wrap">
                           <div class="schedule-head">
                               <a class="btn-prev" href="#" aria-label="이전달"><i class="xi-angle-left-min"></i></a>
-                              <div class="this-month">4<small>월</small></div>
+                              <div class="this-month">3<small>월</small></div>
                               <a class="btn-next" href="#" aria-label="다음달"><i class="xi-angle-right-min"></i></a>
                           </div>
                       </div>
@@ -673,7 +673,7 @@
                       <ul class="sche_list">
                           <li>
                               <div class="item_box">
-                                  <div class="s_date">03.18 ~ 04.01</div>
+                                  <div class="s_date">03.04 ~ 03.10</div>
                                   <div class="s_txt">
                                       <p class="tit">중간고사 시험문제 등록/출제/검수</p>
                                       <p class="desc">[대학원] 데이터베이스의 이해와 활용</p>
@@ -682,7 +682,7 @@
                           </li>
                           <li>
                               <div class="item_box">
-                                  <div class="s_date">04.05 ~ 06.12</div>
+                                  <div class="s_date">03.05 ~ 03.12</div>
                                   <div class="s_txt">
                                       <p class="tit">결시원 승인</p>
                                       <p class="desc">[대학원] 경영수리와 통계1반</p>
@@ -691,16 +691,16 @@
                           </li>
                           <li>
                               <div class="item_box">
-                                  <div class="s_date">04.08 ~ 04.11</div>
+                                  <div class="s_date">03.12 ~ 03.15</div>
                                   <div class="s_txt">
-                                      <p class="tit">2025학년도 1학기 중간고사</p>
+                                      <p class="tit">2026학년도 1학기 중간고사</p>
                                       <p class="desc">[대학원] 경영수리와 통계1반</p>
                                   </div>
                               </div>
                           </li>
                           <li>
                               <div class="item_box">
-                                  <div class="s_date">04.18 ~ 04.22</div>
+                                  <div class="s_date">03.18 ~ 03.22</div>
                                   <div class="s_txt">
                                       <p class="tit">시험문제 등록/출제/검수</p>
                                       <p class="desc">[대학원] 데이터베이스의 이해와 활용</p>
@@ -733,8 +733,8 @@
 
                           <div class="btn-wrap">
                               <select class="form-select" style="font-weight:600">
-                                  <option value="2025년 2학기">2025년 2학기</option>
-                                  <option value="2025년 1학기">2025년 1학기</option>
+                                  <option value="2026년 2학기">2026년 2학기</option>
+                                  <option value="2026년 1학기">2026년 1학기</option>
                               </select>
                               <a href="#0" class="btn_list_type btn_list" aria-label="리스트형 보기"><i class="icon-svg-list" aria-hidden="true"></i></a>
                               <a href="#0" class="btn_list_type btn_card on" aria-label="카드형 보기"><i class="icon-svg-grid" aria-hidden="true"></i></a><!-- 버튼 선택 on 클래스 추가 -->
@@ -756,7 +756,7 @@
                                               </p>
 
                                               <p class="tit">
-                                              <a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a>
+                                              <a href="/subject.do?subjectId=SBJCT20260001">자바 프로그래밍 초급</a>
                                               </p>
                                           </div>
                                       </div>
@@ -764,7 +764,7 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">중간고사:</span>
-                                                  <span>2025.04.26 16:00</span>
+                                                  <span>2026.04.26 16:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>
@@ -774,7 +774,7 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">기말고사:</span>
-                                                  <span>2025.06.07 17:00</span>
+                                                  <span>2026.06.07 17:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>
@@ -813,14 +813,14 @@
                                               <span class="info_txt">튜터 김하늘</span>
                                               <span class="info_txt">3학점</span>
                                           </p>
-                                          <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
+                                          <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 1반</a></p>
                                       </div>
                                   </div>
                                   <div class="extra">
                                       <div class="info">
                                           <p class="point">
                                               <span class="tit">중간고사:</span>
-                                              <span>2025.04.26 16:00</span>
+                                              <span>2026.04.26 16:00</span>
                                           </p>
                                           <p class="desc">
                                               <span class="tit">시간:</span>
@@ -830,7 +830,7 @@
                                       <div class="info">
                                           <p class="point">
                                               <span class="tit">기말고사:</span>
-                                              <span>2025.06.07 17:00</span>
+                                              <span>2026.06.07 17:00</span>
                                           </p>
                                           <p class="desc">
                                               <span class="tit">시간:</span>
@@ -876,14 +876,14 @@
                                       <div class="info">
                                           <p class="point">
                                               <span class="tit">과제제출:</span>
-                                              <span>2025.04.26 16:00</span>
+                                              <span>2026.04.26 16:00</span>
                                           </p>
 
                                       </div>
                                       <div class="info">
                                           <p class="point">
                                               <span class="tit">기말고사:</span>
-                                              <span>2025.06.07 17:00</span>
+                                              <span>2026.06.07 17:00</span>
                                           </p>
                                           <p class="desc">
                                               <span class="tit">시간:</span>
@@ -926,7 +926,7 @@
                                       <div class="info">
                                           <p class="point">
                                               <span class="tit">중간고사:</span>
-                                              <span>2025.04.26 16:00</span>
+                                              <span>2026.04.26 16:00</span>
                                           </p>
                                           <p class="desc">
                                               <span class="tit">시간:</span>
@@ -936,7 +936,7 @@
                                       <div class="info">
                                           <p class="point">
                                               <span class="tit">기말고사:</span>
-                                              <span>2025.06.07 17:00</span>
+                                              <span>2026.06.07 17:00</span>
                                           </p>
                                           <p class="desc">
                                               <span class="tit">시간:</span>
@@ -978,7 +978,7 @@
                                       <div class="info">
                                           <p class="point">
                                               <span class="tit">중간고사:</span>
-                                              <span>2025.04.26 16:00</span>
+                                              <span>2026.04.26 16:00</span>
                                           </p>
                                           <p class="desc">
                                               <span class="tit">시간:</span>
@@ -988,7 +988,7 @@
                                       <div class="info">
                                           <p class="point">
                                               <span class="tit">기말고사:</span>
-                                              <span>2025.06.07 17:00</span>
+                                              <span>2026.06.07 17:00</span>
                                           </p>
                                           <p class="desc">
                                               <span class="tit">시간:</span>
@@ -1034,7 +1034,7 @@
                                       <div class="info">
                                           <p class="point">
                                               <span class="tit">중간고사:</span>
-                                              <span>2025.04.26 16:00</span>
+                                              <span>2026.04.26 16:00</span>
                                           </p>
                                           <p class="desc">
                                               <span class="tit">시간:</span>
@@ -1044,7 +1044,7 @@
                                       <div class="info">
                                           <p class="point">
                                               <span class="tit">기말고사:</span>
-                                              <span>2025.06.07 17:00</span>
+                                              <span>2026.06.07 17:00</span>
                                           </p>
                                           <p class="desc">
                                               <span class="tit">시간:</span>
@@ -1084,7 +1084,7 @@
                                                   <span class="info_txt">튜터 김하늘</span>
                                                   <span class="info_txt">3학점</span>
                                               </p>
-                                              <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
+                                              <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">자바 프로그래밍 초급</a></p>
                                           </div>
                                           <div class="extra">
                                               <div class="my_prog_rate">
@@ -1096,7 +1096,7 @@
                                               <div class="info">
                                                   <p class="point">
                                                       <span class="tit">중간고사:</span>
-                                                      <span>2025.04.26 16:00</span>
+                                                      <span>2026.04.26 16:00</span>
                                                   </p>
                                                   <p class="desc">
                                                       <span class="tit">시간:</span>
@@ -1106,7 +1106,7 @@
                                               <div class="info">
                                                   <p class="point">
                                                       <span class="tit">기말고사:</span>
-                                                      <span>2025.06.07 17:00</span>
+                                                      <span>2026.06.07 17:00</span>
                                                   </p>
                                                   <p class="desc">
                                                       <span class="tit">시간:</span>
@@ -1142,7 +1142,7 @@
                                               <span class="info_txt">튜터 김하늘</span>
                                               <span class="info_txt">3학점</span>
                                           </p>
-                                          <p class="tit"><a href="#0">AI와 빅데이터 경영입문 2반</a></p>
+                                          <p class="tit"><a href="#0">AI와 빅데이터 경영입문 1반</a></p>
                                       </div>
                                       <div class="extra">
                                           <div class="my_prog_rate">
@@ -1154,7 +1154,7 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">중간고사:</span>
-                                                  <span>2025.04.26 16:00</span>
+                                                  <span>2026.04.26 16:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>
@@ -1164,7 +1164,7 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">기말고사:</span>
-                                                  <span>2025.06.07 17:00</span>
+                                                  <span>2026.06.07 17:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>
@@ -1212,13 +1212,13 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">과제제출:</span>
-                                                  <span>2025.04.26 16:00</span>
+                                                  <span>2026.04.26 16:00</span>
                                               </p>
                                           </div>
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">기말고사:</span>
-                                                  <span>2025.06.07 17:00</span>
+                                                  <span>2026.06.07 17:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>
@@ -1263,7 +1263,7 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">중간고사:</span>
-                                                  <span>2025.04.26 16:00</span>
+                                                  <span>2026.04.26 16:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>
@@ -1273,7 +1273,7 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">기말고사:</span>
-                                                  <span>2025.06.07 17:00</span>
+                                                  <span>2026.06.07 17:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>
@@ -1317,7 +1317,7 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">중간고사:</span>
-                                                  <span>2025.04.26 16:00</span>
+                                                  <span>2026.04.26 16:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>
@@ -1327,7 +1327,7 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">기말고사:</span>
-                                                  <span>2025.06.07 17:00</span>
+                                                  <span>2026.06.07 17:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>
@@ -1375,7 +1375,7 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">중간고사:</span>
-                                                  <span>2025.04.26 16:00</span>
+                                                  <span>2026.04.26 16:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>
@@ -1385,7 +1385,7 @@
                                           <div class="info">
                                               <p class="point">
                                                   <span class="tit">기말고사:</span>
-                                                  <span>2025.06.07 17:00</span>
+                                                  <span>2026.06.07 17:00</span>
                                               </p>
                                               <p class="desc">
                                                   <span class="tit">시간:</span>

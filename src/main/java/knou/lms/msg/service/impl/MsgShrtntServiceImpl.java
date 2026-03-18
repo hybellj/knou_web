@@ -181,7 +181,7 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
             msgShrtntDAO.insertRcvTrgtr(rcvrVO);
 
             if (!isReservation) {
-                String shrtntId = IdGenerator.getNewId(IdPrefixType.SHTNT.getCode());
+                String shrtntId = IdGenerator.getNewId(IdPrefixType.SHRTNT.getCode());
                 rcvrVO.setMsgShrtntSndngId(shrtntId);
                 rcvrVO.setSndngTtl(vo.getTtl());
                 rcvrVO.setSndngCts(vo.getTxtCts());

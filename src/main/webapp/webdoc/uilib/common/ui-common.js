@@ -53,9 +53,12 @@ let UiComm = {
 	 *
 	 * @value	문자열(yyyyMMddHHmmss) 또는 Date
 	 * @type	출력형식
-	 * 		date(날짜) : "yyyy-MM-dd"
-	 * 		time(시간) : "HH:mm:ss"
-	 * 		datetime(날짜시간) : "yyyy-MM-dd HH:mm:ss"
+	 * 		date      : "yyyy-MM-dd" (날짜)
+	 * 		time      : "HH:mm:ss" (시간)
+	 * 		time2     : "HH:mm" (시간,분)
+	 * 		datetime  : "yyyy-MM-dd HH:mm:ss" (날짜시간)
+	 * 		datetime2 : "yyyy-MM-dd HH:mm" (날짜시간,분)
+	 * 		monthday  : "MM-dd" (월일)
 	 */
 	formatDate: function(value, type) {
 		let dateValue = "";
@@ -93,12 +96,16 @@ let UiComm = {
 		if (type === "date") {
 			dateValue = dateValue.substring(0, 4) + "-"
 					  + dateValue.substring(4, 6) + "-"
-					  + dateValue.substring(6, 8)
+					  + dateValue.substring(6, 8);
 		}
 		else if (type === "time") {
 			dateValue = dateValue.substring(8, 10) + ":"
 					  + dateValue.substring(10, 12) + ":"
-					  + dateValue.substring(12, 14)
+					  + dateValue.substring(12, 14);
+		}
+		else if (type === "time2") {
+			dateValue = dateValue.substring(8, 10) + ":"
+					  + dateValue.substring(10, 12);
 		}
 		else if (type === "datetime") {
 			dateValue = dateValue.substring(0, 4) + "-"
@@ -106,7 +113,18 @@ let UiComm = {
 					  + dateValue.substring(6, 8) + " "
 					  + dateValue.substring(8, 10) + ":"
 					  + dateValue.substring(10, 12) + ":"
-					  + dateValue.substring(12, 14)
+					  + dateValue.substring(12, 14);
+		}
+		else if (type === "datetime2") {
+			dateValue = dateValue.substring(0, 4) + "-"
+					  + dateValue.substring(4, 6) + "-"
+					  + dateValue.substring(6, 8) + " "
+					  + dateValue.substring(8, 10) + ":"
+					  + dateValue.substring(10, 12);
+		}
+		else if (type === "monthday") {
+			dateValue = dateValue.substring(4, 6) + "-"
+					  + dateValue.substring(6, 8);
 		}
 
 		return dateValue;

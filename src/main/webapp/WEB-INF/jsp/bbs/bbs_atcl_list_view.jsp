@@ -339,7 +339,6 @@
 							<div class="board_top">
 	                            <h3 class="board-title">공지사항</h3>
 	                            <div class="right-area">
-									<button type="button" class="btn type2" onclick="checkSelect()" style="white-space: nowrap;">선택데이터확인</button>
 	                                <button type="button" class="btn type1" style="white-space: nowrap;" onclick="moveWriteAtcl()"><spring:message code="bbs.button.write" /></button><%-- 글쓰기 --%>
 
 									<%-- 리스트/카드 선택 버튼 --%>

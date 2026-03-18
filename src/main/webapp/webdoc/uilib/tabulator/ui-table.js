@@ -495,7 +495,7 @@ const UiTableUtil = {
         }
 
         // 날짜 패턴 출력
-        if (format === "date" || format === "time" || format === "datetime") {
+        if (format === "date" || format === "time" || format === "time2" || format === "datetime" || format === "datetime2" || format === "monthday") {
             let pttn = null;
 
             if (value.length === 14) {
@@ -508,10 +508,16 @@ const UiTableUtil = {
             if (pttn) {
                 if (format === "datetime") {
                     value = value.replace(pttn, '$1-$2-$3 $4:$5:$6');
+                } else if (format === "datetime2") {
+                    value = value.replace(pttn, '$1-$2-$3 $4:$5');
                 } else if (format === "date") {
                     value = value.replace(pttn, '$1-$2-$3');
+                } else if (format === "monthday") {
+                    value = value.replace(pttn, '$2-$3');
                 } else if (format === "time") {
                     value = value.replace(pttn, '$4:$5:$6');
+                } else if (format === "time2") {
+                    value = value.replace(pttn, '$4:$5');
                 }
             }
         }
