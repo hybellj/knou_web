@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.srvy.dao.SrvyQstnVwitmLvlDAO">
+
+	<delete id="srvyQstnListVwitmLvlDelete" parameterType="java.util.List">
+		/*
+             SQL ID : SrvyQstnVwitmLvlDAO.srvyQstnListVwitmLvlDelete
+             설  명  : 설문문항목록보기항목레벨삭제
+         */
+        DELETE FROM TB_LMS_SRVY_QSTN_VWITM_LVL
+	     WHERE SRVY_QSTN_ID IN
+	    <foreach collection="list" item="item" open="(" separator="," close=")">
+	        #{item.srvyQstnId}
+	    </foreach>
+	</delete>
+
+	<insert id="srvyQstnVwitmLvlBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : SrvyQstnVwitmLvlDAO.srvyQstnVwitmLvlBulkRegist
+             설  명 : 설문문항보기항목레벨일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_SRVY_QSTN_VWITM_LVL (
+				  SRVY_QSTN_VWITM_LVL_ID
+				, SRVY_QSTN_ID
+				, LVL_SEQNO
+				, LVL_CTS
+				, LVL_SCR
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.srvyQstnVwitmLvlId}
+				, #{item.srvyQstnId}
+				, #{item.lvlSeqno}
+				, #{item.lvlCts}
+				, #{item.lvlScr}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<delete id="srvyQstnVwitmLvlDelete" parameterType="String">
+		/*
+             SQL ID : SrvyQstnVwitmLvlDAO.srvyQstnVwitmLvlDelete
+             설  명 : 설문문항보기항목레벨삭제
+         */
+        DELETE FROM TB_LMS_SRVY_QSTN_VWITM_LVL
+         WHERE SRVY_QSTN_ID = #{srvyQstnId}
+	</delete>
+
+	<select id="srvyQstnVwitmLvlList" parameterType="String" resultType="srvyQstnVwitmLvlVO">
+		/*
+             SQL ID : SrvyQstnVwitmLvlDAO.srvyQstnVwitmLvlList
+             설  명 : 설문문항보기항목레벨목록조회
+         */
+        SELECT
+        	*
+          FROM TB_LMS_SRVY_QSTN_VWITM_LVL
+         WHERE SRVY_QSTN_ID = #{srvyQstnId}
+         ORDER BY LVL_SEQNO
+	</select>
+
+</mapper>

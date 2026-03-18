@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.srvy.dao.SrvyRspnsDAO">
+
+	<delete id="srvyQstnListRspnsDelete" parameterType="java.util.List">
+		/*
+             SQL ID : SrvyRspnsDAO.srvyQstnListRspnsDelete
+             설  명  : 설문문항목록답변삭제
+         */
+        DELETE FROM TB_LMS_SRVY_RSPNS
+	     WHERE SRVY_QSTN_ID IN
+	    <foreach collection="list" item="item" open="(" separator="," close=")">
+	        #{item.srvyQstnId}
+	    </foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.srvy.dao.SrvyVwitmDAO">
+
+	<delete id="srvyQstnListVwitmDelete" parameterType="java.util.List">
+		/*
+             SQL ID : SrvyVwitmDAO.srvyQstnListVwitmDelete
+             설  명  : 설문문항목록보기항목삭제
+         */
+        DELETE FROM TB_LMS_SRVY_VWITM
+	     WHERE SRVY_QSTN_ID IN
+	    <foreach collection="list" item="item" open="(" separator="," close=")">
+	        #{item.srvyQstnId}
+	    </foreach>
+	</delete>
+
+	<insert id="srvyVwitmBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : SrvyVwitmDAO.srvyVwitmBulkRegist
+             설  명 : 설문보기항목일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_SRVY_VWITM (
+	         	  SRVY_VWITM_ID
+				, SRVY_QSTN_ID
+				, VWITM_GBNCD
+				, VWITM_CTS
+				, VWITM_SEQNO
+				, MVMN_SRVY_QSTN_ID
+				, ETC_INPTYN
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.srvyVwitmId}
+				, #{item.srvyQstnId}
+				, #{item.vwitmGbncd}
+				, #{item.vwitmCts}
+				, #{item.vwitmSeqno}
+				, #{item.mvmnSrvyQstnId}
+				, #{item.etcInptyn}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<delete id="srvyVwitmDelete" parameterType="String">
+		/*
+             SQL ID : SrvyVwitmDAO.srvyVwitmDelete
+             설  명 : 설문보기항목삭제
+         */
+        DELETE FROM TB_LMS_SRVY_VWITM
+         WHERE SRVY_QSTN_ID = #{srvyQstnId}
+	</delete>
+
+	<select id="srvyVwitmList" parameterType="String" resultType="srvyVwitmVO">
+		/*
+             SQL ID : SrvyVwitmDAO.srvyVwitmList
+             설  명 : 설문보기항목목록조회
+         */
+        SELECT
+        	*
+          FROM TB_LMS_SRVY_VWITM
+         WHERE SRVY_QSTN_ID = #{srvyQstnId}
+         ORDER BY VWITM_SEQNO
+	</select>
+
+</mapper>

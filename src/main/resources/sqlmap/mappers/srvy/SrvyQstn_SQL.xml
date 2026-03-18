@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.srvy.dao.SrvyQstnDAO">
+
+	<select id="srvyQstnList" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : SrvyQstnDAO.srvyQstnList
+             설  명  : 설문문항목록
+         */
+        SELECT
+			  QSTN.SRVY_QSTN_ID
+			, QSTN.SRVYPPR_ID
+			, QSTN.QSTN_GBNCD
+			, QSTN.QSTN_RSPNS_TYCD
+			, QSTN.QSTN_SEQNO
+			, QSTN.QSTN_TTL
+			, DBMS_LOB.SUBSTR(QSTN.QSTN_CTS, 4000, 1) AS QSTN_CTS
+			, QSTN.ESNTL_RSPNSYN
+			, QSTN.ETC_INPT_USEYN
+			, QSTN.EDTR_USEYN
+			, QSTN.SRVY_MVMN_USEYN
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_RSPNS_TYCD' AND CD = QSTN.QSTN_RSPNS_TYCD) AS QSTN_RSPNS_TYNM
+		 FROM TB_LMS_SRVY_QSTN QSTN
+		 JOIN TB_LMS_SRVYPPR SRVYPPR
+		   ON QSTN.SRVYPPR_ID = SRVYPPR.SRVYPPR_ID
+		WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		  AND QSTN.DELYN = 'N'
+		ORDER BY SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO
+	</select>
+
+	<select id="srvypprQstnList" parameterType="String" resultType="srvyQstnVO">
+		/*
+             SQL ID : SrvyQstnDAO.srvypprQstnList
+             설  명  : 설문지문항목록
+         */
+        SELECT
+        	*
+          FROM TB_LMS_SRVY_QSTN
+         WHERE SRVYPPR_ID = #{srvypprId}
+	</select>
+
+	<delete id="srvypprQstnDelete" parameterType="String">
+		/*
+             SQL ID : SrvyQstnDAO.srvypprQstnDelete
+             설  명  : 설문지문항삭제
+         */
+        DELETE FROM TB_LMS_SRVY_QSTN
+         WHERE SRVYPPR_ID = #{srvypprId}
+	</delete>
+
+	<insert id="srvyQstnRegist" parameterType="srvyQstnVO">
+		/*
+             SQL ID : SrvyQstnDAO.srvyQstnRegist
+             설  명  : 설문문항등록
+         */
+        INSERT INTO TB_LMS_SRVY_QSTN (
+        	  SRVY_QSTN_ID
+			, SRVYPPR_ID
+			, QSTN_GBNCD
+			, QSTN_RSPNS_TYCD
+			, QSTN_SEQNO
+			, QSTN_TTL
+			, QSTN_CTS
+			, ESNTL_RSPNSYN
+			, ETC_INPT_USEYN
+			, SRVY_MVMN_USEYN
+			, RGTR_ID
+			, REG_DTTM
+        ) VALUES (
+        	  #{srvyQstnId}
+			, #{srvypprId}
+			, #{qstnGbncd}
+			, #{qstnRspnsTycd}
+			, #{qstnSeqno}
+			, #{qstnTtl}
+			, #{qstnCts}
+			, NVL(#{esntlRspnsyn}, 'N')
+			, NVL(#{etcInptUseyn}, 'N')
+			, NVL(#{srvyMvmnUseyn}, 'N')
+			, #{rgtrId}
+			, FN_DTTM()
+        )
+	</insert>
+
+	<update id="srvyQstnModify" parameterType="srvyQstnVO">
+		/*
+             SQL ID : SrvyQstnDAO.srvyQstnModify
+             설  명  : 설문문항수정
+         */
+        UPDATE TB_LMS_SRVY_QSTN SET
+        	  MDFR_ID = #{rgtrId}
+        	, MOD_DTTM = FN_DTTM()
+        	<if test="qstnGbncd != null and qstnGbncd != ''">
+        	, QSTN_GBNCD = #{qstnGbncd}
+        	</if>
+        	<if test="qstnRspnsTycd != null and qstnRspnsTycd != ''">
+			, QSTN_RSPNS_TYCD = #{qstnRspnsTycd}
+        	</if>
+        	<if test="qstnSeqno != null">
+			, QSTN_SEQNO = #{qstnSeqno}
+        	</if>
+        	<if test="qstnTtl != null and qstnTtl != ''">
+			, QSTN_TTL = #{qstnTtl}
+        	</if>
+        	<if test="qstnCts != null and qstnCts != ''">
+			, QSTN_CTS = #{qstnCts}
+        	</if>
+        	<if test="esntlRspnsyn != null and esntlRspnsyn != ''">
+			, ESNTL_RSPNSYN = #{esntlRspnsyn}
+        	</if>
+        	<if test="etcInptUseyn != null and etcInptUseyn != ''">
+			, ETC_INPT_USEYN = #{etcInptUseyn}
+        	</if>
+        	<if test="srvyMvmnUseyn != null and srvyMvmnUseyn != ''">
+			, SRVY_MVMN_USEYN = #{srvyMvmnUseyn}
+        	</if>
+        	<if test="delyn != null and delyn != ''">
+			, DELYN = #{delyn}
+        	</if>
+         WHERE SRVY_QSTN_ID = #{srvyQstnId}
+	</update>
+
+	<update id="srvyQstnDelNSeqnoModify" parameterType="srvypprVO">
+		/*
+             SQL ID : SrvyQstnDAO.srvyQstnDelNSeqnoModify
+             설  명  : 설문문항미삭제순번수정
+         */
+        UPDATE TB_LMS_SRVY_QSTN SET
+        	  MDFR_ID = #{rgtrId}
+        	, MOD_DTTM = FN_DTTM()
+        	, QSTN_SEQNO = QSTN_SEQNO - 1
+         WHERE SRVYPPR_ID = #{srvypprId}
+           AND QSTN_SEQNO <![CDATA[ > ]]> #{qstnSeqno}
+	</update>
+
+	<select id="srvyQstnSelect" parameterType="srvyQstnVO" resultType="srvyQstnVO">
+		/*
+             SQL ID : SrvyQstnDAO.srvyQstnSelect
+             설  명  : 설문문항조회
+         */
+        SELECT
+        	*
+          FROM TB_LMS_SRVY_QSTN
+         WHERE SRVYPPR_ID = #{srvypprId}
+           AND SRVY_QSTN_ID = #{srvyQstnId}
+	</select>
+
+	<update id="qstnSeqnoModify" parameterType="srvyQstnVO">
+		/*
+		 	SQL ID : SrvyQstnDAO.qstnSeqnoModify
+		 	설  명 : 문항순번수정
+	 	*/
+	 	MERGE INTO TB_LMS_SRVY_QSTN QSTN
+		USING (
+			SELECT
+				*
+			  FROM (
+			  	SELECT
+				  SRVY_QSTN_ID
+				, SRVYPPR_ID
+				, QSTN_SEQNO
+				, #{qstnSeqno} AS NEW_QSTN_SEQNO
+				, #{searchKey} AS CURRENT_QSTN_SEQNO
+			  FROM TB_LMS_SRVY_QSTN
+			 WHERE SRVYPPR_ID = #{srvypprId}
+			  ) A
+			WHERE A.QSTN_SEQNO BETWEEN LEAST(A.NEW_QSTN_SEQNO, A.CURRENT_QSTN_SEQNO) AND GREATEST(A.NEW_QSTN_SEQNO, A.CURRENT_QSTN_SEQNO)
+		) OLD_QSTN
+		ON (
+				QSTN.SRVYPPR_ID = OLD_QSTN.SRVYPPR_ID
+			AND QSTN.SRVY_QSTN_ID IN (OLD_QSTN.SRVY_QSTN_ID)
+		)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  QSTN.MDFR_ID = #{mdfrId}
+				, QSTN.MOD_DTTM = FN_DTTM()
+				, QSTN.QSTN_SEQNO = CASE
+						WHEN QSTN.QSTN_SEQNO = OLD_QSTN.CURRENT_QSTN_SEQNO THEN OLD_QSTN.NEW_QSTN_SEQNO
+						WHEN OLD_QSTN.CURRENT_QSTN_SEQNO <![CDATA[ > ]]> OLD_QSTN.NEW_QSTN_SEQNO THEN QSTN.QSTN_SEQNO + 1
+						ELSE QSTN.QSTN_SEQNO - 1
+					END
+	</update>
+
+	<select id="profQstnCopySrvyQstnList" parameterType="srvyQstnVO" resultType="egovMap">
+		/*
+             SQL ID : SrvyQstnDAO.profQstnCopySrvyQstnList
+             설  명 : 교수문항복사설문문항목록조회
+         */
+         WITH SBJCT AS (
+			SELECT
+				  SBJCT_ID
+				, SBJCT_YR
+				, SBJCT_SMSTR
+			  FROM TB_LMS_SBJCT
+			 WHERE DELYN = 'N'
+			   AND USEYN = 'Y'
+		), SRVY AS (
+			SELECT
+				  SRVY.SBJCT_ID
+				, SRVY.SRVY_ID
+				, SRVYPPR.SRVYPPR_ID
+			  FROM TB_LMS_SRVY SRVY
+			  JOIN TB_LMS_SRVYPPR SRVYPPR
+			    ON SRVY.SRVY_ID = SRVYPPR.SRVY_ID
+			 WHERE SRVY.USEYN = 'Y'
+			   AND SRVY.DELYN = 'N'
+		)
+		SELECT
+			  QSTN.SRVY_QSTN_ID
+			, (SELECT SBJCT_YR FROM SBJCT WHERE SBJCT_ID = (SELECT SBJCT_ID FROM SRVY WHERE SRVYPPR_ID = QSTN.SRVYPPR_ID)) AS SBJCT_YR
+			, (SELECT SBJCT_SMSTR FROM SBJCT WHERE SBJCT_ID = (SELECT SBJCT_ID FROM SRVY WHERE SRVYPPR_ID = QSTN.SRVYPPR_ID)) AS SBJCT_SMSTR
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_RSPNS_TYCD' AND CD = QSTN.QSTN_RSPNS_TYCD) AS QSTN_RSPNS_TYNM
+			, QSTN.QSTN_SEQNO
+			, QSTN.QSTN_TTL
+		  FROM TB_LMS_SRVY_QSTN QSTN
+		 WHERE QSTN.DELYN = 'N'
+		   AND QSTN.SRVYPPR_ID = #{srvypprId}
+		 ORDER BY QSTN.QSTN_SEQNO
+	</select>
+
+</mapper>

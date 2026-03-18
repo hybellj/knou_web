@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.srvy.dao.SrvypprDAO">
+
+	<select id="srvypprList" parameterType="String" resultType="srvypprVO">
+		/*
+             SQL ID : SrvypprDAO.srvypprList
+             설  명  : 설문지목록
+         */
+        SELECT
+        	*
+          FROM TB_LMS_SRVYPPR
+         WHERE SRVY_ID = #{srvyId}
+         ORDER BY SRVY_SEQNO
+	</select>
+
+	<select id="srvypprSelect" parameterType="String" resultType="srvypprVO">
+		/*
+             SQL ID : SrvypprDAO.srvypprSelect
+             설  명  : 설문지조회
+         */
+        SELECT
+        	*
+          FROM TB_LMS_SRVYPPR
+         WHERE SRVYPPR_ID = #{srvypprId}
+	</select>
+
+	<update id="srvypprRegist" parameterType="srvypprVO">
+		/*
+             SQL ID : SrvypprDAO.srvypprRegist
+             설  명  : 설문지등록
+         */
+        MERGE INTO TB_LMS_SRVYPPR SRVYPPR
+	    USING (
+	        SELECT
+	        	  #{srvypprId} AS SRVYPPR_ID
+	        	, #{srvyId} AS SRVY_ID
+	        	, #{srvyTtl} AS SRVY_TTL
+	        	, #{srvyCts} AS SRVY_CTS
+	        	, (SELECT NVL(MAX(SRVY_SEQNO), 0) + 1 FROM TB_LMS_SRVYPPR WHERE SRVY_ID = #{srvyId}) AS SRVY_SEQNO
+	        	, #{rgtrId} AS RGTR_ID
+	          FROM DUAL
+	    ) PPR
+	    ON (
+	    	SRVYPPR.SRVYPPR_ID = PPR.SRVYPPR_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  SRVYPPR.SRVY_TTL = PPR.SRVY_TTL
+	        	, SRVYPPR.SRVY_CTS = PPR.SRVY_CTS
+	        	, SRVYPPR.MDFR_ID  = PPR.RGTR_ID
+				, SRVYPPR.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  SRVYPPR_ID
+				, SRVY_ID
+				, SRVY_TTL
+				, SRVY_CTS
+				, SRVY_SEQNO
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  PPR.SRVYPPR_ID
+				, PPR.SRVY_ID
+				, PPR.SRVY_TTL
+				, PPR.SRVY_CTS
+				, PPR.SRVY_SEQNO
+				, PPR.RGTR_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+	<select id="srvypprPtcpCntSelect" parameterType="srvypprVO" resultType="int">
+		/*
+             SQL ID : SrvypprDAO.srvypprPtcpCntSelect
+             설  명  : 설문지참여수조회
+         */
+        WITH SBJCT_USER AS (
+		    SELECT ATNDLC.USER_ID
+		    FROM TB_LMS_ATNDLC ATNDLC
+		    JOIN TB_LMS_SBJCT SBJCT ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+		    WHERE ATNDLC.AUDITYN = 'N'
+		      AND SBJCT.SBJCT_ID = #{sbjctId}
+		)
+		SELECT
+			COUNT(RSPNS.SRVY_RSPNS_ID)
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN TB_LMS_SRVYPPR SRVYPPR
+		    ON SRVY.SRVY_ID = SRVYPPR.SRVY_ID
+		  JOIN TB_LMS_SRVY_QSTN QSTN
+		    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		   AND QSTN.DELYN = 'N'
+		  JOIN TB_LMS_SRVY_PTCP PTCP
+		    ON SRVY.SRVY_ID = PTCP.SRVY_ID
+		  JOIN TB_LMS_SRVY_RSPNS RSPNS
+		    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+		   AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
+		 WHERE SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   AND SRVY.SRVY_ID = #{srvyId}
+		   AND SRVYPPR.SRVYPPR_ID = #{srvypprId}
+		   AND PTCP.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+	</select>
+
+	<delete id="srvypprDelete" parameterType="String">
+		/*
+             SQL ID : SrvypprDAO.srvypprDelete
+             설  명  : 설문지삭제
+         */
+        DELETE FROM TB_LMS_SRVYPPR
+         WHERE SRVYPPR_ID = #{srvypprId}
+	</delete>
+
+	<update id="srvypprDelNSeqnoModify" parameterType="srvypprVO">
+		/*
+             SQL ID : SrvypprDAO.srvypprDelNSeqnoModify
+             설  명  : 설문지미삭제순번수정
+         */
+        UPDATE TB_LMS_SRVYPPR SET
+        	  MDFR_ID = #{userId}
+        	, MOD_DTTM = FN_DTTM()
+        	, SRVY_SEQNO = SRVY_SEQNO - 1
+         WHERE SRVY_ID = #{srvyId}
+           AND SRVY_SEQNO <![CDATA[ > ]]> #{srvySeqno}
+	</update>
+
+	<update id="srvySeqnoModify" parameterType="srvypprVO">
+		/*
+		 	SQL ID : SrvypprDAO.srvySeqnoModify
+		 	설  명 : 설문지순번수정
+	 	*/
+	 	MERGE INTO TB_LMS_SRVYPPR SRVYPPR
+		USING (
+			SELECT
+				*
+			  FROM (
+			  	SELECT
+				  SRVY_ID
+				, SRVYPPR_ID
+				, SRVY_SEQNO
+				, #{srvySeqno} AS NEW_SRVY_SEQNO
+				, #{searchKey} AS CURRENT_SRVY_SEQNO
+			  FROM TB_LMS_SRVYPPR
+			 WHERE SRVY_ID = #{srvyId}
+			  ) A
+			WHERE A.SRVY_SEQNO BETWEEN LEAST(A.NEW_SRVY_SEQNO, A.CURRENT_SRVY_SEQNO) AND GREATEST(A.NEW_SRVY_SEQNO, A.CURRENT_SRVY_SEQNO)
+		) OLD_SRVYPPR
+		ON (
+				SRVYPPR.SRVY_ID = OLD_SRVYPPR.SRVY_ID
+			AND SRVYPPR.SRVYPPR_ID IN (OLD_SRVYPPR.SRVYPPR_ID)
+		)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  SRVYPPR.MDFR_ID = #{mdfrId}
+				, SRVYPPR.MOD_DTTM = FN_DTTM()
+				, SRVYPPR.SRVY_SEQNO = CASE
+						WHEN SRVYPPR.SRVY_SEQNO = OLD_SRVYPPR.CURRENT_SRVY_SEQNO THEN OLD_SRVYPPR.NEW_SRVY_SEQNO
+						WHEN OLD_SRVYPPR.CURRENT_SRVY_SEQNO <![CDATA[ > ]]> OLD_SRVYPPR.NEW_SRVY_SEQNO THEN SRVYPPR.SRVY_SEQNO + 1
+						ELSE SRVYPPR.SRVY_SEQNO - 1
+					END
+	</update>
+
+</mapper>
