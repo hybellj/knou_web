@@ -133,7 +133,7 @@
         form.append($('<input/>', {type: 'hidden', name: 'forumCd',  value: '<c:out value="${forumVo.forumCd}" />'}));
         form.appendTo("body");
         form.submit();*/
-        location.href = url;
+        location.href = url + '?forumCd=<c:out value="${forumVo.forumCd}" />';
     }
 
     //토론글 리스트

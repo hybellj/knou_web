@@ -797,6 +797,9 @@ public class Forum2LectController extends ControllerBase {
 //        forumVO = forum2Service.selectForum(forumVO);
         Forum2VO tempForum2VO = forum2Service.selectForum(param);
         forumVO = convertForum2VOtoForumVO(tempForum2VO);
+        // TODO : 26.3.18 (임시로 복사 처리함)
+        crsCreCd = test_sbjctId;
+        model.addAttribute("crsCreCd", crsCreCd);
 
         /*  강의실에서 토론 진입시 교수자ID */
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
@@ -806,9 +809,7 @@ public class Forum2LectController extends ControllerBase {
         model.addAttribute("orgId", SessionInfo.getOrgId(request));
         model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
         model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        // TODO : 26.3.18 (임시로 과목 코드 연결)
-//        model.addAttribute("crsCreCd", forumVO.getCrsCreCd());
-        model.addAttribute("crsCreCd", test_sbjctId);
+        model.addAttribute("crsCreCd", forumVO.getCrsCreCd());
 
                 model.addAttribute("userId", userId);
         model.addAttribute("userName", userName);
