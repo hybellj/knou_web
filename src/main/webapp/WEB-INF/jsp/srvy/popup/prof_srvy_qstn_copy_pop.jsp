@@ -171,15 +171,16 @@
 
 			const qstns = [];	// 문항 가져오기용
 
-			for(var i = 0; i < srvyQstnListTable.getSelectedData("srvyQstnId").length; i++) {
-				var map = {
-					copySrvyQstnId 	: srvyQstnListTable.getSelectedData("srvyQstnId")[i],
-					srvyId			: "${vo.srvyId}"
+			$("#quizListTable").find("input[name=qstnId]:checked").each(function(i){
+				const map = {
+					  copySrvyQstnId: 	$(this).attr("data-id")
+					, examDtlId: 		"${vo.srvyId}"
 				};
-				qstns.push(map);
-			}
 
-			var url  = "/srvy/profSrvyQstnCopyAjax.do";
+				qstns.push(map);
+			});
+
+			var url  = "/quiz/profQuizQstnCopyAjax.do";
 
 			$.ajax({
 		        url 	  : url,
@@ -189,7 +190,7 @@
 		        data 	  : JSON.stringify(qstns),
 		        contentType: "application/json; charset=UTF-8",
 		    }).done(function(data) {
-	       		window.parent.srvypprQstnListSelect();
+	       		window.parent.qstnScrAutoGrnt("${vo.srvyId}");
 	       		window.parent.closeDialog();
 		    }).fail(function() {
 		    	UiComm.showMessage("<spring:message code='exam.error.copy' />", "error");	/* 가져오기 중 에러가 발생하였습니다. */
@@ -208,17 +209,14 @@
 				UiComm.showMessage("<spring:message code='exam.alert.select.crs' />", "info");	/* 과목을 선택하세요. */
 				return false;
 			}
-			if($("#copySrvy").val() == "") {
-				UiComm.showMessage("설문을 선택하세요.", "info");
+			if($("#quizQstnPage").val() == "") {
+				UiComm.showMessage("<spring:message code='exam.alert.select.paper' />", "info");	/* 시험지를 선택하세요. */
 				return false;
 			}
-			if($("#copySrvyppr").val() == "") {
-				UiComm.showMessage("설문지를 선택하세요.", "info");
+
+			if($("#quizListTable").find("input[name=qstnId]:checked").length == 0) {
+				UiComm.showMessage("<spring:message code='exam.alert.select.copy.qstn' />", "info");	/* 복사할 문항을 선택하세요. */
 				return false;
-			}
-			if(srvyQstnListTable.getSelectedData("srvyQstnId").length == 0) {
-				UiComm.showMessage("<spring:message code='exam.alert.select.copy.qstn' />", "info");/* 복사할 문항을 선택하세요. */
-				return;
 			}
 			return isChk;
 		}

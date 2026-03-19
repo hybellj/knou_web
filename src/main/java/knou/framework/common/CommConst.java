@@ -695,7 +695,7 @@ public class CommConst {
 
     // 사용자 접속상태 체크값
     public static final String[][] CONN_CHECK_LIST = {
-    		{"/dashboard/dashboard.do", CONN_HOME},
+    		{"/dashboard.do", CONN_HOME},
     		{"/dashboard/profDashboard.do", CONN_HOME},
     		{"/dashboard/stuDashboard.do", CONN_HOME},
             {"/dashboard/widgetStngChange.do", CONN_HOME},
@@ -767,6 +767,8 @@ public class CommConst {
             {"/Form/infoWrite.do", CONN_BBS},
             {"/Form/infoEdit.do", CONN_BBS},
             {"/popup/qnaWrite.do", CONN_BBS},
+            {"/bbs/bbsHome/bbsAtclListView.do", CONN_BBS},
+            {"/bbs/bbsHome/bbsSbjctListView.do", CONN_BBS},
             {"/asmt/profAsmtListView.do", CONN_ASMT},
             {"/asmt/profAsmtRegistView.do", CONN_ASMT},
             {"/asmt/profAsmtSelectView.do", CONN_ASMT},

@@ -17,10 +17,12 @@ public class MsgShrtntVO extends DefaultVO {
     private String txtCts;
     private String htmlCts;
     private String sndngOnlyyn;
+    private String msgTagnm;
     private String rsrvSndngSdttm;
     private String dgrsYr;
     private String smstr;
     private String rsrvSndngCnclDttm;
+    private String rsrvSndngCnclRsn;
 
     // === TB_LMS_MSG_SHRTNT_SNDNG ===
     private String msgShrtntSndngId;
@@ -146,6 +148,14 @@ public class MsgShrtntVO extends DefaultVO {
         this.sndngOnlyyn = sndngOnlyyn;
     }
 
+    public String getMsgTagnm() {
+        return msgTagnm;
+    }
+
+    public void setMsgTagnm(String msgTagnm) {
+        this.msgTagnm = msgTagnm;
+    }
+
     public String getRsrvSndngSdttm() {
         return rsrvSndngSdttm;
     }
@@ -176,6 +186,14 @@ public class MsgShrtntVO extends DefaultVO {
 
     public void setRsrvSndngCnclDttm(String rsrvSndngCnclDttm) {
         this.rsrvSndngCnclDttm = rsrvSndngCnclDttm;
+    }
+
+    public String getRsrvSndngCnclRsn() {
+        return rsrvSndngCnclRsn;
+    }
+
+    public void setRsrvSndngCnclRsn(String rsrvSndngCnclRsn) {
+        this.rsrvSndngCnclRsn = rsrvSndngCnclRsn;
     }
 
     public String getMsgShrtntSndngId() {

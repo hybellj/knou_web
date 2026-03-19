@@ -12,7 +12,7 @@ public class ClsLrnLogVO extends DefaultVO {
     private static final long serialVersionUID = 6634102938475620193L;
 
     // 조회 조건 (sbjctId, userId 는 DefaultVO 상속)
-    private String cntntsId;   // 콘텐츠 ID
+    private String chsiSchdlId;   // 차시 스케줄 ID
 
     // 로그 결과 (lineNo 는 DefaultVO 상속)
     private String logDttm;       // 일시 (YYYY.MM.DD HH:MI:SS)
@@ -23,8 +23,8 @@ public class ClsLrnLogVO extends DefaultVO {
 
     // ===================== getter / setter =====================
 
-    public String getCntntsId()          { return cntntsId; }
-    public void   setCntntsId(String v)  { this.cntntsId = v; }
+    public String getChsiSchdlId()       { return chsiSchdlId; }
+    public void setChsiSchdlId(String v) { this.chsiSchdlId = v; }
 
     public String getLogDttm()           { return logDttm; }
     public void setLogDttm(String v)     { this.logDttm = v; }

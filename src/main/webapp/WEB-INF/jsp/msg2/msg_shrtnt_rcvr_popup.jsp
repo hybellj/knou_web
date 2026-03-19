@@ -222,7 +222,7 @@
             {title:"<spring:message code='msg.shrtnt.col.usernm' text='이름'/>",                              field:"usernm",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:70},
             {title:"<spring:message code='msg.shrtnt.col.deptnm' text='학과/부서'/>",                         field:"deptnm",     headerHozAlign:"center", hozAlign:"center", width:130, minWidth:80},
             {title:"<spring:message code='msg.shrtnt.col.mblPhn' text='연락처'/>",                            field:"mblPhn",     headerHozAlign:"center", hozAlign:"center", width:120, minWidth:90},
-            {title:"<spring:message code='msg.shrtnt.col.eml' text='이메일'/>",                               field:"rprsEml",    headerHozAlign:"center", hozAlign:"center", width:170, minWidth:110}
+            {title:"<spring:message code='msg.shrtnt.col.rprsEml' text='대표이메일'/>",                        field:"rprsEml",    headerHozAlign:"center", hozAlign:"center", width:170, minWidth:110}
         ]
     });
     </script>

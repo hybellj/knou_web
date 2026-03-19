@@ -45,9 +45,13 @@ public class DashboardFacadeServiceImpl implements DashboardFacadeService {
 		//	교수대시보드 강의Qna목록조회
 		dashVM.setProfDashLctrQnaList(bbs2Service.profDashLctrQnaList(param));		
 		//	교수대시보드 강의Qna목록조회
-		dashVM.setProfDashOneOnOneList(bbs2Service.profDashOneOnOneList(param));		
+		dashVM.setProfDashOneOnOneList(bbs2Service.profDashOneOnOneList(param));
+		
 		//	교수대시보드 강의과목목록조회
-		dashVM.setLctrSbjctSummaryList(subjectService.profSubjectSummaryList(param));
+		dashVM.setProfLctrSbjctSummaryList(subjectService.subjectSummaryList(param));
+		
+		//	교수대시보드 과목학습활동조회
+		dashVM.setProfLctrSbjctSummaryList(subjectService.subjectSummaryList(param));
 		
 		return dashVM;
 	}
@@ -64,9 +68,6 @@ public class DashboardFacadeServiceImpl implements DashboardFacadeService {
 		dashVM.setStdntDashLctrQnaList(bbs2Service.stdntDashLctrQnaList(param));		
 		//	학생대시보드 자료실목록조회
 		dashVM.setStdntDashDatarmList(bbs2Service.stdntDashDatarmList(param));		
-		//	학생대시보드 강의과목목록조회
-		dashVM.setLctrSbjctSummaryList(subjectService.stdntSubjectSummaryList(param));
-		
 		return dashVM;
 	}
 	
@@ -75,13 +76,15 @@ public class DashboardFacadeServiceImpl implements DashboardFacadeService {
 		DashboardViewModel dsVM = new DashboardViewModel();
 	    if (userCtx.isProfessor()) {
 	    	dsVM = profDashboardViewModel(param);
-	    	dsVM.setViewName("dashboard2/prof_dashboard");
+	        //dsVM.setViewName("dashboard2/prof_dashboard");
+	    	dsVM.setViewName("dashboard/main_prof_card");
 	        return dsVM;
 	    }
 
 	    if (userCtx.isStudent()) {
 	    	dsVM = stdntDashboardViewModel(param);
-	    	dsVM.setViewName("dashboard2/stdnt_dashboard");
+	    	//dsVM.setViewName("dashboard2/stdnt_dashboard");
+	    	dsVM.setViewName("dashboard/main_std_card");
 	        return dsVM;
 	    }
 

@@ -17,8 +17,7 @@ public class MarkSubjectVO extends DefaultVO {
     private String passyn;          // 통과여부
     private int totScr;             // 총점 (최종점수 + 가산점수)
     private int lstScr;             // 최종 점수 (총점 - 가산점수)
-    private int adtnScr;            // 가산 점수 (성적이의신청 변경점수)
-    private int etcScr;             // 기타 점수 (성적처리 - 교수 임의 추가점수)
+    private int adtnScr;            // 가산 점수 (= 기타점수)
 
 
     public String getMrkSbjctId() {
@@ -91,13 +90,5 @@ public class MarkSubjectVO extends DefaultVO {
 
     public void setAdtnScr(int adtnScr) {
         this.adtnScr = adtnScr;
-    }
-
-    public int getEtcScr() {
-        return etcScr;
-    }
-
-    public void setEtcScr(int etcScr) {
-        this.etcScr = etcScr;
     }
 }

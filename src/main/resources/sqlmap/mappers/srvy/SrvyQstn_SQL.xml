@@ -218,44 +218,4 @@
 		 ORDER BY QSTN.QSTN_SEQNO
 	</select>
 
-	<insert id="srvyQstnCopy" parameterType="java.util.List">
-		/*
-             SQL ID : SrvyQstnDAO.srvyQstnCopy
-             설  명 : 설문문항가져오기
-         */
-        INSERT INTO TB_LMS_SRVY_QSTN (
-        	  SRVY_QSTN_ID
-        	, SRVYPPR_ID
-        	, QSTN_GBNCD
-        	, QSTN_RSPNS_TYCD
-        	, QSTN_TTL
-        	, QSTN_CTS
-        	, ESNTL_RSPNSYN
-        	, ETC_INPT_USEYN
-        	, RGTR_ID
-        	, REG_DTTM
-        	, QSTN_SEQNO
-        )
-        SELECT
-			  A.*
-			, ROW_NUMBER() OVER(ORDER BY QSTN_TTL) AS QSTN_SEQNO
-		  FROM (
-	        <foreach item="item" collection="list" separator="UNION ALL">
-			  	SELECT
-			          #{item.srvyQstnId}	AS SRVY_QSTN_ID
-			        , #{item.srvypprId}		AS SRVYPPR_ID
-			        , Q.QSTN_GBNCD
-			        , Q.QSTN_RSPNS_TYCD
-			        , Q.QSTN_TTL
-			        , Q.QSTN_CTS
-			        , Q.ESNTL_RSPNSYN
-			        , Q.ETC_INPT_USEYN
-			        , #{item.rgtrId} 		AS RGTR_ID
-			        , FN_DTTM()				AS REG_DTTM
-			      FROM DUAL
-			      LEFT JOIN TB_LMS_SRVY_QSTN Q ON Q.SRVY_QSTN_ID = #{item.copySrvyQstnId}
-        </foreach>
-		) A
-	</insert>
-
 </mapper>

@@ -223,9 +223,7 @@ public class QuizFacadeServiceImpl extends ServiceBase implements QuizFacadeServ
 		// 퀴즈 정보 조회
 		ExamBscVO bscVO = new ExamBscVO();
 		bscVO.setExamBscId((String) params.get("examBscId"));
-		bscVO = examService.quizSelect(bscVO);
-		bscVO.getExamDtlVO().setExamDtlId((String) params.get("examDtlId"));
-		quizMainView.setExamBscVO(bscVO);
+		quizMainView.setExamBscVO(examService.quizSelect(bscVO));
 
 		// 퀴즈응시자조회
 		quizMainView.setQuizExamnee(tkexamService.quizExamneeSelect((String) params.get("examDtlId"), (String) params.get("userId")));

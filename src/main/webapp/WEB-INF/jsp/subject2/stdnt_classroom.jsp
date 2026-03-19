@@ -1,5 +1,4 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -44,13 +43,13 @@
 					<div class="btn-wrap">
 						<div class="first">
 							<select class="form-select">
-								<option value="2025년 2학기">2026년 2학기</option>
-								<option value="2025년 1학기">2026년 1학기</option>
+								<option value="2025년 2학기">2025년 2학기</option>
+								<option value="2025년 1학기">2025년 1학기</option>
 							</select>
 							<select class="form-select wide">
 								<option value="">강의실 바로가기</option>
-								<option value="2025년 2학기">2026년 2학기</option>
-								<option value="2025년 1학기">2026년 1학기</option>
+								<option value="2025년 2학기">2025년 2학기</option>
+								<option value="2025년 1학기">2025년 1학기</option>
 							</select>
 						</div>
 						<div class="sec">
@@ -429,10 +428,10 @@
 								        <ul class="dash_item_listA">
 		                                	<c:forEach var="item" items="${subjectVM.subjectTopNoticeList}">
 			                                    <li class="dot">
-			                                        <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
+			                                        <a href="#0" class="item_txt">
 			                                            <p class="tit">${item.atclTtl}</p>
 			                                            <p class="desc">
-			                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
+			                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 			                                            </p>
 			                                        </a>
 			                                        <div class="state">
@@ -475,11 +474,11 @@
 			                                        <div class="user">
 			                                           <span class="user_img"></span>
 			                                        </div>
-			                                        <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
+			                                        <a href="#0" class="item_txt">
 			                                            <p class="tit">${item.atclTtl}</p>
 			                                            <p class="desc">
 			                                                <span class="name">${item.usernm}</span>
-			                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
+			                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 			                                            </p>
 			                                        </a>
 			                                        <div class="state">
@@ -507,7 +506,7 @@
                                 <i class="icon-svg-save"></i>
                                 <h3 class="h3">자료실</h3>
                                 <div class="btn-wrap">
-                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.datarmBbsId}" class="btn_more"><i class="xi-plus"></i></a>
+                                    <a href="#0" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
                             <div class="box_content">
@@ -519,10 +518,10 @@
 								        <ul class="dash_item_listA">								        
 		                                	<c:forEach var="item" items="${subjectVM.stdntSubjectTopDatarmList}">
 			                                    <li class="dot">
-				                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
+				                                    <a href="#0" class="item_txt">
 			                                            <p class="tit">${item.atclTtl}</p>
 			                                            <p class="desc">
-			                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
+			                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 			                                            </p>
 			                                        </a>
 			                                        <div class="state">
@@ -588,7 +587,7 @@
 	                            <div class="info">
 	                                <p class="point">
 	                                    <span class="tit">중간고사:</span>
-	                                    <span><uiex:formatDate value="${subjectVM.middleLastExam.midExamSdttm}" type="date"/></span>
+	                                    <span>${fnc:dateFormat(subjectVM.middleLastExam.midExamSdttm, '.')}</span>
 	                                </p>
 	                                <p class="desc">
 	                                    <span class="tit">시간:</span>
@@ -598,7 +597,7 @@
 	                            <div class="info">
 	                                <p class="point">
 	                                    <span class="tit">기말고사:</span>
-	                                    <span><uiex:formatDate value="${subjectVM.middleLastExam.lstExamSdttm}" type="date"/></span>
+	                                    <span>${fnc:dateFormat(subjectVM.middleLastExam.lstExamSdttm, '.')}</span>
 	                                </p>
 	                                <p class="desc">
 	                                    <span class="tit">시간:</span>

@@ -31,8 +31,8 @@
     function fn_renderDetail(v) {
         /* 학사년도/학기 */
         let yrSmstr = '';
-        if (v.sbjctYr) yrSmstr = v.sbjctYr + '<spring:message code="msg.rcptnAgre.label.year" text="년"/>';
-        if (v.sbjctSmstr) yrSmstr += ' / ' + v.sbjctSmstr + '<spring:message code="msg.rcptnAgre.label.smstr" text="학기"/>';
+        if (v.sbjctYr) yrSmstr = v.sbjctYr;
+        if (v.sbjctSmstr) yrSmstr += ' / ' + v.sbjctSmstr;
         $('#sbjctYrSmstr').text(yrSmstr || '-');
 
         /* 운영과목 */
@@ -51,6 +51,7 @@
         /* 발신자 정보 */
         $('#stdntNo').text(v.stdntNo || '-');
         $('#userRprsId2').text(v.userRprsId2 || '-');
+        $('#sndngrPhnno').text(v.sndngrPhnno || '-');
 
         /* 첨부파일 */
         if (v.atflList && v.atflList.length > 0) {
@@ -142,6 +143,10 @@
                             <ul class="list">
                                 <li class="head"><label><spring:message code="msg.shrtnt.label.userRprsId" text="대표 ID"/></label></li>
                                 <li id="userRprsId2">-</li>
+                            </ul>
+                            <ul class="list">
+                                <li class="head"><label><spring:message code="msg.shrtnt.label.sndngrPhnno" text="발신자 번호"/></label></li>
+                                <li id="sndngrPhnno">-</li>
                             </ul>
                         </div>
 

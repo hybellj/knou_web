@@ -8,13 +8,13 @@ import knou.lms.common.web.view.BoardViewModel;
 
 public class DashboardViewModel extends BoardViewModel {
 	
-	List<EgovMap>	lctrSbjctSummaryList;
+	List<EgovMap>	profLctrSbjctSummaryList;
 
-	public List<EgovMap> getLctrSbjctSummaryList() {
-		return lctrSbjctSummaryList;
+	public List<EgovMap> getProfLctrSbjctSummaryList() {
+		return profLctrSbjctSummaryList;
 	}
 
-	public void setLctrSbjctSummaryList(List<EgovMap> lctrSbjctSummaryList) {
-		this.lctrSbjctSummaryList = lctrSbjctSummaryList;
+	public void setProfLctrSbjctSummaryList(List<EgovMap> profLctrSbjctSummaryList) {
+		this.profLctrSbjctSummaryList = profLctrSbjctSummaryList;
 	}
 }

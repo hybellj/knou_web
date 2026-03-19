@@ -1,6 +1,5 @@
 package knou.lms.subject2.service;
 
-import knou.framework.context2.UserContext;
 import knou.lms.common.dto.BaseParam;
 import knou.lms.subject2.vo.SubjectVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
@@ -25,9 +24,5 @@ public interface SubjectService {
 
     public EgovMap subjectBbsIdsSelect(BaseParam param) throws Exception;
 
-	public List<EgovMap> profSubjectSummaryList(BaseParam param) throws Exception;
-	
-	public List<EgovMap> stdntSubjectSummaryList(BaseParam param) throws Exception;
-
-	public boolean hasSubjectAuthority(String subjectId, UserContext userCtx) throws Exception;
+	public List<EgovMap> subjectSummaryList(BaseParam param) throws Exception;
 }

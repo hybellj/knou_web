@@ -6,7 +6,6 @@ import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.lms.common.dto.BaseParam;
-import knou.lms.subject2.dto.SubjectParam;
 import knou.lms.subject2.vo.SubjectVO;
 
 @Mapper("subjectDAO")
@@ -24,9 +23,5 @@ public interface SubjectDAO {
 
 	public EgovMap subjectBbsIdsSelect(BaseParam param) throws Exception;
 
-	public List<EgovMap> profSubjectSummaryList(BaseParam param) throws Exception;
-	
-	public List<EgovMap> stdntSubjectSummaryList(BaseParam param) throws Exception;
-
-	public int stdntOrProfCountSelect(SubjectParam param) throws Exception;
+	public List<EgovMap> subjectSummaryList(BaseParam param) throws Exception;
 }

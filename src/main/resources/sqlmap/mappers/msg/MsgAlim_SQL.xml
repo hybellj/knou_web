@@ -15,18 +15,10 @@
             NVL(PUSH_CNT, 0) + NVL(SMS_CNT, 0) + NVL(SHRTNT_CNT, 0) + NVL(ALIMTALK_CNT, 0) AS TOTAL_UNRD_CNT
         FROM (
             SELECT
-                (SELECT COUNT(*) FROM TB_LMS_MSG_MBL_SNDNG A
-                    INNER JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
-                    WHERE A.RCVR_ID = #{userId} AND A.MBL_SNDNG_TYCD = 'PUSH' AND A.RCVR_DELYN = 'N' AND T.READ_YN = 'N') AS PUSH_CNT,
-                (SELECT COUNT(*) FROM TB_LMS_MSG_MBL_SNDNG A
-                    INNER JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
-                    WHERE A.RCVR_ID = #{userId} AND A.MBL_SNDNG_TYCD = 'SMS' AND A.RCVR_DELYN = 'N' AND T.READ_YN = 'N') AS SMS_CNT,
-                (SELECT COUNT(*) FROM TB_LMS_MSG_SHRTNT_SNDNG A
-                    INNER JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
-                    WHERE A.RCVR_ID = #{userId} AND A.RCVR_DELYN = 'N' AND A.SNDNGYN = 'Y' AND T.READ_YN = 'N') AS SHRTNT_CNT,
-                (SELECT COUNT(*) FROM TB_LMS_MSG_MBL_SNDNG A
-                    INNER JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
-                    WHERE A.RCVR_ID = #{userId} AND A.MBL_SNDNG_TYCD = 'ALIM_TALK' AND A.RCVR_DELYN = 'N' AND T.READ_YN = 'N') AS ALIMTALK_CNT
+                (SELECT COUNT(*) FROM TB_LMS_MSG_MBL_SNDNG WHERE RCVR_ID = #{userId} AND MBL_SNDNG_TYCD = 'PUSH' AND READ_DTTM IS NULL) AS PUSH_CNT,
+                (SELECT COUNT(*) FROM TB_LMS_MSG_MBL_SNDNG WHERE RCVR_ID = #{userId} AND MBL_SNDNG_TYCD = 'SMS' AND READ_DTTM IS NULL) AS SMS_CNT,
+                (SELECT COUNT(*) FROM TB_LMS_MSG_SHRTNT_SNDNG WHERE RCVR_ID = #{userId} AND READ_DTTM IS NULL AND RCVR_DELYN = 'N') AS SHRTNT_CNT,
+                (SELECT COUNT(*) FROM TB_LMS_MSG_MBL_SNDNG WHERE RCVR_ID = #{userId} AND MBL_SNDNG_TYCD = 'ALIM_TALK' AND READ_DTTM IS NULL) AS ALIMTALK_CNT
             FROM DUAL
         )
     </select>
@@ -46,16 +38,14 @@
                 A.SNDNG_TTL,
                 A.SNDNG_CTS,
                 A.SNDNG_DTTM,
-                T.READ_DTTM,
-                T.READ_YN,
+                A.READ_DTTM,
+                CASE WHEN A.READ_DTTM IS NULL THEN 'N' ELSE 'Y' END AS READ_YN,
                 ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
             FROM TB_LMS_MSG_SHRTNT_SNDNG A
             LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
             LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
-            LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
             WHERE A.RCVR_ID = #{userId}
               AND A.RCVR_DELYN = 'N'
-              AND A.SNDNGYN = 'Y'
         )
         WHERE RNUM <![CDATA[<=]]> #{listCnt}
     </select>
@@ -74,16 +64,14 @@
                 A.SNDNG_TTL,
                 A.SNDNG_CTS,
                 A.SNDNG_DTTM,
-                T.READ_DTTM,
-                T.READ_YN,
+                A.READ_DTTM,
+                CASE WHEN A.READ_DTTM IS NULL THEN 'N' ELSE 'Y' END AS READ_YN,
                 ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
             FROM TB_LMS_MSG_MBL_SNDNG A
             LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
             LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
-            LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
             WHERE A.RCVR_ID = #{userId}
               AND A.MBL_SNDNG_TYCD = 'PUSH'
-              AND A.RCVR_DELYN = 'N'
         )
         WHERE RNUM <![CDATA[<=]]> #{listCnt}
     </select>
@@ -102,16 +90,14 @@
                 A.SNDNG_TTL,
                 A.SNDNG_CTS,
                 A.SNDNG_DTTM,
-                T.READ_DTTM,
-                T.READ_YN,
+                A.READ_DTTM,
+                CASE WHEN A.READ_DTTM IS NULL THEN 'N' ELSE 'Y' END AS READ_YN,
                 ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
             FROM TB_LMS_MSG_MBL_SNDNG A
             LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
             LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
-            LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
             WHERE A.RCVR_ID = #{userId}
               AND A.MBL_SNDNG_TYCD = 'SMS'
-              AND A.RCVR_DELYN = 'N'
         )
         WHERE RNUM <![CDATA[<=]]> #{listCnt}
     </select>
@@ -130,16 +116,14 @@
                 A.SNDNG_TTL,
                 A.SNDNG_CTS,
                 A.SNDNG_DTTM,
-                T.READ_DTTM,
-                T.READ_YN,
+                A.READ_DTTM,
+                CASE WHEN A.READ_DTTM IS NULL THEN 'N' ELSE 'Y' END AS READ_YN,
                 ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
             FROM TB_LMS_MSG_MBL_SNDNG A
             LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
             LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
-            LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
             WHERE A.RCVR_ID = #{userId}
               AND A.MBL_SNDNG_TYCD = 'ALIM_TALK'
-              AND A.RCVR_DELYN = 'N'
         )
         WHERE RNUM <![CDATA[<=]]> #{listCnt}
     </select>

@@ -44,17 +44,11 @@
             fn_loadSbjctList();
         });
 
-        $('#selectOrg').on('change', function() {
-            fn_loadDeptList();
-            fn_loadSbjctList();
-        });
-
         $('#selectDept').on('change', function() {
             fn_loadSbjctList();
         });
 
         /* 셀렉트박스 초기 로딩 */
-        fn_loadOrgList();
         fn_loadYrList();
         fn_loadDeptList();
 
@@ -96,31 +90,11 @@
         });
     }
 
-    /* 기관 목록 조회 */
-    function fn_loadOrgList() {
-        ajaxCall('/msgShrtntOrgListAjax.do', {}, function(res) {
-            let $sel = $('#selectOrg');
-            $sel.find('option:gt(0)').remove();
-            if (res.result > 0 && res.returnList) {
-                res.returnList.forEach(function(v) {
-                    $sel.append('<option value="' + v.orgId + '">' + UiComm.escapeHtml(v.orgnm) + '</option>');
-                });
-            }
-            $sel.trigger('chosen:updated');
-        });
-    }
-
     /* 학과 목록 조회 */
     function fn_loadDeptList() {
-        let $sel = $('#selectDept');
-        $sel.find('option:gt(0)').remove();
-        $sel.trigger('chosen:updated');
-
-        let data = {
-            orgId: $('#selectOrg').val()
-        };
-
-        ajaxCall('/msgShrtntDeptListAjax.do', data, function(res) {
+        ajaxCall('/msgShrtntDeptListAjax.do', {}, function(res) {
+            let $sel = $('#selectDept');
+            $sel.find('option:gt(0)').remove();
             if (res.result > 0 && res.returnList) {
                 res.returnList.forEach(function(v) {
                     $sel.append('<option value="' + v.deptId + '">' + UiComm.escapeHtml(v.deptnm) + '</option>');
@@ -137,7 +111,6 @@
         $sel.trigger('chosen:updated');
 
         let data = {
-            orgId: $('#selectOrg').val(),
             sbjctYr: $('#selectSbjctYr').val(),
             sbjctSmstr: $('#selectSbjctSmstr').val(),
             deptId: $('#selectDept').val()
@@ -293,7 +266,7 @@
                 ? '<span class="txt-red">' + UiComm.formatDate(v.rsrvSndngCnclDttm, 'datetime') + '</span>'
                 : '-';
             let rsrvCnclHtml = (v.rsrvYn === 'Y' && !v.rsrvSndngCnclDttm)
-                ? '<button class="btn basic small" onclick="fn_openRsrvCnclPopup(\'' + v.msgId + '\', \'' + UiComm.escapeHtml(v.ttl || '') + '\', \'' + UiComm.formatDate(v.efctvSndngDttm, 'datetime') + '\', ' + (v.rcvrCnt || 0) + ')"><spring:message code="msg.shrtnt.label.rsrvCncl" text="예약취소"/></button>'
+                ? '<button class="btn basic small" onclick="fn_rsrvCncl(\'' + v.msgId + '\')"><spring:message code="msg.shrtnt.label.rsrvCncl" text="예약취소"/></button>'
                 : '-';
 
             dataList.push({
@@ -321,7 +294,6 @@
     /* 검색 파라미터 수집 */
     function fn_getSearchParam() {
         return {
-            orgId: $('#selectOrg').val(),
             sbjctYr: $('#selectSbjctYr').val(),
             sbjctSmstr: $('#selectSbjctSmstr').val(),
             deptId: $('#selectDept').val(),
@@ -379,30 +351,11 @@
         });
     }
 
-    /* 예약 취소 팝업 열기 */
-    function fn_openRsrvCnclPopup(msgId, ttl, rsrvDttm, rcvrCnt) {
-        $('#rsrvCnclMsgId').val(msgId);
-        $('#rsrvCnclTtl').text(ttl);
-        $('#rsrvCnclDttm').text(rsrvDttm);
-        $('#rsrvCnclRcvrCnt').text(rcvrCnt);
-        $('#rsrvCnclUser').text('${usernm}');
-        $('#rsrvCnclNowDttm').text(UiComm.formatDate(new Date().toISOString().replace(/[-T:\.Z]/g, '').substring(0, 14), 'datetime'));
-        $('#rsrvCnclModal').addClass('active').attr('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-    }
-
-    /* 예약 취소 팝업 닫기 */
-    function fn_closeRsrvCnclPopup() {
-        $('#rsrvCnclModal').removeClass('active').attr('aria-hidden', 'true');
-        document.body.style.overflow = '';
-    }
-
-    /* 예약 취소 실행 */
-    function fn_doRsrvCncl() {
-        let msgId = $('#rsrvCnclMsgId').val();
+    /* 예약 취소 */
+    function fn_rsrvCncl(msgId) {
+        if (!confirm('<spring:message code="msg.shrtnt.msg.confirmRsrvCncl"/>')) return;
         ajaxCall('/msgShrtntRsrvCnclAjax.do', { msgId: msgId }, function(res) {
             if (res.result > 0) {
-                fn_closeRsrvCnclPopup();
                 alert('<spring:message code="msg.shrtnt.msg.rsrvCnclSuccess"/>');
                 fn_loadList(currentPage);
             } else {
@@ -449,13 +402,10 @@
                             <div class="item">
                                 <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.course" text="운영과목"/></label></span>
                                 <div class="itemList">
-                                    <select class="form-select" id="selectOrg">
-                                        <option value=""><spring:message code="msg.sndrDsctn.label.orgAll" text="기관 전체"/></option>
-                                    </select>
-                                    <select class="form-select wide" id="selectDept" style="width: 200px;">
+                                    <select class="form-select" id="selectDept">
                                         <option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과 전체"/></option>
                                     </select>
-                                    <select class="form-select wide" id="selectSbjct" style="width: 200px;">
+                                    <select class="form-select wide" id="selectSbjct">
                                         <option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>
                                     </select>
                                 </div>
@@ -475,6 +425,7 @@
                                 <div class="itemList">
                                     <select class="form-select" id="selectSearchType">
                                         <option value="sndngnm"><spring:message code="msg.shrtnt.label.searchSndngnm" text="발신자"/></option>
+                                        <option value="sndngrPhnno"><spring:message code="msg.shrtnt.label.searchSndngrPhnno" text="발신자번호"/></option>
                                         <option value="ttl"><spring:message code="msg.shrtnt.label.searchTtl" text="제목"/></option>
                                         <option value="cts"><spring:message code="msg.shrtnt.label.searchCts" text="내용"/></option>
                                     </select>
@@ -551,51 +502,6 @@
 
         </main>
         <!-- //admin -->
-    </div>
-
-    <!-- 발신 예약 취소 팝업 -->
-    <div class="modal-overlay" id="rsrvCnclModal" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="modal-content modal-md" tabindex="-1">
-            <div class="modal-header">
-                <h2><spring:message code="msg.shrtnt.label.rsrvCnclTitle" text="발신 예약 취소"/></h2>
-                <button class="modal-close" aria-label="닫기" onclick="fn_closeRsrvCnclPopup()"><i class="icon-svg-close"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="msg-box">
-                    <p class="txt">
-                        <i class="icon-svg-warning" aria-hidden="true"></i>
-                        <span><spring:message code="msg.shrtnt.msg.rsrvCnclWarn"/></span>
-                    </p>
-                </div>
-                <input type="hidden" id="rsrvCnclMsgId">
-                <div class="table_list">
-                    <ul class="list">
-                        <li class="head"><label><spring:message code="msg.shrtnt.label.ttl" text="제목"/></label></li>
-                        <li id="rsrvCnclTtl"></li>
-                    </ul>
-                    <ul class="list">
-                        <li class="head"><label><spring:message code="msg.shrtnt.label.rsrvSndngDttm" text="발신예약일시"/></label></li>
-                        <li id="rsrvCnclDttm"></li>
-                    </ul>
-                    <ul class="list">
-                        <li class="head"><label><spring:message code="msg.shrtnt.label.rcvrCnt" text="수신자"/></label></li>
-                        <li id="rsrvCnclRcvrCnt"></li>
-                    </ul>
-                    <ul class="list">
-                        <li class="head"><label><spring:message code="msg.shrtnt.label.rsrvCnclUser" text="예약취소자"/></label></li>
-                        <li id="rsrvCnclUser"></li>
-                    </ul>
-                    <ul class="list">
-                        <li class="head"><label><spring:message code="msg.shrtnt.label.rsrvCnclDttm" text="예약취소일시"/></label></li>
-                        <li id="rsrvCnclNowDttm"></li>
-                    </ul>
-                </div>
-                <div class="modal_btns">
-                    <button type="button" class="btn type1" onclick="fn_doRsrvCncl()"><spring:message code="msg.shrtnt.label.rsrvCnclBtn" text="취소하기"/></button>
-                    <button type="button" class="btn type2" onclick="fn_closeRsrvCnclPopup()"><spring:message code="msg.shrtnt.label.closeBtn" text="닫기"/></button>
-                </div>
-            </div>
-        </div>
     </div>
 
 </body>

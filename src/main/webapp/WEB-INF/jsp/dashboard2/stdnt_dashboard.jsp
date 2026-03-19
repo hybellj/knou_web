@@ -1,8 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fnc" uri="http://localhost/common" %><!-- TODO: 차후 삭제 예정-->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -366,11 +366,11 @@
 												                <p class="desc">
 												                    <c:choose>
 												                        <c:when test="${item.badge eq 'ALL'}">
-													                        <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/>
+													                            <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 												                        </c:when>
 												                        <c:otherwise>
 												                            <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
-												                            <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/>
+												                            <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 												                        </c:otherwise>
 												                    </c:choose>
 												                </p>
@@ -418,7 +418,7 @@
 												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 												                <p class="tit">${item.atclTtl}</p>
 												                <p class="desc">
-												                    <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/>
+												                    <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 												                </p>
 												            </a>
 
@@ -467,7 +467,7 @@
 												                <p class="tit">${item.atclTtl}</p>
 												                <p class="desc">
 												                    <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
-												                    <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/>
+												                    <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 												                </p>
 												            </a>
 
@@ -699,7 +699,7 @@
 				                                            <p class="tit">${item.atclTtl}</p>
 				                                            <p class="desc">
 				                                                <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
-				                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/>
+				                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 				                                            </p>
 				                                        </a>
 				                                        <div class="state">
@@ -751,7 +751,7 @@
 				                                            <p class="tit">${item.atclTtl}</p>
 				                                            <p class="desc">
 				                                                <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
-				                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/>
+				                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 				                                            </p>
 				                                        </a>
 				                                        <div class="state">
@@ -861,276 +861,353 @@
                                 </div>
                             </div>
 
-							<!-- 강의과목카드형 -->
                             <div class="box_content">
-                                <div id="tab31" class="tab-content" style="display: block;">                                    
-                                    <!-- 전체강의목록 -->
-                                    <ul class="lecture_list">
-                                        <c:choose>
-										    <c:when test="${empty dashVM.lctrSbjctSummaryList}">
-										        <li>[카드형]강의과목이 없습니다</li>
-										    </c:when>
-										    <c:otherwise>										    
-										    	<c:set var="cnt" value="0" />
-												<c:forEach var="item" items="${dashVM.lctrSbjctSummaryList}">
-												    <!-- 과목공지만 출력 -->
-				                                        <li>
-				                                            <div class="card_item">
-				                                                <div class="item_header">
-				                                                    <div class="title_area">
-				                                                        <p class="info_detail">
-				                                                            <span class="label uniA">${item.orgnm}</span>
-				                                                            <span class="info_txt">수강 ${item.atndlcCnt}명</span>
-				                                                            <span class="info_txt">튜터 ${item.tutUsernm}</span>
-				                                                            <span class="info_txt">${item.crdts}학점</span>
-				                                                        </p>
-				                                                        <p class="tit"><a href="/subject.do?subjectId=${item.subjectId}">${item.sbjctnm}</a></p>
-				                                                    </div>
-				                                                </div>
-				                                                <div class="extra">
-				                                                    <div class="info">
-				                                                        <p class="point">
-				                                                            <span class="tit">중간고사:</span>
-				                                                            <c:if test="${empty item.midExamSdttm}">
-				                                                            	<span>미정</span>
-				                                                            </c:if>
-				                                                            <c:if test="${not empty item.midExamSdttm}">
-				                                                            	<span class="date" style="display:inline-block; width:120px;"><uiex:formatDate value="${item.midExamSdttm}" type="datetime2"/>
-				                                                            </c:if>
-				                                                        </p>
-				                                                        <p class="desc">
-				                                                            <span class="tit">시간:</span>
-				                                                            <span>${item.midExamMnts}분</span>
-				                                                        </p>
-				                                                    </div>
-				                                                    <div class="info">
-				                                                        <p class="point">
-				                                                            <span class="tit">기말고사:</span>
-				                                                            <c:if test="${empty item.lstExamSdttm}">
-				                                                            	<span>미정</span>
-				                                                            </c:if>
-				                                                            <c:if test="${not empty item.lstExamSdttm}">
-				                                                            	<span class="date" style="display:inline-block; width:120px;"><uiex:formatDate value="${item.lstExamSdttm}" type="datetime2"/>
-				                                                            </c:if>
-				                                                        </p>
-				                                                        <p class="desc">
-				                                                            <span class="tit">시간:</span>
-				                                                            <span>${item.lstExamMnts}분</span>
-				                                                        </p>
-				                                                    </div>
-				                                                    <div class="my_prog_rate">
-				                                                        <div class="progress">
-				                                                            <div class="bar blue_type" style="width: 40%;"></div>
-				                                                        </div>
-				                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
-				                                                    </div>
-				                                                </div>
-				                                                <div class="bottom_button">
-				                                                   <div class="card_btns">
-				                                                   		<c:if test="${not empty item.ntcBbsId}">
-				                                                        	<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.ntcBbsId}">공지<span>${item.ntcCnt}</span></a>
-				                                                        </c:if>
-				                                                        <c:if test="${empty item.ntcBbsId}">
-				                                                        	<a href="#" style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">공지<span>0</span></a>	
-				                                                        </c:if>
-				                                                        
-			                                                        	<c:if test="${not empty item.qnaBbsId}">
-			                                                        		<c:if test="${item.qnaCnt != 0}">
-			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:red;">${item.qnaCnt}</span></a>
-			                                                        		</c:if>
-			                                                        		<c:if test="${item.qnaCnt == 0}">
-			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:#007bff;">${item.qnaCnt}</span></a>
-			                                                        		</c:if>
-			                                                        	</c:if>				                                                        	
-			                                                        	<c:if test="${empty item.qnaBbsId}">
-			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">Q&A<span>0</span></a>
-			                                                        	</c:if>
-			                                                        	
-			                                                        	<c:if test="${not empty item.oneononeBbsId}">
-			                                                        		<c:if test="${item.qnaCnt != 0}">
-			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:red;">${item.oneononeCnt}</span></a>
-			                                                        		</c:if>
-			                                                        		<c:if test="${item.qnaCnt == 0}">
-			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:#007bff;">${item.oneononeCnt}</span></a>
-			                                                        		</c:if>
-			                                                        	</c:if>				                                                        	
-			                                                        	<c:if test="${empty item.oneononeBbsId}">
-			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">1 : 1<span>0</span></a>
-			                                                        	</c:if>			                                                        	
-				                                                       	
-				                                                        <a href="/asmt2/profAsmtListView.do?subjectId=${item.subjectId}">과제<span>${item.asmtCnt}</span></a>
-				                                                        <a href="/forum2/forumLect/profForumListView.do?subjectId=${item.subjectId}">토론<span>${item.dscsCnt}</span></a>
-				                                                        <a href="/smnr/profSmnrListView.do?subjectId=${item.subjectId}">세미나<span>${item.smnrCnt}</span></a>
-				                                                        <a href="/quiz/profQuizListView.do?subjectId=${item.subjectId}">퀴즈<span>${item.quizCnt}</span></a>
-				                                                        <a href="/srvy/profSrvyListView.do?subjectId=${item.subjectId}">설문<span>${item.srvyCnt}</span></a>
-				                                                        <a href="/exam/profExamListView.do?subjectId=${item.subjectId}">시험<span>${item.examCnt}</span></a>
-				                                                    </div>
-				                                                </div>
-				                                            </div>
-				                                        </li>
-				                                 </c:forEach>
-				                                 
-		                                     </c:otherwise>
-		                                     
-		                                 </c:choose>
-                                    </ul>
-                                    <!-- //전체강의목록 -->                                    
-                                </div>
-
-                                <div id="tab32" class="tab-content" style="display: none;">
-                                    <ul class="lecture_list">
-                                    	<li>[카드형] 대학원 강의과목이 없습니다</li>
-                                    </ul>
-                                </div>
-
-                                <div id="tab33" class="tab-content" style="display: none;">
-                                    <ul class="lecture_list">
-                                    	<li>[카드형] 학위과정 강의과목이 없습니다</li>
-                                    </ul>
-                                </div>
-
-                                <div id="tab34" class="tab-content" style="display: none;">
-                                    <ul class="lecture_list">
-                                    	<li>[카드형] 평생교육 강의과목이 없습니다</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <!-- //강의과목카드형 -->                            
-                            
-                            <!-- 강의과목목록형 -->
-                            <div id="tab40" class="box_content" style="display: block;">
                                 <div id="tab31" class="tab-content" style="display: block;">
-                                    <!-- 전체강의목록 -->
-                                    <ul class="lecture_list2">
-	                                    <c:choose>
-											    <c:when test="${empty dashVM.lctrSbjctSummaryList}">
-											        <li>강의과목이 없습니다</li>
-											    </c:when>
-											    <c:otherwise>										    
-											    	<c:set var="cnt" value="0" />
-													<c:forEach var="item" items="${dashVM.lctrSbjctSummaryList}">
-				                                        <li>
-				                                            <div class="card_item">
-				                                                <div class="item_header">
-				                                                    <span class="label uniA">${item.orgnm}</span>
-				                                                    <div class="title_area">
-				                                                        <p class="info_detail">
-				                                                            <span class="info_txt">수강 ${item.atndlcCnt}명</span>
-				                                                            <span class="info_txt">튜터 ${item.tutUsernm}</span>
-				                                                            <span class="info_txt">${item.crdts}학점</span>
-				                                                        </p>
-				                                                        <p class="tit"><a href="/subject.do?subjectId=${item.subjectId}">${item.sbjctnm}</a></p>
-				                                                    </div>
-				                                                    <div class="extra">
-				                                                        <div class="my_prog_rate">
-				                                                            <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
-				                                                            <div class="progress">
-				                                                                <div class="bar blue_type" style="width: 40%;"></div>
-				                                                            </div>
-				                                                        </div>
-				                                                        <div class="info">
-				                                                            <p class="point">
-				                                                                <span class="tit">중간고사:</span>
-				                                                                <c:if test="${empty item.midExamSdttm}">
-					                                                            	<span>미정</span>
-					                                                            </c:if>
-					                                                            <c:if test="${not empty item.midExamSdttm}">
-					                                                            	<span><uiex:formatDate value="${item.midExamSdttm}" type="datetime2"/></span>
-					                                                            </c:if>
-				                                                            </p>
-				                                                            <p class="desc">
-				                                                                <span class="tit">시간:</span>
-				                                                                <span>${item.midExamMnts}분</span>
-				                                                            </p>
-				                                                        </div>
-				                                                        <div class="info">
-				                                                            <p class="point">
-				                                                                <span class="tit">기말고사:</span>
-					                                                            <c:if test="${empty item.lstExamSdttm}">
-					                                                            	<span>미정</span>
-					                                                            </c:if>
-					                                                            <c:if test="${not empty item.lstExamSdttm}">
-					                                                            	<span><uiex:formatDate value="${item.lstExamSdttm}" type="datetime2"/></span>
-					                                                            </c:if>
-				                                                            </p>
-				                                                            <p class="desc">
-				                                                                <span class="tit">시간:</span>
-				                                                                <span>${item.lstExamMnts}분</span>
-				                                                            </p>
-				                                                        </div>
-				
-				                                                    </div>
-				                                                </div>
-				
-				                                                <div class="bottom_button">
-				                                                   <div class="card_btns">
-				                                                        <c:if test="${not empty item.ntcBbsId}">
-				                                                        	<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.ntcBbsId}">공지<span>${item.ntcCnt}</span></a>
-				                                                        </c:if>
-				                                                        <c:if test="${empty item.ntcBbsId}">
-				                                                        	<a href="#" style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">공지<span>0</span></a>	
-				                                                        </c:if>
-				                                                        
-			                                                        	<c:if test="${not empty item.qnaBbsId}">
-			                                                        		<c:if test="${item.qnaCnt != 0}">
-			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:red;">${item.qnaCnt}</span></a>
-			                                                        		</c:if>
-			                                                        		<c:if test="${item.qnaCnt == 0}">
-			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:#007bff;">${item.qnaCnt}</span></a>
-			                                                        		</c:if>
-			                                                        	</c:if>				                                                        	
-			                                                        	<c:if test="${empty item.qnaBbsId}">
-			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">Q&A<span>0</span></a>
-			                                                        	</c:if>
-			                                                        	
-			                                                        	<c:if test="${not empty item.oneononeBbsId}">
-			                                                        		<c:if test="${item.qnaCnt != 0}">
-			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:red;">${item.oneononeCnt}</span></a>
-			                                                        		</c:if>
-			                                                        		<c:if test="${item.qnaCnt == 0}">
-			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:#007bff;">${item.oneononeCnt}</span></a>
-			                                                        		</c:if>
-			                                                        	</c:if>				                                                        	
-			                                                        	<c:if test="${empty item.oneononeBbsId}">
-			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">1 : 1<span>0</span></a>
-			                                                        	</c:if>			                                                        	
-				                                                       	
-				                                                        <a href="/asmt2/profAsmtListView.do?subjectId=${item.subjectId}">과제<span>${item.asmtCnt}</span></a>
-				                                                        <a href="/forum2/forumLect/profForumListView.do?subjectId=${item.subjectId}">토론<span>${item.dscsCnt}</span></a>
-				                                                        <a href="/smnr/profSmnrListView.do?subjectId=${item.subjectId}">세미나<span>${item.smnrCnt}</span></a>
-				                                                        <a href="/quiz/profQuizListView.do?subjectId=${item.subjectId}">퀴즈<span>${item.quizCnt}</span></a>
-				                                                        <a href="/srvy/profSrvyListView.do?subjectId=${item.subjectId}">설문<span>${item.srvyCnt}</span></a>
-				                                                        <a href="/exam/profExamListView.do?subjectId=${item.subjectId}">시험<span>${item.examCnt}</span></a>
-				                                                    </div>
-				                                                </div>
-				                                            </div>
-				                                        </li>
-			                                	</c:forEach>			                                 
-	                                     	</c:otherwise>	                                     
-	                                 	</c:choose>
-                                   	</ul>
-                                   	<!-- //전체강의목록 -->
+                                    <!-- 강의목록 -->
+                                    <ul class="lecture_list">
+                                        <li>
+                                            <div class="card_item">
+                                                <div class="item_header">
+                                                    <div class="title_area">
+                                                        <p class="info_detail">
+                                                            <span class="label uniA">대학원</span>
+                                                            <span class="info_txt">수강 50명</span>
+                                                            <span class="info_txt">튜터 김하늘</span>
+                                                            <span class="info_txt">3학점</span>
+                                                        </p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
+                                                    </div>
+                                                </div>
+                                                <div class="extra">
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">중간고사:</span>
+                                                            <span>2025.04.26 16:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">기말고사:</span>
+                                                            <span>2025.06.07 17:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="my_prog_rate">
+                                                        <div class="progress">
+                                                            <div class="bar blue_type" style="width: 40%;"></div>
+                                                        </div>
+                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="bottom_button">
+                                                   <div class="card_btns">
+                                                        <a href="#0">공지<span>2</span></a>
+                                                        <a href="#0">Q&A<span>2</span></a>
+                                                        <a href="#0">1 : 1<span>2</span></a>
+                                                        <a href="#0">과제<span>2</span></a>
+                                                        <a href="#0">토론<span>2</span></a>
+                                                        <a href="#0">세미나<span>2</span></a>
+                                                        <a href="#0">퀴즈<span>2</span></a>
+                                                        <a href="#0">설문<span>2</span></a>
+                                                        <a href="#0">시험<span>2</span></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="card_item">
+                                                <div class="item_header">
+                                                    <div class="title_area">
+                                                        <p class="info_detail">
+                                                            <span class="label uniA">대학원</span>
+                                                            <span class="info_txt">수강 50명</span>
+                                                            <span class="info_txt">튜터 김하늘</span>
+                                                            <span class="info_txt">3학점</span>
+                                                        </p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
+                                                    </div>
+                                                </div>
+                                                <div class="extra">
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">중간고사:</span>
+                                                            <span>2025.04.26 16:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">기말고사:</span>
+                                                            <span>2025.06.07 17:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="my_prog_rate">
+                                                        <div class="progress">
+                                                            <div class="bar blue_type" style="width: 40%;"></div>
+                                                        </div>
+                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="bottom_button">
+                                                   <div class="card_btns">
+                                                        <a href="#0">공지<span>2</span></a>
+                                                        <a href="#0">Q&A<span>2</span></a>
+                                                        <a href="#0">1 : 1<span>2</span></a>
+                                                        <a href="#0">과제<span>2</span></a>
+                                                        <a href="#0">토론<span>2</span></a>
+                                                        <a href="#0">세미나<span>2</span></a>
+                                                        <a href="#0">퀴즈<span>2</span></a>
+                                                        <a href="#0">설문<span>2</span></a>
+                                                        <a href="#0">시험<span>2</span></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="card_item">
+                                                <div class="item_header">
+                                                    <div class="title_area">
+                                                        <p class="info_detail">
+                                                            <span class="label uniB">평생교육</span>
+                                                            <span class="info_txt">수강 200명</span>
+                                                            <span class="info_txt">튜터 한여름</span>
+                                                            <span class="info_txt">3학점</span>
+                                                        </p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">간결하고 힘찬 영어 쓰기 - 품격 있는 영작</a></p>
+                                                    </div>
+                                                </div>
+                                                <div class="extra">
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">과제제출:</span>
+                                                            <span>2025.04.26 16:00</span>
+                                                        </p>
+
+                                                    </div>
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">기말고사:</span>
+                                                            <span>2025.06.07 17:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="my_prog_rate">
+                                                        <div class="progress">
+                                                            <div class="bar blue_type" style="width: 40%;"></div>
+                                                        </div>
+                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="bottom_button">
+                                                   <div class="card_btns">
+                                                        <a href="#0">공지<span>2</span></a>
+                                                        <a href="#0">Q&A<span>2</span></a>
+                                                        <a href="#0">1 : 1<span>2</span></a>
+                                                        <a href="#0">과제<span>2</span></a>
+                                                        <a href="#0">설문<span>2</span></a>
+                                                        <a href="#0">시험<span>2</span></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="card_item">
+                                                <div class="item_header">
+                                                    <div class="title_area">
+                                                        <p class="info_detail">
+                                                            <span class="label uniB">평생교육</span>
+                                                            <span class="info_txt">수강 200명</span>
+                                                            <span class="info_txt">온라인</span>
+                                                            <span class="info_txt">3학점</span>
+                                                        </p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">New TEPS 실전 연습-기본편</a></p>
+                                                    </div>
+                                                </div>
+                                                <div class="extra">
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">중간고사:</span>
+                                                            <span>2025.04.26 16:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">기말고사:</span>
+                                                            <span>2025.06.07 17:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="my_prog_rate">
+                                                        <div class="progress">
+                                                            <div class="bar blue_type" style="width: 40%;"></div>
+                                                        </div>
+                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="bottom_button">
+                                                   <div class="card_btns">
+                                                        <a href="#0">공지<span>2</span></a>
+                                                        <a href="#0">Q&A<span>2</span></a>
+                                                        <a href="#0">1 : 1<span>2</span></a>
+                                                        <a href="#0">설문<span>2</span></a>
+                                                        <a href="#0">시험<span>2</span></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="card_item">
+                                                <div class="item_header">
+                                                    <div class="title_area">
+                                                        <p class="info_detail">
+                                                            <span class="label uniC">학위과정</span>
+                                                            <span class="info_txt">수강 50명</span>
+                                                            <span class="info_txt">튜터 김하늘</span>
+                                                            <span class="info_txt">3학점</span>
+                                                        </p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 2반</a></p>
+                                                    </div>
+                                                </div>
+                                                <div class="extra">
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">중간고사:</span>
+                                                            <span>2025.04.26 16:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">기말고사:</span>
+                                                            <span>2025.06.07 17:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="my_prog_rate">
+                                                        <div class="progress">
+                                                            <div class="bar blue_type" style="width: 40%;"></div>
+                                                        </div>
+                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="bottom_button">
+                                                   <div class="card_btns">
+                                                        <a href="#0">공지<span>2</span></a>
+                                                        <a href="#0">Q&A<span>2</span></a>
+                                                        <a href="#0">1 : 1<span>2</span></a>
+                                                        <a href="#0">과제<span>2</span></a>
+                                                        <a href="#0">토론<span>2</span></a>
+                                                        <a href="#0">세미나<span>2</span></a>
+                                                        <a href="#0">퀴즈<span>2</span></a>
+                                                        <a href="#0">설문<span>2</span></a>
+                                                        <a href="#0">시험<span>2</span></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="card_item">
+                                                <div class="item_header">
+                                                    <div class="title_area">
+                                                        <p class="info_detail">
+                                                            <span class="label uniC">학위과정</span>
+                                                            <span class="info_txt">수강 50명</span>
+                                                            <span class="info_txt">튜터 김하늘</span>
+                                                            <span class="info_txt">3학점</span>
+                                                        </p>
+                                                        <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 2반</a></p>
+                                                    </div>
+                                                </div>
+                                                <div class="extra">
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">중간고사:</span>
+                                                            <span>2025.04.26 16:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">기말고사:</span>
+                                                            <span>2025.06.07 17:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="my_prog_rate">
+                                                        <div class="progress">
+                                                            <div class="bar blue_type" style="width: 40%;"></div>
+                                                        </div>
+                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="bottom_button">
+                                                   <div class="card_btns">
+                                                        <a href="#0">공지<span>2</span></a>
+                                                        <a href="#0">Q&A<span>2</span></a>
+                                                        <a href="#0">1 : 1<span>2</span></a>
+                                                        <a href="#0">과제<span>2</span></a>
+                                                        <a href="#0">토론<span>2</span></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
                                 </div>
 
                                 <div id="tab32" class="tab-content" style="display: none;">
-                                    <ul class="lecture_list2">
-                                    	<li>[목록형] 대학원 강의과목이 없습니다</li>
-                                    </ul>
+                                    <div class="no_content">
+                                        <div class="no_text">
+                                            <i class="icon-cont-none ico f170"></i>
+                                            <span>등록된 강의가 없습니다.</span>
+                                        </div>
+                                    </div>
+
                                 </div>
 
                                 <div id="tab33" class="tab-content" style="display: none;">
-                                    <ul class="lecture_list2">
-                                    	<li>[목록형] 학위과정 강의과목이 없습니다</li>
-                                    </ul>
+                                    학위과정 강의리스트
                                 </div>
 
                                 <div id="tab34" class="tab-content" style="display: none;">
-                                    <ul class="lecture_list2">
-                                    	<li>[목록형] 평생교육 강의과목이 없습니다</li>
-                                    </ul>
+                                    평생교육 강의리스트
                                 </div>
                             </div>
-                            <!-- //강의과목목록형 -->
 
                         </div>
                         <!--//강의과목 -->

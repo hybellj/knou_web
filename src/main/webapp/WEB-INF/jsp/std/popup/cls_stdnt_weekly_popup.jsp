@@ -581,12 +581,7 @@
                 scales: {
                     y: {
                         fontColor: '#333', fontSize: 12,
-                        display: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value + "%";
-                            }
-                        }
+                        display: true
                     }
                 }
             }

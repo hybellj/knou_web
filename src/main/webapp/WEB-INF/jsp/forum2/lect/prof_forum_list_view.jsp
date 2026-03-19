@@ -76,7 +76,7 @@
                                         </button>
                                         <div class="option-wrap">
                                             <div class="item"><a href="javascript:goForumBbs('#[valDscsId]')"><spring:message code='forum.label.forum.bbs'/></a></div><!-- 토론방 -->
-                                            <div class="item"><a href="javascript:goForumScore('#[valDscsId]')"><spring:message code='forum.button.eval'/></a></div><!-- 토론평가 -->
+                                            <div class="item"><a href="javascript:goForumBbs('#[valDscsId]')"><spring:message code='forum.button.eval'/></a></div><!-- 토론평가 -->
                                             <div class="item"><a href="javascript:goWrite('#[valDscsId]')"><spring:message code='forum.button.mod'/></a></div><!-- 수정 -->
                                             <div class="item"><a href="javascript:delForum('#[valDscsId]')"><spring:message code='forum.button.del'/></a></div><!-- 삭제 -->
                                         </div>
@@ -430,12 +430,6 @@
         // TODO : forumCd -> dscsId 로 변경해야 함.
         //location.href = '/forum2/forumLect/Form/bbsManage.do?dscsId=' + encodeURIComponent(dscsId);
         location.href = '/forum2/forumLect/Form/bbsManage.do?forumCd=' + encodeURIComponent(dscsId);
-    }
-
-    // 토론평가
-    function goForumScore(dscsId) {
-        // TODO : forumCd -> dscsId 로 변경해야 함.
-        location.href = '/forum2/forumLect/Form/scoreManage.do?forumCd=' + encodeURIComponent(dscsId);
     }
 
     //토론삭제

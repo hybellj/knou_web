@@ -40,7 +40,6 @@
     $(document).ready(function() {
         fn_initYrSmstr();
         fn_initRsrvSndng();
-        fn_initSndngnm();
 
         if (isEditMode) {
             fn_loadDetail();
@@ -95,13 +94,11 @@
 
     /* 학사년도/학기 초기화 */
     function fn_initYrSmstr() {
-        fn_loadOrgList();
-
         ajaxCall('/msgShrtntYrListAjax.do', {}, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
-                    html += '<option value="' + v.sbjctYr + '">' + v.sbjctYr + '<spring:message code="msg.rcptnAgre.label.year" text="년"/></option>';
+                    html += '<option value="' + v.sbjctYr + '">' + v.sbjctYr + '</option>';
                 });
                 $('#sbjctYr').html(html);
                 fn_refreshChosen('#sbjctYr');
@@ -111,7 +108,6 @@
 
         $('#sbjctYr').on('change', function() { fn_loadSmstrList(); });
         $('#sbjctSmstr').on('change', function() { fn_loadDeptList(); });
-        $('#orgId').on('change', function() { fn_loadDeptList(); });
         $('#deptId').on('change', function() { fn_loadSbjctList(); });
     }
 
@@ -124,25 +120,11 @@
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
-                    html += '<option value="' + v.sbjctSmstr + '">' + v.sbjctSmstr + '<spring:message code="msg.rcptnAgre.label.smstr" text="학기"/></option>';
+                    html += '<option value="' + v.sbjctSmstr + '">' + v.sbjctSmstr + '</option>';
                 });
                 $('#sbjctSmstr').html(html);
                 fn_refreshChosen('#sbjctSmstr');
                 fn_loadDeptList();
-            }
-        });
-    }
-
-    /* 기관 목록 */
-    function fn_loadOrgList() {
-        ajaxCall('/msgShrtntOrgListAjax.do', {}, function(res) {
-            if (res.result > 0 && res.returnList) {
-                let html = '<option value=""><spring:message code="msg.sndrDsctn.label.orgAll" text="기관 전체"/></option>';
-                res.returnList.forEach(function(v) {
-                    html += '<option value="' + v.orgId + '">' + UiComm.escapeHtml(v.orgnm) + '</option>';
-                });
-                $('#orgId').html(html);
-                fn_refreshChosen('#orgId');
             }
         });
     }
@@ -153,14 +135,13 @@
         let smstr = $('#sbjctSmstr').val();
         if (!yr || !smstr) return;
 
-        ajaxCall('/msgShrtntDeptListAjax.do', { orgId: $('#orgId').val(), dgrsYr: yr, smstr: smstr }, function(res) {
+        ajaxCall('/msgShrtntDeptListAjax.do', { dgrsYr: yr, smstr: smstr }, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
                     html += '<option value="' + v.deptId + '">' + v.deptnm + '</option>';
                 });
-                $('#deptId').find('option:gt(0)').remove();
-                $('#deptId').append(html);
+                $('#deptId').html(html);
                 fn_refreshChosen('#deptId');
                 fn_loadSbjctList();
             }
@@ -173,7 +154,7 @@
         let smstr = $('#sbjctSmstr').val();
         let deptId = $('#deptId').val();
 
-        ajaxCall('/msgShrtntSbjctListAjax.do', { orgId: $('#orgId').val(), dgrsYr: yr, smstr: smstr, deptId: deptId }, function(res) {
+        ajaxCall('/msgShrtntSbjctListAjax.do', { dgrsYr: yr, smstr: smstr, deptId: deptId }, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>';
                 res.returnList.forEach(function(v) {
@@ -185,28 +166,15 @@
         });
     }
 
-    /* 발신자 이름 체크박스 */
-    function fn_initSndngnm() {
-        let ownName = $('#sndngnm').val();
-
-        $('#ownNameYnChk').on('change', function() {
-            if ($(this).is(':checked')) {
-                $('#sndngnm').val(ownName).prop('disabled', true);
-            } else {
-                $('#sndngnm').prop('disabled', false).focus();
-            }
-        });
-    }
-
     /* 예약 발신 체크박스 */
     function fn_initRsrvSndng() {
         $('#rsrvYnChk').on('change', function() {
             if ($(this).is(':checked')) {
-                $('#rsrvSndngDate, #rsrvSndngTime').prop('disabled', false);
                 $('#rsrvDateArea').show();
             } else {
-                $('#rsrvSndngDate, #rsrvSndngTime').val('').prop('disabled', true);
                 $('#rsrvDateArea').hide();
+                $('#rsrvSndngDate').val('');
+                $('#rsrvSndngTime').val('');
             }
         });
     }
@@ -363,11 +331,6 @@
 
     /* 검증 */
     function fn_validate() {
-        if (!$('#sbjctId').val()) {
-            alert('<spring:message code="msg.shrtnt.msg.requiredSbjct"/>');
-            $('#sbjctId').focus();
-            return false;
-        }
         if (rcvrList.length === 0) {
             alert('<spring:message code="msg.shrtnt.msg.requiredRcvr"/>');
             return false;
@@ -381,18 +344,6 @@
             alert('<spring:message code="msg.shrtnt.msg.requiredCts"/>');
             $('#txtCts').focus();
             return false;
-        }
-        if ($('#rsrvYnChk').is(':checked')) {
-            if (!$('#rsrvSndngDate').val()) {
-                alert('<spring:message code="msg.shrtnt.msg.requiredRsrvDate" text="예약 발신 날짜를 입력하세요."/>');
-                $('#rsrvSndngDate').focus();
-                return false;
-            }
-            if (!$('#rsrvSndngTime').val()) {
-                alert('<spring:message code="msg.shrtnt.msg.requiredRsrvTime" text="예약 발신 시간을 입력하세요."/>');
-                $('#rsrvSndngTime').focus();
-                return false;
-            }
         }
         return true;
     }
@@ -450,7 +401,6 @@
             sbjctYr: $('#sbjctYr').val(),
             sbjctSmstr: $('#sbjctSmstr').val(),
             sbjctId: $('#sbjctId').val(),
-            sndngnm: $('#sndngnm').val(),
             rcvrListJson: JSON.stringify(rcvrList),
             upMsgShrtntSndngId: isReplyMode ? replyMsgShrtntSndngId : '',
             uploadFiles: $('#uploadFiles').val(),
@@ -530,12 +480,9 @@
                             </ul>
                             <!-- 운영과목 -->
                             <ul class="list">
-                                <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.oprSbjct" text="운영과목"/></label></li>
+                                <li class="head"><label><spring:message code="msg.shrtnt.label.oprSbjct" text="운영과목"/></label></li>
                                 <li>
-                                    <select id="orgId" name="orgId" class="form-control" style="width:160px; display:inline-block;">
-                                    </select>
                                     <select id="deptId" name="deptId" class="form-control" style="width:160px; display:inline-block;">
-                                        <option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과 전체"/></option>
                                     </select>
                                     <select id="sbjctId" name="sbjctId" class="form-control" style="width:200px; display:inline-block;">
                                         <option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>
@@ -578,10 +525,10 @@
                             </ul>
                             <!-- 발신일시 -->
                             <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.sndngDttm" text="발신일시"/></label></li>
+                                <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.sndngDttm" text="발신일시"/></label></li>
                                 <li>
-                                    <input type="text" id="rsrvSndngDate" name="rsrvSndngDate" class="datepicker" placeholder="YYYY-MM-DD" disabled>
-                                    <input type="text" id="rsrvSndngTime" name="rsrvSndngTime" class="timepicker" placeholder="HH:MM" disabled>
+                                    <input type="text" id="rsrvSndngDate" name="rsrvSndngDate" class="datepicker" placeholder="YYYY-MM-DD">
+                                    <input type="text" id="rsrvSndngTime" name="rsrvSndngTime" class="timepicker" placeholder="HH:MM">
                                     <span class="custom-input" style="margin-left:10px;">
                                         <input type="checkbox" id="rsrvYnChk" name="rsrvYnChk">
                                         <label for="rsrvYnChk"><spring:message code="msg.shrtnt.label.rsrvSndng" text="예약 발신"/></label>
@@ -593,11 +540,26 @@
                             <ul class="list">
                                 <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.sndngnm" text="발신자"/></label></li>
                                 <li>
-                                    <input type="text" id="sndngnm" name="sndngnm" class="form-control" style="width:200px; display:inline-block;" value="${usernm}" disabled>
+                                    <input type="text" id="sndngnm" name="sndngnm" class="form-control" style="width:200px; display:inline-block;" value="${usernm}">
                                     <span class="custom-input" style="margin-left:10px;">
                                         <input type="checkbox" id="ownNameYnChk" name="ownNameYnChk" checked>
                                         <label for="ownNameYnChk"><spring:message code="msg.shrtnt.label.ownNameYn" text="본인 이름 선택"/></label>
                                     </span>
+                                </li>
+                            </ul>
+                            <!-- 발신자 번호 -->
+                            <ul class="list">
+                                <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.sndngrPhnno" text="발신자 번호"/></label></li>
+                                <li>
+                                    <span class="custom-input">
+                                        <input type="radio" id="phnTypeDept" name="phnType" value="DEPT" checked>
+                                        <label for="phnTypeDept"><spring:message code="msg.shrtnt.label.deptPhnno" text="학과대표번호"/></label>
+                                    </span>
+                                    <span class="custom-input">
+                                        <input type="radio" id="phnTypeMgr" name="phnType" value="MGR">
+                                        <label for="phnTypeMgr"><spring:message code="msg.shrtnt.label.mgrPhnno" text="담당자번호"/></label>
+                                    </span>
+                                    <input type="text" id="sndngrPhnno" name="sndngrPhnno" class="form-control" style="width:200px; display:inline-block; margin-left:10px;" inputmask="phone" placeholder="<spring:message code="msg.shrtnt.label.sndngrPhnno"/>">
                                 </li>
                             </ul>
                         </div>
@@ -638,7 +600,7 @@
                                         <th><spring:message code="msg.shrtnt.col.rcvrnm" text="수신자"/></th>
                                         <th><spring:message code="msg.shrtnt.col.stdntNo" text="학번"/></th>
                                         <th><spring:message code="msg.shrtnt.col.rprsId" text="대표ID"/></th>
-                                        <th><spring:message code="msg.shrtnt.col.mblPhn" text="연락처"/></th>
+                                        <th><spring:message code="msg.shrtnt.col.mblPhn" text="휴대폰번호"/></th>
                                         <th><spring:message code="msg.shrtnt.col.eml" text="이메일"/></th>
                                         <th><spring:message code="msg.shrtnt.col.sndngYn" text="발송"/></th>
                                         <th><spring:message code="msg.shrtnt.col.rsltMsg" text="결과메시지"/></th>

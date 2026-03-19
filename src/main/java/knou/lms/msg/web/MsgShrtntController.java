@@ -78,9 +78,7 @@ public class MsgShrtntController extends ControllerBase {
     }
 
     private void applySearchConstraints(MsgShrtntVO vo, UserContext userCtx) {
-        if ("".equals(StringUtil.nvl(vo.getOrgId()))) {
-            vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
-        }
+        vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
         String authrtGrpcd = StringUtil.nvl(userCtx.getAuthrtGrpcd());
         if (authrtGrpcd.contains("PROF") && !authrtGrpcd.contains("ADM")) {
             vo.setUserId(StringUtil.nvl(userCtx.getUserId()));
@@ -126,7 +124,6 @@ public class MsgShrtntController extends ControllerBase {
         UserContext userCtx = getUserContext(request);
 
         model.addAttribute("orgId", StringUtil.nvl(userCtx.getOrgId()));
-        model.addAttribute("usernm", StringUtil.nvl(SessionInfo.getUserNm(request)));
         model.addAttribute("pageSize", PAGE_SIZE);
 
         return "msg2/prof_msg_shrtnt_list";
@@ -149,7 +146,6 @@ public class MsgShrtntController extends ControllerBase {
         }
 
         model.addAttribute("orgId", StringUtil.nvl(userCtx.getOrgId()));
-        model.addAttribute("usernm", StringUtil.nvl(SessionInfo.getUserNm(request)));
         model.addAttribute("pageSize", PAGE_SIZE);
 
         return "msg2/mngr_msg_shrtnt_list";
@@ -737,9 +733,7 @@ public class MsgShrtntController extends ControllerBase {
 
             vo.setRgtrId(userId);
             vo.setSndngrId(userId);
-            if ("".equals(StringUtil.nvl(vo.getSndngnm()))) {
-                vo.setSndngnm(userNm);
-            }
+            vo.setSndngnm(userNm);
             vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
             vo.setDgrsYr(vo.getSbjctYr());
             vo.setSmstr(vo.getSbjctSmstr());
@@ -791,9 +785,7 @@ public class MsgShrtntController extends ControllerBase {
 
             vo.setMdfrId(userId);
             vo.setSndngrId(userId);
-            if ("".equals(StringUtil.nvl(vo.getSndngnm()))) {
-                vo.setSndngnm(userNm);
-            }
+            vo.setSndngnm(userNm);
             vo.setDgrsYr(vo.getSbjctYr());
             vo.setSmstr(vo.getSbjctSmstr());
 

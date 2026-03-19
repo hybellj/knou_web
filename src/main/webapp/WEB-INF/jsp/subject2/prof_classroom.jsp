@@ -1,8 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fnc" uri="http://localhost/common" %><!-- TODO: 차후 삭제 예정-->
 <!DOCTYPE html>
 <html lang="ko">
 <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
@@ -73,22 +73,17 @@
                             <div class="info-cnt">
                                 <div class="info_iconSet">
                                 	<c:forEach var="item" items="${subjectVM.subjectLearingActvList}">
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
-	                                    <a href="/asmt2/profAsmtListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>과제</span><div class="num_txt">${item.asmtCnt}</div></a>
-	                                    <a href="/forum2/forumLect/profForumListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>토론</span><div class="num_txt">${item.dscsCnt}</div></a>
-	                                    <a href="/smnr/profSmnrListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>세미나</span><div class="num_txt">${item.smnrCnt}</div></a>
-	                                    <a href="/quiz/profQuizListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>퀴즈</span><div class="num_txt">${item.quizCnt}</div></a>
-	                                    <a href="/srvy/profSrvyListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>설문</span><div class="num_txt">${item.srvyCnt}</div></a>
-	                                    <a href="/exam/profExamListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>	                                    
+                                    <a href="${item.href}" class="info">
+                                        <span>${item.ttlKo}</span>
+                                        <div class="num_txt">${item.cnt}</div>
+                                    </a>
                                     </c:forEach>
                                 </div>
                                 <div class="info-set">
                                     <div class="info">
                                         <p class="point">
-                                            <span class="tit">중간고사:</span>                                            
-                                            <span><uiex:formatDate value="${subjectVM.middleLastExam.midExamSdttm}" type="date"/></span>
+                                            <span class="tit">중간고사:</span>
+                                            <span>${fnc:dateFormat(subjectVM.middleLastExam.midExamSdttm, '.')}</span>
                                         </p>
                                         <p class="desc">
                                             <span class="tit">시간:</span>
@@ -98,7 +93,7 @@
                                     <div class="info">
                                         <p class="point">
                                             <span class="tit">기말고사:</span>
-                                            <span><uiex:formatDate value="${subjectVM.middleLastExam.lstExamSdttm}" type="date"/></span>
+                                            <span>${fnc:dateFormat(subjectVM.middleLastExam.lstExamSdttm, '.')}</span>
                                         </p>
                                         <p class="desc">
                                             <span class="tit">시간:</span>
@@ -260,10 +255,7 @@
 						<div class="segment">
                             <div class="box_title">
                                 <i class="icon-svg-notice"></i>
-                                <h3 class="h3">과목 공지사항
-                                <c:if test="${not empty subjectVM.subjectTopNoticeList}">
-                                	<small class="msg_num">${subjectVM.badge.noticeUnreadCnt}</small></h3><!-- 과목 공지사항-->
-                                </c:if>                                
+                                <h3 class="h3">과목 공지사항 <small class="msg_num">${subjectVM.badge.noticeUnreadCnt}</small></h3><!-- 과목 공지사항-->
                                 <div class="btn-wrap">
                                     <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.ntcBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
@@ -282,7 +274,7 @@
 				                                        <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
 				                                            <p class="tit">${item.atclTtl}</p>
 				                                            <p class="desc">
-				                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
+				                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 				                                            </p>
 				                                        </a>
 				                                        <div class="state">
@@ -310,11 +302,7 @@
                         <div class="segment">
                             <div class="box_title">
                                 <i class="icon-svg-question"></i>
-                                <h3 class="h3">강의 Q&A 
-                                <c:if test="${not empty subjectVM.subjectTopLctrQnaList}">
-                                	<small class="msg_num">${subjectVM.badge.qnaNoreplyCnt}</small>
-                                </c:if>
-                                </h3>
+                                <h3 class="h3">강의 Q&A <small class="msg_num">${subjectVM.badge.qnaNoreplyCnt}</small></h3>
                                 <div class="btn-wrap">
                                     <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.qnaBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
@@ -337,7 +325,7 @@
 				                                            <p class="tit">${item.atclTtl}</p>
 				                                            <p class="desc">
 				                                                <span class="name">${item.usernm}</span>
-				                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
+				                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 				                                            </p>
 				                                        </a>
 				                                        <div class="state">
@@ -365,11 +353,7 @@
                         <div class="segment">
                             <div class="box_title">
                                 <i class="icon-svg-message"></i>
-                                <h3 class="h3">1:1 상담
-                                	<c:if test="${not empty subjectVM.profSubjectTopOneOnOneList}">
-                                		<small class="msg_num">${subjectVM.badge.oneOnOneNoreplyCnt}</small>
-                                	</c:if>
-                                </h3>
+                                <h3 class="h3">1:1 상담<small class="msg_num">${subjectVM.badge.oneOnOneNoreplyCnt}</small></h3>
                                 <div class="btn-wrap">
                                     <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.oneOnOneBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
@@ -392,7 +376,7 @@
 				                                            <p class="tit">${item.atclTtl}​</p>
 				                                            <p class="desc">
 				                                                <span class="name">${item.usernm}</span>
-				                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
+				                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
 				                                            </p>
 				                                        </a>
 				                                        <div class="state">
