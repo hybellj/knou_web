@@ -76,7 +76,7 @@
                                         </button>
                                         <div class="option-wrap">
                                             <div class="item"><a href="javascript:goForumBbs('#[valDscsId]')"><spring:message code='forum.label.forum.bbs'/></a></div><!-- 토론방 -->
-                                            <div class="item"><a href="javascript:goForumBbs('#[valDscsId]')"><spring:message code='forum.button.eval'/></a></div><!-- 토론평가 -->
+                                            <div class="item"><a href="javascript:goForumScore('#[valDscsId]')"><spring:message code='forum.button.eval'/></a></div><!-- 토론평가 -->
                                             <div class="item"><a href="javascript:goWrite('#[valDscsId]')"><spring:message code='forum.button.mod'/></a></div><!-- 수정 -->
                                             <div class="item"><a href="javascript:delForum('#[valDscsId]')"><spring:message code='forum.button.del'/></a></div><!-- 삭제 -->
                                         </div>
@@ -143,28 +143,28 @@
 
     <%-- 리스트 테이블 --%>
     let forumListTable = UiTable("forumList", {
-    lang: "ko",
-    tableMode: "list",
-    //rowHeight: 30,
-    //height: 400,
-    //selectRow: "checkbox",
-    //selectRow: "1",
-    //selectRowFunc: checkRowSelect,
-    // sortFunc: atclListTableSort,
-    //initialSort: [{column:"regDttm", dir:"desc"}],
-    pageFunc: listPaging,
-    changeFunc: chanageModeEvent,
-    columns: [
-        {title:"No", 													field:"no",				headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
-        {title:"<spring:message code='forum.label.type'/>", 			field:"dscsUnitTycd",	headerHozAlign:"center", hozAlign:"left",	width:200,	minWidth:200},	// 구분
-        {title:"<spring:message code='forum.label.forum'/>", 			field:"dscsTtl", 		headerHozAlign:"center", hozAlign:"left", 	width:0, 	minWidth:200},	// 토론제목
-        {title:"<spring:message code='forum.label.forum.date'/>", 		field:"dscsSdttmEdtm", 	headerHozAlign:"center", hozAlign:"center", width:300,	minWidth:300},	// 토론기간
-        {title:"<spring:message code='forum.label.forum.bbsCnt'/>", 	field:"dscsAtclCnt", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 토론글수
-        {title:"<spring:message code='forum.label.forum.commCnt'/>",	field:"dscsCmntCnt", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 댓글수
-        {title:"<spring:message code='forum.label.score.ratio'/>", 		field:"scoreRate", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 성적 반영비율
-        {title:"<spring:message code='forum.label.status.join'/>", 		field:"joinCnt", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 참여현황
-        {title:"<spring:message code='forum.label.eval.status'/>", 		field:"mrkStatus", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 평가현황
-        {title:"<spring:message code='forum.label.score.open'/>", 		field:"mrkOyn", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 성적공개
+        lang: "ko",
+        tableMode: "list",
+        //rowHeight: 30,
+        //height: 400,
+        //selectRow: "checkbox",
+        //selectRow: "1",
+        //selectRowFunc: checkRowSelect,
+        // sortFunc: atclListTableSort,
+        //initialSort: [{column:"regDttm", dir:"desc"}],
+        pageFunc: listPaging,
+        changeFunc: chanageModeEvent,
+        columns: [
+            {title:"No", 													field:"no",				headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
+            {title:"<spring:message code='forum.label.type'/>", 			field:"dscsUnitTycd",	headerHozAlign:"center", hozAlign:"left",	width:200,	minWidth:200},	// 구분
+            {title:"<spring:message code='forum.label.forum'/>", 			field:"dscsTtl", 		headerHozAlign:"center", hozAlign:"left", 	width:0, 	minWidth:200},	// 토론제목
+            {title:"<spring:message code='forum.label.forum.date'/>", 		field:"dscsSdttmEdtm", 	headerHozAlign:"center", hozAlign:"center", width:300,	minWidth:300},	// 토론기간
+            {title:"<spring:message code='forum.label.forum.bbsCnt'/>", 	field:"dscsAtclCnt", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 토론글수
+            {title:"<spring:message code='forum.label.forum.commCnt'/>",	field:"dscsCmntCnt", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 댓글수
+            {title:"<spring:message code='forum.label.score.ratio'/>", 		field:"scoreRate", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 성적 반영비율
+            {title:"<spring:message code='forum.label.status.join'/>", 		field:"joinCnt", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 참여현황
+            {title:"<spring:message code='forum.label.eval.status'/>", 		field:"mrkStatus", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 평가현황
+            {title:"<spring:message code='forum.label.score.open'/>", 		field:"mrkOyn", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 성적공개
         ]
     });
 
@@ -172,12 +172,12 @@
 
     // 리스트테이블에서 모드 변경될때 이벤트
     function chanageModeEvent(mode) {
-		if (mode === "card") {
-			mrkRfltrtFrmTrsf(2);
-		}
-		else if (scoreInputMode) {
-			mrkRfltrtFrmTrsf(1);
-		}
+        if (mode === "card") {
+            mrkRfltrtFrmTrsf(2);
+        }
+        else if (scoreInputMode) {
+            mrkRfltrtFrmTrsf(1);
+        }
     }
 
     // list scale 변경
@@ -234,23 +234,23 @@
      */
     function mrkRfltrtFrmTrsf(type) {
         if(type == 1) {
-			// 현재 테이블모드가 list 이면 성적반영비율 입력필드 표시
-			if (forumListTable.mode === "list") {
-	            $("#mrkRfltrtFrmTrsfBtn").hide();
-	            $(".mrkRfltrtFrmTrsfDiv").css("display", "inline-block");
-	            $(".mrkInputDiv").show();
-	            $(".mrkRfltrtDiv").hide();
-	            UiInputmask();
-	            scoreInputMode = true;
-			}
-			// 현재 테이블모드가 card 이며 list 모드로 변경
-			else {
-				forumListTable.changeMode("list");
-				scoreInputMode = false;
-				setTimeout(function(){
-					mrkRfltrtFrmTrsf(1);
-				},100);
-			}
+            // 현재 테이블모드가 list 이면 성적반영비율 입력필드 표시
+            if (forumListTable.mode === "list") {
+                $("#mrkRfltrtFrmTrsfBtn").hide();
+                $(".mrkRfltrtFrmTrsfDiv").css("display", "inline-block");
+                $(".mrkInputDiv").show();
+                $(".mrkRfltrtDiv").hide();
+                UiInputmask();
+                scoreInputMode = true;
+            }
+            // 현재 테이블모드가 card 이며 list 모드로 변경
+            else {
+                forumListTable.changeMode("list");
+                scoreInputMode = false;
+                setTimeout(function(){
+                    mrkRfltrtFrmTrsf(1);
+                },100);
+            }
         } else {
             $("#mrkRfltrtFrmTrsfBtn").css("display", "inline-block");
             $(".mrkRfltrtFrmTrsfDiv").hide();
@@ -398,7 +398,7 @@
         $el.prop("disabled", true);
         var param = {
             dscsId     : dscsId
-        ,   mrkOyn      : isChecked ? 'Y' : 'N'
+            ,   mrkOyn      : isChecked ? 'Y' : 'N'
         };
 
         var url  = "/forum2/forumLect/profForumMrkOynModify.do";
@@ -432,35 +432,41 @@
         location.href = '/forum2/forumLect/Form/bbsManage.do?forumCd=' + encodeURIComponent(dscsId);
     }
 
+    // 토론평가
+    function goForumScore(dscsId) {
+        // TODO : forumCd -> dscsId 로 변경해야 함.
+        location.href = '/forum2/forumLect/Form/scoreManage.do?forumCd=' + encodeURIComponent(dscsId);
+    }
+
     //토론삭제
     function delForum(dscsId) {
         UiComm.showMessage("<spring:message code="forum.alert.confirm.delete" />", "confirm")/*  정말 토론을 삭제 하시겠습니까?  */
-        .then(function(result) {
-            if (result) {
-                // '확인' 선택
-                $.ajax({
-                    url: "/forum2/forumLect/profForumDelete.do",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({dscsId:dscsId}),
-                    dataType: "json",
-                    beforeSend: function () {
-                        UiComm.showLoading(true);
-                    }
-                }).done(function(data) {
-                    UiComm.showLoading(false);
-                    if (data.result > 0) {
-                        UiComm.showMessage("<spring:message code='success.common.save' />", "success");/* 정상 저장 되었습니다. */
-                        listPaging(PAGE_INDEX);
-                    } else {
-                        UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
-                    }
-                }).fail(function() {
-                    UiComm.showLoading(false);
-                    UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
-                });
-            }
-        });
+            .then(function(result) {
+                if (result) {
+                    // '확인' 선택
+                    $.ajax({
+                        url: "/forum2/forumLect/profForumDelete.do",
+                        type: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify({dscsId:dscsId}),
+                        dataType: "json",
+                        beforeSend: function () {
+                            UiComm.showLoading(true);
+                        }
+                    }).done(function(data) {
+                        UiComm.showLoading(false);
+                        if (data.result > 0) {
+                            UiComm.showMessage("<spring:message code='success.common.save' />", "success");/* 정상 저장 되었습니다. */
+                            listPaging(PAGE_INDEX);
+                        } else {
+                            UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
+                        }
+                    }).fail(function() {
+                        UiComm.showLoading(false);
+                        UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
+                    });
+                }
+            });
     }
 </script>
 </body>

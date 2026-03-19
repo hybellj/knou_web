@@ -94,7 +94,9 @@
 				<!-- , FN_GET_STD_USER_NM(A.USER_ID) 	AS userNm -->
 				, U.USERNM					AS userNm
 				, NVL((SELECT SCR FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND USER_ID = A.USER_ID), 0)		AS SCR
-				, NVL((SELECT SCR FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND USER_ID = A.USER_ID), '-')		AS scoreNull
+				, NVL(TO_CHAR(
+						(SELECT SCR FROM TB_LMS_DSCS_PTCP WHERE DSCS_ID = C.DSCS_ID AND USER_ID = A.USER_ID)
+						), '-') AS scoreNull
 				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = C.DSCS_ID AND B.RGTR_ID = A.USER_ID AND B.DELYN = 'N' ) AS actlCnt
 			     <!-- 26.3.18 Modify : TB_LMS_DSCS_CMNT 에는 DSCS_ID 가 없음. -->
 			     <!--
@@ -157,8 +159,12 @@
 				, U.MOBILE_NO AS mobileNo
 				, U.EMAIL AS email
 				-->
+			     <!--
 				, (SELECT MAX(CNTCT) FROM TB_LMS_USER_CNTCT T1 WHERE T1.USER_ID = A.USER_ID AND T1.CNTCT_TYCD = 'MBL_PHN') AS mobileNo
 				, (SELECT MAX(CNTCT) FROM TB_LMS_USER_CNTCT T1 WHERE T1.USER_ID = A.USER_ID AND T1.CNTCT_TYCD = 'INDV_EML') AS email
+				-->
+			     , '01012345567' AS mobileNo
+			     , 'aaa@test.com' AS email
 			     <!--
 				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N' AND RGTR_ID = A.USER_ID) AS forumMyAtclCnt
 				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N') AS forumAtclCnt
@@ -227,7 +233,7 @@
 			    , 'N' AS evalRsltOpenYn
 			    , '' AS evalStartDttm
 			    , '' AS evalEndDttm
-				, NVL(A.SCYR,'-') SCYR
+				, NVL(TO_CHAR(A.SCYR), '-') AS SCYR
 				<!-- TODO : 26.3.18 To-be User Table 미존재 -->
 			     <!--
 				, NVL(U.ENTR_YY,'-') ENTR_YY
@@ -491,8 +497,8 @@
 			ForumJoinUserDAO.forumJoinUserList
 		*/
 		SELECT U.USER_ID 	AS stdNo
-			, DSCS_ID 	AS forumCd
-			, NVL(SCR, 0)	AS SCR
+			, U.DSCS_ID 	AS forumCd
+			, NVL(SCR, 0)	AS score
 			, EVLYN	AS evalYn
 			, U.RGTR_ID 	AS rgtrId
 			, U.REG_DTTM 	AS regDttm
@@ -500,10 +506,11 @@
 			, U.MOD_DTTM 	AS modDttm
 			, U.DELYN 	AS delYn
 			, (SELECT NVL(USER_ID, S.USER_ID) FROM TB_LMS_USER WHERE USER_ID = S.USER_ID) AS userId
-		FROM TB_LMS_DSCS_PTCP U, TB_LMS_ATNDLC S
+		FROM TB_LMS_DSCS_PTCP U
+			JOIN TB_LMS_DSCS D ON U.DSCS_ID = D.DSCS_ID  -- 토론 마스터 조인
+			JOIN TB_LMS_ATNDLC S ON U.USER_ID = S.USER_ID AND D.SBJCT_ID = S.SBJCT_ID -- 사용자 및 과목코드 일치
 		WHERE U.DSCS_ID = #{forumCd}
-			AND U.USER_ID = S.USER_ID
-			AND S.ATNDLC_STSCD = 'ATNDLC'
+		  AND S.ATNDLC_STSCD = 'ATNDLC'
 	</select>
 
 	<select id="selectProfMemo" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
