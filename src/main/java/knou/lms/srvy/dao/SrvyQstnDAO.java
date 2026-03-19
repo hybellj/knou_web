@@ -1,6 +1,7 @@
 package knou.lms.srvy.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
@@ -89,5 +90,15 @@ public interface SrvyQstnDAO {
      * @throws Exception
      */
 	public List<EgovMap> profQstnCopySrvyQstnList(SrvyQstnVO vo) throws Exception;
+
+	/**
+	 * 설문문항가져오기
+	 *
+     * @param copySrvyQstnId 	복사설문문항아이디
+     * @param srvyId 			설문아이디
+     * @param srvypprId  		설문지아이디
+	 * @throws Exception
+	 */
+	public void srvyQstnCopy(List<Map<String, Object>> list) throws Exception;
 
 }

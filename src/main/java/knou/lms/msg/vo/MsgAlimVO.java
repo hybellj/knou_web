@@ -18,12 +18,10 @@ public class MsgAlimVO extends DefaultVO {
     private String txtCts;
     private String htmlCts;
     private String sndngOnlyyn;
-    private String msgTagnm;
     private String reqSdttm;
     private String reqEdttm;
     private String rsrvSndngSdttm;
     private String rsrvSndngCnclDttm;
-    private String rsrvSndngCnclRsn;
     private Integer sndngRetryMaxCnt;
     private String rgtrId;
     private String regDttm;
@@ -274,14 +272,6 @@ public class MsgAlimVO extends DefaultVO {
         this.sndngOnlyyn = sndngOnlyyn;
     }
 
-    public String getMsgTagnm() {
-        return msgTagnm;
-    }
-
-    public void setMsgTagnm(String msgTagnm) {
-        this.msgTagnm = msgTagnm;
-    }
-
     public String getReqSdttm() {
         return reqSdttm;
     }
@@ -312,14 +302,6 @@ public class MsgAlimVO extends DefaultVO {
 
     public void setRsrvSndngCnclDttm(String rsrvSndngCnclDttm) {
         this.rsrvSndngCnclDttm = rsrvSndngCnclDttm;
-    }
-
-    public String getRsrvSndngCnclRsn() {
-        return rsrvSndngCnclRsn;
-    }
-
-    public void setRsrvSndngCnclRsn(String rsrvSndngCnclRsn) {
-        this.rsrvSndngCnclRsn = rsrvSndngCnclRsn;
     }
 
     public Integer getSndngRetryMaxCnt() {

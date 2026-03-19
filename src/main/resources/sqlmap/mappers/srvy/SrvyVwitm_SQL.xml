@@ -67,4 +67,60 @@
          ORDER BY VWITM_SEQNO
 	</select>
 
+	<insert id="srvyVwitmCopy" parameterType="java.util.List">
+		/*
+             SQL ID : SrvyVwitmDAO.srvyVwitmCopy
+             설  명 : 설문보기항목가져오기
+         */
+        INSERT INTO TB_LMS_SRVY_VWITM (
+        	  SRVY_VWITM_ID
+        	, SRVY_QSTN_ID
+        	, VWITM_GBNCD
+        	, VWITM_CTS
+        	, VWITM_SEQNO
+        	, ETC_INPTYN
+        	, RGTR_ID
+        	, REG_DTTM
+        )
+        SELECT
+        	  'SRVW0'
+					  || TO_CHAR(SYSDATE, 'YYMMDDHH24MISS')
+					  || LPAD(MOD(EXTRACT(SECOND FROM SYSTIMESTAMP) * 1000, 1000), 3, '0')
+					  || LOWER(SUBSTR(RAWTOHEX(SYS_GUID()), 1, 7))
+					  || LPAD(ROW_NUMBER() OVER(ORDER BY NULL), 3, '0') AS SRVY_VWITM_ID
+			, A.*
+		  FROM (
+	        <foreach item="item" collection="list" separator="UNION ALL">
+			  	SELECT
+			          #{item.srvyQstnId}  								AS SRVY_QSTN_ID
+			        , Q.VWITM_GBNCD
+			        , Q.VWITM_CTS
+			        , Q.VWITM_SEQNO
+			        , Q.ETC_INPTYN
+			        , #{item.rgtrId} 									AS RGTR_ID
+			        , FN_DTTM()											AS REG_DTTM
+			      FROM DUAL
+			      LEFT JOIN TB_LMS_SRVY_VWITM Q ON Q.SRVY_QSTN_ID = #{item.copySrvyQstnId}
+			     WHERE Q.SRVY_QSTN_ID IS NOT NULL
+        </foreach>
+		) A
+	</insert>
+
+	<select id="srvyVwitmBulkList" parameterType="String" resultType="srvyVwitmVO">
+		/*
+             SQL ID : SrvyVwitmDAO.srvyVwitmBulkList
+             설  명 : 설문보기항목일괄목록조회
+         */
+         SELECT
+			VWITM.*
+		  FROM TB_LMS_SRVY_VWITM VWITM
+		  JOIN TB_LMS_SRVY_QSTN QSTN
+		    ON VWITM.SRVY_QSTN_ID = QSTN.SRVY_QSTN_ID
+		   AND QSTN.DELYN = 'N'
+		  JOIN TB_LMS_SRVYPPR SRVYPPR
+		    ON QSTN.SRVYPPR_ID = SRVYPPR.SRVYPPR_ID
+		 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		 ORDER BY SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO, VWITM.VWITM_SEQNO
+	</select>
+
 </mapper>

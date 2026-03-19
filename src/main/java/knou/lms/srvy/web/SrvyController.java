@@ -426,13 +426,14 @@ public class SrvyController extends ControllerBase {
     public String profSrvypprPreviewPopup(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
     	SrvyMainView srvyMainView = srvyFacadeService.loadProfSrvypprPreviewPopup(vo);
 
-        //List<ReshPageVO> listReschPage = reshQstnService.listReshPage(pageVo);
-        //model.addAttribute("vo", quizMainView.getExamBscVO());
-        //model.addAttribute("qstnList", quizMainView.getQstnList());
-        //model.addAttribute("qstnVwitmList", quizMainView.getQstnVwitmList());
-        //if("QUIZ_TEAM".equals(quizMainView.getExamBscVO().getExamGbncd())) {
-        //    model.addAttribute("quizTeamList", quizMainView.getQuizTeamList());
-        //}
+    	model.addAttribute("vo", srvyMainView.getSrvyEgovMap());
+    	model.addAttribute("srvypprList", srvyMainView.getSrvypprList());
+    	model.addAttribute("srvyQstnList", srvyMainView.getSrvyQstnList());
+    	model.addAttribute("srvyVwitmList", srvyMainView.getSrvyVwitmList());
+    	model.addAttribute("srvyQstnVwitmLvlList", srvyMainView.getSrvyQstnVwitmLvlList());
+    	if("SRVY_TEAM".equals(srvyMainView.getSrvyEgovMap().get("srvyGbn"))) {
+    		model.addAttribute("srvyTeamList", srvyMainView.getSrvyTeamList());
+    	}
 
         return "srvy/popup/prof_srvyppr_preview_pop";
     }
@@ -690,6 +691,33 @@ public class SrvyController extends ControllerBase {
         } catch(Exception e) {
             resultVO.setResult(-1);
             resultVO.setMessage("리스트 조회 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /**
+     * 교수설문문항가져오기
+     *
+     * @param copySrvyQstnId	복사설문문항아이디
+     * @param srvyId 			설문아이디
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyQstnCopyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<SrvyQstnVO> profSrvyQstnCopyAjax(@RequestBody List<Map<String, Object>> list, ModelMap model, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<SrvyQstnVO> resultVO = new ProcessResultVO<SrvyQstnVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+        	for(Map<String, Object> map : list) {
+            	map.put("rgtrId", userId);
+            }
+        	srvyFacadeService.srvyQstnCopy(list);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("가져오기 중 에러가 발생하였습니다.");
         }
         return resultVO;
     }

@@ -15,6 +15,7 @@ import knou.framework.util.URLBuilder;
 import knou.lms.common.dto.BaseParam;
 import knou.lms.subject2.dto.SubjectParam;
 import knou.lms.subject2.facade.SubjectFacadeService;
+import knou.lms.subject2.service.SubjectService;
 import knou.lms.subject2.web.view.SubjectViewModel;
 
 @Controller
@@ -23,10 +24,13 @@ public class SubjectController extends ControllerBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(SubjectController.class);   
     
     @Resource(name="subjectFacadeService")
-    private SubjectFacadeService subjectFacadeService;    
+    private SubjectFacadeService subjectFacadeService;
+    
+    @Resource(name="subjectService")
+    private SubjectService subjectService;   
 
     /**
-     * 과목메인화면
+     * 과목화면
      * @param subjectId
      * @param userCtx
      * @param model
@@ -36,23 +40,30 @@ public class SubjectController extends ControllerBase {
     @RequestMapping(value={"/subject.do"})
     public String subject(HttpServletRequest request, ModelMap model) throws Exception {    	
     	
+    	SubjectViewModel subjectVM = new SubjectViewModel();
+    	String subjectId = request.getParameter("subjectId");
+    	
     	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");    	
     	if ( null == userCtx ) {
     		LOGGER.info("세션정보가 없습니다. 로그인페이지로 이동합니다.");
     		return "redirect:" + new URLBuilder("", "login.do",request).toString();
     	}
     	
-    	String subjectId = request.getParameter("subjectId");
-    	
     	if ( null == subjectId || "".equals(subjectId)) {
     		LOGGER.info("과목아이디가 없습니다.");
-    		return "redirect:" + new URLBuilder("", "/dashboard/dashboard2.do",request).toString();
+    		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
     	
-    	BaseParam param = new SubjectParam(userCtx.getOrgId(), userCtx.getUserId(), subjectId, 3);
+    	// 과목접근권한확인
+    	if ( ! subjectService.hasSubjectAuthority( subjectId, userCtx ) ) {
+    		LOGGER.info("권한이 없습니다");
+    		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
+    	}
+    	
+    	BaseParam param = new SubjectParam(subjectId, userCtx, 3);
 
-    	SubjectViewModel subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
-
+    	subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
+    	
     	model.addAttribute("userCtx", userCtx);
     	model.addAttribute("subjectVM", subjectVM);
 

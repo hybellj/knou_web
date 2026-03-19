@@ -10,6 +10,8 @@ import java.util.Locale;
 import knou.framework.common.*;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.ValidationUtils;
+import knou.lms.bbs.vo.BbsAtclVO;
+import knou.lms.bbs.vo.BbsInfoVO;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.forum2.service.ForumFdbkService;
 import knou.lms.forum2.service.ForumJoinUserService;
@@ -595,6 +597,44 @@ public class Forum2LectController extends ControllerBase {
             forumCmntVO.setRgtrId(userId);
             forumCmntVO.setMdfrId(userId);
             forum2CmntService.insertCmnt(forumCmntVO);
+
+            // TODO: 26.3.19 : 학습자만 체크할 수 있음.
+            /*
+            // 답변 요청 체크시 QnA 게시판에 등록
+            String orgId = SessionInfo.getOrgId(request);
+            if("Y".equals(forumCmntVO.getAnsReqYn())) {
+                BbsInfoVO bbsInfoVO = new BbsInfoVO();
+                bbsInfoVO.setCrsCreCd(crsCreCd);
+                bbsInfoVO.setOrgId(orgId);
+                bbsInfoVO.setBbsId("QNA");
+                bbsInfoVO.setSysDefaultYn("Y");
+                bbsInfoVO.setSysUseYn("N");
+
+                bbsInfoVO = bbsInfoService.selectBbsInfo(bbsInfoVO);
+
+                if(bbsInfoVO != null) {
+                    int cmntCtsLen = 0;
+
+                    if(!"".equals(StringUtil.nvl(cmntCts))) {
+                        cmntCtsLen = cmntCts.length();
+                    }
+
+                    // 최대 20자
+                    if(cmntCtsLen > 20) {
+                        cmntCtsLen = 20;
+                    }
+
+                    BbsAtclVO feedBackAtclVO = new BbsAtclVO();
+                    feedBackAtclVO.setCrsCreCd(crsCreCd);
+                    feedBackAtclVO.setBbsId(bbsInfoVO.getBbsId());
+                    feedBackAtclVO.setAtclTtl(StringUtil.substring(cmntCts, 0, cmntCtsLen));
+                    feedBackAtclVO.setAtclCts(cmntCts);
+                    feedBackAtclVO.setRgtrId(userId);
+                    bbsAtclService.insertBbsAtcl(feedBackAtclVO);
+                }
+            }
+            */
+
             returnVo.setResult(1);
         } catch (Exception e) {
             returnVo.setResult(-1);
@@ -811,7 +851,7 @@ public class Forum2LectController extends ControllerBase {
         model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
         model.addAttribute("crsCreCd", forumVO.getCrsCreCd());
 
-                model.addAttribute("userId", userId);
+        model.addAttribute("userId", userId);
         model.addAttribute("userName", userName);
 
         if("PTCP_FULL_SCR".equals(StringUtil.nvl(forumVO.getEvalCtgr()))) {
@@ -913,6 +953,32 @@ public class Forum2LectController extends ControllerBase {
         }
         return resultVO;
     }
+
+    // 참여형 일괄평가
+    @RequestMapping(value="/participateScore.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> participateScore(ForumJoinUserVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+            vo.setRgtrId(userId);
+            vo.setMdfrId(userId);
+            vo.setSearchKey("JOIN");
+            forum2JoinUserService.participateScore(vo);
+            vo.setSearchKey("NOTJOIN");
+            forum2JoinUserService.participateScore(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.common.error"); // 오류가 발생했습니다!
+        }
+
+        return resultVO;
+    }
+
     private void setCommonSessionValue(Forum2ListVO vo, HttpServletRequest request) {
         vo.setOrgId(SessionInfo.getOrgId(request));
         vo.setLangCd(SessionInfo.getLocaleKey(request));
@@ -963,6 +1029,7 @@ public class Forum2LectController extends ControllerBase {
         dest.setProsConsModYn(src.getOknokModyn());     // 의견 변경(찬반)
         dest.setByteamDscsUseyn(src.getByteamDscsUseyn()); // 팀별부토론사용여부
         dest.setDscsGrpnm(src.getDscsGrpnm());          // 학습그룹이름.
+        dest.setEvalCtgr(src.getEvlScrTycd());          // 평가점수유형코드
 
         // DB 외 변수들
         dest.setForumAtclCnt(src.getForumAtclCnt());

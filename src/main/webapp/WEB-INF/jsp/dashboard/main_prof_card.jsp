@@ -155,11 +155,36 @@
 
     	            setTimeout(() => {
     	                $('.slider_list li').not('.slick-initialized').slick({
+    	                	infinite: false,
+    	                    arrows: true,
+    	                    dots: false,
+    	                    autoplay: true,
+    	                    vertical: true,
+    	                    autoplaySpeed: 5000,
     	                    slidesToShow: 1,
-    	                    autoplay: true
+    	                    slidesToScroll: 1,
+    	                })
+
+    	                $('.sche_list').not('.slick-initialized').slick({
+    	                    infinite: true,
+    	                    arrows: false,
+    	                    dots: true,
+    	                    autoplay: true,
+    	                    vertical: true,
+    	                    autoplaySpeed: 5000,
+    	                    slidesToShow: 3,
+    	                    slidesToScroll: 1,
+    	                    responsive: [
+    	                        {
+    	                            breakpoint: 1024,
+    	                            settings: {
+    	                                dots: true,
+    	                                slidesToShow: 3
+    	                            }
+    	                        },
+    	                    ]
     	                });
     	            }, 50);
-
     	        } else {
     	            alert(res.message);
     	        }

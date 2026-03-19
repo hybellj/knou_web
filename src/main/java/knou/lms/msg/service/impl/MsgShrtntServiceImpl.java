@@ -35,7 +35,11 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
         return paginationInfo;
     }
 
-    /** 쪽지 수신 목록 조회 (페이징) */
+    /*****************************************************
+     * 쪽지 수신 목록 조회 (페이징)
+     * @param vo
+     * @return ProcessResultVO<MsgShrtntVO>
+     ******************************************************/
     @Override
     public ProcessResultVO<MsgShrtntVO> selectShrtntRcvnListPage(MsgShrtntVO vo) {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
@@ -78,7 +82,11 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
         return msgShrtntDAO.updateShrtntRcvrDelyn(vo);
     }
 
-    /** 쪽지 발신 목록 조회 (페이징) */
+    /*****************************************************
+     * 쪽지 발신 목록 조회 (페이징)
+     * @param vo
+     * @return ProcessResultVO<MsgShrtntVO>
+     ******************************************************/
     @Override
     public ProcessResultVO<MsgShrtntVO> selectShrtntSndngListPage(MsgShrtntVO vo) {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
@@ -101,7 +109,11 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
         return msgShrtntDAO.selectShrtntSndngDetail(vo);
     }
 
-    /** 쪽지 발신 수신자 목록 조회 (페이징) */
+    /*****************************************************
+     * 쪽지 발신 수신자 목록 조회 (페이징)
+     * @param vo
+     * @return ProcessResultVO<MsgShrtntVO>
+     ******************************************************/
     @Override
     public ProcessResultVO<MsgShrtntVO> selectShrtntSndngRcvrListPage(MsgShrtntVO vo) {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
@@ -134,11 +146,12 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
         return msgShrtntDAO.selectShrtntSndngRcvrExcelList(vo);
     }
 
-    /**
+    /*****************************************************
      * 쪽지 발신 등록
      * @param vo
-     * @return
-     */
+     * @return int 등록된 수신자 수
+     * @throws Exception
+     ******************************************************/
     @Override
     public int registShrtntSndng(MsgShrtntVO vo) throws Exception {
         String msgId = IdGenerator.getNewId(IdPrefixType.MSG.getCode());
@@ -150,14 +163,16 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
         return insertReceivers(vo, vo.getRgtrId());
     }
 
-    /**
+    /*****************************************************
      * 쪽지 발신 수정
      * @param vo
-     * @return
-     */
+     * @return int 등록된 수신자 수
+     * @throws Exception
+     ******************************************************/
     @Override
     public int modifyShrtntSndng(MsgShrtntVO vo) throws Exception {
         msgShrtntDAO.updateMsg(vo);
+        msgShrtntDAO.deleteShrtntSndng(vo);
         msgShrtntDAO.deleteRcvTrgtr(vo);
 
         return insertReceivers(vo, vo.getMdfrId());
@@ -180,33 +195,37 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
 
             msgShrtntDAO.insertRcvTrgtr(rcvrVO);
 
-            if (!isReservation) {
-                String shrtntId = IdGenerator.getNewId(IdPrefixType.SHRTNT.getCode());
-                rcvrVO.setMsgShrtntSndngId(shrtntId);
-                rcvrVO.setSndngTtl(vo.getTtl());
-                rcvrVO.setSndngCts(vo.getTxtCts());
-                rcvrVO.setSndngrId(vo.getSndngrId());
-                rcvrVO.setSndngnm(vo.getSndngnm());
-                rcvrVO.setUpMsgShrtntSndngId(vo.getUpMsgShrtntSndngId());
+            String shrtntId = IdGenerator.getNewId(IdPrefixType.SHRTNT.getCode());
+            rcvrVO.setMsgShrtntSndngId(shrtntId);
+            rcvrVO.setSndngTtl(vo.getTtl());
+            rcvrVO.setSndngCts(vo.getTxtCts());
+            rcvrVO.setSndngrId(vo.getSndngrId());
+            rcvrVO.setSndngnm(vo.getSndngnm());
+            rcvrVO.setUpMsgShrtntSndngId(vo.getUpMsgShrtntSndngId());
+            rcvrVO.setSndngYn(isReservation ? "N" : "Y");
 
-                msgShrtntDAO.insertShrtntSndng(rcvrVO);
-            }
+            msgShrtntDAO.insertShrtntSndng(rcvrVO);
         }
 
         return rcvrArr.size();
     }
 
-    /**
-     * 예약 발신 취소
+    /*****************************************************
+     * 예약 발신 취소 (미발송 쪽지 삭제 후 예약 취소)
      * @param vo
-     * @return
-     */
+     * @return int
+     ******************************************************/
     @Override
     public int updateMsgRsrvCncl(MsgShrtntVO vo) {
+        msgShrtntDAO.deleteShrtntSndng(vo);
         return msgShrtntDAO.updateMsgRsrvCncl(vo);
     }
 
-    /** 받는 사람 검색 목록 조회 (페이징) */
+    /*****************************************************
+     * 받는 사람 검색 목록 조회 (페이징)
+     * @param vo
+     * @return ProcessResultVO<MsgShrtntVO>
+     ******************************************************/
     @Override
     public ProcessResultVO<MsgShrtntVO> selectShrtntRcvrSearchListPage(MsgShrtntVO vo) {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();

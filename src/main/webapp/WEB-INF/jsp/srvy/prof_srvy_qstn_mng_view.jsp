@@ -546,7 +546,7 @@
 			dialog = UiDialog("dialog1", {
 				title: "설문 가져오기",
 				width: 700,
-				height: 600,
+				height: 700,
 				url: "/srvy/profSrvyQstnCopyPopup.do?"+data
 			});
 		}
@@ -1035,7 +1035,7 @@
 			var isWait	 = "${today}" > "${vo.srvySdttm}";
 			// 제출자 여부
 			var isJoin   = parseInt("${vo.ptcpUserCnt}") > 0;
-			if(isSubmit && type != "edit") {
+			if(isSubmit && type == undefined) {
 				UiComm.showMessage("<spring:message code='exam.alert.click.edit.submit.btn' />", "info");	/* 수정 버튼 클릭 후 문제 수정이 가능합니다. */
 				return false;
 			}
@@ -1154,7 +1154,22 @@
 		 * @param {String} gbn	- 구분 ( bsc : 전체, dtl : 팀 )
 		 */
 	    function srvyQstnsCmptnModify(type, gbn) {
-			if($(".sortQstnDiv").length == 0 && type == "save") {
+			var isQstn = true;
+			if(type == "save") {
+				if($(".srvypprDiv").length == 0) {
+					isQstn = false;
+				} else {
+					$('.srvypprDiv').each(function(index) {
+					    const count = $(this).find('.sortQstnDiv').length;
+					    if(count == 0) {
+							isQstn = false;
+							return;
+					    }
+					});
+				}
+			}
+
+			if(!isQstn) {
 				UiComm.showMessage("<spring:message code='resh.alert.qstn.item.submit' />", "warning");	/* 설문 문항 추가 후 출제완료 가능합니다. */
 				return false;
 			}
@@ -1219,7 +1234,7 @@
 
 			var kvArr = [];
 
-			kvArr.push({'key' : 'srvyId',   	'val' : $("#srvyId").val()});
+			kvArr.push({'key' : 'srvyId',   	'val' : "${vo.srvyId}"});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
 
 			submitForm(urlMap[tab], "", "", kvArr);

@@ -124,6 +124,7 @@
 
 		ajaxCall(url, data, function(data) {
 			if (data.result > 0) {
+				debugger;
 				var returnList = data.returnList || [];
 				var html = "";
 				var stdNos = $("#stdNos").val().split(",");
@@ -197,7 +198,8 @@
 				});
 				$("#forumStareUserList").empty().append(html);
 
-				$(".table").footable({
+				// TODO : 26.3.19 (footable error로 막음 처리함.)
+				/*$(".table").footable({
 					on: {
 						"after.ft.sorting": function(e, ft, sorter){
 							$("#forumStareUserList tr").each(function(z, k){
@@ -205,7 +207,8 @@
 							});
 						}
 					}
-				});
+				});*/
+
 				var params = {
 					totalCount 	  : data.pageInfo.totalRecordCount,
 					listScale 	  : data.pageInfo.recordCountPerPage,

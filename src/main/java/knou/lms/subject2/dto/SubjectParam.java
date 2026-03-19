@@ -1,5 +1,6 @@
 package knou.lms.subject2.dto;
 
+import knou.framework.context2.UserContext;
 import knou.lms.common.dto.BaseParam;
 
 public class SubjectParam extends BaseParam {
@@ -8,10 +9,16 @@ public class SubjectParam extends BaseParam {
 		setSubjectId(subjectId);
 	}
 	
-	public SubjectParam(String orgId, String userId, String subjectId, int limitTop) {
-		this.setOrgId(orgId);
-		this.setUserId(userId);
+	public SubjectParam(String subjectId, UserContext userCtx) {
 		this.setSubjectId(subjectId);
+		this.setOrgId(userCtx.getOrgId());
+		this.setUserId(userCtx.getUserId());
+	}
+	
+	public SubjectParam(String subjectId, UserContext userCtx, int limitTop) {
+		this.setSubjectId(subjectId);
+		this.setOrgId(userCtx.getOrgId());
+		this.setUserId(userCtx.getUserId());		
 		this.setLimitTop(limitTop);
 	}	
 }

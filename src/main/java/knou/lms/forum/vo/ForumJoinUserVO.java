@@ -62,7 +62,16 @@ public class ForumJoinUserVO extends DefaultVO {
     private String	chkCmnt;		// 댓글 포함 여부
     private String	grscDegrCorsGbn;
     private String	grscDegrCorsGbnNm;
-    
+
+    private String  dscsPtcpId;         // 토론참여 PK (TB_LMS_DSCS_PTCP.DSCS_PTCP_ID)
+
+    public String getDscsPtcpId() {
+        return dscsPtcpId;
+    }
+    public void setDscsPtcpId(String dscsPtcpId) {
+        this.dscsPtcpId = dscsPtcpId;
+    }
+
     public String getStdId() {
         return stdId;
     }

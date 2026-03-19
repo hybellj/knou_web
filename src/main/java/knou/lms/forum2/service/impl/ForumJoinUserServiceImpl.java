@@ -393,7 +393,17 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
 	// 모든 토론 참여자를 토론 참여자 테이블에 삽입
 	@Override
 	public void insertJoinUser(ForumVO vo) throws Exception {
+		// 1. 기존 레코드 팀 갱신 (WHEN MATCHED UPDATE)
 		forumJoinUserDAO.insertJoinUser(vo);
+
+		// 2. 미등록 학생 목록 조회 후 ID 생성하여 단건 INSERT
+		List<ForumJoinUserVO> newStudents = forumJoinUserDAO.selectStudentsNotInPtcp(vo);
+		for (ForumJoinUserVO student : newStudents) {
+			student.setDscsPtcpId(IdGenerator.getNewId(IdPrefixType.DSPTC.getCode()));
+			student.setRgtrId(vo.getRgtrId());
+			student.setMdfrId(vo.getRgtrId());
+			forumJoinUserDAO.insertForumJoinUser(student);
+		}
 	}
 
 	// 참여형 일괄평가

@@ -311,7 +311,7 @@
 					// 미리보기
 					var preview = "-";
 					var previewBtn = "";
-					if(v.examQstnsCmptnyn == 'Y') {
+					if(v.srvyQstnsCmptnyn == 'Y') {
 						preview = "<a href='javascript:srvypprPreviewPopup(\"" + v.srvyId + "\")' class='btn basic small'><spring:message code='exam.label.preview' />​</a>";/* 미리보기 */
 						previewBtn = "<div class='item'><a href='javascript:srvypprPreviewPopup(\"" + v.srvyId + "\")'><spring:message code='exam.label.preview' />​</a></div>";/* 미리보기 */
 					}

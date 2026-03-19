@@ -39,8 +39,8 @@
 
         /* 학사년도/학기 */
         let yrSmstr = '';
-        if (v.sbjctYr) yrSmstr = v.sbjctYr;
-        if (v.sbjctSmstr) yrSmstr += ' / ' + v.sbjctSmstr;
+        if (v.sbjctYr) yrSmstr = v.sbjctYr + '<spring:message code="msg.rcptnAgre.label.year" text="년"/>';
+        if (v.sbjctSmstr) yrSmstr += ' / ' + v.sbjctSmstr + '<spring:message code="msg.rcptnAgre.label.smstr" text="학기"/>';
         $('#sbjctYrSmstr').text(yrSmstr || '-');
 
         /* 운영과목 */
@@ -75,7 +75,6 @@
 
         /* 발신자 */
         $('#sndngnm').text(v.sndngnm || '');
-        $('#sndngrPhnno').text(v.sndngrPhnno || '-');
 
         /* 예약 관련 버튼 */
         if (v.rsrvYn === 'Y') {
@@ -130,8 +129,6 @@
                 rcvrnm: UiComm.escapeHtml(v.rcvrnm || ''),
                 stdntNo: v.stdntNo || '',
                 userRprsId2: v.userRprsId2 || '',
-                mblPhn: v.mblPhn || '',
-                eml: v.eml || '',
                 sndngYn: sndngYnHtml
             });
         });
@@ -150,8 +147,6 @@
         excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.rcvrnm" text="수신자"/>', name: 'rcvrnm', align: 'center', width: '4000'});
         excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.stdntNo" text="학번"/>', name: 'stdntNo', align: 'center', width: '4000'});
         excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.rprsId" text="대표 ID"/>', name: 'userRprsId2', align: 'center', width: '4000'});
-        excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.mblPhn" text="휴대폰번호"/>', name: 'mblPhn', align: 'center', width: '5000'});
-        excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.eml" text="이메일"/>', name: 'eml', align: 'center', width: '6000'});
         excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.sndngYn" text="발송"/>', name: 'sndngYn', align: 'center', width: '3000'});
 
         let form = $("<form></form>");
@@ -181,17 +176,17 @@
         html += '<div class="table_list">';
         html += '<ul class="list"><li class="head"><label><spring:message code="msg.shrtnt.label.ttl" text="제목"/></label></li>';
         html += '<li>' + UiComm.escapeHtml(detailData.ttl || '') + '</li></ul>';
-        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvSndngDttm2" text="발신예약일시"/></label></li>';
+        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvSndngDttm" text="발신예약일시"/></label></li>';
         html += '<li>' + UiComm.formatDate(detailData.rsrvSndngSdttm, 'datetime') + '</li></ul>';
         html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rcvrnm" text="수신자"/></label></li>';
         html += '<li>' + rcvrCntVal + '</li></ul>';
-        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.cnclr" text="예약취소자"/></label></li>';
+        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvCnclUser" text="예약취소자"/></label></li>';
         html += '<li>' + UiComm.escapeHtml(detailData.sndngnm || '') + '</li></ul>';
-        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.cnclDttm" text="예약취소일시"/></label></li>';
+        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvCnclDttm" text="예약취소일시"/></label></li>';
         html += '<li>' + nowStr + '</li></ul>';
         html += '</div>';
         html += '<div class="btns" style="margin-top:15px;">';
-        html += '<button type="button" class="btn type1" onclick="fn_rsrvCnclSubmit()"><spring:message code="msg.shrtnt.label.cnclBtn" text="취소하기"/></button>';
+        html += '<button type="button" class="btn type1" onclick="fn_rsrvCnclSubmit()"><spring:message code="msg.shrtnt.label.rsrvCnclBtn" text="취소하기"/></button>';
         html += '<button type="button" class="btn type2" onclick="rsrvCnclDlg.close()"><spring:message code="msg.shrtnt.label.closeBtn" text="닫기"/></button>';
         html += '</div>';
         html += '</div>';
@@ -290,10 +285,6 @@
                                 <li class="head"><label><spring:message code="msg.shrtnt.label.sndngnm" text="발신자"/></label></li>
                                 <li id="sndngnm"></li>
                             </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.sndngrPhnno" text="발신자 번호"/></label></li>
-                                <li id="sndngrPhnno">-</li>
-                            </ul>
                         </div>
 
                         <!-- 받는 사람 목록 -->
@@ -315,8 +306,6 @@
                                 {title:"<spring:message code='msg.shrtnt.col.rcvrnm' text='수신자'/>",     field:"rcvrnm",      headerHozAlign:"center", hozAlign:"center", width:100, minWidth:80},
                                 {title:"<spring:message code='msg.shrtnt.col.stdntNo' text='학번'/>",      field:"stdntNo",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:80},
                                 {title:"<spring:message code='msg.shrtnt.col.rprsId' text='대표 ID'/>",    field:"userRprsId2", headerHozAlign:"center", hozAlign:"center", width:100, minWidth:80},
-                                {title:"<spring:message code='msg.shrtnt.col.mblPhn' text='휴대폰번호'/>", field:"mblPhn",      headerHozAlign:"center", hozAlign:"center", width:120, minWidth:100},
-                                {title:"<spring:message code='msg.shrtnt.col.eml' text='이메일'/>",        field:"eml",         headerHozAlign:"center", hozAlign:"left",   width:180, minWidth:140},
                                 {title:"<spring:message code='msg.shrtnt.col.sndngYn' text='발송'/>",      field:"sndngYn",     headerHozAlign:"center", hozAlign:"center", width:60,  minWidth:50, formatter:"html"}
                             ]
                         });

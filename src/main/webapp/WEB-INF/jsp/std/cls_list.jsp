@@ -45,19 +45,28 @@
                             <div class="item">
                                 <span class="item_tit"><label for="srchYear">학년도/학기</label></span>
                                 <div class="itemList">
-                                    <% pageContext.setAttribute("currentYear", java.time.Year.now().getValue()); %>
-                                    <c:set var="selectedYr" value="${empty vo.searchYr ? currentYear : vo.searchYr}"/>
-                                    <c:set var="selectedSm" value="${empty vo.searchSmstr ? '1' : vo.searchSmstr}"/>
+
+                                    <c:set var="selectedYr" value="${vo.searchYr}"/>
+                                    <c:set var="selectedSm" value="${vo.searchSmstr}"/>
 
                                     <select class="form-select" id="srchYear" name="searchYr">
-                                        <c:forEach var="year" begin="${currentYear - 3}" end="${currentYear}" step="1">
-                                            <option value="${year}" <c:if test="${selectedYr == year.toString()}">selected</c:if>>${year}년</option>
+                                        <c:forEach var="item" items="${yearList}">
+                                            <option value="${item}" ${item eq selectedYr ? 'selected' : ''}>${item}년</option>
                                         </c:forEach>
                                     </select>
+
                                     <select class="form-select" id="srchTerm" name="searchSmstr">
-                                        <option value="1" <c:if test="${selectedSm == '1'}">selected</c:if>>1학기</option>
-                                        <option value="2" <c:if test="${selectedSm == '2'}">selected</c:if>>2학기</option>
+                                        <option value="">학기 선택</option>
+                                        <c:forEach var="item" items="${termList}">
+                                            <c:if test="${item.codeCd eq '10' or item.codeCd eq '20'}">
+                                                <c:set var="termValue" value="${item.codeCd eq '20' ? '2' : '1'}"/>
+                                                <option value="${termValue}" ${termValue eq selectedSm ? 'selected' : ''}>
+                                                    <c:out value="${item.codeNm}" />
+                                                </option>
+                                            </c:if>
+                                        </c:forEach>
                                     </select>
+
                                 </div>
                             </div>
 

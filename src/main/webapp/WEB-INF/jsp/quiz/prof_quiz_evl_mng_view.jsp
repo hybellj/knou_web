@@ -135,7 +135,7 @@
 						mng += "<a href='javascript:quizExampprEvlPopup(\"" + v.examDtlId + "\", \"" + v.userId + "\")' class='btn basic small'>시험지보기</a>";
 					}
 					mng += "<a href='javascript:quizTkexamHstryPopup(\"" + v.examDtlId + "\", \"" + v.userId + "\")' class='btn basic small'>응시기록</a>";
-					mng += "<a href='javascript:memoPopup(\"" + v.tkexamId + "\", \"" + v.userId + "\")' class='btn basic small'>메모</a>";
+					mng += "<a href='javascript:memoPopup(\"" + v.examDtlId + "\", \"" + v.tkexamId + "\", \"" + v.userId + "\")' class='btn basic small'>메모</a>";
 
 					dataList.push({
 						no: 				v.lineNo,
@@ -323,18 +323,18 @@
 
 		/**
 		 * 메모팝업
+		 * @param {String}  examDtlId 	- 시험상세아이디
 		 * @param {String}  tkexamId 	- 시험응시아이디
 		 * @param {String}  userId 		- 사용자아이디
 		 */
-		function memoPopup(tkexamId, userId) {
-			var data = "examBscId=${vo.examBscId}&tkexamId="+tkexamId+"&userId="+userId;
+		function memoPopup(examDtlId, tkexamId, userId) {
+			var data = "examBscId=${vo.examBscId}&examDtlId="+examDtlId+"&tkexamId="+tkexamId+"&userId="+userId;
 
 			dialog = UiDialog("dialog1", {
 				title: "메모",
 				width: 600,
-				height: 300,
-				url: "/quiz/profQuizMemoPopup.do?"+data,
-				autoresize: true
+				height: 350,
+				url: "/quiz/profQuizMemoPopup.do?"+data
 			});
 		}
 
@@ -570,6 +570,14 @@
 				url: "/quiz/profQuizExampprBulkPrintPopup.do?"+data,
 				autoresize: true
 			});
+		}
+
+		// 수강생 전체 버튼
+		function resetListSelect() {
+			$("#tkexamCmptnyn").val('').trigger('chosen:updated');
+			$("#evlyn").val('').trigger("chosen:updated");
+			$("#searchValue").val("");
+			quizTkexamListSelect();
 		}
 	</script>
 </head>
@@ -808,7 +816,7 @@
                         	</colgroup>
                         	<tbody>
                         		<tr>
-                        			<th>일괄 성적처리</th>
+                        			<th class="flex-item-center">일괄 성적처리</th>
                         			<td>
                         				<form id="scoreForm" onsubmit="return false;">
 	                        				<div class="form-inline">

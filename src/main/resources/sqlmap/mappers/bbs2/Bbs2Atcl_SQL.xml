@@ -549,7 +549,8 @@
 		    		LEFT 	JOIN 	TB_LMS_USER U ON U.USER_ID = BA.USER_ID
 		    		LEFT 	JOIN 	REPLY_ATCL RA ON RA.UP_ATCL_ID = BA.ATCL_ID
 		    WHERE 	1 = 1
-		    		AND	ADM.USER_ID = #{userId}
+		    		AND		ADM.USER_ID = #{userId}
+		    		AND		S.SBJCT_ID = #{subjectId}
 		) WHERE RN &lt;= #{limitTop}
 	</select>
 	

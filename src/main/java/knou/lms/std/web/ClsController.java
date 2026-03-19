@@ -2,6 +2,7 @@ package knou.lms.std.web;
 
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
+import knou.framework.util.DateTimeUtil;
 import knou.framework.util.ExcelUtilPoi;
 import knou.framework.exception.AccessDeniedException;
 import knou.framework.util.ValidationUtils;
@@ -10,6 +11,7 @@ import knou.lms.std.vo.*;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.crs.term.service.TermService;
 import knou.lms.crs.term.vo.TermVO;
+import knou.lms.org.service.OrgCodeService;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.vo.UsrDeptCdVO;
 import org.apache.commons.collections.map.ListOrderedMap;
@@ -51,6 +53,9 @@ public class ClsController extends ControllerBase {
     @Resource(name = "usrDeptCdService")
     private UsrDeptCdService usrDeptCdService;
 
+    @Resource(name = "orgCodeService")
+    private OrgCodeService orgCodeService;
+
     /*****************************************************
      * B0102060101 - 전체수업현황 목록 화면
      ******************************************************/
@@ -76,12 +81,7 @@ public class ClsController extends ControllerBase {
                     vo.setSearchYr(termVO.getHaksaYear());
                 }
                 if (vo.getSearchSmstr() == null || vo.getSearchSmstr().isEmpty()) {
-                    String haksaTerm = termVO.getHaksaTerm();
-                    if ("20".equals(haksaTerm) || "21".equals(haksaTerm) || "2".equals(haksaTerm)) {
-                        vo.setSearchSmstr("2");
-                    } else {
-                        vo.setSearchSmstr("1");
-                    }
+                    vo.setSearchSmstr(termVO.getHaksaTerm());
                 }
             }
         }
@@ -90,7 +90,7 @@ public class ClsController extends ControllerBase {
             vo.setSearchYr(String.valueOf(java.time.Year.now().getValue()));
         }
         if (vo.getSearchSmstr() == null || vo.getSearchSmstr().isEmpty()) {
-            vo.setSearchSmstr("1");
+            vo.setSearchSmstr("10");
         }
 
         if (vo.getPageIndex() < 1) vo.setPageIndex(1);
@@ -109,6 +109,9 @@ public class ClsController extends ControllerBase {
         model.addAttribute("subjectList", clsService.selectClsSubjectList(vo));
         model.addAttribute("resultList", resultVO.getReturnList());
         model.addAttribute("pageInfo", resultVO.getPageInfo());
+
+        model.addAttribute("yearList", DateTimeUtil.getYearList(10, "mix"));
+        model.addAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
         model.addAttribute("vo", vo);
 
         return "std/cls_list";
@@ -212,7 +215,6 @@ public class ClsController extends ControllerBase {
         model.addAttribute("sbjctId", vo.getSbjctId());
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
 
-        //WHOL_WK_CNT 조회
         ClsVO clsVO = new ClsVO();
         clsVO.setSbjctId(vo.getSbjctId());
         clsVO.setOrgId(sessionOrgId);
@@ -239,7 +241,6 @@ public class ClsController extends ControllerBase {
         if (vo.getPageScale() <= 0) vo.setPageScale(10);
 
         try {
-            // wkList 세팅은 ServiceImpl의 setDefaultWkList()에서 처리
             resultVO = clsService.selectClsStdntListPaging(vo);
             if (resultVO.getResult() >= 0) {
                 resultVO.setResultSuccess();
@@ -303,7 +304,7 @@ public class ClsController extends ControllerBase {
     }
 
     /*****************************************************
-     * 특정 주차 미학습자 팝업 화면을 조회한다.
+     * 특정 주차 미학습자 팝업 화면
      ******************************************************/
     @RequestMapping(value = "/selectNotLrnnPopupView.do")
     public String selectNotLrnnPopupView(ClsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -314,7 +315,7 @@ public class ClsController extends ControllerBase {
     }
 
     /*****************************************************
-     * 수강생 주차별 학습현황 팝업 화면을 조회한다.
+     * 수강생 주차별 학습현황 팝업 화면
      ******************************************************/
     @RequestMapping(value = "/selectStdntWkPopupView.do")
     public String selectStdntWkPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -326,7 +327,7 @@ public class ClsController extends ControllerBase {
     }
 
     /*****************************************************
-     * 학습요소 제출/참여현황 팝업 화면을 조회한다.
+     * 학습요소 제출/참여현황 팝업 화면
      ******************************************************/
     @RequestMapping(value = "/selectStdntElemPopupView.do")
     public String selectStdntElemPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -344,7 +345,6 @@ public class ClsController extends ControllerBase {
 
         vo.setOrgId(SessionInfo.getOrgId(request));
 
-        // 엑셀 다운로드 시에도 wkList 반드시 세팅 (ServiceImpl을 거치지 않고 직접 호출하는 경우 대비)
         String wkNoParam = request.getParameter("wkNo");
         if (wkNoParam != null && !wkNoParam.trim().isEmpty()) {
             try {
@@ -360,10 +360,8 @@ public class ClsController extends ControllerBase {
 
         List<ClsStdntVO> list;
         if (vo.getWkNo() > 0) {
-            // 특정 주차 미학습자 (wkList 불필요)
             list = clsService.selectClsNoStudyWeek(vo);
         } else {
-            // 전체 수강생 주차별 (wkList 필요 → 이미 세팅됨)
             list = clsService.selectClsStdntList(vo);
         }
 
@@ -455,14 +453,6 @@ public class ClsController extends ControllerBase {
         vo.setOrgId(SessionInfo.getOrgId(request));
 
         try {
-            LOGGER.debug("[ElemExcel] sbjctId={}, keyword={}, orgId={}, excelGridLen={}",
-                    vo.getSbjctId(),
-                    vo.getKeyword(),
-                    vo.getOrgId(),
-                    (vo.getExcelGrid() == null ? 0 : vo.getExcelGrid().length())
-            );
-
-            // excelGrid 없으면 기본값 주입
             if (vo.getExcelGrid() == null || vo.getExcelGrid().trim().isEmpty()) {
                 String defaultGrid =
                         "{\"colModel\":["
@@ -527,13 +517,9 @@ public class ClsController extends ControllerBase {
             throw e;
         }
     }
-    // ================================================================
-    // 아래 메서드들을 기존 ClsController.java 에 추가하세요
-    // ================================================================
 
     /*****************************************************
      * 수강생 상세정보 단건 조회 (Ajax)
-     * 팝업: cls_stdnt_weekly_popup.jsp
      ******************************************************/
     @RequestMapping(value = "/selectClsStdntInfo.do")
     @ResponseBody
@@ -557,7 +543,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 강의실 접속현황 일별 차트 데이터 조회 (Ajax)
-     * 팝업: cls_stdnt_weekly_popup.jsp
      ******************************************************/
     @RequestMapping(value = "/selectStdntAccessChart.do")
     @ResponseBody
@@ -567,7 +552,6 @@ public class ClsController extends ControllerBase {
 
         vo.setOrgId(SessionInfo.getOrgId(request));
 
-        // 조회 년월 기본값: 현재 년월
         if (vo.getYyyymm() == null || vo.getYyyymm().isEmpty()) {
             vo.setYyyymm(new SimpleDateFormat("yyyyMM").format(new Date()));
         }
@@ -586,7 +570,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 강의실 활동기록 목록 조회 (Ajax, 페이징)
-     * 팝업: cls_stdnt_weekly_popup.jsp
      ******************************************************/
     @RequestMapping(value = "/selectStdntActivityLog.do")
     @ResponseBody
@@ -618,7 +601,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 강의실 활동기록 엑셀 다운로드
-     * 팝업: cls_stdnt_weekly_popup.jsp
      ******************************************************/
     @RequestMapping(value = "/selectStdntActivityLogExcelDown.do")
     public String selectStdntActivityLogExcelDown(ClsActivityLogVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -671,7 +653,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 학습자 주차별 학습현황 팝업 View
-     * URL: /cls/selectStdntWkDetailPopupView.do
      ******************************************************/
     @RequestMapping(value = "/selectStdntWkDetailPopupView.do")
     public String selectStdntWkDetailPopupView(ModelMap model, HttpServletRequest request) throws Exception {
@@ -681,7 +662,6 @@ public class ClsController extends ControllerBase {
         model.addAttribute("userId",   request.getParameter("userId"));
         model.addAttribute("wkNo",     request.getParameter("wkNo"));
 
-        // 추가
         ClsVO clsVO = new ClsVO();
         clsVO.setSbjctId(sbjctId);
         ClsVO clsDetail = clsService.selectClsDetail(clsVO);
@@ -690,9 +670,9 @@ public class ClsController extends ControllerBase {
 
         return "std/popup/cls_stdnt_wk_detail_popup";
     }
+
     /*****************************************************
-     * 주차 학습 요약 + 차시 목록 + 3분 로그 조회 (Ajax)
-     * URL: /cls/selectStdntWkLrnSummary.do
+     * 주차 학습 요약 + 차시 목록 + 학습 로그 조회 (Ajax)
      ******************************************************/
     @RequestMapping(value = "/selectStdntWkLrnSummary.do")
     @ResponseBody
@@ -702,14 +682,12 @@ public class ClsController extends ControllerBase {
         try {
             ClsWkLrnVO result = clsService.selectStdntWkLrnSummary(vo);
 
-            // 차시 목록 조회
             List<ClsChsiLrnVO> chsiList = clsService.selectStdntChsiLrnList(vo);
 
-            // 각 차시별 3분 로그 조회 후 세팅
             if (chsiList != null) {
                 for (ClsChsiLrnVO chsi : chsiList) {
                     ClsLrnLogVO logParam = new ClsLrnLogVO();
-                    logParam.setChsiSchdlId(chsi.getChsiSchdlId());
+                    logParam.setCntntsId(chsi.getCntntsId());
                     logParam.setUserId(vo.getUserId());
                     List<ClsLrnLogVO> logs = clsService.selectStdntLrnLog(logParam);
                     chsi.setLogList(logs);
@@ -730,7 +708,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 출석 처리 (Ajax)
-     * URL: /cls/updateAtndlcProcess.do
      ******************************************************/
     @RequestMapping(value = "/updateAtndlcProcess.do")
     @ResponseBody
@@ -758,14 +735,13 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 출석 처리 취소 (Ajax)
-     * URL: /cls/updateAtndlcCancel.do
      ******************************************************/
     @RequestMapping(value = "/updateAtndlcCancel.do")
     @ResponseBody
     public ProcessResultVO<Object> updateAtndlcCancel(ClsWkLrnVO vo, HttpServletRequest request) throws Exception {
         ProcessResultVO<Object> resultVO = new ProcessResultVO<>();
         vo.setOrgId(SessionInfo.getOrgId(request));
-        vo.setMdfrId(SessionInfo.getUserId(request));  // 수정자
+        vo.setMdfrId(SessionInfo.getUserId(request));
         try {
             int cnt = clsService.updateAtndlcCancel(vo);
             if (cnt > 0) {
@@ -785,7 +761,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 학습자 학습요소 참여현황 제출 목록 조회 (Ajax)
-     * URL: /cls/selectStdntElemSbmsnList.do
      ******************************************************/
     @RequestMapping(value = "/selectStdntElemSbmsnList.do")
     @ResponseBody
@@ -806,8 +781,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 과제 제출기록 조회 (Ajax)
-     * URL: /cls/selectStdntAsmtSbmsnLog.do
-     * 호출처: cls_stdnt_element_popup.jsp → loadSbmsnLog()
      ******************************************************/
     @RequestMapping(value = "/selectStdntElemSbmsnLog.do")
     @ResponseBody
@@ -832,7 +805,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 학습자 주차별 학습현황 단건 조회 (Ajax)
-     * 팝업: cls_stdnt_weekly_popup.jsp
      ******************************************************/
     @RequestMapping(value = "/selectClsStdntWeeklyInfo.do")
     @ResponseBody
@@ -843,7 +815,6 @@ public class ClsController extends ControllerBase {
         vo.setOrgId(SessionInfo.getOrgId(request));
 
         try {
-            // 파라미터 체크
             if (ValidationUtils.isEmpty(vo.getSbjctId()) || ValidationUtils.isEmpty(vo.getUserId())) {
                 throw new AccessDeniedException(getMessage("common.system.error"));
             }

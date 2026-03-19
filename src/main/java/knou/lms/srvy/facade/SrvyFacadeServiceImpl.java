@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -186,6 +187,35 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
 	@Override
 	public SrvyMainView loadProfSrvypprPreviewPopup(SrvyVO vo) throws Exception {
 		SrvyMainView srvyMainView = new SrvyMainView();
+
+		String upSrvyId = vo.getUpSrvyId() != null ? vo.getUpSrvyId() : vo.getSrvyId();
+		String srvyId = vo.getSrvyId();
+
+		// 설문조회
+		vo.setSrvyId(upSrvyId);
+        EgovMap srvyMap = srvyService.srvySelect(vo);
+        srvyId = vo.getUpSrvyId() != null ? srvyId : (String) srvyMap.get("subSrvyId");
+        srvyMap.put("subSrvyId", srvyId);
+        srvyMainView.setSrvyEgovMap(srvyMap);
+
+        // 팀 설문
+        if("SRVY_TEAM".equals(srvyMap.get("srvyGbn"))) {
+            // 설문팀목록조회
+        	srvyMainView.setSrvyTeamList(srvyService.srvyTeamList(upSrvyId));
+        }
+
+        // 설문지목록조회
+        srvyMainView.setSrvypprList(srvypprService.srvypprList(srvyId));
+
+        // 설문문항목록조회
+        srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList(srvyId));
+
+        // 설문보기항목일괄목록조회
+        srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList(srvyId));
+
+        // 설문문항보기항목레벨일괄조회
+        srvyMainView.setSrvyQstnVwitmLvlList(srvyQstnVwitmLvlService.srvyQstnVwitmLvlBulkList(srvyId));
+
 		return srvyMainView;
 	}
 
@@ -315,6 +345,12 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
 		srvyMainView.setSrvyQstnList(srvyQstnService.profQstnCopySrvyQstnList(vo));
 
 		return srvyMainView;
+	}
+
+	@Override
+	public void srvyQstnCopy(List<Map<String, Object>> list) throws Exception {
+		// 설문문항가져오기
+		srvyQstnService.srvyQstnCopy(list);
 	}
 
 	@Override

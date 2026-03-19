@@ -1,8 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="fnc" uri="http://localhost/common" %><!-- TODO: 차후 삭제 예정-->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -231,7 +231,7 @@
 				                                            <p class="tit">${item.atclTtl}</p>
 				                                            <p class="desc">
 				                                                <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
-				                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
+				                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
 				                                            </p>
 				                                        </a>
 				                                        <div class="state">
@@ -290,7 +290,7 @@
 				                                            <p class="tit">${item.atclTtl}​</p>
 				                                            <p class="desc">
 				                                                <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
-				                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
+				                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
 				                                            </p>
 				                                        </a>
 				                                        <div class="state">
@@ -541,11 +541,11 @@
 													                <p class="desc">
 													                    <c:choose>
 													                        <c:when test="${item.badge eq 'ALL'}">
-														                            <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
+														                            <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
 													                        </c:when>
 													                        <c:otherwise>
 													                            <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
-													                            <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
+													                            <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
 													                        </c:otherwise>
 													                    </c:choose>
 													                </p>
@@ -595,7 +595,7 @@
 													            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 													                <p class="tit">${item.atclTtl}</p>
 													                <p class="desc">
-													                    <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
+													                    <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
 													                </p>
 													            </a>
 													
@@ -608,7 +608,7 @@
 															            <c:otherwise>
 															            	<label class="label check_no">읽음</label>
 															            </c:otherwise>
-															    	</c:choose>
+																    	</c:choose>
 															    </div>													    	
 													        </li>													
 													        <!-- 카운터 증가 -->
@@ -644,7 +644,7 @@
 													                <p class="tit">${item.atclTtl}</p>
 													                <p class="desc">
 													                    <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
-													                    <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
+													                    <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
 													                </p>
 													            </a>
 													
@@ -738,7 +738,7 @@
                         </div>
 						<!-- //col-vertical -->						
 
-                        <!-- 강의과목 -->
+                        <!-- 강의과목목록 -->
                         <div class="box span-2 subject">
                             <div class="box_title">
                                 <i class="xi-arrows m_handle" aria-label="위젯 이동" role="button" tabindex="0" aria-grabbed="false"></i>
@@ -753,25 +753,26 @@
 
                                 <div class="btn-wrap">
                                     <select class="form-select">
-                                        <option value="2025년 2학기">2025년 2학기</option>
-                                        <option value="2025년 1학기">2025년 1학기</option>
+                                        <option value="2026년 2학기">2026년 2학기</option>
+                                        <option value="2026년 1학기">2026년 1학기</option>
                                     </select>
-                                    <a href="#0" class="btn_list_type" aria-label="리스트형 보기"><i class="icon-svg-list" aria-hidden="true"></i></a>
-                                    <a href="#0" class="btn_list_type on" aria-label="카드형 보기"><i class="icon-svg-grid" aria-hidden="true"></i></a><!-- 버튼 선택 on 클래스 추가 -->
+                                    <a href="#tab30" class="btn_list_type" aria-label="리스트형 보기"><i class="icon-svg-list" aria-hidden="true"></i></a>
+                                    <a href="#tab40" class="btn_list_type on" aria-label="카드형 보기"><i class="icon-svg-grid" aria-hidden="true"></i></a><!-- 버튼 선택 on 클래스 추가 -->
                                 </div>
                             </div>
 
-                            <div class="box_content">
+							<!-- 강의과목카드형 -->
+                            <div id="tab30" class="box_content">
                                 <div id="tab31" class="tab-content" style="display: block;">
-                                    <!-- 강의목록 -->
+                                    <!-- 전체강의목록 -->
                                     <ul class="lecture_list">
                                         <c:choose>
-										    <c:when test="${empty dashVM.profLctrSbjctSummaryList}">
-										        <li>강의과목이 없습니다</li>
+										    <c:when test="${empty dashVM.lctrSbjctSummaryList}">
+										        <li>[카드형]강의과목이 없습니다</li>
 										    </c:when>
 										    <c:otherwise>										    
 										    	<c:set var="cnt" value="0" />
-												<c:forEach var="item" items="${dashVM.profLctrSbjctSummaryList}">
+												<c:forEach var="item" items="${dashVM.lctrSbjctSummaryList}">
 												    <!-- 과목공지만 출력 -->
 				                                        <li>
 				                                            <div class="card_item">
@@ -790,7 +791,12 @@
 				                                                    <div class="info">
 				                                                        <p class="point">
 				                                                            <span class="tit">중간고사:</span>
-				                                                            <span>${item.midExamSdttm}</span>
+				                                                            <c:if test="${empty item.midExamSdttm}">
+				                                                            	<span>미정</span>
+				                                                            </c:if>
+				                                                            <c:if test="${not empty item.midExamSdttm}">
+				                                                            	<span><uiex:formatDate value="${item.midExamSdttm}" type="datetime"/></span>
+				                                                            </c:if>
 				                                                        </p>
 				                                                        <p class="desc">
 				                                                            <span class="tit">시간:</span>
@@ -800,7 +806,12 @@
 				                                                    <div class="info">
 				                                                        <p class="point">
 				                                                            <span class="tit">기말고사:</span>
-				                                                            <span>${item.lstExamSdttm}</span>
+				                                                            <c:if test="${empty item.lstExamSdttm}">
+				                                                            	<span>미정</span>
+				                                                            </c:if>
+				                                                            <c:if test="${not empty item.lstExamSdttm}">
+				                                                            	<span><uiex:formatDate value="${item.lstExamSdttm}" type="datetime"/></span>
+				                                                            </c:if>
 				                                                        </p>
 				                                                        <p class="desc">
 				                                                            <span class="tit">시간:</span>
@@ -816,15 +827,43 @@
 				                                                </div>
 				                                                <div class="bottom_button">
 				                                                   <div class="card_btns">
-				                                                        <a href="#0">공지<span>2</span></a>
-				                                                        <a href="#0">Q&A<span>2</span></a>
-				                                                        <a href="#0">1 : 1<span>2</span></a>
-				                                                        <a href="#0">과제<span>2</span></a>
-				                                                        <a href="#0">토론<span>2</span></a>
-				                                                        <a href="#0">세미나<span>2</span></a>
-				                                                        <a href="#0">퀴즈<span>2</span></a>
-				                                                        <a href="#0">설문<span>2</span></a>
-				                                                        <a href="#0">시험<span>2</span></a>
+				                                                   		<c:if test="${not empty item.ntcBbsId}">
+				                                                        	<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.ntcBbsId}">공지<span>${item.ntcCnt}</span></a>
+				                                                        </c:if>
+				                                                        <c:if test="${empty item.ntcBbsId}">
+				                                                        	<a href="#" style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">공지<span>0</span></a>	
+				                                                        </c:if>
+				                                                        
+			                                                        	<c:if test="${not empty item.qnaBbsId}">
+			                                                        		<c:if test="${item.qnaCnt != 0}">
+			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:red;">${item.qnaCnt}</span></a>
+			                                                        		</c:if>
+			                                                        		<c:if test="${item.qnaCnt == 0}">
+			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:#007bff;">${item.qnaCnt}</span></a>
+			                                                        		</c:if>
+			                                                        	</c:if>				                                                        	
+			                                                        	<c:if test="${empty item.qnaBbsId}">
+			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">Q&A<span>0</span></a>
+			                                                        	</c:if>
+			                                                        	
+			                                                        	<c:if test="${not empty item.oneononeBbsId}">
+			                                                        		<c:if test="${item.qnaCnt != 0}">
+			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:red;">${item.oneononeCnt}</span></a>
+			                                                        		</c:if>
+			                                                        		<c:if test="${item.qnaCnt == 0}">
+			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:#007bff;">${item.oneononeCnt}</span></a>
+			                                                        		</c:if>
+			                                                        	</c:if>				                                                        	
+			                                                        	<c:if test="${empty item.oneononeBbsId}">
+			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">1 : 1<span>0</span></a>
+			                                                        	</c:if>			                                                        	
+				                                                       	
+				                                                        <a href="/asmt2/profAsmtListView.do?subjectId=${item.subjectId}">과제<span>${item.asmtCnt}</span></a>
+				                                                        <a href="/forum2/forumLect/profForumListView.do?subjectId=${item.subjectId}">토론<span>${item.dscsCnt}</span></a>
+				                                                        <a href="/smnr/profSmnrListView.do?subjectId=${item.subjectId}">세미나<span>${item.smnrCnt}</span></a>
+				                                                        <a href="/quiz/profQuizListView.do?subjectId=${item.subjectId}">퀴즈<span>${item.quizCnt}</span></a>
+				                                                        <a href="/srvy/profSrvyListView.do?subjectId=${item.subjectId}">설문<span>${item.srvyCnt}</span></a>
+				                                                        <a href="/exam/profExamListView.do?subjectId=${item.subjectId}">시험<span>${item.examCnt}</span></a>
 				                                                    </div>
 				                                                </div>
 				                                            </div>
@@ -835,30 +874,166 @@
 		                                     
 		                                 </c:choose>
                                     </ul>
-                                    <!-- //강의목록 -->
+                                    <!-- //전체강의목록 -->
                                 </div>
 
                                 <div id="tab32" class="tab-content" style="display: none;">
-                                    <div class="no_content">
-                                        <div class="no_text">
-                                            <i class="icon-cont-none ico f170"></i>
-                                            <span>등록된 강의가 없습니다.</span>
-                                        </div>
-                                    </div>
-
+                                    <ul class="lecture_list">
+                                    	<li>[카드형] 대학원 강의과목이 없습니다</li>
+                                    </ul>
                                 </div>
 
                                 <div id="tab33" class="tab-content" style="display: none;">
-                                    학위과정 강의리스트
+                                    <ul class="lecture_list">
+                                    	<li>[카드형] 학위과정 강의과목이 없습니다</li>
+                                    </ul>
                                 </div>
 
                                 <div id="tab34" class="tab-content" style="display: none;">
-                                    평생교육 강의리스트
+                                    <ul class="lecture_list">
+                                    	<li>[카드형] 평생교육 강의과목이 없습니다</li>
+                                    </ul>
                                 </div>
                             </div>
+                            <!-- //강의과목카드형 -->
+                            
+                            <!-- 강의과목목록형 -->
+                            <div id="tab40" class="box_content" style="display: none;">
+                                <div id="tab31" class="tab-content" style="display: block;">
+                                    <!-- 전체강의목록 -->
+                                    <ul class="lecture_list2">
+	                                    <c:choose>
+											    <c:when test="${empty dashVM.lctrSbjctSummaryList}">
+											        <li>강의과목이 없습니다</li>
+											    </c:when>
+											    <c:otherwise>										    
+											    	<c:set var="cnt" value="0" />
+													<c:forEach var="item" items="${dashVM.lctrSbjctSummaryList}">
+				                                        <li>
+				                                            <div class="card_item">
+				                                                <div class="item_header">
+				                                                    <span class="label uniA">${item.orgnm}</span>
+				                                                    <div class="title_area">
+				                                                        <p class="info_detail">
+				                                                            <span class="info_txt">수강 ${item.atndlcCnt}명</span>
+				                                                            <span class="info_txt">튜터 ${item.tutUsernm}</span>
+				                                                            <span class="info_txt">${item.crdts}학점</span>
+				                                                        </p>
+				                                                        <p class="tit"><a href="/subject.do?subjectId=${item.subjectId}">${item.sbjctnm}</a></p>
+				                                                    </div>
+				                                                    <div class="extra">
+				                                                        <div class="my_prog_rate">
+				                                                            <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+				                                                            <div class="progress">
+				                                                                <div class="bar blue_type" style="width: 40%;"></div>
+				                                                            </div>
+				                                                        </div>
+				                                                        <div class="info">
+				                                                            <p class="point">
+				                                                                <span class="tit">중간고사:</span>
+				                                                                <c:if test="${empty item.midExamSdttm}">
+					                                                            	<span>미정</span>
+					                                                            </c:if>
+					                                                            <c:if test="${not empty item.midExamSdttm}">
+					                                                            	<span><uiex:formatDate value="${item.midExamSdttm}" type="datetime"/></span>
+					                                                            </c:if>
+				                                                            </p>
+				                                                            <p class="desc">
+				                                                                <span class="tit">시간:</span>
+				                                                                <span>${item.midExamMnts}분</span>
+				                                                            </p>
+				                                                        </div>
+				                                                        <div class="info">
+				                                                            <p class="point">
+				                                                                <span class="tit">기말고사:</span>
+					                                                            <c:if test="${empty item.lstExamSdttm}">
+					                                                            	<span>미정</span>
+					                                                            </c:if>
+					                                                            <c:if test="${not empty item.lstExamSdttm}">
+					                                                            	<span><uiex:formatDate value="${item.lstExamSdttm}" type="datetime"/></span>
+					                                                            </c:if>
+				                                                            </p>
+				                                                            <p class="desc">
+				                                                                <span class="tit">시간:</span>
+				                                                                <span>${item.lstExamMnts}분</span>
+				                                                            </p>
+				                                                        </div>
+				
+				                                                    </div>
+				                                                </div>
+				
+				                                                <div class="bottom_button">
+				                                                   <div class="card_btns">
+				                                                        <c:if test="${not empty item.ntcBbsId}">
+				                                                        	<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.ntcBbsId}">공지<span>${item.ntcCnt}</span></a>
+				                                                        </c:if>
+				                                                        <c:if test="${empty item.ntcBbsId}">
+				                                                        	<a href="#" style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">공지<span>0</span></a>	
+				                                                        </c:if>
+				                                                        
+			                                                        	<c:if test="${not empty item.qnaBbsId}">
+			                                                        		<c:if test="${item.qnaCnt != 0}">
+			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:red;">${item.qnaCnt}</span></a>
+			                                                        		</c:if>
+			                                                        		<c:if test="${item.qnaCnt == 0}">
+			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:#007bff;">${item.qnaCnt}</span></a>
+			                                                        		</c:if>
+			                                                        	</c:if>				                                                        	
+			                                                        	<c:if test="${empty item.qnaBbsId}">
+			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">Q&A<span>0</span></a>
+			                                                        	</c:if>
+			                                                        	
+			                                                        	<c:if test="${not empty item.oneononeBbsId}">
+			                                                        		<c:if test="${item.qnaCnt != 0}">
+			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:red;">${item.oneononeCnt}</span></a>
+			                                                        		</c:if>
+			                                                        		<c:if test="${item.qnaCnt == 0}">
+			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:#007bff;">${item.oneononeCnt}</span></a>
+			                                                        		</c:if>
+			                                                        	</c:if>				                                                        	
+			                                                        	<c:if test="${empty item.oneononeBbsId}">
+			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">1 : 1<span>0</span></a>
+			                                                        	</c:if>			                                                        	
+				                                                       	
+				                                                        <a href="/asmt2/profAsmtListView.do?subjectId=${item.subjectId}">과제<span>${item.asmtCnt}</span></a>
+				                                                        <a href="/forum2/forumLect/profForumListView.do?subjectId=${item.subjectId}">토론<span>${item.dscsCnt}</span></a>
+				                                                        <a href="/smnr/profSmnrListView.do?subjectId=${item.subjectId}">세미나<span>${item.smnrCnt}</span></a>
+				                                                        <a href="/quiz/profQuizListView.do?subjectId=${item.subjectId}">퀴즈<span>${item.quizCnt}</span></a>
+				                                                        <a href="/srvy/profSrvyListView.do?subjectId=${item.subjectId}">설문<span>${item.srvyCnt}</span></a>
+				                                                        <a href="/exam/profExamListView.do?subjectId=${item.subjectId}">시험<span>${item.examCnt}</span></a>
+				                                                    </div>
+				                                                </div>
+				                                            </div>
+				                                        </li>
+			                                	</c:forEach>			                                 
+	                                     	</c:otherwise>	                                     
+	                                 	</c:choose>
+                                   	</ul>
+                                   	<!-- //전체강의목록 -->
+                                </div>
+
+                                <div id="tab32" class="tab-content" style="display: none;">
+                                    <ul class="lecture_list2">
+                                    	<li>[목록형] 대학원 강의과목이 없습니다</li>
+                                    </ul>
+                                </div>
+
+                                <div id="tab33" class="tab-content" style="display: none;">
+                                    <ul class="lecture_list2">
+                                    	<li>[목록형] 학위과정 강의과목이 없습니다</li>
+                                    </ul>
+                                </div>
+
+                                <div id="tab34" class="tab-content" style="display: none;">
+                                    <ul class="lecture_list2">
+                                    	<li>[목록형] 평생교육 강의과목이 없습니다</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <!-- //강의과목목록형 -->
 
                         </div>
-                        <!-- //강의과목 -->                        
+                        <!-- //강의과목목록 -->                        
                         
                     </div>                    
                     <!-- //grid divided 위젯 영역 1, 2 분할: group -->                    

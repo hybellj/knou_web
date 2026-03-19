@@ -59,6 +59,8 @@ public interface SrvyFacadeService {
 
 	SrvyMainView getQstnCopySrvyQstnList(SrvyQstnVO vo) throws Exception;
 
+	void srvyQstnCopy(List<Map<String, Object>> list) throws Exception;
+
 	void srvyQstnRegist(SrvyQstnVO vo, String qstnsStr, String lvlsStr) throws Exception;
 
 	void srvyQstnModify(SrvyQstnVO vo, String qstnsStr, String lvlsStr) throws Exception;

@@ -79,6 +79,12 @@ public interface ForumJoinUserDAO {
 	// 모든 토론 참여자를 토론 참여자 테이블에 삽입
 	public void insertJoinUser(ForumVO vo) throws Exception;
 
+	// DSCS_PTCP 미등록 학생 목록 조회 (insertJoinUser loop용)
+	public List<ForumJoinUserVO> selectStudentsNotInPtcp(ForumVO vo) throws Exception;
+
+	// 토론참여자 단건 INSERT (PK: DSCS_PTCP_ID IdGenerator 사용)
+	public int insertForumJoinUser(ForumJoinUserVO vo) throws Exception;
+
 	// 참여형 일괄평가
 	public void participateScore(ForumJoinUserVO vo) throws Exception;
 	
