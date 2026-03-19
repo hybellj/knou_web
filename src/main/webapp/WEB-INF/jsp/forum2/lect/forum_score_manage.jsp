@@ -124,7 +124,6 @@
 
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
-					debugger;
 					var returnList = data.returnList || [];
 					var html = "";
 					var stdNos = $("#stdNos").val().split(",");
@@ -238,6 +237,14 @@
 			}, function(xhr, status, error) {
 				alert("<spring:message code='forum.common.error' />");/* 오류가 발생했습니다! */
 			}, true);
+		}
+		searchAll
+		// 수강생 전체 버튼
+		function searchAll() {
+			$("#searchKey").val('').trigger('chosen:updated');
+			$("#searchSort").val('').trigger("chosen:updated");
+			$("#searchValue").val("");
+			listForumUser(1);
 		}
 
 		//목록
@@ -1085,6 +1092,21 @@
 						<jsp:include page="/WEB-INF/jsp/forum2/common/forum_info_inc.jsp" />
 						<!-- 토론정보 끝 -->
 
+						<div class="board_top margin-top-4 padding-2 bcLgrey4">
+							<h4>토론평가</h4>
+							<div class="right-area">
+								<%-- <c:if test="${!fn:contains(authGrpCd, 'TUT') }"> --%>
+								<a href="javascript:ezGraderPop()" class="ui basic small button mla">EZ-Grader</a>
+								<%-- </c:if> --%>
+								<%-- <a href="javascript:allFeedback()" class="ui button"><spring:message code="forum.button.all.feedback" /></a><!-- 일괄 피드백 --> --%>
+								<a href="javascript:callScoreExcelUpload()" class="ui basic small button"><spring:message code="forum.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
+
+								<%--<uiex:msgSendBtn func="sendMsg()" styleClass="ui basic small button"/><!-- 메시지 -->--%>
+								<a href="javascript:sendMsg()" class="btn basic small">보내기</a>
+								<a href="javascript:void(0)" class="ui basic small button" onclick="viewForumList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
+							</div>
+						</div>
+
 						<!-- 토론평가 검색:시작 -->
 						<div class="search-typeA margin-bottom-4">
 							<div class="text-center">
@@ -1103,54 +1125,14 @@
 									<option value="evalY"><spring:message code='forum.label.eval'/><!-- 평가 --></option>
 									<option value="evalN"><spring:message code='forum.label.not.eval'/><!-- 미평가 --></option>
 								</select>
-								<div class="ui action input search-box">
-									<input type="text" placeholder="<spring:message code='forum.label.dept.nm' />, <spring:message code='forum.label.user.no' />, <spring:message code='forum.label.user_nm' /> <spring:message code='forum.label.input' />" class="w250" id="searchValue"><!-- 학과, 학번, 이름 입력 -->
-									<button class="ui icon button" onclick="listForumUser(1)"><i class="search icon"></i></button>
-								</div>
-								<%-- <c:if test="${!fn:contains(authGrpCd, 'TUT') }"> --%>
-								<a href="javascript:ezGraderPop()" class="ui basic small button mla">EZ-Grader</a>
-								<%-- </c:if> --%>
-								<%-- <a href="javascript:allFeedback()" class="ui button"><spring:message code="forum.button.all.feedback" /></a><!-- 일괄 피드백 --> --%>
-								<a href="javascript:callScoreExcelUpload()" class="ui basic small button"><spring:message code="forum.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
-
-								<%--<uiex:msgSendBtn func="sendMsg()" styleClass="ui basic small button"/><!-- 메시지 -->--%>
-								<a href="javascript:sendMsg()" class="btn basic small">보내기</a>
-								<a href="javascript:void(0)" class="ui basic small button" onclick="viewForumList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
+								<input type="text" placeholder="<spring:message code='forum.label.dept.nm' />, <spring:message code='forum.label.user.no' />, <spring:message code='forum.label.user_nm' /> <spring:message code='forum.label.input' />" class="w250" id="searchValue"><!-- 학과, 학번, 이름 입력 -->
+								<button type="button" class="btn type1" onclick="listForumUser(1)"><spring:message code='common.button.search'/><!--검색--></button>
+								<button type="button" class="btn type1" onclick="searchAll()"><spring:message code='forum.button.std.all.search'/><!--수강생 전체--></button>
 							</div>
 						</div>
 						<!-- 토론평가 검색:끝 -->
 
 						<!-- 토론평가 점수처리 영역:시작 -->
-						<%--<table class="table-type1 fs-14px">
-							<colgroup>
-								<col class="width-20per" />
-								<col class="" />
-							</colgroup>
-							<tbody>
-							<tr>
-								<th>일괄 성적처리</th>
-								<td>
-									<form id="scoreForm" onsubmit="return false;">
-										<div class="form-inline">
-												<span class="custom-input">
-													<input type="radio" name="scoreType" id="scoreBatch" onchange="plusMinusIconControl(this.value)" value="batch" required="true" />
-													<label for="scoreBatch">점수 등록</label>
-												</span>
-											<span class="custom-input">
-													<input type="radio" name="scoreType" id="scoreAddition" onchange="plusMinusIconControl(this.value)" value="addition" required="true" />
-													<label for="scoreAddition">점수 가감</label>
-												</span>
-											점수
-											<button class='btn small basic icon' id="scr-toggle-icon"><i class='xi-plus'></i></button>
-											<input type="text" id="scoreValue" class="w100" inputmask="numeric" mask="999.99" maxVal="100" required="true" />
-											점
-											<a href="javascript:EvlScrBulkModify()" class="btn type7">저장</a>
-										</div>
-									</form>
-								</td>
-							</tr>
-							</tbody>
-						</table>--%>
 						<c:if test="${!fn:contains(authGrpCd, 'TUT') }">
 							<div class="ui segment">
 								<div class="ui form">
@@ -1383,23 +1365,15 @@
 								<!-- 피드백 끝 -->
 							</div>
 						</div>
+						<!-- 토론평가 점수처리 영역:끝 -->
+
+						<!-- 검색결과 영역-버튼들:시작 -->
 						<div class="board_top margin-top-4">
 							<div class="right-area">
 								<%-- <div class="sec_head mra"><spring:message code="forum.label.submit.status" /><!-- 토론현황 --></div> --%>
 								<a href="javascript:forumChartView()" class="ui blue button"><spring:message code="forum.label.submit.status" /></a><!-- 토론현황 -->
 								<h4 class="ml5">(<spring:message code="common.page.total" /><!-- 총 -->&nbsp;:&nbsp;<span id="totalCntText">0</span><spring:message code="message.person" /><!-- 명 -->)</h4>
 								<a href="javascript:forumExcelDown()" class="ui blue button mla"><spring:message code="forum.label.excel.download" /></a><!-- 엑셀다운로드 -->
-							</div>
-						</div>
-						<!-- 토론평가 점수처리 영역:끝 -->
-
-						<!-- 검색결과 영역-버튼들:시작 -->
-						<div class="board_top margin-top-4">
-							<div class="right-area">
-								<a href="javascript:quizExampprBulkPrintPopup()" class="btn type1">시험지 일괄 인쇄</a>
-								<a href="javascript:quizExampprBlukExcelDown()" class="btn type1">시험지 일괄 엑셀 다운로드</a>
-								<a href="javascript:quizTkexamStatusExcelDown()" class="btn type1">엑셀 다운로드</a>
-								<a href="javascript:quizChartPop()" class="btn type1">응시현황 그래프</a>
 							</div>
 						</div>
 						<!-- 검색결과 영역-버튼들:끝 -->
