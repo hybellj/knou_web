@@ -318,10 +318,19 @@ public class ClsController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/selectStdntWkPopupView.do")
     public String selectStdntWkPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        model.addAttribute("sbjctId", request.getParameter("sbjctId"));
+        String sbjctId = request.getParameter("sbjctId");
+
+        model.addAttribute("sbjctId", sbjctId);
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
         model.addAttribute("userId", request.getParameter("userId"));
         model.addAttribute("wkNo", request.getParameter("wkNo"));
+
+        ClsVO clsVO = new ClsVO();
+        clsVO.setSbjctId(sbjctId);
+        ClsVO clsDetail = clsService.selectClsDetail(clsVO);
+        int wkCnt = (clsDetail != null && clsDetail.getWkCnt() > 0) ? clsDetail.getWkCnt() : 15;
+        model.addAttribute("wkCnt", wkCnt);
+
         return "std/popup/cls_stdnt_weekly_popup";
     }
 

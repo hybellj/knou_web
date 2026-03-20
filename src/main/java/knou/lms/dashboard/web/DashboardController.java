@@ -2256,6 +2256,7 @@ public class DashboardController extends ControllerBase {
                     result.put("dataList", jsonCts); // JS에서 사용할 위젯 배열 데이터
                     result.put("masterInfo", widgetInfo); // 나머지 기본 정보들
 
+                    /*
                     // 과목 접속자 수 조회
                     EgovMap lgnUsrCnt = dashboardService.lgnUsrCntSelect(vo);
                     result.put("lgnUsrCnt", lgnUsrCnt);
@@ -2267,6 +2268,7 @@ public class DashboardController extends ControllerBase {
                     // 과목 리스트 조희
 					List<EgovMap> sbjctList = dashboardService.sbjctList(vo);
                     result.put("sbjctList", sbjctList);
+                    */
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -2441,6 +2443,118 @@ public class DashboardController extends ControllerBase {
     	model.addAttribute("menuId", menuId);
 
     	return "dashboard/main_tabpage";
+    }
 
+
+    /**
+     * 교수 Today 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/profWidgetToday.do")
+    public String profWidgetToday(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+    	int lgnUsrCnt = 1;
+    	int totStdntCnt = 10;
+    	String todayDate = DateTimeUtil.getCurrentString("yyyy.MM.dd");
+
+    	model.addAttribute("lgnUsrCnt", lgnUsrCnt);
+    	model.addAttribute("totStdntCnt", totStdntCnt);
+    	model.addAttribute("todayDate", todayDate);
+
+    	return "dashboard/widget/prof_widget_today";
+    }
+
+    /**
+     * 교수 이달의 학사일정 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/profWidgetSchedule.do")
+    public String profWidgetSchedule(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/prof_widget_schedule";
+    }
+
+    /**
+    * 교수 강의Q&A 위젯
+    * @param request
+    * @param model
+    * @return
+    * @throws Exception
+    */
+   @RequestMapping(value = "/profWidgetQna.do")
+   public String profWidgetQna(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+	   // TODO 처리 로직 추가
+
+	   return "dashboard/widget/prof_widget_qna";
+   }
+
+    /**
+     * 교수 공지사항 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/profWidgetNotice.do")
+    public String profWidgetNotice(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/prof_widget_notice";
+    }
+
+    /**
+     * 교수 1:1상담 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/profWidgetCounsel.do")
+    public String profWidgetCounsel(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/prof_widget_counsel";
+    }
+
+    /**
+     * 교수 알림(메시지) 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/profWidgetMsg.do")
+    public String profWidgetMsg(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/prof_widget_msg";
+    }
+
+    /**
+     * 교수 강의과목 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/profWidgetSubject.do")
+    public String profWidgetSubject(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/prof_widget_subject";
     }
 }

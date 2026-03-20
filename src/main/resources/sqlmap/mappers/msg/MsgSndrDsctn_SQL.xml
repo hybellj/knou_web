@@ -6,11 +6,11 @@
     <sql id="unionAllChannels">
         /* 이메일 채널 */
         SELECT 'EML' AS SNDNG_GBNCD
-             , E.MSG_ID
-             , E.RCVR_ID
-             , E.SNDNG_RSLT_CD
-             , E.SNDNG_DTTM
-             , 'Y' AS SNDNG_YN
+        , E.MSG_ID
+        , E.RCVR_ID
+        , E.SNDNG_RSLT_CD
+        , E.SNDNG_DTTM
+        , 'Y' AS SNDNG_YN
         FROM TB_LMS_MSG_EML_SNDNG E
         WHERE 1 = 1
         <if test="sndngGbncds != null and sndngGbncds.length > 0">
@@ -22,11 +22,11 @@
         UNION ALL
         /* 모바일 채널 (PUSH/ALIMTALK/SMS/LMS) */
         SELECT M.MBL_SNDNG_TYCD AS SNDNG_GBNCD
-             , M.MSG_ID
-             , M.RCVR_ID
-             , M.SNDNG_RSLT_CD
-             , M.SNDNG_DTTM
-             , 'Y' AS SNDNG_YN
+        , M.MSG_ID
+        , M.RCVR_ID
+        , M.SNDNG_RSLT_CD
+        , M.SNDNG_DTTM
+        , 'Y' AS SNDNG_YN
         FROM TB_LMS_MSG_MBL_SNDNG M
         WHERE 1 = 1
         <if test="sndngGbncds != null and sndngGbncds.length > 0">
@@ -38,11 +38,11 @@
         UNION ALL
         /* 쪽지 채널 */
         SELECT 'SHRTNT' AS SNDNG_GBNCD
-             , S.MSG_ID
-             , S.RCVR_ID
-             , 'SUCCESS' AS SNDNG_RSLT_CD
-             , S.SNDNG_DTTM
-             , 'Y' AS SNDNG_YN
+        , S.MSG_ID
+        , S.RCVR_ID
+        , 'SUCCESS' AS SNDNG_RSLT_CD
+        , S.SNDNG_DTTM
+        , S.SNDNGYN AS SNDNG_YN
         FROM TB_LMS_MSG_SHRTNT_SNDNG S
         WHERE S.SNDNGR_DELYN = 'N'
         <if test="sndngGbncds != null and sndngGbncds.length > 0">
@@ -54,18 +54,18 @@
         UNION ALL
         /* 미발송 예약 메시지 */
         SELECT 'RSRV' AS SNDNG_GBNCD
-             , RM.MSG_ID
-             , RT.USER_ID AS RCVR_ID
-             , '' AS SNDNG_RSLT_CD
-             , RM.RSRV_SNDNG_SDTTM AS SNDNG_DTTM
-             , 'N' AS SNDNG_YN
+        , RM.MSG_ID
+        , RT.USER_ID AS RCVR_ID
+        , '' AS SNDNG_RSLT_CD
+        , RM.RSRV_SNDNG_SDTTM AS SNDNG_DTTM
+        , 'N' AS SNDNG_YN
         FROM TB_LMS_MSG RM
         INNER JOIN TB_LMS_MSG_RCV_TRGTR RT ON RM.MSG_ID = RT.MSG_ID
         WHERE RM.RSRV_SNDNG_SDTTM IS NOT NULL
-          AND RM.RSRV_SNDNG_CNCL_DTTM IS NULL
-          AND NOT EXISTS (SELECT 1 FROM TB_LMS_MSG_EML_SNDNG E2 WHERE E2.MSG_ID = RM.MSG_ID)
-          AND NOT EXISTS (SELECT 1 FROM TB_LMS_MSG_MBL_SNDNG M2 WHERE M2.MSG_ID = RM.MSG_ID)
-          AND NOT EXISTS (SELECT 1 FROM TB_LMS_MSG_SHRTNT_SNDNG S2 WHERE S2.MSG_ID = RM.MSG_ID)
+        AND RM.RSRV_SNDNG_CNCL_DTTM IS NULL
+        AND NOT EXISTS (SELECT 1 FROM TB_LMS_MSG_EML_SNDNG E2 WHERE E2.MSG_ID = RM.MSG_ID)
+        AND NOT EXISTS (SELECT 1 FROM TB_LMS_MSG_MBL_SNDNG M2 WHERE M2.MSG_ID = RM.MSG_ID)
+        AND NOT EXISTS (SELECT 1 FROM TB_LMS_MSG_SHRTNT_SNDNG S2 WHERE S2.MSG_ID = RM.MSG_ID)
     </sql>
 
     <sql id="searchCondition">
@@ -105,12 +105,12 @@
 
     <select id="selectSndrDsctnCnt" parameterType="MsgSndrDsctnVO" resultType="int">
         /*
-             SQL ID : MsgSndrDsctnDAO.selectSndrDsctnCnt
-             설  명 : 발송내역 목록 건수 조회
-         */
+        SQL ID : MsgSndrDsctnDAO.selectSndrDsctnCnt
+        설  명 : 발송내역 목록 건수 조회
+        */
         SELECT COUNT(*)
         FROM (
-            <include refid="unionAllChannels"/>
+        <include refid="unionAllChannels"/>
         ) CH
         INNER JOIN TB_LMS_MSG MSG ON CH.MSG_ID = MSG.MSG_ID
         LEFT JOIN TB_LMS_SBJCT SBJCT ON MSG.SBJCT_ID = SBJCT.SBJCT_ID
@@ -123,62 +123,62 @@
 
     <select id="selectSndrDsctnList" parameterType="MsgSndrDsctnVO" resultType="MsgSndrDsctnVO">
         /*
-             SQL ID : MsgSndrDsctnDAO.selectSndrDsctnList
-             설  명 : 발송내역 목록 조회
-         */
+        SQL ID : MsgSndrDsctnDAO.selectSndrDsctnList
+        설  명 : 발송내역 목록 조회
+        */
         SELECT *
         FROM (
-            SELECT ROWNUM AS RNUM, A.*
-            FROM (
-                SELECT CH.SNDNG_GBNCD
-                     , MSG.MSG_ID
-                     , SBJCT.SBJCT_YR
-                     , SBJCT.SBJCT_SMSTR
-                     , ORG.ORGNM
-                     , DEPT.DEPTNM
-                     , SBJCT.SBJCTNM
-                     , SBJCT.DVCLAS_NO
-                     , TRGTR.RCVRNM
-                     , TRGTR.RCVR_PHNNO AS RCVR_TELNO
-                     , CH.SNDNG_DTTM
-                     , CH.SNDNG_YN
-                     , CH.SNDNG_RSLT_CD
-                FROM (
-                    <include refid="unionAllChannels"/>
-                ) CH
-                INNER JOIN TB_LMS_MSG MSG ON CH.MSG_ID = MSG.MSG_ID
-                LEFT JOIN TB_LMS_SBJCT SBJCT ON MSG.SBJCT_ID = SBJCT.SBJCT_ID
-                LEFT JOIN TB_LMS_DEPT DEPT ON SBJCT.DEPT_ID = DEPT.DEPT_ID
-                LEFT JOIN TB_LMS_ORG ORG ON DEPT.ORG_ID = ORG.ORG_ID
-                LEFT JOIN TB_LMS_MSG_RCV_TRGTR TRGTR ON CH.MSG_ID = TRGTR.MSG_ID AND CH.RCVR_ID = TRGTR.USER_ID
-                WHERE 1 = 1
-                <include refid="searchCondition"/>
-                ORDER BY CH.SNDNG_DTTM DESC
-            ) A
-            WHERE ROWNUM <![CDATA[<=]]> #{lastIndex}
+        SELECT ROWNUM AS RNUM, A.*
+        FROM (
+        SELECT CH.SNDNG_GBNCD
+        , MSG.MSG_ID
+        , SBJCT.SBJCT_YR
+        , SBJCT.SBJCT_SMSTR
+        , ORG.ORGNM
+        , DEPT.DEPTNM
+        , SBJCT.SBJCTNM
+        , SBJCT.DVCLAS_NO
+        , TRGTR.RCVRNM
+        , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = CH.RCVR_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS RCVR_TELNO
+        , CH.SNDNG_DTTM
+        , CH.SNDNG_YN
+        , CH.SNDNG_RSLT_CD
+        FROM (
+        <include refid="unionAllChannels"/>
+        ) CH
+        INNER JOIN TB_LMS_MSG MSG ON CH.MSG_ID = MSG.MSG_ID
+        LEFT JOIN TB_LMS_SBJCT SBJCT ON MSG.SBJCT_ID = SBJCT.SBJCT_ID
+        LEFT JOIN TB_LMS_DEPT DEPT ON SBJCT.DEPT_ID = DEPT.DEPT_ID
+        LEFT JOIN TB_LMS_ORG ORG ON DEPT.ORG_ID = ORG.ORG_ID
+        LEFT JOIN TB_LMS_MSG_RCV_TRGTR TRGTR ON CH.MSG_ID = TRGTR.MSG_ID AND CH.RCVR_ID = TRGTR.USER_ID
+        WHERE 1 = 1
+        <include refid="searchCondition"/>
+        ORDER BY CH.SNDNG_DTTM DESC
+        ) A
+        WHERE ROWNUM <![CDATA[<=]]> #{lastIndex}
         )
         WHERE RNUM <![CDATA[>=]]> #{firstIndex}
     </select>
 
     <select id="selectSndrDsctnExcelList" parameterType="MsgSndrDsctnVO" resultType="MsgSndrDsctnVO">
         /*
-             SQL ID : MsgSndrDsctnDAO.selectSndrDsctnExcelList
-             설  명 : 발송내역 엑셀 목록 조회
-         */
+        SQL ID : MsgSndrDsctnDAO.selectSndrDsctnExcelList
+        설  명 : 발송내역 엑셀 목록 조회
+        */
         SELECT CH.SNDNG_GBNCD
-             , SBJCT.SBJCT_YR
-             , SBJCT.SBJCT_SMSTR
-             , ORG.ORGNM
-             , DEPT.DEPTNM
-             , SBJCT.SBJCTNM
-             , SBJCT.DVCLAS_NO
-             , TRGTR.RCVRNM
-             , TRGTR.RCVR_PHNNO AS RCVR_TELNO
-             , CH.SNDNG_DTTM
-             , CH.SNDNG_YN
-             , CH.SNDNG_RSLT_CD
+        , SBJCT.SBJCT_YR
+        , SBJCT.SBJCT_SMSTR
+        , ORG.ORGNM
+        , DEPT.DEPTNM
+        , SBJCT.SBJCTNM
+        , SBJCT.DVCLAS_NO
+        , TRGTR.RCVRNM
+        , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = CH.RCVR_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS RCVR_TELNO
+        , CH.SNDNG_DTTM
+        , CH.SNDNG_YN
+        , CH.SNDNG_RSLT_CD
         FROM (
-            <include refid="unionAllChannels"/>
+        <include refid="unionAllChannels"/>
         ) CH
         INNER JOIN TB_LMS_MSG MSG ON CH.MSG_ID = MSG.MSG_ID
         LEFT JOIN TB_LMS_SBJCT SBJCT ON MSG.SBJCT_ID = SBJCT.SBJCT_ID
@@ -192,29 +192,29 @@
 
     <select id="selectSndrDsctnSmry" parameterType="MsgSndrDsctnVO" resultType="MsgSndrDsctnVO">
         /*
-             SQL ID : MsgSndrDsctnDAO.selectSndrDsctnSmry
-             설  명 : 발송내역 채널별 요약 조회
-         */
+        SQL ID : MsgSndrDsctnDAO.selectSndrDsctnSmry
+        설  명 : 발송내역 채널별 요약 조회
+        */
         SELECT NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'PUSH' THEN 1 ELSE 0 END), 0) AS PUSH_TOTAL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'PUSH' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS PUSH_SUCC_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'PUSH' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS PUSH_FAIL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SHRTNT' THEN 1 ELSE 0 END), 0) AS SHRTNT_TOTAL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SHRTNT' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS SHRTNT_SUCC_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SHRTNT' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS SHRTNT_FAIL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'EML' THEN 1 ELSE 0 END), 0) AS EML_TOTAL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'EML' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS EML_SUCC_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'EML' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS EML_FAIL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'ALIM_TALK' THEN 1 ELSE 0 END), 0) AS ALIMTALK_TOTAL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'ALIM_TALK' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS ALIMTALK_SUCC_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'ALIM_TALK' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS ALIMTALK_FAIL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SMS' THEN 1 ELSE 0 END), 0) AS SMS_TOTAL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SMS' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS SMS_SUCC_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SMS' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS SMS_FAIL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'LMS' THEN 1 ELSE 0 END), 0) AS LMS_TOTAL_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'LMS' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS LMS_SUCC_CNT
-             , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'LMS' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS LMS_FAIL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'PUSH' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS PUSH_SUCC_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'PUSH' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS PUSH_FAIL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SHRTNT' THEN 1 ELSE 0 END), 0) AS SHRTNT_TOTAL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SHRTNT' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS SHRTNT_SUCC_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SHRTNT' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS SHRTNT_FAIL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'EML' THEN 1 ELSE 0 END), 0) AS EML_TOTAL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'EML' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS EML_SUCC_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'EML' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS EML_FAIL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'ALIM_TALK' THEN 1 ELSE 0 END), 0) AS ALIMTALK_TOTAL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'ALIM_TALK' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS ALIMTALK_SUCC_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'ALIM_TALK' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS ALIMTALK_FAIL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SMS' THEN 1 ELSE 0 END), 0) AS SMS_TOTAL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SMS' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS SMS_SUCC_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'SMS' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS SMS_FAIL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'LMS' THEN 1 ELSE 0 END), 0) AS LMS_TOTAL_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'LMS' AND CH.SNDNG_RSLT_CD = 'SUCCESS' THEN 1 ELSE 0 END), 0) AS LMS_SUCC_CNT
+        , NVL(SUM(CASE WHEN CH.SNDNG_GBNCD = 'LMS' AND CH.SNDNG_RSLT_CD = 'FAIL' THEN 1 ELSE 0 END), 0) AS LMS_FAIL_CNT
         FROM (
-            <include refid="unionAllChannels"/>
+        <include refid="unionAllChannels"/>
         ) CH
         INNER JOIN TB_LMS_MSG MSG ON CH.MSG_ID = MSG.MSG_ID
         LEFT JOIN TB_LMS_SBJCT SBJCT ON MSG.SBJCT_ID = SBJCT.SBJCT_ID
@@ -227,50 +227,50 @@
 
     <select id="selectSndrDsctnYrList" parameterType="MsgSndrDsctnVO" resultType="MsgSndrDsctnVO">
         /*
-             SQL ID : MsgSndrDsctnDAO.selectSndrDsctnYrList
-             설  명 : 발송내역 학사년도 목록 조회
-         */
+        SQL ID : MsgSndrDsctnDAO.selectSndrDsctnYrList
+        설  명 : 발송내역 학사년도 목록 조회
+        */
         SELECT DISTINCT S.SBJCT_YR
         FROM TB_LMS_SBJCT S
         INNER JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
         <if test="userId != null and userId != ''">
-        INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
+            INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
         </if>
         WHERE D.ORG_ID = #{orgId}
-          AND S.DELYN = 'N'
+        AND S.DELYN = 'N'
         ORDER BY S.SBJCT_YR DESC
     </select>
 
     <select id="selectSndrDsctnSmstrList" parameterType="MsgSndrDsctnVO" resultType="egovMap">
         /*
-             SQL ID : MsgSndrDsctnDAO.selectSndrDsctnSmstrList
-             설  명 : 발송내역 학기 목록 조회
-         */
+        SQL ID : MsgSndrDsctnDAO.selectSndrDsctnSmstrList
+        설  명 : 발송내역 학기 목록 조회
+        */
         SELECT DISTINCT TRIM(S.SBJCT_SMSTR) AS SBJCT_SMSTR
         FROM TB_LMS_SBJCT S
         INNER JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
         <if test="userId != null and userId != ''">
-        INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
+            INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
         </if>
         WHERE D.ORG_ID = #{orgId}
-          AND S.DELYN = 'N'
+        AND S.DELYN = 'N'
         <if test="sbjctYr != null and sbjctYr != ''">
-          AND S.SBJCT_YR = #{sbjctYr}
+            AND S.SBJCT_YR = #{sbjctYr}
         </if>
         ORDER BY TRIM(S.SBJCT_SMSTR) ASC
     </select>
 
     <select id="selectSndrDsctnDeptList" parameterType="MsgSndrDsctnVO" resultType="MsgSndrDsctnVO">
         /*
-             SQL ID : MsgSndrDsctnDAO.selectSndrDsctnDeptList
-             설  명 : 발송내역 학과 목록 조회
-         */
+        SQL ID : MsgSndrDsctnDAO.selectSndrDsctnDeptList
+        설  명 : 발송내역 학과 목록 조회
+        */
         SELECT DISTINCT D.DEPT_ID
-             , D.DEPTNM
+        , D.DEPTNM
         FROM TB_LMS_DEPT D
         <if test="userId != null and userId != ''">
-        INNER JOIN TB_LMS_SBJCT S ON S.DEPT_ID = D.DEPT_ID AND S.DELYN = 'N'
-        INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
+            INNER JOIN TB_LMS_SBJCT S ON S.DEPT_ID = D.DEPT_ID AND S.DELYN = 'N'
+            INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
         </if>
         WHERE D.ORG_ID = #{orgId}
         ORDER BY D.DEPTNM ASC
@@ -278,26 +278,26 @@
 
     <select id="selectSndrDsctnSbjctList" parameterType="MsgSndrDsctnVO" resultType="MsgSndrDsctnVO">
         /*
-             SQL ID : MsgSndrDsctnDAO.selectSndrDsctnSbjctList
-             설  명 : 발송내역 운영과목 목록 조회
-         */
+        SQL ID : MsgSndrDsctnDAO.selectSndrDsctnSbjctList
+        설  명 : 발송내역 운영과목 목록 조회
+        */
         SELECT DISTINCT S.SBJCT_ID
-             , S.SBJCTNM
+        , S.SBJCTNM
         FROM TB_LMS_SBJCT S
         INNER JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
         <if test="userId != null and userId != ''">
-        INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
+            INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
         </if>
         WHERE D.ORG_ID = #{orgId}
-          AND S.DELYN = 'N'
+        AND S.DELYN = 'N'
         <if test="sbjctYr != null and sbjctYr != ''">
-          AND S.SBJCT_YR = #{sbjctYr}
+            AND S.SBJCT_YR = #{sbjctYr}
         </if>
         <if test="sbjctSmstr != null and sbjctSmstr != ''">
-          AND TRIM(S.SBJCT_SMSTR) = TRIM(#{sbjctSmstr})
+            AND TRIM(S.SBJCT_SMSTR) = TRIM(#{sbjctSmstr})
         </if>
         <if test="deptId != null and deptId != ''">
-          AND S.DEPT_ID = #{deptId}
+            AND S.DEPT_ID = #{deptId}
         </if>
         ORDER BY S.SBJCTNM ASC
     </select>

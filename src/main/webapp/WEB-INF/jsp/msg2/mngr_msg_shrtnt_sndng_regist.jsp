@@ -40,6 +40,7 @@
     $(document).ready(function() {
         fn_initYrSmstr();
         fn_initRsrvSndng();
+        fn_initSndngnm();
 
         if (isEditMode) {
             fn_loadDetail();
@@ -94,11 +95,13 @@
 
     /* 학사년도/학기 초기화 */
     function fn_initYrSmstr() {
+        fn_loadOrgList();
+
         ajaxCall('/msgShrtntYrListAjax.do', {}, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
-                    html += '<option value="' + v.sbjctYr + '">' + v.sbjctYr + '</option>';
+                    html += '<option value="' + v.sbjctYr + '">' + v.sbjctYr + '<spring:message code="msg.rcptnAgre.label.year" text="년"/></option>';
                 });
                 $('#sbjctYr').html(html);
                 fn_refreshChosen('#sbjctYr');
@@ -108,6 +111,7 @@
 
         $('#sbjctYr').on('change', function() { fn_loadSmstrList(); });
         $('#sbjctSmstr').on('change', function() { fn_loadDeptList(); });
+        $('#orgId').on('change', function() { fn_loadDeptList(); });
         $('#deptId').on('change', function() { fn_loadSbjctList(); });
     }
 
@@ -120,11 +124,25 @@
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
-                    html += '<option value="' + v.sbjctSmstr + '">' + v.sbjctSmstr + '</option>';
+                    html += '<option value="' + v.sbjctSmstr + '">' + v.sbjctSmstr + '<spring:message code="msg.rcptnAgre.label.smstr" text="학기"/></option>';
                 });
                 $('#sbjctSmstr').html(html);
                 fn_refreshChosen('#sbjctSmstr');
                 fn_loadDeptList();
+            }
+        });
+    }
+
+    /* 기관 목록 */
+    function fn_loadOrgList() {
+        ajaxCall('/msgShrtntOrgListAjax.do', {}, function(res) {
+            if (res.result > 0 && res.returnList) {
+                let html = '<option value=""><spring:message code="msg.sndrDsctn.label.orgAll" text="기관 전체"/></option>';
+                res.returnList.forEach(function(v) {
+                    html += '<option value="' + v.orgId + '">' + UiComm.escapeHtml(v.orgnm) + '</option>';
+                });
+                $('#orgId').html(html);
+                fn_refreshChosen('#orgId');
             }
         });
     }
@@ -135,13 +153,14 @@
         let smstr = $('#sbjctSmstr').val();
         if (!yr || !smstr) return;
 
-        ajaxCall('/msgShrtntDeptListAjax.do', { dgrsYr: yr, smstr: smstr }, function(res) {
+        ajaxCall('/msgShrtntDeptListAjax.do', { orgId: $('#orgId').val(), dgrsYr: yr, smstr: smstr }, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
                     html += '<option value="' + v.deptId + '">' + v.deptnm + '</option>';
                 });
-                $('#deptId').html(html);
+                $('#deptId').find('option:gt(0)').remove();
+                $('#deptId').append(html);
                 fn_refreshChosen('#deptId');
                 fn_loadSbjctList();
             }
@@ -154,7 +173,7 @@
         let smstr = $('#sbjctSmstr').val();
         let deptId = $('#deptId').val();
 
-        ajaxCall('/msgShrtntSbjctListAjax.do', { dgrsYr: yr, smstr: smstr, deptId: deptId }, function(res) {
+        ajaxCall('/msgShrtntSbjctListAjax.do', { orgId: $('#orgId').val(), dgrsYr: yr, smstr: smstr, deptId: deptId }, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>';
                 res.returnList.forEach(function(v) {
@@ -166,15 +185,28 @@
         });
     }
 
+    /* 발신자 이름 체크박스 */
+    function fn_initSndngnm() {
+        let ownName = $('#sndngnm').val();
+
+        $('#ownNameYnChk').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#sndngnm').val(ownName).prop('disabled', true);
+            } else {
+                $('#sndngnm').prop('disabled', false).focus();
+            }
+        });
+    }
+
     /* 예약 발신 체크박스 */
     function fn_initRsrvSndng() {
         $('#rsrvYnChk').on('change', function() {
             if ($(this).is(':checked')) {
+                $('#rsrvSndngDate, #rsrvSndngTime').prop('disabled', false);
                 $('#rsrvDateArea').show();
             } else {
+                $('#rsrvSndngDate, #rsrvSndngTime').val('').prop('disabled', true);
                 $('#rsrvDateArea').hide();
-                $('#rsrvSndngDate').val('');
-                $('#rsrvSndngTime').val('');
             }
         });
     }
@@ -331,6 +363,11 @@
 
     /* 검증 */
     function fn_validate() {
+        if (!$('#sbjctId').val()) {
+            alert('<spring:message code="msg.shrtnt.msg.requiredSbjct"/>');
+            $('#sbjctId').focus();
+            return false;
+        }
         if (rcvrList.length === 0) {
             alert('<spring:message code="msg.shrtnt.msg.requiredRcvr"/>');
             return false;
@@ -344,6 +381,18 @@
             alert('<spring:message code="msg.shrtnt.msg.requiredCts"/>');
             $('#txtCts').focus();
             return false;
+        }
+        if ($('#rsrvYnChk').is(':checked')) {
+            if (!$('#rsrvSndngDate').val()) {
+                alert('<spring:message code="msg.shrtnt.msg.requiredRsrvDate" text="예약 발신 날짜를 입력하세요."/>');
+                $('#rsrvSndngDate').focus();
+                return false;
+            }
+            if (!$('#rsrvSndngTime').val()) {
+                alert('<spring:message code="msg.shrtnt.msg.requiredRsrvTime" text="예약 발신 시간을 입력하세요."/>');
+                $('#rsrvSndngTime').focus();
+                return false;
+            }
         }
         return true;
     }
@@ -401,6 +450,7 @@
             sbjctYr: $('#sbjctYr').val(),
             sbjctSmstr: $('#sbjctSmstr').val(),
             sbjctId: $('#sbjctId').val(),
+            sndngnm: $('#sndngnm').val(),
             rcvrListJson: JSON.stringify(rcvrList),
             upMsgShrtntSndngId: isReplyMode ? replyMsgShrtntSndngId : '',
             uploadFiles: $('#uploadFiles').val(),
@@ -430,87 +480,90 @@
 </script>
 
 <body class="admin">
-    <div id="wrap" class="main">
-        <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/admin_header.jsp"/>
+<div id="wrap" class="main">
+    <!-- common header -->
+    <jsp:include page="/WEB-INF/jsp/common_new/admin_header.jsp"/>
 
-        <!-- admin -->
-        <main class="common">
+    <!-- admin -->
+    <main class="common">
 
-            <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/admin_aside.jsp"/>
+        <!-- gnb -->
+        <jsp:include page="/WEB-INF/jsp/common_new/admin_aside.jsp"/>
 
-            <!-- content -->
-            <div id="content" class="content-wrap common">
-                <div class="admin_sub">
+        <!-- content -->
+        <div id="content" class="content-wrap common">
+            <div class="admin_sub">
 
-                    <div class="sub-content">
-                        <!-- page info -->
-                        <div class="page-info">
-                            <h2 class="page-title"><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
+                <div class="sub-content">
+                    <!-- page info -->
+                    <div class="page-info">
+                        <h2 class="page-title"><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
+                    </div>
+
+                    <!-- 상단 버튼 -->
+                    <div class="board_top">
+                        <h3 class="board-title"><spring:message code="msg.shrtnt.label.sndngRegist" text="쪽지 발신하기"/></h3>
+                        <div class="right-area">
+                            <button type="button" class="btn basic" onclick="fn_openTmpltPopup()"><spring:message code="msg.shrtnt.label.tmpltLoad" text="메시지 불러오기"/> ▼</button>
+                            <button type="button" class="btn basic" onclick="fn_openTmpltSavePopup()"><spring:message code="msg.shrtnt.label.tmpltSave" text="템플릿에 저장"/> ▼</button>
+                            <c:choose>
+                                <c:when test="${not empty msgId}">
+                                    <button type="button" class="btn type1" onclick="fn_save()"><spring:message code="msg.shrtnt.label.modify" text="수정"/></button>
+                                </c:when>
+                                <c:otherwise>
+                                    <button type="button" class="btn type1" onclick="fn_save()"><spring:message code="msg.shrtnt.label.sndng" text="발신"/></button>
+                                </c:otherwise>
+                            </c:choose>
+                            <button type="button" class="btn type2" onclick="fn_list()"><spring:message code="msg.shrtnt.label.sndngList" text="발신목록"/></button>
                         </div>
+                    </div>
 
-                        <!-- 상단 버튼 -->
-                        <div class="board_top">
-                            <h3 class="board-title"><spring:message code="msg.shrtnt.label.sndngRegist" text="쪽지 발신하기"/></h3>
-                            <div class="right-area">
-                                <button type="button" class="btn basic" onclick="fn_openTmpltPopup()"><spring:message code="msg.shrtnt.label.tmpltLoad" text="메시지 불러오기"/> ▼</button>
-                                <button type="button" class="btn basic" onclick="fn_openTmpltSavePopup()"><spring:message code="msg.shrtnt.label.tmpltSave" text="템플릿에 저장"/> ▼</button>
-                                <c:choose>
-                                    <c:when test="${not empty msgId}">
-                                        <button type="button" class="btn type1" onclick="fn_save()"><spring:message code="msg.shrtnt.label.modify" text="수정"/></button>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <button type="button" class="btn type1" onclick="fn_save()"><spring:message code="msg.shrtnt.label.sndng" text="발신"/></button>
-                                    </c:otherwise>
-                                </c:choose>
-                                <button type="button" class="btn type2" onclick="fn_list()"><spring:message code="msg.shrtnt.label.sndngList" text="발신목록"/></button>
-                            </div>
-                        </div>
-
-                        <!-- 폼 -->
-                        <div class="table_list">
-                            <!-- 학사년도/학기 -->
-                            <ul class="list">
-                                <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.yearSmstr" text="학사년도/학기"/></label></li>
-                                <li>
-                                    <select id="sbjctYr" name="sbjctYr" class="form-control" style="width:120px; display:inline-block;"></select>
-                                    <select id="sbjctSmstr" name="sbjctSmstr" class="form-control" style="width:120px; display:inline-block;"></select>
-                                </li>
-                            </ul>
-                            <!-- 운영과목 -->
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.oprSbjct" text="운영과목"/></label></li>
-                                <li>
-                                    <select id="deptId" name="deptId" class="form-control" style="width:160px; display:inline-block;">
-                                    </select>
-                                    <select id="sbjctId" name="sbjctId" class="form-control" style="width:200px; display:inline-block;">
-                                        <option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>
-                                    </select>
-                                </li>
-                            </ul>
-                            <!-- 제목 -->
-                            <ul class="list">
-                                <li class="head"><label for="ttl" class="req"><spring:message code="msg.shrtnt.label.ttl" text="제목"/></label></li>
-                                <li>
-                                    <input type="text" id="ttl" name="ttl" class="form-control width-100per" placeholder="<spring:message code="msg.shrtnt.label.ttl"/>" inputmask="length" maxLen="200">
-                                </li>
-                            </ul>
-                            <!-- 내용 -->
-                            <ul class="list">
-                                <li class="head"><label for="txtCts" class="req"><spring:message code="msg.shrtnt.label.cts" text="내용"/></label></li>
-                                <li>
-                                    <textarea id="txtCts" name="txtCts" class="form-control width-100per" rows="10" style="width:100%; resize:vertical;" maxLenCheck="byte,2000,true,true"></textarea>
-                                </li>
-                            </ul>
-                            <!-- 첨부파일 -->
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.atfl" text="첨부파일"/></label></li>
-                                <li>
-                                    <input type="hidden" name="uploadFiles" id="uploadFiles" value="" />
-                                    <input type="hidden" name="uploadPath" id="uploadPath" value="${uploadPath}" />
-                                    <input type="hidden" name="delFileIdStr" id="delFileIdStr" value="" />
-                                    <uiex:dextuploader
+                    <!-- 폼 -->
+                    <div class="table_list">
+                        <!-- 학사년도/학기 -->
+                        <ul class="list">
+                            <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.yearSmstr" text="학사년도/학기"/></label></li>
+                            <li>
+                                <select id="sbjctYr" name="sbjctYr" class="form-control" style="width:120px; display:inline-block;"></select>
+                                <select id="sbjctSmstr" name="sbjctSmstr" class="form-control" style="width:120px; display:inline-block;"></select>
+                            </li>
+                        </ul>
+                        <!-- 운영과목 -->
+                        <ul class="list">
+                            <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.oprSbjct" text="운영과목"/></label></li>
+                            <li>
+                                <select id="orgId" name="orgId" class="form-control" style="width:160px; display:inline-block;">
+                                </select>
+                                <select id="deptId" name="deptId" class="form-control" style="width:160px; display:inline-block;">
+                                    <option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과 전체"/></option>
+                                </select>
+                                <select id="sbjctId" name="sbjctId" class="form-control" style="width:200px; display:inline-block;">
+                                    <option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>
+                                </select>
+                            </li>
+                        </ul>
+                        <!-- 제목 -->
+                        <ul class="list">
+                            <li class="head"><label for="ttl" class="req"><spring:message code="msg.shrtnt.label.ttl" text="제목"/></label></li>
+                            <li>
+                                <input type="text" id="ttl" name="ttl" class="form-control width-100per" placeholder="<spring:message code="msg.shrtnt.label.ttl"/>" inputmask="length" maxLen="200">
+                            </li>
+                        </ul>
+                        <!-- 내용 -->
+                        <ul class="list">
+                            <li class="head"><label for="txtCts" class="req"><spring:message code="msg.shrtnt.label.cts" text="내용"/></label></li>
+                            <li>
+                                <textarea id="txtCts" name="txtCts" class="form-control width-100per" rows="10" style="width:100%; resize:vertical;" maxLenCheck="byte,2000,true,true"></textarea>
+                            </li>
+                        </ul>
+                        <!-- 첨부파일 -->
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.atfl" text="첨부파일"/></label></li>
+                            <li>
+                                <input type="hidden" name="uploadFiles" id="uploadFiles" value="" />
+                                <input type="hidden" name="uploadPath" id="uploadPath" value="${uploadPath}" />
+                                <input type="hidden" name="delFileIdStr" id="delFileIdStr" value="" />
+                                <uiex:dextuploader
                                         id="msgAtfl"
                                         path="${uploadPath}"
                                         limitCount="5"
@@ -520,145 +573,130 @@
                                         fileList="${fileList}"
                                         finishFunc="fn_finishUpload()"
                                         allowedTypes="*"
-                                    />
-                                </li>
-                            </ul>
-                            <!-- 발신일시 -->
-                            <ul class="list">
-                                <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.sndngDttm" text="발신일시"/></label></li>
-                                <li>
-                                    <input type="text" id="rsrvSndngDate" name="rsrvSndngDate" class="datepicker" placeholder="YYYY-MM-DD">
-                                    <input type="text" id="rsrvSndngTime" name="rsrvSndngTime" class="timepicker" placeholder="HH:MM">
-                                    <span class="custom-input" style="margin-left:10px;">
+                                />
+                            </li>
+                        </ul>
+                        <!-- 발신일시 -->
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.sndngDttm" text="발신일시"/></label></li>
+                            <li>
+                                <input type="text" id="rsrvSndngDate" name="rsrvSndngDate" class="datepicker" placeholder="YYYY-MM-DD" disabled>
+                                <input type="text" id="rsrvSndngTime" name="rsrvSndngTime" class="timepicker" placeholder="HH:MM" disabled>
+                                <span class="custom-input" style="margin-left:10px;">
                                         <input type="checkbox" id="rsrvYnChk" name="rsrvYnChk">
                                         <label for="rsrvYnChk"><spring:message code="msg.shrtnt.label.rsrvSndng" text="예약 발신"/></label>
                                     </span>
-                                    <span id="rsrvDateArea" style="display:none;"></span>
-                                </li>
-                            </ul>
-                            <!-- 발신자 -->
-                            <ul class="list">
-                                <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.sndngnm" text="발신자"/></label></li>
-                                <li>
-                                    <input type="text" id="sndngnm" name="sndngnm" class="form-control" style="width:200px; display:inline-block;" value="${usernm}">
-                                    <span class="custom-input" style="margin-left:10px;">
+                                <span id="rsrvDateArea" style="display:none;"></span>
+                            </li>
+                        </ul>
+                        <!-- 발신자 -->
+                        <ul class="list">
+                            <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.sndngnm" text="발신자"/></label></li>
+                            <li>
+                                <input type="text" id="sndngnm" name="sndngnm" class="form-control" style="width:200px; display:inline-block;" value="${usernm}" disabled>
+                                <span class="custom-input" style="margin-left:10px;">
                                         <input type="checkbox" id="ownNameYnChk" name="ownNameYnChk" checked>
                                         <label for="ownNameYnChk"><spring:message code="msg.shrtnt.label.ownNameYn" text="본인 이름 선택"/></label>
                                     </span>
-                                </li>
-                            </ul>
-                            <!-- 발신자 번호 -->
-                            <ul class="list">
-                                <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.sndngrPhnno" text="발신자 번호"/></label></li>
-                                <li>
-                                    <span class="custom-input">
-                                        <input type="radio" id="phnTypeDept" name="phnType" value="DEPT" checked>
-                                        <label for="phnTypeDept"><spring:message code="msg.shrtnt.label.deptPhnno" text="학과대표번호"/></label>
-                                    </span>
-                                    <span class="custom-input">
-                                        <input type="radio" id="phnTypeMgr" name="phnType" value="MGR">
-                                        <label for="phnTypeMgr"><spring:message code="msg.shrtnt.label.mgrPhnno" text="담당자번호"/></label>
-                                    </span>
-                                    <input type="text" id="sndngrPhnno" name="sndngrPhnno" class="form-control" style="width:200px; display:inline-block; margin-left:10px;" inputmask="phone" placeholder="<spring:message code="msg.shrtnt.label.sndngrPhnno"/>">
-                                </li>
-                            </ul>
-                        </div>
+                            </li>
+                        </ul>
+                    </div>
 
-                        <!-- 받는 사람 -->
-                        <div class="board_top" style="margin-top:30px;">
-                            <h3 class="board-title"><spring:message code="msg.shrtnt.label.rcvrList" text="받는 사람"/> [ <spring:message code="msg.sndrDsctn.label.totalCnt" text="총건수"/> : <b id="rcvrCnt">0</b><spring:message code="msg.sndrDsctn.label.cnt" text="건"/> ]</h3>
-                            <div class="right-area">
-                                <!-- TODO: 엑셀 양식 확정 후 주석 해제
+                    <!-- 받는 사람 -->
+                    <div class="board_top" style="margin-top:30px;">
+                        <h3 class="board-title"><spring:message code="msg.shrtnt.label.rcvrList" text="받는 사람"/> [ <spring:message code="msg.sndrDsctn.label.totalCnt" text="총건수"/> : <b id="rcvrCnt">0</b><spring:message code="msg.sndrDsctn.label.cnt" text="건"/> ]</h3>
+                        <div class="right-area">
+                            <!-- TODO: 엑셀 양식 확정 후 주석 해제
                                 <button type="button" class="btn basic" onclick="fn_excelTmpltDown()"><spring:message code="msg.shrtnt.label.excelTmpltDown" text="엑셀양식 다운로드"/></button>
                                 <button type="button" class="btn basic" onclick="fn_excelUpload()"><spring:message code="msg.shrtnt.label.excelUpload" text="엑셀 업로드"/></button>
                                 -->
-                                <button type="button" class="btn type1" onclick="fn_openRcvrPopup()">+ <spring:message code="msg.shrtnt.label.add" text="추가"/></button>
-                                <button type="button" class="btn type2" onclick="fn_removeSelectedRcvr()">- <spring:message code="msg.shrtnt.label.delete" text="삭제"/></button>
-                                <!-- TODO: 엑셀 양식 확정 후 주석 해제
-                                <input type="file" id="excelFile" accept=".xlsx,.xls" style="display:none;" onchange="fn_excelFileChange()">
-                                -->
-                            </div>
+                            <button type="button" class="btn type1" onclick="fn_openRcvrPopup()">+ <spring:message code="msg.shrtnt.label.add" text="추가"/></button>
+                            <button type="button" class="btn type2" onclick="fn_removeSelectedRcvr()">- <spring:message code="msg.shrtnt.label.delete" text="삭제"/></button>
+                            <!-- TODO: 엑셀 양식 확정 후 주석 해제
+                            <input type="file" id="excelFile" accept=".xlsx,.xls" style="display:none;" onchange="fn_excelFileChange()">
+                            -->
                         </div>
-
-                        <div class="table-wrap" style="max-height:400px; overflow-y:auto;">
-                            <table class="table-type2">
-                                <colgroup>
-                                    <col style="width:40px">
-                                    <col style="width:50px">
-                                    <col style="width:80px">
-                                    <col style="width:90px">
-                                    <col style="width:90px">
-                                    <col style="width:120px">
-                                    <col>
-                                    <col style="width:60px">
-                                    <col style="width:100px">
-                                </colgroup>
-                                <thead>
-                                    <tr>
-                                        <th><span class="custom-input"><input type="checkbox" id="rcvrChkAll" onclick="$('input[name=rcvrChk]').prop('checked', this.checked)"><label for="rcvrChkAll">&nbsp;</label></span></th>
-                                        <th><spring:message code="msg.shrtnt.col.no" text="No"/></th>
-                                        <th><spring:message code="msg.shrtnt.col.rcvrnm" text="수신자"/></th>
-                                        <th><spring:message code="msg.shrtnt.col.stdntNo" text="학번"/></th>
-                                        <th><spring:message code="msg.shrtnt.col.rprsId" text="대표ID"/></th>
-                                        <th><spring:message code="msg.shrtnt.col.mblPhn" text="휴대폰번호"/></th>
-                                        <th><spring:message code="msg.shrtnt.col.eml" text="이메일"/></th>
-                                        <th><spring:message code="msg.shrtnt.col.sndngYn" text="발송"/></th>
-                                        <th><spring:message code="msg.shrtnt.col.rsltMsg" text="결과메시지"/></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="rcvrTbody">
-                                    <tr><td colspan="9" class="txt-center"><spring:message code="common.content.not_found"/></td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-
                     </div>
+
+                    <div class="table-wrap" style="max-height:400px; overflow-y:auto;">
+                        <table class="table-type2">
+                            <colgroup>
+                                <col style="width:40px">
+                                <col style="width:50px">
+                                <col style="width:80px">
+                                <col style="width:90px">
+                                <col style="width:90px">
+                                <col style="width:120px">
+                                <col>
+                                <col style="width:60px">
+                                <col style="width:100px">
+                            </colgroup>
+                            <thead>
+                            <tr>
+                                <th><span class="custom-input"><input type="checkbox" id="rcvrChkAll" onclick="$('input[name=rcvrChk]').prop('checked', this.checked)"><label for="rcvrChkAll">&nbsp;</label></span></th>
+                                <th><spring:message code="msg.shrtnt.col.no" text="No"/></th>
+                                <th><spring:message code="msg.shrtnt.col.rcvrnm" text="수신자"/></th>
+                                <th><spring:message code="msg.shrtnt.col.stdntNo" text="학번"/></th>
+                                <th><spring:message code="msg.shrtnt.col.rprsId" text="대표ID"/></th>
+                                <th><spring:message code="msg.shrtnt.col.mblPhn" text="연락처"/></th>
+                                <th><spring:message code="msg.shrtnt.col.eml" text="이메일"/></th>
+                                <th><spring:message code="msg.shrtnt.col.sndngYn" text="발송"/></th>
+                                <th><spring:message code="msg.shrtnt.col.rsltMsg" text="결과메시지"/></th>
+                            </tr>
+                            </thead>
+                            <tbody id="rcvrTbody">
+                            <tr><td colspan="9" class="txt-center"><spring:message code="common.content.not_found"/></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
             </div>
-            <!-- //content -->
+        </div>
+        <!-- //content -->
 
-        </main>
-        <!-- //admin -->
-    </div>
+    </main>
+    <!-- //admin -->
+</div>
 
-    <!-- 받는 사람 추가 모달 -->
-    <div class="modal-overlay" id="rcvrModal" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="modal-content modal-xl" tabindex="-1">
-            <div class="modal-header">
-                <h2><spring:message code="msg.shrtnt.label.addRcvrTitle" text="받는 사람 추가"/></h2>
-                <button class="modal-close" aria-label="닫기" onclick="fn_closeModal('rcvrModal')"><i class="icon-svg-close"></i></button>
-            </div>
-            <div class="modal-body">
-                <iframe src="about:blank" style="width:100%; height:500px; border:none;"></iframe>
-            </div>
+<!-- 받는 사람 추가 모달 -->
+<div class="modal-overlay" id="rcvrModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-content modal-xl" tabindex="-1">
+        <div class="modal-header">
+            <h2><spring:message code="msg.shrtnt.label.addRcvrTitle" text="받는 사람 추가"/></h2>
+            <button class="modal-close" aria-label="닫기" onclick="fn_closeModal('rcvrModal')"><i class="icon-svg-close"></i></button>
+        </div>
+        <div class="modal-body">
+            <iframe src="about:blank" style="width:100%; height:500px; border:none;"></iframe>
         </div>
     </div>
+</div>
 
-    <!-- 메시지 불러오기 모달 -->
-    <div class="modal-overlay" id="tmpltModal" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="modal-content modal-lg" tabindex="-1">
-            <div class="modal-header">
-                <h2><spring:message code="msg.shrtnt.label.tmpltLoad" text="메시지 불러오기"/></h2>
-                <button class="modal-close" aria-label="닫기" onclick="fn_closeModal('tmpltModal')"><i class="icon-svg-close"></i></button>
-            </div>
-            <div class="modal-body">
-                <iframe src="about:blank" style="width:100%; height:500px; border:none;"></iframe>
-            </div>
+<!-- 메시지 불러오기 모달 -->
+<div class="modal-overlay" id="tmpltModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-content modal-lg" tabindex="-1">
+        <div class="modal-header">
+            <h2><spring:message code="msg.shrtnt.label.tmpltLoad" text="메시지 불러오기"/></h2>
+            <button class="modal-close" aria-label="닫기" onclick="fn_closeModal('tmpltModal')"><i class="icon-svg-close"></i></button>
+        </div>
+        <div class="modal-body">
+            <iframe src="about:blank" style="width:100%; height:500px; border:none;"></iframe>
         </div>
     </div>
+</div>
 
-    <!-- 템플릿에 저장 모달 -->
-    <div class="modal-overlay" id="tmpltSaveModal" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="modal-content modal-lg" tabindex="-1">
-            <div class="modal-header">
-                <h2><spring:message code="msg.shrtnt.label.tmpltSave" text="템플릿에 저장"/></h2>
-                <button class="modal-close" aria-label="닫기" onclick="fn_closeModal('tmpltSaveModal')"><i class="icon-svg-close"></i></button>
-            </div>
-            <div class="modal-body">
-                <iframe src="about:blank" style="width:100%; height:500px; border:none;"></iframe>
-            </div>
+<!-- 템플릿에 저장 모달 -->
+<div class="modal-overlay" id="tmpltSaveModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-content modal-lg" tabindex="-1">
+        <div class="modal-header">
+            <h2><spring:message code="msg.shrtnt.label.tmpltSave" text="템플릿에 저장"/></h2>
+            <button class="modal-close" aria-label="닫기" onclick="fn_closeModal('tmpltSaveModal')"><i class="icon-svg-close"></i></button>
+        </div>
+        <div class="modal-body">
+            <iframe src="about:blank" style="width:100%; height:500px; border:none;"></iframe>
         </div>
     </div>
+</div>
 
 </body>
 </html>

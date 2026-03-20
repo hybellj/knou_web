@@ -185,33 +185,33 @@
 <body style="margin:0; padding:15px;">
 <div id="loading_page" style="display:none;"></div>
 
-    <!-- 검색 영역 -->
-    <div class="board_top">
-        <select class="form-select" id="popUserTycd">
-            <option value=""><spring:message code="msg.shrtnt.label.userTycd" text="사용자 구분"/></option>
-            <option value="STDNT"><spring:message code="msg.rcptnAgre.label.stdnt" text="학생"/></option>
-            <option value="PROF"><spring:message code="msg.rcptnAgre.label.prof" text="교직원"/></option>
-        </select>
-        <select class="form-select" id="popOrgId">
-            <option value=""><spring:message code="msg.rcptnAgre.label.org" text="기관"/></option>
-        </select>
-        <select class="form-select wide" id="popDeptId">
-            <option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과/부서선택"/></option>
-        </select>
-        <select class="form-select wide" id="popSbjctId">
-            <option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="과목선택"/></option>
-        </select>
-        <div class="search-typeC">
-            <input class="form-control" type="text" id="popSearchText" value="" placeholder="<spring:message code="msg.rcptnAgre.label.stdntNo" text="이름/아이디/사번 입력"/>" onkeydown="fn_searchKeyDown(event)">
-            <button type="button" class="btn basic icon search" aria-label="<spring:message code="msg.shrtnt.label.rcvrSearch" text="검색"/>" onclick="fn_search(1)"><i class="icon-svg-search"></i></button>
-        </div>
+<!-- 검색 영역 -->
+<div class="board_top">
+    <select class="form-select" id="popUserTycd">
+        <option value=""><spring:message code="msg.shrtnt.label.userTycd" text="사용자 구분"/></option>
+        <option value="STDNT"><spring:message code="msg.rcptnAgre.label.stdnt" text="학생"/></option>
+        <option value="PROF"><spring:message code="msg.rcptnAgre.label.prof" text="교직원"/></option>
+    </select>
+    <select class="form-select" id="popOrgId">
+        <option value=""><spring:message code="msg.rcptnAgre.label.org" text="기관"/></option>
+    </select>
+    <select class="form-select wide" id="popDeptId">
+        <option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과/부서선택"/></option>
+    </select>
+    <select class="form-select wide" id="popSbjctId">
+        <option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="과목선택"/></option>
+    </select>
+    <div class="search-typeC">
+        <input class="form-control" type="text" id="popSearchText" value="" placeholder="<spring:message code="msg.rcptnAgre.label.stdntNo" text="이름/아이디/사번 입력"/>" onkeydown="fn_searchKeyDown(event)">
+        <button type="button" class="btn basic icon search" aria-label="<spring:message code="msg.shrtnt.label.rcvrSearch" text="검색"/>" onclick="fn_search(1)"><i class="icon-svg-search"></i></button>
     </div>
+</div>
 
-    <!-- 결과 목록 -->
-    <div id="searchResultList"></div>
+<!-- 결과 목록 -->
+<div id="searchResultList"></div>
 
-    <script>
-        searchTable = UiTable("searchResultList", {
+<script>
+    searchTable = UiTable("searchResultList", {
         lang: "ko",
         pageFunc: fn_search,
         columns: [
@@ -222,16 +222,16 @@
             {title:"<spring:message code='msg.shrtnt.col.usernm' text='이름'/>",                              field:"usernm",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:70},
             {title:"<spring:message code='msg.shrtnt.col.deptnm' text='학과/부서'/>",                         field:"deptnm",     headerHozAlign:"center", hozAlign:"center", width:130, minWidth:80},
             {title:"<spring:message code='msg.shrtnt.col.mblPhn' text='연락처'/>",                            field:"mblPhn",     headerHozAlign:"center", hozAlign:"center", width:120, minWidth:90},
-            {title:"<spring:message code='msg.shrtnt.col.rprsEml' text='대표이메일'/>",                        field:"rprsEml",    headerHozAlign:"center", hozAlign:"center", width:170, minWidth:110}
+            {title:"<spring:message code='msg.shrtnt.col.eml' text='이메일'/>",                               field:"rprsEml",    headerHozAlign:"center", hozAlign:"center", width:170, minWidth:110}
         ]
     });
-    </script>
+</script>
 
-    <!-- 하단 버튼 -->
-    <div class="modal_btns">
-        <button type="button" class="btn type1" onclick="fn_addSelected()"><spring:message code="msg.shrtnt.label.addBtn" text="추가하기"/></button>
-        <button type="button" class="btn type2" onclick="parent.rcvrDlg.close()"><spring:message code="msg.shrtnt.label.closeBtn" text="닫기"/></button>
-    </div>
+<!-- 하단 버튼 -->
+<div class="modal_btns">
+    <button type="button" class="btn type1" onclick="fn_addSelected()"><spring:message code="msg.shrtnt.label.addBtn" text="추가하기"/></button>
+    <button type="button" class="btn type2" onclick="parent.rcvrDlg.close()"><spring:message code="msg.shrtnt.label.closeBtn" text="닫기"/></button>
+</div>
 
 </body>
 </html>

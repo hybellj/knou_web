@@ -118,13 +118,19 @@ pageContext.setAttribute("auditYn", SessionInfo.getAuditYn(request)); // 청강�
     }
 
 	// 메뉴 이동
-	function moveMenu(obj, menuUrl, upMenuId, menuId){
+	function moveMenu(obj, menuUrl, upMenuId, menuId, menuNm){
 		if (menuUrl === '') {
 			return;
 		}
 
-		let index = $(obj).attr("index");
-		let menuNm = $(obj).children("span").html();
+		let index = "";
+
+		if (obj != null) {
+			index = obj != null ? $(obj).attr("index") : "";
+			if (!menuNm) {
+				menuNm = $(obj).children("span").html();
+			}
+		}
 
 		if (menuUrl.indexOf("?") > -1) {
 			menuUrl += "&param="+btoa("MENU,"+upMenuId+","+menuId);

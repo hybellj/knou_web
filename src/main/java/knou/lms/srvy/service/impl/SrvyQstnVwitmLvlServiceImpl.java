@@ -81,4 +81,16 @@ public class SrvyQstnVwitmLvlServiceImpl extends ServiceBase implements SrvyQstn
 		return srvyQstnVwitmLvlDAO.srvyQstnVwitmLvlList(srvyQstnId);
 	}
 
+	/**
+	 * 설문문항보기항목레벨일괄조회
+	 *
+	 * @param srvyId 설문아이디
+	 * return 설문문항보기항목레벨일괄목록
+	 * @throws Exception
+	 */
+	@Override
+	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(String srvyId) throws Exception {
+		return srvyQstnVwitmLvlDAO.srvyQstnVwitmLvlBulkList(srvyId);
+	}
+
 }

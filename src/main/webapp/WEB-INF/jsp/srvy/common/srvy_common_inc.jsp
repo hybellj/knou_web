@@ -1,5 +1,8 @@
 <%@page import="knou.framework.util.SessionUtil"%>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script type="text/javascript" src="/webdoc/js/chart.min.js"></script>
+<script type="text/javascript" src="/webdoc/js/Chart.PieceLabel.min.js"></script>
 <style type="text/css">
 	.chart_wm250 {
 		max-width: 250px;
@@ -54,22 +57,15 @@
 		// 결과 차트 출력
 		statusChartSet: function(type) {
 			var cntMap = {};
-			<c:forEach var="list" items="${deviceList}">
-				cntMap["device_${list.codeCd}"] = "${list.codeNm}";
+			<c:forEach var="list" items="${cntnDvcTycdList}">
+				cntMap["device_${list.cd}"] = "${list.cdnm}";
 			</c:forEach>
-			<c:forEach var="list" items="${joinDeviceList }">
-				cntMap["${list.deviceTypeCd}"] = "${list.reshFinCnt}";
+			<c:forEach var="list" items="${srvyPtcpDvcStatusList }">
+				cntMap["${list.cd}"] = "${list.srvyPtcpCnt}";
 			</c:forEach>
 
-			var reshFinCnt = 0;
-			var reshApplicantCnt = 0;
-			if("${vo.reschTypeCd}" == "HOME") {
-				reshFinCnt 		 = "${vo.homeReschJoinUserCnt}" || "${joinStatus.reshFinCnt}" || 0;
-				reshApplicantCnt = "${vo.homeReschTotalUserCnt - vo.homeReschJoinUserCnt}"|| "${joinStatus.reshApplicantCnt}" || 0;
-			} else {
-				reshFinCnt 		 = "${vo.reschJoinUserCnt}" || "${joinStatus.reshFinCnt}" || 0;
-				reshApplicantCnt = "${vo.reschTotalUserCnt - vo.reschJoinUserCnt}"|| "${joinStatus.reshApplicantCnt}" || 0;
-			}
+			var reshFinCnt = "${srvyPtcpCnt.ptcpCnt}";
+			var reshApplicantCnt = "${srvyPtcpCnt.totalCnt - srvyPtcpCnt.ptcpCnt}";
 
 			var typeMap = {
 				"status" : {
@@ -81,8 +77,8 @@
 				"device" : {
 					"ctx"	 : "devicePieChart",
 					"text"   : "<spring:message code='resh.label.join.device' /> (%)",/* 접속환경 */
-					"labels" : [cntMap["device_PC"], cntMap["device_MOBILE"]],
-					"datas"  : [cntMap["PC"], cntMap["MOBILE"]]
+					"labels" : [cntMap["device_PC"], cntMap["device_MBL"]],
+					"datas"  : [cntMap["PC"], cntMap["MBL"]]
 				}
 			};
 			var ctx = document.getElementById(typeMap[type]['ctx']);

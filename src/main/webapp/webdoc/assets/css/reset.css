@@ -137,7 +137,7 @@ td, th { padding: 0; }
 .flex-left-auto { margin-left: auto !important; }
 .position-relative { position: relative !important; }
 .word-break-keep-all { word-break: keep-all !important; }
-.word-break-none { white-space: none !important; }
+.word-break-none { white-space: nowrap !important; }
 
 /* 모바일, 데스크탑 적용 */
 .desktop-elem { display: none !important }
@@ -200,6 +200,12 @@ textarea.form-control { height: auto; resize: none; }
 .custom__select__list li p { color: #333}
 .custom__select__list li:hover { color: #111; background-color: #F5F5F5; }
 .custom__select__list li:hover p { color: #111; font-weight: 500; }
+
+input.t_num3 {width: 4rem;}
+input.t_num5 {width: 6rem;}
+input.t_num5.final {color: #106c42; font-weight: 500; background-color: #fff9db;}
+td > input.t_num3 {padding: 0.3rem .7rem; font-size: 1.5rem;}
+td > input.t_num5 {padding: 0.3rem .7rem; font-size: 1.5rem;}
 
 @media (min-width:767.98px) {
   .form-inline { display: inline-flex; gap: 5px; flex-wrap: wrap;}

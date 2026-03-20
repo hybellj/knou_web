@@ -692,10 +692,13 @@ common - button
 .btn.type6:hover { background: #249ca5; color: #fff; border: 1px solid #249ca5; }
 .btn.type7 { background: #4CAF50; color: #fff; border-color: #4CAF50; }
 .btn.type7:hover { background: #328a35; color: #fff; border: 1px solid #328a35; }
+.btn.type8 { background: #ED474C; color: #fff; border-color: #ED474C; }
+.btn.type8:hover { background: #d33238; color: #fff; border: 1px solid #d33238; }
 
 .btn.gray1 { background: #4D4D4D; color: #fff; border-color: #4D4D4D; }
 .btn.gray1:hover { background: #343434; color: #fff; border: 1px solid #343434; }
 .btn.basic.small {font-size: 1.4rem; padding: .6rem 1.1rem;}
+.btn.small {font-size: 1.4rem; padding: .6rem 1.1rem;}
 
 .btns { display: flex; justify-content: center; gap: 1rem; margin-top: 3rem; }
 .btns.justify { justify-content: space-between; }
@@ -721,9 +724,9 @@ common - button
 
 
 /* label */
-.label.uniA {display: inline-flex; justify-content: center; color: #fff; padding:.3rem .5rem ; width: 5.5rem; font-size: 1.2rem; background: #00A4D8; border-radius: 100em;}
-.label.uniB {display: inline-flex; justify-content: center; color: #fff; padding:.3rem .5rem ; width: 5.5rem; font-size: 1.2rem; background: #15B09E; border-radius: 100em;}
-.label.uniC {display: inline-flex; justify-content: center; color: #fff; padding:.3rem .5rem ; width: 5.5rem; font-size: 1.2rem; background: #8059db; border-radius: 100em;}
+.label.uniA {display: inline-flex; justify-content: center; color: #fff; padding:.3rem .5rem ; width: 5.5rem; font-size: 1.2rem; background: #00A4D8; border-radius: 100em; white-space: nowrap;}
+.label.uniB {display: inline-flex; justify-content: center; color: #fff; padding:.3rem .5rem ; width: 5.5rem; font-size: 1.2rem; background: #15B09E; border-radius: 100em; white-space: nowrap;}
+.label.uniC {display: inline-flex; justify-content: center; color: #fff; padding:.3rem .5rem ; width: 5.5rem; font-size: 1.2rem; background: #8059db; border-radius: 100em; white-space: nowrap;}
 
 .label.s_chasi {display: inline-flex; justify-content: center; align-items: center; color: #fff; padding:.3rem .5rem ; width: 4.9rem; font-size: 1.2rem; background: #4A6EB4; border-radius: 4px;}
 .label.s_offline {display: inline-flex; justify-content: center; align-items: center; color: #fff; padding:.3rem .5rem ; min-width: 4.9rem; font-size: 1.2rem; background: #EF6C1F; border-radius: 4px;}
@@ -1206,12 +1209,16 @@ h4.sub-title::before {
 
 /* board top */
 .board_top { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; width: 100%; margin-bottom: 1rem; }
+.board_top.t_line { margin-top: 4.5rem; padding-top: 1rem; border-top: 0px solid #F0F2F6; }
+.board_top.t_line:has(.in_table) {}
+.board_top.in_table {border: 1px solid #D4D6D6; padding: 1.2rem; margin-top: 1rem !important; margin-bottom: 0;}
 .board_top h4.sub-title {margin-bottom: 0;}
 .board_top i + .board-title {margin-left: .4rem;}
 .board_top .info_inline {position: relative; margin-left: 1.7rem;}
 .board_top .total_num {position: relative; margin-left: 1.7rem;}
 .board_top .total_num::before { content: ''; display: block; background-color: #ddd; width: 1px; height: 1.4rem; position: absolute; transform: translate(0, -50%); left: -1rem; top: 50%; }
 .board_top .right-area {margin-left: auto; display: flex; gap: .6rem; align-items: center; flex-wrap: wrap;}
+.board_top .total_txt {}
 /* .board_top .form-select { padding: 0.8rem 1.2rem;} */
 .btn.basic.icon.search { background: #282E3E; color: #fff; border-color: #282E3E; }
 .btn.basic.icon.search i {width: 20px; height: 20px;}
@@ -1363,9 +1370,15 @@ msg style
 .msg-box.info { background-color: #F5F9FF; border: 1px solid #d2dce6; border-left: 5px solid #51AEEB;}
 .msg-box.warning { color: #9F3A38; background-color: #FFF6F6; border: 1px solid #E0B4B4; border-left: 5px solid #be3532;}
 .msg-box.success { background-color: #F6FFF9; border: 1px solid #d4e3e0; border-left: 5px solid #48BFB7;}
-.msg-box i { font-size: 2.2rem; margin-right: 4px; }
-.msg-box i.icon-svg-warning {margin-right: .8rem;}
-.msg-box .txt {flex: 1; display: flex;}
+.msg-box i {position: relative; top:.3rem; font-size: 2.2rem; margin-right: 4px; }
+.msg-box i.icon-svg-warning {margin-right: .8rem; top:-.1rem; vertical-align: middle;}
+.msg-box .txt:has(i) {padding-left: 2.7rem;}
+.msg-box .txt:has(i) i {
+    margin-left: -2.7rem;
+}
+
+.msg-box .txt {flex: 1; /*display: flex;*/ position: relative; line-height: 1.4;}
+.msg-box .txt.ct {text-align: center;}
 .msg-box:has(+ .msg-box) {margin-bottom: 1rem;}
 .msg-box:has(+ .search-typeA) {margin-bottom: 1rem;}
 .error_txt pre {

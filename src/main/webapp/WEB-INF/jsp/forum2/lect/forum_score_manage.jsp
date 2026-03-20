@@ -23,23 +23,6 @@
 		var dialog;
 
 		$(document).ready(function() {
-			/*audioRecord = UiAudioRecorder("audioRecord");
-            audioRecord.formName = "recordForm";
-            audioRecord.dataName = "audioData";
-            audioRecord.fileName = "audioFile";
-            audioRecord.lang	 = "ko";
-            audioRecord.init();
-
-            audioRecord.recorderBox.css({"top":"0px", "left":"0px"});
-            audioRecord.setRecorder();
-
-            $("#audioRecord").height($(".recorder-box").height()+22);
-
-            $(".audio-header").remove();
-            $(".audio-btm .btm-btn").remove();
-
-            audioRecord.recorderBox.show();*/
-
 			listForumUser();
 
 			$("#searchValue").on("keyup", function(e) {
@@ -72,15 +55,6 @@
 					if(ui.oldHeader.length > 0) {
 						ui.oldHeader.removeClass("active");
 					}
-				}
-			});
-
-			$(".audioDiv").hide();
-			$("#audioChk").on("change", function() {
-				if(this.checked) {
-					$(".audioDiv").show();
-				} else {
-					$(".audioDiv").hide();
 				}
 			});
 		});
@@ -125,112 +99,10 @@
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
 					var returnList = data.returnList || [];
-					var html = "";
-					var stdNos = $("#stdNos").val().split(",");
-					var joinStatusY = 0;
-					var joinStatusN = 0;
-
-					returnList.forEach(function(v, i) {
-						var stareScore = v.stareScore == null ? 0 : v.stareScore;
-						var totGetScore = v.totGetScore == null ? 0 : v.totGetScore;
-						var stareCnt   = v.stareCnt == null ? 0 : v.stareCnt;
-						var isChecked = false;
-						if(stdNos != "") {
-							stdNos.forEach(function(vv, ii) {
-								if(vv == v.stdNo) {
-									isChecked = true;
-								}
-							});
-						}
-
-						html += "<tr>";
-						//				html += "<tr class='on'>";
-						html += "	<td class='tc '>";
-						html += "		<div class='ui checkbox'>";
-						html += "			<input type=\"checkbox\" id=\"check"+ i +"\" name=\"check\" data-stdNo=\""+ v.stdNo +"\" onchange=\"checkStdNoToggle(this)\" user_id='"+v.userId+"' user_nm='"+v.userNm+"' mobile='"+v.mobileNo+"' email='"+v.email+"'>";
-						html += "			<label class=\"toggle_btn\" for=\"check"+ i +"\"></label>";
-						html += "		</div>";
-						html += "	</td>";
-						html += "	<td class='tc wf5' name='lineNo'>"+ v.lineNo +"</td>";
-						html += "	<td data-sort-value='"+v.deptNm+"' class='word_break_none'>"+ v.deptNm +"</td>";
-						html += "	<td class='tc wf10 word_break_none' data-sort-value='"+v.userId+"'>"+ v.userId +"</td>";
-						html += "	<td class='tc wf10' data-sort-value='"+v.hy+"'>"+ v.hy +"</td>";
-						if(univGbn == "3" || univGbn == "4") {
-							html += '<td class="tc word_break_none">' + (v.grscDegrCorsGbnNm || '-') + '</td>';
-						}
-						html += "	<td class='tc word_break_none' data-sort-value='"+v.userNm+"'>"+ v.userNm;
-						// TODO : 26.3.18 AS-IS 기능.(막음 처리)
-						<%--html +=     userInfoIcon("<%=SessionInfo.isKnou(request)%>", "userInfoPop('" + v.userId + "')");--%>
-						html += "   </td>";
-						html += "	<td class='tc' data-sort-value='"+v.entrYy+"'>"+ v.entrYy +"</td>";
-						html += "	<td class='tc' data-sort-value='"+v.entrHy+"'>"+ v.entrHy +"</td>";
-						html += "	<td class='tc word_break_none' data-sort-value='"+v.entrGbnNm+"'>"+ v.entrGbnNm +"</td>";
-						html += "	<td class='tr wf15 word_break_none' data-sort-value='"+v.score+"'>";
-						html += "		<div class=\"d-inline-block\" id=\"scoreDisplayDiv"+ i +"\" onClick=\"chgScoreRatio("+ i +");\">";
-						if(v.scoreNull === "-") {
-							html += "		- <spring:message code='forum.label.point' />"; // 점
-						} else {
-							html += "		"+ v.score +" <spring:message code='forum.label.point' />"; // 점
-						}
-						html += "		</div>";
-						html += "		<div class=\"ui right labeled small input\" id=\"scoreInputDiv"+ i +"\" name=\"scoreInputDiv\" style=\"display:none;\">";
-						html += "			<input type=\"number\" min=\"0\" id=\"score"+ i +"\" name=\"score\" data-stdno=\""+ v.stdNo +"\" class=\"w40 tr\" maxlength=\"3\" value=\""+ v.score +"\" maxlength=\"3\" onkeyup=\"this.value=this.value.replace(/[^0-9]/g,'');\" onblur=\"setScoreRatio("+ i +", '"+ v.score +"')\" onfocus=\"this.select()\">";
-						html += "			<input type=\"hidden\" name=\"score\" value=\""+ v.score +"\">";
-						html += "			<div class=\"ui basic label\"><spring:message code='forum.label.point' /></div>"; // 점
-						html += "		</div>";
-						// html += `		<i class="xi-pen-o \${v.profMemo == null || v.profMemo == '' ? '' : 'on'} f120" onclick="stdMemoForm('\${v.stdNo}')" style="cursor:pointer" title="<spring:message code='forum.label.memo'/>"></i>`; // 메모
-						html += `		<i class="xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}" onclick="fdbkList('\${v.stdNo}', this)" style="cursor:pointer" title="<spring:message code='forum.label.feedback'/>"></i>`; // 피드백
-						html += "	</td>";
-						if(v.joinStatus == "미참여") {
-							joinStatusN++;
-							html += "	<td class='tc word_break_none' data-sort-value='"+v.joinStatus+"'><span class='fcRed'>"+ v.joinStatus +"</span></td>";
-						} else {
-							joinStatusY++;
-							html += "	<td class='tc word_break_none' data-sort-value='"+v.joinStatus+"'>"+ v.joinStatus +"</td>";
-						}
-						html += "	<td class='tc word_break_none' data-sort-value='"+v.actlCnt+"'>"+ v.actlCnt +" / "+ v.cmntCnt +"</td>";
-						html += "	<td class='tc word_break_none'>";
-						html += "		<a href=\"javascript:ezGraderPop('"+ v.stdNo +"')\" class=\"ui basic mini button\"> <spring:message code='forum.label.forum.joinCnt' /></a>"; // 참여글
-						html += "		<a href=\"javascript:stdMemoForm('"+ v.stdNo +"', this)\" class=\"ui basic mini button\"> <spring:message code='forum.label.memo' /></a>"; // 메모
-						html += "	</td>";
-						html += "</tr>";
-					});
-					$("#forumStareUserList").empty().append(html);
-
-					// TODO : 26.3.19 (footable error로 막음 처리함.)
-					/*$(".table").footable({
-                        on: {
-                            "after.ft.sorting": function(e, ft, sorter){
-                                $("#forumStareUserList tr").each(function(z, k){
-                                    $(k).find("td[name=lineNo]").html((z+1));
-                                });
-                            }
-                        }
-                    });*/
-
-					var params = {
-						totalCount 	  : data.pageInfo.totalRecordCount,
-						listScale 	  : data.pageInfo.recordCountPerPage,
-						currentPageNo : data.pageInfo.currentPageNo,
-						eventName 	  : "listExamUser"
-					};
-
-					gfn_renderPaging(params);
-					$("input[name='check']").each(function(){
-						if(stdList.size > 0){
-							if(stdList.has($(this).val().split('|')[0])){
-								$(this).prop('checked','checked');
-							}else{
-								$(this).removeAttr('checked');
-							}
-						}
-					});
-
-					if("${forumVo.prosConsForumCfg}" == 'N') {
-						// forumChartSet(joinStatusY, joinStatusN);
-					}
-
-					$("#totalCntText").text(returnList.length);
+					var dataList = createUserListHTML(returnList);	// 수강생 리스트 HTML 생성
+					userListTable.clearData();
+					userListTable.replaceData(dataList);
+					userListTable.setPageInfo(data.pageInfo);
 				} else {
 					alert(data.message);
 				}
@@ -239,25 +111,69 @@
 			}, true);
 		}
 
-		// 수강생 전체 버튼
-		function searchAll() {
-			$("#searchKey").val('').trigger('chosen:updated');
-			$("#searchSort").val('').trigger("chosen:updated");
-			$("#searchValue").val("");
-			listForumUser(1);
+		// 수강생 리스트 HTML 생성
+		function createUserListHTML(userList) {
+			let dataList = [];
+
+			if(userList.length == 0) {
+				return dataList;
+			}
+
+			userList.forEach(function(v,i) {
+				var scoreHtml = "";
+				scoreHtml += "		<div class=\"d-inline-block\" id=\"scoreDisplayDiv"+ i +"\" onClick=\"chgScoreRatio("+ i +");\">";
+				if(v.scoreNull === "-") {
+					scoreHtml += "		- <spring:message code='forum.label.point' />"; // 점
+				} else {
+					scoreHtml += "		"+ v.score +" <spring:message code='forum.label.point' />"; // 점
+				}
+				scoreHtml += "		</div>";
+				scoreHtml += "		<div class=\"ui right labeled small input\" id=\"scoreInputDiv"+ i +"\" name=\"scoreInputDiv\" style=\"display:none;\">";
+				scoreHtml += "			<input type=\"number\" min=\"0\" id=\"score"+ i +"\" name=\"score\" data-stdno=\""+ v.stdNo +"\" class=\"w40 tr\" maxlength=\"3\" value=\""+ v.score +"\" maxlength=\"3\" onkeyup=\"this.value=this.value.replace(/[^0-9]/g,'');\" onblur=\"setScoreRatio("+ i +", '"+ v.score +"')\" onfocus=\"this.select()\">";
+				scoreHtml += "			<input type=\"hidden\" name=\"score\" value=\""+ v.score +"\">";
+				scoreHtml += "			<div class=\"ui basic label\"><spring:message code='forum.label.point' /></div>"; // 점
+				scoreHtml += "		</div>";
+
+				var fdkHtml = "<i class=\"xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('\${v.stdNo}', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
+				var joinStatusHtml = "";
+				if(v.joinStatus == "미참여") {
+					joinStatusHtml += "<span class='fcRed'>"+ v.joinStatus +"</span>";
+				} else {
+					joinStatusHtml += v.joinStatus;
+				}
+
+				var mngHtml = "";
+				mngHtml += "		<a href=\"javascript:ezGraderPop('"+ v.stdNo +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></a>"; // 참여글보기
+				mngHtml += "		<a href=\"javascript:stdMemoForm('"+ v.stdNo +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></a>"; // 메모
+
+				dataList.push({
+					no: 				v.lineNo,
+					deptnm: 			v.deptNm,
+					userRprsId: 		v.userId,
+					stdNo: 				v.stdNo,
+					usernm: 			v.userNm,
+					totScr:				scoreHtml,
+					fdk:				fdkHtml,
+					joinStatus:			joinStatusHtml,
+					joinDtdm:			v.joinDtdm,
+					evlyn: 				v.evalYn,
+					mng: 				mngHtml,
+					// 팀관련:항목
+					teamnm:				v.teamNm,
+					ldryn:				v.memberRole
+				});
+
+			});
+
+			return dataList;
 		}
 
-		//목록
-		function viewForumList() {
-			/*var url  = "/forum/forumLect/Form/forumList.do";
-            var form = $("<form></form>");
-            form.attr("method", "POST");
-            form.attr("name", "listForm");
-            form.attr("action", url);
-            form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: "${forumVo.crsCreCd}"}));
-		form.appendTo("body");
-		form.submit();*/
-			location.href = '<c:url value="/forum2/forumLect/profForumListView.do" />';
+		// 수강생 전체 버튼
+		function searchAll() {
+			$("#searchKey").val('all').trigger('chosen:updated');
+			$("#searchSort").val('all').trigger("chosen:updated");
+			$("#searchValue").val("");
+			listForumUser(1);
 		}
 
 		// 팀토론 일때 검색 조건 추가
@@ -597,7 +513,7 @@
 		// 메모 팝업
 		function stdMemoForm(stdNo, obj) {
 			// 선택된 피드백의 아이콘 색상 초기화 및 변경
-			if($(".ui.basic.small.button").parents("tr").hasClass("focused")) {
+			/*if($(".ui.basic.small.button").parents("tr").hasClass("focused")) {
 				$(".ui.basic.small.button").parents("tr").removeClass("focused");
 			}
 			$("[data-stdNo='"+ stdNo +"']").parents("tr").addClass("focused");
@@ -609,7 +525,15 @@
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
 			$("#forumCreCrsStdForm").attr("action", "/forum/forumLect/forumProfMemoPop.do");
 			$("#forumCreCrsStdForm").submit();
-			$("#forumPop").modal("show");
+			$("#forumPop").modal("show");*/
+
+			dialog = UiDialog("dialog1", {
+				title: "메모",
+				width: 600,
+				height: 500,
+				url: "/forum/forumLect/forumProfMemoPop.do",
+				autoresize: true
+			});
 		}
 
 		// 피드백 작성 팝업
@@ -731,7 +655,7 @@
 		}
 
 		// 피드백 파일첨부 팝업 열기
-		function fdbkFilePopOpen() {
+		/*function fdbkFilePopOpen() {
 			var fileUploader = dx5.get("fileUploader");
 			var w = $("#fdbkFileBox").outerWidth();
 			var h = $("#fdbkFileBox").outerHeight();
@@ -742,10 +666,10 @@
 			$("#fileUploader-container").css("height",h+"px");
 			$("#fdbkFileUp").find("button").css("height",h+"px");
 			fileUploader.setUIStyle({itemHeight:h});
-		}
+		}*/
 
 		// 피드백 파일첨부 팝업 닫기
-		function fdbkFilePopClose() {
+		/*function fdbkFilePopClose() {
 			var fileUploader = dx5.get("fileUploader");
 
 			if(fileUploader.getTotalItemCount() > 0){
@@ -763,18 +687,18 @@
 			}
 
 			$('#fdbkFileUp').css("visibility", "hidden");
-		}
+		}*/
 
 		// 피드백 음성녹음 팝업 열기
-		function fdbkAudioPopOpen() {
+/*		function fdbkAudioPopOpen() {
 			$('#fdbkAudioPop').modal('show');
-		}
+		}*/
 
 		// 피드백 음성녹음 팝업 닫기
-		function fdbkAudioPopClose() {
+	/*	function fdbkAudioPopClose() {
 			fdbkFileToggle();
 			$('#fdbkAudioPop').modal('hide');
-		}
+		}*/
 
 		function fdbkFileToggle(){
 			var fileUploader = dx5.get("fileUploader");
@@ -950,14 +874,15 @@
 
 		// 목록
 		function viewForumList() {
-			var url  = "/forum/forumLect/Form/forumList.do";
+			/*var url  = "/forum/forumLect/Form/forumList.do";
 			var form = $("<form></form>");
 			form.attr("method", "POST");
 			form.attr("name", "listForm");
 			form.attr("action", url);
 			form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: "${forumVo.crsCreCd}"}));
 			form.appendTo("body");
-			form.submit();
+			form.submit();*/
+			location.href = "/forum2/forumLect/profForumListView.do?sbjctId=" + "${forumVo.crsCreCd}";
 		}
 
 		// 토론 수정
@@ -1096,14 +1021,13 @@
 							<h4>토론평가</h4>
 							<div class="right-area">
 								<%-- <c:if test="${!fn:contains(authGrpCd, 'TUT') }"> --%>
-								<a href="javascript:ezGraderPop()" class="ui basic small button mla">EZ-Grader</a>
+								<a href="javascript:ezGraderPop()" class="btn basic small">EZ-Grader</a>
 								<%-- </c:if> --%>
 								<%-- <a href="javascript:allFeedback()" class="ui button"><spring:message code="forum.button.all.feedback" /></a><!-- 일괄 피드백 --> --%>
-								<a href="javascript:callScoreExcelUpload()" class="ui basic small button"><spring:message code="forum.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
+								<a href="javascript:callScoreExcelUpload()" class="btn basic small"><spring:message code="forum.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
 
 								<%--<uiex:msgSendBtn func="sendMsg()" styleClass="ui basic small button"/><!-- 메시지 -->--%>
 								<a href="javascript:sendMsg()" class="btn basic small">보내기</a>
-								<a href="javascript:void(0)" class="ui basic small button" onclick="viewForumList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
 							</div>
 						</div>
 
@@ -1113,7 +1037,7 @@
 								<select class="ui compact dropdown mr10" id="searchKey" onchange="listForumUser(1)">
 									<option value="all"><spring:message code='forum.common.search.all'/><!-- 전체 --></option>
 									<option value="joinY"><spring:message code='forum.label.join'/><!-- 참여 --></option>
-									<option value="after"><spring:message code='forum.label.after.join'/><!-- 지각참여 --></option>
+									<%--<option value="after"><spring:message code='forum.label.after.join'/><!-- 지각참여 --></option>--%>
 									<option value="joinN"><spring:message code='forum.label.not.join'/><!-- 미참여 --></option>
 									<c:if test="${forumVo.forumCtgrCd eq 'TEAM'}">
 										<option value="leader"><spring:message code='forum.label.team.leader'/><!-- 팀장 --></option>
@@ -1132,245 +1056,208 @@
 						</div>
 						<!-- 토론평가 검색:끝 -->
 
-					<!-- 토론평가 점수처리 영역:시작 -->
-					<table class="table-type1 fs-14px">
-						<colgroup>
-							<col class="width-20per" />
-							<col class="" />
-						</colgroup>
-						<tbody>
-							<c:if test="${!fn:contains(authGrpCd, 'TUT') }">
-							<tr>
-								<th><spring:message code="common.label.batch.score.process" /><!-- 일괄 점수처리 --></th>
-								<td>
-									<div class="text-left">
-										<span class="custom-input">
-											<input type="radio" name="scoreType" id="scoreBatch" onchange="plusMinusIconControl(this.value)" value="batch" checked />
-											<label for="scoreBatch"><spring:message code="forum.label.reg.scoring" /><!-- 점수 등록 --></label>
-										</span>
-										<span class="custom-input">
-											<input type="radio" name="scoreType" id="scoreAddition" onchange="plusMinusIconControl(this.value)" value="addition" />
-											<label for="scoreAddition"><spring:message code="forum.label.plus.minus.scoring" /><!-- 점수 가감 --></label>
-										</span>
-										<spring:message code="forum.label.score" /><!-- 점수 -->
-										<button class='btn small basic icon' id="scr-toggle-icon"><i class='xi-plus'></i></button>
-										<input type="text" id="scoreValue" class="w100" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');" maxlength="3" />
-										<spring:message code="forum.label.point" /><!-- 점 -->
-										<a href="javascript:submitScore()" class="btn type7"><spring:message code="common.label.batch.score.save" /><!-- 일괄 점수저장 --></a>
-									</div>
-								</td>
-							</tr>
-							<tr>
-								<th><spring:message code='forum.button.length.score'/><!-- 글자수로 점수 주기 --></th>
-								<td>
-									<div class="text-left">
-										<div class="form-inline">
-											<input type="text" name="ctsLen" id="ctsLen" placeholder="<spring:message code='forum.alert.len.input'/>" class="w100" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');"><!-- 글자수 입력 -->
-											<spring:message code='forum.label.lt'/><!-- 이상 -->
-											<div class="custom-input ml10">
-												<input type="checkbox" name="chkCmnt" id="chkCmnt" value="Y">
-												<label for="chkCmnt"><spring:message code='forum.label.comment.include'/><!-- 댓글포함 --></label>
-											</div>
-											<input type="text" name="lenScore" id="lenScore" placeholder="<spring:message code='forum.label.score'/>" class="w100" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');"><!-- 점수 -->
-											<spring:message code='forum.label.point'/><!-- 점 -->
-											<a href="javascript:lenScore()" class="btn type7 ml10"><spring:message code='forum.button.all.score'/><!-- 일괄 점수 주기 --></a>
+						<!-- 토론평가 점수처리 영역:시작 -->
+						<table class="table-type1 fs-14px">
+							<colgroup>
+								<col class="width-20per" />
+								<col class="" />
+							</colgroup>
+							<tbody>
+								<c:if test="${!fn:contains(authGrpCd, 'TUT') }">
+								<tr>
+									<th><spring:message code="common.label.batch.score.process" /><!-- 일괄 점수처리 --></th>
+									<td>
+										<div class="text-left">
+											<span class="custom-input">
+												<input type="radio" name="scoreType" id="scoreBatch" onchange="plusMinusIconControl(this.value)" value="batch" checked />
+												<label for="scoreBatch"><spring:message code="forum.label.reg.scoring" /><!-- 점수 등록 --></label>
+											</span>
+											<span class="custom-input">
+												<input type="radio" name="scoreType" id="scoreAddition" onchange="plusMinusIconControl(this.value)" value="addition" />
+												<label for="scoreAddition"><spring:message code="forum.label.plus.minus.scoring" /><!-- 점수 가감 --></label>
+											</span>
+											<spring:message code="forum.label.score" /><!-- 점수 -->
+											<button class='btn small basic icon' id="scr-toggle-icon"><i class='xi-plus'></i></button>
+											<input type="text" id="scoreValue" class="w100" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');" maxlength="3" />
+											<spring:message code="forum.label.point" /><!-- 점 -->
+											<a href="javascript:submitScore()" class="btn type7"><spring:message code="common.label.batch.score.save" /><!-- 일괄 점수저장 --></a>
 										</div>
-									</div>
-									<script>
-										function lenScore() {
-											var chkCmnt = "N";
-											// 글자수 입력
-											if($("#ctsLen").val() == "" || $("#ctsLen").val() == undefined){
-												alert("<spring:message code='forum.alert.input.ctsLen' />"); // 글자수를 입력하세요.
-												return false;
-											}
-											if($("#ctsLen").val() < 1 ){
-												alert("<spring:message code='forum.alert.sts.len.min_1' />");/* 글자수는 1자 이상 입력 가능 합니다. */
-												return false;
-											}
-											// 점수 입력
-											if($("#lenScore").val() == "" || $("#lenScore").val() == undefined){
-												alert("<spring:message code='forum.alert.input.score' />"); // 점수를 입력하세요.
-												return false;
-											}
-											if($("#lenScore").val() > 100 ){
-												alert("<spring:message code='forum.alert.score.max_100' />");/* 점수는 100점 까지 입력 가능 합니다. */
-												return false;
-											}
-											// 학습자 선택
-											if($("input[name=check]:checked").length == 0) {
-												alert("<spring:message code='forum.alert.select.std' />");/* 학습자를 선택해 주세요. */
-												return false;
-											}
-											if($("input[name=chkCmnt]:checked").val() == "Y") {
-												chkCmnt = "Y";
-											}
-											var stdNos = $("#stdNos").val();
-											var url = "/forum/forumLect/updateForumJoinUserLenScore.do";
-											var data = {
-												"forumCd" : "${forumVo.forumCd}",
-												"crsCreCd" : "${forumVo.crsCreCd}",
-												"teamCtgrCd" : "${forumVo.teamCtgrCd}",
-												"stdNos" : stdNos,
-												"score" : $("#lenScore").val(),
-												"ctsLen" : $("#ctsLen").val(),
-												"chkCmnt" : chkCmnt
-											};
-											ajaxCall(url, data, function(data) {
-												if(data.result > 0) {
-													alert("<spring:message code='forum.alert.length.score.success' />"); // 글자수로 점수 주기를 성공하였습니다.
-													$("#stdNos").val("");
-													listForumUser(1);
-													// scoreChartSet();
-													$("#ctsLen").val("");
-													$("input:checkbox[id='chkCmnt']").prop("checked", false);
-													$("#lenScore").val("");
-												} else {
-													alert("<spring:message code='forum.alert.length.score.fail' />"); // 글자수로 점수 주기가 실패하였습니다!! 다시 시도해주시기 바랍니다.
+									</td>
+								</tr>
+								<tr>
+									<th><spring:message code='forum.button.length.score'/><!-- 글자수로 점수 주기 --></th>
+									<td>
+										<div class="text-left">
+											<div class="form-inline">
+												<input type="text" name="ctsLen" id="ctsLen" placeholder="<spring:message code='forum.alert.len.input'/>" class="w100" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');"><!-- 글자수 입력 -->
+												<spring:message code='forum.label.lt'/><!-- 이상 -->
+												<div class="custom-input ml10">
+													<input type="checkbox" name="chkCmnt" id="chkCmnt" value="Y">
+													<label for="chkCmnt"><spring:message code='forum.label.comment.include'/><!-- 댓글포함 --></label>
+												</div>
+												<input type="text" name="lenScore" id="lenScore" placeholder="<spring:message code='forum.label.score'/>" class="w100" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');"><!-- 점수 -->
+												<spring:message code='forum.label.point'/><!-- 점 -->
+												<a href="javascript:lenScore()" class="btn type7 ml10"><spring:message code='forum.button.all.score'/><!-- 일괄 점수 주기 --></a>
+											</div>
+										</div>
+										<script>
+											function lenScore() {
+												var chkCmnt = "N";
+												// 글자수 입력
+												if($("#ctsLen").val() == "" || $("#ctsLen").val() == undefined){
+													alert("<spring:message code='forum.alert.input.ctsLen' />"); // 글자수를 입력하세요.
+													return false;
 												}
-											}, function(xhr, status, error) {
-												alert("<spring:message code='forum.common.error' />"); // 오류가 발생했습니다!
-											}, true);
-										}
-									</script>
-								</td>
-							</tr>
-							<c:if test="${forumVo.evalCtgr == 'PTCP_FULL_SCR'}">
-							<%--<tr>
-								<th><spring:message code="forum.label.evalctgr.participate.all" /><!-- 참여형 일괄평가 --></th>
-								<td>
-									<a href="javascript:partiScore()" class="btn type7"><spring:message code="forum.label.evalctgr.participate.all" /><!-- 참여형 일괄평가 --></a>
-									<script>
-										function partiScore() {
-											if(window.confirm(`<spring:message code="forum.confirm.parti.score" />`)) {/* 기존 점수는 초기화되고\r\n토론 참여글 등록 수강생은 100점,\r\n미등록 수강생과 댓글만 작성한 수강생은 0점 처리됩니다.\r\n처리하시겠습니까? */
-												var url = "/forum/forumLect/participateScore.do";
+												if($("#ctsLen").val() < 1 ){
+													alert("<spring:message code='forum.alert.sts.len.min_1' />");/* 글자수는 1자 이상 입력 가능 합니다. */
+													return false;
+												}
+												// 점수 입력
+												if($("#lenScore").val() == "" || $("#lenScore").val() == undefined){
+													alert("<spring:message code='forum.alert.input.score' />"); // 점수를 입력하세요.
+													return false;
+												}
+												if($("#lenScore").val() > 100 ){
+													alert("<spring:message code='forum.alert.score.max_100' />");/* 점수는 100점 까지 입력 가능 합니다. */
+													return false;
+												}
+												// 학습자 선택
+												if($("input[name=check]:checked").length == 0) {
+													alert("<spring:message code='forum.alert.select.std' />");/* 학습자를 선택해 주세요. */
+													return false;
+												}
+												if($("input[name=chkCmnt]:checked").val() == "Y") {
+													chkCmnt = "Y";
+												}
+												var stdNos = $("#stdNos").val();
+												var url = "/forum/forumLect/updateForumJoinUserLenScore.do";
 												var data = {
 													"forumCd" : "${forumVo.forumCd}",
 													"crsCreCd" : "${forumVo.crsCreCd}",
+													"teamCtgrCd" : "${forumVo.teamCtgrCd}",
+													"stdNos" : stdNos,
+													"score" : $("#lenScore").val(),
+													"ctsLen" : $("#ctsLen").val(),
+													"chkCmnt" : chkCmnt
 												};
 												ajaxCall(url, data, function(data) {
 													if(data.result > 0) {
-														alert("<spring:message code='forum.alert.evalctgr.participate.all' />"); // 참여형 일괄평가가 완료되었습니다.
+														alert("<spring:message code='forum.alert.length.score.success' />"); // 글자수로 점수 주기를 성공하였습니다.
+														$("#stdNos").val("");
 														listForumUser(1);
 														// scoreChartSet();
+														$("#ctsLen").val("");
+														$("input:checkbox[id='chkCmnt']").prop("checked", false);
+														$("#lenScore").val("");
 													} else {
-														alert(data.message);
+														alert("<spring:message code='forum.alert.length.score.fail' />"); // 글자수로 점수 주기가 실패하였습니다!! 다시 시도해주시기 바랍니다.
 													}
 												}, function(xhr, status, error) {
 													alert("<spring:message code='forum.common.error' />"); // 오류가 발생했습니다!
 												}, true);
 											}
-										}
-									</script>
-								</td>
-							</tr>--%>
-							</c:if>
-							</c:if>
-							<tr>
-								<th><spring:message code='forum.label.feedback'/><!-- 피드백 --></th>
-								<td>
-									<div class="mt10 flex">
-										<div class="ui checkbox" style="position:absolute;bottom:50px;">
-											<input type="checkbox" id="audioChk" /><label for="audioChk" class="d-inline-block">음성<br>녹음</label>
-										</div>
+										</script>
+									</td>
+								</tr>
+								<c:if test="${forumVo.evalCtgr == 'PTCP_FULL_SCR'}">
+								<tr>
+									<th><spring:message code="forum.label.evalctgr.participate.all" /><!-- 참여형 일괄평가 --></th>
+									<td>
 										<div class="text-left">
-											<div class="field ui fluid input">
-												<input type="text" id="fdbkValue" maxlength="3000" placeholder="<spring:message code='forum.label.feedback.input'/>"><!-- 피드백 입력 -->
-											</div>
-											<div class="ui box">
-												<div class="fields mr0">
-													<div class="field">
-														<button class="ui basic icon button" onclick="fdbkFilePopOpen();">
-															<i class="save icon"></i> <spring:message code='forum.label.fdbk.file.attach'/><!-- 파일첨부 -->
-														</button>
+											<a href="javascript:partiScore()" class="btn type7"><spring:message code="forum.label.evalctgr.participate.all" /><!-- 참여형 일괄평가 --></a>
+										</div>
+										<script>
+											function partiScore() {
+												if(window.confirm(`<spring:message code="forum.confirm.parti.score" />`)) {/* 기존 점수는 초기화되고\r\n토론 참여글 등록 수강생은 100점,\r\n미등록 수강생과 댓글만 작성한 수강생은 0점 처리됩니다.\r\n처리하시겠습니까? */
+													var url = "/forum/forumLect/participateScore.do";
+													var data = {
+														"forumCd" : "${forumVo.forumCd}",
+														"crsCreCd" : "${forumVo.crsCreCd}",
+													};
+													ajaxCall(url, data, function(data) {
+														if(data.result > 0) {
+															alert("<spring:message code='forum.alert.evalctgr.participate.all' />"); // 참여형 일괄평가가 완료되었습니다.
+															listForumUser(1);
+															// scoreChartSet();
+														} else {
+															alert(data.message);
+														}
+													}, function(xhr, status, error) {
+														alert("<spring:message code='forum.common.error' />"); // 오류가 발생했습니다!
+													}, true);
+												}
+											}
+										</script>
+									</td>
+								</tr>
+								</c:if>
+								</c:if>
+								<tr>
+									<th><spring:message code='forum.label.feedback'/><!-- 피드백 --></th>
+									<td>
+										<div class="text-left">
+											<div>
+												<div>
+													<div class="form-row">
+														<input class="form-control width-80per" type="text" id="fdbkValue" maxlength="3000" placeholder="<spring:message code='forum.label.feedback.input'/>"><!-- 피드백 입력 -->
+														<a href="javascript:valFdbk()" class="btn type7 ml10"><spring:message code='common.label.batch.feedback.save'/><!-- 일괄 피드백 저장 --></a>
 													</div>
-													<div id="fdbkFileBox" class="field ui segment flex1 flex-item p4" style="position:relative;z-index:100">
-														<div class="flex align-items-center" id="fdbkFileView"></div>
-														<div id="fdbkFileUp" style="position:absolute;top:0;left:0;visibility:hidden;">
-															<div class="flex1 fileUpBox" style="display:inline-block;">
-																<uiex:dextuploader
-																		id="fileUploader"
-																		path="${path}"
-																		limitCount="1"
-																		limitSize="100"
-																		oneLimitSize="100"
-																		listSize="1"
-																		finishFunc="finishUpload()"
-																		allowedTypes="*"
-																		bigSize="false"
-																		uiMode="simple"
-																/>
-															</div>
-															<div class="flex1" style="display:inline-block;vertical-align:top">
-																<button onclick="fdbkFilePopClose()" class="ui grey small button fCloseBtn" style="margin-left:-4px;"><span aria-hidden="true">&times;</span></button>
-															</div>
-														</div>
+													<div id="uploaderBox" class="mt10 width-80per">
+														<!-- TODO : 피드백 File Uplaod -->
+														<uiex:dextuploader
+																id="fileUploader"
+																path="${path}"
+																limitCount="1"
+																limitSize="100"
+																oneLimitSize="100"
+																listSize="1"
+																fileList=""
+																finishFunc="finishUpload()"
+																allowedTypes="*"
+														/>
 													</div>
 												</div>
-												<%--<div class="fields mr0 audioDiv">
-													<div class="field">
-														<button class="ui basic icon button" onclick="fdbkAudioPopOpen();">
-															<i class="microphone icon"></i> <spring:message code='forum.label.fdbk.audio.attach'/><!-- 음성녹음 -->
-														</button>
-													</div>
-													<div class="field ui segment flex1 flex-item p4">
-														<div class="flex align-items-center gap8" id="fdbkAudioView"></div>
-													</div>
-												</div>--%>
-											</div>
-											<div class="fields mt10 ml0 mr0 tr">
-												<a href="javascript:valFdbk()" class="btn type7 ml10"><spring:message code='common.label.batch.feedback.save'/><!-- 일괄 피드백 저장 --></a>
 											</div>
 										</div>
-									</div>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-					<!-- 토론평가 점수처리 영역:끝 -->
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<!-- 토론평가 점수처리 영역:끝 -->
 
 						<!-- 검색결과 영역-버튼들:시작 -->
 						<div class="board_top margin-top-4">
 							<div class="right-area">
 								<%-- <div class="sec_head mra"><spring:message code="forum.label.submit.status" /><!-- 토론현황 --></div> --%>
-								<a href="javascript:forumChartView()" class="ui blue button"><spring:message code="forum.label.submit.status" /></a><!-- 토론현황 -->
-								<h4 class="ml5">(<spring:message code="common.page.total" /><!-- 총 -->&nbsp;:&nbsp;<span id="totalCntText">0</span><spring:message code="message.person" /><!-- 명 -->)</h4>
-								<a href="javascript:forumExcelDown()" class="ui blue button mla"><spring:message code="forum.label.excel.download" /></a><!-- 엑셀다운로드 -->
+								<a href="javascript:forumChartView()" class="btn type1"><spring:message code="forum.label.submit.status" /></a><!-- 토론현황 -->
+								<a href="javascript:forumExcelDown()" class="btn type1"><spring:message code="forum.label.excel.download" /></a><!-- 엑셀다운로드 -->
 							</div>
 						</div>
 						<!-- 검색결과 영역-버튼들:끝 -->
 
 						<!-- 검색결과 영역:시작 -->
-						<table class="table type2" data-sorting="true" data-paging="false" data-empty="<spring:message code='forum.common.search.no.std' />"><!-- 조건에 맞는 수강생이 없습니다. -->
-							<thead>
-							<tr>
-								<th scope="col" class="tc wf5" data-sortable="false">
-									<div class="ui checkbox allCheck">
-										<input type="hidden" id="stdNos" name="stdNos">
-										<input type="checkbox" id="allCheck" name="allEvalChk" onchange="checkAllStdNoToggle(this)">
-										<label class="toggle_btn" for="allCheck"></label>
-									</div>
-								</th>
-								<th scope="col" class="tc wf5 num" data-sortable="false" data-type="number">No</th>
-								<th scope="col" class="tc wf10" data-breakpoints="xs"><spring:message code="forum.label.dept.nm" /><!-- 학과 --></th>
-								<th scope="col" class="tc"><spring:message code="forum.label.user.no" /><!-- 학번 --></th>
-								<th scope="col" class="tc" data-breakpoints="xs"><spring:message code="forum.label.user.grade" /><!-- 학년 --></th>
-								<c:if test="${creCrsVO.univGbn eq '3' or creCrsVO.univGbn eq '4'}">
-									<th scope="col" class="tc" data-breakpoints="xs"><spring:message code="common.label.grsc.degr.cors.gbn" /><!-- 학위과정 --></th>
-								</c:if>
-								<th scope="col" class="tc"><spring:message code="forum.label.user_nm" /><!-- 이름 --></th>
-								<th scope="col" class="tc" data-breakpoints="xs sm"><spring:message code="forum.label.user.entr.yy" /><!-- 입학년도 --></th>
-								<th scope="col" class="tc" data-breakpoints="xs sm"><spring:message code="forum.label.user.entr.hy" /><!-- 입학학년 --></th>
-								<th scope="col" class="tc" data-breakpoints="xs sm"><spring:message code="forum.label.user.entr.gbn" /><!-- 입학구분 --></th>
-								<th scope="col" class="tc wf15" data-breakpoints="xs sm md"><spring:message code="forum.label.eval.score" /><!-- 평가점수 --></th>
-								<th scope="col" class="tc" data-breakpoints="xs sm md"><spring:message code="forum.label.status" /><!-- 상태 --></th>
-								<th scope="col" class="tc"><spring:message code="forum.label.forum.joinCnt" />/<spring:message code="forum.label.forum.commCnt" /><!-- 참여글/댓글수 --></th>
-								<th scope="col" class="tc" data-sortable="false" data-breakpoints="xs sm md"><spring:message code="forum.label.manage" /><!-- 관리 --></th>
-							</tr>
-							</thead>
-							<tbody id="forumStareUserList">
-							</tbody>
-						</table>
+						<div id="forumStareUserList"></div>
+						<script>
+							let userListTable = UiTable("forumStareUserList", {
+								lang: "ko",
+								selectRow: "checkbox",
+								columns: [
+									{title:"No", 		field:"no",					headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},
+									("${forumVo.forumCtgrCd}" == "TEAM" ? {title: "팀명", field: "teamnm", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
+									{title:"학과", 		field:"deptnm",				headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:100},
+									{title:"대표아이디", 	field:"userRprsId", 		headerHozAlign:"center", hozAlign:"center", width:0, 	minWidth:100},
+									{title:"학번", 		field:"stdNo", 				headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
+									{title:"이름", 		field:"usernm", 			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
+									("${forumVo.forumCtgrCd}" == "TEAM" ? {title: "역할", field: "ldryn", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
+									{title:"평가점수", 	field:"totScr", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"피드백", 	field:"fdk", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"참여상태", 	field:"joinStatus", 		headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"참여일시", 	field:"joinDtdm", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"평가여부", 	field:"evlyn", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"관리", 		field:"mng", 				headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:300},
+								].filter(function(col) {return col !== null;})
+							});
+						</script>
 						<!-- 검색결과 영역:끝 -->
 					</div>
 				</div>
@@ -1379,33 +1266,6 @@
 		<!-- classroom-->
 	</div>
 
-
-	<!-- 피드백 음성녹음 모달 팝업-->
-	<div class="modal fade" id="fdbkAudioPop" tabindex="-1" role="dialog" aria-labelledby="audio-modal" aria-hidden="false">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="<spring:message code='forum.button.close'/>"><!-- 닫기 -->
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title"><spring:message code='forum.label.feedback'/> <spring:message code='forum.label.fdbk.audio.attach'/><!-- 피드백 음성녹음 --></h4>
-				</div>
-				<div class="modal-body">
-					<div class="modal-page">
-						<div id="wrap">
-							<div class="ui form" style="height:50px">
-								<div id="audioRecord"></div>
-							</div>
-							<div class="bottom-content">
-								<a class="ui basic button toggle_btn flex-left-auto" onclick="fdbkAudioPopClose();"><spring:message code='forum.button.attaching'/><!-- 첨부하기 --></a>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- 피드백 음성녹음 모달 팝업-->
 	<!-- ez grader modal pop -->
 	<div class="modal fade id" id="ezGraderPop" tabindex="-1" role="dialog" aria-labelledby="ezGrader" aria-hidden="false">
 		<div class="modal-dialog full" role="document">
@@ -1417,24 +1277,5 @@
 		</div>
 	</div>
 	<!-- ez grader modal pop -->
-	<!-- 팀 구성원 보기 모달 -->
-	<div class="modal fade" id="teamMemberPop" tabindex="-1" role="dialog" aria-labelledby="<spring:message code='forum.label.team.member.view'/>" aria-hidden="true"><!-- 팀 구성원 보기 -->
-		<div class="modal-dialog modal-lg" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="<spring:message code='forum.button.close'/>"><!-- 닫기 -->
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title"><spring:message code='forum.label.team.member.view'/><!-- 팀 구성원 보기 --></h4>
-				</div>
-				<div class="modal-body">
-					<iframe src="" id="teamMemberIfm" name="teamMemberIfm" width="100%" scrolling="no"></iframe>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- 팀 구성원 보기 모달 -->
-
-
 </body>
 </html>

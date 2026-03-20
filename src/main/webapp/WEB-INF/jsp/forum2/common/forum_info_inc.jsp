@@ -119,6 +119,7 @@
 								</c:when>
 								<c:otherwise>
 									<spring:message code='forum.label.evalctgr.participate'/><!-- 참여형 -->
+									<span class="fcBlue"><spring:message code='forum.label.evalctgr.participate.desc'/></span><!-- ( 토론 참여 : 100점, 미참여 : 0점 자동배점 ) -->
 								</c:otherwise>
 							</c:choose>
 						</td>

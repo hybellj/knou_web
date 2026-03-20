@@ -15,10 +15,10 @@
 	String webdoc = contextPath + "/webdoc";
 	String assets = webdoc + "/assets";
 	String uilib = webdoc + "/uilib";
-	
+
 	String pageType = (String)SessionUtil.getSessionValue(request, "PAGE_TYPE");
 	String bodyClass = (String)SessionUtil.getSessionValue(request, "BODY_CLASS");
-	
+
 	request.setAttribute("pageType", pageType);
 	request.setAttribute("bodyClass", bodyClass);
 %>
@@ -142,6 +142,7 @@ if (module != null && !"".equals(module)) {
 			<script src="<%=uilib%>/chart/d3.v4.js"></script><!-- chart d3.js -->
 			<script src="<%=uilib%>/chart/chart4.min.js"></script><!-- chart4 -->
 			<script src="<%=uilib%>/chart/chart-utils.min.js"></script><!-- chart util -->
+			<script src="<%=uilib%>/chart/chartjs-plugin-datalabels.min.js"></script>
 			<%
 		}
 		// 위젯
@@ -149,6 +150,7 @@ if (module != null && !"".equals(module)) {
 			%>
 			<link rel="stylesheet" href="<%=uilib%>/gridstack/gridstack.min.css">
 			<script src="<%=uilib%>/gridstack/gridstack-all.js"></script>
+			<script src="<%=uilib%>/gridstack/ui-widget.js"></script>
 			<%
 		}
 		// 탭메뉴

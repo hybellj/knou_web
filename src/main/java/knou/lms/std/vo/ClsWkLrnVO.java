@@ -16,6 +16,7 @@ public class ClsWkLrnVO extends DefaultVO {
     // 조회 조건 (sbjctId, userId, orgId 는 DefaultVO 상속)
     private int    wkNo;          // 주차 번호
     private String elemType;
+    private String lctrWknoSchdlId; // 주차 스케줄 ID
 
     // 주차 요약 - 출결
     private String atndSts;       // 출결상태 (O:출석 / △:지각 / X:결석)
@@ -47,8 +48,11 @@ public class ClsWkLrnVO extends DefaultVO {
     public int getWkNo()                { return wkNo; }
     public void setWkNo(int v)          { this.wkNo = v; }
 
-    public String getElemType()        { return elemType; }   // ← 추가
-    public void setElemType(String v)  { this.elemType = v; } // ← 추가
+    public String getElemType()        { return elemType; }
+    public void setElemType(String v)  { this.elemType = v; }
+
+    public String getLctrWknoSchdlId() { return lctrWknoSchdlId; }
+    public void setLctrWknoSchdlId(String v) { this.lctrWknoSchdlId = v; }
 
     public String getAtndSts()          { return atndSts; }
     public void setAtndSts(String v)    { this.atndSts = v; }

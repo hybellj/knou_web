@@ -44,6 +44,8 @@ public interface MsgShrtntDAO {
 
     int deleteRcvTrgtr(MsgShrtntVO vo);
 
+    int deleteShrtntSndng(MsgShrtntVO vo);
+
     int updateMsgRsrvCncl(MsgShrtntVO vo);
 
     List<MsgShrtntVO> selectMsgRcvTrgtrList(MsgShrtntVO vo);

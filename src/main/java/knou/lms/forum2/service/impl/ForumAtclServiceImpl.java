@@ -33,14 +33,14 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
 
     @Autowired
     private SysFileService sysFileService;
-    
-    // ��� �Խñ� �� ī����
+
+    // 토론 게시글 수 카운팅
     @Override
     public int forumAtclCount(ForumAtclVO vo) throws Exception {
         return forumAtclDAO.forumAtclCount(vo);
     }
 
-    // ��� �Խñ� ����¡ ��� ��ȸ
+    // 토론 게시글 페이징 목록 조회
     @Override
     public ProcessResultVO<ForumAtclVO> listPageing(ForumAtclVO vo) throws Exception {
         ProcessResultVO<ForumAtclVO> resultList = new ProcessResultVO<>();

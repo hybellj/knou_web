@@ -39,8 +39,8 @@
 
         /* 학사년도/학기 */
         let yrSmstr = '';
-        if (v.sbjctYr) yrSmstr = v.sbjctYr;
-        if (v.sbjctSmstr) yrSmstr += ' / ' + v.sbjctSmstr;
+        if (v.sbjctYr) yrSmstr = v.sbjctYr + '<spring:message code="msg.rcptnAgre.label.year" text="년"/>';
+        if (v.sbjctSmstr) yrSmstr += ' / ' + v.sbjctSmstr + '<spring:message code="msg.rcptnAgre.label.smstr" text="학기"/>';
         $('#sbjctYrSmstr').text(yrSmstr || '-');
 
         /* 운영과목 */
@@ -75,7 +75,6 @@
 
         /* 발신자 */
         $('#sndngnm').text(v.sndngnm || '');
-        $('#sndngrPhnno').text(v.sndngrPhnno || '-');
 
         /* 예약 관련 버튼 */
         if (v.rsrvYn === 'Y') {
@@ -130,8 +129,6 @@
                 rcvrnm: UiComm.escapeHtml(v.rcvrnm || ''),
                 stdntNo: v.stdntNo || '',
                 userRprsId2: v.userRprsId2 || '',
-                mblPhn: v.mblPhn || '',
-                eml: v.eml || '',
                 sndngYn: sndngYnHtml
             });
         });
@@ -150,8 +147,6 @@
         excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.rcvrnm" text="수신자"/>', name: 'rcvrnm', align: 'center', width: '4000'});
         excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.stdntNo" text="학번"/>', name: 'stdntNo', align: 'center', width: '4000'});
         excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.rprsId" text="대표 ID"/>', name: 'userRprsId2', align: 'center', width: '4000'});
-        excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.mblPhn" text="휴대폰번호"/>', name: 'mblPhn', align: 'center', width: '5000'});
-        excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.eml" text="이메일"/>', name: 'eml', align: 'center', width: '6000'});
         excelGrid.colModel.push({label: '<spring:message code="msg.shrtnt.col.sndngYn" text="발송"/>', name: 'sndngYn', align: 'center', width: '3000'});
 
         let form = $("<form></form>");
@@ -181,17 +176,17 @@
         html += '<div class="table_list">';
         html += '<ul class="list"><li class="head"><label><spring:message code="msg.shrtnt.label.ttl" text="제목"/></label></li>';
         html += '<li>' + UiComm.escapeHtml(detailData.ttl || '') + '</li></ul>';
-        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvSndngDttm2" text="발신예약일시"/></label></li>';
+        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvSndngDttm" text="발신예약일시"/></label></li>';
         html += '<li>' + UiComm.formatDate(detailData.rsrvSndngSdttm, 'datetime') + '</li></ul>';
         html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rcvrnm" text="수신자"/></label></li>';
         html += '<li>' + rcvrCntVal + '</li></ul>';
-        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.cnclr" text="예약취소자"/></label></li>';
+        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvCnclUser" text="예약취소자"/></label></li>';
         html += '<li>' + UiComm.escapeHtml(detailData.sndngnm || '') + '</li></ul>';
-        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.cnclDttm" text="예약취소일시"/></label></li>';
+        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvCnclDttm" text="예약취소일시"/></label></li>';
         html += '<li>' + nowStr + '</li></ul>';
         html += '</div>';
         html += '<div class="btns" style="margin-top:15px;">';
-        html += '<button type="button" class="btn type1" onclick="fn_rsrvCnclSubmit()"><spring:message code="msg.shrtnt.label.cnclBtn" text="취소하기"/></button>';
+        html += '<button type="button" class="btn type1" onclick="fn_rsrvCnclSubmit()"><spring:message code="msg.shrtnt.label.rsrvCnclBtn" text="취소하기"/></button>';
         html += '<button type="button" class="btn type2" onclick="rsrvCnclDlg.close()"><spring:message code="msg.shrtnt.label.closeBtn" text="닫기"/></button>';
         html += '</div>';
         html += '</div>';
@@ -226,87 +221,83 @@
 </script>
 
 <body class="home colorA ${bodyClass}">
-    <div id="wrap" class="main">
-        <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
+<div id="wrap" class="main">
+    <!-- common header -->
+    <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
 
-        <!-- dashboard -->
-        <main class="common">
+    <!-- dashboard -->
+    <main class="common">
 
-            <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+        <!-- gnb -->
+        <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
 
-            <!-- content -->
-            <div id="content" class="content-wrap common">
-                <div class="dashboard_sub">
+        <!-- content -->
+        <div id="content" class="content-wrap common">
+            <div class="dashboard_sub">
 
-                    <div class="sub-content">
-                        <div class="page-info">
-                            <h2 class="page-title"><span><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></span><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
-                            <div class="navi_bar">
-                                <ul>
-                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></li>
-                                    <li><spring:message code="msg.shrtnt.label.title" text="쪽지"/></li>
-                                    <li><span class="current"><spring:message code="msg.shrtnt.label.sndngDetail" text="발신 상세"/></span></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="board_top">
-                            <h3 class="board-title"><spring:message code="msg.shrtnt.label.sndngCtsTitle" text="쪽지 발신 내용"/></h3>
-                            <div class="right-area">
-                                <button type="button" id="btnModify" class="btn type1" onclick="fn_modify()" style="display:none;"><spring:message code="msg.shrtnt.label.modify" text="수정"/></button>
-                                <button type="button" id="btnRsrvCncl" class="btn type1" onclick="fn_rsrvCncl()" style="display:none;"><spring:message code="msg.shrtnt.label.rsrvCncl" text="발신예약취소"/></button>
-                                <button type="button" class="btn type2" onclick="fn_list()"><spring:message code="msg.shrtnt.label.sndngList" text="발신 목록"/></button>
-                            </div>
-                        </div>
-
-                        <!-- 상세 -->
-                        <div class="table_list">
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.yearSmstr" text="학사년도/학기"/></label></li>
-                                <li id="sbjctYrSmstr">-</li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.oprSbjct" text="운영과목"/></label></li>
-                                <li id="sbjctnm">-</li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.cts" text="내용"/></label></li>
-                                <li>
-                                    <div class="tb_content" id="txtCts"></div>
-                                </li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.atfl" text="첨부파일"/></label></li>
-                                <li id="atflContent">-</li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.sndngDttm" text="발신일시"/></label></li>
-                                <li id="sndngDttm"></li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.sndngnm" text="발신자"/></label></li>
-                                <li id="sndngnm"></li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.sndngrPhnno" text="발신자 번호"/></label></li>
-                                <li id="sndngrPhnno">-</li>
+                <div class="sub-content">
+                    <div class="page-info">
+                        <h2 class="page-title"><span><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></span><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
+                        <div class="navi_bar">
+                            <ul>
+                                <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
+                                <li><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></li>
+                                <li><spring:message code="msg.shrtnt.label.title" text="쪽지"/></li>
+                                <li><span class="current"><spring:message code="msg.shrtnt.label.sndngDetail" text="발신 상세"/></span></li>
                             </ul>
                         </div>
+                    </div>
 
-                        <!-- 받는 사람 목록 -->
-                        <div class="board_top" style="margin-top:30px;">
-                            <h3 class="board-title"><spring:message code="msg.shrtnt.label.rcvrList" text="받는 사람 목록"/> [ <spring:message code="msg.sndrDsctn.label.totalCnt" text="총건수"/> : <b id="rcvrTotalCnt">0</b><spring:message code="msg.sndrDsctn.label.cnt" text="건"/> ]</h3>
-                            <div class="right-area">
-                                <button type="button" class="btn basic" onclick="fn_excelDownRcvr()"><spring:message code="msg.sndrDsctn.label.excelDown" text="엑셀 다운로드"/></button>
-                            </div>
+                    <div class="board_top">
+                        <h3 class="board-title"><spring:message code="msg.shrtnt.label.sndngCtsTitle" text="쪽지 발신 내용"/></h3>
+                        <div class="right-area">
+                            <button type="button" id="btnModify" class="btn type1" onclick="fn_modify()" style="display:none;"><spring:message code="msg.shrtnt.label.modify" text="수정"/></button>
+                            <button type="button" id="btnRsrvCncl" class="btn type1" onclick="fn_rsrvCncl()" style="display:none;"><spring:message code="msg.shrtnt.label.rsrvCncl" text="발신예약취소"/></button>
+                            <button type="button" class="btn type2" onclick="fn_list()"><spring:message code="msg.shrtnt.label.sndngList" text="발신 목록"/></button>
                         </div>
+                    </div>
 
-                        <div id="rcvrList"></div>
+                    <!-- 상세 -->
+                    <div class="table_list">
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.yearSmstr" text="학사년도/학기"/></label></li>
+                            <li id="sbjctYrSmstr">-</li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.oprSbjct" text="운영과목"/></label></li>
+                            <li id="sbjctnm">-</li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.cts" text="내용"/></label></li>
+                            <li>
+                                <div class="tb_content" id="txtCts"></div>
+                            </li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.atfl" text="첨부파일"/></label></li>
+                            <li id="atflContent">-</li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.sndngDttm" text="발신일시"/></label></li>
+                            <li id="sndngDttm"></li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.sndngnm" text="발신자"/></label></li>
+                            <li id="sndngnm"></li>
+                        </ul>
+                    </div>
 
-                        <script>
+                    <!-- 받는 사람 목록 -->
+                    <div class="board_top" style="margin-top:30px;">
+                        <h3 class="board-title"><spring:message code="msg.shrtnt.label.rcvrList" text="받는 사람 목록"/> [ <spring:message code="msg.sndrDsctn.label.totalCnt" text="총건수"/> : <b id="rcvrTotalCnt">0</b><spring:message code="msg.sndrDsctn.label.cnt" text="건"/> ]</h3>
+                        <div class="right-area">
+                            <button type="button" class="btn basic" onclick="fn_excelDownRcvr()"><spring:message code="msg.sndrDsctn.label.excelDown" text="엑셀 다운로드"/></button>
+                        </div>
+                    </div>
+
+                    <div id="rcvrList"></div>
+
+                    <script>
                         rcvrTable = UiTable("rcvrList", {
                             lang: "ko",
                             pageFunc: fn_loadRcvrList,
@@ -315,26 +306,24 @@
                                 {title:"<spring:message code='msg.shrtnt.col.rcvrnm' text='수신자'/>",     field:"rcvrnm",      headerHozAlign:"center", hozAlign:"center", width:100, minWidth:80},
                                 {title:"<spring:message code='msg.shrtnt.col.stdntNo' text='학번'/>",      field:"stdntNo",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:80},
                                 {title:"<spring:message code='msg.shrtnt.col.rprsId' text='대표 ID'/>",    field:"userRprsId2", headerHozAlign:"center", hozAlign:"center", width:100, minWidth:80},
-                                {title:"<spring:message code='msg.shrtnt.col.mblPhn' text='휴대폰번호'/>", field:"mblPhn",      headerHozAlign:"center", hozAlign:"center", width:120, minWidth:100},
-                                {title:"<spring:message code='msg.shrtnt.col.eml' text='이메일'/>",        field:"eml",         headerHozAlign:"center", hozAlign:"left",   width:180, minWidth:140},
                                 {title:"<spring:message code='msg.shrtnt.col.sndngYn' text='발송'/>",      field:"sndngYn",     headerHozAlign:"center", hozAlign:"center", width:60,  minWidth:50, formatter:"html"}
                             ]
                         });
-                        </script>
-
-                    </div>
+                    </script>
 
                 </div>
+
             </div>
-            <!-- //content -->
+        </div>
+        <!-- //content -->
 
-            <!-- common footer -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
+        <!-- common footer -->
+        <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
 
-        </main>
-        <!-- //dashboard-->
+    </main>
+    <!-- //dashboard-->
 
-    </div>
+</div>
 
 </body>
 </html>

@@ -42,4 +42,13 @@ public interface SrvyQstnVwitmLvlService {
 	 */
 	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList(String srvyQstnId) throws Exception;
 
+	/**
+	 * 설문문항보기항목레벨일괄조회
+	 *
+	 * @param srvyId 설문아이디
+	 * return 설문문항보기항목레벨일괄목록
+	 * @throws Exception
+	 */
+	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(String srvyId) throws Exception;
+
 }

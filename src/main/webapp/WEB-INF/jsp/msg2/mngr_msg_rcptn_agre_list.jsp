@@ -254,9 +254,8 @@
                             <span class="item_tit"><label for="selectSbjct"><spring:message
                                     code="msg.rcptnAgre.label.sbjct" text="과목"/></label></span>
                             <div class="itemList">
-                                <select class="form-select wide" id="selectSbjct">
-                                    <option value=""><spring:message code="msg.rcptnAgre.label.sbjctSelect"
-                                                                     text="운영과목선택"/></option>
+                                <select class="form-select wide" id="selectSbjct" style="max-width: 200px;">
+                                    <option value=""><spring:message code="msg.rcptnAgre.label.sbjctSelect" text="운영과목선택"/></option>
                                 </select>
                             </div>
                         </div>

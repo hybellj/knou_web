@@ -49,7 +49,6 @@
 			, scoreNull
 			, (
 				CASE
-					WHEN afterAtclCnt > 0 THEN '지각참여'
 					WHEN actlCnt > 0 THEN '참여'
 					ELSE '미참여'
 				END
@@ -159,12 +158,8 @@
 				, U.MOBILE_NO AS mobileNo
 				, U.EMAIL AS email
 				-->
-			     <!--
 				, (SELECT MAX(CNTCT) FROM TB_LMS_USER_CNTCT T1 WHERE T1.USER_ID = A.USER_ID AND T1.CNTCT_TYCD = 'MBL_PHN') AS mobileNo
 				, (SELECT MAX(CNTCT) FROM TB_LMS_USER_CNTCT T1 WHERE T1.USER_ID = A.USER_ID AND T1.CNTCT_TYCD = 'INDV_EML') AS email
-				-->
-			     , '01012345567' AS mobileNo
-			     , 'aaa@test.com' AS email
 			     <!--
 				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N' AND RGTR_ID = A.USER_ID) AS forumMyAtclCnt
 				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = C.DSCS_ID AND DELYN = 'N') AS forumAtclCnt
@@ -260,18 +255,6 @@
 			WHERE A.SBJCT_ID = #{crsCreCd}
 				AND A.ATNDLC_STSCD = 'ATNDLC'
 				AND A.AUDITYN = 'N'
-				<!--<if test="forumCtgrCd == 'SUBS'">
-				AND A.USER_ID IN (
-					SELECT
-						D.USER_ID
-					FROM TB_LMS_EXAM_STARE D
-				    JOIN TB_LMS_EXAM_BSC E
-					  ON D.EXAM_ID = E.EXAM_ID
-				   WHERE 1 = 1
-					 AND E.EXAM_SBST_REF_ID = #{forumCd}
-					 AND D.REEXAMYN = 'Y'
-				)
-				</if>-->
 		) T
 		WHERE 1 = 1
 		<if test='searchKey != null and searchKey != "" and searchKey != "all"'>

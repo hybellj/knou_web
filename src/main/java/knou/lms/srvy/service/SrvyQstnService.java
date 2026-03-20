@@ -1,6 +1,7 @@
 package knou.lms.srvy.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
@@ -86,5 +87,14 @@ public interface SrvyQstnService {
      * @throws Exception
      */
 	public List<EgovMap> profQstnCopySrvyQstnList(SrvyQstnVO vo) throws Exception;
+
+	/**
+	* 설문문항가져오기
+	*
+	* @param copySrvyQstnId		복사설문문항아이디
+	* @param srvyId 			설문아이디
+	* @throws Exception
+	*/
+	public void srvyQstnCopy(List<Map<String, Object>> list) throws Exception;
 
 }

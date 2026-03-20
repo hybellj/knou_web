@@ -1255,7 +1255,10 @@ public class QuizHomeController extends ControllerBase {
     /**
 	* 교수퀴즈메모팝업
 	*
-	* @param sbjctId 	과목아이디
+	* @param examBscId	시험기본아이디
+	* @param examDtlId 	시험상세아이디
+	* @param tkexamId 	시험응시아이디
+	* @param userId 	사용자아이디
 	* @return prof_quiz_memo_pop.jsp
 	* @throws Exception
 	*/

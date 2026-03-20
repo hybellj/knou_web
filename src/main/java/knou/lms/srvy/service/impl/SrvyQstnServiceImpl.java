@@ -1,6 +1,7 @@
 package knou.lms.srvy.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -11,14 +12,27 @@ import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenUtil;
 import knou.lms.srvy.dao.SrvyQstnDAO;
+import knou.lms.srvy.dao.SrvyQstnVwitmLvlDAO;
+import knou.lms.srvy.dao.SrvyVwitmDAO;
+import knou.lms.srvy.dao.SrvypprDAO;
 import knou.lms.srvy.service.SrvyQstnService;
 import knou.lms.srvy.vo.SrvyQstnVO;
+import knou.lms.srvy.vo.SrvypprVO;
 
 @Service("srvyQstnService")
 public class SrvyQstnServiceImpl extends ServiceBase implements SrvyQstnService {
 
 	@Resource(name="srvyQstnDAO")
 	private SrvyQstnDAO srvyQstnDAO;
+
+	@Resource(name="srvypprDAO")
+	private SrvypprDAO srvypprDAO;
+
+	@Resource(name="srvyVwitmDAO")
+	private SrvyVwitmDAO srvyVwitmDAO;
+
+	@Resource(name="srvyQstnVwitmLvlDAO")
+	private SrvyQstnVwitmLvlDAO srvyQstnVwitmLvlDAO;
 
 	/**
 	 * 설문문항목록조회
@@ -130,6 +144,38 @@ public class SrvyQstnServiceImpl extends ServiceBase implements SrvyQstnService 
 	@Override
 	public List<EgovMap> profQstnCopySrvyQstnList(SrvyQstnVO vo) throws Exception {
 		return srvyQstnDAO.profQstnCopySrvyQstnList(vo);
+	}
+
+	/**
+	* 설문문항가져오기
+	*
+	* @param copySrvyQstnId	복사설문문항아이디
+	* @param srvyId 			설문아이디
+	* @throws Exception
+	*/
+	@Override
+	public void srvyQstnCopy(List<Map<String, Object>> list) throws Exception {
+		// 1. 설문지등록
+		SrvypprVO srvyppr = new SrvypprVO();
+		srvyppr.setSrvypprId(IdGenUtil.genNewId(IdPrefixType.SRPPR));
+		srvyppr.setSrvyId((String) list.get(0).get("srvyId"));
+		srvyppr.setSrvyTtl("문항가져오기용설문지");
+		srvyppr.setSrvyCts("문항가져오기용설문지생성");
+		srvyppr.setRgtrId((String) list.get(0).get("rgtrId"));
+		srvypprDAO.srvypprRegist(srvyppr);
+
+		// 2. 설문문항가져오기
+		for(Map<String, Object> map : list) {
+	 		map.put("srvyQstnId", IdGenUtil.genNewId(IdPrefixType.SRQN));
+	 		map.put("srvypprId", srvyppr.getSrvypprId());
+		}
+	 	srvyQstnDAO.srvyQstnCopy(list);
+
+	 	// 3. 설문보기항목가져오기
+	 	srvyVwitmDAO.srvyVwitmCopy(list);
+
+	 	// 4. 설문문항보기항목레벨가져오기
+	 	srvyQstnVwitmLvlDAO.srvyQstnVwitmLvlCopy(list);
 	}
 
 }

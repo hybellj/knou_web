@@ -41,7 +41,7 @@ table .btn2.primary, table .btn2.secondary, table .btn2.default, table .btn2.gra
 .table-wrap + .msg-box {margin-top: 1rem;}
 .table-wrap + .msg-box + .board_top {margin-top: 3rem;}
 .table_list + .board_top {margin-top: 3rem;}
-.table-wrap + .board_top {margin-top: 3rem;}
+.table-wrap + .board_top {margin-top: 4rem;}
 .table-wrap + .file-wrap {margin-top: 1rem;}
 .table-wrap + .file-wrap + .msg-box + .board_top {margin-top: 3rem;}
 .table_list + .sub-title {margin-top: 3rem;}
@@ -305,6 +305,7 @@ a.link { display: inline-block; position: relative; z-index: 0; -webkit-transiti
 .req:after { margin: -2px 0 0 2px; content: '*'; color: #f44336; display: inline-block; vertical-align: middle; top: 0%; left: 100%; }
 .note { color: #2466EB; }
 .note2 { color: var(--danger); }
+.check_yet {background-color: #F5F5F5;}
 .form-row .note,
 .form-row .note2,
 .form-inline .note,

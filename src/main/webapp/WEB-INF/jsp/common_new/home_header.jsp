@@ -497,6 +497,19 @@
 
                     $target.html(html);
                 }
+
+                /* 헤더 알림 아이템 클릭 */
+                $(document).on('click', 'li.alrim .item_txt[data-sndng-tycd]', function(e) {
+                    e.preventDefault();
+                    let sndngTycd = $(this).data('sndng-tycd');
+                    let sndngId = $(this).data('sndng-id');
+
+                    if (!sndngId) return;
+
+                    if (sndngTycd === 'SHRTNT') {
+                        location.href = '/profMsgShrtntRcvnDetail.do?msgShrtntSndngId=' + encodeURIComponent(sndngId);
+                    }
+                });
             </script>
         </li>
         <li class="lang_change"><!-- 버튼 클릭시 on 클래스 추가 -->

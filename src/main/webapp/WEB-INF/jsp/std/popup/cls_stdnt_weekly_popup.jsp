@@ -89,20 +89,20 @@
             <table class="table-type1">
                 <colgroup>
                     <col style="width:8%">
-                    <c:forEach begin="1" end="15"><col style="width:5.2%"></c:forEach>
+                    <c:forEach begin="1" end="${not empty wkCnt ? wkCnt : 15}"><col style="width:5.2%"></c:forEach>
                     <col style="">
                 </colgroup>
                 <thead>
                 <tr>
                     <th>구분</th>
-                    <c:forEach begin="1" end="15" var="w"><th>${w}</th></c:forEach>
+                    <c:forEach begin="1" end="${wkCnt}" var="w"><th>${w}</th></c:forEach>
                     <th>출석/지각/결석</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr>
                     <th data-th="구분">주차</th>
-                    <c:forEach begin="1" end="15" var="w">
+                    <c:forEach begin="1" end="${wkCnt}" var="w">
                         <td class="t_center" data-th="${w}주차" id="wkSts${w}">-</td>
                     </c:forEach>
                     <td class="t_center" data-th="출석/지각/결석" id="wkSummary">-</td>
@@ -291,6 +291,7 @@
     var actCurrentPageNo  = 1;
     var actTotalPageCount = 1;
     var accessChartObj    = null;
+    var WK_CNT = ${not empty wkCnt ? wkCnt : 15}
 
     $(function () {
         try {
@@ -364,7 +365,8 @@
     function reloadForUser(newUserId) {
         userId = newUserId;
         updateNavBtns();
-        for (var w = 1; w <= 15; w++) { $("#wkSts" + w).text("-"); }
+
+        for (var w = 1; w <= WK_CNT; w++) { $("#wkSts" + w).text("-"); }
         $("#wkSummary").text("-");
         $("#wkInfoRow").text("");
         resetElem();
@@ -438,7 +440,7 @@
                 if (d.scyr && d.scyr !== "-") info += " / " + d.scyr + "학년";
                 $("#wkInfoRow").text(info);
 
-                for (var w = 1; w <= 15; w++) {
+                for (var w = 1; w <= WK_CNT; w++) {
                     var v = d['wk' + w + 'Sts'] || null;
                     var html;
 

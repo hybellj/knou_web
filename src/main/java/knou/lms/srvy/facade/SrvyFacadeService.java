@@ -59,6 +59,8 @@ public interface SrvyFacadeService {
 
 	SrvyMainView getQstnCopySrvyQstnList(SrvyQstnVO vo) throws Exception;
 
+	void srvyQstnCopy(List<Map<String, Object>> list) throws Exception;
+
 	void srvyQstnRegist(SrvyQstnVO vo, String qstnsStr, String lvlsStr) throws Exception;
 
 	void srvyQstnModify(SrvyQstnVO vo, String qstnsStr, String lvlsStr) throws Exception;
@@ -72,5 +74,17 @@ public interface SrvyFacadeService {
 	void qstnSeqnoModify(SrvyQstnVO vo) throws Exception;
 
 	void srvyQstnsCmptnModify(SrvyVO vo) throws Exception;
+
+	SrvyMainView loadProfSrvyEvlMngView(SrvyVO vo) throws Exception;
+
+	SrvyMainView getSrvyPtcpList(Map<String, Object> params) throws Exception;
+
+	SrvyMainView loadProfSrvyMemoPopup(Map<String, Object> params) throws Exception;
+
+	void profMemoModify(Map<String, Object> params) throws Exception;
+
+	void profSrvyEvlScrBulkModify(List<Map<String, Object>> list) throws Exception;
+
+	SrvyMainView loadProfSrvyPtcpStatusPopup(SrvyVO vo, UserContext userCtx) throws Exception;
 
 }

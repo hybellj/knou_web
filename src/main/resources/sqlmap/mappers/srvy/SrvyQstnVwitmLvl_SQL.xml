@@ -63,4 +63,57 @@
          ORDER BY LVL_SEQNO
 	</select>
 
+	<insert id="srvyQstnVwitmLvlCopy" parameterType="java.util.List">
+		/*
+             SQL ID : SrvyQstnVwitmLvlDAO.srvyQstnVwitmLvlCopy
+             설  명 : 설문문항보기항목레벨가져오기
+         */
+        INSERT INTO TB_LMS_SRVY_QSTN_VWITM_LVL (
+        	  SRVY_QSTN_VWITM_LVL_ID
+        	, SRVY_QSTN_ID
+        	, LVL_SEQNO
+        	, LVL_CTS
+        	, LVL_SCR
+        	, RGTR_ID
+        	, REG_DTTM
+        )
+        SELECT
+        	  'SRQVL'
+					  || TO_CHAR(SYSDATE, 'YYMMDDHH24MISS')
+					  || LPAD(MOD(EXTRACT(SECOND FROM SYSTIMESTAMP) * 1000, 1000), 3, '0')
+					  || LOWER(SUBSTR(RAWTOHEX(SYS_GUID()), 1, 7))
+					  || LPAD(ROW_NUMBER() OVER(ORDER BY NULL), 3, '0') AS SRVY_QSTN_VWITM_LVL_ID
+			, A.*
+		  FROM (
+	        <foreach item="item" collection="list" separator="UNION ALL">
+			  	SELECT
+			          #{item.srvyQstnId}  								AS SRVY_QSTN_ID
+			        , LVL_SEQNO
+			        , LVL_CTS
+			        , LVL_SCR
+			        , #{item.rgtrId} 									AS RGTR_ID
+			        , FN_DTTM()											AS REG_DTTM
+			      FROM TB_LMS_SRVY_QSTN_VWITM_LVL
+			     WHERE SRVY_QSTN_ID = #{item.copySrvyQstnId}
+        	</foreach>
+		) A
+	</insert>
+
+	<select id="srvyQstnVwitmLvlBulkList" parameterType="String" resultType="srvyQstnVwitmLvlVO">
+		/*
+             SQL ID : SrvyQstnVwitmLvlDAO.srvyQstnVwitmLvlBulkList
+             설  명 : 설문문항보기항목레벨일괄조회
+         */
+        SELECT
+			LVL.*
+		  FROM TB_LMS_SRVYPPR SRVYPPR
+		  JOIN TB_LMS_SRVY_QSTN QSTN
+		    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		   AND QSTN.DELYN = 'N'
+		  JOIN TB_LMS_SRVY_QSTN_VWITM_LVL LVL
+		    ON QSTN.SRVY_QSTN_ID = LVL.SRVY_QSTN_ID
+		 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		 ORDER BY SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO, LVL.LVL_SEQNO
+	</select>
+
 </mapper>

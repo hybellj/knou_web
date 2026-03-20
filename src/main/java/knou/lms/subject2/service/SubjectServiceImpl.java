@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.ServiceBase;
+import knou.framework.context2.UserContext;
 import knou.lms.common.dto.BaseParam;
 import knou.lms.subject2.dao.SubjectDAO;
 import knou.lms.subject2.dto.SubjectParam;
@@ -64,7 +65,17 @@ public class SubjectServiceImpl extends ServiceBase implements SubjectService {
     }
     
     @Override
-    public List<EgovMap> subjectSummaryList(BaseParam param) throws Exception {
-        return subjectDAO.subjectSummaryList(param);
+    public List<EgovMap> profSubjectSummaryList(BaseParam param) throws Exception {
+        return subjectDAO.profSubjectSummaryList(param);
+    }
+    
+    @Override
+    public List<EgovMap> stdntSubjectSummaryList(BaseParam param) throws Exception {
+        return subjectDAO.stdntSubjectSummaryList(param);
+    }
+
+	@Override
+	public boolean hasSubjectAuthority(String subjectId, UserContext userCtx) throws Exception {
+		return subjectDAO.stdntOrProfCountSelect(new SubjectParam(subjectId, userCtx)) != 0;
     }
 }

@@ -43,4 +43,14 @@ public interface SrvyVwitmService {
 	 */
 	public List<SrvyVwitmVO> srvyVwitmList(String srvyQstnId) throws Exception;
 
+	/**
+	 * 설문보기항목일괄조회
+	 *
+	 * @param srvyId 		설문아이디
+	 * @param qstnRspnsTycd 문항답변유형코드
+	 * return 설문보기항목목록
+	 * @throws Exception
+	 */
+	public List<SrvyVwitmVO> srvyVwitmBulkList(String srvyId, String qstnRspnsTycd) throws Exception;
+
 }

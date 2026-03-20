@@ -44,11 +44,17 @@
             fn_loadSbjctList();
         });
 
+        $('#selectOrg').on('change', function() {
+            fn_loadDeptList();
+            fn_loadSbjctList();
+        });
+
         $('#selectDept').on('change', function() {
             fn_loadSbjctList();
         });
 
         /* 셀렉트박스 초기 로딩 */
+        fn_loadOrgList();
         fn_loadYrList();
         fn_loadDeptList();
 
@@ -90,11 +96,31 @@
         });
     }
 
+    /* 기관 목록 조회 */
+    function fn_loadOrgList() {
+        ajaxCall('/msgShrtntOrgListAjax.do', {}, function(res) {
+            let $sel = $('#selectOrg');
+            $sel.find('option:gt(0)').remove();
+            if (res.result > 0 && res.returnList) {
+                res.returnList.forEach(function(v) {
+                    $sel.append('<option value="' + v.orgId + '">' + UiComm.escapeHtml(v.orgnm) + '</option>');
+                });
+            }
+            $sel.trigger('chosen:updated');
+        });
+    }
+
     /* 학과 목록 조회 */
     function fn_loadDeptList() {
-        ajaxCall('/msgShrtntDeptListAjax.do', {}, function(res) {
-            let $sel = $('#selectDept');
-            $sel.find('option:gt(0)').remove();
+        let $sel = $('#selectDept');
+        $sel.find('option:gt(0)').remove();
+        $sel.trigger('chosen:updated');
+
+        let data = {
+            orgId: $('#selectOrg').val()
+        };
+
+        ajaxCall('/msgShrtntDeptListAjax.do', data, function(res) {
             if (res.result > 0 && res.returnList) {
                 res.returnList.forEach(function(v) {
                     $sel.append('<option value="' + v.deptId + '">' + UiComm.escapeHtml(v.deptnm) + '</option>');
@@ -111,6 +137,7 @@
         $sel.trigger('chosen:updated');
 
         let data = {
+            orgId: $('#selectOrg').val(),
             sbjctYr: $('#selectSbjctYr').val(),
             sbjctSmstr: $('#selectSbjctSmstr').val(),
             deptId: $('#selectDept').val()
@@ -266,7 +293,7 @@
                 ? '<span class="txt-red">' + UiComm.formatDate(v.rsrvSndngCnclDttm, 'datetime') + '</span>'
                 : '-';
             let rsrvCnclHtml = (v.rsrvYn === 'Y' && !v.rsrvSndngCnclDttm)
-                ? '<button class="btn basic small" onclick="fn_rsrvCncl(\'' + v.msgId + '\')"><spring:message code="msg.shrtnt.label.rsrvCncl" text="예약취소"/></button>'
+                ? '<button class="btn basic small" onclick="fn_openRsrvCnclPopup(\'' + v.msgId + '\', \'' + UiComm.escapeHtml(v.ttl || '') + '\', \'' + UiComm.formatDate(v.efctvSndngDttm, 'datetime') + '\', ' + (v.rcvrCnt || 0) + ')"><spring:message code="msg.shrtnt.label.rsrvCncl" text="예약취소"/></button>'
                 : '-';
 
             dataList.push({
@@ -294,6 +321,7 @@
     /* 검색 파라미터 수집 */
     function fn_getSearchParam() {
         return {
+            orgId: $('#selectOrg').val(),
             sbjctYr: $('#selectSbjctYr').val(),
             sbjctSmstr: $('#selectSbjctSmstr').val(),
             deptId: $('#selectDept').val(),
@@ -351,11 +379,30 @@
         });
     }
 
-    /* 예약 취소 */
-    function fn_rsrvCncl(msgId) {
-        if (!confirm('<spring:message code="msg.shrtnt.msg.confirmRsrvCncl"/>')) return;
+    /* 예약 취소 팝업 열기 */
+    function fn_openRsrvCnclPopup(msgId, ttl, rsrvDttm, rcvrCnt) {
+        $('#rsrvCnclMsgId').val(msgId);
+        $('#rsrvCnclTtl').text(ttl);
+        $('#rsrvCnclDttm').text(rsrvDttm);
+        $('#rsrvCnclRcvrCnt').text(rcvrCnt);
+        $('#rsrvCnclUser').text('${usernm}');
+        $('#rsrvCnclNowDttm').text(UiComm.formatDate(new Date().toISOString().replace(/[-T:\.Z]/g, '').substring(0, 14), 'datetime'));
+        $('#rsrvCnclModal').addClass('active').attr('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    /* 예약 취소 팝업 닫기 */
+    function fn_closeRsrvCnclPopup() {
+        $('#rsrvCnclModal').removeClass('active').attr('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    /* 예약 취소 실행 */
+    function fn_doRsrvCncl() {
+        let msgId = $('#rsrvCnclMsgId').val();
         ajaxCall('/msgShrtntRsrvCnclAjax.do', { msgId: msgId }, function(res) {
             if (res.result > 0) {
+                fn_closeRsrvCnclPopup();
                 alert('<spring:message code="msg.shrtnt.msg.rsrvCnclSuccess"/>');
                 fn_loadList(currentPage);
             } else {
@@ -365,153 +412,200 @@
     }
 </script>
 <body class="home colorA ${bodyClass}">
-    <div id="wrap" class="main">
-        <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
+<div id="wrap" class="main">
+    <!-- common header -->
+    <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
 
-        <!-- dashboard -->
-        <main class="common">
+    <!-- dashboard -->
+    <main class="common">
 
-            <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+        <!-- gnb -->
+        <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
 
-            <!-- content -->
-            <div id="content" class="content-wrap common">
-                <div class="dashboard_sub">
+        <!-- content -->
+        <div id="content" class="content-wrap common">
+            <div class="dashboard_sub">
 
-                    <div class="sub-content">
-                        <div class="page-info">
-                            <h2 class="page-title"><span><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></span><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
-                            <div class="navi_bar">
-                                <ul>
-                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></li>
-                                    <li><span class="current"><spring:message code="msg.shrtnt.label.title" text="쪽지"/></span></li>
-                                </ul>
+                <div class="sub-content">
+                    <div class="page-info">
+                        <h2 class="page-title"><span><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></span><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
+                        <div class="navi_bar">
+                            <ul>
+                                <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
+                                <li><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></li>
+                                <li><span class="current"><spring:message code="msg.shrtnt.label.title" text="쪽지"/></span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- search typeA -->
+                    <div class="search-typeA">
+                        <div class="item">
+                            <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.yearSmstr" text="학사년도/학기"/></label></span>
+                            <div class="itemList">
+                                <select class="form-select" id="selectSbjctYr">
+                                    <option value=""><spring:message code="msg.sndrDsctn.label.all" text="전체"/></option>
+                                </select>
+                                <select class="form-select" id="selectSbjctSmstr">
+                                    <option value=""><spring:message code="msg.sndrDsctn.label.all" text="전체"/></option>
+                                </select>
                             </div>
                         </div>
-
-                        <!-- search typeA -->
-                        <div class="search-typeA">
-                            <div class="item">
-                                <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.yearSmstr" text="학사년도/학기"/></label></span>
-                                <div class="itemList">
-                                    <select class="form-select" id="selectSbjctYr">
-                                        <option value=""><spring:message code="msg.sndrDsctn.label.all" text="전체"/></option>
-                                    </select>
-                                    <select class="form-select" id="selectSbjctSmstr">
-                                        <option value=""><spring:message code="msg.sndrDsctn.label.all" text="전체"/></option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="item">
-                                <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.course" text="운영과목"/></label></span>
-                                <div class="itemList">
-                                    <select class="form-select" id="selectDept">
-                                        <option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과 전체"/></option>
-                                    </select>
-                                    <select class="form-select wide" id="selectSbjct">
-                                        <option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="item">
-                                <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.sndngDate" text="발신 일시"/></label></span>
-                                <div class="itemList">
-                                    <div class="date_area">
-                                        <input type="text" placeholder="시작일" id="sndngSdate" name="sndngSdate" class="datepicker" toDate="sndngEdate">
-                                        <span class="txt-sort">~</span>
-                                        <input type="text" placeholder="종료일" id="sndngEdate" name="sndngEdate" class="datepicker" fromDate="sndngSdate">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="item">
-                                <span class="item_tit"><label><spring:message code="msg.shrtnt.label.searchCond" text="검색 조건"/></label></span>
-                                <div class="itemList">
-                                    <select class="form-select" id="selectSearchType">
-                                        <option value="sndngnm"><spring:message code="msg.shrtnt.label.searchSndngnm" text="발신자"/></option>
-                                        <option value="sndngrPhnno"><spring:message code="msg.shrtnt.label.searchSndngrPhnno" text="발신자번호"/></option>
-                                        <option value="ttl"><spring:message code="msg.shrtnt.label.searchTtl" text="제목"/></option>
-                                        <option value="cts"><spring:message code="msg.shrtnt.label.searchCts" text="내용"/></option>
-                                    </select>
-                                    <input class="form-control wide" type="text" id="inputSearchText" value="" placeholder="<spring:message code="msg.shrtnt.label.searchPlaceholder" text="검색어입력"/>">
-                                </div>
-                            </div>
-                            <div class="button-area">
-                                <button type="button" class="btn search" onclick="fn_search()"><spring:message code="msg.sndrDsctn.label.search" text="검색"/></button>
+                        <div class="item">
+                            <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.course" text="운영과목"/></label></span>
+                            <div class="itemList">
+                                <select class="form-select" id="selectOrg">
+                                    <option value=""><spring:message code="msg.sndrDsctn.label.orgAll" text="기관 전체"/></option>
+                                </select>
+                                <select class="form-select wide" id="selectDept" style="max-width: 200px;">
+                                    <option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과 전체"/></option>
+                                </select>
+                                <select class="form-select wide" id="selectSbjct" style="max-width: 200px;">
+                                    <option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>
+                                </select>
                             </div>
                         </div>
-                        <!-- //search typeA -->
-
-                        <!-- 목록 -->
-                        <div class="board_top">
-                            <div class="right-area">
-                                <div class="tab_btn">
-                                    <a href="#0" class="current" data-tab="RCVN"><spring:message code="msg.shrtnt.label.rcvnTab" text="수신목록"/></a>
-                                    <a href="#0" data-tab="SNDNG"><spring:message code="msg.shrtnt.label.sndngTab" text="발신목록"/></a>
-                                </div>
-                                <button type="button" class="btn basic icon" aria-label="새로고침" onclick="fn_search()"><i class="xi-refresh"></i></button>
-                                <button type="button" class="btn basic" onclick="fn_deleteSelected()"><spring:message code="msg.shrtnt.label.delete" text="삭제"/></button>
-                                <button type="button" class="btn type2" onclick="fn_sndngRegist()"><spring:message code="msg.shrtnt.label.sndngRegist" text="발신하기"/></button>
-                                <uiex:listScale func="fn_changeListScale" value="10" />
-                            </div>
-                        </div>
-
-                        <!-- 쪽지 그리드 -->
-                        <div id="shrtntList"></div>
-
-                        <!-- 쪽지 카드 폼 -->
-                        <div id="shrtntList_cardForm" style="display:none"></div>
-
-                        <!-- 수신 카드 폼 -->
-                        <div id="rcvnCardForm" style="display:none">
-                            <div class="card-header">
-                                #[sndngnm]
-                                <div class="card-title">#[cts]</div>
-                            </div>
-                            <div class="card-body">
-                                <div class="desc">
-                                    <p><label class="label-title"><spring:message code='msg.shrtnt.col.sndngDttm' text='발신일시'/></label><strong>#[sndngDttm]</strong></p>
-                                    <p><label class="label-title"><spring:message code='msg.shrtnt.col.sbjctnm' text='운영과목'/></label><strong>#[sbjctnm]</strong></p>
-                                </div>
-                                <div class="etc">
-                                    <p><label class="label-title"><spring:message code='msg.shrtnt.col.readYn' text='읽음'/></label><strong>#[readYn]</strong></p>
-                                    <p><label class="label-title"><spring:message code='msg.shrtnt.col.fileCnt' text='파일'/></label><strong>#[fileCnt]</strong></p>
+                        <div class="item">
+                            <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.sndngDate" text="발신 일시"/></label></span>
+                            <div class="itemList">
+                                <div class="date_area">
+                                    <input type="text" placeholder="시작일" id="sndngSdate" name="sndngSdate" class="datepicker" toDate="sndngEdate">
+                                    <span class="txt-sort">~</span>
+                                    <input type="text" placeholder="종료일" id="sndngEdate" name="sndngEdate" class="datepicker" fromDate="sndngSdate">
                                 </div>
                             </div>
                         </div>
-
-                        <!-- 발신 카드 폼 -->
-                        <div id="sndngCardForm" style="display:none">
-                            <div class="card-header">
-                                #[sndngnm]
-                                <div class="card-title">#[ttl]</div>
-                            </div>
-                            <div class="card-body">
-                                <div class="desc">
-                                    <p><label class="label-title"><spring:message code='msg.shrtnt.col.sndngDttm' text='발신일시'/></label><strong>#[sndngDttm]</strong></p>
-                                    <p><label class="label-title"><spring:message code='msg.shrtnt.col.sbjctnm' text='운영과목'/></label><strong>#[sbjctnm]</strong></p>
-                                </div>
-                                <div class="etc">
-                                    <p><label class="label-title"><spring:message code='msg.shrtnt.col.rcvrCnt' text='수신자'/></label><strong>#[rcvrCnt]</strong></p>
-                                    <p><label class="label-title"><spring:message code='msg.shrtnt.col.sndngYn' text='발신'/></label><strong>#[sndngYn]</strong></p>
-                                </div>
+                        <div class="item">
+                            <span class="item_tit"><label><spring:message code="msg.shrtnt.label.searchCond" text="검색 조건"/></label></span>
+                            <div class="itemList">
+                                <select class="form-select" id="selectSearchType">
+                                    <option value="sndngnm"><spring:message code="msg.shrtnt.label.searchSndngnm" text="발신자"/></option>
+                                    <option value="ttl"><spring:message code="msg.shrtnt.label.searchTtl" text="제목"/></option>
+                                    <option value="cts"><spring:message code="msg.shrtnt.label.searchCts" text="내용"/></option>
+                                </select>
+                                <input class="form-control wide" type="text" id="inputSearchText" value="" placeholder="<spring:message code="msg.shrtnt.label.searchPlaceholder" text="검색어입력"/>">
                             </div>
                         </div>
+                        <div class="button-area">
+                            <button type="button" class="btn search" onclick="fn_search()"><spring:message code="msg.sndrDsctn.label.search" text="검색"/></button>
+                        </div>
+                    </div>
+                    <!-- //search typeA -->
 
+                    <!-- 목록 -->
+                    <div class="board_top">
+                        <div class="right-area">
+                            <div class="tab_btn">
+                                <a href="#0" class="current" data-tab="RCVN"><spring:message code="msg.shrtnt.label.rcvnTab" text="수신목록"/></a>
+                                <a href="#0" data-tab="SNDNG"><spring:message code="msg.shrtnt.label.sndngTab" text="발신목록"/></a>
+                            </div>
+                            <button type="button" class="btn basic icon" aria-label="새로고침" onclick="fn_search()"><i class="xi-refresh"></i></button>
+                            <button type="button" class="btn basic" onclick="fn_deleteSelected()"><spring:message code="msg.shrtnt.label.delete" text="삭제"/></button>
+                            <button type="button" class="btn type2" onclick="fn_sndngRegist()"><spring:message code="msg.shrtnt.label.sndngRegist" text="발신하기"/></button>
+                            <uiex:listScale func="fn_changeListScale" value="10" />
+                        </div>
+                    </div>
+
+                    <!-- 쪽지 그리드 -->
+                    <div id="shrtntList"></div>
+
+                    <!-- 쪽지 카드 폼 -->
+                    <div id="shrtntList_cardForm" style="display:none"></div>
+
+                    <!-- 수신 카드 폼 -->
+                    <div id="rcvnCardForm" style="display:none">
+                        <div class="card-header">
+                            #[sndngnm]
+                            <div class="card-title">#[cts]</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="desc">
+                                <p><label class="label-title"><spring:message code='msg.shrtnt.col.sndngDttm' text='발신일시'/></label><strong>#[sndngDttm]</strong></p>
+                                <p><label class="label-title"><spring:message code='msg.shrtnt.col.sbjctnm' text='운영과목'/></label><strong>#[sbjctnm]</strong></p>
+                            </div>
+                            <div class="etc">
+                                <p><label class="label-title"><spring:message code='msg.shrtnt.col.readYn' text='읽음'/></label><strong>#[readYn]</strong></p>
+                                <p><label class="label-title"><spring:message code='msg.shrtnt.col.fileCnt' text='파일'/></label><strong>#[fileCnt]</strong></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 발신 카드 폼 -->
+                    <div id="sndngCardForm" style="display:none">
+                        <div class="card-header">
+                            #[sndngnm]
+                            <div class="card-title">#[ttl]</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="desc">
+                                <p><label class="label-title"><spring:message code='msg.shrtnt.col.sndngDttm' text='발신일시'/></label><strong>#[sndngDttm]</strong></p>
+                                <p><label class="label-title"><spring:message code='msg.shrtnt.col.sbjctnm' text='운영과목'/></label><strong>#[sbjctnm]</strong></p>
+                            </div>
+                            <div class="etc">
+                                <p><label class="label-title"><spring:message code='msg.shrtnt.col.rcvrCnt' text='수신자'/></label><strong>#[rcvrCnt]</strong></p>
+                                <p><label class="label-title"><spring:message code='msg.shrtnt.col.sndngYn' text='발신'/></label><strong>#[sndngYn]</strong></p>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
+
             </div>
-            <!-- //content -->
+        </div>
+        <!-- //content -->
 
-            <!-- common footer -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
+        <!-- common footer -->
+        <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
 
-        </main>
-        <!-- //dashboard-->
+    </main>
+    <!-- //dashboard-->
 
+</div>
+
+<!-- 발신 예약 취소 팝업 -->
+<div class="modal-overlay" id="rsrvCnclModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-content modal-md" tabindex="-1">
+        <div class="modal-header">
+            <h2><spring:message code="msg.shrtnt.label.rsrvCnclTitle" text="발신 예약 취소"/></h2>
+            <button class="modal-close" aria-label="닫기" onclick="fn_closeRsrvCnclPopup()"><i class="icon-svg-close"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="msg-box">
+                <p class="txt">
+                    <i class="icon-svg-warning" aria-hidden="true"></i>
+                    <span><spring:message code="msg.shrtnt.msg.rsrvCnclWarn"/></span>
+                </p>
+            </div>
+            <input type="hidden" id="rsrvCnclMsgId">
+            <div class="table_list">
+                <ul class="list">
+                    <li class="head"><label><spring:message code="msg.shrtnt.label.ttl" text="제목"/></label></li>
+                    <li id="rsrvCnclTtl"></li>
+                </ul>
+                <ul class="list">
+                    <li class="head"><label><spring:message code="msg.shrtnt.label.rsrvSndngDttm" text="발신예약일시"/></label></li>
+                    <li id="rsrvCnclDttm"></li>
+                </ul>
+                <ul class="list">
+                    <li class="head"><label><spring:message code="msg.shrtnt.label.rcvrCnt" text="수신자"/></label></li>
+                    <li id="rsrvCnclRcvrCnt"></li>
+                </ul>
+                <ul class="list">
+                    <li class="head"><label><spring:message code="msg.shrtnt.label.rsrvCnclUser" text="예약취소자"/></label></li>
+                    <li id="rsrvCnclUser"></li>
+                </ul>
+                <ul class="list">
+                    <li class="head"><label><spring:message code="msg.shrtnt.label.rsrvCnclDttm" text="예약취소일시"/></label></li>
+                    <li id="rsrvCnclNowDttm"></li>
+                </ul>
+            </div>
+            <div class="modal_btns">
+                <button type="button" class="btn type1" onclick="fn_doRsrvCncl()"><spring:message code="msg.shrtnt.label.rsrvCnclBtn" text="취소하기"/></button>
+                <button type="button" class="btn type2" onclick="fn_closeRsrvCnclPopup()"><spring:message code="msg.shrtnt.label.closeBtn" text="닫기"/></button>
+            </div>
+        </div>
     </div>
+</div>
 
 </body>
 </html>

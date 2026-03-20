@@ -31,8 +31,8 @@
     function fn_renderDetail(v) {
         /* 학사년도/학기 */
         let yrSmstr = '';
-        if (v.sbjctYr) yrSmstr = v.sbjctYr;
-        if (v.sbjctSmstr) yrSmstr += ' / ' + v.sbjctSmstr;
+        if (v.sbjctYr) yrSmstr = v.sbjctYr + '<spring:message code="msg.rcptnAgre.label.year" text="년"/>';
+        if (v.sbjctSmstr) yrSmstr += ' / ' + v.sbjctSmstr + '<spring:message code="msg.rcptnAgre.label.smstr" text="학기"/>';
         $('#sbjctYrSmstr').text(yrSmstr || '-');
 
         /* 운영과목 */
@@ -51,7 +51,6 @@
         /* 발신자 정보 */
         $('#stdntNo').text(v.stdntNo || '-');
         $('#userRprsId2').text(v.userRprsId2 || '-');
-        $('#sndngrPhnno').text(v.sndngrPhnno || '-');
 
         /* 첨부파일 */
         if (v.atflList && v.atflList.length > 0) {
@@ -84,98 +83,94 @@
 </script>
 
 <body class="home colorA ${bodyClass}">
-    <div id="wrap" class="main">
-        <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
+<div id="wrap" class="main">
+    <!-- common header -->
+    <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
 
-        <!-- dashboard -->
-        <main class="common">
+    <!-- dashboard -->
+    <main class="common">
 
-            <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+        <!-- gnb -->
+        <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
 
-            <!-- content -->
-            <div id="content" class="content-wrap common">
-                <div class="dashboard_sub">
+        <!-- content -->
+        <div id="content" class="content-wrap common">
+            <div class="dashboard_sub">
 
-                    <div class="sub-content">
-                        <div class="page-info">
-                            <h2 class="page-title"><span><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></span><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
-                            <div class="navi_bar">
-                                <ul>
-                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></li>
-                                    <li><spring:message code="msg.shrtnt.label.title" text="쪽지"/></li>
-                                    <li><span class="current"><spring:message code="msg.shrtnt.label.rcvnDetail" text="수신 상세"/></span></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="board_top">
-                            <h3 class="board-title"><spring:message code="msg.shrtnt.label.rcvnCtsTitle" text="쪽지 수신 내용"/></h3>
-                        </div>
-
-                        <!-- 상세 -->
-                        <div class="table_list">
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.yearSmstr" text="학사년도/학기"/></label></li>
-                                <li id="sbjctYrSmstr">-</li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.oprSbjct" text="운영과목"/></label></li>
-                                <li id="sbjctnm">-</li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.cts" text="내용"/></label></li>
-                                <li>
-                                    <div class="tb_content" id="sndngCts"></div>
-                                </li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.atfl" text="첨부파일"/></label></li>
-                                <li id="atflContent">-</li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.sndngDttm" text="발신일시"/></label></li>
-                                <li id="sndngDttm"></li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.sndngnm" text="발신자"/></label></li>
-                                <li id="sndngnm"></li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.stdntNo" text="학번"/></label></li>
-                                <li id="stdntNo">-</li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.userRprsId" text="대표 ID"/></label></li>
-                                <li id="userRprsId2">-</li>
-                            </ul>
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="msg.shrtnt.label.sndngrPhnno" text="발신자 번호"/></label></li>
-                                <li id="sndngrPhnno">-</li>
+                <div class="sub-content">
+                    <div class="page-info">
+                        <h2 class="page-title"><span><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></span><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
+                        <div class="navi_bar">
+                            <ul>
+                                <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
+                                <li><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></li>
+                                <li><spring:message code="msg.shrtnt.label.title" text="쪽지"/></li>
+                                <li><span class="current"><spring:message code="msg.shrtnt.label.rcvnDetail" text="수신 상세"/></span></li>
                             </ul>
                         </div>
+                    </div>
 
-                        <!-- 버튼 -->
-                        <div class="btns">
-                            <button type="button" class="btn type1" onclick="fn_reply()"><spring:message code="msg.shrtnt.label.sndngRegist" text="발신하기"/></button>
-                            <button type="button" class="btn type2" onclick="fn_list()"><spring:message code="msg.shrtnt.label.rcvnList" text="수신 목록"/></button>
-                        </div>
+                    <div class="board_top">
+                        <h3 class="board-title"><spring:message code="msg.shrtnt.label.rcvnCtsTitle" text="쪽지 수신 내용"/></h3>
+                    </div>
 
+                    <!-- 상세 -->
+                    <div class="table_list">
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.yearSmstr" text="학사년도/학기"/></label></li>
+                            <li id="sbjctYrSmstr">-</li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.oprSbjct" text="운영과목"/></label></li>
+                            <li id="sbjctnm">-</li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.cts" text="내용"/></label></li>
+                            <li>
+                                <div class="tb_content" id="sndngCts"></div>
+                            </li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.atfl" text="첨부파일"/></label></li>
+                            <li id="atflContent">-</li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.sndngDttm" text="발신일시"/></label></li>
+                            <li id="sndngDttm"></li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.sndngnm" text="발신자"/></label></li>
+                            <li id="sndngnm"></li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.stdntNo" text="학번"/></label></li>
+                            <li id="stdntNo">-</li>
+                        </ul>
+                        <ul class="list">
+                            <li class="head"><label><spring:message code="msg.shrtnt.label.userRprsId" text="대표 ID"/></label></li>
+                            <li id="userRprsId2">-</li>
+                        </ul>
+                    </div>
+
+                    <!-- 버튼 -->
+                    <div class="btns">
+                        <button type="button" class="btn type1" onclick="fn_reply()"><spring:message code="msg.shrtnt.label.sndngRegist" text="발신하기"/></button>
+                        <button type="button" class="btn type2" onclick="fn_list()"><spring:message code="msg.shrtnt.label.rcvnList" text="수신 목록"/></button>
                     </div>
 
                 </div>
+
             </div>
-            <!-- //content -->
+        </div>
+        <!-- //content -->
 
-            <!-- common footer -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
+        <!-- common footer -->
+        <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
 
-        </main>
-        <!-- //dashboard-->
+    </main>
+    <!-- //dashboard-->
 
-    </div>
+</div>
 
 </body>
 </html>

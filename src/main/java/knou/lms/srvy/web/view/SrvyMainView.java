@@ -51,6 +51,24 @@ public class SrvyMainView {
 
 	List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList;
 
+	List<EgovMap> srvyPtcpList;
+
+	EgovMap srvyPtcpnt;
+
+	EgovMap profMemo;
+
+	List<EgovMap> srvyPtcpDvcStatusList;
+
+	EgovMap srvyPtcpCnt;
+
+	List<EgovMap> srvyChcQstnRspnsStatusList;
+
+	List<EgovMap> srvyTextQstnRspnsStatusList;
+
+	List<EgovMap> srvyLevelQstnRspnsStatusList;
+
+	List<Map<String, Object>> colorList;
+
 	public ProcessResultVO<EgovMap> getProfSrvyList() {
 		return profSrvyList;
 	}
@@ -193,6 +211,78 @@ public class SrvyMainView {
 
 	public void setSrvyQstnVwitmLvlList(List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList) {
 		this.srvyQstnVwitmLvlList = srvyQstnVwitmLvlList;
+	}
+
+	public List<EgovMap> getSrvyPtcpList() {
+		return srvyPtcpList;
+	}
+
+	public void setSrvyPtcpList(List<EgovMap> srvyPtcpList) {
+		this.srvyPtcpList = srvyPtcpList;
+	}
+
+	public EgovMap getSrvyPtcpnt() {
+		return srvyPtcpnt;
+	}
+
+	public void setSrvyPtcpnt(EgovMap srvyPtcpnt) {
+		this.srvyPtcpnt = srvyPtcpnt;
+	}
+
+	public EgovMap getProfMemo() {
+		return profMemo;
+	}
+
+	public void setProfMemo(EgovMap profMemo) {
+		this.profMemo = profMemo;
+	}
+
+	public List<EgovMap> getSrvyPtcpDvcStatusList() {
+		return srvyPtcpDvcStatusList;
+	}
+
+	public void setSrvyPtcpDvcStatusList(List<EgovMap> srvyPtcpDvcStatusList) {
+		this.srvyPtcpDvcStatusList = srvyPtcpDvcStatusList;
+	}
+
+	public EgovMap getSrvyPtcpCnt() {
+		return srvyPtcpCnt;
+	}
+
+	public void setSrvyPtcpCnt(EgovMap srvyPtcpCnt) {
+		this.srvyPtcpCnt = srvyPtcpCnt;
+	}
+
+	public List<EgovMap> getSrvyChcQstnRspnsStatusList() {
+		return srvyChcQstnRspnsStatusList;
+	}
+
+	public void setSrvyChcQstnRspnsStatusList(List<EgovMap> srvyChcQstnRspnsStatusList) {
+		this.srvyChcQstnRspnsStatusList = srvyChcQstnRspnsStatusList;
+	}
+
+	public List<EgovMap> getSrvyTextQstnRspnsStatusList() {
+		return srvyTextQstnRspnsStatusList;
+	}
+
+	public void setSrvyTextQstnRspnsStatusList(List<EgovMap> srvyTextQstnRspnsStatusList) {
+		this.srvyTextQstnRspnsStatusList = srvyTextQstnRspnsStatusList;
+	}
+
+	public List<Map<String, Object>> getColorList() {
+		return colorList;
+	}
+
+	public void setColorList(List<Map<String, Object>> colorList) {
+		this.colorList = colorList;
+	}
+
+	public List<EgovMap> getSrvyLevelQstnRspnsStatusList() {
+		return srvyLevelQstnRspnsStatusList;
+	}
+
+	public void setSrvyLevelQstnRspnsStatusList(List<EgovMap> srvyLevelQstnRspnsStatusList) {
+		this.srvyLevelQstnRspnsStatusList = srvyLevelQstnRspnsStatusList;
 	}
 
 }

@@ -476,6 +476,29 @@ let UiComm = {
 
 
 	/**
+	 * localStoreate 데이터 관리
+	 */
+	db: {
+		keyPrefix: "KNOULMS:",
+
+		// 데이터 저장
+		setItem: function(key, value) {
+			window.localStorage.setItem(this.keyPrefix + key, value);
+		},
+
+		// 데이터 조회
+		getItem: function(key) {
+			return window.localStorage.getItem(this.keyPrefix + key);
+		},
+
+		// 데이터 삭제
+		removeItem: function(key) {
+			return window.localStorage.removeItem(this.keyPrefix + key);
+		}
+	},
+
+
+	/**
 	 * 메시지 가져오기
 	 * @param key :		메시지키
 	 * @param args :	Augument

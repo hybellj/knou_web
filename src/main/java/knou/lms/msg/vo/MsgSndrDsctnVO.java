@@ -27,7 +27,6 @@ public class MsgSndrDsctnVO extends DefaultVO {
     private String sndngDttm;
     private String sndngYn;
     private String sndngRsltCd;
-    private String sndngCost;
 
     // 요약 결과
     private int pushTotalCnt;
@@ -199,14 +198,6 @@ public class MsgSndrDsctnVO extends DefaultVO {
 
     public void setSndngRsltCd(String sndngRsltCd) {
         this.sndngRsltCd = sndngRsltCd;
-    }
-
-    public String getSndngCost() {
-        return sndngCost;
-    }
-
-    public void setSndngCost(String sndngCost) {
-        this.sndngCost = sndngCost;
     }
 
     public int getPushTotalCnt() {

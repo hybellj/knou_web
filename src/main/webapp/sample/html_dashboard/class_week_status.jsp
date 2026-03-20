@@ -617,11 +617,7 @@
                         <!-- 차트 -->
                         <div class="chart-container" style=" height: 300px;">
                             <canvas id="lineChartUser"></canvas>
-                        </div>
-                        <!-- chartjs -->
-                        <script src="<%=request.getContextPath()%>/webdoc/assets/js/chart4.min.js"></script>
-                        <script src="<%=request.getContextPath()%>/webdoc/assets/js/chart-utils.min.js"></script>
-
+                        </div>                        
                         <script>
                             const Utils = ChartUtils.init();
                             const DATA_COUNT = 12;

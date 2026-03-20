@@ -28,6 +28,7 @@ import knou.framework.util.ValidationUtils;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.srvy.facade.SrvyFacadeService;
+import knou.lms.srvy.vo.SrvyPtcpVO;
 import knou.lms.srvy.vo.SrvyQstnVO;
 import knou.lms.srvy.vo.SrvyVO;
 import knou.lms.srvy.vo.SrvypprVO;
@@ -426,13 +427,14 @@ public class SrvyController extends ControllerBase {
     public String profSrvypprPreviewPopup(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
     	SrvyMainView srvyMainView = srvyFacadeService.loadProfSrvypprPreviewPopup(vo);
 
-        //List<ReshPageVO> listReschPage = reshQstnService.listReshPage(pageVo);
-        //model.addAttribute("vo", quizMainView.getExamBscVO());
-        //model.addAttribute("qstnList", quizMainView.getQstnList());
-        //model.addAttribute("qstnVwitmList", quizMainView.getQstnVwitmList());
-        //if("QUIZ_TEAM".equals(quizMainView.getExamBscVO().getExamGbncd())) {
-        //    model.addAttribute("quizTeamList", quizMainView.getQuizTeamList());
-        //}
+    	model.addAttribute("vo", srvyMainView.getSrvyEgovMap());
+    	model.addAttribute("srvypprList", srvyMainView.getSrvypprList());
+    	model.addAttribute("srvyQstnList", srvyMainView.getSrvyQstnList());
+    	model.addAttribute("srvyVwitmList", srvyMainView.getSrvyVwitmList());
+    	model.addAttribute("srvyQstnVwitmLvlList", srvyMainView.getSrvyQstnVwitmLvlList());
+    	if("SRVY_TEAM".equals(srvyMainView.getSrvyEgovMap().get("srvyGbn"))) {
+    		model.addAttribute("srvyTeamList", srvyMainView.getSrvyTeamList());
+    	}
 
         return "srvy/popup/prof_srvyppr_preview_pop";
     }
@@ -695,6 +697,33 @@ public class SrvyController extends ControllerBase {
     }
 
     /**
+     * 교수설문문항가져오기
+     *
+     * @param copySrvyQstnId	복사설문문항아이디
+     * @param srvyId 			설문아이디
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyQstnCopyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<SrvyQstnVO> profSrvyQstnCopyAjax(@RequestBody List<Map<String, Object>> list, ModelMap model, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<SrvyQstnVO> resultVO = new ProcessResultVO<SrvyQstnVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+        	for(Map<String, Object> map : list) {
+            	map.put("rgtrId", userId);
+            }
+        	srvyFacadeService.srvyQstnCopy(list);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("가져오기 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /**
      * 설문문항등록
      *
      * @param SrvyQstnVO 문항정보
@@ -884,6 +913,171 @@ public class SrvyController extends ControllerBase {
             resultVO.setMessage("문항 출제 중 에러가 발생하였습니다.");
         }
         return resultVO;
+    }
+
+    /**
+     * 교수설문평가관리화면
+     *
+     * @param srvyId 	설문아이디
+     * @param sbjctId 	과목아이디
+     * @return prof_srvy_evl_mng_view.jsp
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyEvlMngView.do")
+    public String profSrvyEvlMngView(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+		SrvyMainView srvyMainView = srvyFacadeService.loadProfSrvyEvlMngView(vo);
+
+		model.addAttribute("vo", srvyMainView.getSrvyEgovMap());
+		model.addAttribute("menuTycd", "PROF");
+		model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+
+        return "srvy/prof_srvy_evl_mng_view";
+    }
+
+    /**
+     * 교수설문참여목록조회
+     *
+     * @param srvyId     	설문아이디
+     * @param ptcpyn 		참여여부
+     * @param srvyPtcpEvlyn 설문참여평가여부
+     * @param searchValue   검색어(학과, 학번, 이름)
+     * @return 설문참여목록
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyPtcpListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> profSrvyPtcpListAjax(@RequestBody Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+
+        try {
+        	SrvyMainView srvyMainView = srvyFacadeService.getSrvyPtcpList(params);
+            resultVO.setReturnList(srvyMainView.getSrvyPtcpList());
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("리스트 조회 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /**
+	* 교수설문메모팝업
+	*
+	* @param srvyId 		설문아이디
+	* @param srvyPtcpId 	설문참여아이디
+	* @param userId 		사용자아이디
+	* @return prof_quiz_memo_pop.jsp
+	* @throws Exception
+	*/
+    @RequestMapping(value="/profSrvyMemoPopup.do")
+    public String profSrvyMemoPopup(@RequestParam Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+    	SrvyMainView srvyMainView = srvyFacadeService.loadProfSrvyMemoPopup(params);
+
+        model.addAttribute("vo", srvyMainView.getSrvyEgovMap());
+        model.addAttribute("srvyPtcpnt", srvyMainView.getSrvyPtcpnt());
+        model.addAttribute("profMemo", srvyMainView.getProfMemo());
+
+		return "srvy/popup/prof_srvy_memo_pop";
+    }
+
+    /**
+	* 설문교수메모수정
+	*
+	* @param examDtlId 	시험상세아이디
+	* @param tkexamId 	시험응시아이디
+	* @param userId 	사용자아이디
+	* @param profMemo 	교수메모
+	* @throws Exception
+	*/
+    @RequestMapping(value="/srvyProfMemoModifyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<SrvyPtcpVO> srvyProfMemoModifyAjax(@RequestBody Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<SrvyPtcpVO> resultVO = new ProcessResultVO<SrvyPtcpVO>();
+
+        try {
+        	params.put("rgtrId", userId);
+            srvyFacadeService.profMemoModify(params);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("메모 저장 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /**
+	* 교수설문평가점수일괄수정
+	*
+	* @param srvyId 	설문아이디
+	* @param srvyPtcpId	설문참여아이디
+	* @param userId 	사용자아이디
+	* @param scr 		점수
+	* @param scoreType  점수유형
+	* @throws Exception
+	*/
+    @RequestMapping(value="/profSrvyEvlScrBulkModifyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> profSrvyEvlScrBulkModifyAjax(@RequestBody List<Map<String, Object>> list, ModelMap model, HttpServletRequest request) throws Exception {
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        try {
+            for(Map<String, Object> map : list) {
+            	map.put("rgtrId", userId);
+            }
+            srvyFacadeService.profSrvyEvlScrBulkModify(list);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("점수 수정 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /**
+     * 교수설문참여현황팝업
+     *
+     * @param srvyId 	설문아이디
+     * @param sbjctId 	과목아이디
+     * @return prof_srvy_ptcp_status_pop.jsp
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyPtcpStatusPopup.do")
+    public String profSrvyPtcpStatusPopup(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = new UserContext(SessionInfo.getOrgId(request),
+                SessionInfo.getUserId(request),
+                SessionInfo.getUserTycd(request),
+                SessionInfo.getAuthrtCd(request),
+                SessionInfo.getAuthrtGrpcd(request),
+                SessionInfo.getUserRprsId(request),
+                SessionInfo.getLastLogin(request));
+        request.getSession().setAttribute("USER_CONTEXT", userCtx);
+
+    	SrvyMainView srvyMainView = srvyFacadeService.loadProfSrvyPtcpStatusPopup(vo, userCtx);
+
+    	model.addAttribute("vo", srvyMainView.getSrvyEgovMap());
+    	if("SRVY_TEAM".equals(srvyMainView.getSrvyEgovMap().get("srvyGbn"))) {
+    		model.addAttribute("srvyTeamList", srvyMainView.getSrvyTeamList());
+    	}
+    	model.addAttribute("cntnDvcTycdList", srvyMainView.getCmmnCdList().get("cntnDvcTycd"));
+    	model.addAttribute("srvyPtcpDvcStatusList", srvyMainView.getSrvyPtcpDvcStatusList());
+    	model.addAttribute("srvyPtcpCnt", srvyMainView.getSrvyPtcpCnt());
+    	model.addAttribute("srvypprList", srvyMainView.getSrvypprList());
+    	model.addAttribute("srvyQstnList", srvyMainView.getSrvyQstnList());
+    	model.addAttribute("srvyVwitmList", srvyMainView.getSrvyVwitmList());
+    	model.addAttribute("srvyQstnVwitmLvlList", srvyMainView.getSrvyQstnVwitmLvlList());
+    	model.addAttribute("srvyChcQstnRspnsStatusList", srvyMainView.getSrvyChcQstnRspnsStatusList());
+    	model.addAttribute("srvyTextQstnRspnsStatusList", srvyMainView.getSrvyTextQstnRspnsStatusList());
+    	model.addAttribute("srvyLevelQstnRspnsStatusList", srvyMainView.getSrvyLevelQstnRspnsStatusList());
+    	model.addAttribute("colorList", srvyMainView.getColorList());
+
+        //model.addAttribute("chartMap", tkexamService.userTkexamStatusSelect(vo.getExamBscId(), vo.getSbjctId()));
+
+        return "srvy/popup/prof_srvy_ptcp_status_pop";
     }
 
 }

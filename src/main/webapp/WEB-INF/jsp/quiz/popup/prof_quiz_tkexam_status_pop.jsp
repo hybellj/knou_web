@@ -1,12 +1,12 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="/WEB-INF/jsp/quiz/common/quiz_common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 	<head>
-    	<%@ include file="/WEB-INF/jsp/common/modal_common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-		<%@ include file="/WEB-INF/jsp/quiz/common/quiz_common_inc.jsp" %>
-    	<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
+    	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+			<jsp:param name="style" value="classroom"/>
+		</jsp:include>
     </head>
 
     <div id="loading_page">
@@ -20,26 +20,19 @@
 		});
 	</script>
 
-	<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
+	<body class="modal-page">
         <div id="wrap">
-        	<div class="row">
-				<div class="col">
-					<div class="ui segment" style="height:100%;">
-						 <p><spring:message code="exam.label.quiz" /> <spring:message code="exam.label.status" /></p><!-- 퀴즈 --><!-- 현황 -->
-						<div class="ui stackable equal width grid">
-							<div class="column">
-				                <canvas id="pieChart" height="250"></canvas>
-				            </div>
-				        	<div class="column">
-				                <canvas id="barChart" height="250"></canvas>
-				            </div>
-				        </div>
-					</div>
+        	<div class="border-1 padding-3">
+				<div>
+					<canvas id="pieChart" class="chart_wm350" height="100"></canvas>
+				</div>
+				<div>
+					<canvas id="barChart" class="chart_wm350" height="100"></canvas>
 				</div>
 			</div>
 
-            <div class="bottom-content">
-                <button class="ui black cancel button" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
+            <div class="btns">
+                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
             </div>
         </div>
 		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>

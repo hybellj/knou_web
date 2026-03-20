@@ -14,4 +14,196 @@
 	    </foreach>
 	</delete>
 
+	<select id="srvyChcQstnRspnsStatusList" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : SrvyRspnsDAO.srvyChcQstnRspnsStatusList
+             설  명  : 설문선택형문항답변현황목록
+         */
+		SELECT
+			    A.SRVY_VWITM_ID
+			  , A.SRVY_QSTN_ID
+			  , A.VWITM_CTS
+			  , A.VWITM_SEQNO
+			  , A.ETC_INPTYN
+			  , A.JOIN_CNT
+			  , A.TOT_JOIN_CNT
+			  , REPLACE(TO_CHAR(
+			        CASE WHEN A.RNUM = 1
+			             THEN 100 - ACUM_RATIO
+			             ELSE A.RATIO
+			        END
+			    ), '.0', '') AS RATIO
+		  FROM (
+		    SELECT
+		         	A.*
+			      , ROW_NUMBER() OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.VWITM_SEQNO DESC) AS RNUM
+			      , ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS RATIO
+			      , SUM(ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1))
+			            OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.VWITM_SEQNO DESC)
+			        - ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS ACUM_RATIO
+		      FROM (
+		        SELECT DISTINCT
+			            A.SRVY_QSTN_ID
+			          , A.SRVY_VWITM_ID
+			          , A.VWITM_CTS
+			          , A.SRVY_SEQNO
+			          , A.QSTN_SEQNO
+			          , A.VWITM_SEQNO
+			          , A.ETC_INPTYN
+			          , A.JOIN_CNT
+			          , A.TOT_JOIN_CNT
+			          , A.QNUM
+		          FROM (
+		            SELECT
+			                A.*
+			              , DENSE_RANK() OVER (ORDER BY A.SRVY_QSTN_ID) AS QNUM
+		              FROM (
+		                SELECT
+			                    VWITM.SRVY_QSTN_ID
+			                  , VWITM.SRVY_VWITM_ID
+			                  , VWITM.VWITM_CTS
+			                  , VWITM.ETC_INPTYN
+			                  , SRVYPPR.SRVY_SEQNO
+			                  , QSTN.QSTN_SEQNO
+			                  , VWITM.VWITM_SEQNO
+			                  , COUNT(RSPNS.SRVY_RSPNS_ID) OVER (PARTITION BY VWITM.SRVY_QSTN_ID, VWITM.SRVY_VWITM_ID) AS JOIN_CNT
+			                  , COUNT(RSPNS.SRVY_RSPNS_ID) OVER (PARTITION BY VWITM.SRVY_QSTN_ID) AS TOT_JOIN_CNT
+		                  FROM TB_LMS_SRVYPPR SRVYPPR
+		                  JOIN TB_LMS_SRVY_QSTN QSTN
+		                    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		                   AND QSTN.DELYN = 'N'
+		                   AND QSTN.QSTN_RSPNS_TYCD IN ('ONE_CHC', 'MLT_CHC', 'OX_CHC')
+		                  JOIN TB_LMS_SRVY_VWITM VWITM
+		                    ON QSTN.SRVY_QSTN_ID = VWITM.SRVY_QSTN_ID
+		                  LEFT JOIN TB_LMS_SRVY_PTCP PTCP
+		                    ON PTCP.SRVY_ID = SRVYPPR.SRVY_ID
+		                   AND PTCP.USER_ID IN (SELECT ATNDLC.USER_ID
+						  					    FROM TB_LMS_ATNDLC ATNDLC
+						  					    JOIN TB_LMS_SBJCT SBJCT
+						  					      ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+						  					   WHERE ATNDLC.AUDITYN = 'N'
+						  					     AND SBJCT.SBJCT_ID = #{sbjctId})
+		                  LEFT JOIN TB_LMS_SRVY_RSPNS RSPNS
+		                    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+		                   AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
+		                 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		            ) A
+		        ) A
+		    ) A
+		) A
+		ORDER BY A.SRVY_SEQNO, A.QSTN_SEQNO, A.VWITM_SEQNO
+	</select>
+
+	<select id="srvyTextQstnRspnsStatusList" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : SrvyRspnsDAO.srvyTextQstnRspnsStatusList
+             설  명  : 설문서술형문항답변현황목록
+         */
+        SELECT
+			  RSPNS.RSPNS
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = PTCP.USER_ID) AS USERNM
+			, QSTN.SRVY_QSTN_ID
+		  FROM TB_LMS_SRVYPPR SRVYPPR
+		  JOIN TB_LMS_SRVY_QSTN QSTN
+		    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		   AND QSTN.DELYN = 'N'
+		   AND QSTN.QSTN_RSPNS_TYCD = 'LONG_TEXT'
+		  JOIN TB_LMS_SRVY_PTCP PTCP
+		    ON PTCP.SRVY_ID = SRVYPPR.SRVY_ID
+		   AND PTCP.USER_ID IN (SELECT ATNDLC.USER_ID
+		  					    FROM TB_LMS_ATNDLC ATNDLC
+		  					    JOIN TB_LMS_SBJCT SBJCT
+		  					      ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+		  					   WHERE ATNDLC.AUDITYN = 'N'
+		  					     AND SBJCT.SBJCT_ID = #{sbjctId})
+		  JOIN TB_LMS_SRVY_RSPNS RSPNS
+		    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+		   AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
+		 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		 ORDER BY RSPNS.RSPNS, PTCP.USER_ID
+	</select>
+
+	<select id="srvyLevelQstnRspnsStatusList" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : SrvyRspnsDAO.srvyLevelQstnRspnsStatusList
+             설  명  : 설문레벨형문항답변현황목록
+         */
+        SELECT
+			    A.SRVY_VWITM_ID
+			  , A.SRVY_QSTN_ID
+			  , A.VWITM_CTS
+			  , A.LVL_SEQNO
+			  , A.JOIN_CNT
+			  , A.TOT_JOIN_CNT
+			  , REPLACE(TO_CHAR(
+			        CASE WHEN A.RNUM = 1
+			             THEN 100 - ACUM_RATIO
+			             ELSE A.RATIO
+			        END
+			    ), '.0', '') AS RATIO
+		  FROM (
+		    SELECT
+		         	A.*
+			      , ROW_NUMBER() OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.LVL_SEQNO DESC) AS RNUM
+			      , ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS RATIO
+			      , SUM(ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1))
+			            OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.LVL_SEQNO DESC)
+			        - ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS ACUM_RATIO
+		      FROM (
+		        SELECT DISTINCT
+			            A.SRVY_QSTN_ID
+			          , A.SRVY_VWITM_ID
+			          , A.SRVY_QSTN_VWITM_LVL_ID
+			          , A.VWITM_CTS
+			          , A.SRVY_SEQNO
+			          , A.QSTN_SEQNO
+			          , A.VWITM_SEQNO
+			          , A.LVL_SEQNO
+			          , A.JOIN_CNT
+			          , A.TOT_JOIN_CNT
+			          , A.QNUM
+		          FROM (
+		            SELECT
+			                A.*
+			              , DENSE_RANK() OVER (ORDER BY A.SRVY_QSTN_ID, A.SRVY_VWITM_ID) AS QNUM
+		              FROM (
+		                SELECT
+			                    VWITM.SRVY_QSTN_ID
+			                  , VWITM.SRVY_VWITM_ID
+			                  , LVL.SRVY_QSTN_VWITM_LVL_ID
+			                  , VWITM.VWITM_CTS
+			                  , SRVYPPR.SRVY_SEQNO
+			                  , QSTN.QSTN_SEQNO
+			                  , VWITM.VWITM_SEQNO
+			                  , LVL.LVL_SEQNO
+			                  , COUNT(RSPNS.SRVY_RSPNS_ID) OVER (PARTITION BY VWITM.SRVY_QSTN_ID, VWITM.SRVY_VWITM_ID, LVL.SRVY_QSTN_VWITM_LVL_ID) AS JOIN_CNT
+			                  , COUNT(RSPNS.SRVY_RSPNS_ID) OVER (PARTITION BY VWITM.SRVY_QSTN_ID, VWITM.SRVY_VWITM_ID) AS TOT_JOIN_CNT
+		                  FROM TB_LMS_SRVYPPR SRVYPPR
+		                  JOIN TB_LMS_SRVY_QSTN QSTN
+		                    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		                   AND QSTN.DELYN = 'N'
+		                   AND QSTN.QSTN_RSPNS_TYCD = 'LEVEL'
+		                  JOIN TB_LMS_SRVY_VWITM VWITM
+		                    ON QSTN.SRVY_QSTN_ID = VWITM.SRVY_QSTN_ID
+		                  JOIN TB_LMS_SRVY_QSTN_VWITM_LVL LVL
+		                    ON QSTN.SRVY_QSTN_ID = LVL.SRVY_QSTN_ID
+		                  LEFT JOIN TB_LMS_SRVY_PTCP PTCP
+		                    ON PTCP.SRVY_ID = SRVYPPR.SRVY_ID
+		                   AND PTCP.USER_ID IN (SELECT ATNDLC.USER_ID
+						  					    FROM TB_LMS_ATNDLC ATNDLC
+						  					    JOIN TB_LMS_SBJCT SBJCT
+						  					      ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+						  					   WHERE ATNDLC.AUDITYN = 'N'
+						  					     AND SBJCT.SBJCT_ID = #{sbjctId})
+		                  LEFT JOIN TB_LMS_SRVY_RSPNS RSPNS
+		                    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+		                   AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
+		                 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		            ) A
+		        ) A
+		    ) A
+		) A
+		ORDER BY A.SRVY_SEQNO, A.QSTN_SEQNO, A.VWITM_SEQNO, A.LVL_SEQNO
+    </select>
+
 </mapper>

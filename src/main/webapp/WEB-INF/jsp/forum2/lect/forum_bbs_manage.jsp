@@ -1,4 +1,4 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+﻿<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="uiex" uri="http://uiextension/tags" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
@@ -34,13 +34,6 @@
     <script type="text/javascript">
     var dialog;
     $(document).ready(function() {
-        $('.toggle_commentlist').unbind('click').bind('click', function(e) {
-            $(this).closest('.comment').find('.commentlist').toggle();
-        });
-        $('.toggle_commentwrite').unbind('click').bind('click', function(e) {
-            $(this).closest('.comment').find('.commentwrite').toggle();
-        });
-
         if("${forumVo.forumCtgrCd}" == "TEAM") {
             if (${forumVo.byteamDscsUseyn eq 'Y'}) {
                 $('.team_selected_nm').prop('disabled', true);
@@ -182,13 +175,8 @@
                 var returnList = data.returnList || [];
                 var pageInfo = data.pageInfo;
                 var html = createForumListHTML(returnList);
-
+                $("#atclList").find('.tstyle_view').remove();
                 $("#atclList").empty().html(html);
-                // TODO : 26.3.11 dropdown modify
-                // $("#atclList .dropdown").dropdown();
-                // TODO : 26.3.11 checkbox modify
-                // $('.ui.checkbox').checkbox();
-                $(".commentlist").toggle();
 
                 var params = {
                     totalCount : pageInfo.totalRecordCount
@@ -230,15 +218,19 @@
     }
 
     // 댓글 수정/삭제/대댓글 버튼 (내부유틸)
-    function _tmpl_cmntEditBtns(rs, index, i) {
+    function _tmpl_cmntEditBtns(rs, postIdx, flatIdx, depth) {
         if(rs.delYn == "Y") { return ''; }
-        var replyBtn = (rs.level == 1)
-            ? "<button class=\"cmtWri\" onclick=\"btnAddCmnt('"+index+"','"+i+"','"+ rs.atclSn +"','"+ rs.cmntSn +"')\"><spring:message code='forum.button.cmnt'/></button>"
+        var isOwner = (rs.rgtrId == "${userId}");
+        var replyBtn = (depth < 4)
+            ? "<button class=\"cmtWri\" data-atcl-sn=\""+ rs.atclSn +"\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\"><spring:message code='forum.button.cmnt'/></button>"
             : '';
+        if (!isOwner) {
+            return replyBtn ? "<span class=\"cmtBtnGroup\">"+ replyBtn +"</span>" : '';
+        }
         return [
             "<span class=\"cmtBtnGroup\">",
-            "    <button class=\"cmtUpt\" onclick=\"editBtnClick('"+ rs.atclSn +"','"+ rs.rgtrId +"','"+ rs.cmntSn +"','"+ index +"','"+ i +"','"+ rs.level +"','"+ rs.ansReqYn +"')\"><spring:message code='forum.button.mod'/></button>",
-            "    <button class=\"cmtDel\" onclick=\"delCmnt('"+ rs.rgtrId +"','"+ rs.cmntSn +"')\"><spring:message code='forum.button.del'/></button>",
+            "    <button class=\"cmtUpt\" data-atcl-sn=\""+ rs.atclSn +"\" data-rgtr-id=\""+ rs.rgtrId +"\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\" data-level=\""+ rs.level +"\" data-ans-req-yn=\""+ rs.ansReqYn +"\"><spring:message code='forum.button.mod'/></button>",
+            "    <button class=\"cmtDel\" data-rgtr-id=\""+ rs.rgtrId +"\" data-cmnt-sn=\""+ rs.cmntSn +"\"><spring:message code='forum.button.del'/></button>",
             replyBtn,
             "</span>"
         ].join('');
@@ -283,34 +275,29 @@
             editBtns = [
                 "<div class='bottom_btn'>",
                 "    <div class='right-area'>",
-                "        <button type='button' class='btn basic' onclick=\"editAtclBtn('"+ v.atclSn +"','"+ v.rgtrId +"')\"><spring:message code='forum.button.mod'/></button>",
-                "        <button type='button' class='btn basic' onclick=\"delAtcl('"+ v.atclSn +"','"+ v.rgtrId +"')\"><spring:message code='forum.button.del'/></button>",
-                "        <!-- more menu 추가 -->",
+                "        <button type='button' class='btn basic' data-action='editPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'><spring:message code='forum.button.mod'/></button>",
+                "        <button type='button' class='btn basic' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'><spring:message code='forum.button.del'/></button>",
                 "        <div class='dropdown'>",
-                "            <button class='settingBtn' onclick=\"this.nextElementSibling.classList.toggle('show')\"></button>",
+                "            <button class='settingBtn'></button>",
                 "            <div class='option-wrap'>",
                 "                <div class='item'><a href='javascript:void(0)' onclick='forumView(1)'>토론방</a></div>",
                 "                <div class='item'><a href='javascript:void(0)' onclick='forumView(2)'>토론평가</a></div>",
-                "                <div class='item'><a href='javascript:void(0)' onclick=\"editAtclBtn('"+ v.atclSn +"','"+ v.rgtrId +"')\">수정</a></div>",
-                "                <div class='item'><a href='javascript:void(0)' onclick=\"delAtcl('"+ v.atclSn +"','"+ v.rgtrId +"')\">삭제</a></div>",
+                "                <div class='item'><a href='javascript:void(0)' data-action='editPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>수정</a></div>",
+                "                <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>삭제</a></div>",
                 "            </div>",
                 "        </div>",
                 "    </div>",
                 "</div>"
             ].join('');
         } else {
-            // more menu 추가 - 권한 없어도 dropdown 표시
             editBtns = [
                 "<div class='bottom_btn'>",
                 "    <div class='right-area'>",
-                "        <!-- more menu 추가 -->",
                 "        <div class='dropdown'>",
-                "            <button class='settingBtn' onclick=\"this.nextElementSibling.classList.toggle('show')\"></button>",
+                "            <button class='settingBtn'></button>",
                 "            <div class='option-wrap'>",
                 "                <div class='item'><a href='javascript:void(0)' onclick='forumView(1)'>토론방</a></div>",
                 "                <div class='item'><a href='javascript:void(0)' onclick='forumView(2)'>토론평가</a></div>",
-                "                <div class='item'><a href='javascript:void(0)' onclick=\"editAtclBtn('"+ v.atclSn +"','"+ v.rgtrId +"')\">수정</a></div>",
-                "                <div class='item'><a href='javascript:void(0)' onclick=\"delAtcl('"+ v.atclSn +"','"+ v.rgtrId +"')\">삭제</a></div>",
                 "            </div>",
                 "        </div>",
                 "    </div>",
@@ -330,10 +317,10 @@
         return [
             "<div class='Comment'>",
             "    <div class='top_area'>",
-            "        <button class='toggle_commentlist' id='cmntOpen"+ i +"' onclick=\"cmntView('"+ atclSn +"', '"+ i +"')\">",
+            "        <button class='toggle_commentlist' id='cmntOpen"+ i +"'>",
             "            <i class='icon-svg-message'></i>" + cmntCount + "개의 댓글이 있습니다. <i class='icon-svg-arrow-down'></i>",
             "        </button>",
-            "        <button class='toggle_commentwrite btn basic' onclick=\"cmntWirte('"+ atclSn +"', '"+ i +"')\"><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.write'/></button>",
+            "        <button class='toggle_commentwrite btn basic'><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.write'/></button>",
             "    </div>",
             "    <div class='comment_list'>",
             "        <div class='recmt_form' id='toggleBox"+ i +"' style='display:none;'>",
@@ -355,7 +342,7 @@
             "                            <label for='ansReqYn"+ i +"'><span class='small'><spring:message code='forum.checkbox.label.request' /></span></label>",
             "                        </span>",
             "                        <div class='right-area'>",
-            "                            <button type='button' class='btn type2' onclick=\"addCmnt('"+ atclSn +"','','"+ i +"');\"><spring:message code='forum.button.reg'/></button>",
+            "                            <button type='button' class='btn type2' data-action='addCmnt' data-atcl-sn='"+ atclSn +"' data-post-idx='"+ i +"'><spring:message code='forum.button.reg'/></button>",
             "                        </div>",
             "                    </div>",
             "                </div>",
@@ -364,29 +351,38 @@
         ].join('');
     }
 
-    // 댓글/대댓글 한 줄 -> level==1: <li>, level>1: <li class="re_comment">
-    function tmpl_cmntItem(rs, index, i) {
+    // 댓글 <li> 1개 생성 (재귀 지원, depth 1=top/2+= nested)
+    function _createCmntItemHTML(node, postIdx, depth) {
+        var rs      = node.rs;
+        var flatIdx = node.flatIdx;
+        var liClass = (depth > 1) ? " class='re_comment'" : "";
         var regDate = _formatDttm(rs.modDttm);
-        var isReply = (rs.level != 1);
-        var liClass = isReply ? " class='re_comment'" : "";
 
         var ctsSpan = (rs.delYn == "Y")
             ? "<span class='comment'><span class='ui red label'><spring:message code='forum.label.del.forum.cmnt'/></span></span>"
-            : "<span class='comment' id='cmntContents"+index+i+"'>"+ rs.cmntCts +"</span>";
+            : "<span class='comment' id='cmntContents"+ postIdx + flatIdx +"'>"+ rs.cmntCts +"</span>";
 
-        var replyForm = '';
+        var replyFormHTML = '';
         if(rs.delYn != "Y") {
-            replyForm = [
-                "<div class='recmt_form' id='toggleCmnt"+ index + i +"'>",
+            replyFormHTML = [
+                "<div class='recmt_form' id='toggleCmnt"+ postIdx + flatIdx +"' style='display:none;'>",
                 "    <fieldset>",
                 "        <legend class='sr_only'>댓글등록</legend>",
                 "        <div class='memo'>",
-                "            <textarea title='<spring:message code="forum.alert.input.forum_reply"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.alert.input.forum_reply"/>' id='cmntText"+ index + i +"'></textarea>",
-                "            <button type='button' class='cmt_create' id='btnCmnt"+ index + i +"' onclick=\"addCmnt('"+ rs.atclSn +"','"+ rs.cmntSn +"','"+ index +"','"+ i +"')\"><spring:message code='forum.button.reg'/></button>",
+                "            <textarea title='<spring:message code="forum.alert.input.forum_reply"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.alert.input.forum_reply"/>' id='cmntText"+ postIdx + flatIdx +"'></textarea>",
+                "            <button type='button' class='cmt_create' data-atcl-sn='"+ rs.atclSn +"' data-cmnt-sn='"+ rs.cmntSn +"' data-post-idx='"+ postIdx +"' data-flat-idx='"+ flatIdx +"'><spring:message code='forum.button.reg'/></button>",
                 "        </div>",
                 "    </fieldset>",
                 "</div>"
             ].join('');
+        }
+
+        var repliesHTML = '';
+        if(node.children && node.children.length > 0) {
+            var replyItems = node.children.map(function(child) {
+                return _createCmntItemHTML(child, postIdx, depth + 1);
+            }).join('');
+            repliesHTML = "<ul class='re_comment_ul'>"+ replyItems +"</ul>";
         }
 
         return [
@@ -397,9 +393,10 @@
             "            <span class='date'>"+ regDate +"</span>",
             "        </div>",
             ctsSpan,
-            _tmpl_cmntEditBtns(rs, index, i),
+            _tmpl_cmntEditBtns(rs, postIdx, flatIdx, depth),
             "    </div>",
-            replyForm,
+            replyFormHTML,
+            repliesHTML,
             "</li>"
         ].join('');
     }
@@ -408,7 +405,7 @@
     // 3. 조립 함수
     // =========================================================
 
-    // 토론 글 리스트 생성
+    // 토론 글 리스트 생성 (최상위 조립 함수)
     function createForumListHTML(forumList) {
         if(forumList.length == 0) {
             return [
@@ -419,49 +416,49 @@
                 "</div>"
             ].join('');
         }
-
         var parts = [];
         forumList.forEach(function(v, i) {
-            // level-1/level-2 그룹핑 (flat index 유지 - JS ID 호환)
-            var grouped = [];
-            var curL1 = null;
-            v.cmntList.forEach(function(rs, flatIdx) {
-                if(rs.level == 0) {
-                    curL1 = { rs: rs, flatIdx: flatIdx, replies: [] };
-                    grouped.push(curL1);
-                } else {
-                    if(curL1) curL1.replies.push({ rs: rs, flatIdx: flatIdx });
-                }
-            });
-
-            var cmntCount = grouped.length;
-
-            var cmntItemsHTML = '';
-            grouped.forEach(function(g) {
-                var l1Html = tmpl_cmntItem(g.rs, i, g.flatIdx);
-                if(g.replies.length > 0) {
-                    var replyItems = g.replies.map(function(r) {
-                        return tmpl_cmntItem(r.rs, i, r.flatIdx);
-                    }).join('');
-                    l1Html = l1Html.replace(/<\/li>$/, "<ul class='re_comment_ul'>" + replyItems + "</ul></li>");
-                }
-                cmntItemsHTML += l1Html;
-            });
-
-            parts.push([
-                "<div class='answer'>",
-                tmpl_atclHeader(v, i),
-                tmpl_atclBody(v),
-                "</div>",
-                tmpl_cmntWriteForm(v.atclSn, i, cmntCount),
-                "<ul class='commentlist' id='article"+ i +"'>",
-                cmntItemsHTML,
-                "</ul>",
-                "    </div>",
-                "</div>"
-            ].join(''));
+            parts.push(_createPostHTML(v, i));
         });
         return parts.join('');
+    }
+
+    // 게시글 1개 .tstyle_view 블록 생성
+    function _createPostHTML(v, i) {
+        var cmntCount = v.cmntList.length;
+        var cmntItemsHTML = _buildCmntListHTML(v.cmntList, i);
+        return [
+            "<div class='tstyle_view'>",
+            "    <div class='answer'>",
+            tmpl_atclHeader(v, i),
+            tmpl_atclBody(v),
+            "    </div>",
+            tmpl_cmntWriteForm(v.atclSn, i, cmntCount),
+            "<ul>",
+            cmntItemsHTML,
+            "</ul>",
+            "    </div>",
+            "</div>"
+        ].join('');
+    }
+
+    // flat 댓글 목록 → parCmntSn 기반 tree HTML 조립
+    function _buildCmntListHTML(cmntList, postIdx) {
+        var nodeMap = {};
+        var roots = [];
+        cmntList.forEach(function(rs, flatIdx) {
+            nodeMap[rs.cmntSn] = { rs: rs, flatIdx: flatIdx, children: [] };
+        });
+        cmntList.forEach(function(rs) {
+            if (rs.parCmntSn && nodeMap[rs.parCmntSn]) {
+                nodeMap[rs.parCmntSn].children.push(nodeMap[rs.cmntSn]);
+            } else {
+                roots.push(nodeMap[rs.cmntSn]);
+            }
+        });
+        return roots.map(function(node) {
+            return _createCmntItemHTML(node, postIdx, 1);
+        }).join('');
     }
 
     function teamList() {
@@ -1017,6 +1014,176 @@
 
         $("form[name=excelForm]").remove();
     }
+
+    // =========================================================
+    // 상태 변수
+    // =========================================================
+    var editingPostId = null;
+    var editingCommentId = null;
+
+    // =========================================================
+    // Delegated event handler (document-level)
+    // =========================================================
+    document.addEventListener('click', function(e) {
+
+        // 1. 댓글 목록 토글
+        var listBtn = e.target.closest('.toggle_commentlist');
+        if(listBtn) {
+            var comment = listBtn.closest('.Comment');
+            if(!comment) return;
+            var ul = comment.querySelector('.comment_list > ul');
+            if(!ul) return;
+            ul.style.display = (ul.style.display === 'none' || !ul.style.display) ? 'block' : 'none';
+            return;
+        }
+
+        // 2. 상단 댓글 작성폼 토글
+        var writeBtn = e.target.closest('.toggle_commentwrite');
+        if(writeBtn) {
+            var comment = writeBtn.closest('.Comment');
+            if(!comment) return;
+            var form = comment.querySelector('.comment_list > .recmt_form');
+            if(!form) return;
+            form.style.display = (form.style.display === 'none' || !form.style.display) ? 'block' : 'none';
+            if(form.style.display === 'block') { var ta = form.querySelector('textarea'); if(ta) ta.focus(); }
+            return;
+        }
+
+        // 3. 대댓글 작성폼 토글 (cmtWri)
+        var replyBtn = e.target.closest('.cmtWri');
+        if(replyBtn) {
+            var li = replyBtn.closest('li');
+            if(!li) return;
+            var comment = replyBtn.closest('.Comment');
+            var replyForm = li.querySelector(':scope > .recmt_form');
+            if(!replyForm) return;
+            if(comment) {
+                comment.querySelectorAll('.comment_list ul li > .recmt_form').forEach(function(f) {
+                    if(f !== replyForm) f.style.display = 'none';
+                });
+            }
+            replyForm.style.display = (replyForm.style.display === 'none' || !replyForm.style.display) ? 'block' : 'none';
+            if(replyForm.style.display === 'block') { var ta = replyForm.querySelector('textarea'); if(ta) ta.focus(); }
+            return;
+        }
+
+        // 4. 게시글 수정
+        var editPostBtn = e.target.closest('[data-action="editPost"]');
+        if(editPostBtn) {
+            var atclSn = editPostBtn.getAttribute('data-atcl-sn');
+            var rgtrId = editPostBtn.getAttribute('data-rgtr-id');
+            editAtclBtn(atclSn, rgtrId);
+            return;
+        }
+
+        // 5. 게시글 삭제
+        var delPostBtn = e.target.closest('[data-action="delPost"]');
+        if(delPostBtn) {
+            var atclSn = delPostBtn.getAttribute('data-atcl-sn');
+            var rgtrId = delPostBtn.getAttribute('data-rgtr-id');
+            delAtcl(atclSn, rgtrId);
+            return;
+        }
+
+        // 6. 댓글 수정 버튼 (cmtUpt)
+        var cmtUptBtn = e.target.closest('.cmtUpt');
+        if(cmtUptBtn) {
+            var atclSn   = cmtUptBtn.getAttribute('data-atcl-sn');
+            var rgtrId   = cmtUptBtn.getAttribute('data-rgtr-id');
+            var cmntSn   = cmtUptBtn.getAttribute('data-cmnt-sn');
+            var postIdx  = cmtUptBtn.getAttribute('data-post-idx');
+            var flatIdx  = cmtUptBtn.getAttribute('data-flat-idx');
+            var level    = cmtUptBtn.getAttribute('data-level');
+            var ansReqYn = cmtUptBtn.getAttribute('data-ans-req-yn');
+            var form = document.getElementById('toggleCmnt' + postIdx + flatIdx);
+            if(!form) return;
+            // 다른 수정폼 닫기
+            if(editingCommentId && editingCommentId !== cmntSn) {
+                var prevBtn = document.querySelector('.cmt_create[data-edit-mode="true"]');
+                if(prevBtn) {
+                    prevBtn.removeAttribute('data-edit-mode');
+                    var prevForm = prevBtn.closest('.recmt_form');
+                    if(prevForm) { prevForm.style.display = 'none'; prevForm.querySelector('textarea') && (prevForm.querySelector('textarea').value = ''); }
+                }
+                editingCommentId = null;
+            }
+            if(editingCommentId === cmntSn) {
+                form.style.display = 'none';
+                var crtBtn = form.querySelector('.cmt_create');
+                if(crtBtn) crtBtn.removeAttribute('data-edit-mode');
+                editingCommentId = null;
+                return;
+            }
+            var ctsEl = document.getElementById('cmntContents' + postIdx + flatIdx);
+            var textarea = document.getElementById('cmntText' + postIdx + flatIdx);
+            if(textarea && ctsEl) textarea.value = ctsEl.textContent;
+            form.style.display = 'block';
+            if(textarea) textarea.focus();
+            editingCommentId = cmntSn;
+            var crtBtn = form.querySelector('.cmt_create');
+            if(crtBtn) {
+                crtBtn.setAttribute('data-edit-mode', 'true');
+                crtBtn.setAttribute('data-atcl-sn', atclSn);
+                crtBtn.setAttribute('data-cmnt-sn', cmntSn);
+                crtBtn.setAttribute('data-post-idx', postIdx);
+                crtBtn.setAttribute('data-flat-idx', flatIdx);
+            }
+            return;
+        }
+
+        // 7. 댓글 삭제 버튼 (cmtDel)
+        var cmtDelBtn = e.target.closest('.cmtDel');
+        if(cmtDelBtn) {
+            var rgtrId = cmtDelBtn.getAttribute('data-rgtr-id');
+            var cmntSn = cmtDelBtn.getAttribute('data-cmnt-sn');
+            delCmnt(rgtrId, cmntSn);
+            return;
+        }
+
+        // 8. 상단 댓글 등록 버튼 (btn.type2, data-action=addCmnt)
+        var addCmntTopBtn = e.target.closest('[data-action="addCmnt"]');
+        if(addCmntTopBtn) {
+            var atclSn  = addCmntTopBtn.getAttribute('data-atcl-sn');
+            var postIdx = addCmntTopBtn.getAttribute('data-post-idx');
+            addCmnt(atclSn, '', postIdx);
+            return;
+        }
+
+        // 9. 대댓글 등록/수정 버튼 (cmt_create)
+        var crtBtn = e.target.closest('.cmt_create');
+        if(crtBtn) {
+            var atclSn  = crtBtn.getAttribute('data-atcl-sn');
+            var cmntSn  = crtBtn.getAttribute('data-cmnt-sn');
+            var postIdx = crtBtn.getAttribute('data-post-idx');
+            var flatIdx = crtBtn.getAttribute('data-flat-idx');
+            if(crtBtn.getAttribute('data-edit-mode') === 'true') {
+                editCmnt(atclSn, cmntSn, postIdx, flatIdx, 1);
+                editingCommentId = null;
+                crtBtn.removeAttribute('data-edit-mode');
+            } else {
+                addCmnt(atclSn, cmntSn, postIdx, flatIdx);
+            }
+            return;
+        }
+
+        // 10. more 메뉴 토글 (.settingBtn)
+        var settingBtn = e.target.closest('.settingBtn');
+        if(settingBtn) {
+            var optionWrap = settingBtn.nextElementSibling;
+            document.querySelectorAll('.option-wrap.show').forEach(function(el) {
+                if(el !== optionWrap) el.classList.remove('show');
+            });
+            if(optionWrap) optionWrap.classList.toggle('show');
+            return;
+        }
+
+        // 11. dropdown 외부 클릭 → 닫기
+        if(!e.target.closest('.dropdown')) {
+            document.querySelectorAll('.option-wrap.show').forEach(function(el) {
+                el.classList.remove('show');
+            });
+        }
+    });
     </script>
 </head>
 <body class="class colorA">
@@ -1247,11 +1414,11 @@
                                         <!-- TODO : 참여글 File Uplaod -->
                                         <uiex:dextuploader
                                                 id="fileUploader"
-                                                path="/bbs"
-                                                limitCount="5"
+                                                path="${forum2VO.uploadPath}"
+                                                limitCount="1"
                                                 limitSize="100"
                                                 oneLimitSize="100"
-                                                listSize="3"
+                                                listSize="1"
                                                 fileList=""
                                                 finishFunc="finishUpload()"
                                                 allowedTypes="*"
@@ -1283,7 +1450,9 @@
                             </div>
 
                             <div class="ui attached message element">
-                                <div id="atclList" class="mt20"></div>
+                                <div id="atclList" class="mt20">
+                                    <%-- 동적 렌더링: listForum() → createForumListHTML() --%>
+                                </div>
                                 <div id="paging" class="paging"></div>
                             </div>
                             <!-- 토론 참여글 끝-->

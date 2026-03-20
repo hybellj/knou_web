@@ -183,7 +183,7 @@
                 {title:"과목명",   field:"sbjctnm",    headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:220},
                 {title:"분반",     field:"dvclasNo",   headerHozAlign:"center", hozAlign:"center", width:70,  minWidth:70},
                 {title:"학점",     field:"crdts",      headerHozAlign:"center", hozAlign:"center", width:60,  minWidth:60},
-                {title:"교수",     field:"usernm",     headerHozAlign:"center", hozAlign:"center", width:110, minWidth:110},
+                {title:"공동교수",     field:"usernm",     headerHozAlign:"center", hozAlign:"center", width:110, minWidth:110},
                 {title:"튜터",     field:"tutor",      headerHozAlign:"center", hozAlign:"center", width:90,  minWidth:90},
                 {title:"조교",     field:"asst",       headerHozAlign:"center", hozAlign:"center", width:90,  minWidth:90},
                 {title:"",         field:"sbjctId",    visible:false}
