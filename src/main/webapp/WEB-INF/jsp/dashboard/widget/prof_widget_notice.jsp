@@ -1,7 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
 
-	<div id="tab21" class="tab-content" style="display: block;">
+<div id="noticeListBox">
+
+	<div id="noticeCat1" class="tab-content" style="display: block;">
 	    <ul class="dash_item_listA">
 	        <li>
 	            <div class="noti_label">
@@ -50,7 +52,7 @@
 	    </ul>
 	</div>
 
-	<div id="tab22" class="tab-content" style="display: none;">
+	<div id="noticeCat2" class="tab-content" style="display: none;">
 	    <ul class="dash_item_listA">
 	        <li>
 	            <div class="noti_label">
@@ -97,7 +99,7 @@
 	    </ul>
 	</div>
 
-	<div id="tab23" class="tab-content" style="display: none;">
+	<div id="noticeCat3" class="tab-content" style="display: none;">
 	    <ul class="dash_item_listA">
 	        <li>
 	            <div class="noti_label">
@@ -146,6 +148,8 @@
 	        </li>
 	    </ul>
 	</div>
+
+</div>
 
 <script>
 
@@ -153,10 +157,10 @@
 function setNoticeWidget() {
 	let inTitle = ``;
 	let subTitle = `
-		<nav class="tab-type1">
-		    <a href="#tab21" class="btn current"><span>전체</span></a>
-		    <a href="#tab22" class="btn "><span>전체공지</span></a>
-		    <a href="#tab23" class="btn "><span>과목공지</span></a>
+		<nav class="tab-type1 notice-cat-btns">
+		    <a href="#_" class="btn current" cat="noticeCat1"><span>전체</span></a>
+		    <a href="#_" class="btn" cat="noticeCat2"><span>전체공지</span></a>
+		    <a href="#_" class="btn" cat="noticeCat3"><span>과목공지</span></a>
 		</nav>
 		<div class="btn-wrap">
 		    <a href="#_" class="btn_more" aria-label="더보기" onclick="moveNoticeWidgetMore();return false;"><i class="xi-plus"></i></a>
@@ -165,6 +169,32 @@ function setNoticeWidget() {
 	dashboardWidget.addInTitle("card3", inTitle);
 	dashboardWidget.addSubTitle("card3", subTitle);
 
+
+	// localdb에서 카테고리 가져오기
+	let noticeCat = UiComm.db.getItem("prof:widget_notice_cat");
+	if (!noticeCat) noticeCat = "noticeCat1";
+
+	// 공지 카테고리 선택
+	$("nav.notice-cat-btns a.btn").on("click", function() {
+		let cat = $(this).attr("cat");
+		changeNoticeCat(cat);
+		return false;
+	});
+
+	// 공지 카테고리 변경
+	function changeNoticeCat(cat) {
+		$("#noticeListBox .tab-content").hide();
+		$("#"+cat).show();
+
+		$("nav.notice-cat-btns a.btn").removeClass("current");
+		$("nav.notice-cat-btns a.btn[cat="+cat+"]").addClass("current");
+
+		// localdb에 카테고리 저장
+		UiComm.db.setItem("prof:widget_notice_cat", cat);
+		noticeCat = cat;
+	}
+
+	changeNoticeCat(noticeCat);
 }
 
 // 더보기 이동

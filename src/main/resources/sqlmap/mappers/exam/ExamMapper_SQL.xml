@@ -1393,4 +1393,27 @@
                 EXAM_BSC_ID = #{item.examBscId}
         </foreach>
     </update>
+
+    <!-- 중간/기말 고사 시험 목록-->
+    <select id="examList" resultType="examBscVO">
+        SELECT
+              A.EXAM_BSC_ID
+            , A.EXAM_GBNCD
+            , A.MRK_RFLTRT
+        FROM TB_LMS_EXAM_BSC A
+        WHERE 1=1
+            AND A.SBJCT_ID = #{sbjctId}
+            AND A.DELYN = 'N'
+            AND A.USEYN = 'Y'
+            AND A.MRK_RFLTYN = 'Y'
+            AND A.MRK_RFLTRT > 0
+        <choose>
+            <when test='examGbncd == "MID"'>
+            AND A.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_MID_TEAM', 'QUIZ_EXAM_MID')
+            </when>
+            <when test='examGbncd == "LST"'>
+            AND A.EXAM_GBNCD IN ('EXAM_LST', 'EXAM_LST_TEAM', 'QUIZ_EXAM_LST')
+            </when>
+        </choose>
+    </select>
 </mapper>

@@ -55,6 +55,9 @@ public interface ExamDAO {
     // 시험 성적 반영비율 수정
     public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
 
+    // 중간/기말고사 시험 목록
+    public List<ExamBscVO> examList(@Param("sbjctId") String sbjctId, @Param("examGbncd") String examGbncd ) throws Exception;
+
     /*****************************************************
      * 기존에 있던 DAO 영역
      *****************************************************/
