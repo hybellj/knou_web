@@ -123,7 +123,7 @@
 				var scoreHtml = "";
 				scoreHtml += "		<div class=\"d-inline-block\" id=\"scoreDisplayDiv"+ i +"\" onClick=\"chgScoreRatio("+ i +");\">";
 				if(v.scoreNull === "-") {
-					scoreHtml += "		- <spring:message code='forum.label.point' />"; // 점
+					scoreHtml += "		- "; // 점
 				} else {
 					scoreHtml += "		"+ v.score +" <spring:message code='forum.label.point' />"; // 점
 				}
@@ -143,14 +143,14 @@
 				}
 
 				var mngHtml = "";
-				mngHtml += "		<a href=\"javascript:ezGraderPop('"+ v.stdNo +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></a>"; // 참여글보기
-				mngHtml += "		<a href=\"javascript:stdMemoForm('"+ v.stdNo +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></a>"; // 메모
+				mngHtml += "		<a href=\"javascript:ezGraderPop('"+ v.stdntNo +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></a>"; // 참여글보기
+				mngHtml += "		<a href=\"javascript:stdMemoForm('"+ v.stdntNo +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></a>"; // 메모
 
 				dataList.push({
 					no: 				v.lineNo,
 					deptnm: 			v.deptNm,
 					userRprsId: 		v.userId,
-					stdNo: 				v.stdNo,
+					stdntNo: 			v.stdntNo,
 					usernm: 			v.userNm,
 					totScr:				scoreHtml,
 					fdk:				fdkHtml,
@@ -1246,7 +1246,7 @@
 									("${forumVo.forumCtgrCd}" == "TEAM" ? {title: "팀명", field: "teamnm", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
 									{title:"학과", 		field:"deptnm",				headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:100},
 									{title:"대표아이디", 	field:"userRprsId", 		headerHozAlign:"center", hozAlign:"center", width:0, 	minWidth:100},
-									{title:"학번", 		field:"stdNo", 				headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
+									{title:"학번", 		field:"stdntNo",			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
 									{title:"이름", 		field:"usernm", 			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
 									("${forumVo.forumCtgrCd}" == "TEAM" ? {title: "역할", field: "ldryn", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
 									{title:"평가점수", 	field:"totScr", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},

@@ -9,6 +9,7 @@ public class ForumJoinUserVO extends DefaultVO {
 
 	private String  crsCreCd;
     private String  stdId;          // 수강생 번호
+    private String  stdntNo;        // 학번.
     private String  stdIds;
     private List<String> stdIdList;
     
@@ -50,7 +51,7 @@ public class ForumJoinUserVO extends DefaultVO {
     private String	teamNm;          // 팀명
     private String	memberRole;      // 역할
     private String	forumCtgrCd;     // 팀 토론 여부
-    
+
     private int		mutCnt;			// 참여 인원
     private int		mutAvg;			// 평균 별점
     private String	mutSn;			// 상호평가 참여 고유번호
@@ -78,6 +79,15 @@ public class ForumJoinUserVO extends DefaultVO {
     public void setStdId(String stdId) {
         this.stdId = stdId;
     }
+
+    public String getStdntNo() {
+        return stdntNo;
+    }
+
+    public void setStdntNo(String stdntNo) {
+        this.stdntNo = stdntNo;
+    }
+
     public String getForumCd() {
         return forumCd;
     }
