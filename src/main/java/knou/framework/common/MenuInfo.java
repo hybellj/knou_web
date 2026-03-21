@@ -50,7 +50,7 @@ public class MenuInfo {
         SysMenuVO menuInfo = null;
 
         /*if (MENU_MAP == null) {*/
-            loadMenuInfo(request, sysMenuVO);
+//            loadMenuInfo(request, sysMenuVO);
 		/* } */
 
         menuInfo = MENU_MAP.get(menuKey);
