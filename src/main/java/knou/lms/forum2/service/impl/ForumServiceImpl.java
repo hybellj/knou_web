@@ -301,4 +301,29 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
         return resultVO;
     }
+
+    // 성적반영비율 초기화
+    @Override
+    public void setScoreRatio(Forum2VO vo) throws Exception {
+        List<Forum2VO> scoreAplyList = forumDAO.getScoreRatio(vo);
+
+        if( scoreAplyList != null && !scoreAplyList.isEmpty() && scoreAplyList.size() > 0) {
+            int scoreAplyCnt = scoreAplyList.size();
+            int share = 100 / scoreAplyCnt;
+            int rest = 100 % scoreAplyCnt;
+            int cnt = 0;
+            Integer scoreRatio = 0;
+            for(Forum2VO forumVO : scoreAplyList) {
+                if(cnt == 0) {
+                    scoreRatio = share + rest;
+                } else {
+                    scoreRatio = share;
+                }
+                vo.setMrkRfltrt(scoreRatio);
+                vo.setDscsId(forumVO.getDscsId());
+                forumDAO.setScoreRatio(vo);
+                cnt++;
+            }
+        }
+    }
 }

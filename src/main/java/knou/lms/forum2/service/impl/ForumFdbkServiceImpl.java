@@ -125,9 +125,10 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
                     
                     // 토론 피드백(tb_lms_forum_fdbk) 테이블에 등록
                     forumFdbkDAO.insertFdbk(vo);
-                    
+
+                    // TODO : 26.3.23 : 파일 레퍼 인터페이스 변경 처리.
                     // 파일저장
-                    this.insertFileInfo(vo, vo.getForumFdbkCd(), "", "Y");
+                    /*this.insertFileInfo(vo, vo.getForumFdbkCd(), "", "Y");*/
                 }
             }
             resultVO.setResult(1);

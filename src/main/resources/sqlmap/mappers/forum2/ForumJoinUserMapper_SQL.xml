@@ -151,19 +151,19 @@
 				  WHERE DELYN = 'N'
 				  AND RGTR_ID = A.USER_ID
 				  AND DSCS_ATCL_ID IN (
-				  SELECT CX.DSCS_ATCL_ID
-				  FROM TB_LMS_DSCS_ATCL CX
-				  WHERE CX.DSCS_ID = C.DSCS_ID
-				  AND CX.DELYN = 'N'
-				  )) AS forumMyCmntCnt
+									  SELECT CX.DSCS_ATCL_ID
+									  FROM TB_LMS_DSCS_ATCL CX
+									  WHERE CX.DSCS_ID = C.DSCS_ID
+									  AND CX.DELYN = 'N'
+									  )) AS forumMyCmntCnt
 			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT
 				  WHERE DELYN = 'N'
 				  AND DSCS_ATCL_ID IN (
-				  SELECT CX.DSCS_ATCL_ID
-				  FROM TB_LMS_DSCS_ATCL CX
-				  WHERE CX.DSCS_ID = C.DSCS_ID
-				  AND CX.DELYN = 'N'
-				  )) AS forumCmntCnt
+									  SELECT CX.DSCS_ATCL_ID
+									  FROM TB_LMS_DSCS_ATCL CX
+									  WHERE CX.DSCS_ID = C.DSCS_ID
+									  AND CX.DELYN = 'N'
+								  )) AS forumCmntCnt
 				, 0 AS afterCmntCnt
 				, 'N' AS evalRsltOpenYn
 				, '' AS evalStartDttm
@@ -231,8 +231,8 @@
 	    USING (
 	        SELECT
 	            <choose>
-	                <when test="stdNo != null and stdNo != ''">
-	                    #{stdNo} AS USER_ID
+	                <when test="stdId != null and stdId != ''">
+	                    #{stdId} AS USER_ID
 	                </when>
 	                <otherwise>
 	                    FN_GET_STD_NO(#{userId}, #{crsCreCd}) AS USER_ID
@@ -248,9 +248,9 @@
 	    WHEN MATCHED THEN
 	        UPDATE SET
 	            T.SCR = CASE
-                    WHEN CAST(NULL AS NUMBER) <![CDATA[<]]> 0 THEN 0
-                    WHEN CAST(NULL AS NUMBER) <![CDATA[>]]> 100 THEN 100
-                    ELSE CAST(NULL AS NUMBER)
+                    WHEN CAST(#{score} AS NUMBER) <![CDATA[<]]> 0 THEN 0
+                    WHEN CAST(#{score} AS NUMBER) <![CDATA[>]]> 100 THEN 100
+                    ELSE CAST(#{score} AS NUMBER)
                   END,
 	            T.TEAM_ID = #{teamCd},
 	            T.EVLYN = 'Y',
@@ -271,8 +271,8 @@
 	        )
 	        VALUES (
 	            <choose>
-	                <when test="stdNo != null and stdNo != ''">
-	                    #{stdNo}
+	                <when test="stdId != null and stdId != ''">
+	                    #{stdId}
 	                </when>
 	                <otherwise>
 	                    FN_GET_STD_NO(#{userId}, #{crsCreCd})
@@ -300,22 +300,30 @@
 			ForumJoinUserDAO.listStdScore
 		*/
 		SELECT
-			ROW_NUMBER() OVER()  	AS lineNo
-			, stdNo
-			, SCR
-			, CASE WHEN atclCnt > 0 OR cmntCnt > 0 THEN '참여' ELSE '미참여' eND AS joinStatus
+			ROW_NUMBER() OVER(ORDER BY stdId ASC) AS lineNo
+			, stdId
+			, score
+			, CASE WHEN atclCnt > 0 OR cmntCnt > 0 THEN '참여' ELSE '미참여' END AS joinStatus
 			, atclCnt
 			, cmntCnt
 			, teamCd
 		FROM (
 			SELECT
-				A.USER_ID 				AS stdNo
-				, NVL(C.SCR, 0) 	AS SCR
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' ) 	as atclCnt
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N') 	as cmntCnt
+				A.USER_ID 			AS stdId
+				, NVL(C.SCR, 0) 	AS score
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' ) 	as atclCnt
+                , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
+					WHERE B.DELYN = 'N'
+                    AND B.USER_ID = A.USER_ID
+					AND DSCS_ATCL_ID IN (
+										SELECT CX.DSCS_ATCL_ID
+										FROM TB_LMS_DSCS_ATCL CX
+										WHERE CX.DSCS_ID = #{forumCd}
+										AND CX.DELYN = 'N'
+									)) AS cmntCnt
 				, C.TEAM_ID				AS teamCd
-			FROM TB_LMS_ATNDLC AS A
-				LEFT JOIN TB_LMS_DSCS_PTCP AS C
+			FROM TB_LMS_ATNDLC A
+				LEFT JOIN TB_LMS_DSCS_PTCP C
 					ON A.USER_ID = C.USER_ID
 					AND C.DSCS_ID = #{forumCd}
 			WHERE A.SBJCT_ID = #{crsCreCd}
@@ -324,8 +332,8 @@
 		WHERE 1 = 1
 		<if test='conditionType != null and conditionType != ""'>
 			<if test='conditionType == "checked"'>
-				AND stdNo IN
-				<foreach collection="stdNoList" item="item" index="index" separator="," open="(" close=")">
+				AND USER_ID IN
+				<foreach collection="stdIdList" item="item" index="index" separator="," open="(" close=")">
 					#{item}
 				</foreach>
 			</if>
@@ -336,8 +344,8 @@
 				AND ( atclCnt = 0 and  cmntCnt = 0 )
 			</if>
 		</if>
-		<if test='stdNo != null and stdNo != ""'>
-			AND stdNo = #{stdNo}
+		<if test='stdId != null and stdId != ""'>
+			AND USER_ID = #{stdId}
 		</if>
 	</select>
 
@@ -497,15 +505,16 @@
 			LEFT JOIN TB_LMS_DSCS_ATCL B
 			ON (A.DSCS_ID = B.DSCS_ID AND A.USER_ID = B.USER_ID AND B.DELYN = 'N')
 			<if test='chkCmnt == "Y"'>
-			LEFT JOIN TB_LMS_DSCS_CMNT C
-			ON (A.DSCS_ID = C.DSCS_ID AND A.USER_ID = C.USER_ID AND C.DELYN = 'N')
+				LEFT JOIN TB_LMS_DSCS_CMNT C
+				ON (B.DSCS_ATCL_ID = C.DSCS_ATCL_ID AND A.USER_ID = C.USER_ID AND C.DELYN = 'N')
 			</if>
 		WHERE A.DSCS_ID = #{forumCd}
-			AND A.USER_ID = #{stdNo}
+			AND A.USER_ID = #{stdId}
 			AND B.ATCL_CTS_LEN >= #{ctsLen}
 			<if test='chkCmnt == "Y"'>
-			AND (B.ATCL_CTS_LEN >= #{ctsLen} OR C.CMNT_CTS_LEN >= #{ctsLen})
+				AND (B.ATCL_CTS_LEN >= #{ctsLen} OR C.CMNT_CTS_LEN >= #{ctsLen})
 			</if>
+
 	</select>
 
 	<insert id="chkStdNoInsert" parameterType="forumMutVO">

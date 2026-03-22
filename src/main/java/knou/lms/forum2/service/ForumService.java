@@ -17,4 +17,5 @@ public interface ForumService {
     ProcessResultVO<Forum2VO> deleteForum(Forum2VO vo) throws Exception;
     ProcessResultVO<Forum2VO> copyForum(Forum2VO vo) throws Exception;
     ProcessResultVO<Forum2TeamDscsVO> modifyTeamDscsOyn(Forum2TeamDscsVO vo) throws Exception;
+    public void setScoreRatio(Forum2VO forumVO) throws Exception;
 }

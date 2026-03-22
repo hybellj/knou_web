@@ -123,7 +123,7 @@
 		INSERT INTO TB_LMS_DSCS_FDBK (
 			DSCS_FDBK_ID
 			, DSCS_ID
-			, STD_ID
+			, USER_ID
 			, PAR_FORUM_FDBK_CD
 			, TEAM_ID
 			, FDBK_CTS
@@ -136,7 +136,7 @@
 		) VALUES (
 			#{forumFdbkCd}
 			, #{forumCd}
-			, #{stdNo}
+			, #{stdId}
 			, #{parForumFdbkCd}
 			, #{teamCd}
 			, #{fdbkCts}
@@ -171,8 +171,8 @@
 			</if>
 		WHERE DSCS_FDBK_ID = #{forumFdbkCd}
 			AND DSCS_ID = #{forumCd}
-			<if test="stdNo != null and stdNo != ''">
-			AND STD_ID = #{stdNo}
+			<if test="stdId != null and stdId != ''">
+			AND STD_ID = #{stdId}
 			</if>
 	</update>
 	
@@ -187,8 +187,8 @@
 			, DELYN = 'Y'
 		WHERE DSCS_FDBK_ID = #{forumFdbkCd}
 			AND DSCS_ID = #{forumCd}
-			<if test="stdNo != null and stdNo != ''">
-			AND STD_ID = #{stdNo}
+			<if test="stdId != null and stdId != ''">
+			AND STD_ID = #{stdId}
 			</if>
 	</update>
 
@@ -229,31 +229,29 @@
 	<insert id="insertFdbk" parameterType="forumFdbkVO">
 		/*
 			패드백 등록
-			ForumFdbkDAO.insertFdbk
+			ForumFdbkDAO.insertFdbk2
 		*/
 		INSERT INTO TB_LMS_DSCS_FDBK (
 			DSCS_FDBK_ID
 			, DSCS_ID
-			, STD_ID
-			, PAR_FORUM_FDBK_CD
+			, USER_ID
+			, UP_DSCS_FDBK_ID
 			, TEAM_ID
 			, FDBK_CTS
 			, DELYN
-			, RGTRNM
 			, RGTR_ID
-			, FRST_INQ_DTTM
+			, REG_DTTM
 			, MDFR_ID
 			, MOD_DTTM
 		)
 		VALUES (
 			#{forumFdbkCd}
 			, #{forumCd}
-			, #{stdNo}
+			, #{stdId}
 			, #{parForumFdbkCd}
 			, #{teamCd}
 			, #{fdbkCts}
 			, 'N'
-			, FN_GET_USER_NM(#{userId})
 			, #{userId}
 			, FN_DTTM()
 			, #{userId}
@@ -283,7 +281,7 @@
 			, MOD_DTTM
 		FROM TB_LMS_DSCS_FDBK
 		WHERE DSCS_ID = #{forumCd}
-			AND STD_ID = #{stdNo}
+			AND STD_ID = #{stdId}
 			AND DELYN = 'N'
 		ORDER BY FRST_INQ_DTTM DESC
 	</select>
@@ -321,7 +319,7 @@
 			COUNT(*) AS cntFdbk
 		FROM TB_LMS_DSCS_FDBK
 		WHERE DSCS_ID = #{forumCd}
-			AND STD_ID = #{stdNo}
+			AND STD_ID = #{stdId}
 			AND DELYN = 'N'
 	</select>
 

@@ -10,7 +10,7 @@ public class ForumJoinUserVO extends DefaultVO {
 	private String  crsCreCd;
     private String  stdId;          // 수강생 번호
     private String  stdntNo;        // 학번.
-    private String  stdIds;
+    private String  stdIds;         // ajax 등 데이처 처리용.stdIdList 와 같이 사용
     private List<String> stdIdList;
     
     private String  forumCd;        // 토론 코드

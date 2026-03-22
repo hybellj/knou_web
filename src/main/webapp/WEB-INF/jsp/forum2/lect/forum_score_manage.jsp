@@ -160,7 +160,8 @@
 					mng: 				mngHtml,
 					// 팀관련:항목
 					teamnm:				v.teamNm,
-					ldryn:				v.memberRole
+					ldryn:				v.memberRole,
+					userId:				v.userId
 				});
 
 			});
@@ -232,13 +233,19 @@
 			}
 
 			// 학습자 선택
-			if($("input[name=check]:checked").length == 0) {
+			if(userListTable.getSelectedData("userId").length == 0) {
 				alert("<spring:message code='forum.alert.select.std' />");/* 학습자를 선택해 주세요. */
 				return false;
 			}
 
+			var stdIds = "";
+			for(var i = 0; i < userListTable.getSelectedData("userId").length; i++) {
+				if (i > 0) {
+					stdIds += ',';
+				}
+				stdIds += userListTable.getSelectedData("userId")[i];
+			}
 
-			var stdNos = $("#stdNos").val();
 			var score = $("#scoreValue").val();
 			if($("input[name='scoreType']:checked").val() == "addition") {
 				if(!$("#scr-toggle-icon").children("i").attr("class").includes("ion-plus")){
@@ -246,14 +253,14 @@
 				}
 			}
 
-			var url = "/forum/forumLect/updateForumJoinUserScore.do";
-			// var url = "/forum/forumLect/addStdScore.do";
+			var url = "/forum2/forumLect/updateForumJoinUserScore.do";
+			// var url = "/forum2/forumLect/addStdScore.do";
 
 			var data = {
 				"forumCd" : "${forumVo.forumCd}",
 				"crsCreCd" : "${forumVo.crsCreCd}",
 				"teamCtgrCd" : "${forumVo.teamCtgrCd}",
-				"stdNos" : stdNos,
+				"stdIds" : stdIds,
 				"score" : score,
 				"scoreType" : $("input[name='scoreType']:checked").val()
 			};
@@ -261,7 +268,7 @@
 			ajaxCall(url, data, function(data) {
 				if(data.result > 0) {
 					alert("<spring:message code='forum.alert.batch.score' />"); // 일괄 점수 등록이 완료되었습니다.
-					$("#stdNos").val("");
+					$("#stdIds").val("");
 					$("#scoreValue").val("");
 					listForumUser(1);
 					// scoreChartSet();
@@ -308,25 +315,25 @@
 
 		// 선택된 학습자 번호 추가
 		function addSelectedStdNos(stdNo) {
-			var selectedStdNos = $("#stdNos").val();
+			var selectedStdNos = $("#stdIds").val();
 			if (selectedStdNos.indexOf(stdNo) == -1) {
 				if (selectedStdNos.length > 0) {
 					selectedStdNos += ',';
 				}
 				selectedStdNos += stdNo;
-				$("#stdNos").val(selectedStdNos);
+				$("#stdIds").val(selectedStdNos);
 			}
 		}
 
 		// 선택된 학습자 번호 제거
 		function removeSelectedStdNos(stdNo) {
-			var selectedStdNos = $("#stdNos").val();
+			var selectedStdNos = $("#stdIds").val();
 			if (selectedStdNos.indexOf(stdNo) > -1) {
 				selectedStdNos = selectedStdNos.replace(stdNo, "");
 				selectedStdNos = selectedStdNos.replace(",,", ",");
 				selectedStdNos = selectedStdNos.replace(/^[,]*/g, ''); // 특정 문자열로 시작
 				selectedStdNos = selectedStdNos.replace(/[,]*$/g, ''); // 특정 문자열로 끝남
-				$("#stdNos").val(selectedStdNos);
+				$("#stdIds").val(selectedStdNos);
 			}
 		}
 
@@ -416,7 +423,7 @@
 			$.ajax({
 				type: "post",
 				// url: "/team/teamHome/viewScoreChart.do",
-				url: "/forum/forumLect/viewScoreChart.do",
+				url: "/forum2/forumLect/viewScoreChart.do",
 				async: false,
 				dataType: "json",
 				data: {
@@ -523,7 +530,7 @@
 			$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
 			$("form[name='forumCreCrsStdForm'] input[name='stdNo']").val(stdNo);
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum/forumLect/forumProfMemoPop.do");
+			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumProfMemoPop.do");
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
 
@@ -531,7 +538,7 @@
 				title: "메모",
 				width: 600,
 				height: 500,
-				url: "/forum/forumLect/forumProfMemoPop.do",
+				url: "/forum2/forumLect/forumProfMemoPop.do",
 				autoresize: true
 			});
 		}
@@ -549,7 +556,7 @@
 			$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
 			$("form[name='forumCreCrsStdForm'] input[name='stdNo']").val(stdNo);
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum/forumLect/forumFdbkPop.do");
+			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumFdbkPop.do");
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");
 		}
@@ -560,7 +567,7 @@
 			var forumCd = $("#forumCd").val();
 			$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum/forumLect/allForumFdbkPop.do");
+			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/allForumFdbkPop.do");
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");
 		}
@@ -569,7 +576,7 @@
 		function callScoreExcelUpload() {
 			forumCommon.initModal("scoreExcel");
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum/forumLect/forumScoreExcelUploadPop.do");
+			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumScoreExcelUploadPop.do");
 			$("#forumCreCrsStdForm").submit();
 			$('#forumPop').modal('show');
 		}
@@ -591,7 +598,7 @@
 
 			var excelForm = $('<form></form>');
 			excelForm.attr("name","excelForm");
-			excelForm.attr("action","/forum/forumLect/listScoreExcel.do");
+			excelForm.attr("action","/forum2/forumLect/listScoreExcel.do");
 			excelForm.append($('<input/>', {type: 'hidden', name: 'forumCd', value:"${forumVo.forumCd}" }));
 			excelForm.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value:"${forumVo.crsCreCd}" }));
 			excelForm.append($('<input/>', {type: 'hidden', name: 'excelGrid', value:JSON.stringify(excelGrid)}));
@@ -637,7 +644,7 @@
 			}
 
 			// 학습자 선택
-			if($("input[name=check]:checked").length == 0) {
+            if(userListTable.getSelectedData("userId").length == 0) {
 				// 학습자를 선택해주시기 바립니다.
 				alert("<spring:message code='forum.alert.user.select'/>");
 				return false;
@@ -754,18 +761,22 @@
 		// 피드백 저장
 		function submitFdbk() {
 			var fileUploader = dx5.get("fileUploader");
-			var stdNos = $("#stdNos").val();
+			var stdIds = "";
+			for(var i = 0; i < userListTable.getSelectedData("userId").length; i++) {
+				if (i > 0) {
+					stdIds += ',';
+				}
+				stdIds += userListTable.getSelectedData("userId")[i];
+			}
 
-			var url = "/forum/forumLect/Form/regFdbk.do";
+			var url = "/forum2/forumLect/Form/regFdbk.do";
 			var data = {
 				"crsCreCd"	  : "${forumVo.crsCreCd}",
 				"forumCd"     : "${forumVo.forumCd}",
-				"stdNo"  	  : stdNos,
+				"stdId"  	  : stdIds,
 				"fdbkCts"     : $("#fdbkValue").val(),
 				"uploadFiles" : fileUploader.getUploadFiles(),
 				"uploadPath"  : fileUploader.getUploadPath(),
-				"audioData"   : audioRecord.audioData,
-				"audioFile"   : audioRecord.audioFile
 			};
 
 			ajaxCall(url, data, function(data) {
@@ -848,7 +859,7 @@
 			$("#scoreInputDiv"+i).hide();
 
 			if(cScore !== score) {
-				var url = "/forum/forumLect/setScoreRatio.do";
+				var url = "/forum2/forumLect/setScoreRatio.do";
 
 				var data = {
 					"forumCd" : "${forumVo.forumCd}",
@@ -874,7 +885,7 @@
 
 		// 목록
 		function viewForumList() {
-			/*var url  = "/forum/forumLect/Form/forumList.do";
+			/*var url  = "/forum2/forumLect/Form/forumList.do";
 			var form = $("<form></form>");
 			form.attr("method", "POST");
 			form.attr("name", "listForm");
@@ -899,7 +910,7 @@
 		var form = $("<form></form>");
 		form.attr("method", "POST");
 		form.attr("name", "forumForm");
-		form.attr("action", "/forum/forumLect/Form/delForum.do");
+		form.attr("action", "/forum2/forumLect/Form/delForum.do");
 		form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: '<c:out value="${forumVo.crsCreCd}" />'}));
 		form.append($('<input/>', {type: 'hidden', name: 'forumCd', value: forumCd}));
 		form.appendTo("body");
@@ -910,7 +921,7 @@
 		function teamMemberView(teamCtgrCd) {
 			$("#teamCtgrCd").val(teamCtgrCd);
 			$("#teamMemberForm").attr("target", "teamMemberIfm");
-			$("#teamMemberForm").attr("action", "/forum/forumLect/teamMemberList.do");
+			$("#teamMemberForm").attr("action", "/forum2/forumLect/teamMemberList.do");
 			$("#teamMemberForm").submit();
 			$('#teamMemberPop').modal('show');
 		}
@@ -919,7 +930,7 @@
 		function forumChartView() {
 			forumCommon.initModal("chartView");
 			$("#forumChartViewForm").attr("target", "forumPopIfm");
-			$("#forumChartViewForm").attr("action", "/forum/forumLect/forumChartViewPop.do");
+			$("#forumChartViewForm").attr("action", "/forum2/forumLect/forumChartViewPop.do");
 			$("#forumChartViewForm").submit();
 			$('#forumPop').modal('show');
 		}
@@ -1033,7 +1044,7 @@
 
 						<!-- 토론평가 검색:시작 -->
 						<div class="search-typeA margin-bottom-4">
-							<div class="text-left">
+							<div class="text-center">
 								<select class="ui compact dropdown mr10" id="searchKey" onchange="listForumUser(1)">
 									<option value="all"><spring:message code='forum.common.search.all'/><!-- 전체 --></option>
 									<option value="joinY"><spring:message code='forum.label.join'/><!-- 참여 --></option>
@@ -1122,28 +1133,36 @@
 													return false;
 												}
 												// 학습자 선택
-												if($("input[name=check]:checked").length == 0) {
+												if(userListTable.getSelectedData("userId").length == 0) {
 													alert("<spring:message code='forum.alert.select.std' />");/* 학습자를 선택해 주세요. */
 													return false;
 												}
 												if($("input[name=chkCmnt]:checked").val() == "Y") {
 													chkCmnt = "Y";
 												}
-												var stdNos = $("#stdNos").val();
-												var url = "/forum/forumLect/updateForumJoinUserLenScore.do";
+												var stdIds = "";
+												for(var i = 0; i < userListTable.getSelectedData("userId").length; i++) {
+													if (i > 0) {
+														stdIds += ',';
+													}
+													stdIds += userListTable.getSelectedData("userId")[i];
+												}
+
+												var url = "/forum2/forumLect/updateForumJoinUserLenScore.do";
 												var data = {
 													"forumCd" : "${forumVo.forumCd}",
 													"crsCreCd" : "${forumVo.crsCreCd}",
 													"teamCtgrCd" : "${forumVo.teamCtgrCd}",
-													"stdNos" : stdNos,
+													"stdIds" : stdIds,
 													"score" : $("#lenScore").val(),
 													"ctsLen" : $("#ctsLen").val(),
 													"chkCmnt" : chkCmnt
 												};
+
 												ajaxCall(url, data, function(data) {
 													if(data.result > 0) {
 														alert("<spring:message code='forum.alert.length.score.success' />"); // 글자수로 점수 주기를 성공하였습니다.
-														$("#stdNos").val("");
+														$("#stdIds").val("");
 														listForumUser(1);
 														// scoreChartSet();
 														$("#ctsLen").val("");
@@ -1169,7 +1188,7 @@
 										<script>
 											function partiScore() {
 												if(window.confirm(`<spring:message code="forum.confirm.parti.score" />`)) {/* 기존 점수는 초기화되고\r\n토론 참여글 등록 수강생은 100점,\r\n미등록 수강생과 댓글만 작성한 수강생은 0점 처리됩니다.\r\n처리하시겠습니까? */
-													var url = "/forum/forumLect/participateScore.do";
+													var url = "/forum2/forumLect/participateScore.do";
 													var data = {
 														"forumCd" : "${forumVo.forumCd}",
 														"crsCreCd" : "${forumVo.crsCreCd}",

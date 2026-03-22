@@ -2,29 +2,32 @@ package knou.lms.forum2.web;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import knou.framework.common.*;
-import knou.framework.util.LocaleUtil;
-import knou.framework.util.ValidationUtils;
+import knou.framework.util.*;
 import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.bbs.vo.BbsInfoVO;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
+import knou.lms.erp.vo.ErpMessageMsgVO;
+import knou.lms.forum.vo.*;
 import knou.lms.forum2.service.ForumFdbkService;
 import knou.lms.forum2.service.ForumJoinUserService;
-import knou.lms.forum.vo.ForumJoinUserVO;
 import knou.lms.forum.web.ForumLectController;
 import knou.lms.forum2.vo.Forum2TeamDscsVO;
 import knou.lms.log.userconn.service.LogUserConnService;
+import knou.lms.std.vo.StdVO;
 import knou.lms.team.service.TeamCtgrService;
 import knou.lms.team.service.TeamMemberService;
 import knou.lms.team.service.TeamService;
 import knou.lms.team.vo.TeamCtgrVO;
 import knou.lms.team.vo.TeamMemberVO;
 import knou.lms.team.vo.TeamVO;
+import knou.lms.user.vo.UsrUserInfoVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +39,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import knou.framework.util.IdGenerator;
-import knou.framework.util.StringUtil;
 import knou.framework.vo.FileVO;
 import knou.lms.common.service.SysFileService;
 import knou.lms.common.vo.DefaultVO;
@@ -45,9 +46,6 @@ import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.forum2.service.ForumAtclService;
 import knou.lms.forum2.service.ForumCmntService;
 import knou.lms.forum2.service.ForumService;
-import knou.lms.forum.vo.ForumAtclVO;
-import knou.lms.forum.vo.ForumCmntVO;
-import knou.lms.forum.vo.ForumVO;
 import knou.lms.forum2.vo.Forum2ListVO;
 import knou.lms.forum2.vo.Forum2VO;
 
@@ -336,7 +334,11 @@ public class Forum2LectController extends ControllerBase {
         try {
             setCommonSessionValue(vo, request);
             resultVO = forum2Service.deleteForum(vo);
+
             if (resultVO.getResult() == 0) {
+                // 성적반영여부(SCORE_APLY_YN)가 Y인 경우에 성적반영 비율 100% 기준으로 1/N 자동 계산하여 성적반영비율 필더(SCORE_RATIO)에 저장
+                forum2Service.setScoreRatio(vo);
+
                 resultVO.setResultSuccess();
             }
         } catch (Exception e) {
@@ -954,6 +956,394 @@ public class Forum2LectController extends ControllerBase {
         return resultVO;
     }
 
+    /*****************************************************
+     * 토론 참여자 성적 변경 ajax
+     * @param ExamStareVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/updateForumJoinUserScore.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> updateForumJoinUserScore(ForumJoinUserVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String teamCtgrCd = request.getParameter("teamCtgrCd");
+
+        try {
+            vo.setRgtrId(userId);
+            vo.setMdfrId(userId);
+            vo.setTeamCd(teamCtgrCd);
+
+            forum2JoinUserService.updateForumJoinUserScore(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.common.error"); // 오류가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 토론 참여자 글자수로 점수 주기(ajax)
+     * @param ExamStareVO
+     * @return ProcessResultVO<DefaultVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/updateForumJoinUserLenScore.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> updateForumJoinUserLenScore(ForumJoinUserVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String teamCtgrCd = request.getParameter("teamCtgrCd");
+
+        try {
+            vo.setRgtrId(userId);
+            vo.setMdfrId(userId);
+            vo.setTeamCd(teamCtgrCd);
+
+            forum2JoinUserService.updateForumJoinUserLenScore(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.common.error"); // 오류가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 토론 성적평가 엑셀 다운로드
+     * @param ForumJoinUserVO
+     * @return "excelView"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/forumScoreExcelDown.do")
+    public String forumScoreExcelDown(ForumJoinUserVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        Date today = new Date();
+        SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd");
+
+        vo.setPagingYn("N");
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("title", "성적평가리스트");
+        map.put("sheetName", "성적평가리스트");
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list", forum2JoinUserService.listPaging(vo).getReturnList());
+
+        HashMap<String, Object> modelMap = new HashMap<String, Object>();
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("outFileName", "성적평가리스트_" + date.format(today));
+        modelMap.put("workbook", excelUtilPoi.simpleBigGrid(map));
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    // 토론 성적평가 > 피드백
+    @RequestMapping(value="/forumScoreEvalFeedBack.do")
+    public String forumScoreEvalFeedBack(ForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        /*참여자 정보*/
+        if(!"EZG".equals(forumVO.getSearchMenu())) {
+            ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+            forumJoinUserVO.setForumCd(forumVO.getForumCd());
+            forumJoinUserVO.setStdId(forumVO.getStdId());
+
+            forumJoinUserVO = forum2JoinUserService.selectForumJoinUser(forumJoinUserVO);
+            request.setAttribute("forumJoinUserVo", forumJoinUserVO);
+        }
+
+        ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
+        forumFdbkVO.setForumCd(forumVO.getForumCd());
+        forumFdbkVO.setStdId(forumVO.getStdId());
+
+        if(forumVO.getTeamCd() != null || forumVO.getTeamCd() != "") {
+            forumFdbkVO.setTeamCd(forumVO.getTeamCd());
+        }
+
+        /* 피드백 list */
+        List<?> forumFdbkList = forum2FdbkService.forumFdbkList(forumFdbkVO);
+
+        int fdbkSize = forumFdbkList.size();
+
+        request.setAttribute("fdbkSize", fdbkSize);
+        request.setAttribute("forumFdbkList", forumFdbkList);
+        request.setAttribute("forumVo", forumVO);
+
+        return "forum/lect/forum_score_eval_feedBack";
+    }
+
+    // 학습자 활동공간
+    @RequestMapping(value="/listTeamStdSumm.do")
+    public String listTeamStdSumm(TeamVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+        List<TeamVO> stdList = teamService.listStd(vo);
+        request.setAttribute("stdList", stdList);
+        request.setAttribute("vo", vo);
+
+        return "forum/lect/team_std_list_summ";
+    }
+
+    // 학습자 활동공간
+    @RequestMapping(value="/listTeamStdJson.do")
+    @ResponseBody
+    public ProcessResultVO<TeamVO> listTeamStdJson(TeamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<TeamVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            List<TeamVO> stdList = teamService.listStd(vo);
+
+            resultVO.setReturnList(stdList);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.common.error"); // 오류가 발생했습니다!
+        }
+
+        return resultVO;
+    }
+
+    // 피드백 저장
+    @RequestMapping(value="/Form/regFdbk.do")
+    @ResponseBody
+    public ProcessResultVO<ForumFdbkVO> regFdbk(ForumFdbkVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+        vo.setOrgId(SessionInfo.getOrgId(request));
+        vo.setUserId(SessionInfo.getUserId(request));
+
+        // 쪽지발송을 위한 목록
+        String[] stdArr = vo.getStdId().split(",");
+
+        // 피드백 저장
+        ProcessResultVO<ForumFdbkVO> resultVO = forum2FdbkService.insertFdbk(vo);
+
+        // TODO : 26.3.20 : to-be 임시 막음 처리함.
+        // 피드백 쪽지 발송
+        /*sendFeedbackMessage(request, vo, stdArr);*/
+
+        return resultVO;
+    }
+
+    // 피드백 수정
+    @RequestMapping(value="/edtFdbk.do")
+    @ResponseBody
+    public ProcessResultVO<ForumFdbkVO> edtFdbk(ForumFdbkVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+        vo.setUserId(SessionInfo.getUserId(request));
+
+        return forum2FdbkService.updateFdbk(vo);
+    }
+
+    // 피드백 삭제
+    @RequestMapping(value="/delFdbk.do")
+    @ResponseBody
+    public ProcessResultVO<ForumFdbkVO> delFdbk(ForumFdbkVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+        vo.setUserId(SessionInfo.getUserId(request));
+
+        return forum2FdbkService.deleteFdbk(vo);
+    }
+
+    // 일괄 피드백 팝업
+    @RequestMapping(value="/allForumFdbkPop.do")
+    public String allForumFdbkPop(ForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String forumCd = vo.getForumCd();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
+
+        // 모든 토론 참여자를 토론 참여자 테이블에 삽입
+        vo.setRgtrId(userId);
+        forum2JoinUserService.insertJoinUser(vo);
+
+        request.setAttribute("forumCd", forumCd);
+        request.setAttribute("userId", userId);
+        request.setAttribute("userName", userName);
+
+        return "forum/popup/forum_all_feedback";
+    }
+
+    // 일괄 피드백 작성
+    @RequestMapping(value="/allAddFdbkCts.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> allAddFdbkCts(ForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        String fdbkCts = request.getParameter("fdbkCts");
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
+
+        ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
+
+        forumFdbkVO.setForumCd(vo.getForumCd());
+        forumFdbkVO.setFdbkCts(fdbkCts);
+
+        forumFdbkVO.setRgtrId(userId);
+        forumFdbkVO.setRgtrnm(userName);
+        forumFdbkVO.setMdfrId(userId);
+
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
+        try {
+            forum2FdbkService.insertForumAllFdbk(forumFdbkVO);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.alert.memo.error");/* 메모 저장 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    // 엑셀 성적 등록 팝업
+    @RequestMapping(value="/forumScoreExcelUploadPop.do")
+    public String forumScoreExcelUploadPop(ForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("userId", userId);
+
+        return "forum/popup/forum_score_excel_upload";
+    }
+
+    // 엑셀 성적 등록 샘플 엑셀 다운로드
+    @RequestMapping(value="/forumScoreSampleDownload.do")
+    public String forumScoreSampleDownload(ForumVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        Date today = new Date();
+        SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd");
+
+        ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+
+        forumJoinUserVO.setCrsCreCd(vo.getCrsCreCd());
+        forumJoinUserVO.setForumCd(vo.getForumCd());
+
+        forumJoinUserVO.setSearchValue(vo.getSearchValue());
+        forumJoinUserVO.setPageIndex(vo.getPageIndex());
+        forumJoinUserVO.setListScale(1000);
+        forumJoinUserVO.setForumCtgrCd(vo.getForumCtgrCd());
+        ProcessResultVO<ForumJoinUserVO> resultList = forum2JoinUserService.listPageing(forumJoinUserVO);
+        request.setAttribute("forumJoinUserList", resultList.getReturnList());
+        request.setAttribute("pageInfo", resultList.getPageInfo());
+
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("title", "성적등록_학습자목록");
+        map.put("sheetName", "성적등록_학습자목록");
+        map.put("excelGrid", vo.getExcelGrid());
+
+        map.put("list", resultList.getReturnList());
+
+        HashMap<String, Object> modelMap = new HashMap<String, Object>();
+        modelMap.put("outFileName", "토론_성적등록_학습자목록_" + date.format(today));
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(modelMap);
+
+        // Cookie cookie = new Cookie("fileDownloadToken", "TRUE");
+        // response.addCookie(cookie);
+
+        return "excelView";
+    }
+
+    // 엑셀 성적등록 엑셀 업로드
+    @RequestMapping(value="/uploadForumScoreExcel.do")
+    @ResponseBody
+    public ProcessResultVO<ForumJoinUserVO> uploadForumScoreExcel(ForumJoinUserVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        vo.setRgtrId(userId);
+        vo.setMdfrId(userId);
+
+        String forumCtgrCd = request.getParameter("forumCtgrCd");
+
+        ProcessResultVO<ForumJoinUserVO> resultVO = new ProcessResultVO<>();
+        try {
+            FileVO fileVO = new FileVO();
+            fileVO.setUploadFiles(vo.getUploadFiles());
+            fileVO.setCopyFiles(vo.getCopyFiles());
+            fileVO.setFilePath(vo.getUploadPath());
+            fileVO.setRepoCd(vo.getRepoCd());
+            fileVO.setRgtrId(vo.getRgtrId());
+
+            fileVO = sysFileService.addFile(fileVO);
+
+            HashMap<String, Object> map = new HashMap<String, Object>();
+            map.put("startRaw", 4);
+            map.put("excelGrid", vo.getExcelGrid());
+            map.put("fileVO", fileVO);
+            map.put("searchKey", "excelUpload");
+
+            ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+            List<?> list = excelUtilPoi.simpleReadGrid(map);
+
+            forum2JoinUserService.updateExampleExcelScore(vo, list, forumCtgrCd);
+
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+        }
+        return resultVO;
+    }
+
+    // 성적평가 리스트 엑셀 다운로드
+    @RequestMapping(value="/listScoreExcel.do")
+    public String listScoreExcel(ForumVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        Date today = new Date();
+        SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd");
+
+        ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+
+        forumJoinUserVO.setCrsCreCd(vo.getCrsCreCd());
+        forumJoinUserVO.setForumCd(vo.getForumCd());
+        forumJoinUserVO.setSearchValue(vo.getSearchValue());
+        forumJoinUserVO.setPageIndex(vo.getPageIndex());
+        // forumJoinUserVO.setListScale(vo.getListScale());
+        forumJoinUserVO.setListScale(1000);
+
+        ProcessResultVO<ForumJoinUserVO> resultList = forum2JoinUserService.listPageing(forumJoinUserVO);
+        request.setAttribute("forumJoinUserList", resultList.getReturnList());
+        request.setAttribute("pageInfo", resultList.getPageInfo());
+
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("title", "성적평가리스트");
+        map.put("sheetName", "성적평가리스트");
+        map.put("excelGrid", vo.getExcelGrid());
+
+        map.put("list", resultList.getReturnList());
+
+        HashMap<String, Object> modelMap = new HashMap<String, Object>();
+        modelMap.put("outFileName", "성적평가리스트_" + date.format(today));
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(modelMap);
+
+        // Cookie cookie = new Cookie("fileDownloadToken", "TRUE");
+        // response.addCookie(cookie);
+
+        return "excelView";
+    }
+
+
     // 참여형 일괄평가
     @RequestMapping(value="/participateScore.do")
     @ResponseBody
@@ -978,6 +1368,149 @@ public class Forum2LectController extends ControllerBase {
 
         return resultVO;
     }
+
+    // 개별 평가점수
+    @RequestMapping(value="/setScoreRatio.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> setScoreRatio(ForumJoinUserVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String teamCtgrCd = request.getParameter("teamCtgrCd");
+
+        try {
+            vo.setRgtrId(userId);
+            vo.setMdfrId(userId);
+            vo.setTeamCd(teamCtgrCd);
+            vo.setUserId(userId);
+
+            forum2JoinUserService.setScoreRatio(vo);
+
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.common.error"); // 오류가 발생했습니다!
+        }
+
+        return resultVO;
+    }
+
+    // 토론현황보기
+    @RequestMapping(value="/forumChartViewPop.do")
+    public String forumChartViewPop(ForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        String crsCreCd = vo.getCrsCreCd();
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+
+        // 성적분포현황차트
+        ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+        forumJoinUserVO.setForumCd(vo.getForumCd());
+
+        List<?> forumJoinUserList = forum2JoinUserService.forumJoinUserList(forumJoinUserVO);
+        int minScore = 0;
+        int maxScore = 0;
+        int totalScore = 0;
+        int score = 0;
+        int avgScore = 0;
+
+        if(forumJoinUserList.size() > 0) {
+            for(int i = 0; i < forumJoinUserList.size(); i++) {
+                EgovMap egovMap = (EgovMap) forumJoinUserList.get(i);
+                /*
+                 * long tmpScore = (long)egovMap.get("score"); score =
+                 * Long.valueOf(tmpScore).intValue();
+                 */
+
+                BigDecimal tmpScore = (BigDecimal) egovMap.get("score");
+                long befScore = tmpScore.longValue();
+                score = Long.valueOf(befScore).intValue();
+
+                if(i == 0) {
+                    minScore = score;
+                    maxScore = score;
+                } else {
+                    if(minScore > score) {
+                        minScore = score;
+                    }
+
+                    if(maxScore < score) {
+                        maxScore = score;
+                    }
+                }
+                totalScore = totalScore + score;
+            }
+            avgScore = totalScore / forumJoinUserList.size();
+        }
+
+        request.setAttribute("minScore", minScore);
+        request.setAttribute("maxScore", maxScore);
+        request.setAttribute("avgScore", avgScore);
+
+
+        // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
+        /*vo = forum2Service.selectForum(vo);*/
+        Forum2VO param = new Forum2VO();
+        param.setDscsId(vo.getForumCd());
+        Forum2VO tempForum2VO = forum2Service.selectForum(param);
+        vo = convertForum2VOtoForumVO(tempForum2VO);
+        // 찬반현황 차트용
+        vo.setOrgId(orgId);
+        vo.setCrsCreCd(crsCreCd);
+
+        request.setAttribute("forumVo", vo);
+
+        return "forum/popup/forum_chart_view";
+    }
+
+
+    // 피드백 쪽지 발송
+    private void sendFeedbackMessage(HttpServletRequest request, ForumFdbkVO vo, String[] stdNoArr) throws Exception {
+        // 쪽지발송 처리
+        /*if("Y".equals(CommConst.FEEDBACK_MESSAGE_SEND_YN)) {
+            String orgId = SessionInfo.getOrgId(request);
+
+            // 과목정보
+            CreCrsVO creCrsVO = new CreCrsVO();
+            creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+            creCrsVO = crecrsService.selectCreCrs(creCrsVO);
+
+            // 토론정보
+            ForumVO forumVO = new ForumVO();
+            forumVO.setForumCd(vo.getForumCd());
+            forumVO = forumService.selectForum(forumVO);
+
+            // 학생정보
+            StdVO stdVO = new StdVO();
+            stdVO.setCrsCreCd(vo.getCrsCreCd());
+            stdVO.setStdIdArr(stdNoArr);
+            List<StdVO> stdList = stdService.listUserByStdNo(stdVO);
+
+            // 발송대상자 조회
+            List<String> userIdList = new ArrayList<>();
+
+            for(StdVO stdVO2 : stdList) {
+                userIdList.add(stdVO2.getUserId());
+            }
+
+            UsrUserInfoVO userResvInfoVO = new UsrUserInfoVO();
+            userResvInfoVO.setOrgId(orgId);
+            userResvInfoVO.setSqlForeach(userIdList.toArray(new String[userIdList.size()]));
+            List<UsrUserInfoVO> listUserRecvInfo = usrUserInfoService.listUserRecvInfo(userResvInfoVO);
+
+            if(listUserRecvInfo.size() > 0) {
+                String msgCtnt = "<b>[" + creCrsVO.getCrsCreNm() + "] 과목, [" + forumVO.getForumTitle() + "] 교수님 피드백입니다.</b><br>";
+                msgCtnt += vo.getFdbkCts();
+
+                ErpMessageMsgVO erpMessageMsgVO = new ErpMessageMsgVO();
+                erpMessageMsgVO.setUsrUserInfoList(listUserRecvInfo);
+                erpMessageMsgVO.setCtnt(msgCtnt);
+                erpMessageMsgVO.setCrsCreCd(vo.getCrsCreCd());
+
+                // 쪽지발송 저장
+                erpService.insertSysMessageMsg(request, erpMessageMsgVO, "토론 피드백 쪽지 발송");
+            }
+        }*/
+    }
+
 
     private void setCommonSessionValue(Forum2ListVO vo, HttpServletRequest request) {
         vo.setOrgId(SessionInfo.getOrgId(request));

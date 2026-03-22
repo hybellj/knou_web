@@ -645,6 +645,31 @@
         WHERE DSCS_ID = #{dscsId}
           AND DELYN = 'N'
     </update>
+
+    <select id="getScoreRatio" parameterType="forum2VO" resultType="forumVO">
+        /*
+            성적반영비율 토론 리스트
+            ForumDAO.getScoreRatio
+        */
+        SELECT
+            DSCS_ID AS dscsId
+        FROM TB_LMS_DSCS
+        WHERE 1 = 1
+          AND DELYN = 'N'
+          AND MRK_RFLTYN = 'Y'
+          AND SBJCT_ID = #{sbjctId}
+    </select>
+
+    <update id="setScoreRatio" parameterType="forum2VO">
+        /*
+            성적반영비율 초기화
+            ForumDAO.setScoreRatio
+        */
+        UPDATE TB_LMS_DSCS
+        SET MRK_RFLTRT = #{mrkRfltrt}
+        WHERE DSCS_ID = #{dscsId}
+
+    </update>
 </mapper>
 
 
