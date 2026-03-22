@@ -8,6 +8,7 @@ import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
 import knou.lms.forum2.vo.Forum2ListVO;
 import knou.lms.forum2.vo.Forum2VO;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 @Mapper("forum2DAO")
 public interface Forum2DAO {
@@ -30,5 +31,8 @@ public interface Forum2DAO {
 
     // 성적반영비율 초기화
     public void setScoreRatio(Forum2VO vo) throws Exception;
+
+    // 성적분포현황 BarChart
+    public EgovMap selectScoreChart(Forum2VO vo) throws Exception;
 
 }

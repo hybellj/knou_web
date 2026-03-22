@@ -142,7 +142,8 @@
             , A.CMNT_CTS_LEN
             , A.EMT_TYCD as EMOTICON_NO
             , U.USERNM AS RGTRNM
-            --, A.RGTR_ID as stdId
+            /*, A.RGTR_ID as stdId*/
+            , A.RGTR_ID
             , A.REG_DTTM
             , A.MDFR_ID
             , A.MOD_DTTM

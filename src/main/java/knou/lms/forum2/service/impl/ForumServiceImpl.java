@@ -7,7 +7,9 @@ import java.util.Map;
 import javax.annotation.Resource;
 
 import knou.framework.common.IdPrefixType;
+import knou.lms.forum.vo.ForumVO;
 import knou.lms.forum2.vo.*;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.PageInfo;
@@ -325,5 +327,12 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                 cnt++;
             }
         }
+    }
+
+    // 성적분포현황 BarChart
+    @Override
+    public EgovMap viewScoreChart(Forum2VO vo) throws Exception {
+        EgovMap scoreMap = forumDAO.selectScoreChart(vo);
+        return scoreMap;
     }
 }

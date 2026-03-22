@@ -129,12 +129,12 @@
 				}
 				scoreHtml += "		</div>";
 				scoreHtml += "		<div class=\"ui right labeled small input\" id=\"scoreInputDiv"+ i +"\" name=\"scoreInputDiv\" style=\"display:none;\">";
-				scoreHtml += "			<input type=\"number\" min=\"0\" id=\"score"+ i +"\" name=\"score\" data-stdno=\""+ v.stdNo +"\" class=\"w40 tr\" maxlength=\"3\" value=\""+ v.score +"\" maxlength=\"3\" onkeyup=\"this.value=this.value.replace(/[^0-9]/g,'');\" onblur=\"setScoreRatio("+ i +", '"+ v.score +"')\" onfocus=\"this.select()\">";
+				scoreHtml += "			<input type=\"number\" min=\"0\" id=\"score"+ i +"\" name=\"score\" data-stdid=\""+ v.userId +"\" class=\"w40 tr\" maxlength=\"3\" value=\""+ v.score +"\" maxlength=\"3\" onkeyup=\"this.value=this.value.replace(/[^0-9]/g,'');\" onblur=\"setScoreRatio("+ i +", '"+ v.score +"')\" onfocus=\"this.select()\">";
 				scoreHtml += "			<input type=\"hidden\" name=\"score\" value=\""+ v.score +"\">";
 				scoreHtml += "			<div class=\"ui basic label\"><spring:message code='forum.label.point' /></div>"; // 점
 				scoreHtml += "		</div>";
 
-				var fdkHtml = "<i class=\"xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('\${v.stdNo}', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
+				var fdkHtml = "<i class=\"xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('" + v.userId + "', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
 				var joinStatusHtml = "";
 				if(v.joinStatus == "미참여") {
 					joinStatusHtml += "<span class='fcRed'>"+ v.joinStatus +"</span>";
@@ -143,8 +143,8 @@
 				}
 
 				var mngHtml = "";
-				mngHtml += "		<a href=\"javascript:ezGraderPop('"+ v.stdntNo +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></a>"; // 참여글보기
-				mngHtml += "		<a href=\"javascript:stdMemoForm('"+ v.stdntNo +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></a>"; // 메모
+				mngHtml += "		<a href=\"javascript:ezGraderPop('"+ v.userId +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></a>"; // 참여글보기
+				mngHtml += "		<a href=\"javascript:stdMemoForm('"+ v.userId +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></a>"; // 메모
 
 				dataList.push({
 					no: 				v.lineNo,
@@ -278,63 +278,6 @@
 			}, function(xhr, status, error) {
 				alert("<spring:message code='forum.common.error' />"); // 오류가 발생했습니다!
 			}, true);
-		}
-
-		//전체 선택 / 해제
-		function checkAllStdNoToggle(obj) {
-			$("input:checkbox[name=check]").prop("checked", $(obj).is(":checked"));
-
-			$('input:checkbox[name=check]').each(function (idx) {
-				if ($(obj).is(":checked")) {
-					addSelectedStdNos($(this).attr("data-stdNo"));
-					$(this).parents().addClass("on");
-				} else {
-					removeSelectedStdNos($(this).attr("data-stdNo"));
-					$(this).parents().removeClass("on");
-				}
-			});
-		}
-
-		// 한건 선택 / 해제
-		function checkStdNoToggle(obj) {
-			if ($(obj).is(":checked")) {
-				addSelectedStdNos($(obj).attr("data-stdNo"));
-				$(obj).parents().addClass("on");
-			} else {
-				removeSelectedStdNos($(obj).attr("data-stdNo"));
-				$(obj).parents().removeClass("on");
-			}
-			var totChkCnt = $("input:checkbox[name=check]").length;
-			var chkCnt = $("input:checkbox[name=check]:checked").length;
-			if(totChkCnt == chkCnt) {
-				$("input:checkbox[name=allEvalChk]").prop("checked", true);
-			} else {
-				$("input:checkbox[name=allEvalChk]").prop("checked", false);
-			}
-		}
-
-		// 선택된 학습자 번호 추가
-		function addSelectedStdNos(stdNo) {
-			var selectedStdNos = $("#stdIds").val();
-			if (selectedStdNos.indexOf(stdNo) == -1) {
-				if (selectedStdNos.length > 0) {
-					selectedStdNos += ',';
-				}
-				selectedStdNos += stdNo;
-				$("#stdIds").val(selectedStdNos);
-			}
-		}
-
-		// 선택된 학습자 번호 제거
-		function removeSelectedStdNos(stdNo) {
-			var selectedStdNos = $("#stdIds").val();
-			if (selectedStdNos.indexOf(stdNo) > -1) {
-				selectedStdNos = selectedStdNos.replace(stdNo, "");
-				selectedStdNos = selectedStdNos.replace(",,", ",");
-				selectedStdNos = selectedStdNos.replace(/^[,]*/g, ''); // 특정 문자열로 시작
-				selectedStdNos = selectedStdNos.replace(/[,]*$/g, ''); // 특정 문자열로 끝남
-				$("#stdIds").val(selectedStdNos);
-			}
 		}
 
 		// 토론 참여 현황 차트
@@ -518,7 +461,7 @@
 	*/
 
 		// 메모 팝업
-		function stdMemoForm(stdNo, obj) {
+		function stdMemoForm(stdId, obj) {
 			// 선택된 피드백의 아이콘 색상 초기화 및 변경
 			/*if($(".ui.basic.small.button").parents("tr").hasClass("focused")) {
 				$(".ui.basic.small.button").parents("tr").removeClass("focused");
@@ -534,17 +477,22 @@
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
 
+			var forumCd = "${forumVo.forumCd}";
+			$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
+			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
+
+			var queryString = $("#forumCreCrsStdForm").serialize();
 			dialog = UiDialog("dialog1", {
 				title: "메모",
 				width: 600,
-				height: 500,
-				url: "/forum2/forumLect/forumProfMemoPop.do",
+				height: 350,
+				url: "/forum2/forumLect/forumProfMemoPop.do?" + queryString,
 				autoresize: true
 			});
 		}
 
 		// 피드백 작성 팝업
-		function fdbkList(stdNo, obj) {
+		function fdbkList(stdId, obj) {
 			// 선택된 피드백의 아이콘 색상 초기화 및 변경
 			if($(".xi-comment-o").parents().hasClass("focused")) {
 				$(".xi-comment-o").parents().removeClass("focused");
@@ -554,7 +502,7 @@
 			var forumCd = "${forumVo.forumCd}";
 			forumCommon.initModal("feedback");
 			$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
-			$("form[name='forumCreCrsStdForm'] input[name='stdNo']").val(stdNo);
+			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
 			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumFdbkPop.do");
 			$("#forumCreCrsStdForm").submit();
@@ -574,11 +522,19 @@
 
 		// 엑셀 성적 등록
 		function callScoreExcelUpload() {
-			forumCommon.initModal("scoreExcel");
+			/*forumCommon.initModal("scoreExcel");
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
 			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumScoreExcelUploadPop.do");
 			$("#forumCreCrsStdForm").submit();
-			$('#forumPop').modal('show');
+			$('#forumPop').modal('show');*/
+			var queryString = $("#forumCreCrsStdForm").serialize();
+			dialog = UiDialog("dialog1", {
+				// title: "엑셀 성적 등록",
+				width: 600,
+				height: 350,
+				url: "/forum2/forumLect/forumScoreExcelUploadPop.do?" + queryString,
+				autoresize: true
+			});
 		}
 
 		// 엑셀 다운로드
@@ -619,8 +575,8 @@
 		}
 
 		// EZ-Grader 팝업 화면
-		function ezGraderPop(stdNo) {
-			$('#ezGraderForm input[name="stdNo"]').val(stdNo);
+		function ezGraderPop(stdId) {
+			$('#ezGraderForm input[name="stdId"]').val(stdId);
 			$("#ezGraderForm").attr("target", "ezGraderPopIfm");
 			$("#ezGraderForm").attr("action", "/forum/ezgPop/ezgMainForm.do");
 			$("#ezGraderForm").submit();
@@ -841,7 +797,7 @@
 		function setScoreRatio(i, cScore) {
 			var score = $("#score"+i).val();
 			//	var stdNo = $("#score"+i).attr("data-stdno");
-			var stdNo = $("#score"+i).data("stdno");
+			var stdNo = $("#score"+i).data("stdid");
 
 			if(score === "" || score === undefined) {
 				alert("<spring:message code='forum.alert.input.score' />");/* 점수를 입력하세요. */
@@ -928,11 +884,20 @@
 
 		// 토론현황보기
 		function forumChartView() {
-			forumCommon.initModal("chartView");
+			/*forumCommon.initModal("chartView");
 			$("#forumChartViewForm").attr("target", "forumPopIfm");
 			$("#forumChartViewForm").attr("action", "/forum2/forumLect/forumChartViewPop.do");
 			$("#forumChartViewForm").submit();
-			$('#forumPop').modal('show');
+			$('#forumPop').modal('show');*/
+
+			var queryString = $("#forumChartViewForm").serialize();
+			dialog = UiDialog("dialog1", {
+				title: "토론현황 그래프",
+				width: 600,
+				height: 500,
+				url: "/forum2/forumLect/forumChartViewPop.do?" + queryString,
+				autoresize: true
+			});
 		}
 	</script>
 </head>
@@ -944,7 +909,7 @@
 		<input type="hidden" name="forumCd" value="${forumVo.forumCd }">
 		<input type="hidden" name="forumCtgrCd" value="${forumVo.forumCtgrCd}">
 		<input type="hidden" name="teamCtgrCd" value="${forumVo.teamCtgrCd}">
-		<input type="hidden" name="stdNo" value="">
+		<input type="hidden" name="stdId" value="">
 		<input type="hidden" name="crsCreCd" value="${forumVo.crsCreCd}">
 	</form>
 	<form id="ezGraderForm" name="ezGraderForm" method="POST">
@@ -953,13 +918,13 @@
 		<input type="hidden" name="forumCtgrCd" value="${forumVo.forumCtgrCd}" >
 		<input type="hidden" name="evalCritUseYn" value="${forumVo.evalCritUseYn}" >
 		<input type="hidden" name="evalCtgr" value="${forumVo.evalCtgr}" >
-		<input type="hidden" name="stdNo" value="">
+		<input type="hidden" name="stdId" value="">
 	</form>
 	<form name="forumChartViewForm" id="forumChartViewForm" method="POST">
 		<input type="hidden" name="forumCd" value="${forumVo.forumCd }">
 		<input type="hidden" name="forumCtgrCd" value="${forumVo.forumCtgrCd}">
 		<input type="hidden" name="teamCtgrCd" value="${forumVo.teamCtgrCd}">
-		<input type="hidden" name="stdNo" value="">
+		<input type="hidden" name="stdId" value="">
 		<input type="hidden" name="crsCreCd" value="${forumVo.crsCreCd}">
 	</form>
 	<div id="wrap" class="main">

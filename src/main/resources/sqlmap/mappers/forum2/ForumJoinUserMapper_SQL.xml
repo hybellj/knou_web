@@ -405,7 +405,7 @@
 			수강생 토론 성적 조회2
 			ForumJoinUserDAO.forumJoinUserList
 		*/
-		SELECT U.USER_ID 	AS stdNo
+		SELECT U.USER_ID 	AS stdId
 			, U.DSCS_ID 	AS forumCd
 			, NVL(SCR, 0)	AS score
 			, EVLYN	AS evalYn
@@ -428,33 +428,28 @@
 			ForumJoinUserDAO.selectProfMemo
 		*/
 		SELECT
-			(
-				SELECT DEPTNM
-				FROM TB_LMS_USER
-				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC WHERE USER_ID = A.USER_ID)
-			) AS deptNm
-			, (
-				SELECT USER_ID
-				FROM TB_LMS_USER
-				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC WHERE USER_ID = A.USER_ID)
-			) AS userId
-			, (
-				SELECT USERNM
-				FROM TB_LMS_USER
-				WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_ATNDLC WHERE USER_ID = A.USER_ID)
-			) AS userNm
-			, NVL(A.SCR, 0)			AS SCR
-			, B.SBJCT_ID 					AS crsCreCd
-			, B.DSCS_TTL					AS forumTitle
-			, B.DSCS_SDTTM 			AS forumStartDttm
-			, B.DSCS_EDTTM 				AS forumEndDttm
-			, A.SCR_MEMO 					AS profMemo
+			D.DEPTNM                  AS deptNm
+			 , U.USER_ID               AS userId
+			 , U.USERNM               AS userNm
+			 , NVL(A.SCR, 0)           AS SCR
+			 , B.SBJCT_ID              AS crsCreCd
+			 , B.DSCS_TTL              AS forumTitle
+			 , B.DSCS_SDTTM            AS forumStartDttm
+			 , B.DSCS_EDTTM            AS forumEndDttm
+			 , A.PROF_MEMO             AS profMemo
 		FROM TB_LMS_DSCS_PTCP A
-			LEFT JOIN TB_LMS_DSCS B
-				ON A.DSCS_ID = B.DSCS_ID
+			 /* 토론 정보 조인 */
+			 LEFT JOIN TB_LMS_DSCS B
+					   ON A.DSCS_ID = B.DSCS_ID
+			/* 2. 사용자 정보 조인 */
+			 LEFT JOIN TB_LMS_USER U
+					   ON A.USER_ID = U.USER_ID
+			/* 3. 학과 부서 정보 조인 (DEPT_ID 기준) */
+			 LEFT JOIN TB_LMS_DEPT D
+					   ON U.DEPT_ID = D.DEPT_ID
 		WHERE 1 = 1
-			AND A.DSCS_ID = #{forumCd}
-			AND A.USER_ID = #{stdNo}
+		  AND A.DSCS_ID = #{forumCd}
+		  AND A.USER_ID = #{stdId}
 	</select>
 
 	<update id="editForumProfMemo" parameterType="forumJoinUserVO">
@@ -465,9 +460,9 @@
 		UPDATE TB_LMS_DSCS_PTCP SET
 			MDFR_ID = #{mdfrId}
 			, MOD_DTTM = FN_DTTM()
-			, SCR_MEMO = #{profMemo}
+			, PROF_MEMO = #{profMemo}
 		WHERE DSCS_ID = #{forumCd}
-			AND USER_ID = #{stdNo}
+			AND USER_ID = #{stdId}
 	</update>
 
 	<select id="getForumJoinUser" resultType="int">
@@ -478,7 +473,7 @@
 		SELECT
 			COUNT(*)
 		FROM TB_LMS_DSCS_PTCP
-		WHERE USER_ID = #{stdNo}
+		WHERE USER_ID = #{stdId}
 			AND DSCS_ID = #{forumCd}
 	</select>
 
@@ -488,9 +483,9 @@
 			ForumJoinUserDAO.getMemo
 		*/
 		SELECT
-			SCR_MEMO as profMemo
+			PROF_MEMO as profMemo
 		FROM TB_LMS_DSCS_PTCP
-		WHERE USER_ID = #{stdNo}
+		WHERE USER_ID = #{stdId}
 			AND DSCS_ID = #{forumCd}
 	</select>
 
@@ -529,7 +524,7 @@
 			, REG_DTTM
 		)
 		SELECT
-			#{stdNo}
+			#{stdId}
 			, #{forumCd}
 			, 'ADMIN'
 			, FN_DTTM()
@@ -538,7 +533,7 @@
 			SELECT
 				USER_ID
 			FROM TB_LMS_DSCS_PTCP
-			WHERE USER_ID = #{stdNo}
+			WHERE USER_ID = #{stdId}
 				AND DSCS_ID = #{forumCd}
 		) ROWNUM = 1
 	</insert>
@@ -643,7 +638,7 @@
 		UPDATE TB_LMS_DSCS_PTCP SET
 			TEAM_ID = #{teamCd}
 		 WHERE DSCS_ID = #{forumCd}
-		   AND USER_ID = #{stdNo}
+		   AND USER_ID = #{stdId}
 	</update>
 
 	<update id="updateJoinUserEvalN" parameterType="forumJoinUserVO">

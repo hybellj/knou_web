@@ -646,6 +646,20 @@
           AND DELYN = 'N'
     </update>
 
+    <select id="selectScoreChart" parameterType="forum2VO" resultType="egovMap">
+        /*
+            토론 성적 분포 현황
+            ForumDAO.selectScoreChart
+        */
+        SELECT
+            MIN(SCR) AS minScore
+             , MAX(SCR) AS maxScore
+             , ROUND(AVG(SCR)) AS avgScore
+        FROM TB_LMS_DSCS_PTCP
+        WHERE DSCS_ID = #{dscsId}
+        GROUP BY DSCS_ID
+    </select>
+
     <select id="getScoreRatio" parameterType="forum2VO" resultType="forumVO">
         /*
             성적반영비율 토론 리스트

@@ -12,6 +12,7 @@ import knou.framework.common.*;
 import knou.framework.util.*;
 import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.bbs.vo.BbsInfoVO;
+import knou.lms.crs.crecrs.service.CrecrsService;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.erp.vo.ErpMessageMsgVO;
 import knou.lms.forum.vo.*;
@@ -69,6 +70,9 @@ public class Forum2LectController extends ControllerBase {
 
     @Resource(name="forum2FdbkService")
     private ForumFdbkService forum2FdbkService;
+
+    @Resource(name="crecrsService")
+    private CrecrsService crecrsService;
 
     @Resource(name = "sysFileService")
     private SysFileService sysFileService;
@@ -1081,6 +1085,77 @@ public class Forum2LectController extends ControllerBase {
         return "forum/lect/forum_score_eval_feedBack";
     }
 
+    // 성적분포현황 BarChart
+    @RequestMapping(value="/viewScoreChart.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> viewScoreChart(ForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+
+        try {
+            // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
+            /*vo = forum2Service.selectForum(vo);*/
+            Forum2VO param = new Forum2VO();
+            param.setDscsId(vo.getForumCd());
+            EgovMap scoreMap = forum2Service.viewScoreChart(param);
+
+            resultVO.setReturnVO(scoreMap);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.common.error"); // 오류가 발생했습니다!
+        }
+
+        return resultVO;
+    }
+
+    // 교수 메모 팝업창 정보
+    @RequestMapping(value="/forumProfMemoPop.do")
+    public String forumProfMemoPop(ForumJoinUserVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        // TODO : 26.3.23 : AS-IS code TO-BE 필요시 적용.
+        /*creCrsVO = crecrsService.infoCreCrs(creCrsVO);
+        request.setAttribute("creCrsVO", creCrsVO);*/
+        request.setAttribute("forumCd", vo.getForumCd());
+        request.setAttribute("stdId", vo.getStdId());
+
+        vo.setUserId(SessionInfo.getUserId(request));
+        vo = forum2JoinUserService.selectProfMemo(vo);
+        request.setAttribute("vo", vo);
+
+        return "forum2/popup/forum_prof_memo";
+    }
+
+    // 교수 메모 수정
+    @RequestMapping(value="/editForumProfMemo.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> editForumProfMemo(ForumJoinUserVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            vo.setMdfrId(userId);
+            forum2JoinUserService.editForumProfMemo(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.alert.memo.error");/* 메모 저장 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
     // 학습자 활동공간
     @RequestMapping(value="/listTeamStdSumm.do")
     public String listTeamStdSumm(TeamVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -1213,7 +1288,7 @@ public class Forum2LectController extends ControllerBase {
         model.addAttribute("vo", vo);
         model.addAttribute("userId", userId);
 
-        return "forum/popup/forum_score_excel_upload";
+        return "forum2/popup/forum_score_excel_upload";
     }
 
     // 엑셀 성적 등록 샘플 엑셀 다운로드
@@ -1458,7 +1533,7 @@ public class Forum2LectController extends ControllerBase {
 
         request.setAttribute("forumVo", vo);
 
-        return "forum/popup/forum_chart_view";
+        return "forum2/popup/forum_chart_view";
     }
 
 
