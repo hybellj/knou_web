@@ -231,6 +231,7 @@
             "<span class=\"cmtBtnGroup\">",
             "    <button class=\"cmtUpt\" data-atcl-sn=\""+ rs.atclSn +"\" data-rgtr-id=\""+ rs.rgtrId +"\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\" data-level=\""+ rs.level +"\" data-ans-req-yn=\""+ rs.ansReqYn +"\"><spring:message code='forum.button.mod'/></button>",
             "    <button class=\"cmtDel\" data-rgtr-id=\""+ rs.rgtrId +"\" data-cmnt-sn=\""+ rs.cmntSn +"\"><spring:message code='forum.button.del'/></button>",
+            "    <button class=\"cmtHide\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\">댓글 숨김</button>",
             replyBtn,
             "</span>"
         ].join('');
@@ -268,7 +269,7 @@
             ctsHtml = v.cts;
         }
         var delBadge = (v.delYn == "Y")
-            ? " <span class=\"ui red label p4 f080\"><spring:message code='forum.label.sapn.del.content'/></span>"
+            ? " <span class=\"ui red label p4 f080\">[삭제됨]</span>"
             : '';
         var editBtns = '';
         if(v.rgtrId == "${userId}" && v.delYn == "N") {
@@ -278,7 +279,7 @@
                 "        <div class='dropdown'>",
                 "            <button class='settingBtn'></button>",
                 "            <div class='option-wrap'>",
-                "                <div class='item'><a href='javascript:void(0)' >참여글 숨김</a></div>",
+                "                <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'>참여글 숨김</a></div>",
                 "                <div class='item'><a href='javascript:void(0)' data-action='editPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>수정</a></div>",
                 "                <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>삭제</a></div>",
                 "            </div>",
@@ -293,7 +294,7 @@
                 "        <div class='dropdown'>",
                 "            <button class='settingBtn'></button>",
                 "            <div class='option-wrap'>",
-                "                <div class='item'><a href='javascript:void(0)' >참여글 숨김</a></div>",
+                "                <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'>참여글 숨김</a></div>",
                 "                <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>삭제</a></div>",
                 "            </div>",
                 "        </div>",
@@ -356,18 +357,35 @@
         var regDate = _formatDttm(rs.modDttm);
 
         var ctsSpan = (rs.delYn == "Y")
-            ? "<span class='comment'><span class='ui red label'><spring:message code='forum.label.del.forum.cmnt'/></span></span>"
+            ? "<span class='comment'>"+ (rs.cmntCts || '') +" <span class='ui red label p4 f080'>[삭제됨]</span></span>"
             : "<span class='comment' id='cmntContents"+ postIdx + flatIdx +"'>"+ rs.cmntCts +"</span>";
 
         var replyFormHTML = '';
         if(rs.delYn != "Y") {
+            var fi = "" + postIdx + flatIdx;
             replyFormHTML = [
-                "<div class='recmt_form' id='toggleCmnt"+ postIdx + flatIdx +"' style='display:none;'>",
+                "<div class='recmt_form' id='toggleCmnt"+ fi +"' style='display:none;'>",
                 "    <fieldset>",
                 "        <legend class='sr_only'>댓글등록</legend>",
                 "        <div class='memo'>",
-                "            <textarea title='<spring:message code="forum.alert.input.forum_reply"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.alert.input.forum_reply"/>' id='cmntText"+ postIdx + flatIdx +"'></textarea>",
-                "            <button type='button' class='cmt_create' data-atcl-sn='"+ rs.atclSn +"' data-cmnt-sn='"+ rs.cmntSn +"' data-post-idx='"+ postIdx +"' data-flat-idx='"+ flatIdx +"'><spring:message code='forum.button.reg'/></button>",
+                "            <div class='simple_answer'>",
+                "                <span>간편답글</span>",
+                "                <div class='answer_btn'>",
+                "                    <a href='#0' onclick=\"setCts(0, '"+ fi +"');\">찬성</a>",
+                "                    <a href='#0' onclick=\"setCts(1, '"+ fi +"');\">반대</a>",
+                "                    <a href='#0' onclick=\"setCts(2, '"+ fi +"');\">기타</a>",
+                "                </div>",
+                "            </div>",
+                "            <textarea title='<spring:message code="forum.alert.input.forum_reply"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.alert.input.forum_reply"/>' id='cmntText"+ fi +"'></textarea>",
+                "            <div class='bottom_btn'>",
+                "                <span class='custom-input'>",
+                "                    <input type='checkbox' id='ansReqYn"+ fi +"' name='ansReqYn'>",
+                "                    <label for='ansReqYn"+ fi +"'><span class='small'>답글 요청</span></label>",
+                "                </span>",
+                "                <div class='right-area'>",
+                "                    <button type='button' class='btn type2 cmt_create' data-atcl-sn='"+ rs.atclSn +"' data-cmnt-sn='"+ rs.cmntSn +"' data-post-idx='"+ postIdx +"' data-flat-idx='"+ flatIdx +"'>등록</button>",
+                "                </div>",
+                "            </div>",
                 "        </div>",
                 "    </fieldset>",
                 "</div>"
@@ -1064,6 +1082,20 @@
             return;
         }
 
+        // 4-0. 참여글 숨김
+        var hidePostBtn = e.target.closest('[data-action="hidePost"]');
+        if(hidePostBtn) {
+            var dropdown = hidePostBtn.closest('.dropdown');
+            if(dropdown) {
+                var cont = dropdown.closest('.cont');
+                if(cont && !cont.querySelector('.hide-badge')) {
+                    cont.insertAdjacentHTML('beforeend', '<span class="fcRed fw-bold">[숨겨짐]</span>');
+                }
+                dropdown.querySelector('.option-wrap').classList.remove('show');
+            }
+            return;
+        }
+
         // 4. 게시글 수정
         var editPostBtn = e.target.closest('[data-action="editPost"]');
         if(editPostBtn) {
@@ -1124,6 +1156,18 @@
                 crtBtn.setAttribute('data-cmnt-sn', cmntSn);
                 crtBtn.setAttribute('data-post-idx', postIdx);
                 crtBtn.setAttribute('data-flat-idx', flatIdx);
+            }
+            return;
+        }
+
+        // 6-5. 댓글 숨김 (cmtHide)
+        var cmtHideBtn = e.target.closest('.cmtHide');
+        if(cmtHideBtn) {
+            var postIdx = cmtHideBtn.getAttribute('data-post-idx');
+            var flatIdx = cmtHideBtn.getAttribute('data-flat-idx');
+            var ctsEl = document.getElementById('cmntContents' + postIdx + flatIdx);
+            if(ctsEl && !ctsEl.querySelector('.hide-badge')) {
+                ctsEl.insertAdjacentHTML('beforeend', '<span class="hide-badge ui red label p4 f080">[숨겨짐]</span>');
             }
             return;
         }
