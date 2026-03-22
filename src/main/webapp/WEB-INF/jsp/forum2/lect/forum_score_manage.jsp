@@ -128,11 +128,11 @@
 					scoreHtml += "		"+ v.score +" <spring:message code='forum.label.point' />"; // 점
 				}
 				scoreHtml += "		</div>";
-				scoreHtml += "		<div class=\"ui right labeled small input\" id=\"scoreInputDiv"+ i +"\" name=\"scoreInputDiv\" style=\"display:none;\">";
-				scoreHtml += "			<input type=\"number\" min=\"0\" id=\"score"+ i +"\" name=\"score\" data-stdid=\""+ v.userId +"\" class=\"w40 tr\" maxlength=\"3\" value=\""+ v.score +"\" maxlength=\"3\" onkeyup=\"this.value=this.value.replace(/[^0-9]/g,'');\" onblur=\"setScoreRatio("+ i +", '"+ v.score +"')\" onfocus=\"this.select()\">";
+				scoreHtml += "		<div id=\"scoreInputDiv"+ i +"\" name=\"scoreInputDiv\" style=\"display:none;\">";
+				scoreHtml += "			<input type=\"number\" min=\"0\" id=\"score"+ i +"\" name=\"score\" data-stdid=\""+ v.userId +"\" class=\"w50 board-title\" maxlength=\"3\" value=\""+ v.score +"\" maxlength=\"3\" onkeyup=\"this.value=this.value.replace(/[^0-9]/g,'');\" onblur=\"setScoreRatio("+ i +", '"+ v.score +"')\" onfocus=\"this.select()\">";
 				scoreHtml += "			<input type=\"hidden\" name=\"score\" value=\""+ v.score +"\">";
-				scoreHtml += "			<div class=\"ui basic label\"><spring:message code='forum.label.point' /></div>"; // 점
 				scoreHtml += "		</div>";
+				<%--scoreHtml += "		<div class=\"ui basic label\"><spring:message code='forum.label.point' /></div>"; // 점--%>
 
 				var fdkHtml = "<i class=\"xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('" + v.userId + "', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
 				var joinStatusHtml = "";
@@ -797,7 +797,7 @@
 		function setScoreRatio(i, cScore) {
 			var score = $("#score"+i).val();
 			//	var stdNo = $("#score"+i).attr("data-stdno");
-			var stdNo = $("#score"+i).data("stdid");
+			var stdId = $("#score"+i).data("stdid");
 
 			if(score === "" || score === undefined) {
 				alert("<spring:message code='forum.alert.input.score' />");/* 점수를 입력하세요. */
@@ -821,7 +821,7 @@
 					"forumCd" : "${forumVo.forumCd}",
 					"crsCreCd" : "${forumVo.crsCreCd}",
 					"teamCtgrCd" : "${forumVo.teamCtgrCd}",
-					"stdNo" : stdNo,
+					"stdId" : stdId,
 					"score" : score,
 				};
 
@@ -1233,7 +1233,7 @@
 									{title:"학번", 		field:"stdntNo",			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
 									{title:"이름", 		field:"usernm", 			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
 									("${forumVo.forumCtgrCd}" == "TEAM" ? {title: "역할", field: "ldryn", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
-									{title:"평가점수", 	field:"totScr", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"평가점수", 	field:"totScr", 			headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},
 									{title:"피드백", 	field:"fdk", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
 									{title:"참여상태", 	field:"joinStatus", 		headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
 									{title:"참여일시", 	field:"joinDtdm", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
