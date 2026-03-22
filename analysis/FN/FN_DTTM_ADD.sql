@@ -1,0 +1,9 @@
+CREATE OR REPLACE FUNCTION LMSUSER.FN_DTTM_ADD (days IN NUMBER)
+    RETURN VARCHAR2
+IS
+BEGIN
+    /**
+     * 현재 일시에 입력된 일수를 더하여 문자열 반환 
+     */
+    RETURN TO_CHAR(SYSDATE + days, 'YYYYMMDDHH24MISS');
+END;
