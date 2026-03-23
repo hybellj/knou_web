@@ -23,7 +23,9 @@
         </SSLHostConfig>
     </Connector>
 -----
-[intellij]
+[SSL 복사]
+- 실제 c:/user/.smarttomcat/[project root]/ssl 에 복사.
+[Tomcat 설치경로의 server.xml 수정]
 - edit configuraiton : 80 , ssl port : 443
 [smart-tomcat]
 - project/.smarttomcat/knou_dev/confi/server.xml 설정.
