@@ -730,6 +730,7 @@
             appendLrnGrpInfoParam(index, 'sbjctId', sbjctId);
             appendLrnGrpInfoParam(index, 'lrnGrpId', lrnGrpId);
             appendLrnGrpInfoParam(index, 'lrnGrpnm', lrnGrpnm);
+            appendLrnGrpInfoParam(index, 'byteamDscsUseyn', $('#lrnGrpSubForumSettingyn_' + dvclasNo).is(':checked') ? 'Y' : 'N');
             index++;
         });
     }
@@ -827,8 +828,8 @@
                 appendTeamForumDetailParam(index, 'lrnGrpId', lrnGrpId);
                 appendTeamForumDetailParam(index, 'teamId', teamId);
                 appendTeamForumDetailParam(index, 'teamNm', teamNm);
-                appendTeamForumDetailParam(index, 'teamTtl', teamTtl);
-                appendTeamForumDetailParam(index, 'teamCts', teamCts);
+                appendTeamForumDetailParam(index, 'dscsTtl', teamTtl);
+                appendTeamForumDetailParam(index, 'dscsCts', teamCts);
                 appendTeamForumDetailParam(index, 'attchFileId', attchFileId);
                 index++;
             });

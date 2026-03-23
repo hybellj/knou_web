@@ -164,6 +164,7 @@
           ON S.DSCS_ID = A.DSCS_ID
         WHERE 1 = 1
           AND A.DELYN = 'N'
+          AND A.UP_DSCS_ID IS NULL
         <if test="sbjctId != null and sbjctId != ''">
           AND A.SBJCT_ID = #{sbjctId}
         </if>
@@ -374,6 +375,8 @@
           , MOD_DTTM
           , SBJCT_ID
           , BYTEAM_DSCS_USEYN
+          , UP_DSCS_ID
+          , TEAM_ID
         ) VALUES (
             #{dscsId}
           , #{dscsGrpId}
@@ -403,6 +406,8 @@
           , FN_DTTM()
           , #{sbjctId}
           , NVL(#{byteamDscsUseyn}, 'N')
+          , #{upDscsId}
+          , #{teamId}
         )
     </insert>
 

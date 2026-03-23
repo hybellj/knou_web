@@ -130,6 +130,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
             Map<String, String> lrnGrpMapByDvclasNo = new HashMap<>();
             Map<String, String> lrnGrpNmMapByDvclasNo = new HashMap<>();
+            Map<String, String> byteamDscsUseynMapByDvclasNo = new HashMap<>();
             List<Forum2LrnGrpVO> lrnGrpInfoList = vo.getLrnGrpInfoList();
             if (lrnGrpInfoList != null) {
                 for (Forum2LrnGrpVO info : lrnGrpInfoList) {
@@ -141,6 +142,10 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                     }
                     if (!StringUtil.isNull(info.getDvclasNo()) && !StringUtil.isNull(info.getLrnGrpnm())) {
                         lrnGrpNmMapByDvclasNo.put(info.getDvclasNo(), info.getLrnGrpnm());
+                    }
+                    if (!StringUtil.isNull(info.getDvclasNo())) {
+                        byteamDscsUseynMapByDvclasNo.put(info.getDvclasNo(),
+                                StringUtil.isNull(info.getByteamDscsUseyn()) ? "N" : info.getByteamDscsUseyn());
                     }
                 }
             }
@@ -192,23 +197,41 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                     vo.setDscsGrpnm(null);
                 }
 
+                String byteamDscsUseyn = byteamDscsUseynMapByDvclasNo.getOrDefault(dvclasNo, "N");
+                String origDscsTtl = vo.getDscsTtl();
+                String origDscsCts = vo.getDscsCts();
                 String newDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
                 vo.setDscsId(newDscsId);
                 vo.setDvclsNo(dvclsNo);
-                forumDAO.insertForum(vo);
+                vo.setByteamDscsUseyn(byteamDscsUseyn);
+                vo.setUpDscsId(null);
+                vo.setTeamId(null);
+                forumDAO.insertForum(vo); // 부모(또는 단일) 토론 INSERT
 
-                // TODO : 팀별 부주제 정보 저장(저장 정보 체크)
-                // - 분반 * 팀갯수만큼 토론 생성되는 것으로 변경 예정(26.3.16)
-                /*
-                if (vo.getByteamSubdscsUseyn().equalsIgnoreCase("Y")) {
-                    for (Forum2TeamDscsVO teamDtlVO : vo.getTeamForumDtlList()) {
-                        String newSubDscsId = IdGenerator.getNewId("SUBDSCS");
-                        teamDtlVO.setSubdscsId(newSubDscsId);
-                        teamDtlVO.setDscsId(newDscsId);
-                        forumDAO.insertSubDscs(teamDtlVO);
+                // 팀별 부주제 설정 시: 팀수만큼 자식 토론 생성
+                if ("Y".equalsIgnoreCase(byteamDscsUseyn)) {
+                    List<Forum2TeamDscsVO> teamForumDtlList = vo.getTeamForumDtlList();
+                    if (teamForumDtlList != null) {
+                        for (Forum2TeamDscsVO teamDtl : teamForumDtlList) {
+                            if (teamDtl == null || !dvclasNo.equals(teamDtl.getDvclasNo())) {
+                                continue;
+                            }
+                            vo.setDscsId(IdGenerator.getNewId(IdPrefixType.DSCS.getCode()));
+                            vo.setUpDscsId(newDscsId);
+                            vo.setTeamId(teamDtl.getTeamId());
+                            vo.setDscsTtl(teamDtl.getDscsTtl());
+                            vo.setDscsCts(teamDtl.getDscsCts());
+                            vo.setByteamDscsUseyn("N");
+                            forumDAO.insertForum(vo);
+                        }
                     }
+                    // 다음 분반 루프를 위해 원복
+                    vo.setUpDscsId(null);
+                    vo.setTeamId(null);
+                    vo.setDscsTtl(origDscsTtl);
+                    vo.setDscsCts(origDscsCts);
+                    vo.setByteamDscsUseyn(byteamDscsUseyn);
                 }
-                */
 
                 if (firstDscsId == null) {
                     // 입력된 분반 선택 순서 기준으로 첫 번째 DSCS를 대표 dscsId로 사용

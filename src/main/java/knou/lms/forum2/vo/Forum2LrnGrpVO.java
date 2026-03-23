@@ -10,6 +10,7 @@ public class Forum2LrnGrpVO implements Serializable {
     private String sbjctId; // 과목아이디
     private String lrnGrpId; // 학습그룹아이디
     private String lrnGrpnm; // 학습그룹명
+    private String byteamDscsUseyn; // 팀별부토론사용여부
 
     public String getDvclasNo() {
         return dvclasNo;
@@ -41,5 +42,13 @@ public class Forum2LrnGrpVO implements Serializable {
 
     public void setLrnGrpnm(String lrnGrpnm) {
         this.lrnGrpnm = lrnGrpnm;
+    }
+
+    public String getByteamDscsUseyn() {
+        return byteamDscsUseyn;
+    }
+
+    public void setByteamDscsUseyn(String byteamDscsUseyn) {
+        this.byteamDscsUseyn = byteamDscsUseyn;
     }
 }
