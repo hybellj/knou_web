@@ -1,31 +1,15 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
-	<head>
-		<%@ include file="/WEB-INF/jsp/common/modal_common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-		<%@ include file="/WEB-INF/jsp/forum/common/forum_common_inc.jsp" %>
+<head>
+	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+		<jsp:param name="style" value="classroom"/>
+		<jsp:param name="module" value="chart, fileuploader"/>
+	</jsp:include>
+</head>
 
-		<script src="/webdoc/js/iframe.js"></script>
-    	<script src="/webdoc/js/jquery.form.min.js"></script>
-
-	    <script src="/webdoc/file-uploader/lang/file-uploader-ko.js"></script>
-	    <script src="/webdoc/file-uploader/file-uploader.js"></script>
-
-	    <script src="/webdoc/player/plyr.js" crossorigin="anonymous"></script>
-		<script src="/webdoc/player/player.js" crossorigin="anonymous"></script>
-
-		<script src="/webdoc/audio-recorder/audio-recorder.js"></script>
-
-		<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
-    	<link rel="stylesheet" type="text/css" href="/webdoc/file-uploader/file-uploader.css" />
-    	<link rel="stylesheet" href="/webdoc/player/plyr.css" />
-		<link rel="stylesheet" href="/webdoc/audio-recorder/audio-recorder.css" />
-    </head>
-<%
-	request.setAttribute("PAGE_FILE_UPLOAD", request.getContextPath() + CommConst.PAGE_FILE_UPLOAD);
-%>
 	<script type="text/javascript">
 		var fUploader = {};
 		var aUploader = {};
@@ -39,24 +23,6 @@
 		var audioRecord = null;
 
 		$(document).ready(function() {
-
-			audioRecord = UiAudioRecorder("audioRecord");
-			audioRecord.formName = "recordForm";
-			audioRecord.dataName = "audioData";
-			audioRecord.fileName = "audioFile";
-			audioRecord.lang	 = "ko";
-			audioRecord.init();
-
-			audioRecord.recorderBox.css({"top":"0px", "left":"0px"});
-			audioRecord.setRecorder();
-
-			$("#audioRecord").height($(".recorder-box").height()+22);
-
-			$(".audio-header").remove();
-			$(".audio-btm .btm-btn").remove();
-
-			audioRecord.recorderBox.show();
-
 			fdbkList();
 		});
 
@@ -70,7 +36,7 @@
 			var url  = "/forum/forumLect/getFdbk.do";
 			var data = {
 				"forumCd" : "${forumVo.forumCd}",
-				"stdNo" : "${stdNo}",
+				"stdId" : "${stdId}",
 			};
 
 			ajaxCall(url, data, function(data) {
@@ -78,44 +44,7 @@
 					if(data.returnList.length > 0){
 						var rList = data.returnList;
 			    		$("#feedbackList").empty().html(createHTML(rList));
-
-	        			for (var i = 0; i < rList.length; i++){
-	        				var oldFiles = [];
-	        				makeAudioRecord((i+1));
-	        				
-	        				for(var j = 0; j <rList[i].fileList.length; j++){
-	        					var oldFile = {};
-	        					var fId = rList[i].fileList[j].fileId;
-	        					var fNm = rList[i].fileList[j].fileNm;
-	        					var fSize = rList[i].fileList[j].fileSize;
-	        					var fExt = rList[i].fileList[j].fileExt;
-	        					var fSaveNm = rList[i].fileList[j].fileSaveNm;
-
-	        					if(fExt == "mp3"){
-	        						makeAudioPlayer((i+1),(j+1));
-
-	        						aUploader[`aUploader`+(i+1)].addOldFile( fId, fNm, fSize );
-	        					}else{
-	        						oldFiles.push({vindex:fId, name:fNm, size:fSize, saveNm:fSaveNm});
-	        					}
-
-	        					byteConvertor(fSize, fNm, "file_" + rList[i].fileList[j].fileSn);
-	        				}
-	        				
-	        				oldFilesMap[i+1] = oldFiles;
-
-        					$("#fdbkAudioBox"+(i+1)+" .ajax-upload-dragdrop").remove();
-        					$("#fdbkAudioBox"+(i+1)+" .file-uploader-tot-progress").remove();
-        					$("#fdbkAudioBox"+(i+1)+" .ajax-file-upload-container").remove();
-
-        					$("#fdbkAudioBox"+(i+1)).css('border','0px');
-        					$("#fdbkAudioBox"+(i+1)+" .file-uploader-edit-box").css('border-top','0px');
-	        			}
-
-
-	        			$(".audio-header").remove();
-	        			$(".audio-btm .btm-btn").remove();
-					}else{
+					} else {
 						var html = "";
 						html += "<div class='flex-container m-hAuto'>";
 						html += "    <div class='no_content'>";
@@ -132,26 +61,6 @@
 			}, function(xhr, status, error) {
 				alert("<spring:message code='forum.common.error' />");// 오류가 발생했습니다!
 			}, true);
-		}
-
-		function makeAudioRecord(i){
-			aRecord[`aRecord`+i] = UiAudioRecorder("audioRecord"+i);
-			aRecord[`aRecord`+i].formName = "recordForm";
-			aRecord[`aRecord`+i].dataName = "audioData";
-			aRecord[`aRecord`+i].fileName = "audioFile";
-			aRecord[`aRecord`+i].lang	 = "ko";
-			aRecord[`aRecord`+i].init();
-
-			aRecord[`aRecord`+i].recorderBox.css({"top":"0px", "left":"0px"});
-			aRecord[`aRecord`+i].setRecorder();
-
-			$("#audioRecord"+i).height($(".recorder-box").height()+22);
-
-			aRecord[`aRecord`+i].recorderBox.show();
-		}
-
-		function makeAudioPlayer(i,j){
-			aPlayer[`aPlayer`+i] = UiMediaPlayer("audioPlayer" + i + "_" + j);
 		}
 
 		// 피드백 수정 버튼
@@ -694,7 +603,7 @@
 	    <p><i class="notched circle loading icon"></i></p>
 	</div>
 
-	<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
+    <body class="modal-page">
         <div id="wrap" class="flex flex-column">
             <div class="ui form">
             	<div class="option-content">
@@ -736,14 +645,14 @@
                         </div>
                     </div>
                     <div class="fields mt10 ml0 mr0 tr">
-                        <a href="javascript:btnRegFdbk()" class="ui blue button"><spring:message code='forum.button.save'/><!-- 저장 --></a>
+                        <a href="javascript:btnRegFdbk()" class="btn type1"><spring:message code='forum.button.save'/><!-- 저장 --></a>
                     </div>
                 </div>
                 <div id="feedbackList" class="mt10"></div>
             </div>
 
             <div class="bottom-content">
-                <button class="ui black cancel button" onclick="window.parent.closeModal();"><spring:message code='forum.button.close'/><!-- 닫기 --></button>
+                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code='forum.button.close'/><!-- 닫기 --></button>
             </div>
         </div>
 
@@ -784,7 +693,6 @@
 				finishFunc="finishUpload()"
 				allowedTypes="*"
 				bigSize="false"
-				useFileBox="true"
 				uiMode="simple"
 			/>
 		</div>

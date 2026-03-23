@@ -1171,6 +1171,282 @@ public class Forum2LectController extends ControllerBase {
         return resultVO;
     }
 
+    // 피드백
+    @RequestMapping(value="/forumFdbkPop.do")
+    public String forumFeedBack(ForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
+        CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        // TODO : 26.3.23 : AS-IS code TO-BE 필요시 적용.
+        /*creCrsVO = crecrsService.infoCreCrs(creCrsVO);*/
+        request.setAttribute("creCrsVO", creCrsVO);
+
+        String forumCd = vo.getForumCd();
+        String stdId = vo.getStdId();
+        String teamCd = vo.getTeamCd();
+
+        request.setAttribute("forumCd", forumCd);
+        request.setAttribute("stdNo", stdId);
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
+
+        ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+        forumJoinUserVO.setForumCd(forumCd);
+        forumJoinUserVO.setStdId(stdId);
+        forumJoinUserVO.setUserId(userId);
+        forumJoinUserVO = forum2JoinUserService.selectProfMemo(forumJoinUserVO);
+
+        request.setAttribute("forumJoinUserVO", forumJoinUserVO);
+
+        // String userType = StringUtil.nvl(SessionInfo.getClassUserType(request));
+        String userType = "CLASS_PROFESSOR";
+
+        /*
+        if(!"EZG".equals(vo.getSearchMenu())) {
+            forumJoinUserVO = forumJoinUserService.selectForumJoinUser(forumJoinUserVO);
+            request.setAttribute("forumJoinUserVo", forumJoinUserVO);
+        }
+        */
+
+        ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
+        forumFdbkVO.setForumCd(forumCd);
+        forumFdbkVO.setStdId(stdId);
+
+        if(teamCd != null || teamCd != "") {
+            forumFdbkVO.setTeamCd(teamCd);
+        }
+
+        request.setAttribute("userId", userId);
+        request.setAttribute("userName", userName);
+        request.setAttribute("userType", userType);
+
+        String student = (SessionInfo.getAuthrtGrpcd(request).contains("USR")) ? "STD" : "";
+        request.setAttribute("student", student);
+
+        request.setAttribute("forumVo", vo);
+        request.setAttribute("PAGE_FILE_UPLOAD", request.getContextPath() + CommConst.PAGE_FILE_UPLOAD);
+
+        return "forum/popup/forum_feedback";
+    }
+
+    // 피드백 조회
+    @RequestMapping(value="/getFdbk.do")
+    @ResponseBody
+    public ProcessResultVO<ForumFdbkVO> getFdbk(ForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        String fdbkCts = request.getParameter("fdbkCts");
+        String parForumFdbkCd = request.getParameter("parForumFdbkCd");
+        String stdId = vo.getStdId();
+
+        ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
+        forumFdbkVO.setForumFdbkCd(IdGenerator.getNewId("FFDBK"));
+        if(parForumFdbkCd == null || parForumFdbkCd.equals("")) {
+            forumFdbkVO.setParForumFdbkCd(null);
+        } else {
+            forumFdbkVO.setParForumFdbkCd(parForumFdbkCd);
+        }
+        forumFdbkVO.setForumCd(vo.getForumCd());
+        forumFdbkVO.setFdbkCts(fdbkCts);
+        forumFdbkVO.setStdId(stdId);
+
+        if(vo.getTeamCd() != null || vo.getTeamCd() != "") {
+            forumFdbkVO.setTeamCd(vo.getTeamCd());
+        }
+
+        // 피드백 리스트
+        ProcessResultVO<ForumFdbkVO> resultVO = new ProcessResultVO<>();
+        try {
+            List<ForumFdbkVO> list = forum2FdbkService.selectFdbk(forumFdbkVO);
+            resultVO.setReturnList(list);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+        }
+        return resultVO;
+    }
+
+    // 피드백 작성
+    @RequestMapping(value="/addFdbkCts.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> addFockCts(ForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        String fdbkCts = request.getParameter("fdbkCts");
+        String parForumFdbkCd = request.getParameter("parForumFdbkCd");
+        String stdId = vo.getStdId();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
+
+        ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
+        forumFdbkVO.setForumFdbkCd(IdGenerator.getNewId("FFDBK"));
+        if(parForumFdbkCd == null || parForumFdbkCd.equals("")) {
+            forumFdbkVO.setParForumFdbkCd(null);
+        } else {
+            forumFdbkVO.setParForumFdbkCd(parForumFdbkCd);
+        }
+        forumFdbkVO.setForumCd(vo.getForumCd());
+        forumFdbkVO.setFdbkCts(fdbkCts);
+        forumFdbkVO.setStdId(stdId);
+
+        forumFdbkVO.setRgtrId(userId);
+        forumFdbkVO.setRgtrnm(userName);
+        forumFdbkVO.setMdfrId(userId);
+
+        if(vo.getTeamCd() != null || vo.getTeamCd() != "") {
+            forumFdbkVO.setTeamCd(vo.getTeamCd());
+        }
+
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
+        try {
+            forum2FdbkService.insertForumFdbk(forumFdbkVO);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.alert.memo.error");/* 메모 저장 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    // 피드백 수정
+    @RequestMapping(value="/editFdbkCts.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> editFdbkCts(ForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        String forumFdbkCd = request.getParameter("forumFdbkCd");
+        String fdbkCts = request.getParameter("fdbkCts");
+        String stdId = vo.getStdId();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
+        forumFdbkVO.setForumFdbkCd(forumFdbkCd);
+        forumFdbkVO.setForumCd(vo.getForumCd());
+        forumFdbkVO.setFdbkCts(fdbkCts);
+        forumFdbkVO.setStdId(stdId);
+
+        forumFdbkVO.setRgtrId(userId);
+        forumFdbkVO.setMdfrId(userId);
+
+        if(vo.getTeamCd() != null || vo.getTeamCd() != "") {
+            forumFdbkVO.setTeamCd(vo.getTeamCd());
+        }
+
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
+        try {
+            forum2FdbkService.updateForumFdbk(forumFdbkVO);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.alert.memo.error");/* 메모 저장 중 에러가 발생하였습니다. */
+        }
+
+        return resultVO;
+    }
+
+    // 피드백 삭제
+    @RequestMapping(value="/delFdbkCts.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> delFdbkCts(ForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        String forumFdbkCd = request.getParameter("forumFdbkCd");
+        String fdbkCts = request.getParameter("fdbkCts");
+        String stdId = vo.getStdId();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
+        forumFdbkVO.setForumFdbkCd(forumFdbkCd);
+        forumFdbkVO.setForumCd(vo.getForumCd());
+        forumFdbkVO.setFdbkCts(fdbkCts);
+        forumFdbkVO.setStdId(stdId);
+
+        forumFdbkVO.setRgtrId(userId);
+        forumFdbkVO.setMdfrId(userId);
+
+        if(vo.getTeamCd() != null || vo.getTeamCd() != "") {
+            forumFdbkVO.setTeamCd(vo.getTeamCd());
+        }
+
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
+        try {
+            forum2FdbkService.deleteForumFdbk(forumFdbkVO);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.alert.memo.error");/* 메모 저장 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    // 일괄 피드백 팝업
+    @RequestMapping(value="/allForumFdbkPop.do")
+    public String allForumFdbkPop(ForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String forumCd = vo.getForumCd();
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
+
+        // 모든 토론 참여자를 토론 참여자 테이블에 삽입
+        vo.setRgtrId(userId);
+        forum2JoinUserService.insertJoinUser(vo);
+
+        request.setAttribute("forumCd", forumCd);
+        request.setAttribute("userId", userId);
+        request.setAttribute("userName", userName);
+
+        return "forum/popup/forum_all_feedback";
+    }
+
+    // 일괄 피드백 작성
+    @RequestMapping(value="/allAddFdbkCts.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> allAddFdbkCts(ForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        String fdbkCts = request.getParameter("fdbkCts");
+
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
+
+        ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
+
+        forumFdbkVO.setForumCd(vo.getForumCd());
+        forumFdbkVO.setFdbkCts(fdbkCts);
+
+        forumFdbkVO.setRgtrId(userId);
+        forumFdbkVO.setRgtrnm(userName);
+        forumFdbkVO.setMdfrId(userId);
+
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
+        try {
+            forum2FdbkService.insertForumAllFdbk(forumFdbkVO);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.alert.memo.error");/* 메모 저장 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+
     // 학습자 활동공간
     @RequestMapping(value="/listTeamStdSumm.do")
     public String listTeamStdSumm(TeamVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -1242,57 +1518,7 @@ public class Forum2LectController extends ControllerBase {
         return forum2FdbkService.deleteFdbk(vo);
     }
 
-    // 일괄 피드백 팝업
-    @RequestMapping(value="/allForumFdbkPop.do")
-    public String allForumFdbkPop(ForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        String forumCd = vo.getForumCd();
 
-        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-        String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
-
-        // 모든 토론 참여자를 토론 참여자 테이블에 삽입
-        vo.setRgtrId(userId);
-        forum2JoinUserService.insertJoinUser(vo);
-
-        request.setAttribute("forumCd", forumCd);
-        request.setAttribute("userId", userId);
-        request.setAttribute("userName", userName);
-
-        return "forum/popup/forum_all_feedback";
-    }
-
-    // 일괄 피드백 작성
-    @RequestMapping(value="/allAddFdbkCts.do")
-    @ResponseBody
-    public ProcessResultVO<DefaultVO> allAddFdbkCts(ForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
-
-        // 사용자 접속상태 저장
-        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
-
-        String fdbkCts = request.getParameter("fdbkCts");
-
-        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-        String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
-
-        ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
-
-        forumFdbkVO.setForumCd(vo.getForumCd());
-        forumFdbkVO.setFdbkCts(fdbkCts);
-
-        forumFdbkVO.setRgtrId(userId);
-        forumFdbkVO.setRgtrnm(userName);
-        forumFdbkVO.setMdfrId(userId);
-
-        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
-        try {
-            forum2FdbkService.insertForumAllFdbk(forumFdbkVO);
-            resultVO.setResult(1);
-        } catch(Exception e) {
-            resultVO.setResult(-1);
-            resultVO.setMessage("forum.alert.memo.error");/* 메모 저장 중 에러가 발생하였습니다. */
-        }
-        return resultVO;
-    }
 
     // 엑셀 성적 등록 팝업
     @RequestMapping(value="/forumScoreExcelUploadPop.do")

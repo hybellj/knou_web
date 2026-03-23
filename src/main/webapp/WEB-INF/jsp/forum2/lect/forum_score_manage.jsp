@@ -499,14 +499,27 @@
 			}
 			$(obj).parents().addClass("focused");
 
-			var forumCd = "${forumVo.forumCd}";
+			/*var forumCd = "${forumVo.forumCd}";
 			forumCommon.initModal("feedback");
 			$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
 			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
 			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumFdbkPop.do");
 			$("#forumCreCrsStdForm").submit();
-			$("#forumPop").modal("show");
+			$("#forumPop").modal("show");*/
+
+			var forumCd = "${forumVo.forumCd}";
+			$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
+			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
+
+			var queryString = $("#forumCreCrsStdForm").serialize();
+			dialog = UiDialog("dialog1", {
+				title: "피드백",
+				width: 600,
+				height: 350,
+				url: "/forum2/forumLect/forumFdbkPop.do?" + queryString,
+				autoresize: true
+			});
 		}
 
 		// 일괄 피드백 팝업
