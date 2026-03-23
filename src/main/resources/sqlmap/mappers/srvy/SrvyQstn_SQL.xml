@@ -23,9 +23,17 @@
 		 FROM TB_LMS_SRVY_QSTN QSTN
 		 JOIN TB_LMS_SRVYPPR SRVYPPR
 		   ON QSTN.SRVYPPR_ID = SRVYPPR.SRVYPPR_ID
-		WHERE SRVYPPR.SRVY_ID = #{srvyId}
-		  AND QSTN.DELYN = 'N'
-		ORDER BY SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO
+		WHERE QSTN.DELYN = 'N'
+		<choose>
+			<when test="searchType != null and searchType == 'EXCEL'">
+				AND SRVYPPR.SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE DELYN = 'N' AND USEYN = 'Y' AND (SRVY_ID = #{srvyId} OR UP_SRVY_ID = #{srvyId}))
+				ORDER BY SRVYPPR.SRVY_ID, SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO
+			</when>
+			<otherwise>
+				AND SRVYPPR.SRVY_ID = #{srvyId}
+				ORDER BY SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO
+			</otherwise>
+		</choose>
 	</select>
 
 	<select id="srvypprQstnList" parameterType="String" resultType="srvyQstnVO">

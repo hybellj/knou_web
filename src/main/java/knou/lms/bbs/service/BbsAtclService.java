@@ -104,13 +104,6 @@ public interface BbsAtclService {
     public void copyAtclToNewCourse(BbsAtclVO vo) throws Exception;
 
     /*****************************************************
-     * 게시글 조회수 수정
-     * @param vo
-     * @throws Exception
-     ******************************************************/
-    public void updateBbsAtclHits(BbsAtclVO vo) throws Exception;
-
-    /*****************************************************
      * 전체공지 최신글 목록
      * @param vo
      * @return List<EgovMap>
@@ -146,8 +139,52 @@ public interface BbsAtclService {
      * @return ProcessResultVO<BbsAtclVO>
      * @throws Exception
      ******************************************************/
-    public ProcessResultVO<BbsAtclVO> selectBbsAtclList(BbsAtclVO vo) throws Exception;    
-    
+    public ProcessResultVO<BbsAtclVO> selectBbsAtclList(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 대시보드 카드 목록
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
     public List<EgovMap> listRecentBbsToday(BbsAtclVO vo) throws Exception;
     public List<EgovMap> listRecentBbsLctrQna(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 답변 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void bbsAtclRspnsRegist(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 메뉴 > 글로벌메뉴 > 과목공지 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void bbsAtclSbjctRegist(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 메뉴 > 글로벌메뉴 > 과목공지 상세 불러오기 (단일 조회)
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    public ProcessResultVO<BbsAtclVO> selectBbsSbjctDtlView(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 > 과목공지 > 그룹 공지 사항
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    public ProcessResultVO<BbsAtclVO> selectBbsAtclGrpNtcList(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 > 과목공지 > 그룹 공지 사항 팝업
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    public ProcessResultVO<BbsAtclVO> selectBbsAtclGrpNtcPopView(BbsAtclVO vo) throws Exception;
 }

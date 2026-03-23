@@ -655,7 +655,7 @@ function setSubjectWidget() {
 		</nav>
 
 		<div class="btn-wrap subject-select">
-		    <select class="form-select" style="font-weight:600">
+		    <select class="form-select">
 		        <option value="2026년 2학기">2026년 2학기</option>
 		        <option value="2026년 1학기">2026년 1학기</option>
 		    </select>
@@ -664,9 +664,11 @@ function setSubjectWidget() {
 		</div>`;
 
 	// 위젯 타이틀 내용 설정
-	dashboardWidget.addInTitle("card7", inTitle);
-	dashboardWidget.addSubTitle("card7", subTitle);
+	dashboardWidget.addInTitle("wigt_prof_subject", inTitle);
+	dashboardWidget.addSubTitle("wigt_prof_subject", subTitle);
 
+	// select 필드에 chosen 적용
+	UiChosen();
 
 	// localdb에서 카테고리,mode 가져오기
 	let subjectCat = UiComm.db.getItem("prof:widget_subject_cat");

@@ -123,7 +123,7 @@
 					}
 					if(v.ptcpGbncd == "NOPTCP") {
 						ptcpGbnnm = "미참여";
-					} else if(v.tkexamCmptnGbncd == "COMPLETED") {
+					} else if(v.ptcpGbncd == "COMPLETED") {
 						ptcpGbnnm = "참여완료";
 					}
 					var ldryn = v.ldryn == "Y" ? "팀장" : "팀원";
@@ -347,65 +347,75 @@
 		}
 
 		/**
-		 * 퀴즈응시현황엑셀다운로드
+		 * 설문참여목록엑셀다운로드
 		 * @param {String}  examBscId 		시험기본아이디
 	     * @param {String}  tkexamCmptnyn 	응시여부
 	     * @param {String}  evlyn 			평가여부
 	     * @param {String}  searchValue 	검색어 ( 학과, 학번, 성명 )
 	     * @param {String}  excelGrid 		엑셀그리드
 		 */
-		function quizTkexamStatusExcelDown() {
-			var examGbncd = "${vo.examGbncd}";
+		function srvyPtcpListExcelDown() {
+			var srvyGbn = "${vo.srvyGbn}";
 			var ldrynObj = {
 				Y: "팀장", N: "팀원"
 			};
-			var tkexamCmptnObj = {
-				  INIT: "초기화"
-				, NOTKEXAM: "미응시"
-				, COMPLETED: "응시완료"
-				, TKEXAMING: "응시중"
+			var ptcpGbncdObj = {
+				  NOPTCP: "미참여"
+				, COMPLETED: "참여완료"
 			};
 
 			var excelGrid = { colModel: [] };
 
 			excelGrid.colModel.push({label: 'No.', 		name: 'lineNo', 			align: 'center', 	width: '1000'});
-			if(examGbncd == "QUIZ_TEAM") {
+			if(srvyGbn == "SRVY_TEAM") {
 				excelGrid.colModel.push({label: '팀명', 	name: 'teamnm', 			align: 'left', 		width: '4000'});
 			}
 			excelGrid.colModel.push({label: "학과", 		name: 'deptnm', 			align: 'left', 		width: '5000'});
 			excelGrid.colModel.push({label: "대표아이디", 	name: 'userRprsId', 		align: 'left', 		width: '5000'});
 			excelGrid.colModel.push({label: "학번", 		name: 'stdntNo', 			align: 'center', 	width: '5000'});
 			excelGrid.colModel.push({label: "이름", 		name: 'usernm', 			align: 'center', 	width: '5000'});
-			if(examGbncd == "QUIZ_TEAM") {
-				excelGrid.colModel.push({label: "역할", 	name: 'ldryn', 				align: 'left', 		width: '5000', 	codes: ldrynObj});
+			if(srvyGbn == "SRVY_TEAM") {
+				excelGrid.colModel.push({label: "역할", 	name: 'ldryn', 				align: 'center', 	width: '3000', 	codes: ldrynObj});
 			}
-			excelGrid.colModel.push({label: "퀴즈점수", 	name: 'quizScr', 			align: 'center', 	width: '3000'});
-			excelGrid.colModel.push({label: "평가점수", 	name: 'totScr', 			align: 'center', 	width: '3000'});
-			excelGrid.colModel.push({label: "응시상태", 	name: 'tkexamCmptnGbncd', 	align: 'left', 		width: '5000', 	codes: tkexamCmptnObj});
-			excelGrid.colModel.push({label: "응시횟수", 	name: 'tkexamCnt', 			align: 'center', 	width: '3000'});
-			excelGrid.colModel.push({label: "평가여부", 	name: 'evlyn', 				align: 'left', 		width: '5000'});
+			excelGrid.colModel.push({label: "평가점수", 	name: 'ptcpEvlScr', 		align: 'center', 	width: '3000'});
+			excelGrid.colModel.push({label: "참여상태", 	name: 'ptcpGbncd', 			align: 'center', 	width: '3000', 	codes: ptcpGbncdObj});
+			excelGrid.colModel.push({label: "참여일시", 	name: 'ptcpDttm', 			align: 'center', 	width: '5000'});
+			excelGrid.colModel.push({label: "평가여부", 	name: 'srvyPtcpEvlyn', 		align: 'center', 	width: '3000'});
 
 			var kvArr = [];
-			kvArr.push({'key' : 'examBscId', 	   	'val' : "${vo.examBscId}"});
-			kvArr.push({'key' : 'tkexamCmptnyn', 	'val' : $("#tkexamCmptnyn").val()});
-			kvArr.push({'key' : 'evlyn', 			'val' : $("#evlyn").val()});
+			kvArr.push({'key' : 'srvyId', 	   		'val' : "${vo.srvyId}"});
+			kvArr.push({'key' : 'ptcpyn', 			'val' : $("#ptcpyn").val()});
+			kvArr.push({'key' : 'srvyPtcpEvlyn', 	'val' : $("#srvyPtcpEvlyn").val()});
 			kvArr.push({'key' : 'searchValue', 		'val' : $("#searchValue").val()});
 			kvArr.push({'key' : 'excelGrid',   		'val' : JSON.stringify(excelGrid)});
 
-			submitForm("/quiz/profQuizTkexamStatusExcelDown.do", "", "", kvArr);
+			submitForm("/srvy/profSrvyPtcpListExcelDown.do", "", "", kvArr);
 		}
 
 		/**
-		 * 퀴즈시험지일괄엑셀다운로드
-		 * @param {String}  examBscId 	시험기본아이디
+		 * 설문결과엑셀다운로드
+		 * @param {String}  srvyId 		설문아이디
 	     * @param {String}  sbjctId 	과목아이디
 		 */
-		function quizExampprBlukExcelDown() {
+		function srvyPtcpStatusExcelDown() {
 			var kvArr = [];
-			kvArr.push({'key' : 'examBscId', 	'val' : "${vo.examBscId}"});
-			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
+			kvArr.push({'key' : 'srvyId', 	'val' : "${vo.srvyId}"});
+			kvArr.push({'key' : 'sbjctId', 	'val' : "${vo.sbjctId}"});
 
-			submitForm("/quiz/profQuizExampprBulkExcelDown.do", "", "", kvArr);
+			submitForm("/srvy/profSrvyPtcpStatusExcelDown.do", "", "", kvArr);
+		}
+
+		/**
+		 * 제출설문엑셀다운로드
+		 * @param {String}  srvyId 		설문아이디
+	     * @param {String}  sbjctId 	과목아이디
+		 */
+		function srvyRspnsExcelDown() {
+			var kvArr = [];
+			kvArr.push({'key' : 'srvyId', 	'val' : "${vo.srvyId}"});
+			kvArr.push({'key' : 'sbjctId', 	'val' : "${vo.sbjctId}"});
+
+			submitForm("/srvy/profSrvyRspnsStatusExcelDown.do", "", "", kvArr);
 		}
 
 		// 메세지 보내기
@@ -792,9 +802,9 @@
                         </table>
                         <div class="board_top margin-top-4">
 							<div class="right-area">
-								<a href="javascript:quizExampprBulkPrintPopup()" class="btn type1">제출설문 엑셀다운로드</a>
-								<a href="javascript:quizExampprBlukExcelDown()" class="btn type1">설문결과 엑셀다운로드</a>
-								<a href="javascript:quizTkexamStatusExcelDown()" class="btn type1">엑셀 다운로드</a>
+								<a href="javascript:srvyRspnsExcelDown()" class="btn type1">제출설문 엑셀다운로드</a>
+								<a href="javascript:srvyPtcpStatusExcelDown()" class="btn type1">설문결과 엑셀다운로드</a>
+								<a href="javascript:srvyPtcpListExcelDown()" class="btn type1">엑셀 다운로드</a>
 								<a href="javascript:ptcpChartPop()" class="btn type1">참여현황 그래프</a>
 							</div>
 						</div>

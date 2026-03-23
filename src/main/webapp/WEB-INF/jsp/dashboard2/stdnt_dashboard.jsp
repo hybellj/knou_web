@@ -418,7 +418,7 @@
 												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 												                <p class="tit">${item.atclTtl}</p>
 												                <p class="desc">
-												                    <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
+												                    <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/>
 												                </p>
 												            </a>
 

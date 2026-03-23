@@ -188,7 +188,7 @@
 								                        	<td class="text-left">${vwitm.vwitmCts }</td>
 								                        	<c:forEach var="rspns" items="${srvyLevelQstnRspnsStatusList }">
 								                        		<c:if test="${qstn.srvyQstnId eq rspns.srvyQstnId && vwitm.srvyVwitmId eq rspns.srvyVwitmId }">
-								                        			<td>${rspns.totJoinCnt eq 0 ? '0' : rspns.ratio }%</td>
+								                        			<td>${rspns.ratio }%</td>
 								                        		</c:if>
 								                        	</c:forEach>
 								                        </tr>
@@ -224,51 +224,6 @@
 					</c:if>
 				</c:forEach>
 			</c:forEach>
-
-        	<div class="row">
-		    	<div class="col">
-				<c:forEach var="pageList" items="${reschAnswerList }">
-					<div class="ui form mt10">
-						<h4>${pageList.reschPageOdr }/${fn:length(reschAnswerList) }. <spring:message code="resh.label.page" /></h4><!-- 페이지 -->
-						<c:forEach var="qstnList" items="${pageList.reschQstnList }">
-							<div class="ui card wmax">
-								<c:if test="${qstnList.reschQstnTypeCd eq 'SCALE' }">
-									<div class="fields content">
-				                        <div class="field wf100">
-				                            <span>${pageList.reschPageOdr }-${qstnList.reschQstnOdr }.</span> ${qstnList.reschQstnTitle }
-				                            <pre>${qstnList.reschQstnCts }</pre>
-				                        </div>
-				                    </div>
-				                    <div class="content">
-					                    <table class="table">
-					                    	<thead>
-					                    		<tr>
-					                    			<th><span class="pl10"><spring:message code="resh.label.item" /></span></th><!-- 문항 -->
-					                    			<c:forEach var="scaleList" items="${qstnList.reschScaleList }">
-						                    			<th class="tc">${scaleList.scaleTitle }</th>
-					                    			</c:forEach>
-					                    		</tr>
-					                    	</thead>
-					                    	<tbody>
-					                    		<c:forEach var="answerList" items="${qstnList.reschAnswerList }">
-						                    		<tr>
-						                    			<td class="tl">${answerList.reschQstnItemTitle }</td>
-						                    			<c:forEach var="scaleItemList" begin="1" end="${fn:length(qstnList.reschScaleList) }" step="1">
-							                    			<c:set var="ratio" value="ratio${scaleItemList}" />
-						                    				<td class="tc">${answerList[ratio] }%</td>
-						                    			</c:forEach>
-						                    		</tr>
-					                    		</c:forEach>
-					                    	</tbody>
-					                    </table>
-				                    </div>
-								</c:if>
-							</div>
-						</c:forEach>
-					</div>
-				</c:forEach>
-		    	</div>
-		    </div>
 
             <div class="btns">
                 <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="resh.button.close" /></button><!-- 닫기 -->

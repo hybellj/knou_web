@@ -2,6 +2,35 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.bbs.dao.BbsCmntDAO">
 
+	<sql id="bbsAtclCmntListQuery">
+		SELECT
+			A.ATCL_ID
+			, B.ORG_ID
+			, A.BBS_ID
+			, A.USER_ID
+			, C.UP_ATCL_CMNT_ID
+			, A.ATCL_TTL
+			, A.ATCL_LV
+			, A.ATCL_SEQNO
+			, C.ATCL_CMNT_ID
+			, C.UP_ATCL_CMNT_ID
+			, C.ATCL_CMNT_CTS AS ATCL_CMNT_CTS
+			, C.EMTICN_NO
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTR_NM
+			, C.REG_DTTM
+			, C.DELYN
+		  FROM TB_LMS_BBS_ATCL A
+		  JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
+		  JOIN TB_LMS_BBS_ATCL_CMNT C ON A.ATCL_ID = C.ATCL_ID
+		 WHERE 1=1
+		   AND A.BBS_ID = #{bbsId}
+		   AND A.ATCL_ID = #{atclId}
+		   <if test="orgId != null and orgId != ''">
+		     AND B.ORG_ID = #{orgId}
+		   </if>
+		ORDER BY A.REG_DTTM DESC
+	</sql>
+
 	<select id="selectBbsCmnt" parameterType="bbsCmntVO" resultType="bbsCmntVO">
 		/*
              SQL ID : BbsCmntDAO.selectBbsCmnt
@@ -24,7 +53,7 @@
 		AND A.ATCL_ID = #{atclId}
 		AND A.DELYN = 'N'
 	</select>
-	
+
 	<sql id="listQuery">
 	<choose>
 		<when test='noDeleteViewModeYn != null and noDeleteViewModeYn == "Y"'>
@@ -183,7 +212,7 @@
 			<include refid="listQuery" />
 		) Z
 	</select>
-	
+
 	<select id="countBbsCmntDelN" parameterType="bbsCmntVO" resultType="Integer">
 		/*
              SQL ID : BbsCmntDAO.countBbsCmntDelN
@@ -194,7 +223,7 @@
 		) Z
 		WHERE Z.DELYN = 'N'
 	</select>
-	
+
 	<select id="listBbsCmnt" parameterType="bbsCmntVO" resultType="bbsCmntVO">
 		/*
              SQL ID : BbsCmntDAO.listBbsCmnt
@@ -202,7 +231,7 @@
          */
 		<include refid="listQuery" />
 	</select>
-	
+
 	<select id="listBbsCmntPaging" parameterType="bbsCmntVO" resultType="bbsCmntVO">
 		/*
              SQL ID : BbsCmntDAO.listBbsCmntPaging
@@ -212,7 +241,7 @@
 		<include refid="listQuery" />
 		<include refid="CommonSQL.pageSubfix" />
 	</select>
-	
+
 	<insert id="insertBbsCmnt" parameterType="bbsCmntVO">
 		/*
              SQL ID : BbsCmntDAO.insertBbsCmnt
@@ -240,7 +269,7 @@
 			, FN_DTTM()
 		)
 	</insert>
-	
+
 	<update id="updateBbsCmnt" parameterType="bbsCmntVO" >
 		/*
              SQL ID : BbsCmntDAO.updateBbsCmnt
@@ -276,15 +305,84 @@
          */
 		DELETE FROM TB_LMS_BBS_ATCL_CMNT
 		WHERE ATCL_CMNT_ID = #{cmntId}
-		AND ATCL_ID = #{atclId} 
+		AND ATCL_ID = #{atclId}
 	</delete>
-	
+
 	<delete id="deleteBbsCmntAll" parameterType="bbsCmntVO">
 		/*
              SQL ID : BbsCmntDAO.deleteBbsCmntAll
              설  명 : 댓글 전체 삭제
          */
 		DELETE FROM TB_LMS_BBS_ATCL_CMNT
-		WHERE ATCL_ID = #{atclId} 
+		WHERE ATCL_ID = #{atclId}
+	</delete>
+
+	<select id="selectBbsAtclCmntList" parameterType="bbsCmntVO" resultType="bbsCmntVO">
+		/*
+			SQL ID : BbsCmntDAO.selectBbsAtclCmntList
+			설  명 : 게시판 게시글 댓글목록 조회
+		*/
+		<include refid="bbsAtclCmntListQuery" />
+	</select>
+
+	<select id="bbsAtclCmntCnt" resultType="int">
+		/*
+             SQL ID : BbsViewDAO.bbsAtclCmntCnt
+             설  명 : 게시판 조회자 목록 수
+         */
+	    SELECT COUNT(*)
+	      FROM TB_LMS_BBS_ATCL_CMNT
+	     WHERE ATCL_CMNT_ID = #{atclCmntId}
+	</select>
+
+	<insert id="bbsAtclCmntRegist" parameterType="bbsCmntVO">
+		/*
+             SQL ID : BbsCmntDAO.bbsAtclCmntRegist
+             설  명 : 게시글 댓글 정보 저장
+         */
+	    INSERT INTO TB_LMS_BBS_ATCL_CMNT (
+	        ATCL_CMNT_ID,
+	        ATCL_ID,
+	        USER_ID,
+	        UP_ATCL_CMNT_ID,
+	        ATCL_CMNT_CTS,
+	        EMTICN_NO,
+	        RGTR_ID,
+	        REG_DTTM
+	    ) VALUES (
+	        #{atclCmntId},
+	        #{atclId},
+	        #{userId},
+	        #{upAtclCmntId},
+	        #{atclCmntCts},
+	        #{emticnNo},
+	        #{rgtrId},
+	        FN_DTTM()
+	    )
+	</insert>
+
+	<update id="bbsAtclCmntModify" parameterType="bbsCmntVO">
+		/*
+             SQL ID : BbsAtclDAO.bbsAtclCmntModify
+             설  명 : 게시글 답변 정보 수정
+         */
+	    UPDATE TB_LMS_BBS_ATCL_CMNT
+	       SET ATCL_CMNT_CTS = #{atclCmntCts},
+	           MOD_DTTM = FN_DTTM()
+	     WHERE ATCL_CMNT_ID = #{atclCmntId}
+	</update>
+
+	<delete id="updateBbsAtclCmntDelYn" parameterType="bbsAtclVO">
+		/*
+             SQL ID : BbsAtclDAO.updateBbsAtclCmntDelYn
+             설  명 : 게시글 삭제
+         */
+		UPDATE TB_LMS_BBS_ATCL_CMNT
+		SET
+			  DELYN = 'Y'
+			, MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+		WHERE 1=1
+		  AND ATCL_CMNT_ID = #{atclCmntId}
 	</delete>
 </mapper>

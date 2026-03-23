@@ -3,6 +3,10 @@
 
 <c:if test="${pageType ne 'iframe' or param.view eq 'on'}">
 
+<c:set var="orgId" value="${orgId}"/>
+<c:set var="userId" value="${userId}"/>
+<c:set var="authrtGrpcd" value="${authrtGrpcd}"/>
+
 <div id="key_access">
     <ul>
         <li><a href="#gnb" title="주메뉴 위치로 바로가기">주메뉴 바로가기</a></li>
@@ -14,7 +18,6 @@
 <div id="loading_page">
     <p><i class="notched circle loading icon"></i></p>
 </div>
-
 
 <header class="common">
 	<button type="button" class="btn mobile-elem ctrl-gnb" aria-label="모바일 메뉴 버튼"><i class="icon-svg-menu fs-18px" aria-hidden="true"></i></button>
@@ -51,7 +54,7 @@
 					<span>드래그하여 위젯을 원하는 위치로 이동하세요.</span>
 				</div>
 				<div class="btns">
-					<button type="button" class="btn type5" onclick="widgetStngChange()">저장</button>
+					<button type="button" class="btn type5" onclick="widgetStngChange1()">저장</button>
 					<button type="button" class="btn gray2" onclick="closeModal()">취소</button>
 					<button type="button" class="btn gray2" onclick="widgetReset()">초기화</button>
 				</div>
@@ -75,7 +78,11 @@
 
 				function widgetStngPopView() {
 				    var url = "/dashboard/widgetStngPopView.do";
-				    var data = {};
+				    var data = {
+				    	orgId: "${orgId}",
+				    	userId: "${userId}",
+				        authrtGrpcd: "${authrtGrpcd}"
+				    };
 
 				    ajaxCall(url, data, function(res) {
 				        if(res.sessChkYn == 'Y') {
@@ -94,11 +101,9 @@
 				                html += "    <span>사용할 위젯을 선택하세요</span>";
 				                html += "</div>";
 
-				                // 리스트 컨테이너
 				                html += "<div class='widget-list-container' style='margin-top:10px;'>";
 
 				                $.each(widgetList, function(index, item) {
-				                    // [핵심 수정] pvsnyn 값이 'Y'이면 checked 속성 추가
 				                    var checkedAttr = (item.pvsnyn === 'Y') ? "checked" : "";
 
 				                    html += "    <div class='widget-item' style='margin-bottom:8px;'>";
@@ -135,7 +140,10 @@
 				function widgetStngColrPopView() {
 					// 과제 유형에 따라 URL 분기(개인, 팀)
 			        var url = "/dashboard/widgetStngColrPopView.do";
-					var data = {};
+					var data = {
+							orgId: "${orgId}",
+							userId: "${userId}"
+					    };
 
 					ajaxCall(url, data, function(res) {
 						if(res.sessChkYn == 'Y') {
@@ -232,9 +240,29 @@
 				document.querySelector('[aria-label="축소"]').addEventListener('click', zoomOut);
 				document.querySelector('[aria-label="새로고침"]').addEventListener('click', zoomReset);
 
-				function widgetStngChange() {
-				    // 1. 현재 GridStack 레이아웃 정보 가져오기
-				    const currentLayout = grid.save(true);
+				function widgetStngChange1() {
+					let internalGrid = null;
+
+				    $('.grid-stack, .grid-stack-instance, #dashboardWidget div').each(function() {
+				        const gridObj = this.gridstack || $(this).data('gridstack') || $(this).data('grid-stack');
+				        if (gridObj) {
+				            internalGrid = gridObj;
+				            return false;
+				        }
+				    });
+
+				    if (!internalGrid && typeof GridStack !== 'undefined') {
+				        try {
+				            internalGrid = GridStack.get() || GridStack.engine;
+				        } catch(e) {}
+				    }
+
+				    if (!internalGrid) {
+				        alert("위젯 설정 정보를 불러올 수 없습니다. 화면 로딩 후 다시 시도해주세요.");
+				        return;
+				    }
+
+				    const currentLayout = internalGrid.save(true);
 				    var updatedList = [];
 
 				    // 2. 체크박스 순회
@@ -298,7 +326,8 @@
 						if (result) {
 							var url = "/dashboard/widgetStngReset.do";
 			    			var data = {
-			    				  userId	: "${userId}"
+			    				orgId	: "${orgId}",
+			    				userId	: "${userId}"
 			    			};
 
 			    			ajaxCall(url, data, function(res) {
@@ -323,10 +352,10 @@
                 <div class="btn-more"><a href="#0"><i class="icon-svg-plus"></i></a></div>
                 <!--tab-type1-->
                 <nav class="tab-type1">
-                    <a href="#tab1" class="btn current" data-chnl="PUSH"><span>PUSH</span><small class="msg_num" id="headerPushCnt">0</small></a>
-                    <a href="#tab2" class="btn" data-chnl="SMS"><span>SMS</span><small class="msg_num" id="headerSmsCnt">0</small></a>
-                    <a href="#tab3" class="btn" data-chnl="SHRTNT"><span><spring:message code='msg.title.msg.shrtnt'/></span><small class="msg_num" id="headerShrtntCnt">0</small></a>
-                    <a href="#tab4" class="btn" data-chnl="ALIM_TALK"><span><spring:message code='msg.title.msg.alimTalk'/></span><small class="msg_num" id="headerAlimtalkCnt">0</small></a>
+                    <a href="#tab1" class="btn current" data-chnl="PUSH"><span><img src="/webdoc/assets/img/common/alrim_icon_push.svg" aria-hidden="true" alt="PUSH"></span><small class="msg_num" id="headerPushCnt">0</small></a>
+                    <a href="#tab2" class="btn" data-chnl="SMS"><span><img src="/webdoc/assets/img/common/alrim_icon_sms.svg" aria-hidden="true" alt="SMS"></span><small class="msg_num" id="headerSmsCnt">0</small></a>
+                    <a href="#tab3" class="btn" data-chnl="SHRTNT"><span><img src="/webdoc/assets/img/common/alrim_icon_msg.svg" aria-hidden="true" alt="<spring:message code='msg.title.msg.shrtnt'/>"></span><small class="msg_num" id="headerShrtntCnt">0</small></a>
+                    <a href="#tab4" class="btn" data-chnl="ALIM_TALK"><span><img src="/webdoc/assets/img/common/alrim_icon_talk.svg" aria-hidden="true" alt="<spring:message code='msg.title.msg.alimTalk'/>"></span><small class="msg_num" id="headerAlimtalkCnt">0</small></a>
                 </nav>
 
                 <div class="scrollarea">
@@ -472,7 +501,7 @@
                     if (list && list.length > 0) {
                         $.each(list, function(idx, item) {
                             var name = item.sbjctnm || item.sndngnm || '';
-                            var date = UiComm.formatDate(item.sndngDttm, "datetime");
+                            var date = UiComm.formatDate(item.sndngDttm, "datetime2");
                             var title = item.sndngTtl || '';
                             var readLabel = (item.readYn === 'N')
                                 ? '<label class="label check_no">' + MSG_ALIM_UNREAD + '</label>'

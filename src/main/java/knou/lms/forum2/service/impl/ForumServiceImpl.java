@@ -279,6 +279,17 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
     }
 
     /**
+     * 학습그룹 팀 목록 조회 (팀 토론 부주제 설정용)
+     */
+    @Override
+    public ProcessResultVO<Forum2TeamDscsVO> selectForumLrnGrpTeamList(Forum2TeamDscsVO vo) throws Exception {
+        ProcessResultVO<Forum2TeamDscsVO> resultVO = new ProcessResultVO<>();
+        List<Forum2TeamDscsVO> list = forumDAO.selectForumLrnGrpTeamList(vo);
+        resultVO.setReturnList(list);
+        return resultVO;
+    }
+
+    /**
      * 토론복사
      * @param vo
      * @return

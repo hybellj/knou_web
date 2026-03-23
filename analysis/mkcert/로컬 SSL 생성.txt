@@ -1,0 +1,49 @@
+로컬PC 에 개발용 SSL 인증서 설치
+
+
+1) 컴퓨터에 로컬CA 설치
+ > mkcert.exe -install
+
+2) 인증서 파일 생성 : 생성할 여러 도메인 IP 등을 입력
+ > mkcert.exe localhost 127.0.0.1 *.edutrack.kr
+
+ 생성된 인증서 파일을 Tomcat work 의 ssl 폴더에 생성된 인증서 파일 복사
+   (C:\knou_dev\tomcat-work\knou_dev\ssl)
+
+3) Tomcat 설정
+ - server.xml 설정
+    <Connector port="443" protocol="org.apache.coyote.http11.Http11NioProtocol"
+               maxThreads="150" SSLEnabled="true"
+               maxParameterCount="1000"
+               >
+        <SSLHostConfig>
+            <Certificate certificateKeyFile="ssl/localhost-key.pem"
+                         certificateFile="ssl/localhost.pem"
+                         type="RSA" />
+        </SSLHostConfig>
+    </Connector>
+-----
+[intellij]
+- edit configuraiton : 80 , ssl port : 443
+[smart-tomcat]
+- project/.smarttomcat/knou_dev/confi/server.xml 설정.
+    <Connector port="80" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="443"
+               maxParameterCount="1000"
+               />
+    <Connector
+            protocol="org.apache.coyote.http11.Http11NioProtocol"
+            port="443"
+            maxThreads="200"
+            scheme="https"
+            secure="true"
+            SSLEnabled="true">
+
+      <SSLHostConfig>
+        <Certificate
+                certificateFile="ssl\localhost.pem"
+                certificateKeyFile="ssl\localhost-key.pem"
+                type="RSA" />
+      </SSLHostConfig>
+    </Connector>

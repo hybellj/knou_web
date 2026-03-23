@@ -9,26 +9,24 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import knou.framework.common.*;
+import knou.framework.exception.MediopiaDefineException;
 import knou.framework.util.*;
-import knou.lms.bbs.vo.BbsAtclVO;
-import knou.lms.bbs.vo.BbsInfoVO;
 import knou.lms.crs.crecrs.service.CrecrsService;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
-import knou.lms.erp.vo.ErpMessageMsgVO;
 import knou.lms.forum.vo.*;
 import knou.lms.forum2.service.ForumFdbkService;
 import knou.lms.forum2.service.ForumJoinUserService;
 import knou.lms.forum.web.ForumLectController;
 import knou.lms.forum2.vo.Forum2TeamDscsVO;
 import knou.lms.log.userconn.service.LogUserConnService;
-import knou.lms.std.vo.StdVO;
+import knou.lms.subject2.service.SubjectServiceImpl;
+import knou.lms.subject2.vo.SubjectVO;
 import knou.lms.team.service.TeamCtgrService;
 import knou.lms.team.service.TeamMemberService;
 import knou.lms.team.service.TeamService;
 import knou.lms.team.vo.TeamCtgrVO;
 import knou.lms.team.vo.TeamMemberVO;
 import knou.lms.team.vo.TeamVO;
-import knou.lms.user.vo.UsrUserInfoVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -254,6 +252,23 @@ public class Forum2LectController extends ControllerBase {
             resultVO.setResultFailed(e.getMessage());
         }
 
+        return resultVO;
+    }
+
+    /**
+     * 학습그룹 팀 목록 조회 (팀 토론 부주제 설정용)
+     */
+    @RequestMapping(value = "/profForumLrnGrpTeamListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<Forum2TeamDscsVO> profForumLrnGrpTeamListAjax(
+            Forum2TeamDscsVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<Forum2TeamDscsVO> resultVO = new ProcessResultVO<>();
+        try {
+            resultVO = forum2Service.selectForumLrnGrpTeamList(vo);
+            resultVO.setResultSuccess();
+        } catch (Exception e) {
+            resultVO.setResultFailed(e.getMessage());
+        }
         return resultVO;
     }
 
@@ -1284,6 +1299,7 @@ public class Forum2LectController extends ControllerBase {
     public String forumScoreExcelUploadPop(ForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
+        vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
 
         model.addAttribute("vo", vo);
         model.addAttribute("userId", userId);
@@ -1341,6 +1357,9 @@ public class Forum2LectController extends ControllerBase {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
+        String uploadFiles = vo.getUploadFiles();
+        String uploadPath = vo.getUploadPath();
+
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         vo.setRgtrId(userId);
         vo.setMdfrId(userId);
@@ -1349,14 +1368,16 @@ public class Forum2LectController extends ControllerBase {
 
         ProcessResultVO<ForumJoinUserVO> resultVO = new ProcessResultVO<>();
         try {
-            FileVO fileVO = new FileVO();
-            fileVO.setUploadFiles(vo.getUploadFiles());
-            fileVO.setCopyFiles(vo.getCopyFiles());
-            fileVO.setFilePath(vo.getUploadPath());
-            fileVO.setRepoCd(vo.getRepoCd());
-            fileVO.setRgtrId(vo.getRgtrId());
+            List<FileVO> fileList = FileUtil.getUploadFileList(uploadFiles);
+            FileVO fileVO = null;
 
-            fileVO = sysFileService.addFile(fileVO);
+            if(fileList != null && !fileList.isEmpty() && fileList.size() > 0) {
+                fileVO = fileList.get(0);
+
+                String fileExt = FileUtil.getFileExtention(fileVO.getFileNm());
+                fileVO.setFilePath(uploadPath);
+                fileVO.setFileSaveNm(fileVO.getFileSaveNm() + "." + fileExt);
+            }
 
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put("startRaw", 4);
@@ -1370,8 +1391,17 @@ public class Forum2LectController extends ControllerBase {
             forum2JoinUserService.updateExampleExcelScore(vo, list, forumCtgrCd);
 
             resultVO.setResult(1);
-        } catch(Exception e) {
+        } catch (MediopiaDefineException e) {
             resultVO.setResult(-1);
+            resultVO.setMessage(e.getMessage());
+        } catch (Exception e) {
+            LOGGER.debug("e: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        } finally {
+            if(ValidationUtils.isNotEmpty(uploadFiles) && ValidationUtils.isNotEmpty(uploadPath)) {
+                FileUtil.delUploadFileList(uploadFiles, uploadPath);
+            }
         }
         return resultVO;
     }

@@ -15,13 +15,10 @@
 	<%@ include file="/WEB-INF/jsp/bbs/common/bbs_common_inc.jsp" %>
 
 	<script type="text/javascript">
-		var USER_NO 		= '<c:out value="${USER_NO}" />';
-		var HAKSA_YEAR 		= '<c:out value="${bbsVO.haksaYear}" />';
-		var HAKSA_TERM		= '<c:out value="${bbsVO.haksaTerm}" />';
-		var BBS_CD 			= '<c:out value="${bbsVO.bbsTycd}" />';
-		var CRS_CRE_CD		= '<c:out value="${param.crsCreCd}" />';
-		var TEAM_CTGR_CD	= '<c:out value="${param.teamCtgrCd}" />';
-		var TEAM_CD			= '<c:out value="${param.teamCd}" />';
+		var USER_ID 		= '<c:out value="${USER_ID}" />';
+		var ORG_ID 			= '<c:out value="${bbsVO.orgId}" />';
+		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
+		var BBS_TYCD 		= '<c:out value="${bbsVO.bbsTycd}" />';
 		var SEARCH_VALUE	= '<c:out value="${param.searchValue}" />';
 		var PAGE_INDEX		= '<c:out value="${bbsVO.pageIndex}" />';
 		var LIST_SCALE		= '<c:out value="${bbsVO.listScale}" />';
@@ -31,7 +28,7 @@
 		var BBS_IDS;
 		var BBS_HOME_UNIV_GBNS = ""; // bbsHome 의 전체공지 조회용 대학구분 코드
 		var EPARAM			= '<c:out value="${eparam}" />';
-
+		var ATCL_LV			= 1;
 
 		$(document).ready(function() {
 			$("#searchValue").on("keydown", function(e) {
@@ -41,16 +38,16 @@
 			});
 
 			if(bbsCommon.isStudent()) {
-				if(BBS_CD == "TEAM") {
+				if(BBS_TYCD == "TEAM") {
 					// 팀 게시판 ID ',' 구분자
 					BBS_IDS = '<c:out value="${teamBbsIds}" />';
 				} else {
 					BBS_IDS = BBS_ID;
 				}
 			} else {
-				if(BBS_CD == "ALARM") {
+				if(BBS_TYCD == "ALARM") {
 					BBS_IDS = '<c:out value="${alarmBbsIds}" />';
-				} else if(BBS_CD == "TEAM") {
+				} else if(BBS_TYCD == "TEAM") {
 					// 팀 게시판 ID ',' 구분자
 					BBS_IDS = '<c:out value="${teamBbsIds}" />';
 				} else {
@@ -80,31 +77,27 @@
 
 			let basicOptn = `<option value='ALL'><spring:message code="crs.label.open.term" /></option>`;	// 학기
 
-			$.ajax({
-				url  : "/crs/termMgr/smstrListByDgrsYr.do",
-				data : {
+			var url = "/crs/termMgr/smstrListByDgrsYr.do";
+			var data = {
 					dgrsYr 	: $("#sbjctYr").val()
-				<%--	,orgId	: $("#orgId").val() --%>
-				},
-				type : "GET",
-				success: function(data) {
-					if (data.result > 0) {
-						var resultList = data.returnList;
-						if (resultList.length > 0) {
-							$sbjctSmstr.append(basicOptn);
-							$.each(resultList, function(i, smstrChrtVO) {
-								$sbjctSmstr.append(`<option value="\${smstrChrtVO.smstrChrtId}">\${smstrChrtVO.smstrChrtnm}</option>`);
-								/* $sbjctSmstr.append('<option'+' value="'+smstrChrtVO.smstrChrtId+'" >' + smstrChrtVO.smstrChrtnm + '</option>'); */
-							})
-						}
-					}else {
-						alert(data.message);
+			};
+
+			ajaxCall(url, data, function(data) {
+				if(data.result > 0) {
+					var resultList = data.returnList;
+					if (resultList.length > 0) {
+						$sbjctSmstr.append(basicOptn);
+						$.each(resultList, function(i, smstrChrtVO) {
+							$sbjctSmstr.append(`<option value="\${smstrChrtVO.smstrChrtId}">\${smstrChrtVO.smstrChrtnm}</option>`);
+						})
 					}
-				},
-				error: function(xhr, status, error) {
-					alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
+				} else {
+					UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
 				}
-			});
+			},
+			function(xhr, status, error) {
+    			UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
+    		}, true);
 		}
 
 		// 팀분류 Select 변경
@@ -171,7 +164,7 @@
 	        		}
 	        	}
 			}, function(xhr, status, error) {
-				alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
+				UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
 			});
 		}
 
@@ -183,18 +176,22 @@
 			var extData = {
 					pageIndex		: pageIndex
 					, listScale		: LIST_SCALE
+					, sbjctYr		: $("#sbjctYr").val()
+					, sbjctSmstr	: $("#sbjctSmstr").val()
+					, orgId			: $("#orgId").val()
+					, deptId		: $("#deptId").val()
+					, sbjctId		: $("#sbjctId").val()
+					, atclLv	    : ATCL_LV
 					, searchValue 	: SEARCH_VALUE
-					, haksaYear		: $("#haksaYear").val()
-					, haksaTerm		: $("#haksaTerm").val()
 			};
 
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do"
-			var param = {
+			var data = {
 				  eparam		: EPARAM
-				, extParam		: makeExtParam(extData)
+				, extParam		: UiComm.makeExtParam(extData)
 			};
 
-			ajaxCall(url, param, function(data) {
+			ajaxCall(url, data, function(data) {
 				if (data.eparam != null && data.eparam != '') {
 					EPARAM = data.eparam;
 				}
@@ -208,10 +205,10 @@
 	        		atclListTable.replaceData(dataList);
 	        		atclListTable.setPageInfo(data.pageInfo);
 	            } else {
-	             	alert(data.message);
+	            	UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
 	            }
 			}, function(xhr, status, error) {
-				alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
+				UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
 			}, true);
 		}
 
@@ -219,20 +216,20 @@
 		function moveWriteAtcl() {
 			var queryInfo = {};
 
-			if(BBS_CD) {
-				queryInfo.bbsId = BBS_CD;
+			if(BBS_TYCD) {
+				queryInfo.bbsId = BBS_TYCD;
 			}
 
 			if(CRS_CRE_CD) {
 				queryInfo.crsCreCd = CRS_CRE_CD;
 			}
 
-			if(BBS_CD == "TEAM" && $("#teamCtgrCd").val() && $("#teamCd").val()) {
+			if(BBS_TYCD == "TEAM" && $("#teamCtgrCd").val() && $("#teamCd").val()) {
 				queryInfo.teamCtgrCd = $("#teamCtgrCd").val();
 				queryInfo.teamCd	 = $("#teamCd").val();
 			}
 
-			if(BBS_CD != "TEAM") {
+			if(BBS_TYCD != "TEAM") {
 				queryInfo.bbsId = BBS_IDS.split(",")[0];
 			}
 
@@ -276,7 +273,7 @@
 			let dataList = [];
 
 			if(atclList.length == 0) {
-				return listData;
+				return dataList;
 			} else {
 				var bbsTycd = '<c:out value="${bbsInfoVO.bbsTycd}" />';
 				atclList.forEach(function(v, i) {
@@ -321,16 +318,16 @@
 						atclTtl = '<span class="fcGrey" style="text-decoration: line-through">' + atclTtl + '</span>';
 					}
 
-					var extParam = makeExtParam({
+					var extParam = UiComm.makeExtParam({
 						atclId: v.atclId,
 						pageIndex: PAGE_INDEX,
 						listScale: LIST_SCALE
 					});
 
-					if(bbsCommon.isStudent() && v.bbsCd == "SECRET" && v.regNo != USER_NO) {
+					if(bbsCommon.isStudent() && v.bbsCd == "SECRET" && v.regNo != USER_ID) {
 						var linkUrl = 'javascript:alert(' + '<spring:message code="bbs.alert.no_auth_secret" />' + ')'; // 1:1상담 게시글 입니다.
 					} else {
-						var linkUrl = "/bbs/" + TEMPLATE_URL + "/Form/atclView.do?eparam="+EPARAM+"&extParam="+extParam;
+						var linkUrl = "/bbs/" + TEMPLATE_URL + "/bbsDscsnView.do?eparam="+EPARAM+"&extParam="+extParam;
 					}
 
 					var isSingleTab = BBS_IDS && BBS_IDS.split(",").length == 1;
@@ -365,7 +362,7 @@
 					}
 
 					var atclTitleStr = viewYn == "Y" ? "<span class='fcGrey'>"+atclTtl+"</span>" : atclTtl;
-					title += 			atclTitleStr + (v.isNew == "Y" && v.answerYn != "Y" && v.viewYn != "Y" ? '<i class="text-new"><spring:message code="bbs.label.new_atcl" /></i>' : '') + ansIcon;
+					title += 			atclTitleStr + (v.isNew == "Y" && v.answerYn != "Y" && v.viewYn != "Y" ? ' <i class="xi-new icon" aria-hidden="true"></i>' : '') + ansIcon;
 					title += '</a>';
 
 					let attach = "";
@@ -375,10 +372,14 @@
 
 					dataList.push({
 						no: col0,
+						orgnm: v.orgnm,
+						deptnm: v.deptnm,
+						sbjctnm: v.sbjctnm,
+						dvclasNo: v.dvclasNo,
 						title: title,
 						regDate: v.regDttm,
 						regNm: v.rgtrnm,
-						attach: attach,
+						attach: v.fileCnt > 0 ? "<i class='icon-svg-paperclip' aria-hidden='true'></i>" : "",
 						hits: v.inqCnt,
 						comment: v.cmntCnt,
 						valAtclId: v.atclId,
@@ -414,6 +415,7 @@
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <div class="dashboard_sub">
+
                     <div class="sub-content">
                         <div class="page-info">
                             <h2 class="page-title">${bbsVO.bbsNm}</h2>
@@ -432,40 +434,51 @@
                                 <span class="item_tit"><label for="selectDate">학사년도/학기</label></span>
                                 <select class="ui dropdown" id="sbjctYr" onchange="changeSmstrChrt()">
 									<option value=""><spring:message code="crs.label.open.year" /></option><!-- 개설년도 -->
-									<c:forEach var="item" items="${yearList }">
+									<c:forEach var="item" items="${filterOptions.yearList}">
 										<option value="${item }" ${item eq curSmstrChrtVO.dgrsYr ? 'selected' : '' }>${item }</option>
 									</c:forEach>
 								</select>
 								<select class="ui dropdown" id="sbjctSmstr"><!-- 개설학기 -->
 									<option value=""><spring:message code="crs.label.open.term" /></option>
-									<c:forEach var="list" items="${smstrChrtList }">
-										<%-- <option value="${list.smstrChrtId }" ${list.dgrsSmstrChrt eq curSmstrChrtVO.dgrsSmstrChrt ? 'selected' : '' }>${list.smstrChrtnm }</option> --%>
+									<c:forEach var="list" items="${filterOptions.smstrChrtList}">
 										<option value="${list.smstrChrtId }">${list.smstrChrtnm }</option>
 									</c:forEach>
 								</select>
                             </div>
+
                             <div class="item">
                                 <span class="item_tit"><label for="selectCourse">운영과목</label></span>
-                                <div class="itemList">
-                                    <select class="form-select" id="selectCourse">
-                                        <option value="대학원">대학원</option>
-                                        <option value="평생교육">평생교육</option>
-                                    </select>
-                                    <select class="form-select wide" id="selectSubject">
-                                        <option value="">운영과목 선택</option>
-                                        <option value="운영과목1">운영과목1</option>
-                                        <option value="운영과목2">운영과목2</option>
-                                    </select>
-                                </div>
+
+                                <select class="ui dropdown" id="orgId">
+							        <option value=""><spring:message code="bbs.label.org" /></option>
+							        <c:forEach var="list" items="${filterOptions.orgList}">
+							            <option value="${list.orgId}">${list.orgnm}</option>
+							        </c:forEach>
+							    </select>
+
+								<select class="ui dropdown" id="deptId">
+							        <option value=""><spring:message code="bbs.label.dept" /></option>
+							        <c:forEach var="list" items="${filterOptions.deptList}">
+							            <option value="${list.deptId}">${list.deptnm}</option>
+							        </c:forEach>
+							    </select>
+
+							    <select class="ui dropdown" id="sbjctId">
+							        <option value=""><spring:message code="bbs.label.sbjct" /></option>
+							        <c:forEach var="list" items="${filterOptions.sbjctList}">
+							            <option value="${list.sbjctId}">${list.sbjctnm}</option>
+							        </c:forEach>
+							    </select>
                             </div>
+
                             <div class="item">
-                                <span class="item_tit"><label for="selectSearch">검색어</label></span>
+                                <span class="item_tit"><label for="searchValue"><spring:message code='common.search.keyword'/></label></span><%-- 검색어 --%>
                                 <div class="itemList">
-                                    <input class="form-control wide" type="text" name="" id="inputSearch1" value="" placeholder="작성자/제목 입력">
+                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${param.searchValue}" placeholder="<spring:message code='bbs.common.placeholder'/>"><%-- 작성자/제목/키워드 --%>
                                 </div>
                             </div>
                             <div class="button-area">
-                                <button type="button" class="btn search">검색</button>
+                                <button type="button" class="btn search" onclick="listPaging(1)"><spring:message code='button.search'/></button><%-- 검색 --%>
                             </div>
                         </div>
 
@@ -473,7 +486,6 @@
 									<div class="board_top">
 			                            <h3 class="board-title">-</h3>
 			                            <div class="right-area">
-			                                <button type="button" class="btn type2" style="white-space: nowrap;">등록</button>
 
 											<%-- 리스트/카드 선택 버튼 --%>
 											<span class="list-card-button"></span>
@@ -481,26 +493,13 @@
 											<%-- 목록 스케일 선택 --%>
 											<uiex:listScale func="changeListScale" value="${bbsVO.listScale}" />
 			                            </div>
-			 								<script>
-			 									function testLoading() {
-													// 로딩 보이기
-													UiComm.showLoading(true);
-													//UiComm.showLoading(true, "로딩중 메시지 표시...");
-
-													// 10초에 로딩 닫기 테스트
-													setTimeout(function(){
-														// 로딩 닫기
-														UiComm.showLoading(false);
-													}, 10000);
-			 									}
-			 								</script>
 			                        </div>
 
-									<%-- 게시글 리스트 --%>
-									<div id="atclList"></div>
+			                        <%-- 게시글 리스트 --%>
+									<div id="bbsAtclDscsnList"></div>
 
 									<%-- 게시글 리스트 카드 폼 --%>
-									<div id="atclList_cardForm" style="display:none">
+									<div id="bbsAtclDscsnList_cardForm" style="display:none">
 										<div class="card-header">
 											#[label]
 											<div class="card-title">
@@ -519,21 +518,29 @@
 												<p><label class="label-title"><spring:message code='bbs.label.comment'/></label><strong>#[comment]</strong></p>
 											</div>
 										</div>
-
-										<!-- <div class="bottom_button">
-											<button class="btn basic small">상세</button>
-										</div> -->
 									</div>
 
 									<script>
 									// 게시글 리스트 테이블
-									let atclListTable = UiTable("atclList", {
+									let atclListTable = UiTable("bbsAtclDscsnList", {
 										lang: "ko",
+										//tableMode: "list",
+										//rowHeight: 30,
+										//height: 400,
+										//selectRow: "checkbox",
+										//selectRow: "1",
+										//selectRowFunc: checkRowSelect,
+										//sortFunc: atclListTableSort,
+										//initialSort: [{column:"regDate", dir:"desc"}],
 										pageFunc: listPaging,
 										columns: [
 											{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
-											{title:"<spring:message code='bbs.label.form_title'/>", field:"title",		headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200},	// 제목
-											{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDate", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	formatter:"date"},	// 등록일자
+											{title:"<spring:message code='bbs.label.org'/>", 		field:"orgnm",		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 기관
+											{title:"<spring:message code='bbs.label.dept'/>", 		field:"deptnm",		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 학과
+											{title:"<spring:message code='bbs.label.sbjct'/>", 		field:"sbjctnm",	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 과목
+											{title:"<spring:message code='bbs.label.class'/>", 		field:"dvclasNo",	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:40},	// 분반
+											{title:"<spring:message code='bbs.label.form_title'/>", field:"title",		headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200, 	headerSort:true},	// 제목
+											{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDate", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	headerSort:true,	formatter:"date"},	// 등록일자
 											{title:"<spring:message code='bbs.label.reg_user'/>", 	field:"regNm", 		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 작성자
 											{title:"<spring:message code='bbs.label.attach'/>", 	field:"attach", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 첨부
 											{title:"<spring:message code='bbs.label.view'/>", 		field:"hits", 		headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 조회
@@ -541,10 +548,29 @@
 										]
 									});
 
+									function atclListTableSort(sortInfo) {
+										console.log("field="+sortInfo.field+", dir="+sortInfo.dir);
+
+										listPaging(1);
+									}
+
+									function checkSelect() {
+										// 선택된값 array로 가져온다.
+										let data = atclListTable.getSelectedData("valAtclId"); // "valAtclId" 키로 설정된 값
+										alert(data);
+									}
+
+									function checkRowSelect(data) {
+										let value = data["valAtclId"]; // "valAtclId" 키로 설정된 값
+										alert(value);
+									}
+
+									function changePage(page) {
+										alert("페이지 "+page);
+									}
+
 									</script>
 								</div>
-
-
                     </div>
 
                 </div>

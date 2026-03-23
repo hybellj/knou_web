@@ -348,6 +348,13 @@ public interface DashboardDAO {
      ******************************************************/
     public EgovMap widgetStngPopView(DashboardVO vo) throws Exception;
     public EgovMap widgetStngColrPopView(DashboardVO vo) throws Exception;
+    
+    /*****************************************************
+     * 사용자 기본 위젯 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void widgetDefaultInsert(DashboardVO vo) throws Exception;
 
     /*****************************************************
      * 관리자 메인 > 사용자 검색

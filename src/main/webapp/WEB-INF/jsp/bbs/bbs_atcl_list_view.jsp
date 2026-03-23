@@ -139,12 +139,18 @@
 
 		// 게시글 조회
 		function listPaging(pageIndex) {
+			ORG_ID       = $("#orgId").val();
+			SEARCH_SDTTM = $("#searchSdttm").val();
+			SEARCH_EDTTM = $("#searchEdttm").val();
 			SEARCH_VALUE = $("#searchValue").val();
 			PAGE_INDEX = pageIndex;
 
 			var extData = {
 					pageIndex		: pageIndex
 					, listScale		: LIST_SCALE
+					, orgId         : ORG_ID
+					, searchSdttm   : SEARCH_SDTTM
+					, searchEdttm   : SEARCH_EDTTM
 					, searchValue 	: $("#searchValue").val()
 			};
 
@@ -324,10 +330,28 @@
 
                         <!-- search typeA -->
                         <div class="search-typeA">
+
+                        	<div class="item">
+                        		<span class="item_tit"><label for="selectSdttm">조회기간</label></span>
+	                        	<input type="text" id="searchSdttm" name="searchSdttm" class="datepicker" toDate="searchEdttm">
+								<span class="txt-sort">~</span>
+								<input type="text" id="searchEdttm" name="searchEdttm" class="datepicker" fromDate="searchSdttm">
+							</div>
+                        	<div class="item">
+                        		<span class="item_tit"><label for="selectOrg">기관</label></span>
+	                        	<select class="ui dropdown" id="orgId">
+								   <option value=""><spring:message code="bbs.label.org" /></option>
+								   <c:forEach var="list" items="${filterOptions.orgList}">
+								       <option value="${list.orgId}">${list.orgnm}</option>
+								   </c:forEach>
+								</select>
+						    </div>
+
                             <div class="item">
                                 <span class="item_tit"><label for="searchValue"><spring:message code='common.search.keyword'/></label></span><%-- 검색어 --%>
+
                                 <div class="itemList">
-                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${bbsVO.searchValue}" placeholder="<spring:message code='bbs.common.placeholder'/>"><%-- 작성자/제목/키워드 --%>
+                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${param.searchValue}" placeholder="<spring:message code='bbs.common.placeholder'/>"><%-- 작성자/제목/키워드 --%>
                                 </div>
                             </div>
                             <div class="button-area">
@@ -339,6 +363,7 @@
 							<div class="board_top">
 	                            <h3 class="board-title">공지사항</h3>
 	                            <div class="right-area">
+									<button type="button" class="btn type2" onclick="checkSelect()" style="white-space: nowrap;">선택데이터확인</button>
 	                                <button type="button" class="btn type1" style="white-space: nowrap;" onclick="moveWriteAtcl()"><spring:message code="bbs.button.write" /></button><%-- 글쓰기 --%>
 
 									<%-- 리스트/카드 선택 버튼 --%>
@@ -385,16 +410,16 @@
 								//tableMode: "list",
 								//rowHeight: 30,
 								//height: 400,
-								//selectRow: "checkbox",
+								selectRow: "checkbox",
 								//selectRow: "1",
 								//selectRowFunc: checkRowSelect,
-								//sortFunc: atclListTableSort,
-								//initialSort: [{column:"regDttm", dir:"desc"}],
+								sortFunc: atclListTableSort,
+								initialSort: [{column:"regDate", dir:"desc"}],
 								pageFunc: listPaging,
 								columns: [
 									{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
-									{title:"<spring:message code='bbs.label.form_title'/>", field:"atclTtl",	headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200},	// 제목
-									{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDttm", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	formatter:"date"},	// 등록일자
+									{title:"<spring:message code='bbs.label.form_title'/>", field:"atclTtl",	headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200, 	headerSort:true},	// 제목
+									{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDttm", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	headerSort:true,	formatter:"date"},	// 등록일자
 									{title:"<spring:message code='bbs.label.reg_user'/>", 	field:"rgtrnm", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 작성자
 									{title:"<spring:message code='bbs.label.attach'/>", 	field:"attach", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 첨부
 									{title:"<spring:message code='bbs.label.view'/>", 		field:"inqCnt", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 조회
@@ -427,7 +452,6 @@
                 </div>
             </div>
             <!-- //content -->
-
 
             <!-- common footer -->
             <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>

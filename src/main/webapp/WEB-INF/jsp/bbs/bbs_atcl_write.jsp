@@ -15,10 +15,7 @@
 	<jsp:include page="/WEB-INF/jsp/bbs/common/bbs_common_inc.jsp"/>
 
 	<script type="text/javascript">
-        // 게시글 목록 이동
-        function moveAtclList() {
-            document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
-        }
+		var ATCL_ID 		= '<c:out value="${bbsAtclVO.atclId}" />';
 
     	// 저장 버튼
     	function saveConfirm() {
@@ -66,27 +63,15 @@
 
     	// 게시글 저장
     	function atclSave() {
-    		let dx = dx5.get("fileUploader");
+    		var dx = dx5.get("fileUploader");
     		$("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
 
-    		let url = "/bbs/${templateUrl}/bbsAtclSave.do";
-    		let data = $("#atclWriteForm").serialize();
+    		var url = "/bbs/${templateUrl}/bbsAtclSave.do";
+    		var returnUrl = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
+    		var data = $("#atclWriteForm").serialize();
 
-    		ajaxCall(url, data, function(data) {
-            	if(data.result > 0) {
-					UiComm.showMessage(data.message, "success")
-					.then(function(result) {
-						moveListPage();
-					});
-                } else {
-                	UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
-                }
-    		},
-    		function(xhr, status, error) {
-    			UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
-    		}, true);
+    		bbsCommon.regist(url, returnUrl, data);
     	}
-
 
     	// 목록화면 이동
     	function moveListPage() {
@@ -104,10 +89,6 @@
 
         <!-- dashboard -->
         <main class="common">
-
-            <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
-            <!-- //gnb -->
 
             <!-- content -->
             <div id="content" class="content-wrap common">
@@ -132,6 +113,7 @@
 								<input type="hidden" name="gubun"        id="gubun"       value="${bbsAtclVO.gubun}" />
 								<input type="hidden" name="uploadFiles"  id="uploadFiles" value="" />
 								<input type="hidden" name="uploadPath"   id="uploadPath"  value="${bbsVO.uploadPath}" />
+								<input type="hidden" name="atclId"       id="atclId" value="${bbsAtclVO.atclId}"/>
 								<input type="hidden" name="delFileIdStr" id="delFileIdStr"  value="" />
 
 							<table class="table-type5">
@@ -154,15 +136,16 @@
 												<dl>
 													<dd>
 														<div class="editor-box">
-															<%-- HTML 에디터 --%>
-															<uiex:htmlEditor
-																id="atclCts"
-																name="atclCts"
-																uploadPath="${bbsVO.uploadPath}"
-																value="${bbsAtclVO.atclCts}"
-																height="500px"
-																required="true"
-															/>
+															<label for="atclCts" class="hide">Content</label>
+															<textarea id="atclCts" name="atclCts" required="true"><c:out value="${bbsAtclVO.atclCts}"/></textarea>
+															<script>
+																// HTML 에디터
+																let editor = UiEditor({
+																	targetId: "atclCts",
+																	uploadPath: "${bbsVO.uploadPath}",
+																	height: "500px"
+																});
+															</script>
 														</div>
 													</dd>
 												</dl>
@@ -173,9 +156,8 @@
 										</td>
 									</tr>
 									<tr>
-										<th><label for="attchFile">첨부파일</label></th>
+										<th><label for="attchFile"><spring:message code="bbs.label.form_attach_file" /></label></th>
 										<td>
-											<%-- 파일업로더 --%>
 											<uiex:dextuploader
 												id="fileUploader"
 												path="${bbsVO.uploadPath}"

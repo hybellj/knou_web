@@ -1432,16 +1432,16 @@ public class QuizHomeController extends ControllerBase {
         //엑셀화
         HashMap<String, Object> modelMap = new HashMap<>();
         modelMap.put("outFileName", paperTitle);   // 학습자별 시험지 목록
-        modelMap.put("workbook", examStarePaperStdListExcel2(map, request));
+        modelMap.put("workbook", quizExampprBulkListExcel(map, request));
         modelMap.put("list", trgtrList);
         modelMap.put("qstnList", qstnList);
-        modelMap.put("sheetName", "examStarePaperStdList");
+        modelMap.put("sheetName", "quizExampprBulkList");
         model.addAllAttributes(modelMap);
 
         return "excelView";
     }
 
-    public SXSSFWorkbook examStarePaperStdListExcel2(HashMap<String, Object> map, HttpServletRequest request) {
+    public SXSSFWorkbook quizExampprBulkListExcel(HashMap<String, Object> map, HttpServletRequest request) {
 
         String title = StringUtil.nvl(map.get("title"));
         String sheetName = StringUtil.nvl(map.get("sheetName"), "sheet1");

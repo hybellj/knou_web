@@ -17,6 +17,7 @@ import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import knou.framework.common.CommConst;
 import knou.framework.common.ServiceBase;
 import knou.framework.common.SessionInfo;
+import knou.framework.util.IdGenerator;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.StringUtil;
 import knou.lms.bbs.vo.BbsAtclVO;
@@ -1026,14 +1027,20 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
 
     @Override
     public EgovMap widgetStngSelect(DashboardVO vo) throws Exception {
-    	// 로그인한 사용자가 변경한 내역이 있으면,
-        int cnt = dashboardDAO.widgetStngUseCntSelect(vo);
+    	EgovMap widgetMap = null;
 
-        if (cnt > 0) {
-        	return dashboardDAO.widgetStngSelect(vo);
-        } else {
-        	return dashboardDAO.widgetDefaultStngSelect(vo);
-        }
+    	if (vo.getUserId() != null && !"".equals(vo.getUserId())) {
+	    	// 로그인한 사용자가 변경한 내역이 있으면,
+	        int cnt = dashboardDAO.widgetStngUseCntSelect(vo);
+
+	        if (cnt > 0) {
+	        	widgetMap = dashboardDAO.widgetStngSelect(vo);
+	        } else {
+	        	widgetMap = dashboardDAO.widgetDefaultStngSelect(vo);
+	        }
+    	}
+
+        return widgetMap;
     }
 
     @Override
@@ -1048,7 +1055,31 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
 
     @Override
     public EgovMap widgetStngPopView(DashboardVO vo) throws Exception {
-        return dashboardDAO.widgetStngPopView(vo);
+    	EgovMap widgetMap = null;
+
+    	if (vo.getUserId() != null && !"".equals(vo.getUserId())) {
+	    	// 로그인한 사용자가 변경한 내역이 있으면,
+	        int cnt = dashboardDAO.widgetStngUseCntSelect(vo);
+
+	        if (cnt > 0) {
+	        	System.out.println("111111111111");
+	        	widgetMap = dashboardDAO.widgetStngSelect(vo);
+	        } else {
+	        	System.out.println("222222222222");
+	        	//widgetMap = dashboardDAO.widgetDefaultStngSelect(vo);
+
+	        	// 사용자의 위젯설정이 없으면 기본위젯으로 저장
+	        	vo.setWidgetUseId(IdGenerator.getNewId("WIGT"));
+	        	dashboardDAO.widgetDefaultInsert(vo);
+
+	        	widgetMap = dashboardDAO.widgetStngSelect(vo);
+	        }
+    	}
+
+        return widgetMap;
+
+
+        //return dashboardDAO.widgetStngPopView(vo);
     }
 
     @Override

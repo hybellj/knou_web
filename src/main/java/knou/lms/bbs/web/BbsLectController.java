@@ -500,7 +500,7 @@ public class BbsLectController extends ControllerBase {
                 BbsAtclVO updateHitVO = new BbsAtclVO();
                 updateHitVO.setAtclId(atclId);
                 updateHitVO.setInqCnt(cnt);
-                bbsAtclService.updateBbsAtclHits(updateHitVO);
+                //bbsAtclService.updateBbsAtclHits(updateHitVO);
 
                 // 답글이 있는경우 답글 viewer 세팅
                 int answerAtclCnt = bbsAtclVO.getAnswerAtclCnt();

@@ -10,7 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
+import knou.framework.util.IdGenUtil;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
@@ -27,14 +29,14 @@ import knou.lms.common.vo.ProcessResultVO;
 public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BbsCmntServiceImpl.class);
-    
+
     @Resource(name = "bbsCmntDAO")
     private BbsCmntDAO bbsCmntDAO;
-    
+
     @Resource(name = "bbsAtclService")
     private BbsAtclService bbsAtclService;
 
-    /***************************************************** 
+    /*****************************************************
      * 댓글 정보
      * @param vo
      * @return BbsCmntVO
@@ -44,8 +46,8 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
     public BbsCmntVO selectBbsCmnt(BbsCmntVO vo) throws Exception {
         return bbsCmntDAO.selectBbsCmnt(vo);
     }
-    
-    /***************************************************** 
+
+    /*****************************************************
      * 댓글 목록
      * @param vo
      * @return List<BbsCmntVO>
@@ -55,8 +57,8 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
     public List<BbsCmntVO> listBbsCmnt(BbsCmntVO vo) throws Exception {
         return bbsCmntDAO.listBbsCmnt(vo);
     }
-    
-    /***************************************************** 
+
+    /*****************************************************
      * 댓글 목록 페이징
      * @param vo
      * @return ProcessResultVO<BbsCmntVO>
@@ -65,34 +67,34 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
     @Override
     public ProcessResultVO<BbsCmntVO> listBbsCmntPaging(BbsCmntVO vo) throws Exception {
         ProcessResultVO<BbsCmntVO> processResultVO = new ProcessResultVO<>();
-    
+
         PaginationInfo paginationInfo = new PaginationInfo();
         paginationInfo.setCurrentPageNo(vo.getPageIndex());
         paginationInfo.setRecordCountPerPage(vo.getListScale());
         paginationInfo.setPageSize(vo.getPageScale());
-        
+
         vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
         vo.setLastIndex(paginationInfo.getLastRecordIndex());
-        
+
         int totCnt = bbsCmntDAO.countBbsCmnt(vo);
-        
+
         paginationInfo.setTotalRecordCount(totCnt);
-        
+
         List<BbsCmntVO> resultList = bbsCmntDAO.listBbsCmntPaging(vo);
-        
+
         processResultVO.setReturnList(resultList);
         processResultVO.setPageInfo(paginationInfo);
-        
+
         // 미삭제 댓글 수 조회
         int delNCnt = bbsCmntDAO.countBbsCmntDelN(vo);
         BbsCmntVO bbsCmntVO = new BbsCmntVO();
         bbsCmntVO.setTotalCnt(delNCnt);
         processResultVO.setReturnVO(bbsCmntVO);
-        
+
         return processResultVO;
     }
-    
-    /***************************************************** 
+
+    /*****************************************************
      * 댓글 목록 페이징 (수정, 삭제 권한 체크)
      * @param request
      * @param bbsInfoVO
@@ -103,18 +105,18 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
      ******************************************************/
     public ProcessResultVO<BbsCmntVO> listBbsCmntPagingWithAuth(HttpServletRequest request, BbsInfoVO bbsInfoVO, BbsAtclVO bbsAtclVO, BbsCmntVO vo) throws Exception {
         ProcessResultVO<BbsCmntVO> processResultVO = this.listBbsCmntPaging(vo);
-        
+
         List<BbsCmntVO> resultList = processResultVO.getReturnList();
-        
+
         for(BbsCmntVO bbsCmntVO : resultList) {
             bbsCmntVO.setEditAuthYn(BbsAuthUtil.getCommentEditAuth(request, bbsInfoVO, bbsAtclVO, bbsCmntVO));
             bbsCmntVO.setDeleteAuthYn(BbsAuthUtil.getCommentDeleteAuth(request, bbsInfoVO, bbsAtclVO, bbsCmntVO));
         }
-        
+
         return processResultVO;
     }
-    
-    /***************************************************** 
+
+    /*****************************************************
      * 댓글 저장
      * @param vo
      * @throws Exception
@@ -123,32 +125,32 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
     public void insertBbsCmnt(BbsCmntVO vo) throws Exception {
         String cmntId = IdGenerator.getNewId("CMNT");
         vo.setCmntId(cmntId);
-        
+
         if(ValidationUtils.isEmpty(vo.getParCmntId())) {
             vo.setParCmntId(null);
         }
-        
+
         // 스크립트 태그 제거
         vo.setCmntCts(StringUtil.removeScript(vo.getCmntCts()));
-        
+
         bbsCmntDAO.insertBbsCmnt(vo);
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 댓글 수정
      * @param vo
      * @throws Exception
      ******************************************************/
     @Override
     public void updateBbsCmnt(BbsCmntVO vo) throws Exception {
-    	
+
         // 스크립트 태그 제거
         vo.setCmntCts(StringUtil.removeScript(vo.getCmntCts()));
-    	
+
         bbsCmntDAO.updateBbsCmnt(vo);
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 댓글 삭제
      * @param vo
      * @throws Exception
@@ -158,7 +160,7 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
         bbsCmntDAO.updateBbsCmntDelY(vo);
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 댓글 삭제
      * @param vo
      * @throws Exception
@@ -168,7 +170,7 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
         bbsCmntDAO.deleteBbsCmnt(vo);
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 댓글 전체 삭제
      * @param vo
      * @throws Exception
@@ -176,10 +178,10 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
     @Override
     public void deleteBbsCmntAll(BbsCmntVO vo) throws Exception {
         bbsCmntDAO.deleteBbsCmntAll(vo);
-        
+
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 피드백 문의 등록
      * @param vo
      * @param bbsAtclVO
@@ -189,16 +191,16 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
     public void insertWithFeedback(BbsCmntVO vo, BbsAtclVO bbsAtclVO) throws Exception {
         int cmntCtsLen = 0;
         String cmntCts = vo.getCmntCts();
-        
+
         if(!"".equals(StringUtil.nvl(cmntCts))) {
             cmntCtsLen = vo.getCmntCts().length();
         }
-        
+
         // 최대 20자
         if(cmntCtsLen > 20) {
             cmntCtsLen = 20;
         }
-        
+
         BbsAtclVO feedBackAtclVO = new BbsAtclVO();
         feedBackAtclVO.setCrsCreCd(bbsAtclVO.getCrsCreCd());
         feedBackAtclVO.setBbsId(bbsAtclVO.getBbsId());
@@ -206,8 +208,55 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
         feedBackAtclVO.setAtclCts(vo.getCmntCts());
         feedBackAtclVO.setRgtrId(vo.getRgtrId());
         bbsAtclService.insertBbsAtcl(feedBackAtclVO);
-        
+
         this.insertBbsCmnt(vo);
     }
 
+    /*****************************************************
+     * 게시판 게시글 목록
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<BbsCmntVO> selectBbsAtclCmntList(BbsCmntVO vo) throws Exception {
+        ProcessResultVO<BbsCmntVO> processResultVO = new ProcessResultVO<>();
+
+        String atclId = vo.getAtclId();
+        List<BbsCmntVO> atclCmntList = bbsCmntDAO.selectBbsAtclCmntList(vo);
+        processResultVO.setReturnList(atclCmntList);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 댓글 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void bbsAtclCmntRegist(BbsCmntVO vo) throws Exception {
+
+    	int count = bbsCmntDAO.bbsAtclCmntCnt(vo);
+
+        if (count > 0) {
+            // 데이터가 있으면 업데이트
+        	bbsCmntDAO.bbsAtclCmntModify(vo);
+        } else {
+            // 데이터가 없으면 신규 등록
+        	vo.setAtclCmntId(IdGenUtil.genNewId(IdPrefixType.BBCMT));
+
+            bbsCmntDAO.bbsAtclCmntRegist(vo);
+        }
+    }
+
+    /*****************************************************
+     * 게시글 삭제
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void bbsAtclCmntDelete(BbsCmntVO vo) throws Exception {
+        bbsCmntDAO.updateBbsAtclCmntDelYn(vo);
+    }
 }

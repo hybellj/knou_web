@@ -305,16 +305,16 @@
                         </div>
 
                         <!-- 알림 -->
-                        <div class="box alrim">
+                        <div class="box">
                             <div class="box_title">
                                 <i class="xi-arrows m_handle" aria-label="위젯 이동" role="button" tabindex="0" aria-grabbed="false"></i>
                                 <h3 class="h3">알림</h3>
                                 <!--tab-type1-->
-                                <nav class="tab-type1">
-                                    <a href="#tab11" class="btn current"><span>PUSH</span><small class="msg_num">9</small></a>
-                                    <a href="#tab12" class="btn "><span>SMS</span><small class="msg_num">3</small></a>
-                                    <a href="#tab13" class="btn "><span>쪽지</span><small class="msg_num">2</small></a>
-                                    <a href="#tab14" class="btn "><span>알림톡</span><small class="msg_num">1</small></a>
+                                <nav class="tab-type1 alrim">
+                                    <a href="#tab11" class="btn current"><span><img src="<%=request.getContextPath()%>/webdoc/assets/img/common/alrim_icon_push.svg" aria-hidden="true" alt="PUSH"></span><small class="msg_num">9</small></a>
+                                    <a href="#tab12" class="btn "><span><img src="<%=request.getContextPath()%>/webdoc/assets/img/common/alrim_icon_sms.svg" aria-hidden="true" alt="SMS"></span><small class="msg_num">3</small></a>
+                                    <a href="#tab13" class="btn "><span><img src="<%=request.getContextPath()%>/webdoc/assets/img/common/alrim_icon_msg.svg" aria-hidden="true" alt="쪽지"></span><small class="msg_num">2</small></a>
+                                    <a href="#tab14" class="btn "><span><img src="<%=request.getContextPath()%>/webdoc/assets/img/common/alrim_icon_talk.svg" aria-hidden="true" alt="알림톡"></span><small class="msg_num">1</small></a>
                                 </nav>
 
                                 <div class="btn-wrap">

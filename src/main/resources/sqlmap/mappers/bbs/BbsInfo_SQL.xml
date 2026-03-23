@@ -11,7 +11,7 @@
 			  A.*
 			, B.SBJCT_YR
 			, B.SBJCT_SMSTR
-			, B.CRS_ID
+			, B.CRS_MSTR_ID
 		FROM (
 			SELECT
 				  A.BBS_ID

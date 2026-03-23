@@ -97,7 +97,7 @@ dashboard - main
 
 .box.alrim .alrim_item_area .item_box {border: none; padding: 6px 4px;}
 .box.alrim .alrim_item_area .item_box+.item_box {margin-top: 0;}
-
+.box.alrim .tab-type1 {gap: .7rem;}
 .box_title {position: relative; display: flex; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: .8rem; padding-right: 2.5rem;}
 .box_title i.xi-arrows {padding: 0 2px 0 0px; font-size: 2rem; color: var(--txt_05);}
 .box_title .h3 { display: inline-flex; align-items: center; margin-right: auto; font-size: 2.2rem; color: var(--txt_01); letter-spacing: -.05em; }
@@ -124,25 +124,36 @@ dashboard - main
 .box .tab-type1 {margin-bottom: 0 !important;}
 .box .tab-type1 + .btn-wrap {margin-left: 0rem !important;}
 .box .tab-type1 { margin-bottom: 1.2rem; display: flex; gap: 1.2rem; }
-.box .tab-type1 .btn {min-width: auto; min-height:auto; border-bottom-color: transparent; border-color: transparent; color:#666; font-size: 1.5rem !important; font-weight: 500; border-radius: 0em; -ms-flex-item-align: end; align-self: flex-end; margin: 0em 0em -2px; padding: 3px 0px 3px; -webkit-transition: color 0.1s ease; transition: color 0.1s ease; cursor: pointer;}
+.box .tab-type1 .btn {position: relative; gap: 0; min-width: auto; min-height:auto; border-bottom-color: transparent; border-color: transparent; color:#666; font-size: 1.5rem !important; font-weight: 500; border-radius: 0em; -ms-flex-item-align: end; align-self: flex-end; margin: 0em 0em -2px; padding: 3px 0px 3px; -webkit-transition: color 0.1s ease; transition: color 0.1s ease; cursor: pointer;}
 .box .tab-type1 .btn:hover {background-color: transparent; color: rgba(0, 0, 0, 0.87);}
 .box .tab-type1 .btn span { position: relative; padding: 0 2px; }
 .box .tab-type1 .btn.current span::before { content: ""; position: absolute; bottom: -2px; left: 0; width: 100%; border-bottom: 8px solid hsl(208, 99%, 50%, .2); z-index: -1; }
 .box .tab-type1 .btn .msg_num {
     color: #fff;
-    font-size: 10px;
-    width: 15px;
-    height: 15px;
-    line-height: 15px;
+    font-size: 9px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
     background-color: var(--primary-c03);
-    border-radius: 15px;
-    position: relative;
-    top: -1px;
-    margin-left: 2px;
+    border-radius: 14px;
+    position: absolute;
+    top: 2px;
+    right: -4px;
+    margin-left: 0px;
     display: inline-block;
     text-align: center;
 }
 .box .tab-type1 .btn.current { background-color: transparent; box-shadow: none; font-weight: 600; color: var(--primary-c06); }
+.box .alrim_item_area .item_box .item_txt .tit {display: -webkit-box;}
+
+/* 알림 */
+.box .tab-type1.alrim .btn img {width:3.2rem; height: 3.2rem;}
+.box .tab-type1.alrim .btn.current:nth-child(1) img {content: url(../img/common/alrim_icon_push_on.svg); }
+.box .tab-type1.alrim .btn.current:nth-child(2) img {content: url(../img/common/alrim_icon_sms_on.svg); }
+.box .tab-type1.alrim .btn.current:nth-child(3) img {content: url(../img/common/alrim_icon_msg_on.svg);}
+.box .tab-type1.alrim .btn.current:nth-child(4) img {content: url(../img/common/alrim_icon_talk_on.svg);}
+.box .alrim_item_area .item_box+.item_box { margin-top: 0px; }
+.box .alrim_item_area .item_box {border: none; padding: 6px 4px;}
 
 @media(max-width:1700px) {
         .box_title {gap: .5rem; margin-bottom: .6rem;}
@@ -155,7 +166,7 @@ dashboard - main
         .box.alrim .tab-type1 .btn {font-size: 1.3rem !important;}
 }
 @media(max-width:1500px) {
-        .box.alrim .tab-type1 {width: 100%; margin-top: -.6rem; padding-left: 2.5rem;}
+        .box.alrim .tab-type1 {/*width: 100%;*/ /*margin-top: -.6rem;*/ /*padding-left: 2.5rem;*/}
         .box.alrim .box_title {margin-bottom: 0;}
 }
 @media(max-width:1400px) {
@@ -648,11 +659,13 @@ dashboard - main
 }
 @media(max-width:1500px) {
         .sche_list li + li { margin-top: .7rem; }
-
 }
 @media(max-width:1400px) {
         .sche_list {padding: 1.3rem 2.5rem .5rem 2.5rem; }
         .sche_list .slick-dots {left: 105px;}
+}
+@media(max-width:1024px) {
+        .sche_list {padding: 1.3rem 2rem .5rem 2rem; }
 }
 
 /* 강의 이어듣기 */
@@ -724,7 +737,7 @@ dashboard - sub
 .page-menu .page_tab li.select {padding-bottom: 0;}
 .page-menu .page_tab li:last-child { margin-right: 0; }
 .page-menu .page_tab .tabmenu { display: flex; max-width: 200px; min-width: 15rem; border: 1px solid #E0E0E0; background: #dedede; border-radius: 5px; }
-.page-menu .page_tab .tabmenu a { display: inline-flex; padding: 5px 10px; font-size: 1.5rem; color: var(--txt_03_80); text-align: center; cursor: pointer;  cursor: default; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.page-menu .page_tab .tabmenu a { display: inline-flex; padding: 5px 10px; font-size: 1.5rem; color: var(--txt_03_80); text-align: center; cursor: pointer;  cursor: default; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; width: calc(100% - 30px); }
 .page-menu .page_tab .tabmenu button { display: inline-flex; margin-left: auto; padding-right: 10px; font-size: 1.4rem; color: var(--txt_03_80); padding-top:.9rem;  }
 .page-menu .page_tab li.select .tabmenu { position: relative; height: 100%;  border: 1px solid #E0E0E0; border-bottom: 1px solid #fff; border-radius: 5px 5px 0 0; background: #fff; }
 .page-menu .page_tab li.select .tabmenu a {color: var(--txt_02);}
@@ -808,11 +821,11 @@ dashboard - sub
         .course_history .lecture_box.work {padding-right: 0rem; flex-direction: column;}
         .course_history .lecture_box.work .lecture_tit {margin-right: 0;}
         .course_history .course_week .lecture_box.work {align-items: flex-start;}
-        .course_history .course_week .lecture_box.work .btn_right {padding-right: 3rem; margin-top: .5rem;}        
+        .course_history .course_week .lecture_box.work .btn_right {padding-right: 3rem; margin-top: .5rem;}
 }
 @media(max-width:445px) {
         .course_history .lecture_box .lecture_tit { gap: .4rem;}
-        .course_history .lecture_box .lecture_tit .labels {gap: .5rem; margin-right: .5rem;}   
+        .course_history .lecture_box .lecture_tit .labels {gap: .5rem; margin-right: .5rem;}
 }
 
 .course_history .course_week { width: 100%;}
@@ -834,8 +847,8 @@ dashboard - sub
 .course_history .course_week .btn_right {font-size: 1.4rem; display: flex; gap: .5rem; align-items: center; margin-left: auto;}
 @media (max-width: 1024px) {
         .course_history .course_week li > .cont .table-wrap.scroll {height: 25rem; }
-        .course_history .course_week li .title-wrap .arrow {top: auto; bottom: 0rem;}    
-        .course_history .table-type1 thead {display: block;}  
+        .course_history .course_week li .title-wrap .arrow {top: auto; bottom: 0rem;}
+        .course_history .table-type1 thead {display: block;}
         .course_history .table-type1 thead tr th.all  {flex: 0 1 100%;}
 }
 @media (max-width: 768px) {
@@ -881,7 +894,7 @@ dashboard - sub
         .scoreChart_wrap .right_chart .chart_area {width: 100%; order: 2; margin-top: 2rem;}
         .scoreChart_wrap .right_chart .table_list {display: flex; flex-wrap: wrap;}
         .scoreChart_wrap .right_chart .table_list ul.list {width: 50%;}
-        .scoreChart_wrap .right_chart .table_list ul.list > li {font-size: 1.4rem; padding: 1rem 1.2rem;}        
+        .scoreChart_wrap .right_chart .table_list ul.list > li {font-size: 1.4rem; padding: 1rem 1.2rem;}
 }
 @media(max-width:480px) {
         .scoreChart_wrap .right_chart .table_list ul.list {flex-direction: row;}

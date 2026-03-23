@@ -45,10 +45,11 @@ public interface SrvyQstnVwitmLvlService {
 	/**
 	 * 설문문항보기항목레벨일괄조회
 	 *
-	 * @param srvyId 설문아이디
+	 * @param srvyId 		설문아이디
+	 * @param searchType 	조회유형
 	 * return 설문문항보기항목레벨일괄목록
 	 * @throws Exception
 	 */
-	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(String srvyId) throws Exception;
+	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(String srvyId, String searchType) throws Exception;
 
 }

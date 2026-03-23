@@ -6,7 +6,7 @@
 <mapper namespace="knou.lms.crs.sbjct.dao.SbjctDAO">
      <sql id="listQuery">
         SELECT
-            A.SBJCT_TMPLT_ID
+            A.SBJCT_MSTR_ID
          ,  A.SBJCTNM
          ,  A.SBJCT_YR
          ,  A.SBJCT_SMSTR
@@ -21,7 +21,7 @@
          ,  B.DGRS_SMSTR_CHRT
          ,  ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
          ,  COUNT(*) OVER() AS TOTAL_CNT
-        FROM DEV_LMS.TB_LMS_SBJCT_TMPLT A
+        FROM DEV_LMS.TB_LMS_SBJCT_MSTR A
             INNER JOIN DEV_LMS.TB_LMS_SMSTR_CHRT B
             ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
         WHERE 1 = 1
@@ -90,7 +90,7 @@
     <!-- 과목사용여부 수정 -->
     <update id="updateSbjctUseYn"
             parameterType="knou.lms.crs.sbjct.vo.SbjctListVO">
-        /* 
+        /*
             SQL ID : SbjctDAO.updateSbjctUseYn
             설명 : 과목사용여부 수정
         */
@@ -99,14 +99,14 @@
            SET USEYN    = #{useYn},
                MDFR_ID  = #{mdfrId},
                MOD_DTTM = #{modDttm}
-         WHERE SBJCT_TMPLT_ID = #{sbjctMstrId}
+         WHERE SBJCT_MSTR_ID = #{sbjctMstrId}
            AND DELYN = 'N'
     </update>
 
     <!-- 과목삭제 : 논리삭제(DELYN='Y') -->
     <update id="deleteSbjct"
             parameterType="knou.lms.crs.sbjct.vo.SbjctListVO">
-        /* 
+        /*
             SQL ID : SbjctDAO.ProcessVo
             설명 : 과목삭제(논리삭제)
         */
@@ -115,10 +115,29 @@
            SET DELYN    = 'Y',
                MDFR_ID  = #{mdfrId},
                MOD_DTTM = #{modDttm}
-         WHERE SBJCT_TMPLT_ID = #{sbjctMstrId}
+         WHERE SBJCT_MSTR_ID = #{sbjctMstrId}
            AND DELYN = 'N'
     </update>
 
-
+	<select id="list" parameterType="sbjctVO" resultType="sbjctVO">
+		/*
+             SQL ID : SbjctDAO.list
+             	설  명 : 과목 조회
+         */
+        SELECT
+            SBJCT_ID
+            , SBJCTNM
+        FROM
+            TB_LMS_SBJCT TLCC
+        WHERE
+            USEYN = 'Y'
+            AND DELYN = 'N'
+            <if test="haksaYear != null and haksaYear != ''">
+            AND SBJCT_ID = #{haksaYear}
+            </if>
+            <if test="haksaTerm != null and haksaTerm != ''">
+            AND CRS_ID = #{haksaTerm}
+            </if>
+	</select>
 
 </mapper>

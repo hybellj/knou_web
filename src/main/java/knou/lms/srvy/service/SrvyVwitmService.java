@@ -48,9 +48,10 @@ public interface SrvyVwitmService {
 	 *
 	 * @param srvyId 		설문아이디
 	 * @param qstnRspnsTycd 문항답변유형코드
+	 * @param searchType	조회유형
 	 * return 설문보기항목목록
 	 * @throws Exception
 	 */
-	public List<SrvyVwitmVO> srvyVwitmBulkList(String srvyId, String qstnRspnsTycd) throws Exception;
+	public List<SrvyVwitmVO> srvyVwitmBulkList(String srvyId, String qstnRspnsTycd, String searchType) throws Exception;
 
 }

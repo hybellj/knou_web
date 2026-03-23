@@ -6,7 +6,9 @@ import knou.lms.common.vo.DefaultVO;
 
 public class BbsCmntVO extends DefaultVO {
     private static final long serialVersionUID = -1750542059300427475L;
-    
+
+    private String		orgId;
+    private String		bbsId;
     private String		cmntId;
     private String		atclId;
     private String		parCmntId;
@@ -24,6 +26,12 @@ public class BbsCmntVO extends DefaultVO {
     private String		noDeleteViewModeYn; // 삭제댓글 제외 여부
     private String		phtFile;
     private byte[]		phtFileByte;
+
+    private int		    atclLv;
+    private String		upAtclCmntId;
+    private String		atclCmntId;
+    private String		atclCmntCts;
+    private int         emticnNo;
 
     public String getCmntId() {
         return cmntId;
@@ -133,7 +141,7 @@ public class BbsCmntVO extends DefaultVO {
         if(phtFile == null && phtFileByte != null && phtFileByte.length > 0) {
             phtFile = "data:image/png;base64," + new String(Base64.getEncoder().encode(phtFileByte));
         }
-        
+
         return phtFile;
     }
 
@@ -156,5 +164,61 @@ public class BbsCmntVO extends DefaultVO {
     public void setDeleteAuthYn(String deleteAuthYn) {
         this.deleteAuthYn = deleteAuthYn;
     }
+
+	public String getOrgId() {
+		return orgId;
+	}
+
+	public String getBbsId() {
+		return bbsId;
+	}
+
+	public int getAtclLv() {
+		return atclLv;
+	}
+
+	public String getUpAtclCmntId() {
+		return upAtclCmntId;
+	}
+
+	public String getAtclCmntId() {
+		return atclCmntId;
+	}
+
+	public String getAtclCmntCts() {
+		return atclCmntCts;
+	}
+
+	public int getEmticnNo() {
+		return emticnNo;
+	}
+
+	public void setOrgId(String orgId) {
+		this.orgId = orgId;
+	}
+
+	public void setBbsId(String bbsId) {
+		this.bbsId = bbsId;
+	}
+
+	public void setAtclLv(int atclLv) {
+		this.atclLv = atclLv;
+	}
+
+	public void setUpAtclCmntId(String upAtclCmntId) {
+		this.upAtclCmntId = upAtclCmntId;
+	}
+
+	public void setAtclCmntId(String atclCmntId) {
+		this.atclCmntId = atclCmntId;
+	}
+
+	public void setAtclCmntCts(String atclCmntCts) {
+		this.atclCmntCts = atclCmntCts;
+	}
+
+	public void setEmticnNo(int emticnNo) {
+		this.emticnNo = emticnNo;
+	}
 
 }

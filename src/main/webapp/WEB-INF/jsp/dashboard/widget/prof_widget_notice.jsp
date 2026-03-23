@@ -152,6 +152,7 @@
 </div>
 
 <script>
+let noticeWidgetCat = "noticeCat1";
 
 // 공지사항 위젯 설정
 function setNoticeWidget() {
@@ -163,16 +164,12 @@ function setNoticeWidget() {
 		    <a href="#_" class="btn" cat="noticeCat3"><span>과목공지</span></a>
 		</nav>
 		<div class="btn-wrap">
-		    <a href="#_" class="btn_more" aria-label="더보기" onclick="moveNoticeWidgetMore();return false;"><i class="xi-plus"></i></a>
+		    <a id="noticeMoreBtn" href="#_" class="btn_more" aria-label="더보기" onclick="moveNoticeWidgetMore();return false;" style="display:none"><i class="xi-plus"></i></a>
 		</div>`;
 
-	dashboardWidget.addInTitle("card3", inTitle);
-	dashboardWidget.addSubTitle("card3", subTitle);
+	dashboardWidget.addInTitle("wigt_prof_notice", inTitle);
+	dashboardWidget.addSubTitle("wigt_prof_notice", subTitle);
 
-
-	// localdb에서 카테고리 가져오기
-	let noticeCat = UiComm.db.getItem("prof:widget_notice_cat");
-	if (!noticeCat) noticeCat = "noticeCat1";
 
 	// 공지 카테고리 선택
 	$("nav.notice-cat-btns a.btn").on("click", function() {
@@ -189,17 +186,32 @@ function setNoticeWidget() {
 		$("nav.notice-cat-btns a.btn").removeClass("current");
 		$("nav.notice-cat-btns a.btn[cat="+cat+"]").addClass("current");
 
+		// 더보기 버튼 보이기/숨기기
+		if (cat !== "noticeCat1") {
+			$("#noticeMoreBtn").show();
+		}
+		else {
+			$("#noticeMoreBtn").hide();
+		}
+
 		// localdb에 카테고리 저장
 		UiComm.db.setItem("prof:widget_notice_cat", cat);
-		noticeCat = cat;
+		noticeWidgetCat = cat;
 	}
 
-	changeNoticeCat(noticeCat);
+	changeNoticeCat(noticeWidgetCat);
 }
 
 // 더보기 이동
 function moveNoticeWidgetMore() {
-	moveMenu(null, "/bbs/bbsHome/bbsAtclListView.do?bbsId=LMSBASIC_NOTICE", "PRO0000000074", "PRO0000000080", "전체공지");
+	// 전체공지
+	if (noticeWidgetCat === "noticeCat2") {
+		moveMenu(null, "/bbs/bbsHome/bbsAtclListView.do?bbsId=LMSBASIC_NOTICE", "PRO0000000074", "PRO0000000080", "전체공지");
+	}
+	// 과목 공지
+	else if (noticeWidgetCat === "noticeCat3") {
+		moveMenu(null, "/bbs/bbsHome/bbsSbjctListView.do?bbsId=LMSBASIC_NTC", "PRO0000000074", "PRO0000000079", "과목공지");
+	}
 }
 
 setNoticeWidget();

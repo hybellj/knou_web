@@ -55,11 +55,16 @@
 function setCounselWidget() {
 	let inTitle = ` <small class="msg_num">4</small>`;
 	let subTitle = `<div class="btn-wrap">
-		<a href="#0" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
+		<a href="#_" class="btn_more" aria-label="더보기" onclick="moveCounselWidgetMore();return false;"><i class="xi-plus"></i></a>
 		</div>`;
 
-	dashboardWidget.addInTitle("card5", inTitle);
-	dashboardWidget.addSubTitle("card5", subTitle);
+	dashboardWidget.addInTitle("wigt_prof_counsel", inTitle);
+	dashboardWidget.addSubTitle("wigt_prof_counsel", subTitle);
+}
+
+//더보기 이동
+function moveCounselWidgetMore() {
+	moveMenu(null, "/bbs/bbsHome/bbsDscsnListView.do?bbsId=LMSBASIC_1ON1", "PRO0000000001", "PRO0000000076", "1:1상담");
 }
 
 setCounselWidget();

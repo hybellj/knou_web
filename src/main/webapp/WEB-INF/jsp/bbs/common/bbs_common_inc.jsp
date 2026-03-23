@@ -73,13 +73,51 @@
 			form.attr("method", "POST");
 			form.attr("name", "bbsForm");
 			form.attr("action", url);
-			
+
 			params.forEach(function(value, key) {
 				form.append($('<input/>', {type: 'hidden', name: key, value: value}));
 			})
-		
+
 			form.appendTo("body");
 			form.submit();
+		},
+		regist : function(url, returnUrl, data) {
+			ajaxCall(url, data, function(data) {
+            	if(data.result > 0) {
+					UiComm.showMessage(data.message, "success")
+					.then(function(result) {
+						document.location.href = returnUrl;
+					});
+                } else {
+                	UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
+                }
+    		},
+    		function(xhr, status, error) {
+    			UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
+    		}, true);
+		},
+		modify : function(url, returnUrl, data) {
+		},
+		delete : function(url, returnUrl, data) {
+			ajaxCall(url, data, function(data) {
+	        	if (data.result > 0) {
+	        		var queryInfo = {};
+
+	        		if(TAB) {
+	        			queryInfo.tab = TAB;
+	        		}
+
+	        		UiComm.showMessage(data.message, "success")
+					.then(function(result) {
+						document.location.href = returnUrl;
+					});
+	            } else {
+	            	UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
+	            }
+			},
+    		function(xhr, status, error) {
+    			UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
+    		}, true);
 		}
 	};
 </script>

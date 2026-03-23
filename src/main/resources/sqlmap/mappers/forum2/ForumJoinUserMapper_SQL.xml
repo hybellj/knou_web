@@ -44,6 +44,7 @@
 			, deptNm
 			, stdntNo
 			, userId
+		    , userRprsId
 			, userNm
 			, score
 			, evalYn  /* 추가된 평가여부 */
@@ -89,6 +90,7 @@
 			   , NVL((SELECT D.DEPTNM FROM TB_LMS_DEPT D WHERE D.DEPT_ID = U.DEPT_ID), '-') AS DEPTNM
 			   , U.STDNT_NO           AS stdntNo
 			   , U.USERNM             AS userNm
+			   , U.USER_RPRS_ID	      AS userRprsId
 			   /* 조인된 PTCP 테이블에서 직접 조회 */
 			   , NVL(P.SCR, 0)         AS score
 			   , NVL(P.EVLYN, 'N')     AS evalYn
@@ -235,7 +237,7 @@
 	                    #{stdId} AS USER_ID
 	                </when>
 	                <otherwise>
-	                    FN_GET_STD_NO(#{userId}, #{crsCreCd}) AS USER_ID
+						#{userId} AS USER_ID
 	                </otherwise>
 	            </choose>,
 	            #{forumCd} AS DSCS_ID
@@ -275,7 +277,7 @@
 	                    #{stdId}
 	                </when>
 	                <otherwise>
-	                    FN_GET_STD_NO(#{userId}, #{crsCreCd})
+						#{userId}
 	                </otherwise>
 	            </choose>,
 	            #{forumCd},

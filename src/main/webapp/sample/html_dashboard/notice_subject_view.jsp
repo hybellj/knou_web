@@ -18,7 +18,7 @@
         <main class="common">
 
             <!-- gnb -->
-<%--			<jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>--%>
+			<jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
             <!-- //gnb -->
 
             <!-- content -->

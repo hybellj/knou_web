@@ -387,6 +387,7 @@
         bindEvents();
         initSwitchYnFields();
         toggleTeamArea();
+        initForumTeamList();
     });
 
     function bindEvents() {
@@ -539,7 +540,102 @@
         $("#lrnGrpnm" + idList[0]).val(lrnGrpnm);
         $("#setForumDiv" + idList[0]).show();
 
-        // TODO : 학습그룹 > 팀갯수 조회 & 수정모드인 경우 이전 부주제 값을 설정한다.
+        loadForumTeamList(lrnGrpId, idList[0]);
+    }
+
+    /** 학습그룹 팀 목록 조회 후 subInfoDiv 에 렌더링 */
+    function loadForumTeamList(lrnGrpId, dvclasNo) {
+        var url  = '<c:url value="/forum2/forumLect/profForumLrnGrpTeamListAjax.do" />';
+        var data = {
+            lrnGrpId : lrnGrpId,
+            upDscsId : '${forum2VO.dscsId}'
+        };
+        ajaxCall(url, data, function(resp) {
+            if (resp.result > 0) {
+                var returnList = resp.returnList || [];
+                var html = buildForumTeamListHtml(returnList);
+                $("#subInfoDiv" + dvclasNo).empty().html(html);
+                if (returnList.length > 0) {
+                    returnList.forEach(function(v, i) {
+                        editors[v.teamId + '_editor' + i] = UiEditor({
+                            targetId  : v.teamId + '_contentTextArea_' + i,
+                            uploadPath: "/forum",
+                            height    : "500px"
+                        });
+                    });
+                }
+            } else {
+                UiComm.showMessage(resp.message, "error");
+            }
+        });
+    }
+
+    /** 팀 목록 HTML 생성 (appendTeamForumDetailParams 호환 구조) */
+    function buildForumTeamListHtml(list) {
+        if (!list || list.length === 0) {
+            return '<p class="p_gray">팀 정보가 없습니다.</p>';
+        }
+        var html = "<table class='table-type5'>";
+        html += "    <colgroup>";
+        html += "        <col class='width-10per' />";
+        html += "        <col class='' />";
+        html += "        <col class='width-10per' />";
+        html += "    </colgroup>";
+        html += "    <tbody>";
+        html += "        <tr>";
+        html += "            <th>팀</th>";
+        html += "            <th>부 주제</th>";
+        html += "            <th>학습그룹 구성원</th>";
+        html += "        </tr>";
+        list.forEach(function(v, i) {
+            html += "    <tr class='subForumTr' data-team-id='" + escHtml(v.teamId || '') + "' data-team-nm='" + escHtml(v.teamnm || '') + "'>";
+            html += "        <th><label>" + escHtml(v.teamnm || '') + "</label></th>";
+            html += "        <td>";
+            html += "            <table class='table-type5'>";
+            html += "                <colgroup>";
+            html += "                    <col class='width-10per' />";
+            html += "                    <col class='' />";
+            html += "                </colgroup>";
+            html += "                <tbody>";
+            html += "                    <tr>";
+            html += "                        <th><label for='" + v.teamId + "_dtlSubjTtl_" + i + "' class='req'>주제</label></th>";
+            html += "                        <td><input type='text' id='" + v.teamId + "_dtlSubjTtl_" + i + "' name='teamTtl' value='" + escHtml(v.dscsTtl || '') + "' inputmask='byte' maxLen='200' class='width-100per' /></td>";
+            html += "                    </tr>";
+            html += "                    <tr>";
+            html += "                        <th><label for='" + v.teamId + "_contentTextArea_" + i + "' class='req'>내용</label></th>";
+            html += "                        <td>";
+            html += "                            <div class='editor-box'>";
+            html += "                                <textarea name='" + v.teamId + "_contentTextArea_" + i + "' id='" + v.teamId + "_contentTextArea_" + i + "'>" + escHtml(v.dscsCts || '') + "</textarea>";
+            html += "                            </div>";
+            html += "                        </td>";
+            html += "                    </tr>";
+            html += "                </tbody>";
+            html += "            </table>";
+            html += "        </td>";
+            html += "        <th>" + escHtml(v.leaderNm || '-') + " 외 " + Math.max(0, (v.teamMbrCnt || 1) - 1) + "</th>";
+            html += "    </tr>";
+        });
+        html += "    </tbody>";
+        html += "</table>";
+        return html;
+    }
+
+    function escHtml(str) {
+        return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                          .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /** 수정모드 진입 시 이미 지정된 학습그룹의 팀 목록 초기 로드 */
+    function initForumTeamList() {
+        if ('${mode}' !== 'E') return;
+        $("div[id^='lrnGrpView']").each(function() {
+            var dvclasNo = this.id.replace('lrnGrpView', '');
+            var lrnGrpRaw = $('#lrnGrpId' + dvclasNo).val() || '';
+            var lrnGrpId  = lrnGrpRaw.split(':')[0] || '';
+            if (lrnGrpId) {
+                loadForumTeamList(lrnGrpId, dvclasNo);
+            }
+        });
     }
 
     /**
@@ -712,7 +808,8 @@
                 var teamCts = pickFieldValue($row, [
                     "textarea[name='teamCts']",
                     "textarea[name='teamDiscussion']",
-                    "textarea[name='subForumCts']"
+                    "textarea[name='subForumCts']",
+                    "textarea[id*='contentTextArea']"
                 ]);
                 var attchFileId = pickFieldValue($row, [
                     "input[name='attchFileId']",

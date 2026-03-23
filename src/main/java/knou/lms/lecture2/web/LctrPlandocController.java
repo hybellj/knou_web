@@ -3,6 +3,7 @@ package knou.lms.lecture2.web;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
+import knou.framework.util.URLBuilder;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.lecture2.facade.LctrPlandocFacadeService;
 import knou.lms.lecture2.service.LctrPlandocService;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -168,6 +171,32 @@ public class LctrPlandocController extends ControllerBase {
             resultVO.setMessage(getCommonFailMessage());
         }
         return resultVO;
-    }
+    }    
+    
+    
+    /**
+     * 교수 강의계획서 상세팝업
+     *
+     * @param lctrPlandocVO
+     * @param request
+     * @param response
+     * @param model
+     * @return
+     */
+    @RequestMapping("/profLctrPlandocPopView.do")
+    @ResponseBody
+    public String profLctrPlandocPopView(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {        
 
+    	String subjectId = request.getParameter("subjectId");
+    	
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    	if ( null == userCtx ) {
+    		LOGGER.info("세션정보가 없습니다. 로그인페이지로 이동합니다.");
+    		return "redirect:" + new URLBuilder("", "login.do",request).toString();
+    	}
+    	
+        LctrPlandocView lpv = lctrPlandocFacadeService.loadLctrPlandocView(userCtx, new LctrPlandocVO(subjectId));
+        
+        return new ObjectMapper().writeValueAsString(lpv);
+    }
 }

@@ -72,4 +72,16 @@ public class SbjctServiceImpl extends ServiceBase implements SbjctService {
     public List<DgrsYrChrtVO> selectDgrsYrChrtList(String orgId) throws Exception {
         return sbjctDAO.selectDgrsYrChrtList(orgId);
     }
+
+    /*****************************************************
+     * 학과(부서) 목록 조회
+     *
+     * @param SbjctVO
+     * @return List<SbjctVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<SbjctVO> list(SbjctVO vo) throws Exception {
+        return sbjctDAO.list(vo);
+    }
 }

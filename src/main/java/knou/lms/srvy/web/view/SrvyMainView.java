@@ -69,6 +69,10 @@ public class SrvyMainView {
 
 	List<Map<String, Object>> colorList;
 
+	List<EgovMap> srvyExcelDownQstnList;
+
+	List<EgovMap> srvyExcelDownQstnRspnsList;
+
 	public ProcessResultVO<EgovMap> getProfSrvyList() {
 		return profSrvyList;
 	}
@@ -283,6 +287,22 @@ public class SrvyMainView {
 
 	public void setSrvyLevelQstnRspnsStatusList(List<EgovMap> srvyLevelQstnRspnsStatusList) {
 		this.srvyLevelQstnRspnsStatusList = srvyLevelQstnRspnsStatusList;
+	}
+
+	public List<EgovMap> getSrvyExcelDownQstnList() {
+		return srvyExcelDownQstnList;
+	}
+
+	public List<EgovMap> getSrvyExcelDownQstnRspnsList() {
+		return srvyExcelDownQstnRspnsList;
+	}
+
+	public void setSrvyExcelDownQstnList(List<EgovMap> srvyExcelDownQstnList) {
+		this.srvyExcelDownQstnList = srvyExcelDownQstnList;
+	}
+
+	public void setSrvyExcelDownQstnRspnsList(List<EgovMap> srvyExcelDownQstnRspnsList) {
+		this.srvyExcelDownQstnRspnsList = srvyExcelDownQstnRspnsList;
 	}
 
 }

@@ -16,4 +16,12 @@ public interface SbjctDAO {
     int deleteSbjct(SbjctListVO sbjctListVO) throws Exception;
 
     List<DgrsYrChrtVO> selectDgrsYrChrtList(@Param("orgId") String orgId) throws Exception;
+
+    /*****************************************************
+     * 운영과목 목록 조회
+     * @param SbjctVO
+     * @return List<SbjctVO>
+     * @throws Exception
+     ******************************************************/
+    public List<SbjctVO> list(SbjctVO vo) throws Exception;
 }

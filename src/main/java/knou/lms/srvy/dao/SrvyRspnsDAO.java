@@ -22,31 +22,52 @@ public interface SrvyRspnsDAO {
 	/**
 	* 설문선택형문항답변현황목록
 	*
-	* @param sbjctId 	과목아이디
-    * @param srvyId 	설문아이디
+	* @param sbjctId 		과목아이디
+	* @param srvyId 		설문아이디
+	* @param searchType 	조회유형
 	* @return 설문선택형문항답변현황목록
 	* @throws Exception
 	*/
-	public List<EgovMap> srvyChcQstnRspnsStatusList(@Param("sbjctId") String sbjctId, @Param("srvyId") String srvyId) throws Exception;
+	public List<EgovMap> srvyChcQstnRspnsStatusList(@Param("sbjctId") String sbjctId, @Param("srvyId") String srvyId, @Param("searchType") String searchType) throws Exception;
 
 	/**
 	 * 설문서술형문항답변현황목록
 	 *
-	 * @param sbjctId 	과목아이디
-	 * @param srvyId 	설문아이디
+	 * @param sbjctId 		과목아이디
+	 * @param srvyId 		설문아이디
+	 * @param searchType 	조회유형
 	 * @return 설문서술형문항답변현황목록
 	 * @throws Exception
 	 */
-	public List<EgovMap> srvyTextQstnRspnsStatusList(@Param("sbjctId") String sbjctId, @Param("srvyId") String srvyId) throws Exception;
+	public List<EgovMap> srvyTextQstnRspnsStatusList(@Param("sbjctId") String sbjctId, @Param("srvyId") String srvyId, @Param("searchType") String searchType) throws Exception;
 
 	/**
 	 * 설문레벨형문항답변현황목록
 	 *
-	 * @param sbjctId 	과목아이디
-	 * @param srvyId 	설문아이디
+	 * @param sbjctId 		과목아이디
+	 * @param srvyId 		설문아이디
+	 * @param searchType 	조회유형
 	 * @return 설문레벨형문항답변현황목록
 	 * @throws Exception
 	 */
-	public List<EgovMap> srvyLevelQstnRspnsStatusList(@Param("sbjctId") String sbjctId, @Param("srvyId") String srvyId) throws Exception;
+	public List<EgovMap> srvyLevelQstnRspnsStatusList(@Param("sbjctId") String sbjctId, @Param("srvyId") String srvyId, @Param("searchType") String searchType) throws Exception;
+
+	/**
+	 * 설문엑셀다운문항목록
+	 *
+	 * @param srvyId 		설문아이디
+	 * @return 설문엑셀다운문항목록
+	 * @throws Exception
+	 */
+	public List<EgovMap> srvyExcelDownQstnList(@Param("srvyId") String srvyId) throws Exception;
+
+	/**
+	 * 설문엑셀다운문항답변목록
+	 *
+	 * @param srvyId 		설문아이디
+	 * @return 설문엑셀다운문항답변목록
+	 * @throws Exception
+	 */
+	public List<EgovMap> srvyExcelDownQstnRspnsList(@Param("srvyId") String srvyId) throws Exception;
 
 }

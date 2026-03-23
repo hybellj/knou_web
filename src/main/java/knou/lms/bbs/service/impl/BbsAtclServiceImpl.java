@@ -13,12 +13,15 @@ import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import knou.framework.common.CommConst;
+import knou.framework.common.IdPrefixType;
 import knou.framework.common.PageInfo;
 import knou.framework.common.ServiceBase;
 import knou.framework.exception.ServiceProcessException;
 import knou.framework.util.FileUtil;
+import knou.framework.util.IdGenUtil;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
@@ -210,9 +213,21 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
                 vo.setRgtrnm(usrUserInfoVO.getUserNm());
             }
 
-            // 저장
-            String newAtclId = IdGenerator.getNewId("ATCL");
-            vo.setAtclId(newAtclId);
+         // 저장
+            //String newAtclId = IdGenerator.getNewId("ATCL");
+            //vo.setAtclId(newAtclId);
+
+            String atclId = vo.getAtclId();
+            String newAtclId = "";
+
+        	// 데이터가 없으면 신규 등록
+        	if (atclId == null || atclId.trim().isEmpty()) {
+        		newAtclId = IdGenUtil.genNewId(IdPrefixType.BBATC);
+        		vo.setAtclId(newAtclId);
+        	} else {
+        		vo.setAtclId(atclId);
+        	}
+
             // 스크립트 태그 제거
             vo.setAtclTtl(StringUtil.removeScript(vo.getAtclTtl()));
             //vo.setAtclCts(StringUtil.removeScript(vo.getAtclCts()));
@@ -236,6 +251,7 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
             // 첨부파일
             if (uploadFileList.size() > 0) {
             	for (AtflVO atflVO : uploadFileList) {
+            		atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
             		atflVO.setRefId(newAtclId);
             		atflVO.setRgtrId(vo.getRgtrId());
             		atflVO.setMdfrId(vo.getMdfrId());
@@ -500,11 +516,6 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         }
     }
 
-    @Override
-    public void updateBbsAtclHits(BbsAtclVO vo) throws Exception {
-        bbsAtclDAO.updateBbsAtclHits(vo);
-    }
-
     /*****************************************************
      * 전체공지 최신글 목록
      * @param vo
@@ -582,7 +593,24 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         PageInfo pageInfo = new PageInfo(vo);
 
         // 목록 조회
-        List<BbsAtclVO> atclList = bbsAtclDAO.selectBbsAtclList(vo);
+        List<BbsAtclVO> atclList;
+        switch (vo.getBbsId()) {
+	        case "LMSBASIC_QNA":
+	            atclList = bbsAtclDAO.selectBbsLctrQnaList(vo);
+	            break;
+
+	        case "LMSBASIC_1ON1":
+	            atclList = bbsAtclDAO.selectBbsDscsnList(vo);
+	            break;
+
+	        case "LMSBASIC_NTC":
+	            atclList = bbsAtclDAO.selectBbsSbjctList(vo);
+	            break;
+
+	        default:
+	            atclList = bbsAtclDAO.selectBbsAtclList(vo);
+	            break;
+	    }
 
         // 페이지 전체 건수정보 설정
        	pageInfo.setTotalRecord(atclList);
@@ -602,6 +630,8 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
      ******************************************************/
     @Override
     public BbsAtclVO selectBbsAtcl(BbsAtclVO bbsAtclVO) throws Exception {
+    	ProcessResultVO<BbsAtclVO> processResultVO = new ProcessResultVO<>();
+
     	// 게시글조회
         bbsAtclVO = bbsAtclDAO.selectBbsAtcl(bbsAtclVO);
 
@@ -623,6 +653,8 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
                 List<AtflVO> fileList = attachFileService.selectAtflListByRefId(atflVO);
                 bbsAtclVO.setFileList(fileList);
             }
+
+            bbsAtclDAO.bbsAtclHitsModify(bbsAtclVO);
         }
 
         return bbsAtclVO;
@@ -794,7 +826,12 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         }
     }
 
-
+    /*****************************************************
+     * 대시보드 카드 목록
+     * @param bbsAtclVO
+     * @return BbsAtclVO
+     * @throws Exception
+     ******************************************************/
     @Override
     public List<EgovMap> listRecentBbsToday(BbsAtclVO vo) throws Exception {
         List<EgovMap> list = null;
@@ -819,5 +856,151 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         }
 
         return list;
+    }
+
+    /*****************************************************
+     * 답변 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void bbsAtclRspnsRegist(BbsAtclVO vo) throws Exception {
+    	int count = bbsAtclDAO.bbsAtclCnt(vo);
+
+        if (count > 0) {
+            // 데이터가 있으면 업데이트
+        	bbsAtclDAO.bbsAtclRspnsModify(vo);
+        } else {
+            // 데이터가 없으면 신규 등록
+        	vo.setAtclId(IdGenUtil.genNewId(IdPrefixType.BBATC));
+        	bbsAtclDAO.bbsAtclRspnsRegist(vo);
+        }
+    }
+
+    /*****************************************************
+     * 메뉴 > 글로벌메뉴 > 과목공지 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void bbsAtclSbjctRegist(BbsAtclVO vo) throws Exception {
+
+    	String atclId = vo.getAtclId();
+    	String atclOptnId = vo.getAtclOptnId();
+
+
+    	// 데이터가 없으면 신규 등록
+    	if (atclId == null || atclId.trim().isEmpty()) {
+    	    vo.setAtclId(IdGenUtil.genNewId(IdPrefixType.BBATC));
+    	}
+
+    	if (atclOptnId == null || atclOptnId.trim().isEmpty()) {
+    		vo.setAtclOptnId(IdGenUtil.genNewId(IdPrefixType.BBOPT));
+    	}
+
+    	// TB_LMS_BBS_ATCL
+    	bbsAtclDAO.bbsAtclSbjctRegist(vo);
+
+    	// TB_LMS_BBS_ATCL_OPTN
+    	bbsAtclDAO.bbsAtclOptnRegist(vo);
+
+    	List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+        Map<String, List<AtflVO>> declsCopyFileListMap = new HashMap<>();
+
+    	// 첨부파일
+        if (uploadFileList.size() > 0) {
+        	for (AtflVO atflVO : uploadFileList) {
+        		atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+        		atflVO.setRefId(vo.getAtclId());
+        		atflVO.setRgtrId(vo.getRgtrId());
+        		atflVO.setMdfrId(vo.getMdfrId());
+        		atflVO.setAtflRepoId(CommConst.REPO_BBS); // 첨부파일 저장소 아이디
+        	}
+
+        	// 첨부파일 저장
+        	attachFileService.insertAtflList(uploadFileList);
+        }
+    }
+
+    /*****************************************************
+     * 메뉴 > 글로벌메뉴 > 과목공지 상세 불러오기 (단일 조회)
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<BbsAtclVO> selectBbsSbjctDtlView(BbsAtclVO vo) throws Exception {
+        ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            // 1. 단일 데이터 조회 (Mapper의 selectOne 호출)
+            // 파라미터로 넘어온 PK(예: atclSn 등)를 사용하여 1건만 가져옵니다.
+            BbsAtclVO detailVO = bbsAtclDAO.selectBbsSbjctDtlView(vo);
+
+            if (detailVO != null) {
+                // 2. 조회된 단일 객체를 결과 VO에 세팅
+                resultVO.setReturnVO(detailVO);
+                resultVO.setResult(1); // 성공 코드
+            } else {
+                // 데이터가 없는 경우 처리
+                resultVO.setResult(0);
+                resultVO.setMessage("조회된 데이터가 없습니다.");
+            }
+        } catch (Exception e) {
+            LOGGER.error("과목공지 상세 조회 실패: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage("데이터를 불러오는 중 오류가 발생했습니다.");
+            throw e; // 호출한 Controller로 에러 전파
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 게시판게시글 목록
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<BbsAtclVO> selectBbsAtclGrpNtcList(BbsAtclVO vo) throws Exception {
+        ProcessResultVO<BbsAtclVO> processResultVO = new ProcessResultVO<>();
+
+        // 페이지 정보 설정
+        PageInfo pageInfo = new PageInfo(vo);
+
+        // 목록 조회
+        List<BbsAtclVO> atclList;
+
+	    atclList = bbsAtclDAO.selectBbsAtclGrpNtcList(vo);
+
+        // 페이지 전체 건수정보 설정
+       	pageInfo.setTotalRecord(atclList);
+
+        processResultVO.setReturnList(atclList);
+        processResultVO.setPageInfo(pageInfo);
+
+        return processResultVO;
+    }
+
+    @Override
+    public ProcessResultVO<BbsAtclVO> selectBbsAtclGrpNtcPopView(BbsAtclVO vo) throws Exception {
+        ProcessResultVO<BbsAtclVO> processResultVO = new ProcessResultVO<>();
+
+        // 페이지 정보 설정
+        PageInfo pageInfo = new PageInfo(vo);
+
+        // 목록 조회
+        List<BbsAtclVO> atclList;
+
+	    atclList = bbsAtclDAO.selectBbsAtclGrpNtcList(vo);
+
+        // 페이지 전체 건수정보 설정
+       	pageInfo.setTotalRecord(atclList);
+
+        processResultVO.setReturnList(atclList);
+        processResultVO.setPageInfo(pageInfo);
+
+        return processResultVO;
     }
 }

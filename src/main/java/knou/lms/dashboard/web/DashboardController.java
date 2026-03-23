@@ -78,6 +78,8 @@ import knou.lms.dashboard.vo.SchVO;
 import knou.lms.dashboard.web.view.DashboardViewModel;
 import knou.lms.erp.service.ErpService;
 import knou.lms.erp.util.ErpUtil;
+import knou.lms.msg.service.MsgAlimService;
+import knou.lms.msg.vo.MsgAlimVO;
 import knou.lms.log.lesson.service.LogLessonActnHstyService;
 import knou.lms.log.logintry.service.LogUserLoginTryLogService;
 import knou.lms.log.logintry.vo.LogUserLoginTryLogVO;
@@ -102,6 +104,9 @@ public class DashboardController extends ControllerBase {
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
     @Resource(name = "bbsAtclService")
     private BbsAtclService bbsAtclService;
+
+    @Resource(name = "msgAlimService")
+    private MsgAlimService msgAlimService;
 
     @Resource(name = "dashboardService")
     private DashboardService dashboardService;
@@ -934,8 +939,8 @@ public class DashboardController extends ControllerBase {
      */
     //////////////////////////////////////////////////////////////////////////////// 서비스하지 않는 Request입니다. 단 ASIS 소스 분석을 위해서 남겨둡니다.
     //////////////////////////////////////////////////////////////////////////////// 대시보드개발이 완료되면 삭제, TOBE에서는 사용하지 않습니다. written by jinkoon 260313
-    @RequestMapping(value = "/stuDashboard.do")
-    public String stuDashboard(HttpServletRequest request, HttpServletResponse response, DashboardVO dashboardVO, ModelMap model) throws Exception {
+    @RequestMapping(value = "/stuDashboard_bak.do")
+    public String stuDashboardBak(HttpServletRequest request, HttpServletResponse response, DashboardVO dashboardVO, ModelMap model) throws Exception {
         boolean reloginChk = true;
         String loginGbn = SessionInfo.getLoginGbn(request);
         String chk = CommConst.LOGINGBN_CHECK_YN;
@@ -2321,7 +2326,10 @@ public class DashboardController extends ControllerBase {
     @RequestMapping("/widgetStngPopView.do")
     @ResponseBody
     public Map<String, Object> widgetStngPopView(DashboardVO vo, HttpServletRequest request) throws Exception {
-        Map<String, Object> result = new HashMap<>();
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    	String userId = userCtx.getUserId();
+
+    	Map<String, Object> result = new HashMap<>();
 
         // 1. 세션 체크: 로그인이 안 되어 있으면 즉시 반환
         if (!SessionInfo.isLogin(request)) {
@@ -2333,6 +2341,7 @@ public class DashboardController extends ControllerBase {
         result.put("sessChkYn", "Y");
 
         // 3. 데이터 조회
+        vo.setUserId(userId);
         EgovMap data = dashboardService.widgetStngPopView(vo);
 
         // 4. 조회 결과에 따른 응답 처리
@@ -2350,6 +2359,9 @@ public class DashboardController extends ControllerBase {
     @RequestMapping("/widgetStngColrPopView.do")
     @ResponseBody
     public Map<String, Object> widgetStngColrPopView(DashboardVO vo, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    	String userId = userCtx.getUserId();
+
         Map<String, Object> result = new HashMap<>();
 
         // 1. 세션 체크 (Fail-Fast)
@@ -2358,9 +2370,11 @@ public class DashboardController extends ControllerBase {
             return result;
         }
 
-        // 2. 데이터 조회 및 응답 구성
-        EgovMap data = dashboardService.widgetStngColrPopView(vo);
         result.put("sessChkYn", "Y");
+
+        // 2. 데이터 조회 및 응답 구성
+        vo.setUserId(userId);
+        EgovMap data = dashboardService.widgetStngColrPopView(vo);
 
         if (data != null) {
             result.put("result", 1);
@@ -2528,17 +2542,30 @@ public class DashboardController extends ControllerBase {
     	return "dashboard/widget/prof_widget_counsel";
     }
 
-    /**
+    /*****************************************************
      * 교수 알림(메시지) 위젯
+     * @param vo
      * @param request
      * @param model
-     * @return
+     * @return "dashboard/widget/prof_widget_msg"
      * @throws Exception
-     */
+     ******************************************************/
     @RequestMapping(value = "/profWidgetMsg.do")
     public String profWidgetMsg(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 
-    	// TODO 처리 로직 추가
+    	String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+    	MsgAlimVO msgAlimVO = new MsgAlimVO();
+    	msgAlimVO.setUserId(userId);
+    	msgAlimVO.setListCnt(5);
+
+    	Map<String, Object> alimData = msgAlimService.selectAlimChnlData(msgAlimVO, "ALL");
+
+    	model.addAttribute("pushList", alimData.get("pushList"));
+    	model.addAttribute("smsList", alimData.get("smsList"));
+    	model.addAttribute("msgList", alimData.get("msgList"));
+    	model.addAttribute("talkList", alimData.get("talkList"));
+    	model.addAttribute("unreadCnt", alimData.get("unreadCnt"));
 
     	return "dashboard/widget/prof_widget_msg";
     }
@@ -2556,5 +2583,169 @@ public class DashboardController extends ControllerBase {
     	// TODO 처리 로직 추가
 
     	return "dashboard/widget/prof_widget_subject";
+    }
+
+
+
+    /**
+     * ***************************************************
+     * 학생 대시보드
+     * TODO: TOBE 새로 작업하는 학생용 대시보드 작업
+     * 작업 완료후 새 버전에 맞게 명칭, 메쏘드 등 변경
+     */
+    @RequestMapping(value = "/stuDashboard.do")
+    public String stuDashboard(HttpServletRequest request, HttpServletResponse response, DashboardVO dashboardVO, ModelMap model) throws Exception {
+
+    	// TODO 학생 대시보드 로직 추가해야....
+    	//    	사용자세션에서 가져오는 UserContext
+    	UserContext userCtx = new UserContext( 	SessionInfo.getOrgId(request),
+    											SessionInfo.getUserId(request),
+    											SessionInfo.getAuthrtCd(request),
+    											SessionInfo.getAuthrtGrpcd(request),
+    											SessionInfo.getUserRprsId(request),
+    											SessionInfo.getLastLogin(request));
+    	model.addAttribute("orgId", 		userCtx.getOrgId());
+        model.addAttribute("authrtGrpcd", 	userCtx.getAuthrtGrpcd());
+        model.addAttribute("userId", 		SessionInfo.getUserId(request));
+
+        return "dashboard/stu_dashboard";
+    }
+
+    /**
+     * 학생 Today 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/stuWidgetToday.do")
+    public String stuWidgetToday(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+    	String todayDate = DateTimeUtil.getCurrentString("yyyy.MM.dd");
+
+    	model.addAttribute("todayDate", todayDate);
+
+    	return "dashboard/widget/stu_widget_today";
+    }
+
+    /**
+     * 학생 이달의 학사일정 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/stuWidgetSchedule.do")
+    public String stuWidgetSchedule(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/stu_widget_schedule";
+    }
+
+    /**
+    * 학생 강의Q&A 위젯
+    * @param request
+    * @param model
+    * @return
+    * @throws Exception
+    */
+   @RequestMapping(value = "/stuWidgetQna.do")
+   public String stuWidgetQna(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+	   // TODO 처리 로직 추가
+
+	   return "dashboard/widget/stu_widget_qna";
+   }
+
+    /**
+     * 학생 공지사항 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/stuWidgetNotice.do")
+    public String stuWidgetNotice(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/stu_widget_notice";
+    }
+
+    /**
+     * 학생 1:1상담 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/stuWidgetCounsel.do")
+    public String stuWidgetCounsel(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/stu_widget_counsel";
+    }
+
+    /**
+     * 학생 알림(메시지) 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/stuWidgetMsg.do")
+    public String stuWidgetMsg(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/stu_widget_msg";
+    }
+
+    /**
+     * 학생 수강과목 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/stuWidgetSubject.do")
+    public String stuWidgetSubject(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/stu_widget_subject";
+    }
+
+    /**
+     * 학생 강의자료실 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/stuWidgetPds.do")
+    public String stuWidgetPds(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/stu_widget_pds";
+    }
+
+    /**
+     * 학생 강의 이어보기 위젯
+     * @param request
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value = "/stuWidgetContstdy.do")
+    public String stuWidgetContstdy(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+
+    	// TODO 처리 로직 추가
+
+    	return "dashboard/widget/stu_widget_contstdy";
     }
 }

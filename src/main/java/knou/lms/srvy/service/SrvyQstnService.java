@@ -12,11 +12,12 @@ public interface SrvyQstnService {
 	/**
 	 * 설문문항목록조회
 	 *
-	 * @param srvyId	설문아이디
+	 * @param srvyId		설문아이디
+	 * @param searchType	조회유형
 	 * @return 설문문항목록
 	 * @throws Exception
 	 */
-	public List<EgovMap> srvyQstnList(String srvyId) throws Exception;
+	public List<EgovMap> srvyQstnList(String srvyId, String searchType) throws Exception;
 
 	/**
 	 * 설문지문항목록조회

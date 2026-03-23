@@ -13,6 +13,7 @@ public class Forum2TeamDscsVO extends DefaultVO {
     private String dscsTtl;        // 토론 제목(부주제)
     private String dscsCts;        // 토론 내용
     private String teamDscsOyn;    // 팀 토론 오픈 여부
+    private String lrnGrpId;       // 학습그룹아이디
 
     // 가상 컬럼 (Alias 기반 매핑)
     private String leaderNm;       // 팀장명 (LEADER_NM)
@@ -75,6 +76,14 @@ public class Forum2TeamDscsVO extends DefaultVO {
 
     public void setTeamDscsOyn(String teamDscsOyn) {
         this.teamDscsOyn = teamDscsOyn;
+    }
+
+    public String getLrnGrpId() {
+        return lrnGrpId;
+    }
+
+    public void setLrnGrpId(String lrnGrpId) {
+        this.lrnGrpId = lrnGrpId;
     }
 
     public String getLeaderNm() {

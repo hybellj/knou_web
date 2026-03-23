@@ -10,8 +10,16 @@
         SELECT
         	*
           FROM TB_LMS_SRVYPPR
-         WHERE SRVY_ID = #{srvyId}
-         ORDER BY SRVY_SEQNO
+        <choose>
+        	<when test="searchType != null and searchType == 'EXCEL'">
+        		WHERE SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE DELYN = 'N' AND USEYN = 'Y' AND (SRVY_ID = #{srvyId} OR UP_SRVY_ID = #{srvyId}))
+        		ORDER BY SRVY_ID, SRVY_SEQNO
+        	</when>
+        	<otherwise>
+		        WHERE SRVY_ID = #{srvyId}
+		        ORDER BY SRVY_SEQNO
+        	</otherwise>
+        </choose>
 	</select>
 
 	<select id="srvypprSelect" parameterType="String" resultType="srvypprVO">

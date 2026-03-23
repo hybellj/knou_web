@@ -17,6 +17,9 @@ import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import knou.framework.common.CommConst;
 import knou.framework.common.ServiceBase;
 import knou.framework.common.SessionInfo;
+import knou.framework.context2.UserContext;
+import knou.framework.common.ControllerBase;
+import knou.framework.exception.BadRequestUrlException;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.StringUtil;
@@ -586,5 +589,24 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
     @Override
     public BbsVO selectBbs(BbsVO vo) throws Exception {
         return bbsInfoDAO.selectBbs(vo);
+    }
+
+    /*****************************************************
+     * 게시판 정보 조회
+     * @param vo
+     * @return BbsVO
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public BbsVO isValidBbsInfo(BbsVO bbsVO, boolean isAdmin) throws Exception {
+    	bbsVO.setSysUseYn("Y"); // 시스템 게시판 여부
+
+        if (!isAdmin) {
+        	bbsVO.setUseYn("Y");
+        }
+
+        BbsVO resultVO = bbsInfoDAO.selectBbs(bbsVO);
+
+        return resultVO;
     }
 }

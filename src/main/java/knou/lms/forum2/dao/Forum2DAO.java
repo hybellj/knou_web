@@ -24,6 +24,7 @@ public interface Forum2DAO {
     int copyForum(Forum2VO vo);
 
     List<Forum2TeamDscsVO> selectTeamDscsList(String dscsId);
+    List<Forum2TeamDscsVO> selectForumLrnGrpTeamList(Forum2TeamDscsVO vo);
     int updateTeamDscsOyn(Forum2TeamDscsVO vo);
 
     // 성적반영비율 토론 리스트

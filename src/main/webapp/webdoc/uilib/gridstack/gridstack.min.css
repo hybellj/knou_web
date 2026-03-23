@@ -59,12 +59,27 @@
     height: calc(100% - 24px);
 }
 
+.grid-stack-placeholder[gs-x="11"][gs-w="1"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="10"][gs-w="2"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="9"][gs-w="3"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="8"][gs-w="4"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="7"][gs-w="5"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="6"][gs-w="6"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="5"][gs-w="7"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="4"][gs-w="8"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="3"][gs-w="9"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="2"][gs-w="10"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="1"][gs-w="11"]>.placeholder-content,
+.grid-stack-placeholder[gs-x="0"][gs-w="12"]>.placeholder-content {
+	width:100% !important;
+}
+
 .grid-stack-item .box {
 	height:100%;
-	padding: 2rem 2rem 2.2rem 2.2rem !important;
+	padding: 1.2rem 2rem 2.2rem 2.2rem !important;
 }
 
 .grid-stack-item .box .box-content {
 	overflow: auto;
-	height: calc(100% - 34px);
+	height: calc(100% - 40px);
 }

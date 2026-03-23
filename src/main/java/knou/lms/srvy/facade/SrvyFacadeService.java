@@ -87,4 +87,8 @@ public interface SrvyFacadeService {
 
 	SrvyMainView loadProfSrvyPtcpStatusPopup(SrvyVO vo, UserContext userCtx) throws Exception;
 
+	SrvyMainView getSrvyPtcpStatusExcelDownList(SrvyVO vo) throws Exception;
+
+	SrvyMainView getSrvyRspnsStatusExcelDownList(SrvyVO vo) throws Exception;
+
 }

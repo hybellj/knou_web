@@ -56,11 +56,16 @@ function setQnaWidget() {
 	let inTitle = ` <small class="msg_num">1</small>`;
 	let subTitle = `
 		<div class="btn-wrap">
-			<a href="#0" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
+			<a href="#0" class="btn_more" aria-label="더보기" onclick="moveQnaWidgetMore();return false;"><i class="xi-plus"></i></a>
 		</div>`;
 
-	dashboardWidget.addInTitle("card4", inTitle);
-	dashboardWidget.addSubTitle("card4", subTitle);
+	dashboardWidget.addInTitle("wigt_prof_qna", inTitle);
+	dashboardWidget.addSubTitle("wigt_prof_qna", subTitle);
+}
+
+// 더보기 이동
+function moveQnaWidgetMore() {
+	moveMenu(null, "/bbs/bbsHome/bbsLctrQnaListView.do?bbsId=LMSBASIC_QNA", "PRO0000000001", "PRO0000000075", "강의Q&A");
 }
 
 setQnaWidget();

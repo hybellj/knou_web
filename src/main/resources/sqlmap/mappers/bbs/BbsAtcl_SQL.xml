@@ -195,6 +195,9 @@
 			, MDFR_ID = #{mdfrId}
 			, MOD_DTTM = FN_DTTM()
 		WHERE ATCL_ID = #{atclId}
+		<if test='atclLv != null and atclLv != ""'>
+			AND ATCL_LV = #{atclLv}
+		</if>
 	</delete>
 
 	<select id="listBbsAtclAnswer" parameterType="bbsAtclVO" resultType="bbsAtclVO">
@@ -256,14 +259,14 @@
 		WHERE ATCL_ID = #{atclId}
 	</update>
 
-	<update id="updateBbsAtclHits" parameterType="bbsAtclVO">
+	<update id="bbsAtclHitsModify" parameterType="bbsAtclVO">
 		/*
-             SQL ID : BbsAtclDAO.updateBbsAtclHits
+             SQL ID : BbsAtclDAO.bbsAtclHitsModify
              설  명 : 게시글 조회수 수정
          */
 		UPDATE TB_LMS_BBS_ATCL
 		SET
-			  INQ_CNT = #{inqCnt}
+			  INQ_CNT = #{inqCnt} + 1
 		WHERE ATCL_ID = #{atclId}
 	</update>
 
@@ -694,6 +697,13 @@
 				AND B.SBJCT_OFRNG_ID = #{sbjctOfrngId}
 			</if>
 
+			<if test="searchSdttm != null and searchSdttm != ''">
+			    AND A.REG_DTTM <![CDATA[ >= ]]> REPLACE(#{searchSdttm}, '-', '') || '000000'
+			</if>
+			<if test="searchEdttm != null and searchEdttm != ''">
+			    AND A.REG_DTTM <![CDATA[ <= ]]> REPLACE(#{searchEdttm}, '-', '') || '235959'
+			</if>
+
 			<!-- 검색어 적용 -->
 			<choose>
 				<when test="searchKey != null and searchKey != ''">
@@ -727,6 +737,391 @@
 		<include refid="CommonSQL.pageSubfix" />
 	</select>
 
+	<!-- 게시글 LIST 댓글 쿼리 공통 -->
+	<sql id="bbsAtclCmntListQuery">
+		SELECT
+			A.ATCL_ID
+			, B.ORG_ID
+			, A.BBS_ID
+			, A.USER_ID
+			, A.UP_ATCL_ID
+			, A.ATCL_TTL
+			, A.ATCL_CTS
+			, A.ATCL_LV
+			, A.ATCL_SEQNO
+			, C.ATCL_CMNT_ID
+			, C.UP_ATCL_CMNT_ID
+			, C.ATCL_CMNT_CTS
+			, C.EMTICN_NO
+		  FROM TB_LMS_BBS_ATCL A
+		  JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
+		  JOIN TB_LMS_BBS_ATCL_CMNT C ON A.ATCL_ID = C.ATCL_ID
+		 WHERE 1=1
+		   AND A.BBS_ID = #{bbsId}
+		   AND A.DELYN = 'N'
+		   AND A.ATCL_ID = #{atclId}
+
+			<if test="orgId != null and orgId != ''">
+				AND B.ORG_ID = #{orgId}
+			</if>
+
+			<!-- 여러 게시판ID 목록에서 검색하는 경우 -->
+			<if test="bbsIdList != null">
+				AND A.BBS_ID IN (
+					<foreach collection="bbsIdList" item="item" index="index" separator="," open="" close="">
+						#{item}
+					</foreach>
+				)
+			</if>
+
+			<!-- 개설과목ID로 검색 -->
+			<if test="sbjctOfrngId != null and sbjctOfrngId != ''">
+				AND B.SBJCT_OFRNG_ID = #{sbjctOfrngId}
+			</if>
+
+			<!-- 검색어 적용 -->
+			<choose>
+				<when test="searchKey != null and searchKey != ''">
+					<if test="searchValue != null and searchValue != '' and searchKey == 'atclTtl'">
+						AND LOWER(A.ATCL_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					</if>
+					<if test="searchValue != null and searchValue != '' and searchKey == 'rgtrnm'">
+						AND LOWER(A.RGTRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+					</if>
+				</when>
+				<otherwise>
+					<if test="searchValue != null and searchValue != ''">
+						AND (
+							   LOWER(A.ATCL_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							OR LOWER(A.RGTRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+						)
+					</if>
+				</otherwise>
+			</choose>
+		ORDER BY A.REG_DTTM DESC
+	</sql>
+
+	<select id="selectBbsSbjctList" parameterType="bbsAtclVO" resultType="bbsAtclVO">
+		/*
+			SQL ID : BbsAtclDAO.selectBbsSbjctList
+			설  명 : 과목공지 목록 조회 (페이징)
+		*/
+		<include refid="CommonSQL.pagePrefix" />
+		SELECT
+			  A.ATCL_ID
+			, D.ATCL_OPTN_ID
+			, D.OPTN_CD
+			, D.OPTN_USEYN
+			, D.OPTN_SDTTM
+			, D.OPTN_EDTTM
+			, A.BBS_ID
+			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
+			, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = A.DEPT_ID) AS DEPTNM
+			, (SELECT SBJCTNM FROM TB_LMS_SBJCT WHERE SBJCT_ID = A.SBJCT_ID) AS SBJCTNM
+			, C.DVCLAS_NO
+			, A.USER_ID
+			, A.UP_ATCL_ID
+			, A.DVCLAS_REG_ATCL_ID
+			, A.ATCL_TTL
+			, A.ATCL_CTS
+			, A.ATCL_HASH_TAG_CTS
+			, A.ATCL_LV
+			, A.ATCL_SEQNO
+			, A.FVRT_CNT
+			, A.INQ_CNT
+			, A.REF_CMNT_ID
+			, A.THMB_FILE_ID
+			, A.PROC_STSCD
+			, A.HDR_TYCD
+			, A.ATHR_ID
+			, A.DSCSN_PROF_ID
+			, A.RGTR_ID
+			, A.REG_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, A.DELYN
+			, A.OYN
+			, A.RSRVYN
+			, A.RSRV_SDTTM
+			, A.RSRV_EDTTM
+			, A.CMNT_PRMYN
+			, A.NTC_GBNCD
+			, A.AUTO_ALIM_SDTTM
+			, A.AUTO_ALIM_EDTTM
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTRNM
+			, CASE WHEN A.REG_DTTM > FN_DTTM_SUB(7) THEN 'Y' ELSE 'N' END AS IS_NEW
+			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL_CMNT XX WHERE XX.ATCL_ID IN (SELECT UP_ATCL_ID FROM TB_LMS_BBS_ATCL WHERE UP_ATCL_ID = A.ATCL_ID)) AS CMNT_CNT
+			, ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
+			, COUNT(*) OVER() AS TOTAL_CNT
+			, FN_REF_FILE_CNT(A.ATCL_ID) AS FILE_CNT <!-- 첨부파일수 -->
+		FROM TB_LMS_BBS_ATCL A
+		   JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
+		   JOIN TB_LMS_SBJCT C ON C.SBJCT_ID = B.SBJCT_ID
+		LEFT JOIN TB_LMS_BBS_ATCL_OPTN D ON A.ATCL_ID = D.ATCL_ID
+		WHERE 1=1
+			AND A.BBS_ID = #{bbsId}
+			AND A.ATCL_LV = #{atclLv}
+			AND A.DELYN = 'N'
+
+			<if test="sbjctYr != null and sbjctYr != ''">
+				AND	C.SBJCT_YR = #{sbjctYr}
+			</if>
+			<if test="sbjctSmstr != null and sbjctSmstr != ''">
+				AND C.SBJCT_SMSTR = #{sbjctSmstr}
+			</if>
+			<if test="orgId != null and orgId != ''">
+				AND	B.ORG_ID = #{orgId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				AND	C.DEPT_ID = #{deptId}
+			</if>
+			<if test="sbjctId != null and sbjctId != ''">
+				AND	C.SBJCT_ID = #{sbjctId}
+			</if>
+			<if test="searchValue != null and searchValue != ''">
+			AND (
+				   LOWER(A.ATCL_TTL) LIKE LOWER('%' || #{searchValue} || '%')
+				 OR LOWER((
+					SELECT USERNM
+					FROM TB_LMS_USER
+					WHERE USER_RPRS_ID = A.USER_ID
+				)) LIKE LOWER('%' || #{searchValue} || '%')
+			)
+		</if>
+		ORDER BY A.REG_DTTM DESC
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
+
+	<select id="selectBbsLctrQnaList" parameterType="bbsAtclVO" resultType="bbsAtclVO">
+		/*
+			SQL ID : BbsAtclDAO.selectBbsLctrQnaList
+			설  명 : 강의 QNA 목록 조회 (페이징)
+		*/
+		<include refid="CommonSQL.pagePrefix" />
+		SELECT
+			  A.ATCL_ID
+			, A.BBS_ID
+			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
+			, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = A.DEPT_ID) AS DEPTNM
+			, (SELECT SBJCTNM FROM TB_LMS_SBJCT WHERE SBJCT_ID = A.SBJCT_ID) AS SBJCTNM
+			, C.DVCLAS_NO
+			, A.USER_ID
+			, A.UP_ATCL_ID
+			, A.DVCLAS_REG_ATCL_ID
+			, A.ATCL_TTL
+			, A.ATCL_CTS
+			, A.ATCL_HASH_TAG_CTS
+			, A.ATCL_LV
+			, A.ATCL_SEQNO
+			, A.FVRT_CNT
+			, A.INQ_CNT
+			, A.REF_CMNT_ID
+			, A.THMB_FILE_ID
+			, A.PROC_STSCD
+			, A.HDR_TYCD
+			, A.ATHR_ID
+			, A.DSCSN_PROF_ID
+			, A.RGTR_ID
+			, A.REG_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, A.DELYN
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTRNM
+			, CASE WHEN A.REG_DTTM > FN_DTTM_SUB(7) THEN 'Y' ELSE 'N' END AS IS_NEW
+			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL WHERE UP_ATCL_ID = A.ATCL_ID) AS CMNT_CNT
+			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL WHERE UP_ATCL_ID = A.ATCL_ID AND ATCL_LV = 2) AS RSPNS_CNT
+			, ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
+			, COUNT(*) OVER() AS TOTAL_CNT
+		FROM TB_LMS_BBS_ATCL A
+		   JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
+		   JOIN TB_LMS_SBJCT C ON C.SBJCT_ID = B.SBJCT_ID
+		WHERE 1=1
+			AND A.BBS_ID = #{bbsId}
+			AND A.DELYN = 'N'
+			AND A.ATCL_LV = #{atclLv}
+			AND B.ORG_ID = #{orgId}
+			<if test="sbjctYr != null and sbjctYr != ''">
+				AND	C.SBJCT_YR = #{sbjctYr}
+			</if>
+			<if test="sbjctSmstr != null and sbjctSmstr != ''">
+				AND C.SBJCT_SMSTR = #{sbjctSmstr}
+			</if>
+			<if test="orgId != null and orgId != ''">
+				AND	B.ORG_ID = #{orgId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				AND	C.DEPT_ID = #{deptId}
+			</if>
+			<if test="sbjctId != null and sbjctId != ''">
+				AND	C.SBJCT_ID = #{sbjctId}
+			</if>
+			<if test="searchValue != null and searchValue != ''">
+			AND (
+				   LOWER(A.ATCL_TTL) LIKE LOWER('%' || #{searchValue} || '%')
+				 OR LOWER((
+					SELECT USERNM
+					FROM TB_LMS_USER
+					WHERE USER_RPRS_ID = A.USER_ID
+				)) LIKE LOWER('%' || #{searchValue} || '%') -->
+			)
+			</if>
+		ORDER BY A.REG_DTTM DESC
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
+
+	<select id="selectBbsDscsnList" parameterType="bbsAtclVO" resultType="bbsAtclVO">
+		/*
+			SQL ID : BbsAtclDAO.selectBbsDscsnList
+			설  명 : 상담 목록 조회 (페이징)
+		*/
+		<include refid="CommonSQL.pagePrefix" />
+		SELECT
+			B.ORG_ID
+			, A.ATCL_ID
+			, A.BBS_ID
+			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
+			, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = A.DEPT_ID) AS DEPTNM
+			, (SELECT SBJCTNM FROM TB_LMS_SBJCT WHERE SBJCT_ID = A.SBJCT_ID) AS SBJCTNM
+			, C.DVCLAS_NO
+			, A.USER_ID
+			, A.UP_ATCL_ID
+			, A.DVCLAS_REG_ATCL_ID
+			, A.ATCL_TTL
+			, A.ATCL_CTS
+			, A.ATCL_HASH_TAG_CTS
+			, A.ATCL_LV
+			, A.ATCL_SEQNO
+			, A.FVRT_CNT
+			, A.INQ_CNT
+			, A.REF_CMNT_ID
+			, A.THMB_FILE_ID
+			, A.PROC_STSCD
+			, A.HDR_TYCD
+			, A.ATHR_ID
+			, A.DSCSN_PROF_ID
+			, A.RGTR_ID
+			, A.REG_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, A.DELYN
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTRNM
+			, CASE WHEN A.REG_DTTM > FN_DTTM_SUB(7) THEN 'Y' ELSE 'N' END AS IS_NEW
+			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL_CMNT XX WHERE XX.ATCL_ID IN (SELECT ATCL_ID FROM TB_LMS_BBS_ATCL WHERE UP_ATCL_ID = A.ATCL_ID)) AS CMNT_CNT
+			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL WHERE UP_ATCL_ID = A.ATCL_ID AND ATCL_LV = 2) AS RSPNS_CNT
+			, ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
+			, COUNT(*) OVER() AS TOTAL_CNT
+		FROM TB_LMS_BBS_ATCL A
+		   JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
+		   JOIN TB_LMS_SBJCT C ON C.SBJCT_ID = B.SBJCT_ID
+		WHERE 1=1
+			AND A.BBS_ID = #{bbsId}
+			AND A.DELYN = 'N'
+			AND A.ATCL_LV = #{atclLv}
+			AND B.ORG_ID = #{orgId}
+			<if test="sbjctYr != null and sbjctYr != ''">
+				AND	C.SBJCT_YR = #{sbjctYr}
+			</if>
+			<if test="sbjctSmstr != null and sbjctSmstr != ''">
+				AND C.SBJCT_SMSTR = #{sbjctSmstr}
+			</if>
+			<if test="orgId != null and orgId != ''">
+				AND	B.ORG_ID = #{orgId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				AND	C.DEPT_ID = #{deptId}
+			</if>
+			<if test="sbjctId != null and sbjctId != ''">
+				AND	C.SBJCT_ID = #{sbjctId}
+			</if>
+			<if test="searchValue != null and searchValue != ''">
+			AND (
+				   LOWER(A.ATCL_TTL) LIKE LOWER('%' || #{searchValue} || '%')
+				 OR LOWER((
+					SELECT USERNM
+					FROM TB_LMS_USER
+					WHERE USER_RPRS_ID = A.USER_ID
+				)) LIKE LOWER('%' || #{searchValue} || '%') -->
+			)
+		</if>
+		ORDER BY A.REG_DTTM DESC
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
+
+	<select id="selectBbsAtclGrpNtcList" parameterType="bbsAtclVO" resultType="bbsAtclVO">
+		/*
+			SQL ID : BbsAtclDAO.selectBbsAtclGrpNtcList
+			설  명 : 게시판 > 과목공지 > 그룹 공지 사항
+		*/
+		<include refid="CommonSQL.pagePrefix" />
+		SELECT
+			  A.ATCL_ID
+			, A.BBS_ID
+			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
+			, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = A.DEPT_ID) AS DEPTNM
+			, (SELECT SBJCTNM FROM TB_LMS_SBJCT WHERE SBJCT_ID = A.SBJCT_ID) AS SBJCTNM
+			, C.DVCLAS_NO
+			, A.USER_ID
+			, A.UP_ATCL_ID
+			, A.DVCLAS_REG_ATCL_ID
+			, A.ATCL_TTL
+			, A.ATCL_CTS
+			, A.ATCL_HASH_TAG_CTS
+			, A.ATCL_LV
+			, A.ATCL_SEQNO
+			, A.FVRT_CNT
+			, A.INQ_CNT
+			, A.REF_CMNT_ID
+			, A.THMB_FILE_ID
+			, A.PROC_STSCD
+			, A.HDR_TYCD
+			, A.ATHR_ID
+			, A.DSCSN_PROF_ID
+			, A.RGTR_ID
+			, A.REG_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, A.DELYN
+			, A.RGTRNM
+			, CASE WHEN A.REG_DTTM > FN_DTTM_SUB(7) THEN 'Y' ELSE 'N' END AS IS_NEW
+			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL_CMNT XX WHERE XX.ATCL_ID IN (SELECT ATCL_ID FROM TB_LMS_BBS_ATCL WHERE UP_ATCL_ID = A.ATCL_ID)) AS CMNT_CNT
+			, ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
+			, COUNT(*) OVER() AS TOTAL_CNT
+		FROM TB_LMS_BBS_ATCL A
+		   JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
+		   JOIN TB_LMS_SBJCT C ON C.SBJCT_ID = B.SBJCT_ID
+		WHERE 1=1
+			AND A.BBS_ID = #{bbsId}
+			AND A.DELYN = 'N'
+			AND A.ATCL_LV = #{atclLv}
+			AND B.ORG_ID = #{orgId}
+			<if test="sbjctYr != null and sbjctYr != ''">
+				AND	C.SBJCT_YR = #{sbjctYr}
+			</if>
+			<if test="sbjctSmstr != null and sbjctSmstr != ''">
+				AND C.SBJCT_SMSTR = #{sbjctSmstr}
+			</if>
+			<if test="orgId != null and orgId != ''">
+				AND	B.ORG_ID = #{orgId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				AND	C.DEPT_ID = #{deptId}
+			</if>
+			<if test="sbjctId != null and sbjctId != ''">
+				AND	C.SBJCT_ID = #{sbjctId}
+			</if>
+			<if test="searchValue != null and searchValue != ''">
+			AND (
+				   LOWER(A.ATCL_TTL) LIKE LOWER('%' || #{searchValue} || '%')
+				 OR LOWER((
+					SELECT USERNM
+					FROM TB_LMS_USER
+					WHERE USER_RPRS_ID = A.USER_ID
+				)) LIKE LOWER('%' || #{searchValue} || '%') -->
+			)
+		</if>
+		ORDER BY A.REG_DTTM DESC
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
 
 	<select id="selectBbsAtcl" parameterType="bbsAtclVO" resultType="bbsAtclVO">
 		/*
@@ -734,11 +1129,49 @@
              설  명 : 게시판게시글 조회
          */
 		SELECT
-			  A.*
+			  A.ATCL_ID
+			, A.BBS_ID
+			, A.USER_ID
+			, A.UP_ATCL_ID
+			, A.ATCL_TTL
+			, A.ATCL_CTS
+			, A.ATCL_HASH_TAG_CTS
+			, A.ATCL_LV
+			, A.ATCL_SEQNO
+			, A.FVRT_CNT
+			, A.INQ_CNT
+			, A.PROC_STSCD
+			, A.RGTR_ID
+			, A.REG_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, A.DELYN
+			, A.OYN
+			, A.RSRVYN
+			, A.RSRV_SDTTM
+			, A.RSRV_EDTTM
+			, A.CMNT_PRMYN
+			, A.NTC_GBNCD
+			, A.AUTO_ALIM_SDTTM
+			, A.AUTO_ALIM_EDTTM
+			, A.AUTO_ALIMYN
+			, A.ORG_ID
+			, A.DEPT_ID
+			, A.SBJCT_ID
+			, A.DVCLAS_NO
+			, D.ATCL_OPTN_ID
+			, B.ORG_ID
+			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
+			, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = A.DEPT_ID) AS DEPTNM
+			, (SELECT SBJCTNM FROM TB_LMS_SBJCT WHERE SBJCT_ID = A.SBJCT_ID) AS SBJCTNM
 			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL WHERE UP_ATCL_ID = A.ATCL_ID AND DELYN = 'N') AS ANSWER_ATCL_CNT <!-- 답변수 -->
 			, CASE WHEN A.REG_DTTM &gt; FN_DTTM_SUB(7) THEN 'Y' ELSE 'N' END AS IS_NEW <!-- 새글여부 -->
 			, FN_REF_FILE_CNT(A.ATCL_ID) AS FILE_CNT <!-- 첨부파일수 -->
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTRNM
 		FROM TB_LMS_BBS_ATCL A
+		JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
+		JOIN TB_LMS_SBJCT C ON C.SBJCT_ID = B.SBJCT_ID
+		LEFT JOIN TB_LMS_BBS_ATCL_OPTN D ON A.ATCL_ID = D.ATCL_ID
 		WHERE 1=1
 			AND A.ATCL_ID = #{atclId}
 	</select>
@@ -771,57 +1204,51 @@
              SQL ID : BbsAtclDAO.insertBbsAtcl
              설  명 : 게시글 정보 저장
          */
-		INSERT INTO TB_LMS_BBS_ATCL (
-			  ATCL_ID
-			, BBS_ID
-			, USER_ID
-			, UP_ATCL_ID
-			, DVCLAS_REG_ATCL_ID
-			, ATCL_TTL
-			, ATCL_CTS
-			, ATCL_HASH_TAG_CTS
-			, ATCL_LV
-			, ATCL_SEQNO
-			, FVRT_CNT
-			, INQ_CNT
-			, REF_CMNT_ID
-			, THMB_FILE_ID
-			, PROC_STSCD
-			, HDR_TYCD
-			, ATHR_ID
-			, DSCSN_PROF_ID
-			, RGTR_ID
-			, REG_DTTM
-			, MDFR_ID
-			, MOD_DTTM
-			, DELYN
-			, RGTRNM
-		) VALUES (
-			  #{atclId}
-			, #{bbsId}
-			, #{userId} /* userId */
-			, #{upAtclId}
-			, #{dvclasRegAtclId}
-			, #{atclTtl}
-			, #{atclCts}
-			, #{atclHashTagCts}
-			, NVL((SELECT MAX(NVL(A.ATCL_LV, 0)) + 1 FROM TB_LMS_BBS_ATCL A WHERE A.ATCL_ID = #{upAtclId}), 0)
-			, NVL((SELECT MAX(NVL(A.ATCL_SEQNO, 0)) + 1 FROM TB_LMS_BBS_ATCL A WHERE A.BBS_ID = #{bbsId}), 1)
-			, 0
-			, 0
-			, #{refCmntId}
-			, #{thmbFileId}
-			, 'S'
-			, #{hdrTycd}
-			, #{athrId}
-			, #{dscsnProfId}
-			, #{rgtrId}
-			, FN_DTTM()
-			, #{mdfrId}
-			, FN_DTTM()
-			, 'N'
-			, #{rgtrnm}
-		)
+		MERGE INTO TB_LMS_BBS_ATCL A
+		USING DUAL
+		ON (A.ATCL_ID = #{atclId})
+		WHEN MATCHED THEN
+		    UPDATE SET
+		          ATCL_TTL         = #{atclTtl}
+		        , ATCL_CTS         = #{atclCts}
+		        , ATCL_HASH_TAG_CTS = #{atclHashTagCts}
+		        , THMB_FILE_ID     = #{thmbFileId}
+		        , HDR_TYCD         = #{hdrTycd}
+		        , MDFR_ID          = #{mdfrId}
+		        , MOD_DTTM         = FN_DTTM()
+		WHEN NOT MATCHED THEN
+		    INSERT (
+		          ATCL_ID, BBS_ID, USER_ID, UP_ATCL_ID, DVCLAS_REG_ATCL_ID
+		        , ATCL_TTL, ATCL_CTS, ATCL_HASH_TAG_CTS, ATCL_LV, ATCL_SEQNO
+		        , FVRT_CNT, INQ_CNT, REF_CMNT_ID, THMB_FILE_ID, PROC_STSCD
+		        , HDR_TYCD, ATHR_ID, DSCSN_PROF_ID, RGTR_ID, REG_DTTM
+		        , MDFR_ID, MOD_DTTM, DELYN, RGTRNM
+		    ) VALUES (
+		          #{atclId}
+		        , #{bbsId}
+		        , #{userId}
+		        , #{upAtclId}
+		        , #{dvclasRegAtclId}
+		        , #{atclTtl}
+		        , #{atclCts}
+		        , #{atclHashTagCts}
+		        , NVL((SELECT MAX(NVL(B.ATCL_LV, 0)) + 1 FROM TB_LMS_BBS_ATCL B WHERE B.ATCL_ID = #{upAtclId}), 0)
+		        , NVL((SELECT MAX(NVL(B.ATCL_SEQNO, 0)) + 1 FROM TB_LMS_BBS_ATCL B WHERE B.BBS_ID = #{bbsId}), 1)
+		        , 0
+		        , 0
+		        , #{refCmntId}
+		        , #{thmbFileId}
+		        , 'S'
+		        , #{hdrTycd}
+		        , #{athrId}
+		        , #{dscsnProfId}
+		        , #{rgtrId}
+		        , FN_DTTM()
+		        , #{mdfrId}
+		        , FN_DTTM()
+		        , 'N'
+		        , #{rgtrnm}
+		    )
 	</insert>
 
 
@@ -887,6 +1314,343 @@
 		<!-- LIMIT #{listScale} -->
 	</select>
 
+	<select id="bbsViewCntSelect" parameterType="bbsViewVO" resultType="Integer">
+		/*
+             SQL ID : BbsViewDAO.bbsViewCntSelect
+             설  명 : 게시판 조회자 목록 수
+         */
+		SELECT
+			INQ_CNT
+		  FROM TB_LMS_BBS_ATCL
+		 WHERE ATCL_ID = #{atclId}
+	</select>
 
+	<select id="bbsAtclCnt" resultType="int">
+		/*
+             SQL ID : BbsViewDAO.bbsAtclCnt
+             설  명 : 게시판 조회자 목록 수
+         */
+	    SELECT COUNT(*)
+	      FROM TB_LMS_BBS_ATCL
+	     WHERE ATCL_ID = #{atclId}
+	       AND ATCL_LV = #{atclLv}
+	</select>
+
+	<insert id="bbsAtclRspnsRegist" parameterType="bbsAtclVO">
+		/*
+             SQL ID : BbsAtclDAO.bbsAtclRspnsRegist
+             설  명 : 게시글 답변 정보 저장
+         */
+		INSERT INTO TB_LMS_BBS_ATCL (
+	        ATCL_ID
+	        , USER_ID
+	        , UP_ATCL_ID
+	        , BBS_ID
+	        , ATCL_TTL
+	        , ATCL_CTS
+	        , ATCL_LV
+	        , FVRT_CNT
+	        , INQ_CNT
+	        , PROC_STSCD
+	        , RGTR_ID
+	        , REG_DTTM
+	    ) VALUES (
+	        #{atclId}
+	        , #{userId}
+	        , #{upAtclId}
+	        , #{bbsId}
+	        , #{atclTtl}
+	        , #{atclCts}
+	        , 2
+	        , 0
+	        , 0
+	        , 'S'
+	        , #{userId}
+	        , FN_DTTM()
+	    )
+	</insert>
+
+	<update id="bbsAtclRspnsModify" parameterType="bbsAtclVO">
+		/*
+             SQL ID : BbsAtclDAO.bbsAtclRspnsModify
+             설  명 : 게시글 답변 정보 수정
+         */
+	    UPDATE TB_LMS_BBS_ATCL
+	       SET ATCL_TTL = #{atclTtl}
+	         , ATCL_CTS = #{atclCts}
+	         , MDFR_ID  = #{userId}
+	         , MOD_DTTM = FN_DTTM()
+	     WHERE ATCL_ID  = #{atclId}
+	       AND ATCL_LV  = #{atclLv}
+	</update>
+
+	<insert id="bbsAtclSbjctRegist" parameterType="bbsAtclVO">
+		/*
+             SQL ID : BbsAtclDAO.bbsAtclSbjctRegist
+             설  명 : 게시글 > 과목 공지 > 글쓰기 저장
+         */
+	    MERGE INTO TB_LMS_BBS_ATCL A
+		USING DUAL
+		   ON (A.ATCL_ID = #{atclId})
+		 WHEN MATCHED THEN
+		    UPDATE SET
+		    	  A.ORG_ID      = #{orgId}
+		    	, A.DEPT_ID     = #{deptId}
+		    	, A.SBJCT_ID    = #{sbjctId}
+		        , A.ATCL_TTL    = #{atclTtl}
+		        , A.ATCL_CTS    = #{atclCts}
+		        , A.RGTRNM      = #{rgtrnm}
+		        , A.DVCLAS_NO   = #{dvclasNo}
+		        , A.OYN         = #{oyn}
+		        , A.NTC_GBNCD   = #{ntcGbncd}
+		        , A.RSRVYN      = #{rsrvyn}
+		        , A.RSRV_SDTTM  = #{rsrvSdttm}
+		        , A.RSRV_EDTTM  = #{rsrvEdttm}
+		        , A.CMNT_PRMYN  = #{cmntPrmyn}
+		        , A.AUTO_ALIMYN  = #{autoAlimyn}
+		        , A.AUTO_ALIM_SDTTM  = #{autoAlimSdttm}
+		        , A.AUTO_ALIM_EDTTM  = #{autoAlimEdttm}
+		        , A.MDFR_ID      = #{rgtrId}
+		        , A.MOD_DTTM     = FN_DTTM()
+		 WHEN NOT MATCHED THEN
+		    INSERT (
+		    	ORG_ID
+				, DEPT_ID
+				, SBJCT_ID
+		        , ATCL_ID
+		        , USER_ID
+		        , UP_ATCL_ID
+		        , BBS_ID
+		        , ATCL_TTL
+		        , ATCL_CTS
+		        , ATCL_LV
+		        , FVRT_CNT
+		        , INQ_CNT
+		        , PROC_STSCD
+		        , RGTRNM
+		        , DVCLAS_NO
+		        , CMNT_PRMYN
+		        , RSRVYN
+		        , RSRV_SDTTM
+		        , RSRV_EDTTM
+		        , OYN
+		        , NTC_GBNCD
+		        , AUTO_ALIMYN
+		        , AUTO_ALIM_SDTTM
+		        , AUTO_ALIM_EDTTM
+		        , RGTR_ID
+		        , REG_DTTM
+		    ) VALUES (
+		        #{orgId}
+		        , #{deptId}
+		        , #{sbjctId}
+		        , #{atclId}
+		        , #{userId}
+		        , #{upAtclId}
+		        , #{bbsId}
+		        , #{atclTtl}
+		        , #{atclCts}
+		        , 1
+		        , 0
+		        , 0
+		        , 'S'
+		        , #{rgtrnm}
+		        , #{dvclasNo}
+		        , #{cmntPrmyn}
+		        , #{rsrvyn}
+		        , #{rsrvSdttm}
+		        , #{rsrvEdttm}
+		        , #{oyn}
+		        , #{ntcGbncd}
+		        , #{autoAlimyn}
+		        , #{autoAlimSdttm}
+		        , #{autoAlimEdttm}
+		        , #{rgtrId}
+		        , FN_DTTM()
+		    )
+	</insert>
+
+	<insert id="bbsAtclOptnRegist" parameterType="bbsAtclVO">
+		/*
+             SQL ID : BbsAtclDAO.bbsAtclOptnRegist
+             설  명 : 게시글 > 게시글 옵션 저장
+         */
+		MERGE INTO TB_LMS_BBS_ATCL_OPTN A
+		USING (
+		    SELECT
+		          #{atclOptnId} AS ATCL_OPTN_ID
+		        , #{atclId} AS ATCL_ID
+		        , (SELECT CD FROM TB_LMS_CMMN_CD WHERE UP_CD = 'SYS_NTC_OPTN_TYCD' AND CD_VL = #{optnCd}) AS T_OPTN_CD
+		        , (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'SYS_NTC_OPTN_TYCD' AND CD_VL = #{optnCd}) AS T_OPTNNM
+		        , #{optnUseyn} AS T_OPTN_USEYN
+		        , #{optnSdttm} AS T_OPTN_SDTTM
+		        , #{optnEdttm} AS T_OPTN_EDTTM
+		        , #{rgtrId} AS T_RGTR_ID
+		    FROM DUAL
+		) B
+		ON (A.ATCL_ID = B.ATCL_ID)
+		WHEN MATCHED THEN
+		    UPDATE SET
+		        A.OPTN_CD      = B.T_OPTN_CD
+		        , A.OPTNNM     = B.T_OPTNNM
+		        , A.OPTN_USEYN = B.T_OPTN_USEYN
+		        , A.OPTN_SDTTM = B.T_OPTN_SDTTM
+		        , A.OPTN_EDTTM = B.T_OPTN_EDTTM
+		        , A.MDFR_ID    = B.T_RGTR_ID
+		        , A.MOD_DTTM   = FN_DTTM()
+		WHEN NOT MATCHED THEN
+		    INSERT (
+		          ATCL_OPTN_ID
+		        , ATCL_ID
+		        , OPTN_CD
+		        , OPTNNM
+		        , OPTN_USEYN
+		        , OPTN_SDTTM
+		        , OPTN_EDTTM
+		        , RGTR_ID
+		        , REG_DTTM
+		    ) VALUES (
+		          B.ATCL_OPTN_ID
+		        , B.ATCL_ID
+		        , B.T_OPTN_CD
+		        , B.T_OPTNNM
+		        , B.T_OPTN_USEYN
+		        , B.T_OPTN_SDTTM
+		        , B.T_OPTN_EDTTM
+		        , B.T_RGTR_ID
+		        , FN_DTTM()
+		    )
+	</insert>
+
+	<select id="selectBbsSbjctDtlView" parameterType="BbsAtclVO" resultType="BbsAtclVO">
+		/*
+             SQL ID : BbsAtclDAO.selectBbsSbjctDtlView
+             설  명 : 게시글 > 게시글 상세보기
+         */
+	    SELECT
+	    	B.ORG_ID
+			, B.DEPT_ID
+			, B.SBJCT_ID
+			, C.OPTN_CD
+			, C.OPTNNM
+			, C.OPTN_USEYN
+			, C.OPTN_SDTTM
+			, C.OPTN_EDTTM
+			, B.ATCL_TTL
+			, B.ATCL_CTS
+			, B.DVCLAS_NO
+			, B.CMNT_PRMYN
+			, B.RSRVYN
+			, B.RSRV_SDTTM
+			, B.RSRV_EDTTM
+			, B.OYN
+			, B.NTC_GBNCD
+			, B.AUTO_ALIMYN
+			, B.AUTO_ALIM_SDTTM
+			, B.AUTO_ALIM_EDTTM
+		  FROM TB_LMS_BBS A
+		  JOIN TB_LMS_BBS_ATCL B ON A.BBS_ID = B.BBS_ID
+		  LEFT JOIN TB_LMS_BBS_ATCL_OPTN C ON B.ATCL_ID = C.ATCL_ID
+		  WHERE 1=1
+		    AND A.BBS_ID = #{bbsId}
+		    AND B.ATCL_ID = #{atclId}
+	</select>
+
+	<select id="selectBbsAtclRspnsList" parameterType="bbsAtclVO" resultType="bbsAtclVO">
+		/*
+			SQL ID : BbsAtclDAO.selectBbsAtclRspnsList
+			설  명 : 과목공지 목록 조회 (페이징)
+		*/
+		<include refid="CommonSQL.pagePrefix" />
+		SELECT
+			  A.ATCL_ID
+			, D.ATCL_OPTN_ID
+			, D.OPTN_CD
+			, D.OPTN_USEYN
+			, D.OPTN_SDTTM
+			, D.OPTN_EDTTM
+			, A.BBS_ID
+			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
+			, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = A.DEPT_ID) AS DEPTNM
+			, (SELECT SBJCTNM FROM TB_LMS_SBJCT WHERE SBJCT_ID = A.SBJCT_ID) AS SBJCTNM
+			, C.DVCLAS_NO
+			, A.USER_ID
+			, A.UP_ATCL_ID
+			, A.DVCLAS_REG_ATCL_ID
+			, A.ATCL_TTL
+			, A.ATCL_CTS
+			, A.ATCL_HASH_TAG_CTS
+			, A.ATCL_LV
+			, A.ATCL_SEQNO
+			, A.FVRT_CNT
+			, A.INQ_CNT
+			, A.REF_CMNT_ID
+			, A.THMB_FILE_ID
+			, A.PROC_STSCD
+			, A.HDR_TYCD
+			, A.ATHR_ID
+			, A.DSCSN_PROF_ID
+			, A.RGTR_ID
+			, A.REG_DTTM
+			, A.MDFR_ID
+			, A.MOD_DTTM
+			, A.DELYN
+			, A.OYN
+			, A.RSRVYN
+			, A.RSRV_SDTTM
+			, A.RSRV_EDTTM
+			, A.CMNT_PRMYN
+			, A.NTC_GBNCD
+			, A.AUTO_ALIM_SDTTM
+			, A.AUTO_ALIM_EDTTM
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTRNM
+			, CASE WHEN A.REG_DTTM > FN_DTTM_SUB(7) THEN 'Y' ELSE 'N' END AS IS_NEW
+			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL_CMNT XX WHERE XX.ATCL_ID IN (SELECT UP_ATCL_ID FROM TB_LMS_BBS_ATCL WHERE UP_ATCL_ID = A.ATCL_ID)) AS CMNT_CNT
+			, ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
+			, COUNT(*) OVER() AS TOTAL_CNT
+			, FN_REF_FILE_CNT(A.ATCL_ID) AS FILE_CNT <!-- 첨부파일수 -->
+		FROM TB_LMS_BBS_ATCL A
+		   JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
+		   JOIN TB_LMS_SBJCT C ON C.SBJCT_ID = B.SBJCT_ID
+		LEFT JOIN TB_LMS_BBS_ATCL_OPTN D ON A.ATCL_ID = D.ATCL_ID
+		WHERE 1=1
+			AND A.BBS_ID = #{bbsId}
+			AND A.ATCL_LV = #{atclLv}
+			AND A.DELYN = 'N'
+
+			<if test="atclId != null and atclId != ''">
+				AND	A.ATCL_ID = #{atclId}
+			</if>
+			<if test="upAtclId != null and upAtclId != ''">
+				AND	A.UP_ATCL_ID = #{upAtclId}
+			</if>
+			<if test="sbjctYr != null and sbjctYr != ''">
+				AND	C.SBJCT_YR = #{sbjctYr}
+			</if>
+			<if test="sbjctSmstr != null and sbjctSmstr != ''">
+				AND C.SBJCT_SMSTR = #{sbjctSmstr}
+			</if>
+			<if test="orgId != null and orgId != ''">
+				AND	B.ORG_ID = #{orgId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				AND	C.DEPT_ID = #{deptId}
+			</if>
+			<if test="sbjctId != null and sbjctId != ''">
+				AND	C.SBJCT_ID = #{sbjctId}
+			</if>
+			<if test="searchValue != null and searchValue != ''">
+			AND (
+				   LOWER(A.ATCL_TTL) LIKE LOWER('%' || #{searchValue} || '%')
+				 OR LOWER((
+					SELECT USERNM
+					FROM TB_LMS_USER
+					WHERE USER_RPRS_ID = A.USER_ID
+				)) LIKE LOWER('%' || #{searchValue} || '%')
+			)
+		</if>
+		ORDER BY A.REG_DTTM DESC
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
 
 </mapper>

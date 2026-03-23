@@ -112,8 +112,16 @@
 		   AND QSTN.DELYN = 'N'
 		  JOIN TB_LMS_SRVY_QSTN_VWITM_LVL LVL
 		    ON QSTN.SRVY_QSTN_ID = LVL.SRVY_QSTN_ID
-		 WHERE SRVYPPR.SRVY_ID = #{srvyId}
-		 ORDER BY SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO, LVL.LVL_SEQNO
+		 <choose>
+		 	<when test="searchType != null and searchType == 'EXCEL'">
+		 		WHERE SRVYPPR.SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE DELYN = 'N' AND USEYN = 'Y' AND (SRVY_ID = #{srvyId} OR UP_SRVY_ID = #{srvyId}))
+				ORDER BY SRVYPPR.SRVY_ID, SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO, LVL.LVL_SEQNO
+		 	</when>
+		 	<otherwise>
+		 		WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		 		ORDER BY SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO, LVL.LVL_SEQNO
+		 	</otherwise>
+		 </choose>
 	</select>
 
 </mapper>

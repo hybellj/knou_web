@@ -5,10 +5,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -23,6 +30,7 @@ import knou.framework.common.RepoInfo;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
 import knou.framework.exception.BadRequestUrlException;
+import knou.framework.util.ExcelUtilPoi;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
 import knou.lms.common.vo.DefaultVO;
@@ -30,7 +38,9 @@ import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.srvy.facade.SrvyFacadeService;
 import knou.lms.srvy.vo.SrvyPtcpVO;
 import knou.lms.srvy.vo.SrvyQstnVO;
+import knou.lms.srvy.vo.SrvyQstnVwitmLvlVO;
 import knou.lms.srvy.vo.SrvyVO;
+import knou.lms.srvy.vo.SrvyVwitmVO;
 import knou.lms.srvy.vo.SrvypprVO;
 import knou.lms.srvy.web.view.SrvyMainView;
 
@@ -1078,6 +1088,579 @@ public class SrvyController extends ControllerBase {
         //model.addAttribute("chartMap", tkexamService.userTkexamStatusSelect(vo.getExamBscId(), vo.getSbjctId()));
 
         return "srvy/popup/prof_srvy_ptcp_status_pop";
+    }
+
+    /**
+     * 교수설문참여목록엑셀다운로드
+     *
+     * @param srvyId     		설문아이디
+     * @param ptcpyn 			참여여부
+     * @param srvyPtcpEvlyn 	설문참여평가여부
+     * @param searchValue   	검색어(학과, 학번, 이름)
+     * @param excelGrid 		엑셀그리드
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyPtcpListExcelDown.do")
+    public String profSrvyPtcpListExcelDown(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title", "참여목록");
+        map.put("sheetName", "참여목록");
+        map.put("excelGrid", vo.getExcelGrid());
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("srvyId", vo.getSrvyId());
+        params.put("ptcpyn", request.getParameter("ptcpyn"));
+        params.put("srvyPtcpEvlyn", request.getParameter("srvyPtcpEvlyn"));
+        params.put("searchValue", vo.getSearchValue());
+        SrvyMainView srvyMainView = srvyFacadeService.getSrvyPtcpList(params);
+        map.put("list", srvyMainView.getSrvyPtcpList());
+
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", "참여목록");
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /**
+     * 교수설문참여현황엑셀다운로드
+     *
+     * @param srvyId 	설문아이디
+     * @param sbjctId 	과목아이디
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyPtcpStatusExcelDown.do")
+    public String profSrvyPtcpStatusExcelDown(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String paperTitle = "설문결과";
+
+        SrvyMainView srvyMainView = srvyFacadeService.getSrvyPtcpStatusExcelDownList(vo);
+
+        //엑셀 정보값 세팅
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title", paperTitle);      // 설문결과
+        map.put("sheetName", paperTitle);  // 설문결과
+        map.put("list", srvyMainView);
+
+        //엑셀화
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", paperTitle);   // 설문결과
+        modelMap.put("workbook", makeSrvyPtcpStatusExcel(map, request));
+        modelMap.put("list", srvyMainView);
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /**
+     * 교수설문답변현황엑셀다운로드
+     *
+     * @param srvyId 	설문아이디
+     * @param sbjctId 	과목아이디
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyRspnsStatusExcelDown.do")
+    public String profSrvyRspnsStatusExcelDown(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String paperTitle = "참여자 답변 목록";
+
+        SrvyMainView srvyMainView = srvyFacadeService.getSrvyRspnsStatusExcelDownList(vo);
+
+        //엑셀 정보값 세팅
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title", paperTitle);
+        map.put("sheetName", paperTitle);
+        map.put("list", srvyMainView);
+
+        //엑셀화
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", "제출설문");
+        modelMap.put("workbook", makeSrvyRspnsStatusExcel(map, request));
+        modelMap.put("list", srvyMainView);
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    // 교수설문참여현황엑셀생성
+    public SXSSFWorkbook makeSrvyPtcpStatusExcel(HashMap<String, Object> map, HttpServletRequest request) throws Exception {
+
+        String sheetName = StringUtil.nvl(map.get("sheetName"),"sheet1");
+
+        String ext = StringUtil.nvl(map.get("ext"));
+        if(StringUtil.isNull(ext)) {
+            ext = ".xlsx";
+        }
+
+        SXSSFWorkbook workbook = null;
+        SXSSFSheet worksheet = null;
+        SXSSFRow row = null;
+
+        workbook = new SXSSFWorkbook();
+        // 새로운 sheet를 생성한다.
+        worksheet = workbook.createSheet(sheetName);
+
+        //페이지 제목 폰트 설정
+        Font pageTitleFont = workbook.createFont();
+        pageTitleFont.setFontHeight((short)(16*22)); //사이즈
+        pageTitleFont.setBold(true);
+
+        //문항 제목 폰트 설정
+        Font titleFont = workbook.createFont();
+        titleFont.setFontHeight((short)(16*12)); //사이즈
+        titleFont.setBold(true);
+
+        //문항 아이템 폰트 설정
+        Font itemFont = workbook.createFont();
+        itemFont.setFontHeight((short)(16*12)); //사이즈
+        itemFont.setBold(true);
+
+        //답변현황 폰트 설정
+        Font answerFont = workbook.createFont();
+        answerFont.setFontHeight((short)(16*12)); //사이즈
+        answerFont.setBold(false);
+
+        //척도 타이틀 폰트 설정
+        Font scaleFont = workbook.createFont();
+        scaleFont.setFontHeight((short)(16*12)); //사이즈
+        scaleFont.setBold(true);
+
+        // 페이지 제목 셀 스타일 및 폰트 설정
+        CellStyle pageTitleStyle = workbook.createCellStyle();
+        pageTitleStyle.setAlignment(HorizontalAlignment.LEFT);
+        pageTitleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        pageTitleStyle.setBorderRight(BorderStyle.NONE);
+        pageTitleStyle.setBorderLeft(BorderStyle.NONE);
+        pageTitleStyle.setBorderTop(BorderStyle.NONE);
+        pageTitleStyle.setBorderBottom(BorderStyle.NONE);
+        pageTitleStyle.setFont(pageTitleFont);
+
+        // 문항 제목 셀 스타일 및 폰트 설정
+        CellStyle titleStyle = workbook.createCellStyle();
+        titleStyle.setAlignment(HorizontalAlignment.LEFT);
+        titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        titleStyle.setBorderRight(BorderStyle.NONE);
+        titleStyle.setBorderLeft(BorderStyle.NONE);
+        titleStyle.setBorderTop(BorderStyle.NONE);
+        titleStyle.setBorderBottom(BorderStyle.NONE);
+        titleStyle.setFont(titleFont);
+
+        // 문항 아이템 셀 스타일 및 폰트 설정
+        CellStyle itemStyle = workbook.createCellStyle();
+        itemStyle.setAlignment(HorizontalAlignment.LEFT); //왼쪽 정렬
+        itemStyle.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        itemStyle.setBorderRight(BorderStyle.THIN);
+        itemStyle.setBorderLeft(BorderStyle.THIN);
+        itemStyle.setBorderTop(BorderStyle.THIN);
+        itemStyle.setBorderBottom(BorderStyle.THIN);
+        itemStyle.setFont(itemFont);
+
+        // 답변 현황 셀 스타일 및 폰트 설정
+        CellStyle answerStyle = workbook.createCellStyle();
+        answerStyle.setAlignment(HorizontalAlignment.LEFT); //왼쪽 정렬
+        answerStyle.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        answerStyle.setBorderRight(BorderStyle.THIN);
+        answerStyle.setBorderLeft(BorderStyle.THIN);
+        answerStyle.setBorderTop(BorderStyle.THIN);
+        answerStyle.setBorderBottom(BorderStyle.THIN);
+        answerStyle.setFont(answerFont);
+
+        // 답변 카운트 셀 스타일 및 폰트 설정
+        CellStyle answerCntStyle = workbook.createCellStyle();
+        answerCntStyle.setAlignment(HorizontalAlignment.CENTER); //왼쪽 정렬
+        answerCntStyle.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        answerCntStyle.setBorderRight(BorderStyle.THIN);
+        answerCntStyle.setBorderLeft(BorderStyle.THIN);
+        answerCntStyle.setBorderTop(BorderStyle.THIN);
+        answerCntStyle.setBorderBottom(BorderStyle.THIN);
+        answerCntStyle.setFont(answerFont);
+
+        // 척도 타이틀 셀 스타일 및 폰트 설정
+        CellStyle scaleStyle = workbook.createCellStyle();
+        scaleStyle.setAlignment(HorizontalAlignment.CENTER); //왼쪽 정렬
+        scaleStyle.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        scaleStyle.setBorderRight(BorderStyle.THIN);
+        scaleStyle.setBorderLeft(BorderStyle.THIN);
+        scaleStyle.setBorderTop(BorderStyle.THIN);
+        scaleStyle.setBorderBottom(BorderStyle.THIN);
+        scaleStyle.setFont(scaleFont);
+
+        // 칼럼 길이 설정
+        worksheet.setColumnWidth(0, 15000);
+        worksheet.setColumnWidth(1, 5000);
+        worksheet.setColumnWidth(2, 5000);
+        worksheet.setColumnWidth(3, 5000);
+        worksheet.setColumnWidth(4, 5000);
+        worksheet.setColumnWidth(5, 5000);
+        worksheet.setColumnWidth(6, 5000);
+        worksheet.setColumnWidth(7, 5000);
+        worksheet.setColumnWidth(8, 5000);
+        worksheet.setColumnWidth(9, 5000);
+        worksheet.setColumnWidth(10, 5000);
+
+        SrvyMainView srvyMainView = (SrvyMainView) map.get("list");
+        // 설문지목록
+        List<SrvypprVO> srvypprList = srvyMainView.getSrvypprList();
+        if (srvypprList == null || srvypprList.isEmpty() || srvypprList.size() == 0) {
+            return workbook;
+        }
+        // 설문문항목록
+        List<EgovMap> qstnList = srvyMainView.getSrvyQstnList();
+        if (qstnList == null || qstnList.isEmpty() || qstnList.size() == 0) {
+            return workbook;
+        }
+
+        int rowNum = -1;
+        for (SrvypprVO srvyppr : srvypprList) {
+        	if("SRVY_TEAM".equals(srvyMainView.getSrvyEgovMap().get("srvyGbn")) && srvyppr.getSrvySeqno() == 1) {
+        		// 설문팀목록
+        		for(EgovMap team : srvyMainView.getSrvyTeamList()) {
+        			if(srvyppr.getSrvyId().equals(team.get("srvyId"))) {
+        				row = worksheet.createRow(++rowNum);
+        	            row.createCell(0).setCellValue(team.get("teamnm").toString());
+        	            row.getCell(0).setCellStyle(pageTitleStyle);
+        	            row = worksheet.createRow(++rowNum); // 빈 row
+        			}
+        		}
+        	}
+
+            row = worksheet.createRow(++rowNum);
+            row.createCell(0).setCellValue(srvyppr.getSrvySeqno() + ". " + srvyppr.getSrvyTtl());
+            row.getCell(0).setCellStyle(pageTitleStyle);
+
+            for (EgovMap qstn : qstnList) {
+            	String srvypprId = (String) qstn.get("srvypprId");
+            	if(srvypprId.equals(srvyppr.getSrvypprId())) {
+            		row = worksheet.createRow(++rowNum);
+            		StringBuilder qstnTitle = new StringBuilder()
+            				.append(srvyppr.getSrvySeqno())
+            				.append("-")
+            				.append(qstn.get("qstnSeqno"))
+            				.append(". ")
+            				.append(qstn.get("qstnTtl"))
+            				.append(" [")
+            				.append(qstn.get("qstnRspnsTynm"))
+            				.append("]");
+
+            		row.createCell(0).setCellValue(qstnTitle.toString());
+            		row.getCell(0).setCellStyle(titleStyle);
+
+            		String reschQstnTypeCd = (String) qstn.get("qstnRspnsTycd");
+
+            		// 단일선택형, 다중선택형, OX선택형
+            		if ("ONE_CHC".equals(reschQstnTypeCd) || "MLT_CHC".equals(reschQstnTypeCd) || "OX_CHC".equals(reschQstnTypeCd)) {
+            			List<EgovMap> rspnsList = srvyMainView.getSrvyChcQstnRspnsStatusList();
+            			for (EgovMap rspns : rspnsList) {
+            				if(qstn.get("srvyQstnId").equals(rspns.get("srvyQstnId"))) {
+            					row = worksheet.createRow(++rowNum);
+
+            					// 문항아이템(문항 선택지)
+            					String itemTitle = rspns.get("vwitmCts").toString();
+            					if ("ETC".equals(itemTitle) ) {
+            						itemTitle = "기타 항목";
+            					}
+            					row.createCell(0).setCellValue(itemTitle);
+            					row.getCell(0).setCellStyle(itemStyle);
+
+            					// 문항 답변 현황
+            					StringBuilder answerStatus = new StringBuilder(rspns.get("ratio").toString())
+            							.append("%")
+            							.append(" (")
+            							.append(rspns.get("totJoinCnt").toString())
+            							.append("명")
+            							.append(" ")
+            							.append("중")
+            							.append(" ")
+            							.append(rspns.get("joinCnt").toString())
+            							.append("명")
+            							.append(")");
+            					row.createCell(1).setCellValue(answerStatus.toString());
+            					row.getCell(1).setCellStyle(answerStyle);
+
+            					// 문항 답변 카운트
+            					row.createCell(2).setCellValue(rspns.get("joinCnt").toString() + "명");
+            					row.getCell(2).setCellStyle(answerCntStyle);
+            				}
+            			}
+
+            		// 서술형
+            		} else if ("LONG_TEXT".equals(reschQstnTypeCd)) {
+            			List<EgovMap> rspnsList = srvyMainView.getSrvyTextQstnRspnsStatusList();
+            			if (rspnsList != null && !rspnsList.isEmpty() && rspnsList.size() > 0) {
+            				for (EgovMap rspns : rspnsList) {
+            					if(qstn.get("srvyQstnId").equals(rspns.get("srvyQstnId"))) {
+            						row = worksheet.createRow(++rowNum);
+            						row.createCell(0).setCellValue(rspns.get("usernm").toString());
+            						row.getCell(0).setCellStyle(answerCntStyle);
+
+            						row.createCell(1).setCellValue(rspns.get("rspns").toString());
+            						row.getCell(1).setCellStyle(answerStyle);
+            					}
+            				}
+            			}
+
+            		// 레벨형
+            		} else if ("LEVEL".equals(reschQstnTypeCd)) {
+            			row = worksheet.createRow(++rowNum);
+            			row.createCell(0).setCellValue("");
+            			row.getCell(0).setCellStyle(scaleStyle);
+
+            			int idx = 1;
+            			String srvyQstnId = qstn.get("srvyQstnId").toString();
+            			List<SrvyQstnVwitmLvlVO> lvlList = srvyMainView.getSrvyQstnVwitmLvlList();
+            			for (SrvyQstnVwitmLvlVO lvl : lvlList) {
+            				if(srvyQstnId.equals(lvl.getSrvyQstnId())) {
+            					row.createCell(idx).setCellValue(lvl.getLvlCts());
+            					row.getCell(idx).setCellStyle(scaleStyle);
+            					idx++;
+            				}
+            			}
+
+            			List<SrvyVwitmVO> vwitmList = srvyMainView.getSrvyVwitmList();
+            			for(SrvyVwitmVO vwitm : vwitmList) {
+            				if(srvyQstnId.equals(vwitm.getSrvyQstnId())) {
+            					row = worksheet.createRow(++rowNum);
+            					row.createCell(0).setCellValue(vwitm.getVwitmCts());
+            					row.getCell(0).setCellStyle(itemStyle);
+            					List<EgovMap> rspnsList = srvyMainView.getSrvyLevelQstnRspnsStatusList();
+            					if (rspnsList != null && !rspnsList.isEmpty() && rspnsList.size() > 0) {
+            						for(EgovMap rspns : rspnsList) {
+            							String srvyVwitmId = rspns.get("srvyVwitmId").toString();
+            							if(srvyVwitmId.equals(vwitm.getSrvyVwitmId())) {
+            								StringBuilder answerStatus = new StringBuilder(rspns.get("ratio").toString())
+            										.append("%")
+            										.append(" (")
+            										.append(rspns.get("totJoinCnt").toString())
+            										.append("명")
+            										.append(" ")
+            										.append("중")
+            										.append(" ")
+            										.append(rspns.get("joinCnt").toString())
+            										.append("명")
+            										.append(")");
+
+            								int seqno = Integer.valueOf(rspns.get("lvlSeqno").toString());
+            								row.createCell(seqno).setCellValue(answerStatus.toString());
+            								row.getCell(seqno).setCellStyle(answerStyle);
+            							}
+            						}
+            					}
+            				}
+            			}
+            		}
+
+            		row = worksheet.createRow(++rowNum); // 빈 row(문항과 문항 사이에 한깐 띄운다)
+            	}
+            }
+            row = worksheet.createRow(++rowNum); // 빈 row(페이지와 페이지 사이에 한깐 띄운다)
+        }
+
+        return workbook;
+    }
+
+    // 교수설문답변현황엑셀생성
+    public SXSSFWorkbook makeSrvyRspnsStatusExcel(HashMap<String, Object> map, HttpServletRequest request) throws Exception {
+
+        String title = StringUtil.nvl(map.get("title"));
+        String sheetName = StringUtil.nvl(map.get("sheetName"),"sheet1");
+
+        String ext = StringUtil.nvl(map.get("ext"));
+        if(StringUtil.isNull(ext)) {
+           ext = ".xlsx";
+        }
+
+        SXSSFWorkbook workbook = new SXSSFWorkbook();
+        SXSSFSheet worksheet = null;
+        SXSSFRow row = null;
+
+        //타이틀 폰트 설정
+        Font titleFont = workbook.createFont();
+        titleFont.setFontHeight((short)(16*25)); //사이즈
+        titleFont.setBold(true);
+
+        //헤더 폰트 설정
+        Font headerFont = workbook.createFont();
+        headerFont.setFontHeight((short)(16*12)); //사이즈
+        headerFont.setBold(true);
+
+        //답변 폰트 설정(헤더가 아닌 나머지 row)
+        Font answerFont = workbook.createFont();
+        answerFont.setFontHeight((short)(16*12)); //사이즈
+        answerFont.setBold(false);
+
+
+        // 타이틀 셀 스타일 및 폰트 설정
+        CellStyle titleStyle = workbook.createCellStyle();
+        titleStyle.setAlignment(HorizontalAlignment.LEFT);
+        titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        titleStyle.setBorderRight(BorderStyle.NONE);
+        titleStyle.setBorderLeft(BorderStyle.NONE);
+        titleStyle.setBorderTop(BorderStyle.NONE);
+        titleStyle.setBorderBottom(BorderStyle.NONE);
+        titleStyle.setFont(titleFont);
+
+        // 헤더 셀 스타일 및 폰트 설정
+        XSSFCellStyle styleHeaderXSS = (XSSFCellStyle) workbook.createCellStyle();
+        styleHeaderXSS.setAlignment(HorizontalAlignment.CENTER); //가운데 정렬
+        styleHeaderXSS.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        styleHeaderXSS.setFillForegroundColor(new XSSFColor(new java.awt.Color(192, 192, 192) ));
+        styleHeaderXSS.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        styleHeaderXSS.setBorderRight(BorderStyle.THIN);
+        styleHeaderXSS.setBorderLeft(BorderStyle.THIN);
+        styleHeaderXSS.setBorderTop(BorderStyle.THIN);
+        styleHeaderXSS.setBorderBottom(BorderStyle.THIN);
+        styleHeaderXSS.setFont(headerFont);
+
+        // 답변  셀 스타일 및 폰트 설정
+        CellStyle answerStyle = workbook.createCellStyle();
+        answerStyle.setAlignment(HorizontalAlignment.LEFT); //왼쪽 정렬
+        answerStyle.setVerticalAlignment(VerticalAlignment.CENTER); //높이 가운데 정렬
+        answerStyle.setBorderRight(BorderStyle.THIN);
+        answerStyle.setBorderLeft(BorderStyle.THIN);
+        answerStyle.setBorderTop(BorderStyle.THIN);
+        answerStyle.setBorderBottom(BorderStyle.THIN);
+        answerStyle.setFont(answerFont);
+
+        // 새로운 sheet를 생성한다.
+        worksheet = workbook.createSheet(sheetName);
+
+        SrvyMainView srvyMainView = (SrvyMainView) map.get("list");
+        // 설문문항목록
+        List<EgovMap> qstnList = srvyMainView.getSrvyExcelDownQstnList();
+        int offset = 2;
+        worksheet.setColumnWidth(0, 1000);
+        worksheet.setColumnWidth(1, 5000);
+        for(int i = 0; i < qstnList.size(); i++) {
+        	worksheet.setColumnWidth(offset, 10000);
+            offset++;
+        }
+
+        // title
+        int rowNum = -1;
+        row = worksheet.createRow(++rowNum);
+        row.createCell(0).setCellValue(title);
+        row.getCell(0).setCellStyle(titleStyle);
+        row = worksheet.createRow(++rowNum); // 빈 row
+
+        int teamCnt = 0;
+        String srvyId = "";
+        int i = 2;
+        // 첫번째 문항 목록
+        List<EgovMap> firstQstnList = qstnList.stream()
+				    .filter(qstn ->
+				    	1 == Integer.valueOf(qstn.get("srvySeqno").toString()) &&
+				    	1 == Integer.valueOf(qstn.get("qstnSeqno").toString()) &&
+				    	(qstn.get("vwitmSeqno") == null || 1 == Integer.valueOf(qstn.get("vwitmSeqno").toString()))
+				    )
+				    .collect(Collectors.toList());
+
+        for (EgovMap firstQstn : firstQstnList) {
+	        // 설문팀
+	        if("SRVY_TEAM".equals(srvyMainView.getSrvyEgovMap().get("srvyGbn"))) {
+	        	srvyId = srvyMainView.getSrvyTeamList().get(teamCnt).get("srvyId").toString();
+	        	row = worksheet.createRow(++rowNum); // 빈 row
+	        	row = worksheet.createRow(++rowNum);
+	        	row.createCell(0).setCellValue(srvyMainView.getSrvyTeamList().get(teamCnt).get("teamnm").toString());
+	        	row.getCell(0).setCellStyle(titleStyle);
+	        	row = worksheet.createRow(++rowNum); // 빈 row
+	        	teamCnt++;
+	        } else {
+	        	srvyId = firstQstn.get("srvyId").toString();
+	        }
+
+	        //header
+            row = worksheet.createRow(++rowNum);
+            row.createCell(0).setCellValue("No");
+            row.createCell(1).setCellValue("참여자");
+            row.getCell(0).setCellStyle(styleHeaderXSS);
+            row.getCell(1).setCellStyle(styleHeaderXSS);
+            i = 2;
+            final String srvyIdStr = srvyId;
+
+            // 현재 설문 문항 목록
+            List<EgovMap> curSrvyQstnList = qstnList.stream()
+				    .filter(qstn ->
+				    	srvyIdStr.equals(qstn.get("srvyId"))
+				    )
+				    .collect(Collectors.toList());
+            for(EgovMap qstn : curSrvyQstnList) {
+	            if ("LEVEL".equals(qstn.get("qstnRspnsTycd")) ) {
+	            	row.createCell(i).setCellValue(qstn.get("srvySeqno").toString() + "_" + qstn.get("qstnSeqno").toString() + "_" + qstn.get("vwitmSeqno").toString());
+	            } else {
+	            	row.createCell(i).setCellValue(qstn.get("srvySeqno").toString() + "_" + qstn.get("qstnSeqno").toString());
+	            }
+
+	            row.getCell(i).setCellStyle(styleHeaderXSS);
+	            i++;
+            }
+
+            // 현재 설문 학습자 목록
+            List<EgovMap> curSrvyUserList = srvyMainView.getSrvyExcelDownQstnRspnsList().stream()
+            		.filter(user -> srvyIdStr.equals(user.get("srvyId")))
+            		.collect(Collectors.toMap(
+            				user -> user.get("userId").toString(),  // 키
+            				user -> user,                           // 값
+            				(existing, duplicate) -> existing       // 중복시 기존(첫번째) 유지
+            		))
+            		.values()
+            		.stream()
+            		.collect(Collectors.toList());
+
+            if (curSrvyUserList != null && !curSrvyUserList.isEmpty() && curSrvyUserList.size() > 0) {
+            	int idx = 1;
+            	for(EgovMap curUser : curSrvyUserList) {
+            		row = worksheet.createRow(++rowNum);
+					row.createCell(0).setCellValue(idx);
+					row.getCell(0).setCellStyle(answerStyle);
+					row.createCell(1).setCellValue((String)curUser.get("usernm"));
+					row.getCell(1).setCellStyle(answerStyle);
+					int j = 2;
+
+					// 현재 학습자 답변 목록
+		            List<EgovMap> curUserRspnsList = srvyMainView.getSrvyExcelDownQstnRspnsList().stream()
+						    .filter(user ->
+						    	curUser.get("userId").equals(user.get("userId")) &&
+						    	curUser.get("srvyId").equals(user.get("srvyId"))
+						    )
+						    .collect(Collectors.toList());
+
+		            for(EgovMap qstn : curSrvyQstnList) {
+		            	String rspns = "";
+			            if ("LEVEL".equals(qstn.get("qstnRspnsTycd")) ) {
+			            	rspns = curUserRspnsList.stream()
+			            		    .filter(user ->
+			            		    	user.get("srvypprId").equals(qstn.get("srvypprId")) &&
+			            		    	user.get("srvyQstnId").equals(qstn.get("srvyQstnId")) &&
+			            		    	user.get("srvyVwitmId").equals(qstn.get("srvyVwitmId"))
+			            		    )
+			            		    .findFirst()
+			            		    .map(user -> user.get("lvlCts").toString())
+			            		    .orElse(null);
+			            } else {
+			            	rspns = curUserRspnsList.stream()
+			            		    .filter(user ->
+			            		    	user.get("srvypprId").equals(qstn.get("srvypprId")) &&
+			            		    	user.get("srvyQstnId").equals(qstn.get("srvyQstnId"))
+			            		    )
+			            		    .findFirst()
+			            		    .map(user -> user.get("vwitmCts").toString())
+			            		    .orElse(null);
+			            }
+
+			            row.createCell(j).setCellValue(rspns);
+	    				row.getCell(j).setCellStyle(answerStyle);
+
+	    				j++;
+		            }
+            	}
+            }
+        }
+
+        return workbook;
     }
 
 }

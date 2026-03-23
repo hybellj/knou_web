@@ -59,9 +59,10 @@ public interface SrvyVwitmDAO {
 	 *
 	 * @param srvyId 		설문아이디
 	 * @param qstnRspnsTycd 문항답변유형코드
+	 * @param searchType 	조회유형
 	 * return 설문보기항목목록
 	 * @throws Exception
 	 */
-	public List<SrvyVwitmVO> srvyVwitmBulkList(@Param("srvyId") String srvyId, @Param("qstnRspnsTycd") String qstnRspnsTycd) throws Exception;
+	public List<SrvyVwitmVO> srvyVwitmBulkList(@Param("srvyId") String srvyId, @Param("qstnRspnsTycd") String qstnRspnsTycd, @Param("searchType") String searchType) throws Exception;
 
 }

@@ -9,6 +9,7 @@
 	</jsp:include>
 </head>
 
+<c:set var="orgId" value="${orgId}"/>
 <c:set var="userId" value="${userId}"/>
 <c:set var="authrtGrpcd" value="${authrtGrpcd}"/>
 
@@ -16,7 +17,9 @@
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp">
+            <jsp:param name="orgId" value="${orgId}" />
             <jsp:param name="userId" value="${userId}" />
+            <jsp:param name="authrtGrpcd" value="${authrtGrpcd}" />
       	</jsp:include>
         <!-- //common header -->
 
@@ -155,31 +158,31 @@
 		let contentBox = $("#"+widgetId+"_content");
 
 		switch (widgetId) {
-			case 'card1': // Today
+			case 'wigt_prof_today': // Today
 				contentBox.load("/dashboard/profWidgetToday.do");
 				break;
 
-			case 'card2': // 이달의 학사일정
+			case 'wigt_prof_schedule': // 이달의 학사일정
 				contentBox.load("/dashboard/profWidgetSchedule.do");
 				break;
 
-			case 'card3': // 공지사항
+			case 'wigt_prof_notice': // 공지사항
 				contentBox.load("/dashboard/profWidgetNotice.do");
 				break;
 
-			case 'card4': // 강의Q&A
+			case 'wigt_prof_qna': // 강의Q&A
 				contentBox.load("/dashboard/profWidgetQna.do");
 				break;
 
-			case 'card5': // 1:1상담
+			case 'wigt_prof_counsel': // 1:1상담
 				contentBox.load("/dashboard/profWidgetCounsel.do");
 				break;
 
-			case 'card6': // 알림(메시지)
+			case 'wigt_prof_msg': // 알림(메시지)
 				contentBox.load("/dashboard/profWidgetMsg.do");
 				break;
 
-			case 'card7': // 강의과목
+			case 'wigt_prof_subject': // 강의과목
 				contentBox.load("/dashboard/profWidgetSubject.do");
 				break;
 
@@ -187,76 +190,6 @@
 				break;
 		}
 	}
-
-
-
-	/*
-		// 알림 메시지
-	var MSG_ALIM_UNREAD = '<spring:message code="msg.alim.label.unread"/>';
-	var MSG_ALIM_READ = '<spring:message code="msg.alim.label.read"/>';
-	var MSG_ALIM_EMPTY = '<spring:message code="common.content.not_found"/>';
-
-	function widgetNotiList() {
-    		    var param = { chnlCd: 'ALL', listCnt: 5 };
-
-		    ajaxCall('/alimChnlListAjax.do', param, function(data) {
-		        if (data.result > 0 && data.returnVO) {
-		            // 개수 업데이트
-		            if (data.returnVO.unreadCnt) {
-		                widgetNotiCntUpdate(data.returnVO.unreadCnt);
-		            }
-		            // 목록 렌더링
-		            widgetNotiListRender('PUSH', data.returnVO.pushList, '#widgetPushList', 'push');
-		            widgetNotiListRender('SMS', data.returnVO.smsList, '#widgetSmsList', 'sms');
-		            widgetNotiListRender('SHRTNT', data.returnVO.msgList, '#widgetMsgList', 'msg');
-		            widgetNotiListRender('ALIM_TALK', data.returnVO.talkList, '#widgetTalkList', 'talk');
-		        }
-		    }, function(xhr, status, error) {
-		        console.error('알림 위젯 목록 조회 실패');
-		    }, false, {type: 'GET'});
-		}
-
-		function widgetNotiCntUpdate(data) {
-		    $('#widgetPushCnt').text(data.pushCnt || 0);
-		    $('#widgetSmsCnt').text(data.smsCnt || 0);
-		    $('#widgetShrtntCnt').text(data.shrtntCnt || 0);
-		    $('#widgetAlimtalkCnt').text(data.alimtalkCnt || 0);
-		}
-
-		function widgetNotiListRender(chnlCd, list, targetSelector, itemClass) {
-		    var $target = $(targetSelector);
-		    var html = '';
-
-		    if (list && list.length > 0) {
-		        $.each(list, function(idx, item) {
-		            var name = item.sbjctnm || item.sndngnm || '';
-		            var date = UiComm.formatDate(item.sndngDttm, "datetime");
-		            var title = item.sndngTtl || '';
-		            var readLabel = (item.readYn === 'N')
-		                ? '<label class="label check_no">' + MSG_ALIM_UNREAD + '</label>'
-		                : '<label class="label check_ok">' + MSG_ALIM_READ + '</label>';
-
-		            html += '<div class="item_box ' + itemClass + '">';
-		            html += '    <a href="#0" class="item_txt" data-sndng-id="' + (item.sndngId || '') + '" data-sndng-tycd="' + chnlCd + '">';
-		            html += '        <p class="desc">';
-		            html += '            <span class="name">' + UiComm.escapeHtml(name) + '</span>';
-		            html += '            <span class="date">' + date + '</span>';
-		            html += '        </p>';
-		            html += '        <p class="tit">' + UiComm.escapeHtml(title) + '</p>';
-		            html += '    </a>';
-		            html += '    <div class="state">' + readLabel + '</div>';
-		            html += '</div>';
-		        });
-		    } else {
-		        html = '<div class="item_box ' + itemClass + '">';
-		        html += '    <p class="item_txt" style="text-align:center; padding:20px 0; color:#999;">' + MSG_ALIM_EMPTY + '</p>';
-		        html += '</div>';
-		    }
-
-		    $target.html(html);
-		}
-	*/
-
     </script>
 
 </body>

@@ -15,6 +15,9 @@
 	<jsp:include page="/WEB-INF/jsp/bbs/common/bbs_common_inc.jsp"/>
 
 	<script type="text/javascript">
+		var TAB 			= '<c:out value="${param.tab}" />';
+		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
+
 		// 게시글 수정 이동
 		function moveAtclEdit() {
 			document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?eparam=${eparam}&gubun=edit";
@@ -30,6 +33,20 @@
 			let extParam = UiComm.makeExtParam({"atclId":atclId});
         	document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?eparam=${eparam}&extParam="+extParam;
         }
+
+        function bbsAtclDelete(bbsId, atclId) {
+    		// 게시글 삭제 시 댓글도 모두 삭제됩니다. 정말 삭제 하시겠습니까?
+    		if(confirm('<spring:message code="bbs.confirm.delete_atcl" />')) {
+    			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
+    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?eparam=${eparam}";
+    			var data = {
+    				  atclId	: atclId
+    				, bbsId	    : bbsId
+    			};
+
+    			bbsCommon.delete(url, returnUrl, data);
+    		}
+    	};
 	</script>
 </head>
 
@@ -42,16 +59,13 @@
         <!-- dashboard -->
         <main class="common">
 
-            <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
-            <!-- //gnb -->
-
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <div class="dashboard_sub">
+
                     <div class="sub-content">
                         <div class="page-info">
-                            <h2 class="page-title"><span>메시지함</span>PUSH</h2>
+                            <h2 class="page-title"><span>공지사항</span>전체공지</h2>
                             <div class="navi_bar">
                                 <ul>
                                     <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
@@ -108,7 +122,7 @@
 							</c:if>
 
 							<c:if test="${atclDeleteAuth eq 'Y'}">
-		                        <a href="#0" onclick="removeAtcl();return false;" class="btn type2"><spring:message code="common.button.delete" /></a><!-- 삭제 -->
+		                        <a href="#0" onclick="bbsAtclDelete('${bbsAtclVO.bbsId}', '${bbsAtclVO.atclId}')" class="btn type2"><spring:message code="common.button.delete" /></a><!-- 삭제 -->
 		                    </c:if>
 
 	                    	<a href="#0" onclick="moveAtclList();return false;" class="btn type2"><spring:message code="common.button.list" /></a><!-- 목록 -->

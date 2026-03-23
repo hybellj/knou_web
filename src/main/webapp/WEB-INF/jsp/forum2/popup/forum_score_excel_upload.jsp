@@ -1,3 +1,4 @@
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
@@ -53,7 +54,7 @@
 				, "crsCreCd" : "${vo.crsCreCd}"
 				, "forumCtgrCd" : "${vo.forumCtgrCd}"
 				, "uploadFiles"   : fileObj
-				, "copyFiles"	  : copyFile
+				// , "copyFiles"	  : copyFile
 				, "uploadPath"	  : "/forum/${vo.forumCd}"
 				, "repoCd"		  : "EXCEL_UPLOAD"
 				, "excelGrid" 	  : excelGrid
@@ -86,16 +87,30 @@
 		
 		// 저장 확인
 		function saveConfirm() {
-			var fileUploader = dx5.get("fileUploader");
+			/*var fileUploader = dx5.get("fileUploader");
 			// 파일이 있으면 업로드 시작
 			if (fileUploader.getFileCount() > 0) {
 				fileUploader.startUpload();
-			}
+			}*/
+			UiValidator("forumUploadForm")
+			.then(function(result) {
+				if (result) {
+					let dx = dx5.get("fileUploader");
+					// 첨부파일 있으면 업로드
+					if (dx.availUpload()) {
+						dx.startUpload();
+					}
+					// 첨부파일 없으면 저장 호출
+					else {
+						alert("파일을 먼저 선택해 주세요");
+					}
+				}
+			});
 		}
 
 		// 파일 업로드 완료
 		function finishUpload() {
-			var fileUploader = dx5.get("fileUploader");
+			/*var fileUploader = dx5.get("fileUploader");
 			var url = "/file/fileHome/saveFileInfo.do";
 	    	var data = {
 	    		"uploadFiles" : fileUploader.getUploadFiles(),
@@ -114,7 +129,26 @@
 	    		}
 	    	}, function(xhr, status, error) {
 	    		alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
-	    	});
+	    	});*/
+			let url = "/common/uploadFileCheck.do"; // 업로드된 파일 검증 URL
+			let dx = dx5.get("fileUploader");
+			let data = {
+				"uploadFiles" : dx.getUploadFiles(),
+				"uploadPath"  : dx.getUploadPath()
+			};
+
+			ajaxCall(url, data, function(data) {
+				if(data.result > 0) {
+					// $("#uploadFiles").val(dx.getUploadFiles());
+					var fileObj = dx.getUploadFiles();
+
+					uploadExcelForum(fileObj);
+				} else {
+					alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
+				}
+			}, function(xhr, status, error) {
+				alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
+			});
 		}
 	</script>
 	
@@ -123,6 +157,10 @@
         <input type="hidden" name="crsCreCd" value="${vo.crsCreCd}"/>
         <input type="hidden" name="forumCtgrCd" value="${vo.forumCtgrCd}"/>
         <input type="hidden" name="excelGrid" value="" id="excelGrid"/>
+		<%-- 26.3.23 : New upload file 처리 field 추가 --%>
+		<input type="hidden" name="uploadFiles" id="uploadFiles" value="" />
+		<input type="hidden" name="uploadPath" id="uploadPath" value="${vo.uploadPath}" />
+		<input type="hidden" name="delFileIdStr" id="delFileIdStr" value="" />
     </form>
 
 	<body class="modal-page">
@@ -147,9 +185,10 @@
 					limitCount="1"
 					limitSize="100"
 					oneLimitSize="100"
-					listSize="2"
+					listSize="1"
 					finishFunc="finishUpload()"
 					allowedTypes="xlsx"
+					uiMode="simple"
 				/>
             </div>
         	

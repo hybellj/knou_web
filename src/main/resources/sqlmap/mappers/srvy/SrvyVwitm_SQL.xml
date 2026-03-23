@@ -119,11 +119,20 @@
 		   AND QSTN.DELYN = 'N'
 		  JOIN TB_LMS_SRVY_VWITM VWITM
 		    ON QSTN.SRVY_QSTN_ID = VWITM.SRVY_QSTN_ID
-		 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		 WHERE 1 = 1
 		 <if test="qstnRspnsTycd != null and qstnRspnsTycd != ''">
 		 	AND QSTN.QSTN_RSPNS_TYCD = #{qstnRspnsTycd}
 		 </if>
-		 ORDER BY SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO, VWITM.VWITM_SEQNO
+		 <choose>
+		 	<when test="searchType != null and searchType == 'EXCEL'">
+		 		AND SRVYPPR.SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE DELYN = 'N' AND USEYN = 'Y' AND (SRVY_ID = #{srvyId} OR UP_SRVY_ID = #{srvyId}))
+				ORDER BY SRVYPPR.SRVY_ID, SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO, VWITM.VWITM_SEQNO
+		 	</when>
+		 	<otherwise>
+		 		AND SRVYPPR.SRVY_ID = #{srvyId}
+				ORDER BY SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO, VWITM.VWITM_SEQNO
+		 	</otherwise>
+		 </choose>
 	</select>
 
 </mapper>

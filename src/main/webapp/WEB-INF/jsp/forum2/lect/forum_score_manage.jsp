@@ -149,7 +149,7 @@
 				dataList.push({
 					no: 				v.lineNo,
 					deptnm: 			v.deptNm,
-					userRprsId: 		v.userId,
+					userRprsId: 		v.userRprsId,
 					stdntNo: 			v.stdntNo,
 					usernm: 			v.userNm,
 					totScr:				scoreHtml,

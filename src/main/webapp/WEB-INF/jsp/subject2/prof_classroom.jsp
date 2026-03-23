@@ -9,7 +9,26 @@
 	<jsp:param name="style" value="classroom"/>
 </jsp:include>
 <link rel="stylesheet" type="text/css" href="/webdoc/assets/css/classroom.css" />
+
+<script type="text/javascript">
+function loadLctrPlanDoc(sbjctId) {	
+    fetch('/lecture/lctrPlanDocSelect.do?subjectId=' + encodeURIComponent(sbjctId))
+        .then(response => response.text())
+        .then(data => {
+            const div = document.getElementById('lecturePlanDoc');
+            div.innerHTML = data;
+            div.style.display = 'block'; //
+        })
+        .catch(error => {
+            document.getElementById('lecturePlanDoc').innerHTML = '에러 발생';
+            console.error(error);
+        });
+}
+</script>
 <body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<div style="display:none;" id="lecturePlanDoc">
+    데이터를 불러오는 중...
+</div>
     <div id="wrap" class="main">
 
         <!-- common header -->
@@ -64,7 +83,7 @@
                                 <h2>${subjectVM.subjectVO.sbjctnm}</h2>
                                 <div class="classSection">
                                     <div class="cls_btn">
-                                        <a href="#0" class="btn">강의계획서</a>
+                                        <a href="javascript:void(0); onclick=loadLctrPlanDoc('${subjectVM.subjectVO.sbjctId}');" class="btn">강의계획서</a>
                                         <a href="#0" class="btn">학습진도관리</a>
                                         <a href="#0" class="btn">평가기준</a>
                                     </div>
@@ -443,10 +462,15 @@
 		                                            <strong>${item.seqno}주차 ${item.nm}</strong>
 		                                            <p class="labels">
 		                                                <label class="label s_online">온라인</label>
+		                                                <label class="label s_offline">오프라인</label>
+		                                                <label class="label s_ing">공개</label>
 		                                                <label class="label s_finish">마감</label>
 		                                     	       </p>
 		                                            <p class="desc">
-		                                                <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
+		                                                <span>학습기간<strong>
+		                                                	<span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/></span>
+		                                                	 ~ <span class="date"><uiex:formatDate value="${item.edttm}" type="date"/></span>
+		                                                	</strong></span>
 		                                                <span>출석<strong>35</strong></span>
 		                                                <span>지각<strong>3</strong></span>
 		                                                <span>결석<strong>2</strong></span>

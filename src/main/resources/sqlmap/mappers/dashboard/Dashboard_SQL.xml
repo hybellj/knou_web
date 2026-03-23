@@ -3672,7 +3672,6 @@
 	 		ORG_ID
 			, USER_ID
 			, WIDGET_ID
-			, WIDGET_TYCD
 			, WIDGET_USER_GBNCD
 			, WIDGETNM
 			, PVSNYN
@@ -3683,7 +3682,6 @@
 					TLWU.ORG_ID
 					, TLWU.USER_ID
 					, TLW.WIDGET_ID
-					, TLW.WIDGET_TYCD
 					, TLW.WIDGET_USER_GBNCD
 					, TLW.WIDGETNM
 					, TLW.PVSNYN
@@ -3695,7 +3693,7 @@
 		) A
 		WHERE 1=1 AND ROWNUM = 1
 		<if test='authrtGrpcd != null and authrtGrpcd != ""'>
-			AND WIDGET_TYCD = #{authrtGrpcd}
+			AND WIDGET_USER_GBNCD = #{authrtGrpcd}
 		</if>
 	</select>
 
@@ -3792,6 +3790,42 @@
 		ORDER BY TO_NUMBER(REGEXP_SUBSTR(TLWU.WIDGET_ID, '[0-9]+'))
 	</select>
 
+	<select id="widgetDefaultInsert" parameterType="DashboardVO">
+		/*
+			 SQL ID : DashboardDAO.widgetDefaultInsert
+			 설  명 : 사용자 기본 위젯 저장
+	 	*/
+		INSERT INTO TB_LMS_WIDGET_USE (
+			  WIDGET_USE_ID
+			, WIDGET_ID
+			, ORG_ID
+			, USER_ID
+			, WIDGETNM
+			, WIDGET_EXPLN
+			, WIDGET_USER_STNG_CTS
+			, RGTR_ID
+			, REG_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		)
+		SELECT
+			  #{widgetUseId}
+			, WIDGET_ID
+			, #{orgId}
+			, #{userId}
+			, WIDGETNM
+			, WIDGET_EXPLN
+			, WIDGET_STNG_CTS
+			, #{userId}
+			, FN_DTTM()
+			, #{userId}
+			, FN_DTTM()
+		FROM TB_LMS_WIDGET
+		WHERE 1=1
+			AND PVSNYN = 'Y'
+			AND WIDGET_USER_GBNCD = #{authrtGrpcd}
+	</select>
+
 	<select id="lgnUsrCntSelect" parameterType="dashboardVO" resultType="egovMap">
 		/*
 			SQL ID : DashboardDAO.lgnUsrCntSelect
@@ -3833,6 +3867,7 @@
 	             FROM TB_LMS_WIDGET B
 	            WHERE B.WIDGET_ID = A.WIDGET_ID
 	       )
-	     WHERE A.USER_ID = #{userId}
+	     WHERE A.ORG_ID = #{orgId}
+	       AND A.USER_ID = #{userId}
 	</update>
 </mapper>

@@ -210,16 +210,16 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
 		}
 
 		// 설문지목록조회
-		srvyMainView.setSrvypprList(srvypprService.srvypprList(srvyId));
+		srvyMainView.setSrvypprList(srvypprService.srvypprList(srvyId, ""));
 
 		// 설문문항목록조회
-		srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList(srvyId));
+		srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList(srvyId, ""));
 
 		// 설문보기항목일괄목록조회
-		srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList(srvyId, ""));
+		srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList(srvyId, "", ""));
 
 		// 설문문항보기항목레벨일괄조회
-		srvyMainView.setSrvyQstnVwitmLvlList(srvyQstnVwitmLvlService.srvyQstnVwitmLvlBulkList(srvyId));
+		srvyMainView.setSrvyQstnVwitmLvlList(srvyQstnVwitmLvlService.srvyQstnVwitmLvlBulkList(srvyId, ""));
 
 		return srvyMainView;
 	}
@@ -260,10 +260,10 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
 		SrvyMainView srvyMainView = new SrvyMainView();
 
 		// 설문지 목록 조회
-		srvyMainView.setSrvypprList(srvypprService.srvypprList(vo.getSrvyId()));
+		srvyMainView.setSrvypprList(srvypprService.srvypprList(vo.getSrvyId(), ""));
 
 		// 설문문항 목록 조회
-		srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList(vo.getSrvyId()));
+		srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList(vo.getSrvyId(), ""));
 
 		return srvyMainView;
 	}
@@ -337,7 +337,7 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
 		SrvyMainView srvyMainView = new SrvyMainView();
 
 		// 설문지목록조회
-		srvyMainView.setSrvypprList(srvypprService.srvypprList(vo.getSrvyId()));
+		srvyMainView.setSrvypprList(srvypprService.srvypprList(vo.getSrvyId(), ""));
 
 		return srvyMainView;
 	}
@@ -529,25 +529,25 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
         srvyMainView.setSrvyPtcpCnt(srvyPtcpService.srvyPtcpCntSelect(srvyId, vo.getSbjctId()));
 
         // 설문지 목록 조회
-     	srvyMainView.setSrvypprList(srvypprService.srvypprList(srvyId));
+     	srvyMainView.setSrvypprList(srvypprService.srvypprList(srvyId, ""));
 
      	// 설문문항 목록 조회
-     	srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList(srvyId));
+     	srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList(srvyId, ""));
 
      	// 설문보기항목일괄조회(레벨형)
-     	srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList(srvyId, "LEVEL"));
+     	srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList(srvyId, "LEVEL", ""));
 
      	// 설문문항보기항목레벨일괄조회
-        srvyMainView.setSrvyQstnVwitmLvlList(srvyQstnVwitmLvlService.srvyQstnVwitmLvlBulkList(srvyId));
+        srvyMainView.setSrvyQstnVwitmLvlList(srvyQstnVwitmLvlService.srvyQstnVwitmLvlBulkList(srvyId, ""));
 
         // 설문선택형문항답변현황목록
-        srvyMainView.setSrvyChcQstnRspnsStatusList(srvyRspnsService.srvyChcQstnRspnsStatusList(vo.getSbjctId(), srvyId));
+        srvyMainView.setSrvyChcQstnRspnsStatusList(srvyRspnsService.srvyChcQstnRspnsStatusList(vo.getSbjctId(), srvyId, ""));
 
         // 설문서술형문항답변현황목록
-        srvyMainView.setSrvyTextQstnRspnsStatusList(srvyRspnsService.srvyTextQstnRspnsStatusList(upSrvyId, srvyId));
+        srvyMainView.setSrvyTextQstnRspnsStatusList(srvyRspnsService.srvyTextQstnRspnsStatusList(vo.getSbjctId(), srvyId, ""));
 
         // 설문레벨형문항답변현황목록
-        srvyMainView.setSrvyLevelQstnRspnsStatusList(srvyRspnsService.srvyLevelQstnRspnsStatusList(upSrvyId, srvyId));
+        srvyMainView.setSrvyLevelQstnRspnsStatusList(srvyRspnsService.srvyLevelQstnRspnsStatusList(vo.getSbjctId(), srvyId, ""));
 
         // 목록표시형 색상배열목록
         List<Map<String, Object>> colorList = new ArrayList<Map<String, Object>>();
@@ -560,6 +560,65 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
             colorList.add(colorMap);
         }
         srvyMainView.setColorList(colorList);
+
+		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView getSrvyPtcpStatusExcelDownList(SrvyVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문조회
+		EgovMap srvyMap = srvyService.srvySelect(vo);
+		srvyMainView.setSrvyEgovMap(srvyMap);
+
+		// 팀 설문
+		if("SRVY_TEAM".equals(srvyMap.get("srvyGbn"))) {
+		    // 설문팀목록조회
+			srvyMainView.setSrvyTeamList(srvyService.srvyTeamList(vo.getSrvyId()));
+		}
+
+		// 설문지 목록 조회
+     	srvyMainView.setSrvypprList(srvypprService.srvypprList(vo.getSrvyId(), "EXCEL"));
+
+     	// 설문문항 목록 조회
+     	srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList(vo.getSrvyId(), "EXCEL"));
+
+     	// 설문보기항목일괄조회(레벨형)
+     	srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList(vo.getSrvyId(), "LEVEL", "EXCEL"));
+
+     	// 설문문항보기항목레벨일괄조회
+        srvyMainView.setSrvyQstnVwitmLvlList(srvyQstnVwitmLvlService.srvyQstnVwitmLvlBulkList(vo.getSrvyId(), "EXCEL"));
+
+        // 설문선택형문항답변현황목록
+        srvyMainView.setSrvyChcQstnRspnsStatusList(srvyRspnsService.srvyChcQstnRspnsStatusList(vo.getSbjctId(), vo.getSrvyId(), "EXCEL"));
+
+        // 설문서술형문항답변현황목록
+        srvyMainView.setSrvyTextQstnRspnsStatusList(srvyRspnsService.srvyTextQstnRspnsStatusList(vo.getSbjctId(), vo.getSrvyId(), "EXCEL"));
+
+        // 설문레벨형문항답변현황목록
+        srvyMainView.setSrvyLevelQstnRspnsStatusList(srvyRspnsService.srvyLevelQstnRspnsStatusList(vo.getSbjctId(), vo.getSrvyId(), "EXCEL"));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView getSrvyRspnsStatusExcelDownList(SrvyVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문조회
+		EgovMap srvyMap = srvyService.srvySelect(vo);
+		srvyMainView.setSrvyEgovMap(srvyMap);
+
+		// 팀 설문
+		if("SRVY_TEAM".equals(srvyMap.get("srvyGbn"))) {
+		    // 설문팀목록조회
+			srvyMainView.setSrvyTeamList(srvyService.srvyTeamList(vo.getSrvyId()));
+		}
+
+		srvyMainView.setSrvyExcelDownQstnList(srvyRspnsService.srvyExcelDownQstnList(vo.getSrvyId()));
+
+		srvyMainView.setSrvyExcelDownQstnRspnsList(srvyRspnsService.srvyExcelDownQstnRspnsList(vo.getSrvyId()));
 
 		return srvyMainView;
 	}

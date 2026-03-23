@@ -14,4 +14,6 @@ public interface SbjctService {
     int deleteSbjct(SbjctListVO deleteVo) throws Exception;
 
     List<DgrsYrChrtVO> selectDgrsYrChrtList(String orgId) throws Exception;
+
+    public List<SbjctVO> list(SbjctVO vo) throws Exception;
 }

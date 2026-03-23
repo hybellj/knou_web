@@ -27,12 +27,15 @@
 			  , A.ETC_INPTYN
 			  , A.JOIN_CNT
 			  , A.TOT_JOIN_CNT
-			  , REPLACE(TO_CHAR(
-			        CASE WHEN A.RNUM = 1
-			             THEN 100 - ACUM_RATIO
-			             ELSE A.RATIO
-			        END
-			    ), '.0', '') AS RATIO
+			  , CASE WHEN A.TOT_JOIN_CNT = 0
+			  		 THEN '0'
+			  		 ELSE REPLACE(TO_CHAR(
+						        CASE WHEN A.RNUM = 1
+						             THEN 100 - ACUM_RATIO
+						             ELSE A.RATIO
+						        END
+						    ), '.0', '')
+				  	 END AS RATIO
 		  FROM (
 		    SELECT
 		         	A.*
@@ -86,7 +89,14 @@
 		                  LEFT JOIN TB_LMS_SRVY_RSPNS RSPNS
 		                    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
 		                   AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
-		                 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		                 <choose>
+						 	<when test="searchType != null and searchType == 'EXCEL'">
+						 		WHERE SRVYPPR.SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE DELYN = 'N' AND USEYN = 'Y' AND (SRVY_ID = #{srvyId} OR UP_SRVY_ID = #{srvyId}))
+						 	</when>
+						 	<otherwise>
+						 		WHERE SRVYPPR.SRVY_ID = #{srvyId}
+						 	</otherwise>
+						 </choose>
 		            ) A
 		        ) A
 		    ) A
@@ -119,7 +129,14 @@
 		  JOIN TB_LMS_SRVY_RSPNS RSPNS
 		    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
 		   AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
-		 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		 <choose>
+			<when test="searchType != null and searchType == 'EXCEL'">
+				WHERE SRVYPPR.SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE DELYN = 'N' AND USEYN = 'Y' AND (SRVY_ID = #{srvyId} OR UP_SRVY_ID = #{srvyId}))
+			</when>
+			<otherwise>
+				WHERE SRVYPPR.SRVY_ID = #{srvyId}
+			</otherwise>
+		 </choose>
 		 ORDER BY RSPNS.RSPNS, PTCP.USER_ID
 	</select>
 
@@ -131,16 +148,20 @@
         SELECT
 			    A.SRVY_VWITM_ID
 			  , A.SRVY_QSTN_ID
+			  , A.SRVY_QSTN_VWITM_LVL_ID
 			  , A.VWITM_CTS
 			  , A.LVL_SEQNO
 			  , A.JOIN_CNT
 			  , A.TOT_JOIN_CNT
-			  , REPLACE(TO_CHAR(
-			        CASE WHEN A.RNUM = 1
-			             THEN 100 - ACUM_RATIO
-			             ELSE A.RATIO
-			        END
-			    ), '.0', '') AS RATIO
+			  , CASE WHEN A.TOT_JOIN_CNT = 0
+			  		 THEN '0'
+			  		 ELSE REPLACE(TO_CHAR(
+						        CASE WHEN A.RNUM = 1
+						             THEN 100 - ACUM_RATIO
+						             ELSE A.RATIO
+						        END
+						    ), '.0', '')
+					 END AS RATIO
 		  FROM (
 		    SELECT
 		         	A.*
@@ -198,12 +219,84 @@
 		                  LEFT JOIN TB_LMS_SRVY_RSPNS RSPNS
 		                    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
 		                   AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
-		                 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		                 <choose>
+						 	<when test="searchType != null and searchType == 'EXCEL'">
+						 		WHERE SRVYPPR.SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE DELYN = 'N' AND USEYN = 'Y' AND (SRVY_ID = #{srvyId} OR UP_SRVY_ID = #{srvyId}))
+						 	</when>
+						 	<otherwise>
+						 		WHERE SRVYPPR.SRVY_ID = #{srvyId}
+						 	</otherwise>
+						 </choose>
 		            ) A
 		        ) A
 		    ) A
 		) A
 		ORDER BY A.SRVY_SEQNO, A.QSTN_SEQNO, A.VWITM_SEQNO, A.LVL_SEQNO
+    </select>
+
+    <select id="srvyExcelDownQstnList" parameterType="String" resultType="egovMap">
+    	/*
+             SQL ID : SrvyRspnsDAO.srvyExcelDownQstnList
+             설  명  : 설문엑셀다운문항목록
+         */
+        SELECT A.SRVY_ID
+             , A.SRVYPPR_ID
+             , A.SRVY_SEQNO
+             , B.SRVY_QSTN_ID
+             , B.QSTN_TTL
+             , B.QSTN_SEQNO
+             , B.QSTN_RSPNS_TYCD
+             , C.SRVY_VWITM_ID
+             , C.VWITM_CTS
+             , C.VWITM_SEQNO
+          FROM TB_LMS_SRVYPPR A
+          JOIN TB_LMS_SRVY_QSTN B
+            ON A.SRVYPPR_ID = B.SRVYPPR_ID
+           AND B.DELYN = 'N'
+          LEFT JOIN TB_LMS_SRVY_VWITM C
+            ON C.SRVY_QSTN_ID = B.SRVY_QSTN_ID
+           AND B.QSTN_RSPNS_TYCD = 'LEVEL'
+         WHERE A.SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE DELYN = 'N' AND USEYN = 'Y' AND (SRVY_ID = #{srvyId} OR UP_SRVY_ID = #{srvyId}))
+         ORDER BY A.SRVY_ID, A.SRVY_SEQNO, B.QSTN_SEQNO, C.VWITM_SEQNO
+    </select>
+
+    <select id="srvyExcelDownQstnRspnsList" parameterType="String" resultType="egovMap">
+    	/*
+             SQL ID : SrvyRspnsDAO.srvyExcelDownQstnRspnsList
+             설  명  : 설문엑셀다운문항답변목록
+         */
+    	SELECT A.SRVY_ID
+             , A.USER_ID
+             , (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS USERNM
+             , D.SRVYPPR_ID
+             , B.SRVY_QSTN_ID
+             , B.SRVY_VWITM_ID
+             , CASE WHEN E.ETC_INPTYN = 'Y'
+             		THEN B.RSPNS
+             		ELSE E.VWITM_CTS
+             		END AS VWITM_CTS
+             , F.LVL_CTS
+             , F.SRVY_QSTN_VWITM_LVL_ID
+             , D.SRVY_SEQNO
+             , C.QSTN_SEQNO
+             , CASE WHEN C.QSTN_RSPNS_TYCD = 'LEVEL' THEN E.VWITM_SEQNO ELSE NULL END AS VWITM_SEQNO
+          FROM TB_LMS_SRVY_PTCP A
+          JOIN TB_LMS_SRVY_RSPNS B
+            ON A.SRVY_PTCP_ID = B.SRVY_PTCP_ID
+          JOIN TB_LMS_SRVY_QSTN C
+            ON B.SRVY_QSTN_ID = C.SRVY_QSTN_ID
+           AND C.DELYN = 'N'
+          JOIN TB_LMS_SRVYPPR D
+            ON C.SRVYPPR_ID = D.SRVYPPR_ID
+           AND A.SRVY_ID = D.SRVY_ID
+          LEFT JOIN TB_LMS_SRVY_VWITM E
+            ON B.SRVY_QSTN_ID = E.SRVY_QSTN_ID
+           AND B.SRVY_VWITM_ID = E.SRVY_VWITM_ID
+          LEFT JOIN TB_LMS_SRVY_QSTN_VWITM_LVL F
+            ON F.SRVY_QSTN_ID = B.SRVY_QSTN_ID
+           AND F.SRVY_QSTN_VWITM_LVL_ID = B.SRVY_QSTN_VWITM_LVL_ID
+         WHERE A.SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE DELYN = 'N' AND USEYN = 'Y' AND (SRVY_ID = #{srvyId} OR UP_SRVY_ID = #{srvyId}))
+         ORDER BY A.SRVY_ID, A.USER_ID, D.SRVY_SEQNO, C.QSTN_SEQNO
     </select>
 
 </mapper>

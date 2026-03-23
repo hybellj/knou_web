@@ -98,7 +98,45 @@ public class BbsAtclVO extends BbsInfoVO {
     private String		contentUrls;         // 컨텐츠 경로
     private String[]	contentUrlList;
 
-    private String orgId;
+    private String orgId;			// 기관ID
+    private String orgnm; 			// 기관명
+    private String deptId; 			// 부서ID
+    private String deptnm; 			// 부서명
+    private String sbjctnm; 		// 과목명
+    private String dvclasNo; 		// 분반
+    private String sbjctYr; 		// 과목년도
+    private String sbjctSmstr; 		// 과목학기
+    private String rgtrnm; 		    // 등록자
+    private String regnm; 		    // 작성자
+
+    private String rgtrId;
+    private String regDttm;
+    private String mdfrId;
+    private String modDttm;
+    private String delyn;
+
+    private String oyn;				// 공개여부
+    private String ntcGbncd;        // 게시판 구분
+    private String rsrvyn;			// 등록예약 여부
+
+	/* 옵션 */
+    private String atclOptnId;      // 게시판 옵션 ID
+    private String optnCd;          // 주요 옵션 코드
+    private String cmntPrmyn;		// 부가 옵션 코드
+    private String optnnm;          // 옵션 명
+    private String optnUseyn;       // 옵션 사용 여부
+    private String optnSdttm;       // 옵션 시작일자
+    private String optnEdttm;       // 옵션 종료일자
+    private String rsrvSdttm;       // 등록 예약 시작일자
+    private String rsrvEdttm;       // 등록 예약 종료일자
+    private String autoAlimyn;		// 자동 알림 예약발송 여부
+    private String autoAlimSdttm;   // 자동 알림 시작일자
+    private String autoAlimEdttm;   // 자동 알림 종료일자
+
+    private String searchSdttm;
+    private String searchEdttm;
+
+    private int		rspnsCnt;             // 답변 수
 
     /* 불필요 시 삭제 가능 */
 
@@ -690,5 +728,253 @@ public class BbsAtclVO extends BbsInfoVO {
 
 	public void setSrcAtclId(String srcAtclId) {
 		this.srcAtclId = srcAtclId;
+	}
+
+	public String getOrgnm() {
+		return orgnm;
+	}
+
+	public String getDeptId() {
+		return deptId;
+	}
+
+	public String getDeptnm() {
+		return deptnm;
+	}
+
+	public String getSbjctnm() {
+		return sbjctnm;
+	}
+
+	public String getDvclasNo() {
+		return dvclasNo;
+	}
+
+	public String getSbjctYr() {
+		return sbjctYr;
+	}
+
+	public String getSbjctSmstr() {
+		return sbjctSmstr;
+	}
+
+	public String getRgtrnm() {
+		return rgtrnm;
+	}
+
+	public String getRegnm() {
+		return regnm;
+	}
+
+	public String getRgtrId() {
+		return rgtrId;
+	}
+
+	public String getRegDttm() {
+		return regDttm;
+	}
+
+	public String getMdfrId() {
+		return mdfrId;
+	}
+
+	public String getModDttm() {
+		return modDttm;
+	}
+
+	public String getDelyn() {
+		return delyn;
+	}
+
+	public String getOyn() {
+		return oyn;
+	}
+
+	public String getRsrvyn() {
+		return rsrvyn;
+	}
+
+	public String getAtclOptnId() {
+		return atclOptnId;
+	}
+
+	public String getOptnCd() {
+		return optnCd;
+	}
+
+	public String getCmntPrmyn() {
+		return cmntPrmyn;
+	}
+
+	public String getOptnnm() {
+		return optnnm;
+	}
+
+	public String getOptnUseyn() {
+		return optnUseyn;
+	}
+
+	public String getOptnSdttm() {
+		return optnSdttm;
+	}
+
+	public String getOptnEdttm() {
+		return optnEdttm;
+	}
+
+	public String getRsrvSdttm() {
+		return rsrvSdttm;
+	}
+
+	public String getRsrvEdttm() {
+		return rsrvEdttm;
+	}
+
+	public String getAutoAlimyn() {
+		return autoAlimyn;
+	}
+
+	public String getAutoAlimSdttm() {
+		return autoAlimSdttm;
+	}
+
+	public String getAutoAlimEdttm() {
+		return autoAlimEdttm;
+	}
+
+	public String getSearchSdttm() {
+		return searchSdttm;
+	}
+
+	public String getSearchEdttm() {
+		return searchEdttm;
+	}
+
+	public void setOrgnm(String orgnm) {
+		this.orgnm = orgnm;
+	}
+
+	public void setDeptId(String deptId) {
+		this.deptId = deptId;
+	}
+
+	public void setDeptnm(String deptnm) {
+		this.deptnm = deptnm;
+	}
+
+	public void setSbjctnm(String sbjctnm) {
+		this.sbjctnm = sbjctnm;
+	}
+
+	public void setDvclasNo(String dvclasNo) {
+		this.dvclasNo = dvclasNo;
+	}
+
+	public void setSbjctYr(String sbjctYr) {
+		this.sbjctYr = sbjctYr;
+	}
+
+	public void setSbjctSmstr(String sbjctSmstr) {
+		this.sbjctSmstr = sbjctSmstr;
+	}
+
+	public void setRgtrnm(String rgtrnm) {
+		this.rgtrnm = rgtrnm;
+	}
+
+	public void setRegnm(String regnm) {
+		this.regnm = regnm;
+	}
+
+	public void setRgtrId(String rgtrId) {
+		this.rgtrId = rgtrId;
+	}
+
+	public void setRegDttm(String regDttm) {
+		this.regDttm = regDttm;
+	}
+
+	public void setMdfrId(String mdfrId) {
+		this.mdfrId = mdfrId;
+	}
+
+	public void setModDttm(String modDttm) {
+		this.modDttm = modDttm;
+	}
+
+	public void setDelyn(String delyn) {
+		this.delyn = delyn;
+	}
+
+	public void setOyn(String oyn) {
+		this.oyn = oyn;
+	}
+
+	public void setRsrvyn(String rsrvyn) {
+		this.rsrvyn = rsrvyn;
+	}
+
+	public void setAtclOptnId(String atclOptnId) {
+		this.atclOptnId = atclOptnId;
+	}
+
+	public void setOptnCd(String optnCd) {
+		this.optnCd = optnCd;
+	}
+
+	public void setCmntPrmyn(String cmntPrmyn) {
+		this.cmntPrmyn = cmntPrmyn;
+	}
+
+	public void setOptnnm(String optnnm) {
+		this.optnnm = optnnm;
+	}
+
+	public void setOptnUseyn(String optnUseyn) {
+		this.optnUseyn = optnUseyn;
+	}
+
+	public void setOptnSdttm(String optnSdttm) {
+		this.optnSdttm = optnSdttm;
+	}
+
+	public void setOptnEdttm(String optnEdttm) {
+		this.optnEdttm = optnEdttm;
+	}
+
+	public void setRsrvSdttm(String rsrvSdttm) {
+		this.rsrvSdttm = rsrvSdttm;
+	}
+
+	public void setRsrvEdttm(String rsrvEdttm) {
+		this.rsrvEdttm = rsrvEdttm;
+	}
+
+	public void setAutoAlimyn(String autoAlimyn) {
+		this.autoAlimyn = autoAlimyn;
+	}
+
+	public void setAutoAlimSdttm(String autoAlimSdttm) {
+		this.autoAlimSdttm = autoAlimSdttm;
+	}
+
+	public void setAutoAlimEdttm(String autoAlimEdttm) {
+		this.autoAlimEdttm = autoAlimEdttm;
+	}
+
+	public void setSearchSdttm(String searchSdttm) {
+		this.searchSdttm = searchSdttm;
+	}
+
+	public void setSearchEdttm(String searchEdttm) {
+		this.searchEdttm = searchEdttm;
+	}
+
+	public String getNtcGbncd() {
+		return ntcGbncd;
+	}
+
+	public void setNtcGbncd(String ntcGbncd) {
+		this.ntcGbncd = ntcGbncd;
 	}
 }

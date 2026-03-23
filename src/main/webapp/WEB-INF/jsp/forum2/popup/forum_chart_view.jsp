@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
@@ -179,12 +180,13 @@
 		}
 
 		var ctx = document.getElementById("barChart");
+		var ctx = document.getElementById("barChart");
 		var myChart = new Chart(ctx, {
 			type: 'bar',
 			data: {
-				labels: ["<spring:message code='forum.label.avg.score'/>", "<spring:message code='forum.label.max.score'/>", "<spring:message code='forum.label.min.score'/>"], // 평균점수, 최고점수, 최저점수
+				labels: ["<spring:message code='forum.label.avg.score'/>", "<spring:message code='forum.label.max.score'/>", "<spring:message code='forum.label.min.score'/>"],
 				datasets: [{
-					data: [avgScore, maxScore ,minScore],
+					data: [avgScore, maxScore, minScore],
 					backgroundColor: [
 						'rgba(75, 192, 192, .6)',
 						'rgba(54, 162, 235, .6)',
@@ -194,50 +196,50 @@
 				}]
 			},
 			options: {
-				events: false,
-				showTooltips: false,
-				title: {
-					display: true,
-					text: '<spring:message code="forum.label.score.chart.status"/>', // 성적 분포 현황
-					fontSize: 14,
-					fontColor: "#666",
+				// events: false 대신 빈 배열 사용
+				events: [],
+				plugins: {
+					tooltip: { enabled: false }, // showTooltips 대신 사용
+					legend: { display: false },
+					title: {
+						display: true,
+						text: '<spring:message code="forum.label.score.chart.status"/>',
+						color: "#666",
+						font: { size: 14 }
+					}
 				},
 				animation: {
 					duration: 1000,
 					onComplete: function () {
-						// render the value of the chart above the bar
-						var ctx = this.chart.ctx;
-						ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, 'normal', Chart.defaults.global.defaultFontFamily);
-						ctx.fillStyle = this.chart.config.options.defaultFontColor;
+						var chartInstance = this;
+						var ctx = chartInstance.ctx;
 						ctx.textAlign = 'center';
 						ctx.textBaseline = 'bottom';
-						this.data.datasets.forEach(function (dataset) {
-							for (var i = 0; i < dataset.data.length; i++) {
-								var model = dataset._meta[Object.keys(dataset._meta)[0]].data[i]._model;
-								ctx.fillStyle = '#fff'; // label color
-								ctx.fillText(dataset.data[i], model.x, model.y + 20);
-							}
+						ctx.font = 'normal 12px sans-serif'; // 폰트 설정
+
+						chartInstance.data.datasets.forEach(function (dataset, i) {
+							var meta = chartInstance.getDatasetMeta(i);
+							meta.data.forEach(function (bar, index) {
+								var data = dataset.data[index];
+								ctx.fillStyle = '#fff'; // 숫자 색상
+								// bar.x, bar.y로 위치 직접 접근 (v4 방식)
+								ctx.fillText(data, bar.x, bar.y + 20);
+							});
 						});
 					}
 				},
 				scales: {
-					yAxes: [{
+					y: { // yAxes -> y 로 변경
+						min: 0,
+						max: 100,
 						ticks: {
-							min: 0,
-							max: 100,
 							stepSize: 20,
-							callback: function(value){return value+ "<spring:message code='forum.label.point'/>"} // 점
-						},
-						scaleLabel: {
-							display: true
+							callback: function(value) { return value + "<spring:message code='forum.label.point'/>" }
 						}
-					}],
-					xAxes: [{
-						barPercentage: 0.6
-					}]
-				},
-				legend: {
-					display: false
+					},
+					x: { // xAxes -> x 로 변경
+						grid: { display: false }
+					}
 				}
 			}
 		});
@@ -257,7 +259,7 @@
 				<div class="fields" style="height:100%;">
 					<div class="field p_w100">
 						<div class="ui segment" style="height:100%;">
-							 <p><spring:message code="forum.label.forum.status" /> <!-- 토론 현황 -->
+							<p><spring:message code="forum.label.forum.status" /> <!-- 토론 현황 -->
 							<div class="ui stackable equal width grid">
 								<c:if test="${forumVo.prosConsForumCfg eq 'Y'}">
 								<div class="column">
@@ -350,7 +352,7 @@
 				</div>
 			</div>
 			<div class="btns">
-                <button class="ui black cancel button" onclick="window.parent.closeDialog();"><spring:message code="forum.button.close" /></button><!-- 닫기 -->
+                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="forum.button.close" /></button><!-- 닫기 -->
             </div>
         </div>
 		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>

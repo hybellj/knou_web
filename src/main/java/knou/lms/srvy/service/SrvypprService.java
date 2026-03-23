@@ -10,10 +10,11 @@ public interface SrvypprService {
 	* 설문지목록조회
 	*
 	* @param srvyId		설문아이디
+	* @param searchType	조회유형
 	* @return 설문지목록
 	* @throws Exception
 	*/
-	public List<SrvypprVO> srvypprList(String srvyId) throws Exception;
+	public List<SrvypprVO> srvypprList(String srvyId, String searchType) throws Exception;
 
 	/**
 	* 설문지조회
