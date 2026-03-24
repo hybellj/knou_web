@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.subject2.dao.SubjectDAO">
+
+	<select id="middleLastExamSelect" parameterType="string" resultType="eGovMap">
+		/*	설	명 	: 중간고사기말고사조회		*/		
+		SELECT 	SO.SBJCT_ID
+				, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_MID'	THEN ED.EXAM_PSBL_SDTTM END) 	AS MID_EXAM_SDTTM
+		    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_MID'	THEN ED.EXAM_MNTS END) 			AS MID_EXAM_MNTS	    	
+		    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_LST'	THEN ED.EXAM_PSBL_SDTTM END) 	AS LST_EXAM_SDTTM
+		    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_LST'	THEN ED.EXAM_MNTS END) 			AS LST_EXAM_MNTS
+		FROM	TB_LMS_SBJCT SO
+				JOIN	TB_LMS_EXAM_BSC EB ON EB.SBJCT_ID = SO.SBJCT_ID AND EB.DELYN = 'N' AND EB.USEYN = 'Y'
+											AND ( EB.EXAM_GBNCD = 'EXAM_MID' OR EB.EXAM_GBNCD = 'EXAM_LST')
+				JOIN	TB_LMS_EXAM_DTL	ED ON EB.EXAM_BSC_ID = ED.EXAM_BSC_ID AND ED.DELYN = 'N' AND ED.USEYN = 'Y'
+		WHERE 	1 = 1
+				AND SO.SBJCT_ID = #{subjectId}
+		GROUP 	BY SO.SBJCT_ID
+	</select>
+
+
+	<select id="subjectSelect" parameterType="string" resultType="knou.lms.subject2.vo.SubjectVO">
+		/*	설	명 	: 과목조회		*/		
+		SELECT	SBJCT.*
+				, DEPT.DEPTNM
+		FROM 	TB_LMS_SBJCT SBJCT
+				JOIN TB_LMS_DEPT DEPT ON DEPT.DEPT_ID = SBJCT.DEPT_ID
+		WHERE 	SBJCT.SBJCT_ID = #{subjectId}
+	</select>
+	
+	<select id="subjectBbsIdsSelect" resultType="egovMap">
+		/*	설	명 	: 과목게시판아이디조회*/
+		SELECT	MAX(CASE WHEN BBS.BBS_TYCD = 'NTC'	THEN BBS.BBS_ID END) AS NTC_BBS_ID,
+				MAX(CASE WHEN BBS.BBS_TYCD = '1ON1'	THEN BBS.BBS_ID END) AS ONE_ON_ONE_BBS_ID,
+				MAX(CASE WHEN BBS.BBS_TYCD = 'QNA'	THEN BBS.BBS_ID END) AS QNA_BBS_ID,
+				MAX(CASE WHEN BBS.BBS_TYCD = 'DATARM'	THEN BBS.BBS_ID END) AS DATARM_BBS_ID
+		FROM 	TB_LMS_SBJCT SBJCT
+				JOIN TB_LMS_BBS BBS ON SBJCT.SBJCT_ID = BBS.SBJCT_ID AND BBS.DELYN = 'N'
+		WHERE 	SBJCT.SBJCT_ID = #{subjectId}
+	</select>
+
+	<select id="sbjctAdmSelect" resultType="egovMap">
+		/*		설  명 : 과목관리자조회			*/
+	 	SELECT	A.SBJCT_ID,
+		    	MAX(CASE WHEN A.SBJCT_ADM_TYCD = 'PROF'	THEN U.USERNM END) AS PROFNM,
+			  	MAX(CASE WHEN A.SBJCT_ADM_TYCD = 'COPROF'	THEN U.USERNM END) AS COPROFNM,
+		    	MAX(CASE WHEN A.SBJCT_ADM_TYCD = 'TUT'	THEN U.USERNM END) AS TUTNM,
+		    	MAX(CASE WHEN A.SBJCT_ADM_TYCD = 'ASSI'	THEN U.USERNM END) AS ASSINM		    	
+		FROM 	DEV_LMS.TB_LMS_SBJCT_ADM A
+		JOIN 	DEV_LMS.TB_LMS_USER U ON A.USER_ID = U.USER_ID
+		WHERE 	A.SBJCT_ID = #{subjectId}
+				AND A.SBJCT_ADM_SEQNO = 1
+		GROUP 	BY A.SBJCT_ID
+		ORDER 	BY A.SBJCT_ID
+	</select>
+	
+	<select id="sbjctAdmList" resultType="egovMap">
+		/*
+			 SQL ID : SubjectDAO.sbjctAdmList
+			 설  명  : 과목관리자목록조회
+		 */
+		SELECT
+		      ADM.SBJCT_ID
+		    , ADM.SBJCT_ADM_TYCD
+		    , ADM.USER_ID
+		    , USR.USERNM
+			, DEPT.DEPTNM
+		    , NVL(CNTCT.HOME_PHN, '-') AS HOME_PHN
+		    , NVL(CNTCT.MBL_PHN , '-') AS MBL_PHN
+		    , NVL(CNTCT.OFFI_PHN, '-') AS OFFI_PHN
+		    , NVL(
+		          CASE
+		              WHEN USR.USE_EML_GBNCD = 'INDV' THEN CNTCT.INDV_EML
+		              WHEN USR.USE_EML_GBNCD = 'LNKG' THEN CNTCT.LNKG_EML
+		          END
+		        , '-') AS EML
+		    , NVL(USR.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL
+		FROM TB_LMS_SBJCT_ADM ADM
+		JOIN TB_LMS_USER USR ON USR.USER_ID = ADM.USER_ID
+		LEFT JOIN TB_LMS_DEPT DEPT ON DEPT.DEPT_ID = USR.DEPT_ID
+		LEFT JOIN (
+		    SELECT
+		          USER_ID
+		        , MAX(CASE WHEN CNTCT_TYCD = 'HOME_PHN' THEN CNTCT END) AS HOME_PHN
+		        , MAX(CASE WHEN CNTCT_TYCD = 'MBL_PHN'  THEN CNTCT END) AS MBL_PHN
+		        , MAX(CASE WHEN CNTCT_TYCD = 'OFFI_PHN' THEN CNTCT END) AS OFFI_PHN
+		        , MAX(CASE WHEN CNTCT_TYCD = 'INDV_EML' THEN CNTCT END) AS INDV_EML
+		        , MAX(CASE WHEN CNTCT_TYCD = 'LNKG_EML' THEN CNTCT END) AS LNKG_EML
+		    FROM TB_LMS_USER_CNTCT CNTCT
+		    GROUP BY
+		          USER_ID
+		) CNTCT ON CNTCT.USER_ID = USR.USER_ID
+		WHERE ADM.SBJCT_ID = #{subjectId}
+		ORDER BY
+		      ADM.SBJCT_ADM_TYCD
+		    , USR.USERNM
+	</select>
+
+	<select id="subjectLearningActvList" parameterType="map" resultType="egovMap">
+		/* 	설  명 	: 과목학습활동조회 */
+		
+		SELECT 	(
+		            SELECT COUNT(ATCL.ATCL_ID)
+		            FROM TB_LMS_BBS BBS		           
+		       		JOIN TB_LMS_BBS_ATCL ATCL ON BBS.BBS_ID = ATCL.BBS_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'NTC'
+		       		WHERE BBS.SBJCT_ID = SA.SBJCT_ID
+		        ) AS NTC_CNT
+		        , (
+		            SELECT COUNT(ATCL.ATCL_ID)
+		            FROM TB_LMS_BBS BBS       
+		       		JOIN TB_LMS_BBS_ATCL ATCL ON BBS.BBS_ID = ATCL.BBS_ID AND ATCL.DELYN = 'N' AND ATCL.UP_ATCL_ID IS NULL
+		       		WHERE BBS.SBJCT_ID = SA.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'QNA'
+			       		AND NOT EXISTS (
+						        SELECT 1
+						        FROM TB_LMS_BBS_ATCL R
+						        WHERE R.UP_ATCL_ID = ATCL.ATCL_ID
+						          AND R.DELYN = 'N'
+								)
+		        ) AS QNA_CNT
+		        , (
+		            SELECT COUNT(ATCL.ATCL_ID)
+		            FROM TB_LMS_BBS BBS       
+		       		JOIN TB_LMS_BBS_ATCL ATCL ON BBS.BBS_ID = ATCL.BBS_ID AND ATCL.DELYN = 'N' AND ATCL.UP_ATCL_ID IS NULL
+		       		WHERE BBS.SBJCT_ID = SA.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = '1ON1'
+			       		AND NOT EXISTS (
+						        SELECT 1
+						        FROM TB_LMS_BBS_ATCL R
+						        WHERE R.UP_ATCL_ID = ATCL.ATCL_ID
+						          AND R.DELYN = 'N'
+								)
+		        ) AS ONEONONE_CNT
+				, (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_ASMT AA
+		            WHERE AA.SBJCT_ID = SA.SBJCT_ID
+		        ) AS ASMT_CNT
+		        , (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_DSCS AA
+		            WHERE AA.SBJCT_ID = SA.SBJCT_ID
+		            	AND DELYN = 'N' AND DSCS_GBNCD NOT IN ('DSCS_SBST_EXAM_MID','DSCS_SBST_EXAM_LST')
+		        ) AS DSCS_CNT
+				, (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_SMNR AA
+		            WHERE AA.SBJCT_ID = SA.SBJCT_ID
+		        ) AS SMNR_CNT
+		        ,(
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_SRVY AA
+		            WHERE AA.SBJCT_ID = SA.SBJCT_ID
+		        ) AS SRVY_CNT
+		        , (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_EXAM_BSC AA
+			        WHERE AA.SBJCT_ID = SA.SBJCT_ID AND DELYN='N' 
+			        	AND USEYN='Y' AND EXAM_GBNCD IN ('QUIZ','QUIZ_TEAM')
+		        ) AS QUIZ_CNT
+		        , (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_EXAM_BSC AA
+			        WHERE AA.SBJCT_ID = SA.SBJCT_ID AND DELYN='N' 
+			        	AND USEYN='Y'AND EXAM_TYCD='EXAM' AND EXAM_GBNCD IN ('EXAM_MID','EXAM_LST')
+		        ) AS EXAM_CNT
+		FROM 	TB_LMS_SBJCT_ADM SA
+		WHERE 	SA.USER_ID = #{userId} AND SA.SBJCT_ID = #{subjectId}		
+	</select>
+	
+	<select id="profSubjectSummaryList" parameterType="map" resultType="egovMap">
+	/*
+		설	명	:	교수과목요약목록조회
+		
+		필요인덱스		
+		CREATE INDEX IDX_BBS_01 ON TB_LMS_BBS (SBJCT_ID, BBS_ID);
+		CREATE INDEX IDX_BBS_02 ON TB_LMS_BBS (BBS_ID, DELYN);
+		CREATE INDEX IDX_BBS_ATCL_01 ON TB_LMS_BBS_ATCL (BBS_ID, ATCL_ID);
+		CREATE INDEX IDX_ATNDLC_01 ON TB_LMS_ATNDLC (SBJCT_ID);
+		CREATE INDEX IDX_ASMT_01 ON TB_LMS_ASMT (SBJCT_ID);		
+		CREATE INDEX IDX_DSCS_01 ON TB_LMS_DSCS (SBJCT_ID);		
+		CREATE INDEX IDX_SMNR_01 ON TB_LMS_SMNR (SBJCT_ID);
+		CREATE INDEX IDX_EXAM_BSC_01 ON TB_LMS_EXAM_BSC (SBJCT_ID);
+		CREATE INDEX IDX_SRVY_01 ON TB_LMS_SRVY (SBJCT_ID);
+		
+		CREATE INDEX IDX_BBS_QNA_09 ON TB_LMS_BBS(BBS_TYCD, SBJCT_ID, DELYN);
+		CREATE INDEX IDX_BBS_ATCL_09 ON TB_LMS_BBS_ATCL(BBS_ID, DELYN, UP_ATCL_ID);
+		CREATE INDEX IDX_EXAM_BSC_09 ON TB_LMS_EXAM_BSC(SBJCT_ID, DELYN, USEYN);
+		CREATE INDEX IDX_EXAM_DTL_09 ON TB_LMS_EXAM_DTL(EXAM_BSC_ID, DELYN, USEYN);
+	*/
+		SELECT 	SA.SBJCT_ID SUBJECT_ID
+				, SA.SBJCT_ADM_TYCD
+				, S.SBJCTNM , S.CRDTS
+				, U.USERNM, U.USER_ID  
+				, O.ORGNM
+				, O.ORG_TYCD
+				, SA2.USER_ID TUT_USER_ID, U2.USERNM TUT_USERNM
+				, EXAM.MID_EXAM_SDTTM, EXAM.MID_EXAM_MNTS, EXAM.LST_EXAM_SDTTM, EXAM.LST_EXAM_MNTS
+				, (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_ATNDLC AA
+		            WHERE AA.SBJCT_ID = SA.SBJCT_ID
+		        ) AS ATNDLC_CNT
+		        , (
+		            SELECT COUNT(ATCL.ATCL_ID)
+		            FROM TB_LMS_BBS BBS		           
+		       		JOIN TB_LMS_BBS_ATCL ATCL ON BBS.BBS_ID = ATCL.BBS_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'NTC'
+		       		WHERE BBS.SBJCT_ID = SA.SBJCT_ID
+		        ) AS NTC_CNT
+		        , (
+		            SELECT BBS_ID
+		            FROM TB_LMS_BBS BBS	
+		       		WHERE BBS.SBJCT_ID = SA.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'NTC' AND ROWNUM = 1
+		        ) AS NTC_BBS_ID
+		        ,(
+		            SELECT COUNT(ATCL.ATCL_ID)
+		            FROM TB_LMS_BBS BBS       
+		       		JOIN TB_LMS_BBS_ATCL ATCL ON BBS.BBS_ID = ATCL.BBS_ID AND ATCL.DELYN = 'N' AND ATCL.UP_ATCL_ID IS NULL
+		       		WHERE BBS.SBJCT_ID = SA.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'QNA'
+			       		AND NOT EXISTS (
+						        SELECT 1
+						        FROM TB_LMS_BBS_ATCL R
+						        WHERE R.UP_ATCL_ID = ATCL.ATCL_ID
+						          AND R.DELYN = 'N'
+								)
+		        ) AS QNA_CNT
+		        , (
+		            SELECT BBS_ID
+		            FROM TB_LMS_BBS BBS	
+		       		WHERE BBS.SBJCT_ID = SA.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'QNA' AND ROWNUM = 1
+		        ) AS QNA_BBS_ID
+		        ,(
+		            SELECT COUNT(ATCL.ATCL_ID)
+		            FROM TB_LMS_BBS BBS       
+		       		JOIN TB_LMS_BBS_ATCL ATCL ON BBS.BBS_ID = ATCL.BBS_ID AND ATCL.DELYN = 'N' AND ATCL.UP_ATCL_ID IS NULL
+		       		WHERE BBS.SBJCT_ID = SA.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = '1ON1'
+			       		AND NOT EXISTS (
+						        SELECT 1
+						        FROM TB_LMS_BBS_ATCL R
+						        WHERE R.UP_ATCL_ID = ATCL.ATCL_ID
+						          AND R.DELYN = 'N'
+								)
+		        ) AS ONEONONE_CNT
+				, (
+		            SELECT BBS_ID
+		            FROM TB_LMS_BBS BBS	
+		       		WHERE BBS.SBJCT_ID = SA.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = '1ON1' AND ROWNUM = 1
+		        ) AS ONEONONE_BBS_ID
+		        ,(
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_ASMT AA
+		            WHERE AA.SBJCT_ID = SA.SBJCT_ID
+		        ) AS ASMT_CNT
+		        , (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_DSCS AA
+		            WHERE AA.SBJCT_ID = SA.SBJCT_ID
+		            	AND DELYN = 'N' AND DSCS_GBNCD NOT IN ('DSCS_SBST_EXAM_MID','DSCS_SBST_EXAM_LST')
+		        ) AS DSCS_CNT
+				, (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_SMNR AA
+		            WHERE AA.SBJCT_ID = SA.SBJCT_ID
+		        ) AS SMNR_CNT
+		        ,(
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_SRVY AA
+		            WHERE AA.SBJCT_ID = SA.SBJCT_ID
+		        ) AS SRVY_CNT
+		        , (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_EXAM_BSC AA
+			        WHERE AA.SBJCT_ID = SA.SBJCT_ID AND DELYN='N' 
+			        	AND USEYN='Y' AND EXAM_GBNCD IN ('QUIZ','QUIZ_TEAM')
+		        ) AS QUIZ_CNT
+		        , (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_EXAM_BSC AA
+			        WHERE AA.SBJCT_ID = SA.SBJCT_ID AND DELYN='N' 
+			        	AND USEYN='Y' AND EXAM_GBNCD IN ('EXAM_MID','EXAM_LST')
+		        ) AS EXAM_CNT
+		FROM 	TB_LMS_SBJCT_ADM SA
+				JOIN TB_LMS_SBJCT S ON SA.SBJCT_ID = S.SBJCT_ID AND SA.USER_ID = S.PROF_ID
+				JOIN TB_LMS_USER  U ON U.USER_ID = SA.USER_ID
+				JOIN TB_LMS_ORG   O ON O.ORG_ID = U.ORG_ID 
+				LEFT JOIN TB_LMS_SBJCT_ADM SA2 ON SA.SBJCT_ID = SA2.SBJCT_ID AND SA2.SBJCT_ADM_TYCD = 'TUT' AND SA2.SBJCT_ADM_SEQNO = 1
+				LEFT JOIN TB_LMS_USER U2 ON U2.USER_ID = SA2.USER_ID
+				LEFT JOIN (
+					SELECT 	SO.SBJCT_ID
+							, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_MID'	THEN ED.EXAM_PSBL_SDTTM END) 	AS MID_EXAM_SDTTM
+					    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_MID'	THEN ED.EXAM_MNTS END) 			AS MID_EXAM_MNTS	    	
+					    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_LST'	THEN ED.EXAM_PSBL_SDTTM END) 	AS LST_EXAM_SDTTM
+					    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_LST'	THEN ED.EXAM_MNTS END) 			AS LST_EXAM_MNTS
+					FROM	TB_LMS_SBJCT SO
+							JOIN	TB_LMS_EXAM_BSC EB ON EB.SBJCT_ID = SO.SBJCT_ID AND EB.DELYN = 'N' AND EB.USEYN = 'Y'
+														AND ( EB.EXAM_GBNCD = 'EXAM_MID' OR EB.EXAM_GBNCD = 'EXAM_LST')
+							JOIN	TB_LMS_EXAM_DTL	ED ON EB.EXAM_BSC_ID = ED.EXAM_BSC_ID AND ED.DELYN = 'N' AND ED.USEYN = 'Y'
+					WHERE 	1 = 1
+					GROUP 	BY SO.SBJCT_ID
+				) EXAM ON SA.SBJCT_ID = EXAM.SBJCT_ID
+		WHERE SA.USER_ID = #{userId}
+	</select>
+	
+	<select id="stdntSubjectSummaryList" parameterType="map" resultType="egovMap">
+	/*
+		설	명	:	학생과목요약목록조회
+		
+		필요인덱스 [교수과목요약목록조회와 공통]
+		CREATE INDEX IDX_BBS_01 ON TB_LMS_BBS (SBJCT_ID, BBS_ID);
+		CREATE INDEX IDX_BBS_02 ON TB_LMS_BBS (BBS_ID, DELYN);
+		CREATE INDEX IDX_BBS_ATCL_01 ON TB_LMS_BBS_ATCL (BBS_ID, ATCL_ID);
+		CREATE INDEX IDX_ATNDLC_01 ON TB_LMS_ATNDLC (SBJCT_ID);
+		CREATE INDEX IDX_ASMT_01 ON TB_LMS_ASMT (SBJCT_ID);		
+		CREATE INDEX IDX_DSCS_01 ON TB_LMS_DSCS (SBJCT_ID);		
+		CREATE INDEX IDX_SMNR_01 ON TB_LMS_SMNR (SBJCT_ID);
+		CREATE INDEX IDX_EXAM_BSC_01 ON TB_LMS_EXAM_BSC (SBJCT_ID);
+		CREATE INDEX IDX_SRVY_01 ON TB_LMS_SRVY (SBJCT_ID);
+		
+		CREATE INDEX IDX_BBS_QNA_09 ON TB_LMS_BBS(BBS_TYCD, SBJCT_ID, DELYN);
+		CREATE INDEX IDX_BBS_ATCL_09 ON TB_LMS_BBS_ATCL(BBS_ID, DELYN, UP_ATCL_ID);
+		CREATE INDEX IDX_EXAM_BSC_09 ON TB_LMS_EXAM_BSC(SBJCT_ID, DELYN, USEYN);
+		CREATE INDEX IDX_EXAM_DTL_09 ON TB_LMS_EXAM_DTL(EXAM_BSC_ID, DELYN, USEYN);
+		
+		필요인덱스 [학생과목요약목록조회]
+	*/
+		SELECT 	  S.SBJCT_ID SUBJECT_ID
+				, SA2.SBJCT_ADM_TYCD
+				, S.SBJCTNM , S.CRDTS
+				, U.USERNM, U.USER_ID  
+				, O.ORGNM
+				, O.ORG_TYCD
+				, SA2.USER_ID TUT_USER_ID, U2.USERNM TUT_USERNM
+				, EXAM.MID_EXAM_SDTTM, EXAM.MID_EXAM_MNTS, EXAM.LST_EXAM_SDTTM, EXAM.LST_EXAM_MNTS
+				, (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_ATNDLC AA
+		            WHERE AA.SBJCT_ID = S.SBJCT_ID
+		        ) AS ATNDLC_CNT
+		        , (
+		            SELECT COUNT(ATCL.ATCL_ID)
+		            FROM TB_LMS_BBS BBS		           
+		       		JOIN TB_LMS_BBS_ATCL ATCL ON BBS.BBS_ID = ATCL.BBS_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'NTC'
+		       		WHERE BBS.SBJCT_ID = S.SBJCT_ID
+		        ) AS NTC_CNT
+		        , (
+		            SELECT BBS_ID
+		            FROM TB_LMS_BBS BBS	
+		       		WHERE BBS.SBJCT_ID = S.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'NTC' AND ROWNUM = 1
+		        ) AS NTC_BBS_ID
+		        ,(
+		            SELECT COUNT(ATCL.ATCL_ID)
+		            FROM TB_LMS_BBS BBS       
+		       		JOIN TB_LMS_BBS_ATCL ATCL ON BBS.BBS_ID = ATCL.BBS_ID AND ATCL.DELYN = 'N' AND ATCL.UP_ATCL_ID IS NULL
+		       		WHERE BBS.SBJCT_ID = S.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'QNA'
+			       		AND NOT EXISTS (
+						        SELECT 1
+						        FROM TB_LMS_BBS_ATCL R
+						        WHERE R.UP_ATCL_ID = ATCL.ATCL_ID
+						          AND R.DELYN = 'N'
+								)
+		        ) AS QNA_CNT
+		        , (
+		            SELECT BBS_ID
+		            FROM TB_LMS_BBS BBS	
+		       		WHERE BBS.SBJCT_ID = S.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = 'QNA' AND ROWNUM = 1
+		        ) AS QNA_BBS_ID
+		        ,(
+		            SELECT COUNT(ATCL.ATCL_ID)
+		            FROM TB_LMS_BBS BBS       
+		       		JOIN TB_LMS_BBS_ATCL ATCL ON BBS.BBS_ID = ATCL.BBS_ID AND ATCL.DELYN = 'N' AND ATCL.UP_ATCL_ID IS NULL
+		       		WHERE BBS.SBJCT_ID = S.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = '1ON1'
+			       		AND NOT EXISTS (
+						        SELECT 1
+						        FROM TB_LMS_BBS_ATCL R
+						        WHERE R.UP_ATCL_ID = ATCL.ATCL_ID
+						          AND R.DELYN = 'N'
+								)
+		        ) AS ONEONONE_CNT
+				, (
+		            SELECT BBS_ID
+		            FROM TB_LMS_BBS BBS	
+		       		WHERE BBS.SBJCT_ID = S.SBJCT_ID AND BBS.DELYN = 'N' AND BBS.BBS_TYCD = '1ON1' AND ROWNUM = 1
+		        ) AS ONEONONE_BBS_ID
+		        ,(
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_ASMT AA
+		            WHERE AA.SBJCT_ID = S.SBJCT_ID
+		        ) AS ASMT_CNT
+		        , (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_DSCS AA
+		            WHERE AA.SBJCT_ID = S.SBJCT_ID
+		            	AND DELYN = 'N' AND DSCS_GBNCD NOT IN ('DSCS_SBST_EXAM_MID','DSCS_SBST_EXAM_LST')
+		        ) AS DSCS_CNT
+				, (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_SMNR AA
+		            WHERE AA.SBJCT_ID = S.SBJCT_ID
+		        ) AS SMNR_CNT
+		        ,(
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_SRVY AA
+		            WHERE AA.SBJCT_ID = S.SBJCT_ID
+		        ) AS SRVY_CNT
+		        , (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_EXAM_BSC AA
+			        WHERE AA.SBJCT_ID = S.SBJCT_ID AND DELYN='N' 
+			        	AND USEYN='Y' AND EXAM_GBNCD IN ('QUIZ','QUIZ_TEAM')
+		        ) AS QUIZ_CNT
+		        , (
+		            SELECT COUNT(SBJCT_ID)
+		            FROM TB_LMS_EXAM_BSC AA
+			        WHERE AA.SBJCT_ID = S.SBJCT_ID AND DELYN='N' 
+			        	AND USEYN='Y'AND EXAM_GBNCD IN ('EXAM_MID','EXAM_LST')
+		        ) AS EXAM_CNT
+		FROM 	TB_LMS_ATNDLC ATNDLC
+				JOIN TB_LMS_SBJCT S ON ATNDLC.SBJCT_ID = S.SBJCT_ID 
+				JOIN TB_LMS_USER  U ON U.USER_ID = ATNDLC.USER_ID
+				JOIN TB_LMS_ORG   O ON O.ORG_ID = U.ORG_ID 
+				LEFT JOIN TB_LMS_SBJCT_ADM SA2 ON S.SBJCT_ID = SA2.SBJCT_ID AND SA2.SBJCT_ADM_TYCD = 'TUT' AND SA2.SBJCT_ADM_SEQNO = 1
+				LEFT JOIN TB_LMS_USER U2 ON U2.USER_ID = SA2.USER_ID
+				LEFT JOIN (
+					SELECT 	SO.SBJCT_ID
+							, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_MID'	THEN ED.EXAM_PSBL_SDTTM END) 	AS MID_EXAM_SDTTM
+					    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_MID'	THEN ED.EXAM_MNTS END) 			AS MID_EXAM_MNTS	    	
+					    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_LST'	THEN ED.EXAM_PSBL_SDTTM END) 	AS LST_EXAM_SDTTM
+					    	, MAX(CASE WHEN EB.EXAM_GBNCD = 'EXAM_LST'	THEN ED.EXAM_MNTS END) 			AS LST_EXAM_MNTS
+					FROM	TB_LMS_SBJCT SO
+							JOIN	TB_LMS_EXAM_BSC EB ON EB.SBJCT_ID = SO.SBJCT_ID AND EB.DELYN = 'N' AND EB.USEYN = 'Y'
+														AND ( EB.EXAM_GBNCD = 'EXAM_MID' OR EB.EXAM_GBNCD = 'EXAM_LST')
+							JOIN	TB_LMS_EXAM_DTL	ED ON EB.EXAM_BSC_ID = ED.EXAM_BSC_ID AND ED.DELYN = 'N' AND ED.USEYN = 'Y'
+					WHERE 	1 = 1
+					GROUP 	BY SO.SBJCT_ID
+				) EXAM ON ATNDLC.SBJCT_ID = EXAM.SBJCT_ID
+		WHERE ATNDLC.USER_ID = #{userId}
+	</select>	
+	
+	<select id="stdntOrProfCountSelect" resultType="int">
+		/* 설  명 : 학생혹은교수수조회*/
+	 	SELECT COUNT(*) 
+		FROM (
+		    SELECT 1 FROM TB_LMS_ATNDLC WHERE USER_ID = #{userId} AND SBJCT_ID = #{subjectId}
+		    UNION ALL
+		    SELECT 1 FROM TB_LMS_SBJCT_ADM WHERE USER_ID = #{userId} AND SBJCT_ID = #{subjectId}
+		)
+	</select>	
+
+</mapper>

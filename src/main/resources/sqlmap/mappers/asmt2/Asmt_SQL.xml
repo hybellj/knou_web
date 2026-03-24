@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="knou.lms.asmt2.dao.AsmtDAO">
+
+    <sql id="asmtQuery">
+        SELECT
+            ASMT.ASMT_ID
+            , ASMT.LCTR_WKNO_SCHDL_ID
+            , ASMT.ASMT_GRP_ID
+            , ASMT.ASMT_TTL
+            , ASMT.ASMT_CTS
+            , ASMT.ASMT_GBNCD
+            , (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE ORG_ID = #{orgId} AND LANG_CD = NVL(#{langCd}, 'ko') AND UP_CD = 'ASMT_GBNCD' AND CD = ASMT.ASMT_GBNCD) AS ASMT_GBNNM
+            , ASMT.DVCLAS_NO
+            , ASMT.LRN_GRP_ID
+            , ASMT.SBASMT_TYCD
+            , ASMT.EVL_SCR_TYCD
+            , ASMT.RUBLIC_ID
+            , ASMT.DELYN
+            , ASMT.SBMSN_FILE_MIME_TYCD
+            , ASMT.ASMT_OYN
+            , ASMT.ASMT_PRCTCYN
+            , ASMT.AVG_SCR_OYN
+            , ASMT.PUSH_ALIMYN
+            , ASMT.DVCLAS_CNCRNT_REGYN
+            , ASMT.INDV_ASMTYN
+            , ASMT.TEAM_ASMT_STNGYN
+            , ASMT.TMBR_SBMSN_PRMYN
+            , ASMT.MRK_RFLTYN
+            , ASMT.MRK_RFLTRT
+            , ASMT.MRK_OYN
+            , ASMT.MRK_INQ_SDTTM
+            , ASMT.MRK_INQ_EDTTM
+            , ASMT.EVL_USEYN
+            , ASMT.EVL_SDTTM
+            , ASMT.EVL_EDTTM
+            , ASMT.EVL_RSLT_OYN
+            , ASMT.SBASMT_OSTD_OYN
+            , ASMT.SBASMT_OSTD_OPEN_SDTTM
+            , ASMT.SBASMT_OSTD_OPEN_EDTTM
+            , ASMT.RESBMSN_SDTTM
+            , ASMT.RESBMSN_EDTTM
+            , ASMT.RESBMSN_MRK_RFLTRT
+            , ASMT.ASMT_SBMSN_SDTTM
+            , ASMT.ASMT_SBMSN_EDTTM
+            , ASMT.EXTD_SBMSN_PRMYN
+            , ASMT.EXTD_SBMSN_SDTTM
+            , ASMT.EXTD_SBMSN_EDTTM
+            , ASMT.RGTR_ID
+            , ASMT.REG_DTTM
+            , ASMT.MDFR_ID
+            , ASMT.MOD_DTTM
+            , ASMT.SBJCT_ID
+            , ASMT.EXLN_ASMT_DWLDYN
+            , ASMT.BYTEAM_ASMT_USEYN
+            , ASMT.UP_ASMT_ID
+            , ASMT.TEAM_ASMT_OYN
+        FROM TB_LMS_ASMT ASMT
+        WHERE ASMT.SBJCT_ID = #{sbjctId}
+    </sql>
+    <update id="mrkRfltrtModify" parameterType="asmtVO">
+        /*
+            SQL ID : AsmtDAO.mrkRfltrtModify
+            설  명 : 성적반영비율 수정
+        */
+        UPDATE TB_LMS_ASMT
+        SET MRK_RFLTRT = #{mrkRfltrt}
+            , MDFR_ID = #{mdfrId}
+            , MOD_DTTM = FN_DTTM()
+        WHERE ASMT_ID = #{asmtId}
+    </update>
+    <update id="mrkOynModify" parameterType="asmtVO">
+        /*
+            SQL ID : AsmtDAO.mrkOynModify
+            설  명 : 성적공개여부 수정
+        */
+        UPDATE TB_LMS_ASMT
+        SET MRK_OYN = #{mrkOyn}
+            , MDFR_ID = #{mdfrId}
+            , MOD_DTTM = FN_DTTM()
+        WHERE ASMT_ID = #{asmtId}
+    </update>
+
+
+    <select id="asmtListPaging" resultType="egovMap" parameterType="asmtVO">
+        /*
+            SQL ID : AsmtDAO.asmtListPaging
+            설  명 : 과제 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix"/>
+        SELECT A.*
+            , ROW_NUMBER() OVER(ORDER BY A.ASMT_SBMSN_SDTTM) AS LINE_NO
+            , COUNT(*) OVER() AS TOTAL_CNT
+            , (
+                SELECT COUNT(T1.ASMT_SBMSN_TRGT_ID)
+                FROM TB_LMS_ASMT_SBMSN_TRGT T1
+                JOIN TB_LMS_ATNDLC T2
+                ON T2.USER_ID = T1.USER_ID
+                    AND T2.SBJCT_ID = #{sbjctId}
+                WHERE T1.ASMT_ID = A.ASMT_ID
+                    AND T2.AUDITYN = 'N'
+                    AND T2.ATNDLC_STSCD = 'S'
+            ) AS TRGT_CNT /* 과제 대상자 수*/
+        , (
+            SELECT COUNT(T1.ASMT_SBMSN_TRGT_ID)
+            FROM TB_LMS_ASMT_SBMSN_TRGT T1
+            JOIN TB_LMS_ATNDLC T2
+            ON T2.USER_ID = T1.USER_ID
+                AND T2.SBJCT_ID = #{sbjctId}
+            WHERE T1.ASMT_ID = A.ASMT_ID
+                AND T2.AUDITYN = 'N'
+                AND T2.ATNDLC_STSCD = 'S'
+                AND EXISTS (
+                    SELECT 1
+                    FROM TB_LMS_ASMT_SBMSN TT1
+                    WHERE TT1.ASMT_ID = A.ASMT_ID
+                        AND TT1.USER_ID = T1.USER_ID
+                        AND TT1.SBMSN_STSCD IN (
+                            'SBMSN_CMPTN'
+                            , 'SBMSN_RE_CMPTN'
+                            , 'SBMSN_DDLN_AFTER'
+                            , 'SBMSN_EXTD_PRD'
+                        )
+                        AND TT1.DELYN = 'N'
+                )
+        ) AS SBMSN_CNT /* 과제 제출자 수 */
+        , (
+            SELECT COUNT(DISTINCT T1.USER_ID)
+            FROM TB_LMS_ASMT_SBMSN T1
+            JOIN TB_LMS_ASMT_EVL T2
+            ON T2.ASMT_SBMSN_ID = T1.ASMT_SBMSN_ID
+            WHERE T1.ASMT_ID = A.ASMT_ID
+            AND T1.SBMSN_STSCD IN (
+                'SBMSN_CMPTN'
+                , 'SBMSN_RE_CMPTN'
+                , 'SBMSN_DDLN_AFTER'
+                , 'SBMSN_EXTD_PRD'
+            )
+            AND T1.DELYN = 'N'
+            AND T2.EVLYN = 'Y'
+        ) AS EVL_CNT /* 평가 수 */
+        , (
+            SELECT COUNT(DISTINCT T1.USER_ID)
+            FROM TB_LMS_ASMT_SBMSN T1
+            WHERE T1.ASMT_ID = A.ASMT_ID
+            AND T1.RESBMSNYN = 'Y'
+            AND T1.DELYN = 'N'
+        ) AS RESBMSN_CNT /* 재제출 수 */
+        FROM (
+            <include refid="asmtQuery"/>
+        ) A
+        WHERE 1=1
+            AND UP_ASMT_ID IS NULL
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+                LOWER(A.ASMT_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <include refid="CommonSQL.pageSubfix"/>
+    </select>
+</mapper>
