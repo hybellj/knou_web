@@ -190,12 +190,10 @@
 			LEFT JOIN TB_LMS_DSCS_PTCP P
 			  ON P.DSCS_ID = C.DSCS_ID
 			 AND P.USER_ID = A.USER_ID
-			/* 수강생 팀 매핑: C.LRN_GRP_ID → 팀목록 → 수강생 팀멤버 */
-			LEFT JOIN TB_LMS_TEAM TM_T
-			  ON TM_T.LRN_GRP_ID = C.LRN_GRP_ID
+			/* 수강생 팀 매핑: C.LRN_GRP_ID 범위 내 수강생 팀 (IN 서브쿼리로 중복 행 방지) */
 			LEFT JOIN TB_LMS_TEAM_MBR TM
-			  ON TM.TEAM_ID  = TM_T.TEAM_ID
-			 AND TM.USER_ID  = A.USER_ID
+			  ON TM.USER_ID = A.USER_ID
+			 AND TM.TEAM_ID IN (SELECT T.TEAM_ID FROM TB_LMS_TEAM T WHERE T.LRN_GRP_ID = C.LRN_GRP_ID)
 			/* byteamDscsUseyn='Y' 일 때 팀별 자식 DSCS 조인 */
 			LEFT JOIN TB_LMS_DSCS CD
 			  ON CD.UP_DSCS_ID = C.DSCS_ID
