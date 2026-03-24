@@ -11,6 +11,7 @@ import knou.framework.common.ServiceBase;
 import knou.lms.srvy.dao.SrvyRspnsDAO;
 import knou.lms.srvy.service.SrvyRspnsService;
 import knou.lms.srvy.vo.SrvyQstnVO;
+import knou.lms.srvy.vo.SrvyRspnsVO;
 
 @Service("srvyRspnsService")
 public class SrvyRspnsServiceImpl extends ServiceBase implements SrvyRspnsService {
@@ -93,6 +94,35 @@ public class SrvyRspnsServiceImpl extends ServiceBase implements SrvyRspnsServic
 	@Override
 	public List<EgovMap> srvyExcelDownQstnRspnsList(String srvyId) throws Exception {
 		return srvyRspnsDAO.srvyExcelDownQstnRspnsList(srvyId);
+	}
+
+	/**
+	 * 설문답변목록
+	 *
+	 * @param srvyPtcpId 	설문참여아이디
+	 * @param srvyId 		설문아이디
+	 * @param userId 		사용자아이디
+	 * @return 설문답변목록
+	 * @throws Exception
+	 */
+	@Override
+	public List<SrvyRspnsVO> srvyRspnsList(String srvyPtcpId, String srvyId, String userId) throws Exception {
+		return srvyRspnsDAO.srvyRspnsList(srvyPtcpId, srvyId, userId);
+	}
+
+	/**
+	 * 설문문항답변분포목록
+	 *
+	 * @param sbjctId 		과목아이디
+	 * @param srvyId 		설문아이디
+	 * @param srvypprId 	설문지아이디
+	 * @param srvyQstnId 	설문문항아이디
+	 * @return 설문문항답변분포목록
+	 * @throws Exception
+	 */
+	@Override
+	public List<EgovMap> srvyQstnRspnsDistributionList(String sbjctId, String srvyId, String srvypprId, String srvyQstnId) throws Exception {
+		return srvyRspnsDAO.srvyQstnRspnsDistributionList(sbjctId, srvyId, srvypprId, srvyQstnId);
 	}
 
 }

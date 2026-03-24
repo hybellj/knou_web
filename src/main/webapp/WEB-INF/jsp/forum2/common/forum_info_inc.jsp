@@ -114,7 +114,7 @@
 						</th>
 						<td class="t_left" colspan="3">
 							<c:choose>
-								<c:when test="${forumVo.evalCtgr eq 'P'}">
+								<c:when test="${forumVo.evalCtgr eq 'SCR'}">
 									<spring:message code='forum.label.evalctgr.score'/><!-- 점수형 -->
 								</c:when>
 								<c:otherwise>

@@ -86,7 +86,10 @@
 			, GRSC_DEGR_CORS_GBN_NM
 		FROM (
 			SELECT
-			   C.DSCS_ID              AS forumCd
+			   CASE WHEN C.BYTEAM_DSCS_USEYN = 'Y' AND CD.DSCS_ID IS NOT NULL
+			        THEN CD.DSCS_ID
+			        ELSE C.DSCS_ID
+			   END                AS forumCd
 			   , NVL((SELECT D.DEPTNM FROM TB_LMS_DEPT D WHERE D.DEPT_ID = U.DEPT_ID), '-') AS DEPTNM
 			   , U.STDNT_NO           AS stdntNo
 			   , U.USERNM             AS userNm
@@ -128,13 +131,13 @@
 				  FROM TB_LMS_TEAM_MBR B
 				  JOIN TB_LMS_TEAM BB ON B.TEAM_ID = BB.TEAM_ID
 				  WHERE B.USER_ID = A.USER_ID
-				  AND BB.TEAM_ID = C.TEAM_ID
+				  AND BB.TEAM_ID = P.TEAM_ID
 				  AND ROWNUM = 1) AS teamNm
 			   , (SELECT B.LDRYN
 				  FROM TB_LMS_TEAM_MBR B
 				  JOIN TB_LMS_TEAM BB ON B.TEAM_ID = BB.TEAM_ID
 				  WHERE B.USER_ID = A.USER_ID
-				  AND BB.TEAM_ID = C.TEAM_ID
+				  AND BB.TEAM_ID = P.TEAM_ID
 				  AND ROWNUM = 1) AS memberRole
 			   , 0 AS mutCnt
 			   , 0 AS mutAvg
@@ -187,6 +190,11 @@
 			LEFT JOIN TB_LMS_DSCS_PTCP P
 			  ON P.DSCS_ID = C.DSCS_ID
 			 AND P.USER_ID = A.USER_ID
+			/* byteamDscsUseyn='Y' 일 때 팀별 자식 DSCS 조인 */
+			LEFT JOIN TB_LMS_DSCS CD
+			  ON CD.UP_DSCS_ID = C.DSCS_ID
+			 AND CD.TEAM_ID    = P.TEAM_ID
+			 AND CD.DELYN      = 'N'
 			WHERE A.SBJCT_ID = #{crsCreCd}
 			   AND A.ATNDLC_STSCD = 'ATNDLC'
 			   AND A.AUDITYN = 'N'
@@ -260,6 +268,7 @@
 	            T.MOD_DTTM = FN_DTTM()
 	    WHEN NOT MATCHED THEN
 	        INSERT (
+				DSCS_PTCP_ID,
 	            USER_ID,
 	            DSCS_ID,
 	            TEAM_ID,
@@ -272,6 +281,7 @@
 	            DELYN
 	        )
 	        VALUES (
+	            #{dscsPtcpId},
 	            <choose>
 	                <when test="stdId != null and stdId != ''">
 	                    #{stdId}

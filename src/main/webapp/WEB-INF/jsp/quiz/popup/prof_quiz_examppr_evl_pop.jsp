@@ -326,7 +326,7 @@
 		}
 
 		// 시험지 인쇄
-		function quizStarePaperPrint() {
+		function quizExampprPrint() {
 			$("#quizEvalForm").attr("action", "/quiz/profQuizExampprBulkPrintPopup.do");
 	        $("#quizEvalForm").submit();
 		}
@@ -360,7 +360,7 @@
 			    <div class="option-content">
 			        <p class="sec_head">${vo.examTtl }</p>
 			        <div class="mla">
-			        	<a href="javascript:quizStarePaperPrint()" class="ui blue small button"><spring:message code="exam.button.print.paper" /></a><!-- 시험지 인쇄 -->
+			        	<a href="javascript:quizExampprPrint()" class="ui blue small button"><spring:message code="exam.button.print.paper" /></a><!-- 시험지 인쇄 -->
 			        	<a href="javascript:saveScore('${quizExamnee.userId }')" class="ui blue small button">점수 저장</a>
 			        	<a href="javascript:window.parent.closeDialog()" class="ui blue small button"><spring:message code="exam.button.cancel" /></a><!-- 취소 -->
 			        </div>

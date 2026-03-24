@@ -87,7 +87,7 @@
                 </div>
 
                 <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-user-square" aria-hidden="true"></i><span>교수/튜터/조교정보</span></a>
+                    <a href="/subject/sbjctAdmList.do?subjectId=SBJCT20260001" ><i class="icon-svg-user-square" aria-hidden="true"></i><span>교수/튜터/조교정보</span></a>
                 </div>
 
                 <div class="gnb-item">

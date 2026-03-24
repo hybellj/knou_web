@@ -595,6 +595,34 @@
         WHERE DSCS_ID = #{dscsId}
     </update>
 
+    <update id="updateChildForumDelYn" parameterType="forum2VO">
+        /*
+            SQL ID : Forum2DAO.updateChildForumDelYn
+            설명 : 팀토론 자식 토론 논리 삭제 (UP_DSCS_ID 기준)
+        */
+        UPDATE TB_LMS_DSCS
+        SET    DELYN    = 'Y'
+             , MDFR_ID  = NVL(#{mdfrId}, #{rgtrId})
+             , MOD_DTTM = FN_DTTM()
+        WHERE  UP_DSCS_ID = #{dscsId}
+          AND  DELYN = 'N'
+    </update>
+
+    <update id="updateChildForumDtls" parameterType="Forum2TeamDscsVO">
+        /*
+            SQL ID : Forum2DAO.updateChildForumDtls
+            설명 : 팀토론 자식 토론 제목/내용 수정
+        */
+        UPDATE TB_LMS_DSCS
+        SET    DSCS_TTL  = #{dscsTtl}
+             , DSCS_CTS  = #{dscsCts}
+             , MDFR_ID   = NVL(#{mdfrId}, #{rgtrId})
+             , MOD_DTTM  = FN_DTTM()
+        WHERE  UP_DSCS_ID = #{upDscsId}
+          AND  TEAM_ID    = #{teamId}
+          AND  DELYN      = 'N'
+    </update>
+
     <select id="selectTeamDscsList" parameterType="String" resultType="Forum2TeamDscsVO">
         /*
             SQL ID : ForumDAO.selectTeamDscsList

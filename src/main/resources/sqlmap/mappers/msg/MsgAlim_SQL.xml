@@ -36,28 +36,25 @@
              SQL ID : MsgAlimDAO.selectShrtntList
              설  명 : 쪽지 최근 목록 조회
          */
-        SELECT * FROM (
-                          SELECT
-                              A.MSG_SHRTNT_SNDNG_ID AS SNDNG_ID,
-                              A.MSG_ID,
-                              S.SBJCTNM,
-                              A.SNDNGR_ID,
-                              A.SNDNGNM,
-                              A.SNDNG_TTL,
-                              A.SNDNG_CTS,
-                              A.SNDNG_DTTM,
-                              T.READ_DTTM,
-                              T.READ_YN,
-                              ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
-                          FROM TB_LMS_MSG_SHRTNT_SNDNG A
-                                   LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
-                                   LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
-                                   LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
-                          WHERE A.RCVR_ID = #{userId}
-                            AND A.RCVR_DELYN = 'N'
-                            AND A.SNDNGYN = 'Y'
-                      )
-        WHERE RNUM <![CDATA[<=]]> #{listCnt}
+        SELECT
+            B.SNDNG_ID, B.MSG_ID, S.SBJCTNM,
+            B.SNDNGR_ID, B.SNDNGNM, B.SNDNG_TTL, B.SNDNG_DTTM,
+            T.READ_DTTM, NVL(T.READ_YN, 'N') AS READ_YN
+        FROM (
+            SELECT /*+ INDEX_DESC(A IDX_SHRTNT_SNDNG_RCVR) */
+                A.MSG_SHRTNT_SNDNG_ID AS SNDNG_ID,
+                A.MSG_ID, A.RCVR_ID,
+                A.SNDNGR_ID, A.SNDNGNM, A.SNDNG_TTL, A.SNDNG_DTTM
+            FROM TB_LMS_MSG_SHRTNT_SNDNG A
+            WHERE A.RCVR_ID = #{userId}
+              AND A.RCVR_DELYN = 'N'
+              AND A.SNDNGYN = 'Y'
+              AND ROWNUM <![CDATA[<=]]> #{listCnt}
+        ) B
+        LEFT JOIN TB_LMS_MSG M ON B.MSG_ID = M.MSG_ID
+        LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
+        LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON B.MSG_ID = T.MSG_ID AND B.RCVR_ID = T.USER_ID
+        ORDER BY B.SNDNG_DTTM DESC
     </select>
 
     <select id="selectPushList" parameterType="MsgAlimVO" resultType="MsgAlimVO">
@@ -65,27 +62,25 @@
              SQL ID : MsgAlimDAO.selectPushList
              설  명 : PUSH 최근 목록 조회
          */
-        SELECT * FROM (
-                          SELECT
-                              A.MSG_MBL_SNDNG_ID AS SNDNG_ID,
-                              A.MSG_ID,
-                              S.SBJCTNM,
-                              A.SNDNGNM,
-                              A.SNDNG_TTL,
-                              A.SNDNG_CTS,
-                              A.SNDNG_DTTM,
-                              T.READ_DTTM,
-                              T.READ_YN,
-                              ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
-                          FROM TB_LMS_MSG_MBL_SNDNG A
-                                   LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
-                                   LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
-                                   LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
-                          WHERE A.RCVR_ID = #{userId}
-                            AND A.MBL_SNDNG_TYCD = 'PUSH'
-                            AND A.RCVR_DELYN = 'N'
-                      )
-        WHERE RNUM <![CDATA[<=]]> #{listCnt}
+        SELECT
+            B.SNDNG_ID, B.MSG_ID, S.SBJCTNM,
+            B.SNDNGNM, B.SNDNG_TTL, B.SNDNG_DTTM,
+            T.READ_DTTM, NVL(T.READ_YN, 'N') AS READ_YN
+        FROM (
+            SELECT /*+ INDEX_DESC(A IDX_MBL_SNDNG_RCVR) */
+                A.MSG_MBL_SNDNG_ID AS SNDNG_ID,
+                A.MSG_ID, A.RCVR_ID,
+                A.SNDNGNM, A.SNDNG_TTL, A.SNDNG_DTTM
+            FROM TB_LMS_MSG_MBL_SNDNG A
+            WHERE A.RCVR_ID = #{userId}
+              AND A.MBL_SNDNG_TYCD = 'PUSH'
+              AND A.RCVR_DELYN = 'N'
+              AND ROWNUM <![CDATA[<=]]> #{listCnt}
+        ) B
+        LEFT JOIN TB_LMS_MSG M ON B.MSG_ID = M.MSG_ID
+        LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
+        LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON B.MSG_ID = T.MSG_ID AND B.RCVR_ID = T.USER_ID
+        ORDER BY B.SNDNG_DTTM DESC
     </select>
 
     <select id="selectSmsList" parameterType="MsgAlimVO" resultType="MsgAlimVO">
@@ -93,27 +88,25 @@
              SQL ID : MsgAlimDAO.selectSmsList
              설  명 : SMS 최근 목록 조회
          */
-        SELECT * FROM (
-                          SELECT
-                              A.MSG_MBL_SNDNG_ID AS SNDNG_ID,
-                              A.MSG_ID,
-                              S.SBJCTNM,
-                              A.SNDNGNM,
-                              A.SNDNG_TTL,
-                              A.SNDNG_CTS,
-                              A.SNDNG_DTTM,
-                              T.READ_DTTM,
-                              T.READ_YN,
-                              ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
-                          FROM TB_LMS_MSG_MBL_SNDNG A
-                                   LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
-                                   LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
-                                   LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
-                          WHERE A.RCVR_ID = #{userId}
-                            AND A.MBL_SNDNG_TYCD = 'SMS'
-                            AND A.RCVR_DELYN = 'N'
-                      )
-        WHERE RNUM <![CDATA[<=]]> #{listCnt}
+        SELECT
+            B.SNDNG_ID, B.MSG_ID, S.SBJCTNM,
+            B.SNDNGNM, B.SNDNG_TTL, B.SNDNG_DTTM,
+            T.READ_DTTM, NVL(T.READ_YN, 'N') AS READ_YN
+        FROM (
+            SELECT /*+ INDEX_DESC(A IDX_MBL_SNDNG_RCVR) */
+                A.MSG_MBL_SNDNG_ID AS SNDNG_ID,
+                A.MSG_ID, A.RCVR_ID,
+                A.SNDNGNM, A.SNDNG_TTL, A.SNDNG_DTTM
+            FROM TB_LMS_MSG_MBL_SNDNG A
+            WHERE A.RCVR_ID = #{userId}
+              AND A.MBL_SNDNG_TYCD = 'SMS'
+              AND A.RCVR_DELYN = 'N'
+              AND ROWNUM <![CDATA[<=]]> #{listCnt}
+        ) B
+        LEFT JOIN TB_LMS_MSG M ON B.MSG_ID = M.MSG_ID
+        LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
+        LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON B.MSG_ID = T.MSG_ID AND B.RCVR_ID = T.USER_ID
+        ORDER BY B.SNDNG_DTTM DESC
     </select>
 
     <select id="selectAlimtalkList" parameterType="MsgAlimVO" resultType="MsgAlimVO">
@@ -121,27 +114,25 @@
              SQL ID : MsgAlimDAO.selectAlimtalkList
              설  명 : 알림톡 최근 목록 조회
          */
-        SELECT * FROM (
-                          SELECT
-                              A.MSG_MBL_SNDNG_ID AS SNDNG_ID,
-                              A.MSG_ID,
-                              S.SBJCTNM,
-                              A.SNDNGNM,
-                              A.SNDNG_TTL,
-                              A.SNDNG_CTS,
-                              A.SNDNG_DTTM,
-                              T.READ_DTTM,
-                              T.READ_YN,
-                              ROW_NUMBER() OVER (ORDER BY A.SNDNG_DTTM DESC) AS RNUM
-                          FROM TB_LMS_MSG_MBL_SNDNG A
-                                   LEFT JOIN TB_LMS_MSG M ON A.MSG_ID = M.MSG_ID
-                                   LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
-                                   LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
-                          WHERE A.RCVR_ID = #{userId}
-                            AND A.MBL_SNDNG_TYCD = 'ALIM_TALK'
-                            AND A.RCVR_DELYN = 'N'
-                      )
-        WHERE RNUM <![CDATA[<=]]> #{listCnt}
+        SELECT
+            B.SNDNG_ID, B.MSG_ID, S.SBJCTNM,
+            B.SNDNGNM, B.SNDNG_TTL, B.SNDNG_DTTM,
+            T.READ_DTTM, NVL(T.READ_YN, 'N') AS READ_YN
+        FROM (
+            SELECT /*+ INDEX_DESC(A IDX_MBL_SNDNG_RCVR) */
+                A.MSG_MBL_SNDNG_ID AS SNDNG_ID,
+                A.MSG_ID, A.RCVR_ID,
+                A.SNDNGNM, A.SNDNG_TTL, A.SNDNG_DTTM
+            FROM TB_LMS_MSG_MBL_SNDNG A
+            WHERE A.RCVR_ID = #{userId}
+              AND A.MBL_SNDNG_TYCD = 'ALIM_TALK'
+              AND A.RCVR_DELYN = 'N'
+              AND ROWNUM <![CDATA[<=]]> #{listCnt}
+        ) B
+        LEFT JOIN TB_LMS_MSG M ON B.MSG_ID = M.MSG_ID
+        LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
+        LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON B.MSG_ID = T.MSG_ID AND B.RCVR_ID = T.USER_ID
+        ORDER BY B.SNDNG_DTTM DESC
     </select>
 
 </mapper>

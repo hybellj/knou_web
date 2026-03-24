@@ -67,7 +67,7 @@
 	    ajaxCall(url, data, function(res) {
 	        if (res.result > 0) {
 	            let rawData = res.dataList;
-	            
+
 	            if (typeof rawData === 'string') {
 	                try {
 	                    rawData = JSON.parse(rawData);
@@ -153,40 +153,38 @@
 
 	// 위젯 내용 로드
 	function loadWidgetContent(widgetId) {
-		let contentBox = $("#"+widgetId+"_content");
-
 		switch (widgetId) {
 			case 'wigt_stu_today': // Today
-				contentBox.load("/dashboard/stuWidgetToday.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetToday.do");
 				break;
 
 			case 'wigt_stu_schedule': // 이달의 학사일정
-				contentBox.load("/dashboard/stuWidgetSchedule.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetSchedule.do");
 				break;
 
 			case 'wigt_stu_notice': // 공지사항
-				contentBox.load("/dashboard/stuWidgetNotice.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetNotice.do");
 				break;
 
 			case 'wigt_stu_contstdy': // 강의 이어듣기
-				contentBox.load("/dashboard/stuWidgetContstdy.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetContstdy.do");
 				break;
-				
+
 			case 'wigt_stu_subject': // 수강과목
-				contentBox.load("/dashboard/stuWidgetSubject.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetSubject.do");
 				break;
-				
+
 			case 'wigt_stu_msg': // 알림(메시지)
-				contentBox.load("/dashboard/stuWidgetMsg.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetMsg.do");
 				break;
-				
+
 			case 'wigt_stu_qna': // 강의Q&A
-				contentBox.load("/dashboard/stuWidgetQna.do");
-				break;			
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetQna.do");
+				break;
 
 			case 'wigt_stu_pds': // 강의 자료실
-				contentBox.load("/dashboard/stuWidgetPds.do");
-				break;			
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetPds.do");
+				break;
 
    	  	    default:
 				break;

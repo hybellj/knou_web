@@ -75,9 +75,10 @@
                     <span><strong id="reqMinSpan">-</strong></span>
                     <span>학습시간<strong id="lrnTimeSpan">- ( 기간 후 : - )</strong></span>
                 </p>
+                <!-- ★ 수정: 버튼 분리 — 출석 상태에 따라 하나씩만 노출 -->
                 <div id="atndBtnArea" style="display:none;">
-                    <button type="button" class="btn s_type2" onclick="doAtndProcess()">출석처리</button>
-                    <button type="button" class="btn s_type2" onclick="doAtndCancel()" style="margin-left:4px;">출석처리 취소</button>
+                    <button type="button" class="btn s_type2" id="btnAtndProcess" onclick="doAtndProcess()">출석처리</button>
+                    <button type="button" class="btn s_type2" id="btnAtndCancel"  onclick="doAtndCancel()"  style="display:none; margin-left:4px;">출석처리 취소</button>
                 </div>
             </div>
         </div>
@@ -108,12 +109,7 @@
     var userId   = _p.get("userId")   || "";
     var initWkNo = parseInt(_p.get("wkNo") || "1", 10) || 1;
 
-    var stdntUserIds      = [];
-    var curIdx            = 0;
-    var actCurrentPageNo  = 1;
-    var actTotalPageCount = 1;
-    var accessChartObj    = null;
-    var currentWkSchdlId  = "";
+    var currentWkSchdlId = "";
 
     $(function () {
         $("#selWkNo").val(initWkNo);
@@ -214,7 +210,7 @@
         $("#wkTotMinSpan").text((d.totDurMin || 0) + "분");
         $("#wkMthdSpan").text(d.lrnMthd || "-");
 
-        var sts = d.atndSts || "X";
+        var sts    = d.atndSts || "X";
         var stsCls = sts === "O" ? "state_ok" : sts === "△" ? "state_late" : "state_no";
         var stsLbl = sts === "O" ? "출석" : sts === "△" ? "지각" : "결석";
         $("#atndStsSpan").attr("class", stsCls).attr("aria-label", stsLbl).text(sts);
@@ -226,8 +222,18 @@
         var aftPrd = (d.aftPrdLrnMin || 0) + "분 " + (d.aftPrdLrnSec || 0) + "초";
         $("#lrnTimeSpan").text(inPrd + " ( 기간 외: " + aftPrd + " )");
 
+        // ★ 수정: 출석인증 기간 내이고 마지막 주차가 아닐 때만 버튼 영역 노출
         if ((d.atndCertUseYn || "N") === "Y" && (d.lastWkYn || "N") !== "Y") {
             $("#atndBtnArea").show();
+
+            // ★ 수정: 출석 상태 → 취소 버튼만, 결석/지각 상태 → 출석처리 버튼만
+            if (sts === "O") {
+                $("#btnAtndProcess").hide();
+                $("#btnAtndCancel").show();
+            } else {
+                $("#btnAtndProcess").show();
+                $("#btnAtndCancel").hide();
+            }
         } else {
             $("#atndBtnArea").hide();
         }
@@ -249,7 +255,6 @@
             var liId    = "chsiLi_" + idx;
             var contId  = "chsiCont_" + idx;
 
-            // 학습 상태 라벨
             var lrnSts  = chsi.lrnSts || "";
             var stsCls  = lrnSts === "학습완료" ? "state_ok"
                 : lrnSts === "학습중"   ? "state_late" : "state_no";
@@ -257,7 +262,6 @@
 
             var $li = $('<li class="' + (isOpen ? 'active' : '') + '" id="' + liId + '"></li>');
 
-            /* -- title-wrap -- */
             var $titleWrap = $(
                 '<div class="title-wrap">'
                 + '<div class="chasi_tit">[ ' + escHtml(chsi.chsiNo || '') + '차시 ] ' + escHtml(chsi.chsiTitle || '') + '</div>'
@@ -284,8 +288,8 @@
             });
             $titleWrap.append($a);
 
-            /* -- cont (학습기록 테이블) -- */
-            var $cont = $('<div class="cont" ' + (isOpen ? '' : 'style="display:none;"') + ' id="' + contId + '"></div>');
+            var $cont = $('<div class="cont" id="' + contId + '"></div>');
+            if (!isOpen) $cont.hide();
             var $tblWrap = $(
                 '<div class="table-wrap scroll">'
                 + '<table class="table-type1">'
@@ -299,7 +303,6 @@
             );
             $cont.append($tblWrap);
 
-            /* 학습기록 데이터 렌더링 */
             renderLogBody(idx, chsi.logList);
 
             $li.append($titleWrap).append($cont);
@@ -318,12 +321,12 @@
         logList.forEach(function (log) {
             $tbody.append(
                 '<tr>'
-                + '<td class="t_center" data-th="번호">'      + escHtml(log.lineNo  || '') + '</td>'
-                + '<td class="t_center" data-th="접속일시">'   + escHtml(log.logDttm || '') + '</td>'
-                + '<td class="t_center" data-th="학습시간">'   + escHtml(log.playPos || '') + '</td>'
-                + '<td class="t_center" data-th="운영체제">'   + escHtml(log.osNm    || '') + '</td>'
-                + '<td class="t_left"   data-th="내용">'       + escHtml(log.actInfo || '') + '</td>'
-                + '<td class="t_center" data-th="IP">'         + escHtml(log.ipAddr  || '') + '</td>'
+                + '<td class="t_center" data-th="번호">'    + escHtml(log.lineNo  || '') + '</td>'
+                + '<td class="t_center" data-th="접속일시">' + escHtml(log.logDttm || '') + '</td>'
+                + '<td class="t_center" data-th="학습시간">' + escHtml(log.playPos || '') + '</td>'
+                + '<td class="t_center" data-th="운영체제">' + escHtml(log.osNm    || '') + '</td>'
+                + '<td class="t_left"   data-th="내용">'     + escHtml(log.actInfo || '') + '</td>'
+                + '<td class="t_center" data-th="IP">'       + escHtml(log.ipAddr  || '') + '</td>'
                 + '</tr>'
             );
         });
@@ -347,6 +350,22 @@
     /* ==========================================
        출석처리 / 취소
        ========================================== */
+    function refreshParentWeeklyPage() {
+        try {
+            if (!window.parent) return;
+
+            if (typeof window.parent.searchStdntList === "function") {
+                window.parent.searchStdntList(window.parent.stdntCurrentPageNo || 1);
+            }
+
+            if (typeof window.parent.loadWklyStats === "function") {
+                window.parent.loadWklyStats();
+            }
+        } catch (e) {
+            console.error("weekly parent refresh failed", e);
+        }
+    }
+
     function doAtndProcess() {
         var wkNo = parseInt($("#selWkNo").val(), 10);
 
@@ -363,14 +382,17 @@
                     type: "POST",
                     dataType: "json",
                     data: {
-                        sbjctId: sbjctId,
-                        userId: userId,
-                        wkNo: wkNo,
+                        sbjctId:         sbjctId,
+                        userId:          userId,
+                        wkNo:            wkNo,
                         lctrWknoSchdlId: currentWkSchdlId
                     },
                     success: function (res) {
                         UiComm.showMessage((res && res.message) || "출석 처리가 완료되었습니다.", "success");
-                        if (res && res.result === 1) loadWkDetail();
+                        if (res && res.result === 1) {
+                            loadWkDetail();
+                            refreshParentWeeklyPage();
+                        }
                     },
                     error: function () {
                         UiComm.showMessage("오류가 발생했습니다.", "error");
@@ -395,20 +417,53 @@
                     type: "POST",
                     dataType: "json",
                     data: {
-                        sbjctId: sbjctId,
-                        userId: userId,
-                        wkNo: wkNo,
+                        sbjctId:         sbjctId,
+                        userId:          userId,
+                        wkNo:            wkNo,
                         lctrWknoSchdlId: currentWkSchdlId
                     },
                     success: function (res) {
                         UiComm.showMessage((res && res.message) || "출석 처리가 취소되었습니다.", "success");
-                        if (res && res.result === 1) loadWkDetail();
+                        if (res && res.result === 1) {
+                            loadWkDetail();
+                            refreshParentWeeklyPage();
+                        }
                     },
                     error: function () {
                         UiComm.showMessage("오류가 발생했습니다.", "error");
                     }
                 });
             });
+    }
+
+
+    /* ==========================================
+       메시지 보내기
+       ========================================== */
+    function doSendMsg() {
+        if (!userId) { UiComm.showMessage("학습자 정보가 없습니다.", "warning"); return; }
+
+        var usernm = $("#infoNm").text() || "";
+        var rcvUserInfoStr = userId + ";" + usernm + ";;";
+
+        var form = window.parent && window.parent.alarmForm;
+        if (!form) {
+            UiComm.showMessage("메시지 발송 폼을 찾을 수 없습니다.", "warning");
+            return;
+        }
+
+        form.action = '<%=CommConst.SYSMSG_URL_SEND%>';
+        form.target = "msgWindow";
+        form.elements['alarmType'].value = "S";
+        form.elements['rcvUserInfoStr'].value = rcvUserInfoStr;
+        window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
+        form.submit();
+    }
+
+    function escHtml(v) {
+        return String(v)
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 </script>
 </body>

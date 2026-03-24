@@ -184,17 +184,39 @@ public class ExamHomeController extends ControllerBase {
 //        String sbjctId = StringUtil.nvl(vo.getCrsCreCd());
         String isModify = null;
 
+        ExamVO examVO = null;
+        List<ExamVO> examDtlInfoVO = null;
         if (examBscId.isEmpty()) {
+            // 시험 기본 ID가 공백일 경우 [등록]
             isModify = "N";
         } else {
+            // 시험 기본 ID가 있을 경우 [수정]
             isModify = "Y";
+            examVO = examService.selectProfExamDtl(vo); // 시험 상세 조회 (화면 표시 기본정보)
+            if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+                // 팀 시험일 경우
+                examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
+                // DB 컬럼(LRN_GRP_SUBSBJCT_USEYN) 제거에 따라 examCts/examTtl 비교로 lrnGrpSubsbjctUseyn 판별
+                // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 → 부 주제 미사용(N)
+                // 하나라도 다를 경우 → 부 주제 사용(Y)
+                if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                    String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                    String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                    boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                            baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                                    baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                    );
+                    examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+                }
+            }
         }
         if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
             throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
         }
 
-        System.out.println("isModify ? " + isModify);
         model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
         model.addAttribute("isModify", isModify); // 등록|수정 여부
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
@@ -216,7 +238,6 @@ public class ExamHomeController extends ControllerBase {
     public String profExamInfoEvlView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
-
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
@@ -230,22 +251,32 @@ public class ExamHomeController extends ControllerBase {
         }
 
         ExamVO examVO = examService.selectProfExamDtl(vo);
+        List<ExamVO> examDtlInfoVO = null;
+        if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+            examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
 
-        System.out.println("tabType is : " + tabType);
-        System.out.println("examBscId is : " + examBscId);
-        System.out.println("tkexamMthdCd is : " + tkexamMthdCd);
-        System.out.println("byteamSubrexamUseyn is : " + byteamSubrexamUseyn);
-
+            // DB 컬럼(LRN_GRP_SUBSBJCT_USEYN) 제거에 따라 examCts/examTtl 비교로 lrnGrpSubsbjctUseyn 판별
+            // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 → 부 주제 미사용(N)
+            // 하나라도 다를 경우 → 부 주제 사용(Y)
+            if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                    baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                    baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                );
+                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+            }
+        }
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
-
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        System.out.println("examVO is : " + examVO.getUploadPath());
         // 임시로 prof 경로 추가
         return "exam/prof/exam_info_evl";
     }
@@ -260,7 +291,6 @@ public class ExamHomeController extends ControllerBase {
     public String profExamSbstView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
-
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
@@ -274,22 +304,32 @@ public class ExamHomeController extends ControllerBase {
         }
 
         ExamVO examVO = examService.selectProfExamDtl(vo);
+        List<ExamVO> examDtlInfoVO = null;
+        if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+            examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
 
-        System.out.println("tabType is : " + tabType);
-        System.out.println("examBscId is : " + examBscId);
-        System.out.println("tkexamMthdCd is : " + tkexamMthdCd);
-        System.out.println("byteamSubrexamUseyn is : " + byteamSubrexamUseyn);
-
+            // DB 컬럼(LRN_GRP_SUBSBJCT_USEYN) 제거에 따라 examCts/examTtl 비교로 lrnGrpSubsbjctUseyn 판별
+            // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 → 부 주제 미사용(N)
+            // 하나라도 다를 경우 → 부 주제 사용(Y)
+            if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                        baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                                baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                );
+                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+            }
+        }
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
-
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        System.out.println("examVO is : " + examVO.getUploadPath());
         // 임시로 prof 경로 추가
         return "exam/prof/exam_info_sbst";
     }
@@ -304,7 +344,6 @@ public class ExamHomeController extends ControllerBase {
     public String profExamAbsnceView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
-
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
@@ -318,22 +357,32 @@ public class ExamHomeController extends ControllerBase {
         }
 
         ExamVO examVO = examService.selectProfExamDtl(vo);
+        List<ExamVO> examDtlInfoVO = null;
+        if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+            examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
 
-        System.out.println("tabType is : " + tabType);
-        System.out.println("examBscId is : " + examBscId);
-        System.out.println("tkexamMthdCd is : " + tkexamMthdCd);
-        System.out.println("byteamSubrexamUseyn is : " + byteamSubrexamUseyn);
-
+            // DB 컬럼(LRN_GRP_SUBSBJCT_USEYN) 제거에 따라 examCts/examTtl 비교로 lrnGrpSubsbjctUseyn 판별
+            // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 → 부 주제 미사용(N)
+            // 하나라도 다를 경우 → 부 주제 사용(Y)
+            if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                        baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                                baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                );
+                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+            }
+        }
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
-
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        System.out.println("examVO is : " + examVO.getUploadPath());
         // 임시로 prof 경로 추가
         return "exam/prof/exam_info_absnce";
     }
@@ -348,7 +397,6 @@ public class ExamHomeController extends ControllerBase {
     public String profExamDsblView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
-
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
@@ -362,22 +410,32 @@ public class ExamHomeController extends ControllerBase {
         }
 
         ExamVO examVO = examService.selectProfExamDtl(vo);
+        List<ExamVO> examDtlInfoVO = null;
+        if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+            examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
 
-        System.out.println("tabType is : " + tabType);
-        System.out.println("examBscId is : " + examBscId);
-        System.out.println("tkexamMthdCd is : " + tkexamMthdCd);
-        System.out.println("byteamSubrexamUseyn is : " + byteamSubrexamUseyn);
-
+            // DB 컬럼(LRN_GRP_SUBSBJCT_USEYN) 제거에 따라 examCts/examTtl 비교로 lrnGrpSubsbjctUseyn 판별
+            // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 → 부 주제 미사용(N)
+            // 하나라도 다를 경우 → 부 주제 사용(Y)
+            if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                        baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                                baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                );
+                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+            }
+        }
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
-
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        System.out.println("examVO is : " + examVO.getUploadPath());
         // 임시로 prof 경로 추가
         return "exam/prof/exam_info_dsbl";
     }
@@ -392,7 +450,6 @@ public class ExamHomeController extends ControllerBase {
     public String profExamQuizMngView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
-
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
@@ -406,22 +463,32 @@ public class ExamHomeController extends ControllerBase {
         }
 
         ExamVO examVO = examService.selectProfExamDtl(vo);
+        List<ExamVO> examDtlInfoVO = null;
+        if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+            examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
 
-        System.out.println("tabType is : " + tabType);
-        System.out.println("examBscId is : " + examBscId);
-        System.out.println("tkexamMthdCd is : " + tkexamMthdCd);
-        System.out.println("byteamSubrexamUseyn is : " + byteamSubrexamUseyn);
-
+            // DB 컬럼(LRN_GRP_SUBSBJCT_USEYN) 제거에 따라 examCts/examTtl 비교로 lrnGrpSubsbjctUseyn 판별
+            // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 → 부 주제 미사용(N)
+            // 하나라도 다를 경우 → 부 주제 사용(Y)
+            if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                        baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                                baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                );
+                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+            }
+        }
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
-
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        System.out.println("examVO is : " + examVO.getUploadPath());
         // 임시로 prof 경로 추가
         return "exam/prof/exam_info_quiz_mng";
     }
@@ -538,7 +605,7 @@ public class ExamHomeController extends ControllerBase {
             } else {
                 resultVO.setReturnVO(examVO);
                 resultVO.setResultSuccess();
-                resultVO.setMessage("성목 메시지");
+                resultVO.setMessage("성공 메시지");
             }
         } catch(Exception e) {
             LOGGER.error("시험 상세 조회 실패", e);
@@ -558,6 +625,40 @@ public class ExamHomeController extends ControllerBase {
     @RequestMapping(value="/tkexamUserPaging.do")
     @ResponseBody
     public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String examBscId = vo.getExamBscId();
+        String byteamSubrexamUseyn = vo.getByteamSubrexamUseyn();
+        String crsCreCd = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
+
+        vo.setExamBscId(examBscId);
+        vo.setCrsCreCd(crsCreCd);
+        System.out.println("byteamSubrexamUseyn ?" + vo.getByteamSubrexamUseyn());
+        try {
+            if (byteamSubrexamUseyn.equals("Y")) {
+                // 팀 시험 평가대상자
+                resultVO = examService.listTkexamTeamUserPaging(vo);
+            } else {
+                // 시험 평가대상자
+                resultVO = examService.listTkexamUserPaging(vo);
+            }
+            resultVO.setResultSuccess();
+        } catch(Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 평가대상자 인원 조회
+     * @param vo
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/tkexamUserCount.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listTkexamUserCount(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
         String byteamSubrexamUseyn = vo.getByteamSubrexamUseyn();
@@ -611,6 +712,7 @@ public class ExamHomeController extends ControllerBase {
         }
         return resultVO;
     }
+
     /*****************************************************
      * 시험 성적 반영비율 수정
      * @param vo
@@ -637,6 +739,79 @@ public class ExamHomeController extends ControllerBase {
         } catch(Exception e) {
             resultVO.setResultFailed();
             resultVO.setMessage("수정 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 수정
+     * @param vo
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/examModify.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> updateExamDtlInfo(ExamVO vo, @RequestParam(value = "dtlInfos", defaultValue = "[]") String dtlInfoStr, ModelMap model, HttpServletRequest request) throws Exception{
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+        ObjectMapper mapper = new ObjectMapper();
+        String examBscId = vo.getExamBscId();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        try {
+            if(ValidationUtils.isEmpty(userId)) {
+                throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
+            }
+
+            vo.setExamBscId(examBscId);
+            vo.setRgtrId(userId);                   // 등록자 ID
+            vo.setMdfrId(userId);                   // 수정자 ID
+            vo.getExamDtlVO().setRgtrId(userId);    // 등록자 ID
+            vo.getExamDtlVO().setMdfrId(userId);    // 등록자 ID
+            vo.getExamDtlVO().setDtlInfos(mapper.readValue(dtlInfoStr, new TypeReference<List<Map<String, Object>>>() {
+            }));
+
+            examService.updateExamDtlInfo(vo);
+            resultVO.setResultSuccess();
+            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        }  catch (MediopiaDefineException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
+        } catch(Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage("수정 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 삭제
+     * @param vo
+     * @param ExamVO
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/examDelete.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> deleteExamBsc(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String mrkOyn = vo.getMrkOyn();
+        String examBscId = vo.getExamBscId();
+        String byteamSubrexamUseyn = vo.getByteamSubrexamUseyn();
+
+        vo.setMrkOyn(mrkOyn);
+        vo.setExamBscId(examBscId);
+        vo.setByteamSubrexamUseyn(byteamSubrexamUseyn);
+        try {
+            examService.deleteExamBsc(vo);
+            resultVO.setResultSuccess();
+            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        } catch (MediopiaDefineException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
+        } catch (Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
         return resultVO;
     }

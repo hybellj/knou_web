@@ -206,4 +206,13 @@ public interface ClsService {
      * @throws Exception
      ******************************************************/
     public ClsStdntVO selectClsStdntWeeklyInfo(ClsStdntVO vo) throws Exception;
+
+    /*****************************************************
+     * 학습요소 참여현황 목록을 페이징 조회한다.
+     * @param ClsElemStatsVO
+     * @return ProcessResultVO<ClsElemStatsVO>
+     * @throws Exception
+     ******************************************************/
+    public ProcessResultVO<ClsElemStatsVO> selectClsElemStatsListPaging(ClsElemStatsVO vo) throws Exception;
+
 }

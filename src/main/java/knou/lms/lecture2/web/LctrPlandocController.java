@@ -184,7 +184,6 @@ public class LctrPlandocController extends ControllerBase {
      * @return
      */
     @RequestMapping("/profLctrPlandocPopView.do")
-    @ResponseBody
     public String profLctrPlandocPopView(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {        
 
     	String subjectId = request.getParameter("subjectId");
@@ -197,6 +196,17 @@ public class LctrPlandocController extends ControllerBase {
     	
         LctrPlandocView lpv = lctrPlandocFacadeService.loadLctrPlandocView(userCtx, new LctrPlandocVO(subjectId));
         
-        return new ObjectMapper().writeValueAsString(lpv);
+        model.addAttribute("subjectInfo", lpv.getSubjectInfo());
+        model.addAttribute("profInfo", lpv.getProfInfo());
+        model.addAttribute("coprofList", lpv.getCoprofList());
+        model.addAttribute("tutList", lpv.getTutList());
+        model.addAttribute("AssiList", lpv.getAssiList());
+        model.addAttribute("lctrPlandocInfo", lpv.getLctrPlandocInfo());
+        model.addAttribute("mrkEvlInfo", lpv.getMrkEvlInfo());
+        model.addAttribute("txtbkList", lpv.getTxtbkList());
+        model.addAttribute("lectureScheduleList", lpv.getLectureScheduleList());
+        model.addAttribute("mrkItmStngList", lpv.getMrkItmStngList());
+        
+        return "lecture/plandoc/prof_lctr_plandoc_pop_view";
     }
 }

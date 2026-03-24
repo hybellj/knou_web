@@ -1,5 +1,6 @@
 package knou.lms.msg.web;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -69,7 +70,7 @@ public class MsgAlimController extends ControllerBase {
     @ResponseBody
     public ProcessResultVO<Map<String, Object>> alimChnlListAjax(
             HttpServletRequest request,
-            @RequestParam(value = "chnlCd", defaultValue = "ALL") String chnlCd) throws Exception {
+            @RequestParam(value = "chnlCd") String chnlCd) throws Exception {
 
         ProcessResultVO<Map<String, Object>> resultVO = new ProcessResultVO<>();
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
@@ -85,7 +86,17 @@ public class MsgAlimController extends ControllerBase {
             msgAlimVO.setUserId(userId);
             msgAlimVO.setListCnt(LIST_CNT);
 
-            Map<String, Object> data = msgAlimService.selectAlimChnlData(msgAlimVO, chnlCd);
+            Map<String, Object> data = new HashMap<>();
+
+            if ("PUSH".equals(chnlCd)) {
+                data.put("pushList", msgAlimService.selectPushList(msgAlimVO));
+            } else if ("SMS".equals(chnlCd)) {
+                data.put("smsList", msgAlimService.selectSmsList(msgAlimVO));
+            } else if ("SHRTNT".equals(chnlCd)) {
+                data.put("msgList", msgAlimService.selectShrtntList(msgAlimVO));
+            } else if ("ALIM_TALK".equals(chnlCd)) {
+                data.put("talkList", msgAlimService.selectAlimtalkList(msgAlimVO));
+            }
 
             resultVO.setReturnVO(data);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);

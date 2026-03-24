@@ -337,7 +337,7 @@ public class BbsHomeController extends ControllerBase {
 
         // 글수정, 삭제, 답글, 댓글쓰기 권한체크
         atclEditAuth = BbsAuthUtil.getAtclEditAuth(request, bbsInfoVO, bbsAtclVO);
-        atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsInfoVO, bbsAtclVO);
+        //atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsVO, bbsAtclVO);
         answerWriteAuth = BbsAuthUtil.getAnswerAtclWriteAuth(request, bbsInfoVO);
         commentWriteAuth = BbsAuthUtil.getCommentWriteAuth(request, bbsInfoVO, bbsAtclVO);
 
@@ -795,6 +795,7 @@ public class BbsHomeController extends ControllerBase {
     @RequestMapping(value = "/removeAtcl.do", method = RequestMethod.POST)
     @ResponseBody
     public ProcessResultVO<BbsAtclVO> removeAtcl(BbsAtclVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
 
         ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
 
@@ -802,6 +803,7 @@ public class BbsHomeController extends ControllerBase {
 
         String bbsId = vo.getBbsId();
         String atclId = vo.getAtclId();
+        String langCd = userCtx.getLangCd();
 
         String orgId = SessionInfo.getOrgId(request);
         vo.setOrgId(orgId);
@@ -821,18 +823,14 @@ public class BbsHomeController extends ControllerBase {
             }
 
             // 게시판 정보 조회
-            BbsInfoVO bbsInfoVO = new BbsInfoVO();
-            bbsInfoVO.setOrgId(orgId);
-            bbsInfoVO.setBbsId(bbsId);
-            bbsInfoVO.setSysUseYn("Y"); // 시스템 게시판
+            BbsVO bbsVO = new BbsVO();
+            bbsVO.setOrgId(orgId);
+            bbsVO.setBbsId(bbsId);
+            bbsVO.setLangCd(langCd);
+            bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
-            if(!isAdmin) {
-                bbsInfoVO.setUseYn("Y");
-            }
-
-            bbsInfoVO = bbsInfoService.selectBbsInfo(bbsInfoVO);
-
-            if(bbsInfoVO == null) {
+            if(bbsVO == null) {
+                // 게시판 정보를 찾을 수 없습니다.
                 throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
             }
 
@@ -847,7 +845,7 @@ public class BbsHomeController extends ControllerBase {
                 throw new BadRequestUrlException(getMessage("bbs.error.not_exists_atcl"));
             }
 
-            String atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsInfoVO, bbsAtclVO);
+            String atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsVO, bbsAtclVO);
 
             if(!"Y".equals(atclDeleteAuth)) {
                 throw new BadRequestUrlException(getMessage("bbs.error.no_auth"));

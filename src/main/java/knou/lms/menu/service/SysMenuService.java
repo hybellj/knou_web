@@ -3,6 +3,8 @@ package knou.lms.menu.service;
 import java.util.List;
 
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.menu.vo.MenuUseOrgVO;
+import knou.lms.menu.vo.MenuVO;
 import knou.lms.menu.vo.MgrSysMenuVO;
 import knou.lms.menu.vo.SysAuthGrpMenuVO;
 import knou.lms.menu.vo.SysAuthGrpVO;
@@ -21,22 +23,22 @@ public interface SysMenuService {
      * @throws Exception
      */
     public ProcessResultVO<SysAuthGrpVO> selectListAuthGrp(SysAuthGrpVO vo) throws Exception;
-    
+
     /**
      *  권한에 대한 메뉴 리스트를 조회한다.
      * @param SysMenuVO
      * @return List<MgrSysMenuVO>
      * @throws Exception
      */
-    public List<MgrSysMenuVO> selectSysMenulist(SysMenuVO vo) throws Exception;   
-    
+    public List<MgrSysMenuVO> selectSysMenulist(SysMenuVO vo) throws Exception;
+
     /**
      *  관리자 메뉴 사용 유무 저장
      * @param SysMenuVO
      * @return int
      * @throws Exception
      */
-    public void updateSysMenuListUseYn(SysMenuVO vo) throws Exception;   
+    public void updateSysMenuListUseYn(SysMenuVO vo) throws Exception;
 
 	/**
 	 *  권한의 전체 목록을 조회한다.
@@ -103,14 +105,14 @@ public interface SysMenuService {
 	 * @throws Exception
 	 */
 	public abstract SysMenuVO viewMenu(SysMenuVO vo) throws Exception;
-	
+
  	/**
  	 * 권한별 메뉴의 상세 정보를 조회 한다.
  	 * @param SysMenuVO
  	 * @return SysMenuVO
  	 * @throws Exception
  	 */
-	public abstract SysMenuVO viewMenuByAuth(SysMenuVO vo) throws Exception;	
+	public abstract SysMenuVO viewMenuByAuth(SysMenuVO vo) throws Exception;
 
 	/**
 	 * 메뉴의 상세 정보를 등록한다.
@@ -161,7 +163,7 @@ public interface SysMenuService {
 	 */
 	public abstract ProcessResultVO<SysMenuVO> listUserMenu(
 			String menuType, String authGrpCd) throws Exception;
-	
+
 	/**
 	 * 메뉴 케시 목록에서 메뉴 VO를 가져온다.
 	 * @param menuType
@@ -169,14 +171,23 @@ public interface SysMenuService {
 	 * @param menuCd
 	 * @return
 	 */
-	public abstract SysMenuVO getMenuByCache(String menuType, 
+	public abstract SysMenuVO getMenuByCache(String menuType,
 			String authGrpCd, String menuCd) throws Exception;
 
-    
+
 	/**
      * 서비스 메뉴 정보 조회
      */
     public List<SysMenuVO> selectServiceMenuAll(SysMenuVO vo) throws Exception;
 
 
+    /**
+     * 메인메뉴 전체 목록 조회
+     */
+    public List<MenuVO> selectMainMenuAll(MenuVO vo) throws Exception;
+
+    /**
+     * 메인메뉴 기관 사용 전체 목록 조회
+     */
+    public List<MenuUseOrgVO> selectMainMenuUseOrgAll(MenuUseOrgVO vo) throws Exception;
 }

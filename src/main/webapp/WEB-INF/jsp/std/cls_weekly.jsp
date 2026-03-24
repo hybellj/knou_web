@@ -135,9 +135,9 @@
                                 </div>
 
                                 <!-- 메시지 보내기 -->
-                                <button type="button" class="btn basic" onclick="openSendMsg()">
-                                    <spring:message code="button.msg.send"/>
-                                </button>
+                                    <button type="button" class="btn basic" onclick="openSendMsg()">
+                                        메시지 보내기
+                                    </button>
 
                                 <!-- 엑셀 다운로드 -->
                                 <button type="button" class="btn type2" onclick="downloadExcel()">
@@ -165,10 +165,10 @@
                                 <thead>
                                 <tr>
                                     <th>
-                                            <span class="custom-input onlychk">
-                                                <input type="checkbox" id="chkStdntAll">
-                                                <label for="chkStdntAll"></label>
-                                            </span>
+                                        <span class="custom-input onlychk">
+                                            <input type="checkbox" id="chkStdntAll">
+                                            <label for="chkStdntAll"></label>
+                                        </span>
                                     </th>
                                     <th>No</th>
                                     <th>학과</th>
@@ -240,7 +240,7 @@
                                     </button>
                                 </div>
                                 <button type="button" class="btn basic" onclick="openElemSendMsg()">
-                                    <spring:message code="button.msg.send"/>
+                                    메시지 보내기
                                 </button>
                                 <button type="button" class="btn type2" onclick="downloadElemStdntExcel()">
                                     <spring:message code="button.download.excel"/>
@@ -268,10 +268,10 @@
                                 <thead>
                                 <tr>
                                     <th>
-                                            <span class="custom-input onlychk">
-                                                <input type="checkbox" id="chkElemAll">
-                                                <label for="chkElemAll"></label>
-                                            </span>
+                                        <span class="custom-input onlychk">
+                                            <input type="checkbox" id="chkElemAll">
+                                            <label for="chkElemAll"></label>
+                                        </span>
                                     </th>
                                     <th>No</th>
                                     <th>학과</th>
@@ -344,12 +344,12 @@
 </form>
 
 <script>
-    var CTX     = "<%=request.getContextPath()%>";
+    var CTX      = "<%=request.getContextPath()%>";
     var sbjctId  = "${param.sbjctId}";
     var dvclasNo = "${param.dvclasNo}";
     var initTab  = "${initTab}";
 
-    // ★ 동적 주차 수
+    // 동적 주차 수
     var MAX_WK = ${not empty wkCnt ? wkCnt : 15};
 
     // TAB1 페이징
@@ -360,21 +360,14 @@
     var elemStdntCurrentPageNo  = 1;
     var elemStdntTotalPageCount = 1;
 
-    var lastStdntUserIds = [];
-    var lastElemUserIds  = [];
-    window._lastStdntUserIds = lastStdntUserIds;
-    window._lastElemUserIds  = lastElemUserIds;
-
-    function showMsg(msg, type) {
-        try {
-            if (window.UiComm && typeof UiComm.showMessage === "function") {
-                return UiComm.showMessage(msg, type || "info");
-            }
-        } catch(e) {}
-        alert(msg);
-    }
+    // 메시지 보내기용 사용자 목록
+    var lastStdntUsers = [];
+    var lastElemUsers  = [];
 
     $(function () {
+        /* ===========================
+           탭 전환
+           =========================== */
         $("#clsTab a").on("click", function (e) {
             e.preventDefault();
             $("#clsTab a").removeClass("current");
@@ -402,6 +395,7 @@
             $("#elemStdntBody input[type=checkbox]").prop("checked", $(this).is(":checked"));
         });
 
+        // 검색어 엔터
         $("#srchKeyword2").on("keydown", function (e) {
             if (e.keyCode === 13) { e.preventDefault(); searchStdntList(1); }
         });
@@ -409,6 +403,7 @@
             if (e.keyCode === 13) { e.preventDefault(); searchElemStdntList(1); }
         });
 
+        // 초기 탭 설정
         if (initTab === "element") {
             $('#clsTab a[href="#tabElement"]').trigger("click");
         } else {
@@ -416,6 +411,9 @@
         }
     });
 
+    /* ===========================
+       과목명 헤더 로드
+       =========================== */
     function loadHeader() {
         var params  = new URLSearchParams(location.search);
         var sbjctnm = params.get("sbjctnm")  || "";
@@ -503,8 +501,8 @@
                 renderStdntPager(page, stdntTotalPageCount);
 
                 if (!res || res.result !== 1 || !res.returnList || res.returnList.length === 0) {
-                    lastStdntUserIds = [];
-                    window._lastStdntUserIds = lastStdntUserIds;
+                    lastStdntUsers = [];
+                    window._lastStdntUserIds = [];
                     $body.append('<tr><td colspan="' + (MAX_WK + 8) + '" class="t_center"><spring:message code="common.no.data.result"/></td></tr>');
                     return;
                 }
@@ -512,10 +510,13 @@
                 var list    = res.returnList || [];
                 var perPage = (res.pageInfo && res.pageInfo.recordCountPerPage) ? res.pageInfo.recordCountPerPage : 20;
 
-                lastStdntUserIds = list.map(function (x) { return x.userId; }).filter(Boolean);
-                window._lastStdntUserIds = lastStdntUserIds;
+                lastStdntUsers = list.map(function (x) {
+                    return { userId: x.userId || "", usernm: x.usernm || "", mobileNo: x.mobileNo || "", email: x.email || "" };
+                }).filter(function (x) { return !!x.userId; });
 
-                // 출석 상태 span (공통 class 사용)
+                // 팝업 이전/다음 버튼용
+                window._lastStdntUserIds = lastStdntUsers.map(function (x) { return x.userId; });
+
                 function sts(v) {
                     if (v === 'O')  return '<span class="state_ok" aria-label="출석">○</span>';
                     if (v === '△') return '<span class="state_late" aria-label="지각">△</span>';
@@ -524,35 +525,39 @@
                 }
 
                 function wkCell(uid, wkNo, v) {
-                    var val = v || null;
                     return '<td class="t_center" data-th="' + wkNo + '주차">'
-                        + (val ? '<a href="#_" class="wkCell" data-user-id="' + uid + '" data-wk-no="' + wkNo + '">' + sts(val) + '</a>' : '-')
+                        + (v ? '<a href="#_" class="wkCell" data-user-id="' + uid + '" data-wk-no="' + wkNo + '">' + sts(v) + '</a>' : '-')
                         + '</td>';
                 }
 
                 list.forEach(function (item, idx) {
-                    var no  = ((stdntCurrentPageNo - 1) * perPage) + idx + 1;
-                    var uid = (item.userId || '');
+                    var no    = ((stdntCurrentPageNo - 1) * perPage) + idx + 1;
+                    var uid   = (item.userId || '');
                     var chkId = 'chkStdnt_' + idx;
 
                     var row = '<tr>'
-                        + '<td class="t_center"><span class="custom-input onlychk"><input type="checkbox" id="' + chkId + '" data-user-id="' + uid + '"><label for="' + chkId + '"></label></span></td>'
-                        + '<td class="t_center" data-th="번호">' + no + '</td>'
-                        + '<td class="t_center" data-th="학과">' + (item.deptnm  || '') + '</td>'
-                        + '<td class="t_center" data-th="학번">' + (item.stdntNo || '') + '</td>'
-                        + '<td class="t_center" data-th="이름"><a href="#_" class="link stdntName" data-user-id="' + uid + '">' + (item.usernm || '') + '</a></td>'
-                        + '<td class="t_center" data-th="입학년도">' + (item.entyR || '-') + '</td>'
-                        + '<td class="t_center" data-th="학년">'    + (item.scyr  || '-') + '</td>';
+                        + '<td class="t_center"><span class="custom-input onlychk">'
+                        + '<input type="checkbox" id="' + chkId + '"'
+                        + ' data-user-id="'  + uid + '"'
+                        + ' data-user-nm="'  + (item.usernm   || '') + '"'
+                        + ' data-mobile="'   + (item.mobileNo || '') + '"'
+                        + ' data-email="'    + (item.email    || '') + '"'
+                        + '><label for="' + chkId + '"></label></span></td>'
+                        + '<td class="t_center" data-th="번호">'    + no + '</td>'
+                        + '<td class="t_center" data-th="학과">'    + (item.deptnm  || '-') + '</td>'
+                        + '<td class="t_center" data-th="학번">'    + (item.stdntNo || '-') + '</td>'
+                        + '<td class="t_center" data-th="이름"><a href="#_" class="link stdntName" data-user-id="' + uid + '">' + (item.usernm || '-') + '</a></td>'
+                        + '<td class="t_center" data-th="입학년도">' + (item.entyR  || '-') + '</td>'
+                        + '<td class="t_center" data-th="학년">'    + (item.scyr   || '-') + '</td>';
 
                     for (var w = 1; w <= MAX_WK; w++) {
                         row += wkCell(uid, w, item['wk' + w + 'Sts']);
                     }
 
-                    // 출석/지각/결석 합계 — 공통 total_label class
                     row += '<td class="t_center" data-th="출석/지각/결석">'
-                        + '<span class="state_ok total_label" aria-label="출석">'  + (item.atndCnt || 0) + '</span>'
+                        + '<span class="state_ok total_label" aria-label="출석">'   + (item.atndCnt || 0) + '</span>'
                         + '<span class="state_late total_label" aria-label="지각">' + (item.lateCnt || 0) + '</span>'
-                        + '<span class="state_no total_label" aria-label="결석">'  + (item.absnCnt || 0) + '</span>'
+                        + '<span class="state_no total_label" aria-label="결석">'   + (item.absnCnt || 0) + '</span>'
                         + '</td></tr>';
 
                     $body.append(row);
@@ -561,10 +566,12 @@
         });
     }
 
-    // 페이저 버튼 렌더링
+    /* ===========================
+       주차별 페이저 렌더링
+       =========================== */
     function renderStdntPager(cur, total) {
         var html = '';
-        var pageSize = 5;
+        var pageSize  = 5;
         var startPage = Math.floor((cur - 1) / pageSize) * pageSize + 1;
         var endPage   = Math.min(startPage + pageSize - 1, total);
         for (var p = startPage; p <= endPage; p++) {
@@ -582,11 +589,13 @@
         }
     }
 
-    // 이름 클릭 → 학습자 학습현황 팝업
+    /* ===========================
+       이름 클릭 → 학습자 학습현황 팝업
+       =========================== */
     $(document).on("click", ".stdntName", function (e) {
         e.preventDefault();
         var userId = $(this).data("userId");
-        if (!userId) { showMsg("userId가 없습니다.", "warning"); return; }
+        if (!userId) { UiComm.showMessage("userId가 없습니다.", "warning"); return; }
         UiDialog("stdntWkPop", {
             title: "학습자 학습현황",
             width: 1140, height: 820,
@@ -597,12 +606,14 @@
         });
     });
 
-    // 주차 셀 클릭 → 주차별 학습기록 팝업
+    /* ===========================
+       주차 셀 클릭 → 주차별 학습기록 팝업
+       =========================== */
     $(document).on("click", ".wkCell", function (e) {
         e.preventDefault();
         var userId = $(this).data("userId");
         var wkNo   = $(this).data("wkNo");
-        if (!userId) { showMsg("userId가 없습니다.", "warning"); return; }
+        if (!userId) { UiComm.showMessage("userId가 없습니다.", "warning"); return; }
         UiDialog("stdntWkDetailPop_" + userId + "_" + wkNo, {
             title: "학습자 주차별 학습현황",
             width: 1140, height: 820,
@@ -613,19 +624,45 @@
         });
     });
 
+    /* ===========================
+       주차별 탭 메시지 보내기
+       =========================== */
     function openSendMsg() {
-        var checkedIds = [];
+        var checkedUsers = [];
         $("#stdntBody input[type=checkbox]:checked").each(function () {
-            var uid = $(this).data("userId");
-            if (uid) checkedIds.push(uid);
+            var userId = $(this).data("userId");
+            if (!userId) return;
+            checkedUsers.push({
+                userId:   userId,
+                usernm:   $(this).data("userNm")  || "",
+                mobileNo: $(this).data("mobile")  || "",
+                email:    $(this).data("email")   || ""
+            });
         });
-        var targets = checkedIds.length > 0 ? checkedIds : lastStdntUserIds;
+
+        var targets = checkedUsers.length > 0 ? checkedUsers : lastStdntUsers;
         if (!targets || targets.length === 0) {
-            showMsg("현재 조회된 학습자가 없습니다.", "warning"); return;
+            UiComm.showMessage("선택된 사용자가 없습니다.", "warning");
+            return;
         }
-        showMsg("학습자 " + targets.length + "명\n(보내기 기능 연결 예정)", "info");
+
+        var rcvUserInfoStr = targets.map(function (u) {
+            return [u.userId, u.usernm, u.mobileNo, u.email].join(";");
+        }).join("|");
+
+        var form = document.alarmForm;
+        if (!form) { UiComm.showMessage("메시지 발송 폼을 찾을 수 없습니다.", "warning"); return; }
+        form.action = '<%=CommConst.SYSMSG_URL_SEND%>';
+        form.target = "msgWindow";
+        form.elements['alarmType'].value      = "S";
+        form.elements['rcvUserInfoStr'].value = rcvUserInfoStr;
+        window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
+        form.submit();
     }
 
+    /* ===========================
+       주차별 탭 엑셀 다운로드
+       =========================== */
     function downloadExcel() {
         var colModel = [
             {label:'No',       name:'lineNo',  align:'center', width:'3000'},
@@ -643,6 +680,7 @@
             {label:'지각', name:'lateCnt', align:'center', width:'3000'},
             {label:'결석', name:'absnCnt', align:'center', width:'3000'}
         );
+
         $("form[name=excelForm]").remove();
         var $form = $('<form name="excelForm" method="post"></form>');
         $form.attr("action", CTX + "/cls/selectClsStdntListExcelDown.do");
@@ -655,30 +693,40 @@
     }
 
     /* ===========================
-       학습요소 참여현황
+       학습요소 참여현황 목록 조회
        =========================== */
     function searchElemStdntList(page) {
         elemStdntCurrentPageNo = page;
         $.ajax({
             url: CTX + "/cls/selectClsElemStats.do",
             type: "GET", dataType: "json",
-            data: { sbjctId: sbjctId, keyword: $("#elemStdntKeyword").val() },
+            data: {
+                sbjctId:   sbjctId,
+                keyword:   $("#elemStdntKeyword").val(),
+                pageIndex: page,
+                listScale: 20
+            },
             success: function (res) {
                 var $body = $("#elemStdntBody").empty();
-                var list  = (res && res.returnList) ? res.returnList : [];
-                var cnt   = list.length;
+                var cnt   = res && res.pageInfo ? res.pageInfo.totalRecordCount : 0;
+                elemStdntTotalPageCount = res && res.pageInfo ? res.pageInfo.totalPageCount : 1;
 
-                elemStdntTotalPageCount = 1;
                 $("#elemStdntTotalCnt").text(cnt);
                 $("#elemStdntTotalCnt2").text(cnt);
-                $("#elemStdntCurPage").text(1);
-                $("#elemStdntTotalPage").text(1);
-                $("#elemPagerPages").html('<button class="page active" type="button">1</button>');
+                $("#elemStdntCurPage").text(page);
+                $("#elemStdntTotalPage").text(elemStdntTotalPageCount);
+                renderElemPager(page, elemStdntTotalPageCount);
 
-                lastElemUserIds = list.map(function (x) { return x.userId; }).filter(Boolean);
-                window._lastElemUserIds = lastElemUserIds;
+                var list = (res && res.returnList) ? res.returnList : [];
 
-                if (!res || res.result !== 1 || cnt === 0) {
+                lastElemUsers = list.map(function (x) {
+                    return { userId: x.userId || "", usernm: x.usernm || "", mobileNo: x.mobileNo || "", email: x.email || "" };
+                }).filter(function (x) { return !!x.userId; });
+
+                // 팝업 이전/다음 버튼용
+                window._lastElemUserIds = lastElemUsers.map(function (x) { return x.userId; });
+
+                if (!res || res.result !== 1 || list.length === 0) {
                     $body.append('<tr><td colspan="13" class="t_center"><spring:message code="common.no.data.result"/></td></tr>');
                     return;
                 }
@@ -688,29 +736,35 @@
                 }
 
                 list.forEach(function (r, idx) {
-                    var uid  = (r.userId || '');
+                    var uid   = (r.userId || '');
                     var chkId = 'chkElem_' + idx;
-                    var qa   = (r.qaAnsCnt     || 0) + '/' + (r.qaRegCnt    || 0);
-                    var asmt = (r.asmtSbmsnCnt || 0) + '/' + (r.asmtTrgtCnt || 0);
-                    var quiz = (r.quizSbmsnCnt || 0) + '/' + (r.quizTrgtCnt || 0);
-                    var srvy = (r.srvySbmsnCnt || 0) + '/' + (r.srvyTrgtCnt || 0);
-                    var dscc = (r.dsccSbmsnCnt || 0) + '/' + (r.dsccTrgtCnt || 0);
+                    var qa    = (r.qaAnsCnt     || 0) + '/' + (r.qaRegCnt    || 0);
+                    var asmt  = (r.asmtSbmsnCnt || 0) + '/' + (r.asmtTrgtCnt || 0);
+                    var quiz  = (r.quizSbmsnCnt || 0) + '/' + (r.quizTrgtCnt || 0);
+                    var srvy  = (r.srvySbmsnCnt || 0) + '/' + (r.srvyTrgtCnt || 0);
+                    var dscc  = (r.dsccSbmsnCnt || 0) + '/' + (r.dsccTrgtCnt || 0);
 
                     $body.append(
                         '<tr>'
-                        + '<td class="t_center"><span class="custom-input onlychk"><input type="checkbox" id="' + chkId + '" data-user-id="' + uid + '"><label for="' + chkId + '"></label></span></td>'
-                        + '<td class="t_center" data-th="번호">' + (idx + 1) + '</td>'
-                        + '<td class="t_center" data-th="학과">'  + (r.deptnm  || '') + '</td>'
-                        + '<td class="t_center" data-th="학번">'  + (r.stdntNo || '') + '</td>'
-                        + '<td class="t_center" data-th="이름"><a href="#_" class="link elemStdntName" data-user-id="' + uid + '">' + (r.usernm || '') + '</a></td>'
-                        + '<td class="t_center" data-th="Q&A">'   + linkCount(uid, qa,   'QNA')  + '</td>'
-                        + '<td class="t_center" data-th="토론방">' + (r.talkReplyCnt == null ? '0' : r.talkReplyCnt) + '</td>'
-                        + '<td class="t_center" data-th="과제">'   + linkCount(uid, asmt, 'ASMT') + '</td>'
-                        + '<td class="t_center" data-th="퀴즈">'   + linkCount(uid, quiz, 'QUIZ') + '</td>'
-                        + '<td class="t_center" data-th="설문">'   + linkCount(uid, srvy, 'SRVY') + '</td>'
-                        + '<td class="t_center" data-th="토론">'   + linkCount(uid, dscc, 'DSCC') + '</td>'
-                        + '<td class="t_center" data-th="중간고사">' + (r.midScore   == null ? '-' : r.midScore)   + '</td>'
-                        + '<td class="t_center" data-th="기말고사">' + (r.finalScore == null ? '-' : r.finalScore) + '</td>'
+                        + '<td class="t_center"><span class="custom-input onlychk">'
+                        + '<input type="checkbox" id="' + chkId + '"'
+                        + ' data-user-id="'  + uid + '"'
+                        + ' data-user-nm="'  + (r.usernm   || '') + '"'
+                        + ' data-mobile="'   + (r.mobileNo || '') + '"'
+                        + ' data-email="'    + (r.email    || '') + '"'
+                        + '><label for="' + chkId + '"></label></span></td>'
+                        + '<td class="t_center">' + (r.lineNo || idx + 1) + '</td>'
+                        + '<td class="t_center">' + (r.deptnm  || '') + '</td>'
+                        + '<td class="t_center">' + (r.stdntNo || '') + '</td>'
+                        + '<td class="t_center"><a href="#_" class="link elemStdntName" data-user-id="' + uid + '">' + (r.usernm || '') + '</a></td>'
+                        + '<td class="t_center">' + linkCount(uid, qa,   'QNA')  + '</td>'
+                        + '<td class="t_center">' + (r.talkReplyCnt == null ? '0' : r.talkReplyCnt) + '</td>'
+                        + '<td class="t_center">' + linkCount(uid, asmt, 'ASMT') + '</td>'
+                        + '<td class="t_center">' + linkCount(uid, quiz, 'QUIZ') + '</td>'
+                        + '<td class="t_center">' + linkCount(uid, srvy, 'SRVY') + '</td>'
+                        + '<td class="t_center">' + linkCount(uid, dscc, 'DSCC') + '</td>'
+                        + '<td class="t_center">' + (r.midScore   == null ? '-' : r.midScore)   + '</td>'
+                        + '<td class="t_center">' + (r.finalScore == null ? '-' : r.finalScore) + '</td>'
                         + '</tr>'
                     );
                 });
@@ -721,6 +775,24 @@
         });
     }
 
+    /* ===========================
+       학습요소 페이저 렌더링
+       =========================== */
+    function renderElemPager(cur, total) {
+        var html = '';
+        var pageSize  = 5;
+        var startPage = Math.floor((cur - 1) / pageSize) * pageSize + 1;
+        var endPage   = Math.min(startPage + pageSize - 1, total);
+        for (var p = startPage; p <= endPage; p++) {
+            html += '<button class="page' + (p === cur ? ' active' : '') + '" type="button"'
+                + ' onclick="searchElemStdntList(' + p + ')">' + p + '</button>';
+        }
+        $("#elemPagerPages").html(html);
+    }
+
+    /* ===========================
+       학습요소 페이지 이동
+       =========================== */
     function moveElemPage(direction) {
         if (direction === 'prev' && elemStdntCurrentPageNo > 1) {
             searchElemStdntList(elemStdntCurrentPageNo - 1);
@@ -729,11 +801,13 @@
         }
     }
 
-    // ★ 화면정의서 기준: 학습요소 탭 이름 클릭 → 학습자 학습현황 팝업 (주차별 탭과 동일)
+    /* ===========================
+       학습요소 탭 이름 클릭 → 학습자 학습현황 팝업
+       =========================== */
     $(document).on("click", ".elemStdntName", function (e) {
         e.preventDefault();
         var userId = $(this).data("userId");
-        if (!userId) { showMsg("userId가 없습니다.", "warning"); return; }
+        if (!userId) { UiComm.showMessage("userId가 없습니다.", "warning"); return; }
         UiDialog("stdntWkPop_" + userId, {
             title: "학습자 학습현황",
             width: 1140, height: 820,
@@ -744,6 +818,9 @@
         });
     });
 
+    /* ===========================
+       학습요소 셀 클릭 → 학습요소 참여현황 팝업
+       =========================== */
     function openStdntElemPopup(userId, elemType) {
         UiDialog("stdntElemPop", {
             title: "학습자 참여현황",
@@ -755,19 +832,45 @@
         });
     }
 
+    /* ===========================
+       학습요소 탭 메시지 보내기
+       =========================== */
     function openElemSendMsg() {
-        var checkedIds = [];
+        var checkedUsers = [];
         $("#elemStdntBody input[type=checkbox]:checked").each(function () {
-            var uid = $(this).data("userId");
-            if (uid) checkedIds.push(uid);
+            var userId = $(this).data("userId");
+            if (!userId) return;
+            checkedUsers.push({
+                userId:   userId,
+                usernm:   $(this).data("userNm")  || "",
+                mobileNo: $(this).data("mobile")  || "",
+                email:    $(this).data("email")   || ""
+            });
         });
-        var targets = checkedIds.length > 0 ? checkedIds : lastElemUserIds;
+
+        var targets = checkedUsers.length > 0 ? checkedUsers : lastElemUsers;
         if (!targets || targets.length === 0) {
-            showMsg("현재 조회된 학습자가 없습니다.", "warning"); return;
+            UiComm.showMessage("선택한 사용자가 없습니다.", "warning");
+            return;
         }
-        showMsg("학습자 " + targets.length + "명\n(보내기 기능 연결 예정)", "info");
+
+        var rcvUserInfoStr = targets.map(function (u) {
+            return [u.userId, u.usernm, u.mobileNo, u.email].join(";");
+        }).join("|");
+
+        var form = document.alarmForm;
+        if (!form) { UiComm.showMessage("메시지 발송 폼을 찾을 수 없습니다.", "warning"); return; }
+        form.action = '<%=CommConst.SYSMSG_URL_SEND%>';
+        form.target = "msgWindow";
+        form.elements['alarmType'].value      = "S";
+        form.elements['rcvUserInfoStr'].value = rcvUserInfoStr;
+        window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
+        form.submit();
     }
 
+    /* ===========================
+       학습요소 탭 엑셀 다운로드
+       =========================== */
     function downloadElemStdntExcel() {
         var excelGrid = {
             colModel: [
@@ -785,6 +888,7 @@
                 {label:'기말고사',        name:'finalScore',   align:'center', width:'4000'}
             ]
         };
+
         $("form[name=excelForm]").remove();
         var $form = $('<form name="excelForm" method="post"></form>');
         $form.attr("action", CTX + "/cls/selectClsElemStatsExcelDown.do");

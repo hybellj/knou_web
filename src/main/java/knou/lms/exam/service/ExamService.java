@@ -29,17 +29,32 @@ public interface ExamService {
     // 교수 시험 상세조회
     public ExamVO selectProfExamDtl(ExamVO vo) throws Exception;
 
+    // 교수 팀 시험 상세조회
+    public List<ExamVO> selectProfExamTeamDtl (ExamVO vo) throws Exception;
+
     // 팀 시험 평가대상자 목록 페이징
     public ProcessResultVO<ExamVO> listTkexamTeamUserPaging(ExamVO vo) throws Exception;
 
+    // 팀 시험 평가대상자 카운트
+    public int countTkexamTeamUser(ExamVO vo) throws Exception;
+
     // 시험 평가대상자 목록 페이징
     public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo) throws Exception;
+
+    // 시험 평가대상자 목록 카운트
+    public int countTkexamUser(ExamVO vo) throws Exception;
 
     // 성적 반영비율 수정
     public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
 
     // 성적 공개여부 수정
     public void updateMrkOyn(ExamVO vo) throws Exception;
+
+    // 시험 수정
+    public void updateExamDtlInfo(ExamVO vo) throws Exception;
+
+    // 시험 삭제
+    public void deleteExamBsc(ExamVO vo) throws Exception;
 
     /*****************************************************
      * 기존에 있던 Service 영역

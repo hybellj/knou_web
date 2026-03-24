@@ -9,6 +9,7 @@ import knou.lms.cmmn.vo.CmmnCdVO;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.srvy.vo.SrvyQstnVO;
 import knou.lms.srvy.vo.SrvyQstnVwitmLvlVO;
+import knou.lms.srvy.vo.SrvyRspnsVO;
 import knou.lms.srvy.vo.SrvyVO;
 import knou.lms.srvy.vo.SrvyVwitmVO;
 import knou.lms.srvy.vo.SrvypprVO;
@@ -72,6 +73,10 @@ public class SrvyMainView {
 	List<EgovMap> srvyExcelDownQstnList;
 
 	List<EgovMap> srvyExcelDownQstnRspnsList;
+
+	List<SrvyRspnsVO> srvyRspnsList;
+
+	List<EgovMap> srvyQstnRspnsDistributionList;
 
 	public ProcessResultVO<EgovMap> getProfSrvyList() {
 		return profSrvyList;
@@ -303,6 +308,22 @@ public class SrvyMainView {
 
 	public void setSrvyExcelDownQstnRspnsList(List<EgovMap> srvyExcelDownQstnRspnsList) {
 		this.srvyExcelDownQstnRspnsList = srvyExcelDownQstnRspnsList;
+	}
+
+	public List<SrvyRspnsVO> getSrvyRspnsList() {
+		return srvyRspnsList;
+	}
+
+	public void setSrvyRspnsList(List<SrvyRspnsVO> srvyRspnsList) {
+		this.srvyRspnsList = srvyRspnsList;
+	}
+
+	public List<EgovMap> getSrvyQstnRspnsDistributionList() {
+		return srvyQstnRspnsDistributionList;
+	}
+
+	public void setSrvyQstnRspnsDistributionList(List<EgovMap> srvyQstnRspnsDistributionList) {
+		this.srvyQstnRspnsDistributionList = srvyQstnRspnsDistributionList;
 	}
 
 }

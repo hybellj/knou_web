@@ -85,10 +85,8 @@
                                     <p><label>구분</label><strong>#[cmcrsGbncd]</strong></p>
                                     <p><label>학년</label><strong>#[scyr]</strong></p>
                                 </div>
-                                <div class="etc">
-                                    <p><label>관리</label><strong>
-                                        <button type="button" class="btn type2" onclick="openLearnStatPopup('#[atndlcId]')">학습현황</button>
-                                    </strong></p>
+                                <div class="bottom_button">
+                                    <button type="button" class="btn basic small" onclick="stdLrnStatPopup('#[varUserId]')">학습현황</button>
                                 </div>
                             </div>
 
@@ -236,6 +234,7 @@
                 stdGbnnm: stdGbnnm,
                 scyr: (v.scyr == null ? "-" : v.scyr),
                 mgmt: "<button type='button' class='btn basic small' onclick=\"stdLrnStatPopup('" + (v.userId || "") + "')\">학습현황</button>",
+                varUserId: v.userId,
             });
         });
 

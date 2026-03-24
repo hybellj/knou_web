@@ -625,4 +625,33 @@
 		ORDER BY MENU_TYCD, MENU_LV, MENU_SEQ
     </select>
 
+
+
+
+	<select id="selectMainMenuAll" resultType="menuVO">
+        /*
+             SQL ID : SysMenuDAO.selectMainMenuAll
+             	설  명 : 메인메뉴 전체 목록 조회
+        */
+		SELECT
+			A.*
+		FROM TB_LMS_MENU A
+		WHERE 1=1
+			AND MENU_GBNCD = 'MAIN'
+		ORDER BY MENU_TYCD, MENU_LV, MENU_SEQ
+    </select>
+
+	<select id="selectMainMenuUseOrgAll" resultType="menuUseOrgVO">
+        /*
+             SQL ID : SysMenuDAO.selectMainMenuUseOrgAll
+             	설  명 : 메인메뉴 기관 사용 전체 목록 조회
+        */
+		SELECT
+			A.*
+		FROM TB_LMS_MENU_USE_ORG A
+		WHERE 1=1
+			AND MENU_GBNCD = 'MAIN'
+		ORDER BY ORG_ID, MENU_TYCD
+    </select>
+
 </mapper>

@@ -204,7 +204,11 @@
 					let title = "";
 					let colLabel = "";
 					if(isLabelAtcl) {
-						col0 += '	<label class="ui mini label tc ' + atclLabelColor + '">' + atclLabel + '</label>';
+						if(v.optnCd == 'FIX') {
+							col0 += '	<label class="label s_c01">' + atclLabel + '</label>';
+						} else {
+							col0 += '	<label class="label s_c02">' + atclLabel + '</label>';
+						}
 						colLabel = col0;
 					} else {
 						col0 = lineNo;
@@ -288,12 +292,12 @@
 
                     <div class="sub-content">
                         <div class="page-info">
-                            <h2 class="page-title">${bbsAtclVO.bbsNm}</h2>
+                            <h2 class="page-title">과목공지사항</h2>
                             <div class="navi_bar">
                                 <ul>
                                     <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li>공통</li>
-                                    <li><span class="current">레이아웃</span></li>
+                                    <li>공지사항</li>
+                                    <li><span class="current">과목공지</span></li>
                                 </ul>
                             </div>
                         </div>
@@ -362,7 +366,7 @@
 
 						<div id="atclListArea">
 							<div class="board_top">
-	                            <h3 class="board-title"><spring:message code='common.search.keyword'/></h3>
+	                            <h3 class="board-title">과목공지</h3>
 	                            <div class="right-area">
 
 									<button type="button" class="btn type1" style="white-space: nowrap;" onclick="bbsAtclListMove('I')"><spring:message code="bbs.button.write" /></button><%-- 글쓰기 --%>
@@ -413,7 +417,7 @@
 								//initialSort: [{column:"regDate", dir:"desc"}],
 								pageFunc: listPaging,
 								columns: [
-									{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
+									{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// No
 									{title:"<spring:message code='bbs.label.org'/>", 		field:"orgnm",		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 기관
 									{title:"<spring:message code='bbs.label.dept'/>", 		field:"deptnm",		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 학과
 									{title:"<spring:message code='bbs.label.sbjct'/>", 		field:"sbjctnm",	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 과목

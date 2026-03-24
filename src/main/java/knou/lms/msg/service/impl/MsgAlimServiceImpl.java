@@ -8,9 +8,7 @@ import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service("msgAlimService")
 public class MsgAlimServiceImpl extends ServiceBase implements MsgAlimService {
@@ -79,37 +77,5 @@ public class MsgAlimServiceImpl extends ServiceBase implements MsgAlimService {
         }
         return msgAlimDAO.selectAlimtalkList(vo);
     }
-
-    /**
-     * 채널별 알림 데이터 조회
-     * @param vo
-     * @param chnlCd
-     * @return
-     */
-    @Override
-    public Map<String, Object> selectAlimChnlData(MsgAlimVO vo, String chnlCd) {
-        Map<String, Object> data = new HashMap<>();
-
-        EgovMap unreadCnt = selectAlimUnrdCnt(vo);
-        data.put("unreadCnt", unreadCnt);
-
-        if ("ALL".equals(chnlCd)) {
-            data.put("pushList", selectPushList(vo));
-            data.put("smsList", selectSmsList(vo));
-            data.put("msgList", selectShrtntList(vo));
-            data.put("talkList", selectAlimtalkList(vo));
-        } else if ("PUSH".equals(chnlCd)) {
-            data.put("pushList", selectPushList(vo));
-        } else if ("SMS".equals(chnlCd)) {
-            data.put("smsList", selectSmsList(vo));
-        } else if ("SHRTNT".equals(chnlCd)) {
-            data.put("msgList", selectShrtntList(vo));
-        } else if ("ALIM_TALK".equals(chnlCd)) {
-            data.put("talkList", selectAlimtalkList(vo));
-        }
-
-        return data;
-    }
-
 
 }

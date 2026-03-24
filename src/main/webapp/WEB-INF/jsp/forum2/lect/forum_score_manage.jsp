@@ -1,6 +1,4 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="uiex" uri="http://uiextension/tags" %>
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+﻿<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
 <!DOCTYPE html>
@@ -18,7 +16,7 @@
 		var stdList = new Map();
 		var userList = new Map();
 
-		var audioRecord = null;
+		// var audioRecord = null;
 
 		var dialog;
 
@@ -134,7 +132,7 @@
 				scoreHtml += "		</div>";
 				<%--scoreHtml += "		<div class=\"ui basic label\"><spring:message code='forum.label.point' /></div>"; // 점--%>
 
-				var fdkHtml = "<i class=\"xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('" + v.userId + "', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
+				var fdkHtml = "<i class=\"xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('"+ v.forumCd +"', '"+ v.userId +"', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
 				var joinStatusHtml = "";
 				if(v.joinStatus == "미참여") {
 					joinStatusHtml += "<span class='fcRed'>"+ v.joinStatus +"</span>";
@@ -143,8 +141,8 @@
 				}
 
 				var mngHtml = "";
-				mngHtml += "		<a href=\"javascript:ezGraderPop('"+ v.userId +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></a>"; // 참여글보기
-				mngHtml += "		<a href=\"javascript:stdMemoForm('"+ v.userId +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></a>"; // 메모
+				mngHtml += "		<a href=\"javascript:ezGraderPop('"+ v.forumCd +"', '"+ v.userId +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></a>"; // 참여글보기
+				mngHtml += "		<a href=\"javascript:stdMemoForm('"+ v.forumCd +"', '"+ v.userId +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></a>"; // 메모
 
 				dataList.push({
 					no: 				v.lineNo,
@@ -461,7 +459,7 @@
 	*/
 
 		// 메모 팝업
-		function stdMemoForm(stdId, obj) {
+		function stdMemoForm(forumCd, stdId, obj) {
 			// 선택된 피드백의 아이콘 색상 초기화 및 변경
 			/*if($(".ui.basic.small.button").parents("tr").hasClass("focused")) {
 				$(".ui.basic.small.button").parents("tr").removeClass("focused");
@@ -477,7 +475,7 @@
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
 
-			var forumCd = "${forumVo.forumCd}";
+
 			$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
 			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 
@@ -492,7 +490,7 @@
 		}
 
 		// 피드백 작성 팝업
-		function fdbkList(stdId, obj) {
+		function fdbkList(forumCd, stdId, obj) {
 			// 선택된 피드백의 아이콘 색상 초기화 및 변경
 			if($(".xi-comment-o").parents().hasClass("focused")) {
 				$(".xi-comment-o").parents().removeClass("focused");
@@ -508,7 +506,6 @@
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
 
-			var forumCd = "${forumVo.forumCd}";
 			$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
 			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 
@@ -588,7 +585,8 @@
 		}
 
 		// EZ-Grader 팝업 화면
-		function ezGraderPop(stdId) {
+		function ezGraderPop(forumCd, stdId) {
+			$('#ezGraderForm input[name="forumCd"]').val(forumCd);
 			$('#ezGraderForm input[name="stdId"]').val(stdId);
 			$("#ezGraderForm").attr("target", "ezGraderPopIfm");
 			$("#ezGraderForm").attr("action", "/forum/ezgPop/ezgMainForm.do");
@@ -690,13 +688,13 @@
 				$("#fdbkFileView").html(html);
 			}
 
-			if(audioRecord.audioData != ''){
+			/*if(audioRecord.audioData != ''){
 				var html = "<i class='paperclip icon f080'></i>";
 				html += "음성녹음파일 REC";
 				$("#fdbkAudioView").html(html);
 			} else {
 				$("#fdbkAudioView").html("");
-			}
+			}*/
 		}
 
 		function fdbkFileReset(){
@@ -1242,7 +1240,7 @@
 									{title:"No", 		field:"no",					headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},
 									("${forumVo.forumCtgrCd}" == "TEAM" ? {title: "팀명", field: "teamnm", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
 									{title:"학과", 		field:"deptnm",				headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:100},
-									{title:"대표아이디", 	field:"userRprsId", 		headerHozAlign:"center", hozAlign:"center", width:0, 	minWidth:100},
+									{title:"대표아이디", 	field:"userRprsId", 		headerHozAlign:"center", hozAlign:"center", width:0, 	minWidth:120},
 									{title:"학번", 		field:"stdntNo",			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
 									{title:"이름", 		field:"usernm", 			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
 									("${forumVo.forumCtgrCd}" == "TEAM" ? {title: "역할", field: "ldryn", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
@@ -1251,7 +1249,7 @@
 									{title:"참여상태", 	field:"joinStatus", 		headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
 									{title:"참여일시", 	field:"joinDtdm", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
 									{title:"평가여부", 	field:"evlyn", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
-									{title:"관리", 		field:"mng", 				headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:300},
+									{title:"관리", 		field:"mng", 				headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:200},
 								].filter(function(col) {return col !== null;})
 							});
 						</script>
@@ -1264,7 +1262,7 @@
 	</div>
 
 	<!-- ez grader modal pop -->
-	<div class="modal fade id" id="ezGraderPop" tabindex="-1" role="dialog" aria-labelledby="ezGrader" aria-hidden="false">
+	<%--<div class="modal fade id" id="ezGraderPop" tabindex="-1" role="dialog" aria-labelledby="ezGrader" aria-hidden="false">
 		<div class="modal-dialog full" role="document">
 			<div class="modal-content">
 				<div class="modal-body">
@@ -1272,7 +1270,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div>--%>
 	<!-- ez grader modal pop -->
 </body>
 </html>

@@ -14,12 +14,7 @@
         var PAGE_INDEX = 1;
         var LIST_SCALE = 10;
 
-        /* */
-		var asmtEditor = null;
-		var quizEditor = null;
-        var quizManageEditor = null;
-
-        /*
+        /**
          * 목록에서 보낸 탭 타입 (버튼)
          * 시험 ID, 시험 방식을 받게 됨.
          * 시험 방식에 따라 보여지는 레이아웃이 다르게 됨.
@@ -28,12 +23,17 @@
         var curExamBscId = '${vo.examBscId}';
         var curTkexamMthdCd = '${vo.tkexamMthdCd}';
 
-        /* 팀 여부 */
-        var curByteamSubrexamUseyn = '${vo.byteamSubrexamUseyn}';
+        var curByteamSubrexamUseyn = '${vo.byteamSubrexamUseyn}';   // 팀 여부
+        var hasSubSubject = '${examVO.lrnGrpSubsbjctUseyn}';        // 부 주제
+        var examInfoListTable = null; // 시험정보 및 평가 Tabulator - 탭 최초 활성화 시 생성
 
-        /* 시험정보 및 평가 Tabulator - 탭 최초 활성화 시 생성 */
-        var examInfoListTable = null;
-
+        /*****************************************************************************
+         * tabulator 관련 기능
+         * 1. initExamInfoListTable :   컬럼 정의 (대상자 전체 | 팀)
+         * 2. loadExamInfoList :        컬럼에 들어갈 데이터 ajax 호출
+         * 3. changeInfoListScale :     페이지 row수 세팅
+         *****************************************************************************/
+        /* 1 */
         function initExamInfoListTable() {
             if (examInfoListTable) return;
             var examInfoColumns = curByteamSubrexamUseyn === 'Y' ? [
@@ -62,12 +62,14 @@
             ];
             examInfoListTable = UiTable("examInfoList", {
                 lang: "ko",
+                selectRow: "checkbox",
                 pageFunc: loadExamInfoList,
                 columns: examInfoColumns
             });
         }
-
+        /* 2 */
         function loadExamInfoList(pageIndex) {
+            initExamInfoListTable();
             PAGE_INDEX = pageIndex || PAGE_INDEX;
             UiComm.showLoading(true);
             $.ajax({
@@ -97,32 +99,81 @@
                 }
             });
         }
-
+        /* 3 */
         function changeInfoListScale(scale) {
             LIST_SCALE = scale;
             loadExamInfoList(1);
         }
 
-        /* 탭 변경시 텍스트 에디터 호출 로직 */
-		function initSbstEditors() {
-			if (!asmtEditor) {
-				asmtEditor = UiEditor({ targetId: "asmt-cts", uploadPath: "/asmt", height: "250px" });
-			}
-			if (!quizEditor) {
-				quizEditor = UiEditor({ targetId: "quiz-cts", uploadPath: "/quiz", height: "250px" });
-			}
-            if (!quizManageEditor) {
-                quizManageEditor = UiEditor({ targetId: "quiz-manage-cts", uploadPath: "/quiz", height: "250px" });
-            }
-		}
+        /*****************************************************************************
+         * 아코디언 관련 기능
+         * 1. setAccordion :    아코디언 기능 주입
+         * 2. eventAccordion :  아코디언 이벤트 로직
+         *****************************************************************************/
+        /* 1 */
+        function setAccordion() {
+            $(".accordion").accordion();
+        }
+        /* 2 */
+        function eventAccordion() {
+            const title = document.querySelector('.accordion .title');
+            document.querySelector('.accordion .title').addEventListener('click', () => {
+                const content = title.nextElementSibling;
+                content.classList.toggle('hide');
+            });
+        }
 
-        // 점수 가감 아이콘 표시 확인
-        function plusMinusIconControl(scoreType){
-            if(scoreType == 'batch'){
-                $("#scr-toggle-icon").hide();
-            }else if(scoreType == 'addition'){
-                $("#scr-toggle-icon").show();
+        /*****************************************************************************
+         * 팀 시험일 경우 생성되는 요소 제어 기능
+         * 1. examDtlInfoVO 모델 를 JS 배열로 변환
+         * 2. 팀 시험 부주제 목록 HTML append
+         *****************************************************************************/
+        /* 1 */
+        var examDtlInfoList = [
+            <c:forEach var="dtlInfo" items="${examDtlInfoVO}" varStatus="st">
+            {
+                lrnGrpId    : '${fn:escapeXml(dtlInfo.lrnGrpId)}',
+                lrnGrpnm    : '${fn:escapeXml(dtlInfo.lrnGrpnm)}',
+                teamId      : '${fn:escapeXml(dtlInfo.teamId)}',
+                teamnm      : '${fn:escapeXml(dtlInfo.teamnm)}',
+                ldrnm       : '${fn:escapeXml(dtlInfo.ldrnm)}',
+                examTtl     : '${fn:escapeXml(dtlInfo.examTtl)}',
+                examCts     : '${fn:escapeXml(dtlInfo.examCts)}',
+                teamMbrTot  : '${fn:escapeXml(dtlInfo.teamMbrTot)}'
             }
+            <c:if test="${!st.last}">,</c:if>
+            </c:forEach>
+        ];
+        /* 2 */
+        function examSubAsmtListAppend() {
+            var html = "";
+            if (examDtlInfoList.length > 0) {
+                examDtlInfoList.forEach(function(v, i) {
+                    html += "<tr>";
+                    html += "	<th>" + v.lrnGrpnm + "</th>";
+                    html += "	<td>";
+                    html += "		<table class='table-type2'>";
+                    html += "			<colgroup>";
+                    html += "				<col class='width-10per' />";
+                    html += "				<col class='' />";
+                    html += "			</colgroup>";
+                    html += "			<tbody>";
+                    html += "				<tr>";
+                    html += "					<th>주제</th>";
+                    html += "					<td class='t_left'>" + v.examTtl + "</td>";
+                    html += "				</tr>";
+                    html += "				<tr>";
+                    html += "					<th>내용</th>";
+                    html += "					<td class='t_left'><pre>" + $("<div>").html(v.examCts).text() + "</pre></td>";
+                    html += "				</tr>";
+                    html += "			</tbody>";
+                    html += "		</table>";
+                    html += "	</td>";
+                    html += "	<td>" + v.ldrnm + " 외 " + (v.teamMbrTot - 1) + " 명" +"</td>";
+                    html += "</tr>";
+                });
+            }
+            $("#examSubsbjctbody").append(html);
         }
 
         /**
@@ -149,111 +200,19 @@
             kvArr.push({'key' : 'tkexamMthdCd',       'val' : '${vo.tkexamMthdCd}'});
             kvArr.push({'key' : 'byteamSubrexamUseyn','val' : '${vo.byteamSubrexamUseyn}'});
             kvArr.push({'key' : 'tabType',            'val' : tab});
-
+            kvArr.push({'key' : 'isModify',           'val' : 'Y'});
             submitForm(urlMap[tab], "", "", kvArr);
         }
 
-		$(document).ready(function() {
-            /*
-             * 아코디언 관련 로직
-             * 1. 아코디언 기능 include
-             * 2. 아코디언 select 로직
-             */
-            // 1
-            $(".accordion").accordion();
-            // 2
-            const title = document.querySelector('.accordion .title');
-            document.querySelector('.accordion .title').addEventListener('click', () => {
-                const content = title.nextElementSibling;
-                content.classList.toggle('hide');
-            });
+        $(document).ready(function() {
+            setAccordion();
+            eventAccordion();
 
-            /*
-             * 일괄 성적처리 로직
-             * 1. 일괄 성적처리 +- 아이콘 변경
-             * 2. 초기 Radio 버튼 클릭 이벤트
-             */
-            // 1
-            $('#scr-toggle-icon').click(function() {
-                $(this).children("i").toggleClass("xi-plus xi-minus");
-            });
-            // 2
-            $("#scoreBatch").trigger("click");
-
-			// /* 탭 목록 동적 생성 (examGbncd 기준) */
-			// var examTabs = [
-			// 	{ href: '#exam-info',         label: '시험정보 및 평가' },
-			// 	{ href: '#exam-evl-sbst',    label: '시험 대체' },
-			// 	{ href: '#exam-absnce',      label: '결시 내용 및 현황' },
-			// 	{ href: '#exam-dsbl',        label: '장애인/고령자 지원현황' }
-			// ];
-			// var quizTabs = [
-			// 	{ href: '#exam-info',         label: '시험정보 및 평가' },
-			// 	{ href: '#exam-quiz-manage', label: '퀴즈관리' }
-			// ];
-			// var tabs = String(curTkexamMthdCd).includes('RLTM') ? examTabs : quizTabs;
-			// var $nav = $(".tab-type1");
-			// $.each(tabs, function(i, tab) {
-			// 	$nav.append('<a href="' + tab.href + '" class="btn"><span>' + tab.label + '</span></a>');
-			// });
-            //
-			// /*
-            //  * gnb.js 가 .tab-type1 클릭 시 e.stopImmediatePropagation() 를 호출하여
-            //  * document 레벨 위임 이벤트가 동작하지 않음.
-            //  * MutationObserver 로 각 탭 콘텐츠의 display 변경을 감지하여 처리.
-            //  */
-			// var examInfoEl = document.getElementById('exam-info');
-			// if (examInfoEl) {
-			// 	new MutationObserver(function() {
-			// 		if (examInfoEl.style.display === 'block') {
-			// 			initExamInfoListTable();
-			// 			loadExamInfoList(1);
-			// 		}
-			// 	}).observe(examInfoEl, { attributes: true, attributeFilter: ['style'] });
-			// }
-            //
-			// var examEvlSbstEl = document.getElementById('exam-evl-sbst');
-			// if (examEvlSbstEl) {
-			// 	new MutationObserver(function() {
-			// 		if (examEvlSbstEl.style.display === 'block') {
-			// 			initSbstEditors();
-			// 		}
-			// 	}).observe(examEvlSbstEl, { attributes: true, attributeFilter: ['style'] });
-			// }
-            //
-			// /* tabType → tab href 매핑 후 초기 탭 활성화 */
-			// var tabMap = {
-			// 	'evl-sbst': '#exam-evl-sbst'
-            //     , 'dsbl': '#exam-dsbl'
-            //     , 'absnce': '#exam-absnce'
-            //     , 'quiz': '#exam-quiz-manage'
-			// };
-			// var activeTab = tabMap[curTabType] || '#exam-info';
-			// $(".tab-content").hide();
-			// $(activeTab).show(); /* show() 호출 시 style 변경 → MutationObserver 발화 */
-			// $('.tab-type1 a.btn[href="' + activeTab + '"]').addClass("current");
-            //
-			// /* [대체과제] 라디오 버튼 선택에 따라 과제/퀴즈 폼 표시 */
-			// function toggleAbsntForm() {
-			// 	var val = $('input[name="absnt-type-rd"]:checked').val();
-			// 	$("#asmt-write").toggle(val === 'Y');
-			// 	$("#quiz-write").toggle(val === 'N');
-			// 	$("#quiz-mng-btn").toggle(val === 'N');
-			// }
-            //
-			// $('input[name="absnt-type-rd"]').on("change", toggleAbsntForm);
-			// toggleAbsntForm(); // 초기 상태 적용
-            //
-            // /* 목록 버튼 */
-            // $("#into-exam-list-btn").on("click", function() {
-            //     UiComm.showMessage("목록으로 돌아가시겠습니까?", "confirm")
-            //         .then(function(result) {
-            //             if (result) {
-            //                 location.href = "/exam/Form/examList.do";
-            //             }
-            //         });
-            // });
-		});
+            // loadExamInfoList();
+            if (hasSubSubject == 'Y') {
+                examSubAsmtListAppend();
+            }
+        });
 	</script>
 </head>
 
@@ -351,7 +310,7 @@
                     <!-- 콘텐츠 영역 -->
                     <div class="box span-2 subject">
                         <div class="box_content">
-                            <div class="segment">
+                            <div class="sub-content">
                                 <!-- 콘텐츠 상단 탭 버튼 영역 -->
                                 <div class="listTab">
                                     <ul>
@@ -370,12 +329,8 @@
                                 <!-- 고정 영역 -->
                                 <div class="board_top">
                                     <i class="icon-svg-openbook"></i>
-                                    <!-- 탭에 따라서 메인 제목을 바꾸는 로직이 필요하다 -->
-                                    <h3 class="board-title">시험정보 및 평가</h3>
+                                    <h3 class="board-title">퀴즈 관리</h3>
                                     <div class="right-area">
-                                        <!-- 탭에 따라서 버튼 숨기는 로직이 필요하다 -->
-                                        <button type="button" class="btn type2" onclick="examViewMv(9)">수정</button>
-                                        <button type="button" id = "delete-exam-info-btn" class="btn type2">삭제</button>
                                         <button type="button" class="btn basic" onclick="examViewMv(8)">목록</button>
                                     </div>
                                 </div>
@@ -385,7 +340,6 @@
                                         <div class="title_cont">
                                             <div class="left_cont">
                                                 <div class="lectTit_box">
-
                                                     <spring:message code="exam.common.yes" var="yes" /><!-- 예 -->
                                                     <spring:message code="exam.common.no" var="no" /><!-- 아니오 -->
                                                     <!-- 날짜 포맷 -->
@@ -415,90 +369,113 @@
                                                     <col class="" />
                                                 </colgroup>
                                                 <tbody>
-                                                    <tr>
-                                                        <th><label>시험 구분</label></th>
-                                                        <td class="t_left" colspan="3"><pre>${examVO.examGbnnm}</pre></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>시험 방식</label></th>
-                                                        <td class="t_left" colspan="3"><pre>${examVO.tkexamMthdNm}</pre></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>시험 내용</label></th>
-                                                        <td class="t_left" colspan="3">
+                                                <tr>
+                                                    <th><label>시험 구분</label></th>
+                                                    <td class="t_left" colspan="3"><pre>${examVO.examGbnnm}</pre></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>시험 방식</label></th>
+                                                    <td class="t_left" colspan="3"><pre>${examVO.tkexamMthdNm}</pre></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>시험 내용</label></th>
+                                                    <td class="t_left" colspan="3">
                                                             <pre>
                                                                 <div class="editor-box">
                                                                     <uiex:htmlEditor
-                                                                        id = "dtl-exam-cts"
-                                                                        name = "dtl-exam-cts"
-                                                                        uploadPath = "${examVO.uploadPath}"
-                                                                        value = "${examVO.examCts}"
-                                                                        height = "400px"
-                                                                        required="true"
+                                                                            id = "dtl-exam-cts"
+                                                                            name = "dtl-exam-cts"
+                                                                            uploadPath = "${examVO.uploadPath}"
+                                                                            value = "${examVO.examCts}"
+                                                                            height = "400px"
+                                                                            required="true"
                                                                     />
                                                                 </div>
                                                             </pre>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>시험 일시</label></th>
-                                                        <td class="t_left" colspan="3"><pre>${examPsblSdttm} ~ ${examPsblEdttm}</pre></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>시험 시간</label></th>
-                                                        <td class="t_left" colspan="3"><pre>${examVO.examMnts} 분</pre></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>성적 반영</label></th>
-                                                        <td class="t_left"><pre>${examVO.mrkRfltyn eq 'Y' ? yes : no}</pre></td>
-                                                        <th><label>성적 반영비율</label></th>
-                                                        <td class="t_left"><pre>${examVO.mrkRfltyn eq 'N' ? '-' : examVO.mrkRfltrt}</pre></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>성적 공개</label></th>
-                                                        <td class="t_left" colspan="3"><pre>${examVO.mrkOyn eq 'Y' ? yes : no}</pre></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>시험지 공개</label></th>
-                                                        <td class="t_left" colspan="3"><pre>${examVO.exampprOyn eq 'Y' ? yes : no}</pre></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>팀 시험</label></th>
-                                                        <td class="t_left" colspan="3"><pre>${examVO.byteamSubrexamUseyn eq 'Y' ? yes : no}</pre></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>시험 대체</label></th>
-                                                        <td class="t_left" colspan="3">
-                                                            <div class = "item_list">
-                                                                ${examVO.examSbstTynm}
-                                                                <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
-                                                                    <button type="button" class = "btn basic">시험 대체</button>
-                                                                </c:if>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>결시 현황</label></th>
-                                                        <td class="t_left" colspan="3">
-                                                            <div class = "item_list">
-                                                                ${examVO.absnceTot} 명
-                                                                <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
-                                                                    <button type="button" class = "btn basic">결시 내용 및 현황</button>
-                                                                </c:if>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>장애인/고령자 지원</label></th>
-                                                        <td class="t_left" colspan="3">
-                                                            <div class = "item_list">
-                                                                ${examVO.dsblTot} 명
-                                                                <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
-                                                                    <button type="button" class = "btn basic">장애인/고령자 지원</button>
-                                                                </c:if>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>시험 일시</label></th>
+                                                    <td class="t_left" colspan="3"><pre>${examPsblSdttm} ~ ${examPsblEdttm}</pre></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>시험 시간</label></th>
+                                                    <td class="t_left" colspan="3"><pre>${examVO.examMnts} 분</pre></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>성적 반영</label></th>
+                                                    <td class="t_left"><pre>${examVO.mrkRfltyn eq 'Y' ? yes : no}</pre></td>
+                                                    <th><label>성적 반영비율</label></th>
+                                                    <td class="t_left"><pre>${examVO.mrkRfltyn eq 'N' ? '-' : examVO.mrkRfltrt} %</pre></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>성적 공개</label></th>
+                                                    <td class="t_left" colspan="3"><pre>${examVO.mrkOyn eq 'Y' ? yes : no}</pre></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>시험지 공개</label></th>
+                                                    <td class="t_left" colspan="3"><pre>${examVO.exampprOyn eq 'Y' ? yes : no}</pre></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>팀 시험</label></th>
+                                                    <td class="t_left" colspan="3">
+                                                        <pre>${examVO.byteamSubrexamUseyn eq 'Y' ? yes : no}</pre>
+                                                        <!-- 팀 시험인 경우 -->
+                                                        <c:if test = "${examVO.byteamSubrexamUseyn eq 'Y' and not empty examDtlInfoVO}">
+                                                            <pre>학습그룹 : ${examDtlInfoVO[0].lrnGrpnm}</pre>
+                                                            <pre>팀별 부 주제 사용여부 : ${examVO.lrnGrpSubsbjctUseyn eq 'Y' ? yes : no}</pre>
+                                                            <c:if test="${examVO.lrnGrpSubsbjctUseyn eq 'Y'}">
+                                                                <table class="table-type2">
+                                                                    <colgroup>
+                                                                        <col class="width-10per" />
+                                                                        <col class="" />
+                                                                        <col class="width-20per" />
+                                                                    </colgroup>
+                                                                    <tbody id="examSubsbjctbody">
+                                                                    <tr>
+                                                                        <th><label>팀</label></th>
+                                                                        <th><label>부주제 + 내용</label></th>
+                                                                        <th><label>학습그룹 구성원</label></th>
+                                                                    </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </c:if>
+                                                        </c:if>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>시험 대체</label></th>
+                                                    <td class="t_left" colspan="3">
+                                                        <div class = "item_list">
+                                                            ${examVO.examSbstTynm}
+                                                            <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
+                                                                <button type="button" class = "btn basic" onclick="examViewMv(2)">시험 대체</button>
+                                                            </c:if>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>결시 현황</label></th>
+                                                    <td class="t_left" colspan="3">
+                                                        <div class = "item_list">
+                                                            ${examVO.absnceTot} 명
+                                                            <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
+                                                                <button type="button" class = "btn basic" onclick="examViewMv(3)">결시 내용 및 현황</button>
+                                                            </c:if>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th><label>장애인/고령자 지원</label></th>
+                                                    <td class="t_left" colspan="3">
+                                                        <div class = "item_list">
+                                                            ${examVO.dsblTot} 명
+                                                            <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
+                                                                <button type="button" class = "btn basic" onclick="examViewMv(4)">장애인/고령자 지원</button>
+                                                            </c:if>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                                 </tbody>
                                             </table>
                                         </div>

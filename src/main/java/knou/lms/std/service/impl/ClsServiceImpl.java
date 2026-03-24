@@ -6,6 +6,8 @@ import knou.lms.std.service.ClsService;
 import knou.lms.std.vo.*;
 import knou.lms.common.paging.PagingInfo;
 import knou.lms.common.vo.ProcessResultVO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -15,6 +17,8 @@ import java.util.stream.IntStream;
 
 @Service("clsService")
 public class ClsServiceImpl extends ServiceBase implements ClsService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClsServiceImpl.class);
 
     @Resource(name = "clsDAO")
     private ClsDAO clsDAO;
@@ -95,7 +99,8 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
             out.setPageInfo(pi);
             out.setResult(1);
         } catch (Exception e) {
-            e.printStackTrace();
+            // 페이징 조회 실패 로그 출력
+            LOGGER.error("[selectClsListPaging] fail, vo={}", vo, e);
             out.setResult(-1);
             out.setMessage("에러가 발생하였습니다.");
         }
@@ -160,7 +165,8 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
             out.setPageInfo(pi);
             out.setResult(1);
         } catch (Exception e) {
-            e.printStackTrace();
+            // 페이징 조회 실패 로그 출력
+            LOGGER.error("[selectClsStdntListPaging] fail, vo={}", vo, e);
             out.setResult(-1);
             out.setMessage("에러가 발생하였습니다.");
         }
@@ -255,7 +261,8 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
             out.setPageInfo(pi);
             out.setResult(1);
         } catch (Exception e) {
-            e.printStackTrace();
+            // 페이징 조회 실패 로그 출력
+            LOGGER.error("[selectStdntActivityLogPaging] fail, vo={}", vo, e);
             out.setResult(-1);
             out.setMessage("에러가 발생하였습니다.");
         }
@@ -361,5 +368,35 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
         // 주차 리스트 기본값 설정
         setDefaultWkList(vo);
         return clsDAO.selectClsStdntWeeklyInfo(vo);
+    }
+
+    /*****************************************************
+     * 학습요소 참여현황 목록을 페이징 조회한다.
+     * @param ClsElemStatsVO
+     * @return ProcessResultVO<ClsElemStatsVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ClsElemStatsVO> selectClsElemStatsListPaging(ClsElemStatsVO vo) throws Exception {
+        ProcessResultVO<ClsElemStatsVO> out = new ProcessResultVO<>();
+        try {
+            PagingInfo pi = new PagingInfo();
+            pi.setCurrentPageNo(vo.getPageIndex());
+            pi.setRecordCountPerPage(vo.getListScale());
+            pi.setPageSize(vo.getPageScale());
+            vo.setFirstIndex(pi.getFirstRecordIndex());
+            vo.setLastIndex(pi.getLastRecordIndex());
+            int totCnt = clsDAO.selectClsElemStatsListCnt(vo);
+            pi.setTotalRecordCount(totCnt);
+            out.setReturnList(clsDAO.selectClsElemStatsListPaging(vo));
+            out.setPageInfo(pi);
+            out.setResult(1);
+        } catch (Exception e) {
+            // 페이징 조회 실패 로그 출력
+            LOGGER.error("[selectClsElemStatsListPaging] fail, vo={}", vo, e);
+            out.setResult(-1);
+            out.setMessage("에러가 발생하였습니다.");
+        }
+        return out;
     }
 }

@@ -11,24 +11,58 @@
 <link rel="stylesheet" type="text/css" href="/webdoc/assets/css/classroom.css" />
 
 <script type="text/javascript">
-function loadLctrPlanDoc(sbjctId) {	
-    fetch('/lecture/lctrPlanDocSelect.do?subjectId=' + encodeURIComponent(sbjctId))
+function loadLctrPlandocPopView(sbjctId) {	
+    fetch('/lctr/plandoc/profLctrPlandocPopView.do?subjectId=' + encodeURIComponent(sbjctId))
         .then(response => response.text())
         .then(data => {
             const div = document.getElementById('lecturePlanDoc');
+            div.style.display = "block";
+            div.style.position = "fixed";
+            div.style.top = "50%";
+            div.style.left = "50%";
+            div.style.width = "800px";
+            div.style.maxHeight = "80vh";
+            div.style.overflow = "auto";
+            div.style.zIndex = "9999";
+            div.style.background = "#fff";
+            div.style.padding = "20px";
+            div.style.transform = "translate(-50%, -50%)";
             div.innerHTML = data;
-            div.style.display = 'block'; //
         })
         .catch(error => {
             document.getElementById('lecturePlanDoc').innerHTML = '에러 발생';
             console.error(error);
         });
 }
+
+
+function loadLessonProgressManage(sbjctId) {	
+    fetch('/lesson/lessonMgr/lessonProgressManage.do?subjectId=' + encodeURIComponent(sbjctId))
+        .then(response => response.text())
+        .then(data => {
+            const div = document.getElementById('lessonProgressManagePopView');
+            div.style.display = "block";
+            div.style.position = "fixed";
+            div.style.top = "50%";
+            div.style.left = "50%";
+            div.style.width = "800px";
+            div.style.maxHeight = "80vh";
+            div.style.overflow = "auto";
+            div.style.zIndex = "9999";
+            div.style.background = "#fff";
+            div.style.padding = "20px";
+            div.style.transform = "translate(-50%, -50%)";
+            div.innerHTML = data;
+        })
+        .catch(error => {
+            document.getElementById('lessonProgressManagePopView').innerHTML = '에러 발생';
+            console.error(error);
+        });
+}
 </script>
 <body class="class colorA "><!-- 컬러선택시 클래스변경 -->
-<div style="display:none;" id="lecturePlanDoc">
-    데이터를 불러오는 중...
-</div>
+<div style="display:none;" id="lecturePlanDoc"></div>
+<div style="display:none;" id="lessonProgressManagePopView"></div>
     <div id="wrap" class="main">
 
         <!-- common header -->
@@ -83,9 +117,9 @@ function loadLctrPlanDoc(sbjctId) {
                                 <h2>${subjectVM.subjectVO.sbjctnm}</h2>
                                 <div class="classSection">
                                     <div class="cls_btn">
-                                        <a href="javascript:void(0); onclick=loadLctrPlanDoc('${subjectVM.subjectVO.sbjctId}');" class="btn">강의계획서</a>
-                                        <a href="#0" class="btn">학습진도관리</a>
-                                        <a href="#0" class="btn">평가기준</a>
+                                        <a href="javascript:void(0); onclick=loadLctrPlandocPopView('${subjectVM.subjectVO.sbjctId}');" class="btn">강의 계획서</a>
+                                        <a href="javascript:void(0); onclick=loadLessonProgressManage('${subjectVM.subjectVO.sbjctId}');" class="btn" class="btn">학습진도관리</a>
+                                        <a href="#0" class="btn">평가 기준</a>
                                     </div>
                                 </div>
                             </div>
@@ -408,9 +442,10 @@ function loadLctrPlanDoc(sbjctId) {
                     </div>
 					<!-- //segment row -->
 
-
-					<!-- lecture_segment 강의목록-->
+					<!-- segment-->		
 					<div class="segment">
+					
+						<!-- 강의목록top -->
 						<div class="board_top">
                             <i class="icon-svg-openbook"></i>
                             <h3 class="board-title">강의목록</h3>
@@ -436,7 +471,7 @@ function loadLctrPlanDoc(sbjctId) {
                             	<option value="전체 주차">전체 주차</option>
                             	<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
                             		<c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 0 }">                                
-		                                <option value="${item.seqno}">${item.seqno}주차</option>
+		                                <option value="${item.wkno}">${item.wkno}주차</option>
 		                            </c:if>
 	                            </c:forEach>
                             </select>
@@ -445,8 +480,9 @@ function loadLctrPlanDoc(sbjctId) {
                                 <button type="button" class="btn basic icon" aria-label="주차 내림차순"><i class="xi-sort-desc"></i></button>
                             </div>
                         </div>
-
-                        <!-- course_list -->
+						<!-- //강의목록top -->
+						
+                        <!-- course_list 목록형-->
                         <div class="course_list">
 	                        <ul class="accordion course_week">
 		                        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="" />
@@ -459,7 +495,7 @@ function loadLctrPlanDoc(sbjctId) {
 		                                    <div class="title-wrap">
 		                                        <a class="title" href="#">
 		                                            <i class="arrow xi-angle-down"></i>
-		                                            <strong>${item.seqno}주차 ${item.nm}</strong>
+		                                            <strong>${item.wkno}주차 ${item.nm}</strong>
 		                                            <p class="labels">
 		                                                <label class="label s_online">온라인</label>
 		                                                <label class="label s_offline">오프라인</label>
@@ -543,7 +579,7 @@ function loadLctrPlanDoc(sbjctId) {
 				                                            </div>
 				                                            <div class="btn_right">
 				                                                <div class="desc_info">
-				                                                    <span>시험일시<strong>2025.07.22 16:00</strong></span>
+				                                                    <span>시험일시<strong><uiex:formatDate value="${item.sdttm}" type="date"/></strong></span>
 				                                                </div>
 				                                                <button class="btn s_basic">시험응시<i class="icon-svg-arrow"></i></button>
 				                                            </div>
@@ -560,7 +596,7 @@ function loadLctrPlanDoc(sbjctId) {
 				                                            </div>
 				                                            <div class="btn_right">
 				                                                <div class="desc_info">
-				                                                    <span>시험일시<strong>2025.07.22 16:00</strong></span>
+				                                                    <span>시험일시<strong><uiex:formatDate value="${item.sdttm}" type="date"/></strong></span>
 				                                                </div>
 				                                                <button class="btn s_basic">시험응시<i class="icon-svg-arrow"></i></button>
 				                                            </div>
@@ -642,7 +678,7 @@ function loadLctrPlanDoc(sbjctId) {
 				                                                <div class="row">
 				                                                    <button class="btn go_seminar">화상 세미나 참여하기</button>
 				                                                    <div class="desc_info">
-				                                                        <span>시작일시 :<strong>2025.06.02 16:00</strong></span>
+				                                                        <span>시작일시 :<strong><uiex:formatDate value="${item.sdttm}" type="date"/></strong></span>
 				                                                        <span>진행시간 :<strong>1시간 20분</strong></span>
 				                                                    </div>
 				                                                </div>
@@ -684,8 +720,8 @@ function loadLctrPlanDoc(sbjctId) {
 											</c:if>
 									<!--//학습콘텐츠 -->
 									
-									<!--학습자료추가 -->
-							    			<c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 2}">
+										<!--학습자료추가 -->
+							    		<c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 2}">
 										        <div class="lecture_add_box">
 		                                            <div class="box_item">
 		                                                <div class="title">학습자료 추가<i class="xi-plus-min"></i></div>
@@ -714,13 +750,14 @@ function loadLctrPlanDoc(sbjctId) {
 		                                     <!-- //divcont -->
                                 			</li>                       	
 										</c:if>	
-									<!--//학습자료추가 -->
-			    
+									<!--//학습자료추가 -->			    
 								</c:forEach>
 							</ul>
-                        </div>	
+                        </div>
+                        <!-- //course_list 목록형 -->
+                        
 					</div>
-					<!-- //lecture_segment 강의목록 -->
+					<!-- //segment-->
 
 				</div>
 				<!-- //class_sub -->

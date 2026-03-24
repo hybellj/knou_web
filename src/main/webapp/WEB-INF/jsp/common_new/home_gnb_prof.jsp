@@ -1,31 +1,27 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@page import="knou.lms.user.vo.UsrUserInfoVO"%>
 <%@page import="java.util.List"%>
-<%@page import="knou.lms.menu.vo.SysMenuVO"%>
+<%@page import="knou.lms.menu.vo.MenuVO"%>
 <%@page import="knou.framework.common.MenuInfo"%>
 <%@page import="knou.framework.common.SessionInfo"%>
 <%@include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 
+<%-- 페이지가 iframe이 아닌 경우만 메뉴 표시 --%>
 <c:if test="${pageType ne 'iframe' or param.view eq 'on'}">
 
 <%
 String orgId = SessionInfo.getOrgId(request);
 String authrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
 
-// 메뉴 가져오기
-SysMenuVO sysMenuVO = new SysMenuVO();
-sysMenuVO.setOrgId(orgId);
-sysMenuVO.setAuthrtGrpcd(authrtGrpcd);
-SysMenuVO menuInfo = MenuInfo.getMenuInfo(request, sysMenuVO);
-pageContext.setAttribute("menuInfo", menuInfo);
-
-pageContext.setAttribute("disablilityYn", SessionInfo.getDisablilityYn(request)); // 장애인여부
-pageContext.setAttribute("auditYn", SessionInfo.getAuditYn(request)); // 청강생여부
-
-//pageContext.setAttribute("curUpMenuId", SessionInfo.getCurUpMenuId(request));
-//pageContext.setAttribute("curMenuId", SessionInfo.getCurMenuId(request));
-
+// 메인메뉴 가져 오기
+MenuVO menuVO = new MenuVO();
+menuVO.setOrgId(orgId);
+menuVO.setMenuTycd(authrtGrpcd);
+menuVO.setMenuGbncd("MAIN");
+List<MenuVO> menuList = MenuInfo.getMenuInfo(request, menuVO);
+pageContext.setAttribute("menuList", menuList);
 %>
+
 <script type="text/javascript">
 	$(function(){
 		initClassLnbMenu();
@@ -66,28 +62,28 @@ pageContext.setAttribute("auditYn", SessionInfo.getAuditYn(request)); // 청강�
 
 			<!-- gnb menu -->
 			<nav class="gnb">
-			    <c:forEach items="${menuInfo.subList}" var="menu" varStatus="status">
+			    <c:forEach items="${menuList}" var="menu" varStatus="status">
 			        <div class="gnb-item">
-			            <!-- 상위 메뉴 -->
+			            <%-- 상위 메뉴 --%>
 			            <a id="MENU_${menu.menuId}" href="#class_lnb" index="${status.index}"
 			                class="<c:if test='${menu.menuId == curMenuId}'>current</c:if>"
 			                menuUrl="${menu.menuUrl}" upMenuId="${menu.upMenuId}" menuId="${menu.menuId}"
 			                onclick="moveMenu(this, '${menu.menuUrl}','${menu.upMenuId}', '${menu.menuId}');return false;"
-			                title="${menu.menuNm}">
+			                title="${menu.menunm}">
 			                <i class="${menu.menuImgFileId}" aria-hidden="true"></i>
-			                <span>${menu.menuNm}</span>
+			                <span>${menu.menunm}</span>
 			            </a>
 
-			            <!-- 서브 메뉴 -->
-			            <c:if test="${not empty menu.subList}">
+			            <%-- 서브 메뉴 --%>
+			            <c:if test="${not empty menu.subMenuList}">
 			                <ul id="SUB_${menu.menuId}">
-			                    <c:forEach items="${menu.subList}" var="sub">
+			                    <c:forEach items="${menu.subMenuList}" var="sub">
 			                        <li id="${sub.menuId}">
 			                            <a id="SUBMENU_${sub.menuId}" href="#class_lnb"
 			                                class="<c:if test='${sub.menuId == curMenuId}'>current</c:if>"
 			                                onclick="moveMenu(this, '${sub.menuUrl}', '${sub.upMenuId}', '${sub.menuId}'); return false;"
-			                                title="${sub.menuNm}">
-			                                <span>${sub.menuNm}</span>
+			                                title="${sub.menunm}">
+			                                <span>${sub.menunm}</span>
 			                            </a>
 			                        </li>
 			                    </c:forEach>

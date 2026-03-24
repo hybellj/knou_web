@@ -1182,8 +1182,12 @@ public class QuizHomeController extends ControllerBase {
     /**
      * 교수퀴즈시험지평가팝업
      *
-     * @param examDtlId 시험상세아이디
-     * @param userId    사용자아이디
+     * @param examBscId 		시험기본아이디
+     * @param examDtlId 		시험상세아이디
+     * @param userId    		사용자아이디
+     * @param evlyn    			평가여부
+     * @param tkexamCmptnyn    	시험응시완료여부
+     * @param searchValue    	검색어(학과, 학번, 이름)
      * @return prof_quiz_examppr_evl_pop.jsp
      * @throws Exception
      */

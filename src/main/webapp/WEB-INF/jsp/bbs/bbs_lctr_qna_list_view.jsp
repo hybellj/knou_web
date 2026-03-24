@@ -162,7 +162,7 @@
 						atclLabel = "Q";
 						atclLabelColor = "purple";
 					} else if (bbsTycd == "SECRET") {
-						atclLabel = "1:1";
+						atclLabel = "1:1상담";
 						atclLabelColor = "deepblue1";
 					} else {
 						if(v.noticeYn == "Y") {
@@ -292,12 +292,12 @@
                 <div class="dashboard_sub">
                     <div class="sub-content">
                         <div class="page-info">
-                            <h2 class="page-title">${bbsVO.bbsNm}</h2>
+                            <h2 class="page-title">강의Q&A</h2>
                             <div class="navi_bar">
                                 <ul>
                                     <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li>공통</li>
-                                    <li><span class="current">레이아웃</span></li>
+                                    <li>강의Q&A</li>
+                                    <li><span class="current">강의Q&A</span></li>
                                 </ul>
                             </div>
                         </div>
@@ -355,7 +355,7 @@
 
 						<div id="atclListArea">
 							<div class="board_top">
-	                            <h3 class="board-title">-</h3>
+	                            <h3 class="board-title">강의Q&A</h3>
 	                            <div class="right-area">
 
 	                            	<%-- 리스트/카드 선택 버튼 --%>
@@ -395,14 +395,6 @@
 							// 게시글 리스트 테이블
 							let atclListTable = UiTable("bbsAtclLctrQnaList", {
 								lang: "ko",
-								//tableMode: "list",
-								//rowHeight: 30,
-								//height: 400,
-								//selectRow: "checkbox",
-								//selectRow: "1",
-								//selectRowFunc: checkRowSelect,
-								//sortFunc: atclListTableSort,
-								//initialSort: [{column:"regDate", dir:"desc"}],
 								pageFunc: listPaging,
 								columns: [
 									{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No

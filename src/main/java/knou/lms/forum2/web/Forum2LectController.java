@@ -1,32 +1,16 @@
 package knou.lms.forum2.web;
 
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import knou.framework.common.*;
-import knou.framework.exception.MediopiaDefineException;
-import knou.framework.util.*;
-import knou.lms.crs.crecrs.service.CrecrsService;
-import knou.lms.crs.crecrs.vo.CreCrsVO;
-import knou.lms.forum.vo.*;
-import knou.lms.forum2.service.ForumFdbkService;
-import knou.lms.forum2.service.ForumJoinUserService;
-import knou.lms.forum.web.ForumLectController;
-import knou.lms.forum2.vo.Forum2TeamDscsVO;
-import knou.lms.log.userconn.service.LogUserConnService;
-import knou.lms.subject2.service.SubjectServiceImpl;
-import knou.lms.subject2.vo.SubjectVO;
-import knou.lms.team.service.TeamCtgrService;
-import knou.lms.team.service.TeamMemberService;
-import knou.lms.team.service.TeamService;
-import knou.lms.team.vo.TeamCtgrVO;
-import knou.lms.team.vo.TeamMemberVO;
-import knou.lms.team.vo.TeamVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,15 +22,45 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import knou.framework.common.CommConst;
+import knou.framework.common.ControllerBase;
+import knou.framework.common.IdPrefixType;
+import knou.framework.common.RepoInfo;
+import knou.framework.common.SessionInfo;
+import knou.framework.exception.MediopiaDefineException;
+import knou.framework.util.ExcelUtilPoi;
+import knou.framework.util.FileUtil;
+import knou.framework.util.IdGenerator;
+import knou.framework.util.LocaleUtil;
+import knou.framework.util.StringUtil;
+import knou.framework.util.ValidationUtils;
 import knou.framework.vo.FileVO;
 import knou.lms.common.service.SysFileService;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.crs.crecrs.service.CrecrsService;
+import knou.lms.crs.crecrs.vo.CreCrsVO;
+import knou.lms.forum.vo.ForumAtclVO;
+import knou.lms.forum.vo.ForumCmntVO;
+import knou.lms.forum.vo.ForumFdbkVO;
+import knou.lms.forum.vo.ForumJoinUserVO;
+import knou.lms.forum.vo.ForumVO;
+import knou.lms.forum.web.ForumLectController;
 import knou.lms.forum2.service.ForumAtclService;
 import knou.lms.forum2.service.ForumCmntService;
+import knou.lms.forum2.service.ForumFdbkService;
+import knou.lms.forum2.service.ForumJoinUserService;
 import knou.lms.forum2.service.ForumService;
 import knou.lms.forum2.vo.Forum2ListVO;
+import knou.lms.forum2.vo.Forum2TeamDscsVO;
 import knou.lms.forum2.vo.Forum2VO;
+import knou.lms.log.userconn.service.LogUserConnService;
+import knou.lms.team.service.TeamCtgrService;
+import knou.lms.team.service.TeamMemberService;
+import knou.lms.team.service.TeamService;
+import knou.lms.team.vo.TeamCtgrVO;
+import knou.lms.team.vo.TeamMemberVO;
+import knou.lms.team.vo.TeamVO;
 
 @Controller
 @RequestMapping(value = "/forum2/forumLect")
@@ -224,6 +238,10 @@ public class Forum2LectController extends ControllerBase {
             forum2VO = forum2Service.selectForum(forum2VO);
             // 첨부파일저장소 설정
             forum2VO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
+
+            // 분반 목록 조회 (teamForumDiv 렌더링용 — sbjctId 는 selectForum 에서 반환됨)
+            List<Forum2VO> dvclasList = forum2Service.selectForumDvclasList(forum2VO);
+            model.addAttribute("dvclasList", dvclasList);
 
             model.addAttribute("forum2VO", forum2VO);
         }
@@ -1231,7 +1249,7 @@ public class Forum2LectController extends ControllerBase {
         request.setAttribute("forumVo", vo);
         request.setAttribute("PAGE_FILE_UPLOAD", request.getContextPath() + CommConst.PAGE_FILE_UPLOAD);
 
-        return "forum/popup/forum_feedback";
+        return "forum2/popup/forum_feedback";
     }
 
     // 피드백 조회

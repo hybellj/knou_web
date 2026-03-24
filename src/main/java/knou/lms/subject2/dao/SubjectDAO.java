@@ -31,4 +31,6 @@ public interface SubjectDAO {
 	public List<EgovMap> stdntSubjectSummaryList(BaseParam param) throws Exception;
 
 	public int stdntOrProfCountSelect(SubjectParam subjectParam) throws Exception;
+
+	public List<EgovMap> subjectUsersList(BaseParam param) throws Exception;
 }

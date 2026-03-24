@@ -458,7 +458,47 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
 	public SrvyMainView getSrvyPtcpList(Map<String, Object> params) throws Exception {
 		SrvyMainView srvyMainView = new SrvyMainView();
 
+		// 설문참여목록조회
 		srvyMainView.setSrvyPtcpList(srvyPtcpService.srvyPtcpList(params));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView loadProfSrvypprEvlPopup(Map<String, Object> params) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문정보조회
+		SrvyVO srvy = new SrvyVO();
+		srvy.setSrvyId((String) params.get("upSrvyId"));
+		srvyMainView.setSrvyEgovMap(srvyService.srvySelect(srvy));
+
+		// 설문참여자조회
+		srvyMainView.setSrvyPtcpnt(srvyPtcpService.srvyPtcpntSelect((String) params.get("srvyId"), (String) params.get("userId")));
+
+		// 설문참여목록조회
+		String userId = (String) params.get("userId");
+		String srvyId = (String) params.get("srvyId");
+        params.remove("userId");
+        params.put("srvyId", params.get("upSrvyId"));
+		srvyMainView.setSrvyPtcpList(srvyPtcpService.srvyPtcpList(params));
+		params.put("userId", userId);
+		params.put("srvyId", srvyId);
+
+		// 설문지 목록 조회
+     	srvyMainView.setSrvypprList(srvypprService.srvypprList((String) params.get("srvyId"), ""));
+
+     	// 설문문항 목록 조회
+     	srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList((String) params.get("srvyId"), ""));
+
+     	// 설문보기항목일괄조회(레벨형)
+     	srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList((String) params.get("srvyId"), "", ""));
+
+     	// 설문문항보기항목레벨일괄조회
+        srvyMainView.setSrvyQstnVwitmLvlList(srvyQstnVwitmLvlService.srvyQstnVwitmLvlBulkList((String) params.get("srvyId"), ""));
+
+        // 설문답변목록
+        srvyMainView.setSrvyRspnsList(srvyRspnsService.srvyRspnsList((String) params.get("srvyPtcpId"), (String) params.get("srvyId"), (String) params.get("userId")));
 
 		return srvyMainView;
 	}
@@ -616,9 +656,58 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
 			srvyMainView.setSrvyTeamList(srvyService.srvyTeamList(vo.getSrvyId()));
 		}
 
+		// 설문엑셀다운문항목록조회
 		srvyMainView.setSrvyExcelDownQstnList(srvyRspnsService.srvyExcelDownQstnList(vo.getSrvyId()));
 
+		// 설문엑셀다운문항답변목록조회
 		srvyMainView.setSrvyExcelDownQstnRspnsList(srvyRspnsService.srvyExcelDownQstnRspnsList(vo.getSrvyId()));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView getSrvyQstnDistributionChart(Map<String, Object> params) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문문항답변분포목록
+		srvyMainView.setSrvyQstnRspnsDistributionList(srvyRspnsService.srvyQstnRspnsDistributionList((String) params.get("sbjctId"), (String) params.get("srvyId"), (String) params.get("srvypprId"), (String) params.get("srvyQstnId")));
+
+		// 목록표시형 색상배열목록
+		List<Map<String, Object>> colorList = new ArrayList<Map<String, Object>>();
+        String[] colorTitleList = {"bcOrange", "bcYellow", "bcOlive", "bcGreen", "bcLblue", "bcTeal", "bcViolet", "bcBrown", "bcGrey", "bcPink"};
+        String[] colorCodeList = {"#f2711c", "#fbbd08", "#b5cc18", "#21ba45", "#deeaf6", "#00b5ad", "#6435c9", "#a5673f", "#767676", "#e03997"};
+        for(int i = 0; i < 10; i++) {
+            Map<String, Object> colorMap = new HashMap<String, Object>();
+            colorMap.put("title", colorTitleList[i]);
+            colorMap.put("code", colorCodeList[i]);
+            colorList.add(colorMap);
+        }
+        srvyMainView.setColorList(colorList);
+
+		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView loadProfSrvypprPrintPopup(Map<String, Object> params) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문참여자조회
+		srvyMainView.setSrvyPtcpnt(srvyPtcpService.srvyPtcpntSelect((String) params.get("srvyId"), (String) params.get("userId")));
+
+		// 설문지 목록 조회
+     	srvyMainView.setSrvypprList(srvypprService.srvypprList((String) params.get("srvyId"), ""));
+
+     	// 설문문항 목록 조회
+     	srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList((String) params.get("srvyId"), ""));
+
+     	// 설문보기항목일괄조회(레벨형)
+     	srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList((String) params.get("srvyId"), "", ""));
+
+     	// 설문문항보기항목레벨일괄조회
+        srvyMainView.setSrvyQstnVwitmLvlList(srvyQstnVwitmLvlService.srvyQstnVwitmLvlBulkList((String) params.get("srvyId"), ""));
+
+        // 설문답변목록
+        srvyMainView.setSrvyRspnsList(srvyRspnsService.srvyRspnsList((String) params.get("srvyPtcpId"), (String) params.get("srvyId"), (String) params.get("userId")));
 
 		return srvyMainView;
 	}

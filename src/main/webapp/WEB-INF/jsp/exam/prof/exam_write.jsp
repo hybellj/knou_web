@@ -12,13 +12,32 @@
         var isModify = "${isModify}";   // [등록|수정] 여부
         var sbjctId = "${crsCreCd}";    // 과목 ID
         var dialog;                     // UiDialog 인스턴스
+        var getExamBscId = "";
         const editors = {};	            // 에디터 목록 저장용
+        var setUrl = "";                // 등록|수정 URL
 
-		$(document).ready(function() {
-            console.log ("isModify ? " + isModify);
-            console.log ("sbjctId ? " + sbjctId);
+        /* examDtlInfoVO를 JS 배열로 직렬화 (수정일 경우) */
+        var examDtlInfoList = [
+            <c:forEach var="dtl" items="${examDtlInfoVO}" varStatus="st">
+            {
+                teamId:     "<c:out value='${dtl.teamId}'/>",
+                teamnm:     "<c:out value='${dtl.teamnm}'/>",
+                ldrnm:      "<c:out value='${dtl.ldrnm}'/>",
+                examTtl:    "<c:out value='${dtl.examTtl}'/>",
+                examCts:    "<c:out value='${dtl.examCts}'/>",
+                teamMbrTot: ${empty dtl.teamMbrTot ? 0 : dtl.teamMbrTot}
+            }<c:if test="${!st.last}">,</c:if>
+            </c:forEach>
+        ];
 
-            /* 저장 버튼 */
+        /*****************************************************************************
+         * 저장 버튼 기능
+         * 1. examSaveBtnEvent :    데이터 [등록|수정] 버튼 이벤트 (ajax)
+         * 2. isNull :              필수 값 Input 영역 비어있는지 확인하는 함수
+         * 3. getDtlInfos :         팀 시험 학습그룹별 부 주제 목록 수집
+         *****************************************************************************/
+        /* 1 */
+        function examSaveBtnEvent () {
             $("#examWriteSave").on("click", function() {
                 var validator = UiValidator("exam-write1");
                 validator.then(function(result) {
@@ -28,10 +47,11 @@
                         }
                         /* 만약 span 요소에 작성된 텍스트만 필요하다면.. 아래 주석 해제 후 사용 */
                         // var examContents = $("<div>").html(editor.getPublishingHtml()).text();
-                        var examContents = editor.getPublishingHtml();
+                        var examContents = editors['editor'].getPublishingHtml();
                         var trnsStdt = UiComm.getDateTimeVal("dateSt", "timeSt") + "00";
                         var trnsEddt = UiComm.getDateTimeVal("dateEd", "timeEd") + "59";
                         var formData = {
+                            examBscId:                  "${vo.examBscId}",
                             examGbncd:                  $('input[name="exam-gubun-rd"]:checked').val(),
                             tkexamMthdCd:               $('input[name="exam-type-rd"]:checked').val(),
                             examTtl:                    $('#exam-ttl').val(),
@@ -42,15 +62,16 @@
                             mrkRfltyn:                  $('input[name="mkr-rfltyn-rd"]:checked').val(),
                             mrkOyn:                     $('input[name="mkr-oyn-rd"]:checked').val(),
                             exampprOyn:                 $('input[name="examppr-oyn-rd"]:checked').val(),
-                            byteamSubrexamUseyn:        $('#team-y-rd').is(':checked') ? 'Y' : 'N',
-                            dtlInfos:                   $('#team-y-rd').is(':checked') ? getDtlInfos() : '',
+                            byteamSubrexamUseyn:        $('#byteam-subrexam-useyn-y-rd').is(':checked') ? 'Y' : 'N',
+                            lrnGrpSubsbjctUseyn:        $('#lrnGrpSubsbjctUseyn_1').is(':checked') ? 'Y' : 'N',
+                            dtlInfos:                   $('#byteam-subrexam-useyn-y-rd').is(':checked') ? getDtlInfos() : '',
                             lrnGrpIds:                  $('#lrnGrpId1').val(),
                             sbjctId:                    sbjctId
                         };
 
                         UiComm.showLoading(true);
                         $.ajax({
-                            url:      "/exam/examRegist.do",
+                            url:      setUrl,
                             async:    false,
                             type:     "POST",
                             dataType: "json",
@@ -59,9 +80,9 @@
                             UiComm.showLoading(false);
                             if (data.result > 0) {
                                 UiComm.showMessage("저장되었습니다.", "info")
-                                    // .then(function() {
-                                    //     location.href = "/exam/profExamListView.do?sbjctId=" + sbjctId;
-                                    // });
+                                .then(function() {
+                                    location.href = "/exam/profExamListView.do";
+                                });
                             } else {
                                 UiComm.showMessage(data.message, "error");
                             }
@@ -74,26 +95,80 @@
                                 "error"
                             );
                         });
+                        console.log(formData);
                     }
                 });
             });
+        }
+        /* 2 */
+        function isNull() {
+            // 팀 시험 설정시
+            if($("#byteam-subrexam-useyn-y-rd").is(":checked")) {
+                var isResult = true;
+                var alertMsg = "";
+                $("input[name=lrnGrpnm]:visible").each(function(i, e) {
+                    if(e.value == "") {
+                        isResult = false;
+                        alertMsg = "학습그룹을 지정하세요.";
+                        return false;
+                    }
+                });
 
-			/* 목록 버튼 */
-			$("#examWriteCancle").on("click", function() {
-				UiComm.showMessage("목록으로 돌아가시겠습니까?", "confirm")
-					.then(function(result) {
-						if (result) {
-							location.href = "/exam/profExamListView.do";
-						}
-					});
-			});
+                // 팀 시험 학습그룹별 부 주제 설정시
+                $("input[name='lrnGrpSubsbjctUseyn']:checked").each(function(i, e) {
+                    if(!isResult) return false;
+                    $("#subInfoDiv"+e.id.split("_")[1]+" tr.subQuizTr").each(function(index, element) {
+                        var ttl = $(element).find("input[name='subExamTtl']");
+                        if($.trim($(ttl).val()) == "") {
+                            isResult = false;
+                            alertMsg = "<spring:message code='exam.alert.input.title' />"	/* 제목을 입력하세요. */
+                            return false;
+                        }
 
-		});
+                        var teamId = ttl[0].id.split("_")[0];
+                        if(editors[teamId+'_editor'+index].isEmpty() || editors[teamId+'_editor'+index].getTextContent().trim() === "") {
+                            isResult = false;
+                            alertMsg = "<spring:message code='exam.alert.input.contents' />";	/* 내용을 입력하세요. */
+                            return false;
+                        }
+                    });
+                });
+                if(!isResult) {
+                    UiComm.showMessage(alertMsg, "warning");
+                    return false;
+                }
+            }
+            return true;
+        }
+        /* 3 */
+        function getDtlInfos() {
+            const dtlInfos = [];
+            $("input[name='lrnGrpSubsbjctUseyn']:checked").each(function(i, e) {
+                var dvclasNo = e.id.split("_")[1];
+                $("#subInfoDiv" + dvclasNo + " tr.subQuizTr").each(function(index, element) {
+                    var teamId = $(element).attr("id");                            // TR의 id 속성에서 teamId 추출
+                    var ttl    = $(element).find("input[name='subExamTtl']");
+                    dtlInfos.push({
+                        id:  teamId,
+                        ttl: $.trim($(ttl).val()),
+                        cts: editors[teamId + "_editor" + index].getPublishingHtml()
+                    });
+                });
+            });
+            return JSON.stringify(dtlInfos);
+        }
 
-        /**
-         * 팀 여부 변경
-         * @param {String}  value - 팀 여부
-         */
+        /*****************************************************************************
+         * 팀 관련 기능
+         * 1. teamynChange :                팀 여부 변경 (DIV 영역 히든 <=> show)
+         * 2. lrnGrpSubasmtStngynChange :   학습그룹별 시험 설정 체크박스 변경
+         * 3. teamGrpChcPopup :             학습그룹지정 팝업
+         * 4. selectTeam :                  학습그룹 선택 및 HTML 요소 생성
+         * 5. closeDialog :                 3번에 의해 열린 팝업 창 닫기
+         * 6. loadGrpInfo :                 학습그룹 세팅 (수정 일 경우)
+         * 7. buildTeamDtlFromServer :      examDtlInfoVO로 팀별 시험 설정 HTML 빌드 (lrnGrpSubsbjctUseyn = 'Y' 인 경우 호출)
+         *****************************************************************************/
+        /* 1 */
         function teamynChange(value) {
             if(value == "Y") {
                 $("#teamDiv").show();
@@ -101,12 +176,61 @@
                 $("#teamDiv").hide();
             }
         }
-
-        /**
-         * 학습그룹지정 팝업
-         * @param {Integer} i 		- 분반 순서
-         * @param {String}  sbjctId - 과목아이디
-         */
+        /* 2 */
+        function lrnGrpSubasmtStngynChange(obj) {
+            var suffix = obj.id.split("_")[1];
+            if (obj.checked) {
+                $("#subInfoDiv" + suffix).show();
+                // 수정 진입 시 학습그룹이 이미 선택되어 있으나 subInfoDiv가 비어있으면 데이터 로드
+                var lrnGrpIdVal = $("#lrnGrpId" + suffix).val();
+                if (lrnGrpIdVal && $("#subInfoDiv" + suffix).children().length === 0) {
+                    var lrnGrpId  = lrnGrpIdVal.split(":")[0];
+                    var examBscId = $(obj).data("bscId");
+                    var url  = "/quiz/quizLrnGrpSubAsmtListAjax.do";
+                    var data = { lrnGrpId: lrnGrpId, examBscId: examBscId };
+                    ajaxCall(url, data, function(data) {
+                        if (data.result > 0) {
+                            var returnList = data.returnList || [];
+                            var html = "";
+                            if (returnList.length > 0) {
+                                html += "<table class='table-type5'>";
+                                html += "	<colgroup><col class='width-10per' /><col class='' /><col class='width-10per' /></colgroup>";
+                                html += "	<tbody>";
+                                html += "		<tr><th>팀 명</th><th>부 주제</th><th>학습그룹 구성원</th></tr>";
+                                returnList.forEach(function(v, i) {
+                                    html += "	<tr class='subQuizTr' id='" + v.teamId + "'>";
+                                    html += "		<th><label>" + v.teamnm + "</label></th>";
+                                    html += "		<td><table class='table-type5'><colgroup><col class='width-10per' /><col class='' /></colgroup><tbody>";
+                                    html += "			<tr><th><label for='" + v.teamId + "_dtlExamTtl_" + i + "' class='req'>부 주제</label></th>";
+                                    html += "			<td><input type='text' id='" + v.teamId + "_dtlExamTtl_" + i + "' name='subExamTtl' value='" + (v.examTtl == null ? '' : v.examTtl) + "' inputmask='byte' maxLen='200' class='width-100per' /></td></tr>";
+                                    html += "			<tr><th><label for='" + v.teamId + "_contentTextArea_" + i + "' class='req'>내용</label></th>";
+                                    html += "			<td><div class='editor-box'><textarea name='" + v.teamId + "_contentTextArea_" + i + "' id='" + v.teamId + "_contentTextArea_" + i + "'>" + (v.examCts == null ? '' : v.examCts) + "</textarea></div></td></tr>";
+                                    html += "		</tbody></table></td>";
+                                    html += "		<th>" + v.leadernm + " 외 " + (v.teamMbrCnt - 1) + "</th>";
+                                    html += "	</tr>";
+                                });
+                                html += "	</tbody></table>";
+                            }
+                            $("#subInfoDiv" + suffix).empty().html(html);
+                            returnList.forEach(function(v, i) {
+                                editors[v.teamId + '_editor' + i] = UiEditor({
+                                    targetId: v.teamId + '_contentTextArea_' + i,
+                                    uploadPath: "/exam",
+                                    height: "200px"
+                                });
+                            });
+                        } else {
+                            UiComm.showMessage(data.message, "error");
+                        }
+                    }, function(xhr, status, error) {
+                        UiComm.showMessage("<spring:message code='exam.error.copy' />", "error");
+                    });
+                }
+            } else {
+                $("#subInfoDiv" + suffix).hide();
+            }
+        }
+        /* 3 */
         function teamGrpChcPopup(i, sbjctId) {
             dialog = UiDialog("dialog1", {
                 title: "학습그룹지정",
@@ -116,45 +240,12 @@
                 autoresize: true
             });
         }
-
-        $(window).on('load', function() {
-            // 수정 시 기존 학습그룹 재조회
-            if("${not empty vo.examBscId}" === "true") {
-                $("input[name='lrnGrpSubasmtStngyns']").each(function(i, e) {
-                    var lrnGrpId = $("#lrnGrpId" + e.id.split("_")[1]).val().split(":")[0];
-                    var lrnGrpnm = $("#lrnGrpnm" + e.id.split("_")[1]).val();
-                    var dvclasNo = e.id.split("_")[1];
-                    var sbjctId  = e.value.split(":")[1];
-                    selectTeam(lrnGrpId, lrnGrpnm, dvclasNo + ":" + sbjctId);
-                });
-            }
-        });
-
-        /**
-         * 학습그룹별 시험 설정 체크박스 변경
-         * @param {obj} obj - 체크박스 요소
-         */
-        function lrnGrpSubasmtStngynChange(obj) {
-            var suffix = obj.id.split("_")[1];
-            if (obj.checked) {
-                $("#subInfoDiv" + suffix).show();
-            } else {
-                $("#subInfoDiv" + suffix).hide();
-            }
-        }
-
-        /**
-         * 학습그룹 선택
-         * @param {String}  lrnGrpId 	- 학습그룹아이디
-         * @param {String}  lrnGrpnm 	- 학습그룹명
-         * @param {String}  id 			- 분반 순서:과목개설아이디
-         * @returns {list} 팀 목록
-         */
+        /* 4 */
         function selectTeam(lrnGrpId, lrnGrpnm, id) {
             var idList = id.split(':');
             $("#lrnGrpId" + idList[0]).val(lrnGrpId + ":" + idList[1]);
             $("#lrnGrpnm" + idList[0]).val(lrnGrpnm);
-            $("#setQuizDiv" + idList[0]).show();
+            $("#setExamTeamDiv" + idList[0]).show();
 
             var url  = "/quiz/quizLrnGrpSubAsmtListAjax.do";
             var data = {
@@ -231,76 +322,123 @@
                 UiComm.showMessage("<spring:message code='exam.error.copy' />", "error");	/* 가져오기 중 에러가 발생하였습니다. */
             });
         }
-
-        /**
-         * 팝업 닫기 (teamCtgrSelectPop.do 에서 window.parent.closeDialog() 호출)
-         */
+        /* 5 */
         function closeDialog() {
             if (dialog) { dialog.close(); }
         }
-
-        /**
-         * 팀 시험 학습그룹별 부 과제 목록 수집
-         * @returns {String} 팀별 {id, ttl, cts} 배열 JSON 문자열
-         */
-        function getDtlInfos() {
-            const dtlInfos = [];
-            $("input[name='lrnGrpSubasmtStngyns']:checked").each(function(i, e) {
-                var dvclasNo = e.id.split("_")[1];
-                $("#subInfoDiv" + dvclasNo + " tr.subQuizTr").each(function(index, element) {
-                    var teamId = $(element).attr("id");                            // TR의 id 속성에서 teamId 추출
-                    var ttl    = $(element).find("input[name='subExamTtl']");
-                    dtlInfos.push({
-                        id:  teamId,
-                        ttl: $.trim($(ttl).val()),
-                        cts: editors[teamId + "_editor" + index].getPublishingHtml()
-                    });
-                });
-            });
-            return JSON.stringify(dtlInfos);
-        }
-
-        // 빈 값 체크
-        function isNull() {
-            // 팀 퀴즈 설정시
-            if($("#team-y-rd").is(":checked")) {
-                var isResult = true;
-                var alertMsg = "";
-                $("input[name=lrnGrpnm]:visible").each(function(i, e) {
-                    if(e.value == "") {
-                        isResult = false;
-                        alertMsg = "학습그룹을 지정하세요.";
-                        return false;
-                    }
-                });
-
-                // 팀 퀴즈 학습그룹별 부 과제 설정시
-                $("input[name='lrnGrpSubasmtStngyns']:checked").each(function(i, e) {
-                    if(!isResult) return false;
-                    $("#subInfoDiv"+e.id.split("_")[1]+" tr.subQuizTr").each(function(index, element) {
-                        var ttl = $(element).find("input[name='subExamTtl']");
-                        if($.trim($(ttl).val()) == "") {
-                            isResult = false;
-                            alertMsg = "<spring:message code='exam.alert.input.title' />"	/* 제목을 입력하세요. */
-                            return false;
-                        }
-
-                        var teamId = ttl[0].id.split("_")[0];
-                        if(editors[teamId+'_editor'+index].isEmpty() || editors[teamId+'_editor'+index].getTextContent().trim() === "") {
-                            isResult = false;
-                            alertMsg = "<spring:message code='exam.alert.input.contents' />";	/* 내용을 입력하세요. */
-                            return false;
-                        }
-                    });
-                });
-                if(!isResult) {
-                    UiComm.showMessage(alertMsg, "warning");
-                    return false;
+        /* 6 */
+        function loadGrpInfo() {
+            if("${not empty vo.examBscId}" === "true") {
+                // lrnGrpId hidden 필드 세팅
+                <c:if test="${not empty examDtlInfoVO}">
+                $("#lrnGrpId1").val("<c:out value='${examDtlInfoVO[0].lrnGrpId}'/>:<c:out value='${crsCreCd}'/>");
+                </c:if>
+                // 학습그룹 설정 영역 노출
+                $("#setExamTeamDiv1").show();
+                // lrnGrpSubsbjctUseyn = Y 인 경우 서버 데이터로 팀 시험 HTML 빌드
+                if ("${examVO.lrnGrpSubsbjctUseyn}" === "Y") {
+                    buildTeamDtlFromServer();
                 }
             }
-
-            return true;
         }
+        /* 7 */
+        function buildTeamDtlFromServer() {
+            var returnList = examDtlInfoList;
+            var html = "";
+
+            if (returnList.length > 0) {
+                html += "<table class='table-type5'>";
+                html += "    <colgroup>";
+                html += "        <col class='width-10per' />";
+                html += "        <col class='' />";
+                html += "        <col class='width-10per' />";
+                html += "    </colgroup>";
+                html += "    <tbody>";
+                html += "        <tr>";
+                html += "            <th>팀 명</th>";
+                html += "            <th>부 주제</th>";
+                html += "            <th>학습그룹 구성원</th>";
+                html += "        </tr>";
+                returnList.forEach(function(v, i) {
+                    var examCts = $('#serverExamCts_' + i).val() || '';
+                    html += "    <tr class='subQuizTr' id='" + v.teamId + "'>";
+                    html += "        <th><label>" + v.teamnm + "</label></th>";
+                    html += "        <td>";
+                    html += "            <table class='table-type5'>";
+                    html += "                <colgroup>";
+                    html += "                    <col class='width-10per' />";
+                    html += "                    <col class='' />";
+                    html += "                </colgroup>";
+                    html += "                <tbody>";
+                    html += "                    <tr>";
+                    html += "                        <th><label for='" + v.teamId + "_dtlExamTtl_" + i + "' class='req'>부 주제</label></th>";
+                    html += "                        <td><input type='text' id='" + v.teamId + "_dtlExamTtl_" + i + "' name='subExamTtl' value='" + (v.examTtl || '') + "' inputmask='byte' maxLen='200' class='width-100per' /></td>";
+                    html += "                    </tr>";
+                    html += "                    <tr>";
+                    html += "                        <th><label for='" + v.teamId + "_contentTextArea_" + i + "' class='req'> 내용</label></th>";
+                    html += "                        <td>";
+                    html += "                            <div class='editor-box'>";
+                    html += "                                <textarea name='" + v.teamId + "_contentTextArea_" + i + "' id='" + v.teamId + "_contentTextArea_" + i + "'>" + v.examCts + "</textarea>";
+                    html += "                            </div>";
+                    html += "                        </td>";
+                    html += "                    </tr>";
+                    html += "                </tbody>";
+                    html += "            </table>";
+                    html += "        </td>";
+                    html += "        <th>" + v.ldrnm + " 외 " + (v.teamMbrTot - 1) +  " 명" + "</th>";
+                    html += "    </tr>";
+                });
+                html += "    </tbody>";
+                html += "</table>";
+            }
+
+            $("#subInfoDiv1").empty().html(html);
+
+            if (returnList.length > 0) {
+                returnList.forEach(function(v, i) {
+                    editors[v.teamId + '_editor' + i] = UiEditor({
+                        targetId: v.teamId + '_contentTextArea_' + i,
+                        uploadPath: "/exam",
+                        height: "200px"
+                    });
+                });
+            }
+        }
+
+        /*****************************************************************************
+         * 목록 버튼 기능
+         * 1. backToListViewBtn :   목록으로 돌아감
+         *****************************************************************************/
+        /* 1 */
+        function backToListViewBtn () {
+            $("#examWriteCancle").on("click", function() {
+                UiComm.showMessage("목록으로 돌아가시겠습니까?", "confirm")
+                    .then(function(result) {
+                        if (result) {
+                            location.href = "/exam/profExamListView.do";
+                        }
+                    });
+            });
+        }
+
+        $(document).ready(function() {
+            // 등록|수정 URL 세팅
+            if (isModify == "Y") {
+                setUrl = "/exam/examModify.do"
+            } else {
+                setUrl = "/exam/examRegist.do"
+            }
+            console.log ("isModify ? " + isModify);
+            console.log ("sbjctId ? " + sbjctId);
+            console.log ("setUrl ? " + setUrl);
+
+            examSaveBtnEvent();
+            backToListViewBtn ();
+		});
+
+        $(window).on('load', function() {
+            loadGrpInfo();
+        });
     </script>
 </head>
 
@@ -425,19 +563,19 @@
                                             <td>
                                                 <div class="form-inline">
                                                     <span class="custom-input">
-                                                        <input type="radio" name="exam-gubun-rd" id="middle-rd" value="EXAM_MID" checked="">
+                                                        <input type="radio" name="exam-gubun-rd" id="middle-rd" value="EXAM_MID" ${examVO.examGbncd eq 'EXAM_MID' || examVO.examGbncd eq 'EXAM_MID_TEAM' || empty vo.examBscId ? 'checked' : '' }>
                                                         <label for="middle-rd">중간고사</label>
                                                     </span>
                                                     <span class="custom-input ml5">
-                                                        <input type="radio" name="exam-gubun-rd" id="final-rd" value="EXAM_LST">
+                                                        <input type="radio" name="exam-gubun-rd" id="final-rd" value="EXAM_LST" ${examVO.examGbncd eq 'EXAM_LST' || examVO.examGbncd eq 'EXAM_LST_TEAM' ? 'checked' : '' }>
                                                         <label for="final-rd">기말고사</label>
                                                     </span>
                                                     <span class="custom-input ml5">
-                                                        <input type="radio" name="exam-gubun-rd" id="exam-rd" value="EXAM">
+                                                        <input type="radio" name="exam-gubun-rd" id="exam-rd" value="EXAM" ${examVO.examGbncd eq 'EXAM' || examVO.examGbncd eq 'EXAM_TEAM' ? 'checked' : '' }>
                                                         <label for="exam-rd">시험</label>
                                                     </span>
                                                     <span class="custom-input ml5">
-                                                        <input type="radio" name="exam-gubun-rd" id="comprehensive-rd" value="EXAM_CMP">
+                                                        <input type="radio" name="exam-gubun-rd" id="comprehensive-rd" value="EXAM_CMP" ${examVO.examGbncd eq 'EXAM_CMP' || examVO.examGbncd eq 'EXAM_CMP_TEAM' ? 'checked' : '' }>
                                                         <label for="comprehensive-rd">종합시험</label>
                                                     </span>
                                                 </div>
@@ -451,11 +589,11 @@
                                             <td>
                                                 <div class="form-inline">
                                                     <span class="custom-input">
-                                                        <input type="radio" name="exam-type-rd" id="real-time-rd" value="RLTM" checked="">
+                                                        <input type="radio" name="exam-type-rd" id="real-time-rd" value="RLTM" ${examVO.tkexamMthdCd eq 'RLTM' || empty vo.examBscId ? 'checked' : '' }>
                                                         <label for="real-time-rd">실시간 시험</label>
                                                     </span>
                                                     <span class="custom-input">
-                                                        <input type="radio" name="exam-type-rd" id="quiz-rd" value="QUIZ">
+                                                        <input type="radio" name="exam-type-rd" id="quiz-rd" value="QUIZ" ${examVO.tkexamMthdCd eq 'QUIZ' ? 'checked' : '' }>
                                                         <label for="quiz-rd">퀴즈</label>
                                                     </span>
                                                 </div>
@@ -469,7 +607,7 @@
                                             <td>
                                                 <div class="form-row">
                                                     <input class="form-control width-50per" 
-                                                        type="text" name="name" id="exam-ttl" value="" 
+                                                        type="text" name="name" id="exam-ttl" value="${examVO.examTtl}"
                                                         placeholder="시험명을 입력하세요." required="true" inputmask="byte" 
                                                         maxlen="150" autocomplete="off">
                                                 </div>
@@ -485,13 +623,15 @@
                                                         <dd>
                                                             <div class="editor-box">
                                                                 <label for="examCts" class="hide">Content</label>
-                                                                <textarea id="examCts" name="examCts" required="true"></textarea>
+                                                                <textarea id="examCts" name="examCts" required="true">
+                                                                    <c:out value="${examVO.examCts}"/>
+                                                                </textarea>
                                                                 <script>
                                                                     // HTML 에디터
-                                                                    let editor = UiEditor({
+                                                                    editors['editor'] = UiEditor({
                                                                         targetId: "examCts",
                                                                         uploadPath: "/exam",
-                                                                        height: "500px"
+                                                                        height: "400px"
                                                                     });
                                                                 </script>
                                                             </div>
@@ -509,11 +649,11 @@
                                             </th>
                                             <td>
                                                 <div class="date_area">
-                                                    <input type="text" class="datepicker" id="dateSt" name="dateSt" timeId="timeSt" toDate="dateEd" required="true" placeholder="시작일">
-                                                    <input type="text" class="timepicker" id="timeSt" name="timeSt" dateId="dateSt" required="true" placeholder="시작시간">
+                                                    <input type="text" class="datepicker" id="dateSt" name="dateSt" timeId="timeSt" toDate="dateEd" required="true" placeholder="시작일" value="${fn:substring(examVO.examPsblSdttm,0,8)}">
+                                                    <input type="text" class="timepicker" id="timeSt" name="timeSt" dateId="dateSt" required="true" placeholder="시작시간" value="${fn:substring(examVO.examPsblSdttm,8,12)}">
                                                     <span class="txt-sort">~</span>
-                                                    <input type="text" class="datepicker" id="dateEd" name="dateEd" timeId="timeEd" fromDate="dateSt" required="true" placeholder="종료일">
-                                                    <input type="text" class="timepicker" id="timeEd" name="timeEd" dateId="dateEd" required="true" placeholder="종료시간">
+                                                    <input type="text" class="datepicker" id="dateEd" name="dateEd" timeId="timeEd" fromDate="dateSt" required="true" placeholder="종료일" value="${fn:substring(examVO.examPsblEdttm,0,8)}">
+                                                    <input type="text" class="timepicker" id="timeEd" name="timeEd" dateId="dateEd" required="true" placeholder="종료시간" value="${fn:substring(examVO.examPsblEdttm,8,12)}">
                                                 </div>
                                             </td>
                                         </tr>
@@ -525,7 +665,7 @@
                                             <td>
                                                 <div class="form-row">
                                                     <div class="input_btn">
-                                                        <input class="form-control sm" id="examMnts" type="text" inputmask="numeric" maxlength="3" required="true"><label>분</label>
+                                                        <input class="form-control sm" id="examMnts" type="text" inputmask="numeric" maxlength="3" required="true" value="${examVO.examMnts}"><label>분</label>
                                                     </div>
                                                 </div>
                                             </td>
@@ -538,11 +678,11 @@
                                             <td>
                                                 <div class="form-inline">
                                                     <span class="custom-input">
-                                                        <input type="radio" name="mkr-rfltyn-rd" id="mkr-rfltyn-y-rd" value="Y" checked="">
+                                                        <input type="radio" name="mkr-rfltyn-rd" id="mkr-rfltyn-y-rd" value="Y" ${examVO.mrkRfltyn eq 'Y' || empty vo.examBscId ? 'checked' : '' }>
                                                         <label for="mkr-rfltyn-y-rd">예</label>
                                                     </span>
                                                     <span class="custom-input ml5">
-                                                        <input type="radio" name="mkr-rfltyn-rd" id="mkr-rfltyn-n-rd" value="N">
+                                                        <input type="radio" name="mkr-rfltyn-rd" id="mkr-rfltyn-n-rd" value="N" ${examVO.mrkRfltyn eq 'N' ? 'checked' : '' }>
                                                         <label for="mkr-rfltyn-n-rd">아니오</label>
                                                     </span>
                                                 </div>
@@ -556,11 +696,11 @@
                                             <td>
                                                 <div class="form-inline">
                                                     <span class="custom-input">
-                                                        <input type="radio" name="mkr-oyn-rd" id="mkr-oyn-y-rd" value="Y" checked="">
+                                                        <input type="radio" name="mkr-oyn-rd" id="mkr-oyn-y-rd" value="Y" ${examVO.mrkOyn eq 'Y' || empty vo.examBscId ? 'checked' : '' }>
                                                         <label for="mkr-oyn-y-rd">예</label>
                                                     </span>
                                                     <span class="custom-input ml5">
-                                                        <input type="radio" name="mkr-oyn-rd" id="mkr-oyn-n-rd" value="N">
+                                                        <input type="radio" name="mkr-oyn-rd" id="mkr-oyn-n-rd" value="N" ${examVO.mrkOyn eq 'N' ? 'checked' : '' }>
                                                         <label for="mkr-oyn-n-rd">아니오</label>
                                                     </span>
                                                 </div>
@@ -574,11 +714,11 @@
                                             <td>
                                                 <div class="form-inline">
                                                     <span class="custom-input">
-                                                        <input type="radio" name="examppr-oyn-rd" id="examppr-oyn-y-rd" value="Y">
+                                                        <input type="radio" name="examppr-oyn-rd" id="examppr-oyn-y-rd" value="Y" ${examVO.exampprOyn eq 'Y' ? 'checked' : '' }>
                                                         <label for="examppr-oyn-y-rd">예</label>
                                                     </span>
                                                     <span class="custom-input ml5">
-                                                        <input type="radio" name="examppr-oyn-rd" id="examppr-oyn-n-rd" value="N" checked="">
+                                                        <input type="radio" name="examppr-oyn-rd" id="examppr-oyn-n-rd" value="N" ${examVO.exampprOyn eq 'N' || empty vo.examBscId ? 'checked' : '' }>
                                                         <label for="examppr-oyn-n-rd">아니오</label>
                                                     </span>
                                                 </div>
@@ -591,32 +731,35 @@
                                             </th>
                                             <td>
                                                 <span class="custom-input">
-                                                    <input type="radio" name="team-rd" id="team-y-rd" value="Y" onchange="teamynChange(this.value)">
-                                                    <label for="team-y-rd">예</label>
+                                                    <input type="radio" name="byteam-subrexam-useyn-rd" id="byteam-subrexam-useyn-y-rd" value="Y" onchange="teamynChange(this.value)" ${examVO.byteamSubrexamUseyn eq 'Y' ? 'checked' : '' }>
+                                                    <label for="byteam-subrexam-useyn-y-rd">예</label>
                                                 </span>
                                                 <span class="custom-input ml5">
-                                                    <input type="radio" name="team-rd" id="team-n-rd" value="N" onchange="teamynChange(this.value)" checked="">
-                                                    <label for="team-n-rd">아니오</label>
+                                                    <input type="radio" name="byteam-subrexam-useyn-rd" id="byteam-subrexam-useyn-n-rd" value="N" onchange="teamynChange(this.value)" ${examVO.byteamSubrexamUseyn eq 'N' || empty vo.examBscId ? 'checked' : '' }>
+                                                    <label for="byteam-subrexam-useyn-n-rd">아니오</label>
                                                 </span>
-                                                <div class="mt5" id = "teamDiv" style="display: none">
+                                                <!-- 시험 기본 ID || 팀별부시험여부 = Y 일 경우 -->
+                                                <div class="mt5" id = "teamDiv" ${empty vo.examBscId || examVO.byteamSubrexamUseyn ne 'Y' ? 'style="display: none"' : ''} >
                                                     <div class="form-row" id="lrnGrpView">
                                                         <div class="input_btn width-100per">
                                                             <label>반</label>
                                                             <input type="hidden" id="lrnGrpId1" name="lrnGrpIds" value="">
-                                                            <input class="form-control width-60per" type="text" name="lrnGrpnm" id="lrnGrpnm1" placeholder="팀 분류를 선택해 주세요." value="" readonly="" autocomplete="off">
+                                                            <input class="form-control width-60per" type="text" name="lrnGrpnm" id="lrnGrpnm1" placeholder="팀 분류를 선택해 주세요." value="${examDtlInfoVO[0].lrnGrpnm}" readonly="" autocomplete="off">
                                                             <a class="btn type1 small" onclick="teamGrpChcPopup('1',sbjctId)">학습그룹지정</a>
                                                         </div>
                                                     </div>
                                                     <div class="form-inline">
                                                         <small class="note2">! 구성된 팀이 없는 경우 메뉴 “과목설정 > 학습그룹지정”에서 팀을 생성해 주세요</small>
                                                     </div>
-                                                    <div class="ui segment" id="setQuizDiv1" style="display:none;">
+                                                    <div class="ui segment" id="setExamTeamDiv1" style="display:none;">
                                                         <span class="custom-input">
-                                                            <input type="checkbox" name="lrnGrpSubasmtStngyns" id="lrnGrpSubasmtStngyn_1" data-bscId="${not empty vo.examBscId && list.lrnGrpSubasmtStngyn eq 'Y' ? list.examBscId : '' }" value="Y:${list.sbjctId }" onchange="lrnGrpSubasmtStngynChange(this)" ${not empty vo.examBscId && list.lrnGrpSubasmtStngyn eq 'Y' ? 'checked' : '' }>
-                                                            <label for="lrnGrpSubasmtStngyn_1">학습그룹별 시험 설정</label>
+                                                            <input type="checkbox" name="lrnGrpSubsbjctUseyn" id="lrnGrpSubsbjctUseyn_1" value="Y"
+                                                                   data-bscId="${not empty vo.examBscId ? vo.examBscId : '' }"
+                                                                   onchange="lrnGrpSubasmtStngynChange(this)" ${not empty vo.examBscId && examVO.lrnGrpSubsbjctUseyn eq 'Y' ? 'checked' : '' }>
+                                                            <label for="lrnGrpSubsbjctUseyn_1">학습그룹별 시험 설정</label>
                                                         </span>
                                                     </div>
-                                                    <div id="subInfoDiv1" ${not empty vo.examBscId && list.lrnGrpSubasmtStngyn eq 'Y' ? '' : 'style="display: none;"' }></div>
+                                                    <div id="subInfoDiv1" ${not empty vo.examBscId && examVO.lrnGrpSubsbjctUseyn ne 'Y' ? 'style="display: none;"' : ''}></div>
                                                 </div>
                                             </td>
                                         </tr>
@@ -627,9 +770,7 @@
                     </div>
                 </div>
             </div>
-            <!-- //content -->
         </main>
-        <!-- //classroom-->
     </div>
 </body>
 </html>

@@ -1,6 +1,37 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@page import="knou.lms.user.vo.UsrUserInfoVO"%>
+<%@page import="java.util.List"%>
+<%@page import="knou.lms.menu.vo.MenuVO"%>
+<%@page import="knou.framework.common.MenuInfo"%>
+<%@page import="knou.framework.common.SessionInfo"%>
+<%@include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+
+<%-- 페이지가 iframe이 아닌 경우만 메뉴 표시 --%>
+<c:if test="${pageType ne 'iframe' or param.view eq 'on'}">
+
+<%
+String orgId = SessionInfo.getOrgId(request);
+String authrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
+
+// 메인메뉴 가져 오기
+MenuVO menuVO = new MenuVO();
+menuVO.setOrgId(orgId);
+menuVO.setMenuTycd(authrtGrpcd);
+menuVO.setMenuGbncd("MAIN");
+List<MenuVO> menuList = MenuInfo.getMenuInfo(request, menuVO);
+pageContext.setAttribute("menuList", menuList);
+
+pageContext.setAttribute("disablilityYn", SessionInfo.getDisablilityYn(request)); // 장애인여부
+pageContext.setAttribute("auditYn", SessionInfo.getAuditYn(request)); // 청강생여부
+%>
 
 	<aside id="gnb" class="common gnb-menu expanded">
+		<form id="moveForm" method="post">
+			<input name="menuNm" type="hidden" value="">
+			<input name="menuUrl" type="hidden" value="">
+			<input name="upMenuId" type="hidden" value="">
+			<input name="menuId" type="hidden" value="">
+		</form>
 
 		<div class="option-control-wrap">
 			<button type="button" class="btn border-0 btn-close ctrl-gnb">
@@ -28,58 +59,103 @@
 
 			<!-- gnb menu -->
 			<nav class="gnb">
+			    <c:forEach items="${menuList}" var="menu" varStatus="status">
+			        <div class="gnb-item">
+			            <%-- 상위 메뉴 --%>
+			            <a id="MENU_${menu.menuId}" href="#class_lnb" index="${status.index}"
+			                class="<c:if test='${menu.menuId == curMenuId}'>current</c:if>"
+			                menuUrl="${menu.menuUrl}" upMenuId="${menu.upMenuId}" menuId="${menu.menuId}"
+			                onclick="moveMenu(this, '${menu.menuUrl}','${menu.upMenuId}', '${menu.menuId}');return false;"
+			                title="${menu.menunm}">
+			                <i class="${menu.menuImgFileId}" aria-hidden="true"></i>
+			                <span>${menu.menunm}</span>
+			            </a>
 
-				<div class="gnb-item">
-					<a href="#0" class="current"><i class="icon-svg-home" aria-hidden="true"></i><span>대시보드</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-user-circle" aria-hidden="true"></i><span>프로필</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-inbox" aria-hidden="true"></i><span>메시지함</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-notice" aria-hidden="true"></i><span>공지사항</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-question" aria-hidden="true"></i><span>강의Q&A</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-save" aria-hidden="true"></i><span>강의자료실</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-file" aria-hidden="true"></i><span>강의계획서</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-book-open" aria-hidden="true"></i><span>나의수업현황</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-file-check" aria-hidden="true"></i><span>강의평가</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-pie-chart" aria-hidden="true"></i><span>나의성적</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-check-done" aria-hidden="true"></i><span>일반설문</span></a>
-				</div>
-
-				<div class="gnb-item">
-					<a href="#0" ><i class="icon-svg-building" aria-hidden="true"></i><span>U-KNOU</span></a>
-				</div>
-
+			            <%-- 서브 메뉴 --%>
+			            <c:if test="${not empty menu.subMenuList}">
+			                <ul id="SUB_${menu.menuId}">
+			                    <c:forEach items="${menu.subMenuList}" var="sub">
+			                        <li id="${sub.menuId}">
+			                            <a id="SUBMENU_${sub.menuId}" href="#class_lnb"
+			                                class="<c:if test='${sub.menuId == curMenuId}'>current</c:if>"
+			                                onclick="moveMenu(this, '${sub.menuUrl}', '${sub.upMenuId}', '${sub.menuId}'); return false;"
+			                                title="${sub.menunm}">
+			                                <span>${sub.menunm}</span>
+			                            </a>
+			                        </li>
+			                    </c:forEach>
+			                </ul>
+			            </c:if>
+			        </div>
+			    </c:forEach>
 			</nav>
 			<!-- //gnb menu -->
 
 		</div>
 
 	</aside>
+
+	<script>
+	function initClassLnbMenu() {
+    	/********** NAV 메뉴 **********/
+        $('#class_lnb ul > li').each(function() {
+            if ($(this).find('ul').length == true) {
+                //$(this).addClass('sub-menu');
+            };
+        });
+        $('#class_lnb ul > li').click(function() {
+            if ($(this).hasClass("open") != true) {
+                $('#class_lnb ul > li').removeClass("open");
+                $(this).addClass("open");
+            } else {
+                $('#class_lnb ul > li').removeClass("open");
+            }
+        });
+    }
+
+	// 메뉴 이동
+	function moveMenu(obj, menuUrl, upMenuId, menuId, menuNm){
+		if (menuUrl === '') {
+			return;
+		}
+
+		let index = "";
+
+		if (obj != null) {
+			index = obj != null ? $(obj).attr("index") : "";
+			if (!menuNm) {
+				menuNm = $(obj).children("span").html();
+			}
+		}
+
+		if (menuUrl.indexOf("?") > -1) {
+			menuUrl += "&param="+btoa("MENU,"+upMenuId+","+menuId);
+		}
+		else {
+			menuUrl += "?param="+btoa("MENU,"+upMenuId+","+menuId);
+		}
+
+		$("#moveForm input[name=menuNm]").val(menuNm);
+		$("#moveForm input[name=menuUrl]").val(menuUrl);
+		$("#moveForm input[name=upMenuId]").val(upMenuId);
+		$("#moveForm input[name=menuId]").val(menuId);
+
+		if (index == "0") {
+			$("#moveForm").attr("action", menuUrl);
+			$("#moveForm").submit();
+		}
+		else {
+			if (typeof TAB_MENU == 'undefined') {
+				let url = "/dashboard/mainTabpage.do"
+				$("#moveForm").attr("action", url);
+				$("#moveForm").submit();
+			}
+			else {
+				TAB_MENU.addTabMenu(menuNm, menuUrl, upMenuId, menuId)
+			}
+		}
+	}
+
+	</script>
+
+</c:if>

@@ -1,7 +1,6 @@
 package knou.lms.msg.service;
 
 import java.util.List;
-import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
@@ -18,6 +17,4 @@ public interface MsgAlimService {
     List<MsgAlimVO> selectSmsList(MsgAlimVO vo);
 
     List<MsgAlimVO> selectAlimtalkList(MsgAlimVO vo);
-
-    Map<String, Object> selectAlimChnlData(MsgAlimVO vo, String chnlCd);
 }

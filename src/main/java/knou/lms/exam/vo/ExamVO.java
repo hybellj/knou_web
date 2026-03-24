@@ -32,6 +32,7 @@ public class ExamVO extends DefaultVO {
     private String  mrkRfltyn;          // 성적반영여부
     private String  exampprOyn;         // 시험지공개여부
     private String  byteamSubrexamUseyn; // 팀시험여부
+    private String  lrnGrpSubsbjctUseyn; // 부 주제여부
     private String  examSbstTynm;       // 시험대체코드명
     private Integer absnceTot;          // 결시인원 COUNT
     private Integer dsblTot;            // 장애인/고령자 COUNT
@@ -50,7 +51,16 @@ public class ExamVO extends DefaultVO {
     private String  tkexamCmptnyn;      // 응시상태
     private Integer tkexamCnt;          // 응시횟수
     private String  evlyn;              // 평가여부
+    private String  rgtrId;             // 등록자 ID
+    private String  mdfrId;             // 수정자 ID
 
+    private String  lrnGrpId;           // 그룹 ID
+    private String  lrnGrpnm;           // 그룹 명
+    private String  ldrnm;              // 리더 명
+    private Integer teamMbrTot;         // 팀 인원 COUNT
+
+    private ExamDtlVO examDtlVO;        // 시험상세정보VO
+    private List<String> lrnGrpIds;		// 팀 시험 등록용 학습그룹아이디:개설과목아이디 목록
     /*****************************************************
      * Getter / Setter
      *****************************************************/
@@ -182,6 +192,12 @@ public class ExamVO extends DefaultVO {
     public void setByteamSubrexamUseyn(String byteamSubrexamUseyn) {
         this.byteamSubrexamUseyn = byteamSubrexamUseyn;
     }
+    public String getLrnGrpSubsbjctUseyn() {
+        return lrnGrpSubsbjctUseyn;
+    }
+    public void setLrnGrpSubsbjctUseyn(String lrnGrpSubsbjctUseyn) {
+        this.lrnGrpSubsbjctUseyn = lrnGrpSubsbjctUseyn;
+    }
     public String getExamSbstTynm() {
         return examSbstTynm;
     }
@@ -283,6 +299,55 @@ public class ExamVO extends DefaultVO {
     }
     public void setEvlyn(String evlyn) {
         this.evlyn = evlyn;
+    }
+    public String getRgtrId() {
+        return rgtrId;
+    }
+    public void setRgtrId(String rgtrId) {
+        this.rgtrId = rgtrId;
+    }
+    public String getMdfrId() {
+        return mdfrId;
+    }
+    public void setMdfrId(String mdfrId) {
+        this.mdfrId = mdfrId;
+    }
+    public String getLrnGrpId() {
+        return lrnGrpId;
+    }
+    public void setLrnGrpId(String lrnGrpId) {
+        this.lrnGrpId = lrnGrpId;
+    }
+    public String getLrnGrpnm() {
+        return lrnGrpnm;
+    }
+    public void setLrnGrpnm(String lrnGrpnm) {
+        this.lrnGrpnm = lrnGrpnm;
+    }
+    public String getLdrnm() {
+        return ldrnm;
+    }
+    public void setLdrnm(String ldrnm) {
+        this.ldrnm = ldrnm;
+    }
+    public Integer getTeamMbrTot() {
+        return teamMbrTot;
+    }
+    public void setTeamMbrTot(Integer teamMbrTot) {
+        this.teamMbrTot = teamMbrTot;
+    }
+
+    public ExamDtlVO getExamDtlVO() {
+        return examDtlVO;
+    }
+    public void setExamDtlVO(ExamDtlVO examDtlVO) {
+        this.examDtlVO = examDtlVO;
+    }
+    public List<String> getLrnGrpIds() {
+        return lrnGrpIds;
+    }
+    public void setLrnGrpIds(List<String> lrnGrpIds) {
+        this.lrnGrpIds = lrnGrpIds;
     }
     /*****************************************************
      * 기존에 있던 VO 영역

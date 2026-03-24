@@ -219,7 +219,7 @@
 		}
 
 		/**
-		 * 설문지미리보기팝업 ( 미완료 )
+		 * 설문지미리보기팝업
 		 * @param {String}  srvyId - 설문아이디
 		 */
 		function srvypprPreviewPopup(srvyId) {

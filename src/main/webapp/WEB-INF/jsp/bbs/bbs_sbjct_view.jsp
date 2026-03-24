@@ -27,8 +27,6 @@
 		var ATCL_LV 		= 2;
 
 		$(document).ready(function() {
-			// 답변 조회
-			/* bbsAtclRspnsList(); */
 			// 댓글 조회
 			bbsAtclCmntList();
 	   	});
@@ -59,122 +57,21 @@
 
      	// 게시글 삭제
     	function bbsAtclDelete() {
-    		// 게시글 삭제 시 댓글도 모두 삭제됩니다. 정말 삭제 하시겠습니까?
-    		if(confirm('<spring:message code="bbs.confirm.delete_atcl" />')) {
-    			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
-    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?eparam=${eparam}";
-    			var data = {
-					bbsId: BBS_ID,
-					atclId	: ATCL_ID
-				};
+    		UiComm.showMessage("<spring:message code='bbs.confirm.delete_atcl' />", "confirm")
+    		.then(function(result) {
+    			if (result) {
+    				var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
+        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?eparam=${eparam}";
+        			var data = {
+    					bbsId: BBS_ID,
+    					atclId	: ATCL_ID
+    				};
 
-    			bbsCommon.delete(url, returnUrl, data);
-    		}
+        			bbsCommon.delete(url, returnUrl, data);
+    			}
+    			else {}
+    		});
     	};
-
-    	// 게시글 > 답변 조회
-		/* function bbsAtclRspnsList() {
-		    var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclRspnsListAjax.do";
-		    var data = {
-					bbsId: BBS_ID,
-					upAtclId: ATCL_ID,
-					atclLv: ATCL_LV
-			};
-
-		    ajaxCall(url, data, function(res) {
-		        var returnList = res.returnList;
-		        if (typeof returnList === "string") returnList = JSON.parse(returnList);
-
-		        var $container = $("#bbsAtclRspnsDtl");
-		        $container.empty();
-
-		        returnList.forEach(function(v, i) {
-		            var html = "";
-			            html += "<div class='answer_item' id='ans_item_" + i + "'>";
-			            html += " <div class='title_area'>";
-			            html += " <strong class='title' data-original='" + v.atclTtl + "'>" + v.atclTtl + "</strong>";
-			            html += " <span class='date'><b>" + v.rgtrnm + "</b><em>" + UiComm.formatDate(v.regDttm, "datetime") + "</em></span>";
-			            html += " </div>";
-			            html += " <div class='cont'>";
-			            html += "  <div class='atcl-cts-text'>" + v.atclCts + "</div>";
-			            html += "  <div class='bottom_btn'>";
-			            html += "    <div class='right-area'>";
-			            html += "      <button type='button' class='btn basic btn-modify-action' onclick=\"convertToRspnsEdit('" + i + "', '" + v.bbsId + "', '" + v.atclId + "')\">수정</button>";
-			            html += "      <button type='button' class='btn basic' onclick=\"bbsAtclRspnsDelete('" + v.atclId + "')\">삭제</button>";
-			            html += "    </div>";
-			            html += "  </div>";
-			            html += " </div>";
-			            html += "</div>";
-
-		            $container.append(html);
-		        });
-		    });
-		} */
-
-		// 게시글 > 답변 등록
-    	/* function bbsAtclRspnsRegist() {
-    		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclRspnsRegist.do";
-    		var data = $("#bbsAtclRspnsWriteForm").serialize();
-			var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsSbjctView.do?eparam=${eparam}";
-
-			bbsCommon.regist(url, returnUrl, data);
-		}; */
-
-		// 게시글 > 답변 삭제
-        /* function bbsAtclRspnsDelete(atclId) {
-    		if(confirm('<spring:message code="bbs.confirm.delete_atcl" />')) {
-    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctView.do?eparam=${eparam}";
-    			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
-    			var data = {
-					orgId : ORG_ID,
-					bbsId : BBS_ID,
-					atclId : atclId,
-					atclLv : ATCL_LV
-				};
-
-    			bbsCommon.delete(url, returnUrl, data);
-    		}
-    	}; */
-
-    	/* function convertToRspnsEdit(idx, bbsId, atclId) {
-		    var $item = $("#ans_item_" + idx);
-		    var $title = $item.find(".title");
-		    var $cont = $item.find(".atcl-cts-text");
-		    var $btnArea = $item.find(".right-area");
-
-		    var currentTitle = $title.text();
-		    $title.html("<input type='text' class='edit-input-ttl' style='width:80%; padding:5px;' value='" + currentTitle + "'>");
-
-		    var currentCont = $cont.html().replace(/<br\s*\/?>/gi, "\n");
-		    $cont.html("<textarea class='edit-input-cts' style='width:100%; min-height:100px; padding:10px;'>" + currentCont + "</textarea>");
-
-		    $btnArea.html(
-		        "<button type='button' class='btn basic' onclick=\"bbsAtclRspnsModify('" + idx + "', '" + bbsId + "', '" + atclId + "')\" style='background:#333; color:#fff;'>저장</button> " +
-		        "<button type='button' class='btn basic' onclick='bbsAtclRspnsList()'>취소</button>"
-		    );
-		}
-
-    	// 게시글 > 답변 수정
-		function bbsAtclRspnsModify(idx, bbsId, atclId) {
-		    var $item = $("#ans_item_" + idx);
-		    var newTitle = $item.find(".edit-input-ttl").val();
-		    var newCts = $item.find(".edit-input-cts").val();
-
-		    if(!newTitle.trim() || !newCts.trim()) {
-		        return;
-		    }
-
-		    var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclRspnsRegist.do";
-		    var data = {
-		        bbsId: bbsId,
-		        atclId: atclId,
-		        atclTtl: newTitle,
-		        atclCts: newCts
-		    };
-		    var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsSbjctView.do?eparam=${eparam}";
-
-		    bbsCommon.regist(url, returnUrl, data);
-		} */
 
 		// 댓글 조회
     	function bbsAtclCmntList() {
@@ -186,7 +83,7 @@
 
 		    ajaxCall(url, data, function(res) {
 		        var returnList = res.returnList;
-				console.log("returnList", returnList);
+
 		        if (!returnList) return;
 		        if (typeof returnList === "string") returnList = JSON.parse(returnList);
 
@@ -218,10 +115,6 @@
 		                            '</div>' +
 		                            '<textarea title="<spring:message code="bbs.common.placeholder_comment"/>" class="comment" name="atclCmntCts" rows="3" cols="76" maxLenCheck="length,10,true,false" placeholder="<spring:message code="bbs.common.placeholder_comment"/>"></textarea>' +
 		                            '<div class="bottom_btn">' +
-		                                /* '<span class="custom-input">' +
-		                                    '<input type="checkbox" name="feedbackLabel" id="feedbackLabel">' +
-		                                    '<label for="feedbackLabel"><spring:message code="bbs.label.feedback_qna"/> <span class="small">( <spring:message code="bbs.label.guide_feedback_qna"/> )</span></label>' +
-		                                '</span>' + */
 		                                '<div class="right-area">' +
 		                                    '<button type="button" class="btn type2" onclick="bbsAtclCmntRegist();"><spring:message code="bbs.label.save"/></button>' +
 		                                '</div>' +
@@ -408,18 +301,21 @@
 
 		// 게시글 > 댓글 삭제
         function bbsAtclCmntDelete(atclCmntId) {
-    		// 답변 삭제 시 댓글도 모두 삭제됩니다. 정말 삭제 하시겠습니까?
-    		if(confirm('<spring:message code="bbs.confirm.delete_atcl" />')) {
-    			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclCmntDelete.do";
-    			var data = {
-    				bbsId : BBS_ID,
-    				atclId : ATCL_ID,
-					atclCmntId : atclCmntId
-				};
-    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctView.do?eparam=${eparam}";
+    		UiComm.showMessage("<spring:message code='bbs.confirm.delete_atcl' />", "confirm")
+    		.then(function(result) {
+    			if (result) {
+    				var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclCmntDelete.do";
+        			var data = {
+        				bbsId : BBS_ID,
+        				atclId : ATCL_ID,
+    					atclCmntId : atclCmntId
+    				};
+        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctView.do?eparam=${eparam}";
 
-    			bbsCommon.regist(url, returnUrl, data);
-    		}
+        			bbsCommon.regist(url, returnUrl, data);
+    			}
+    			else {}
+    		});
     	};
 
 		// 부가 기능: 대댓글 폼 토글 함수
@@ -638,42 +534,6 @@
 		                        <a href="#0" onclick="bbsAtclDelete()" class="btn type2"><spring:message code="common.button.delete" /></a><!-- 삭제 -->
 	                    		<a href="#0" onclick="bbsAtclListMove('V');return false;" class="btn type2"><spring:message code="common.button.list" /></a><!-- 목록 -->
                         	</div>
-
-							<%-- <form id="bbsAtclRspnsWriteForm" name="bbsAtclRspnsWriteForm">
-								<input type="hidden" name="userId" value="${bbsAtclVO.userId}">
-								<input type="hidden" name="atclId" value="${bbsAtclVO.atclId}">
-								<input type="hidden" name="bbsId" value="${bbsAtclVO.bbsId}">
-								<input type="hidden" name="atclLv" value="2">
-	                            <!-- 답변 -->
-	                            <div class="answer">
-	                                <div class="title_area">
-	                                    <strong class="title">
-	                                   		<input type="text" name="atclTtl" id="atclTtl" placeholder="제목을 입력해주세요."/>
-	                                    </strong>
-	                                </div>
-	                                <div class="cont">
-	                                     <label class="width-100per">
-	                                     	<textarea rows="5" class="form-control resize-none" id="atclCts" name="atclCts" placeholder="내용을 입력해주세요."></textarea>
-	                                     </label>
-	                                     <div class="bottom_btn">
-	                                        <div class="simple_answer">
-	                                            <span><spring:message code="bbs.label.easy_answer"/></span>
-	                                            <div class="answer_btn">
-	                                                <a href="#0" class="current"><spring:message code="bbs.label.easy_comment.good_job"/></a><!--간편답변 선택시 클래스추가-->
-	                                                <a href="#0"><spring:message code="bbs.label.easy_comment.hard_work"/></a>
-	                                                <a href="#0"><spring:message code="bbs.label.easy_comment.thanks"/></a>
-	                                            </div>
-	                                        </div>
-	                                        <div class="right-area">
-	                                            <button type="button" class="btn type2" onclick="bbsAtclRspnsRegist();"><spring:message code="bbs.label.save"/></button>
-	                                        </div>
-	                                     </div>
-	                                </div>
-	                            </div>
-                            </form> --%>
-
-							<!-- 답변 -->
-                            <!-- <div class="answer" id="bbsAtclRspnsDtl"></div> -->
 
                             <!-- 댓글 -->
                             <div class="Comment" id="bbsAtclCmntDtl"></div>

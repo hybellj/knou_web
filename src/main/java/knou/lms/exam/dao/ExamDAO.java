@@ -22,6 +22,12 @@ public interface ExamDAO {
     // 시험기본등록 (시험 화면 전용)
     public void examBscRegist2(ExamBscVO vo) throws Exception;
 
+    // 시험 상세 등록 (수정용)
+    public void examDtlRegist2(ExamDtlVO vo) throws Exception;
+
+    // 시험 대상자 등록 (수정용)
+    public void examTrgtrRegist2(ExamTrgtrVO vo) throws Exception;
+
     // 교수 시험목록 조회
     public List<ExamVO> listProfExam (ExamVO vo) throws Exception;
 
@@ -30,6 +36,9 @@ public interface ExamDAO {
 
     // 교수 시험 상세조회
     public ExamVO selectProfExamDtl(ExamVO vo) throws Exception;
+
+    // 교수 팀 시험 상세조회
+    public List<ExamVO> selectProfExamTeamDtl (ExamVO vo) throws Exception;
 
     // 교수 시험목록 카운트
     public int countProfExam(ExamVO vo) throws Exception;
@@ -46,6 +55,9 @@ public interface ExamDAO {
     // 시험 평가대상자 목록 카운트
     public int countTkexamUser(ExamVO vo) throws Exception;
 
+    // 팀 시험여부 조회
+    public ExamVO selectBscTeamYn (ExamVO vo) throws Exception;
+
     // 성적 반영 시험 목록
     public List<ExamBscVO> mrkRfltExamList(ExamBscVO vo) throws Exception;
 
@@ -57,6 +69,21 @@ public interface ExamDAO {
 
     // 중간/기말고사 시험 목록
     public List<ExamBscVO> examList(@Param("sbjctId") String sbjctId, @Param("examGbncd") String examGbncd ) throws Exception;
+
+    // 시험 기본정보 수정
+    public void updateExamBscInfo(ExamVO vo) throws Exception;
+
+    // 시험 상세정보 수정
+    public void updateExamDtlInfo(ExamVO vo) throws Exception;
+
+    // 시험 기본정보 삭제
+    public void deleteExamBscInfo(ExamVO vo) throws Exception;
+
+    // 시험 상세정보 삭제
+    public void deleteExamDtlInfo(ExamVO vo) throws Exception;
+
+    // 시험 대상자 삭제
+    public void deleteExamTrgtr(ExamVO vo) throws Exception;
 
     /*****************************************************
      * 기존에 있던 DAO 영역

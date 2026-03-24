@@ -23,6 +23,9 @@ public interface Forum2DAO {
     int deleteForum(Forum2VO vo);
     int copyForum(Forum2VO vo);
 
+    int updateChildForumDelYn(Forum2VO vo);
+    int updateChildForumDtls(Forum2TeamDscsVO vo);
+
     List<Forum2TeamDscsVO> selectTeamDscsList(String dscsId);
     List<Forum2TeamDscsVO> selectForumLrnGrpTeamList(Forum2TeamDscsVO vo);
     int updateTeamDscsOyn(Forum2TeamDscsVO vo);

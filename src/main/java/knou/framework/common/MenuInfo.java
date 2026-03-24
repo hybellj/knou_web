@@ -3,6 +3,7 @@ package knou.framework.common;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -17,22 +18,25 @@ import knou.lms.crs.home.service.CrsHomeMenuService;
 import knou.lms.crs.home.vo.CrsHomeBbsMenuVO;
 import knou.lms.crs.home.vo.CrsHomeMenuVO;
 import knou.lms.menu.service.SysMenuService;
+import knou.lms.menu.vo.MenuUseOrgVO;
+import knou.lms.menu.vo.MenuVO;
 import knou.lms.menu.vo.SysMenuVO;
 
 /**
  * 메뉴 정보
- * @author shil
- *
  */
 public class MenuInfo {
 
     private static HashMap<String, SysMenuVO> MENU_MAP = null;
 
+    // 새버전 메뉴 정보 맵
+    private static Map<String, List<MenuVO>> MENU_INFO_MAP = null;
+
     public static HashMap<String, Integer> COURSE_BBS_VERSION_MAP = null;
     public static String COURSE_BBS_SID_PREFIX = "MNBBS:";
 
     /**
-     * 메뉴 정보 가져오기
+     * 메뉴 정보 가져오기  ----- 삭제예정
      * @param request
      * @param sysMenuVO
      * @return
@@ -128,7 +132,7 @@ public class MenuInfo {
     }
 
     /**
-     * 메뉴정보 로딩
+     * 메뉴정보 로딩  ---- 삭제 예정
      * @param request
      * @throws Exception
      */
@@ -254,5 +258,135 @@ public class MenuInfo {
         } catch (Exception e) {
 
         }
+    }
+
+
+
+    /*
+	새버전 작업..........................
+	*/
+
+
+    /**
+     * 메뉴 정보 가져오기
+     * @param request
+     * @param menuVO
+     * @return
+     * @throws Exception
+     */
+    public static List<MenuVO> getMenuInfo(HttpServletRequest request, MenuVO menuVO) throws Exception {
+    	String orgId = menuVO.getOrgId();
+        if ("".equals(StringUtil.nvl(orgId))) {
+        	orgId = "LMSBASIC";
+        }
+
+        String authrtGrpcd = menuVO.getAuthrtGrpcd();
+        if (authrtGrpcd == null || "".equals(authrtGrpcd)) {
+        	authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        }
+
+        String menuKey = orgId+":"+authrtGrpcd+":"+menuVO.getMenuGbncd();
+        List<MenuVO> menuList = null;
+
+        if (MENU_INFO_MAP == null || MENU_INFO_MAP.isEmpty()) {
+            loadMenuInfo(request, menuVO);
+		}
+
+        menuList = MENU_INFO_MAP.get(menuKey);
+
+        return menuList;
+    }
+
+
+    /**
+     * 메뉴정보 로딩
+     * @param request
+     * @throws Exception
+     */
+    private static void loadMenuInfo(HttpServletRequest request, MenuVO vo) throws Exception {
+    	MENU_INFO_MAP = new HashMap<>();
+
+        ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(request.getSession().getServletContext());
+        SysMenuService sysMenuService = (SysMenuService)applicationContext.getBean("sysMenuService");
+
+        // 기관 메뉴 사용 목록 조회
+        MenuUseOrgVO menuUseOrgVO = new MenuUseOrgVO();
+        List<MenuUseOrgVO> menuUseOrgList = sysMenuService.selectMainMenuUseOrgAll(menuUseOrgVO);
+        Map<String, String> menuUseMap = new HashMap<>();
+
+        List<String> menuOrgList = new ArrayList<>();
+        String useOrgId = "";
+
+        for (MenuUseOrgVO useVO : menuUseOrgList) {
+        	String key = useVO.getOrgId()+":"+useVO.getMenuTycd()+":"+useVO.getMenuGbncd()+":"+useVO.getMenuId();
+
+        	if ("Y".equals(useVO.getUseyn())) {
+        		menuUseMap.put(key, useVO.getUseyn());
+
+        		if (!useOrgId.equals(useVO.getOrgId())) {
+        			menuOrgList.add(useVO.getOrgId());
+        		}
+
+        		useOrgId = useVO.getOrgId();
+        	}
+        }
+
+        // 메인메뉴 전체 목록 조회
+        List<MenuVO> mainMenuList = sysMenuService.selectMainMenuAll(vo);
+        Map<String, MenuVO> tmpMap = new HashMap<>();
+        List<MenuVO> tmpList = new ArrayList<>();
+
+        for(MenuVO menuVO : mainMenuList) {
+        	menuVO.setSubMenuList(new ArrayList<>());
+        	tmpMap.put(menuVO.getMenuId(), menuVO);
+        }
+
+        for(MenuVO menuVO : mainMenuList) {
+        	if ("ROOT".equals(StringUtil.nvl(menuVO.getUpMenuId(),"ROOT"))) {
+        		tmpList.add(menuVO);
+        	}
+        	else {
+        		MenuVO parent = tmpMap.get(menuVO.getUpMenuId());
+        		if (parent != null) {
+        			parent.getSubMenuList().add(menuVO);
+        		}
+        	}
+        }
+
+        // 기관별 메뉴
+        for(String orgId : menuOrgList) {
+        	for(MenuVO menuVO : tmpList) {
+        		String key = orgId+":"+menuVO.getMenuTycd()+":"+menuVO.getMenuGbncd()+":"+menuVO.getMenuId();
+
+        		if (menuUseMap.containsKey(key) && "Y".equals(menuUseMap.get(key))) {
+        			String menuKey = orgId+":"+menuVO.getMenuTycd()+":"+menuVO.getMenuGbncd();
+
+        			// 서브메뉴
+        			if (menuVO.getSubMenuList() != null && !menuVO.getSubMenuList().isEmpty()) {
+        				List<MenuVO> newSubList = new ArrayList<>();
+        				List<MenuVO> subList = menuVO.getSubMenuList();
+
+        				for (MenuVO svo : subList) {
+        					String skey = orgId+":"+svo.getMenuTycd()+":"+svo.getMenuGbncd()+":"+svo.getMenuId();
+        					if (menuUseMap.containsKey(skey) && "Y".equals(menuUseMap.get(skey))) {
+        						newSubList.add(svo);
+        					}
+        				}
+        				menuVO.setSubMenuList(newSubList);
+        			}
+
+        			// 메뉴맵에 저장
+        			if (MENU_INFO_MAP.containsKey(menuKey)) {
+        				MENU_INFO_MAP.get(menuKey).add(menuVO);
+        			}
+        			else {
+        				List<MenuVO> list = new ArrayList<>();
+        				list.add(menuVO);
+        				MENU_INFO_MAP.put(menuKey, list);
+        			}
+        		}
+        	}
+        }
+
     }
 }

@@ -155,35 +155,33 @@
 
 	// 위젯 내용 로드
 	function loadWidgetContent(widgetId) {
-		let contentBox = $("#"+widgetId+"_content");
-
 		switch (widgetId) {
 			case 'wigt_prof_today': // Today
-				contentBox.load("/dashboard/profWidgetToday.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/profWidgetToday.do");
 				break;
 
 			case 'wigt_prof_schedule': // 이달의 학사일정
-				contentBox.load("/dashboard/profWidgetSchedule.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/profWidgetSchedule.do");
 				break;
 
 			case 'wigt_prof_notice': // 공지사항
-				contentBox.load("/dashboard/profWidgetNotice.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/profWidgetNotice.do");
 				break;
 
 			case 'wigt_prof_qna': // 강의Q&A
-				contentBox.load("/dashboard/profWidgetQna.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/profWidgetQna.do");
 				break;
 
 			case 'wigt_prof_counsel': // 1:1상담
-				contentBox.load("/dashboard/profWidgetCounsel.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/profWidgetCounsel.do");
 				break;
 
 			case 'wigt_prof_msg': // 알림(메시지)
-				contentBox.load("/dashboard/profWidgetMsg.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/profWidgetMsg.do");
 				break;
 
 			case 'wigt_prof_subject': // 강의과목
-				contentBox.load("/dashboard/profWidgetSubject.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/profWidgetSubject.do");
 				break;
 
    	  	    default:

@@ -27,6 +27,7 @@ import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.MenuInfo;
 import knou.framework.common.SessionInfo;
+import knou.framework.context2.UserContext;
 import knou.framework.exception.AccessDeniedException;
 import knou.framework.exception.BadRequestUrlException;
 import knou.framework.exception.MediopiaDefineException;
@@ -534,7 +535,7 @@ public class BbsLectController extends ControllerBase {
 
         // 글수정, 삭제, 답글, 댓글쓰기 권한체크
         atclEditAuth = BbsAuthUtil.getAtclEditAuth(request, bbsInfoVO, bbsAtclVO);
-        atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsInfoVO, bbsAtclVO);
+        //atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsInfoVO, bbsAtclVO);
         answerWriteAuth = BbsAuthUtil.getAnswerAtclWriteAuth(request, bbsInfoVO);
         commentWriteAuth = BbsAuthUtil.getCommentWriteAuth(request, bbsInfoVO, bbsAtclVO);
 
@@ -1254,16 +1255,18 @@ public class BbsLectController extends ControllerBase {
     @RequestMapping(value = "/removeAtcl.do", method = RequestMethod.POST)
     @ResponseBody
     public ProcessResultVO<BbsAtclVO> removeAtcl(BbsAtclVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
         ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
 
         boolean isProfessor = BbsAuthUtil.isProfessor(request);
-
 
         String orgId = SessionInfo.getOrgId(request);
         String userId   = SessionInfo.getUserId(request);
         String crsCreCd = vo.getCrsCreCd();
         String bbsId    = vo.getBbsId();
         String atclId   = vo.getAtclId();
+        String langCd = userCtx.getLangCd();
 
         vo.setOrgId(orgId);
         vo.setMdfrId(userId);
@@ -1276,19 +1279,13 @@ public class BbsLectController extends ControllerBase {
             }
 
             // 게시판 정보 조회
-            BbsInfoVO bbsInfoVO = new BbsInfoVO();
-            bbsInfoVO.setOrgId(orgId);
-            bbsInfoVO.setCrsCreCd(crsCreCd);
-            bbsInfoVO.setBbsId(bbsId);
-            bbsInfoVO.setSysUseYn("N"); // 강의실 게시판
+            BbsVO bbsVO = new BbsVO();
+            bbsVO.setOrgId(orgId);
+            bbsVO.setBbsId(bbsId);
+            bbsVO.setLangCd(langCd);
+            bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isProfessor);
 
-            if(!isProfessor) {
-                bbsInfoVO.setUseYn("Y");
-            }
-
-            bbsInfoVO = bbsInfoService.selectBbsInfo(bbsInfoVO);
-
-            if(bbsInfoVO == null) {
+            if(bbsVO == null) {
                 // 게시판 정보를 찾을 수 없습니다.
                 throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
             }
@@ -1305,7 +1302,7 @@ public class BbsLectController extends ControllerBase {
                 throw new BadRequestUrlException(getMessage("bbs.error.not_exists_atcl"));
             }
 
-            String atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsInfoVO, bbsAtclVO);
+            String atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsVO, bbsAtclVO);
 
             if(!"Y".equals(atclDeleteAuth)) {
                 // 접근 권한이 없습니다.

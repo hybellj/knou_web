@@ -18,6 +18,11 @@
  * widget.addContent(id, content);
  *   id:		// 위젯 ID
  *   content:	// 내용
+ *
+ * // 위젯 내용 URL 로드
+ * widget.loadUrl(id, url);
+ *   id:		// 위젯 ID
+ *   url:		// URL
  */
 function UiWidget(opts) {
 	let targetId = opts.targetId;
@@ -91,6 +96,7 @@ function UiWidget(opts) {
 				+ `</div>`
 				+ `<div id="${id}_content" class="box-content">`
 				+ `</div>`
+				+ `<div id="${id}_loading" class="loading-layer"><i class="xi-spinner-5 xi-spin"></i></div>`
 				+ `</div>`;
 
 			let el = document.createElement("div");
@@ -104,6 +110,7 @@ function UiWidget(opts) {
 
 			if (content) {
 				this.addContent(id, content);
+				$("#"+id+"_loading").hide();
 			}
 
 			setTimeout(function() {
@@ -114,6 +121,17 @@ function UiWidget(opts) {
 		// 위젯 내용 추가
 		addContent: function(id, content) {
 			$("#"+id+"_content").html(content);
+		},
+
+		// 위젯 내용 로드 (url)
+		loadUrl: function(id, url) {
+			let obj = this;
+			obj.showLoading(id, true);
+
+			let contentBox = $("#"+id+"_content");
+			$("#"+id+"_content").load(url, function() {
+				obj.showLoading(id, false);
+			});
 		},
 
 		// 위젯 타이틀 서브 내용 추가
@@ -133,6 +151,21 @@ function UiWidget(opts) {
 		// 모두 삭제
 		removeAll: function() {
 			widget.removeAll();
+		},
+
+		// 로딩 표시
+		showLoading: function(id, type) {
+			let $loading = $("#"+id+"_loading");
+			if (type) {
+				let $boxContent = $("#"+id+"_content");
+				let pos = $boxContent.position();
+				let w = $boxContent.width();
+				let h = $boxContent.height();
+				$loading.css({"display":"flex", "top":pos.top+"px", "left":pos.left+"px", "width":w+"px", "height":h+"px"});
+			}
+			else {
+				$loading.hide();
+			}
 		}
 	};
 

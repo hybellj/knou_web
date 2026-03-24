@@ -269,6 +269,7 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
             forumJoinUserVO.setStdId(vo.getStdId());
             forumJoinUserVO.setRgtrId(vo.getUserId());
             forumJoinUserVO.setMdfrId(vo.getUserId());
+            forumJoinUserVO.setDscsPtcpId(IdGenerator.getNewId(IdPrefixType.DSPTC.getCode()));
             forumJoinUserDAO.insertStdScore(forumJoinUserVO);
         }
         return forumJoinUserDAO.selectProfMemo(vo);

@@ -1503,7 +1503,7 @@
                 </div>
             </div>
             <!-- 토론 글쓰기 팝업 -->
-            <div class="modal fade" id="forumAtclPop" tabindex="-1"
+            <%--<div class="modal fade" id="forumAtclPop" tabindex="-1"
                  role="dialog"
                  aria-labelledby="<spring:message code="forum.label.forum" /><!-- 토론 --> <spring:message code="forum.button.atcl.write" /><!-- 글쓰기 -->"
                  aria-hidden="false">
@@ -1527,10 +1527,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>--%>
             <!-- 토론 글쓰기 팝업 -->
             <!-- 팀 구성원 보기 모달 -->
-            <div class="modal fade" id="teamMemberPop" tabindex="-1" role="dialog" aria-labelledby="<spring:message code='forum.label.team.member.view'/>" aria-hidden="true"><!-- 팀 구성원 보기 -->
+            <%--<div class="modal fade" id="teamMemberPop" tabindex="-1" role="dialog" aria-labelledby="<spring:message code='forum.label.team.member.view'/>" aria-hidden="true"><!-- 팀 구성원 보기 -->
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -1544,14 +1544,14 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>--%>
             <!-- 팀 구성원 보기 모달 -->
-            <script>
+            <%--<script>
                 // $('iframe').iFrameResize();
                 window.closeModal = function(){
                     $('.modal').modal('hide');
                 };
-            </script>
+            </script>--%>
         </main>
 </body>
 </html>

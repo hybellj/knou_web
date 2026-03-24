@@ -19,7 +19,7 @@ public class ClsElemStatsVO extends DefaultVO {
     private String lineNo;
     private int totalCnt;
 
-    // ===== (기존) 요소별 집계 필드 (남겨둠: 다른 곳 영향 방지) =====
+    // ===== 요소별 집계 필드 <현재 미사용> =====
     private String elemTypeNm;
     private String title;
     private int trgtCnt;
@@ -27,7 +27,7 @@ public class ClsElemStatsVO extends DefaultVO {
     private int notJoinCnt;
     private BigDecimal joinRt;
 
-    // ===== (신규) 화면정의서의 "학습요소 참여현황" 표(학생 행) 필드 =====
+    // ===== "학습요소 참여현황" 표(학생 행) 필드 =====
     private String userId;
     private String usernm;
     private String stdntNo;
@@ -49,8 +49,15 @@ public class ClsElemStatsVO extends DefaultVO {
     private int dsccSbmsnCnt;   // 토론 제출
     private int dsccTrgtCnt;    // 토론 전체
 
-    private BigDecimal midScore;    // 중간
-    private BigDecimal finalScore;  // 기말
+    private BigDecimal midLiveScore;    // 중간(실시간)
+    private BigDecimal midAltScore;     // 중간(대체)
+    private BigDecimal midEtcScore;     // 중간(기타)
+    private BigDecimal finalLiveScore;  // 기말(실시간)
+    private BigDecimal finalAltScore;   // 기말(대체)
+    private BigDecimal finalEtcScore;   // 기말(기타)
+
+    private BigDecimal midScore;        // 중간 대표값
+    private BigDecimal finalScore;      // 기말 대표값
 
     // 엑셀
     private String excelGrid;
@@ -130,6 +137,24 @@ public class ClsElemStatsVO extends DefaultVO {
 
     public int getDsccTrgtCnt() { return dsccTrgtCnt; }
     public void setDsccTrgtCnt(int dsccTrgtCnt) { this.dsccTrgtCnt = dsccTrgtCnt; }
+
+    public BigDecimal getMidLiveScore() { return midLiveScore; }
+    public void setMidLiveScore(BigDecimal midLiveScore) { this.midLiveScore = midLiveScore; }
+
+    public BigDecimal getMidAltScore() { return midAltScore; }
+    public void setMidAltScore(BigDecimal midAltScore) { this.midAltScore = midAltScore; }
+
+    public BigDecimal getMidEtcScore() { return midEtcScore; }
+    public void setMidEtcScore(BigDecimal midEtcScore) { this.midEtcScore = midEtcScore; }
+
+    public BigDecimal getFinalLiveScore() { return finalLiveScore; }
+    public void setFinalLiveScore(BigDecimal finalLiveScore) { this.finalLiveScore = finalLiveScore; }
+
+    public BigDecimal getFinalAltScore() { return finalAltScore; }
+    public void setFinalAltScore(BigDecimal finalAltScore) { this.finalAltScore = finalAltScore; }
+
+    public BigDecimal getFinalEtcScore() { return finalEtcScore; }
+    public void setFinalEtcScore(BigDecimal finalEtcScore) { this.finalEtcScore = finalEtcScore; }
 
     public BigDecimal getMidScore() { return midScore; }
     public void setMidScore(BigDecimal midScore) { this.midScore = midScore; }

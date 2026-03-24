@@ -784,7 +784,6 @@
 				finishFunc="finishUpload()"
 				allowedTypes="*"
 				bigSize="false"
-				useFileBox="true"
 				uiMode="simple"
 			/>
 		</div>

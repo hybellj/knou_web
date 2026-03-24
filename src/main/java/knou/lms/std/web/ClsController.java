@@ -2,6 +2,7 @@ package knou.lms.std.web;
 
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
+import knou.framework.util.DateTimeUtil;
 import knou.framework.util.ExcelUtilPoi;
 import knou.framework.exception.AccessDeniedException;
 import knou.framework.util.ValidationUtils;
@@ -10,6 +11,7 @@ import knou.lms.std.vo.*;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.crs.term.service.TermService;
 import knou.lms.crs.term.vo.TermVO;
+import knou.lms.org.service.OrgCodeService;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.vo.UsrDeptCdVO;
 import org.apache.commons.collections.map.ListOrderedMap;
@@ -50,6 +52,9 @@ public class ClsController extends ControllerBase {
 
     @Resource(name = "usrDeptCdService")
     private UsrDeptCdService usrDeptCdService;
+
+    @Resource(name = "orgCodeService")
+    private OrgCodeService orgCodeService;
 
     /*****************************************************
      * B0102060101 - 전체수업현황 목록 화면
@@ -96,9 +101,6 @@ public class ClsController extends ControllerBase {
         if (vo.getPageIndex() < 1) vo.setPageIndex(1);
         if (vo.getListScale() <= 0) vo.setListScale(20);
         if (vo.getPageScale() <= 0) vo.setPageScale(10);
-        int firstIndex = (vo.getPageIndex() - 1) * vo.getListScale();
-        vo.setFirstIndex(firstIndex);
-        vo.setLastIndex(firstIndex + vo.getListScale());
 
         ProcessResultVO<ClsVO> resultVO = clsService.selectClsListPaging(vo);
 
@@ -109,6 +111,9 @@ public class ClsController extends ControllerBase {
         model.addAttribute("subjectList", clsService.selectClsSubjectList(vo));
         model.addAttribute("resultList", resultVO.getReturnList());
         model.addAttribute("pageInfo", resultVO.getPageInfo());
+
+        model.addAttribute("yearList", DateTimeUtil.getYearList(10, "mix"));
+        model.addAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
         model.addAttribute("vo", vo);
 
         return "std/cls_list";
@@ -135,13 +140,6 @@ public class ClsController extends ControllerBase {
         if (vo.getPageIndex() < 1) vo.setPageIndex(1);
         if (vo.getListScale() <= 0) vo.setListScale(20);
         if (vo.getPageScale() <= 0) vo.setPageScale(10);
-        int firstIndex = (vo.getPageIndex() - 1) * vo.getListScale();
-        vo.setFirstIndex(firstIndex);
-        vo.setLastIndex(firstIndex + vo.getListScale());
-
-        LOGGER.debug("[CLS_PAGING] yr={}, smstr={}, deptId={}, kw={}, pageIndex={}, firstIndex={}, orgId={}",
-                vo.getSearchYr(), vo.getSearchSmstr(), vo.getDeptId(), vo.getSearchKeyword(),
-                vo.getPageIndex(), vo.getFirstIndex(), vo.getOrgId());
 
         try {
             resultVO = clsService.selectClsListPaging(vo);
@@ -212,7 +210,6 @@ public class ClsController extends ControllerBase {
         model.addAttribute("sbjctId", vo.getSbjctId());
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
 
-        //WHOL_WK_CNT 조회
         ClsVO clsVO = new ClsVO();
         clsVO.setSbjctId(vo.getSbjctId());
         clsVO.setOrgId(sessionOrgId);
@@ -239,7 +236,6 @@ public class ClsController extends ControllerBase {
         if (vo.getPageScale() <= 0) vo.setPageScale(10);
 
         try {
-            // wkList 세팅은 ServiceImpl의 setDefaultWkList()에서 처리
             resultVO = clsService.selectClsStdntListPaging(vo);
             if (resultVO.getResult() >= 0) {
                 resultVO.setResultSuccess();
@@ -303,7 +299,7 @@ public class ClsController extends ControllerBase {
     }
 
     /*****************************************************
-     * 특정 주차 미학습자 팝업 화면을 조회한다.
+     * 특정 주차 미학습자 팝업 화면
      ******************************************************/
     @RequestMapping(value = "/selectNotLrnnPopupView.do")
     public String selectNotLrnnPopupView(ClsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -314,7 +310,7 @@ public class ClsController extends ControllerBase {
     }
 
     /*****************************************************
-     * 수강생 주차별 학습현황 팝업 화면을 조회한다.
+     * 수강생 주차별 학습현황 팝업 화면
      ******************************************************/
     @RequestMapping(value = "/selectStdntWkPopupView.do")
     public String selectStdntWkPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -334,8 +330,9 @@ public class ClsController extends ControllerBase {
         return "std/popup/cls_stdnt_weekly_popup";
     }
 
+
     /*****************************************************
-     * 학습요소 제출/참여현황 팝업 화면을 조회한다.
+     * 학습요소 제출/참여현황 팝업 화면
      ******************************************************/
     @RequestMapping(value = "/selectStdntElemPopupView.do")
     public String selectStdntElemPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -353,61 +350,44 @@ public class ClsController extends ControllerBase {
 
         vo.setOrgId(SessionInfo.getOrgId(request));
 
-        // 엑셀 다운로드 시에도 wkList 반드시 세팅 (ServiceImpl을 거치지 않고 직접 호출하는 경우 대비)
-        String wkNoParam = request.getParameter("wkNo");
-        if (wkNoParam != null && !wkNoParam.trim().isEmpty()) {
-            try {
-                int parsedWkNo = Integer.parseInt(wkNoParam.trim());
-                vo.setWkNo(parsedWkNo);
-            } catch (Exception ignore) {}
-        }
+        // wkNo 파싱 제거 (미학습자는 별도 메서드로 분리)
         if (vo.getWkList() == null || vo.getWkList().isEmpty()) {
             vo.setWkList(IntStream.rangeClosed(1, 15)
                     .boxed()
                     .collect(Collectors.toList()));
         }
 
-        List<ClsStdntVO> list;
-        if (vo.getWkNo() > 0) {
-            // 특정 주차 미학습자 (wkList 불필요)
-            list = clsService.selectClsNoStudyWeek(vo);
-        } else {
-            // 전체 수강생 주차별 (wkList 필요 → 이미 세팅됨)
-            list = clsService.selectClsStdntList(vo);
-        }
+        List<ClsStdntVO> list = clsService.selectClsStdntList(vo);  // 항상 주차별 목록만
 
-        String title = "주차별 학습현황";
-        if (vo.getWkNo() > 0) {
-            title = vo.getWkNo() + "주차 미학습자";
-        }
+        String title = "주차별 학습현황";  // 항상 고정
 
         List<ListOrderedMap> newList = new ArrayList<>();
         for (ClsStdntVO item : list) {
             ListOrderedMap orderedMap = new ListOrderedMap();
-            orderedMap.put("lineNo",   item.getLineNo());
-            orderedMap.put("deptnm",   item.getDeptnm());
-            orderedMap.put("stdntNo",  item.getStdntNo());
-            orderedMap.put("usernm",   item.getUsernm());
-            orderedMap.put("entyR",    item.getEntyR());
-            orderedMap.put("scyr",     item.getScyr());
-            orderedMap.put("wk1Sts",   item.getWk1Sts());
-            orderedMap.put("wk2Sts",   item.getWk2Sts());
-            orderedMap.put("wk3Sts",   item.getWk3Sts());
-            orderedMap.put("wk4Sts",   item.getWk4Sts());
-            orderedMap.put("wk5Sts",   item.getWk5Sts());
-            orderedMap.put("wk6Sts",   item.getWk6Sts());
-            orderedMap.put("wk7Sts",   item.getWk7Sts());
-            orderedMap.put("wk8Sts",   item.getWk8Sts());
-            orderedMap.put("wk9Sts",   item.getWk9Sts());
-            orderedMap.put("wk10Sts",  item.getWk10Sts());
-            orderedMap.put("wk11Sts",  item.getWk11Sts());
-            orderedMap.put("wk12Sts",  item.getWk12Sts());
-            orderedMap.put("wk13Sts",  item.getWk13Sts());
-            orderedMap.put("wk14Sts",  item.getWk14Sts());
-            orderedMap.put("wk15Sts",  item.getWk15Sts());
-            orderedMap.put("atndCnt",  item.getAtndCnt());
-            orderedMap.put("lateCnt",  item.getLateCnt());
-            orderedMap.put("absnCnt",  item.getAbsnCnt());
+            orderedMap.put("lineNo",  item.getLineNo());
+            orderedMap.put("deptnm",  item.getDeptnm());
+            orderedMap.put("stdntNo", item.getStdntNo());
+            orderedMap.put("usernm",  item.getUsernm());
+            orderedMap.put("entyR",   item.getEntyR());
+            orderedMap.put("scyr",    item.getScyr());
+            orderedMap.put("wk1Sts",  item.getWk1Sts());
+            orderedMap.put("wk2Sts",  item.getWk2Sts());
+            orderedMap.put("wk3Sts",  item.getWk3Sts());
+            orderedMap.put("wk4Sts",  item.getWk4Sts());
+            orderedMap.put("wk5Sts",  item.getWk5Sts());
+            orderedMap.put("wk6Sts",  item.getWk6Sts());
+            orderedMap.put("wk7Sts",  item.getWk7Sts());
+            orderedMap.put("wk8Sts",  item.getWk8Sts());
+            orderedMap.put("wk9Sts",  item.getWk9Sts());
+            orderedMap.put("wk10Sts", item.getWk10Sts());
+            orderedMap.put("wk11Sts", item.getWk11Sts());
+            orderedMap.put("wk12Sts", item.getWk12Sts());
+            orderedMap.put("wk13Sts", item.getWk13Sts());
+            orderedMap.put("wk14Sts", item.getWk14Sts());
+            orderedMap.put("wk15Sts", item.getWk15Sts());
+            orderedMap.put("atndCnt", item.getAtndCnt());
+            orderedMap.put("lateCnt", item.getLateCnt());
+            orderedMap.put("absnCnt", item.getAbsnCnt());
             newList.add(orderedMap);
         }
 
@@ -418,9 +398,7 @@ public class ClsController extends ControllerBase {
         map.put("list",      newList);
         map.put("ext",       ".xlsx(big)");
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        String currentDate = sdf.format(new Date());
-
+        String currentDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
         HashMap<String, Object> modelMap = new HashMap<>();
         modelMap.put("outFileName", title + "_" + currentDate);
 
@@ -428,25 +406,72 @@ public class ClsController extends ControllerBase {
         modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
 
         model.addAllAttributes(modelMap);
+        return "excelView";
+    }
+    /*****************************************************
+     * 미학습자 목록 엑셀 다운로드
+     ******************************************************/
+    @RequestMapping(value = "/selectClsNoStudyWeekExcelDown.do")
+    public String downExcelClsNoStudyWeek(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
+        vo.setOrgId(SessionInfo.getOrgId(request));
+
+        List<ClsStdntVO> list = clsService.selectClsNoStudyWeek(vo);
+
+        String title = vo.getWkNo() + "주차 미학습자";
+
+        List<ListOrderedMap> newList = new ArrayList<>();
+        for (ClsStdntVO item : list) {
+            ListOrderedMap orderedMap = new ListOrderedMap();
+            orderedMap.put("lineNo",  item.getLineNo());
+            orderedMap.put("deptnm",  item.getDeptnm());
+            orderedMap.put("stdntNo", item.getStdntNo());
+            orderedMap.put("usernm",  item.getUsernm());
+            orderedMap.put("entyR",   item.getEntyR());
+            orderedMap.put("scyr",    item.getScyr());
+            newList.add(orderedMap);
+        }
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title",     title);
+        map.put("sheetName", title);
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list",      newList);
+        map.put("ext",       ".xlsx(big)");
+
+        String currentDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", title + "_" + currentDate);
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+
+        model.addAllAttributes(modelMap);
         return "excelView";
     }
 
     /*****************************************************
-     * 학습요소 참여현황 목록 조회 (Ajax)
+     * 학습요소 참여현황 목록 조회 (Ajax, 페이징)
      ******************************************************/
     @RequestMapping(value = "/selectClsElemStats.do")
     @ResponseBody
     public ProcessResultVO<ClsElemStatsVO> selectClsElemStats(ClsElemStatsVO vo, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ClsElemStatsVO> resultVO = new ProcessResultVO<>();
-
         vo.setOrgId(SessionInfo.getOrgId(request));
 
+        if (vo.getPageIndex() < 1)  vo.setPageIndex(1);
+        if (vo.getListScale() <= 0) vo.setListScale(20);
+        if (vo.getPageScale() <= 0) vo.setPageScale(10);
+
         try {
-            List<ClsElemStatsVO> list = clsService.selectClsElemStatsList(vo);
-            resultVO.setReturnList(list);
-            resultVO.setResultSuccess();
+            resultVO = clsService.selectClsElemStatsListPaging(vo);
+            if (resultVO.getResult() >= 0) {
+                resultVO.setResultSuccess();
+            } else {
+                resultVO.setResultFailed();
+                resultVO.setMessage(getCommonFailMessage());
+            }
         } catch (Exception e) {
             LOGGER.error("[selectClsElemStats] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -464,14 +489,6 @@ public class ClsController extends ControllerBase {
         vo.setOrgId(SessionInfo.getOrgId(request));
 
         try {
-            LOGGER.debug("[ElemExcel] sbjctId={}, keyword={}, orgId={}, excelGridLen={}",
-                    vo.getSbjctId(),
-                    vo.getKeyword(),
-                    vo.getOrgId(),
-                    (vo.getExcelGrid() == null ? 0 : vo.getExcelGrid().length())
-            );
-
-            // excelGrid 없으면 기본값 주입
             if (vo.getExcelGrid() == null || vo.getExcelGrid().trim().isEmpty()) {
                 String defaultGrid =
                         "{\"colModel\":["
@@ -508,8 +525,15 @@ public class ClsController extends ControllerBase {
                 orderedMap.put("quizText",     item.getQuizSbmsnCnt() + "/" + item.getQuizTrgtCnt());
                 orderedMap.put("srvyText",     item.getSrvySbmsnCnt() + "/" + item.getSrvyTrgtCnt());
                 orderedMap.put("dsccText",     item.getDsccSbmsnCnt() + "/" + item.getDsccTrgtCnt());
-                orderedMap.put("midScore",     item.getMidScore());
-                orderedMap.put("finalScore",   item.getFinalScore());
+                orderedMap.put("midScore",
+                        item.getMidLiveScore() != null ? item.getMidLiveScore()
+                                : item.getMidAltScore() != null ? item.getMidAltScore()
+                                : item.getMidEtcScore());
+
+                orderedMap.put("finalScore",
+                        item.getFinalLiveScore() != null ? item.getFinalLiveScore()
+                                : item.getFinalAltScore() != null ? item.getFinalAltScore()
+                                : item.getFinalEtcScore());
                 newList.add(orderedMap);
             }
 
@@ -536,13 +560,9 @@ public class ClsController extends ControllerBase {
             throw e;
         }
     }
-    // ================================================================
-    // 아래 메서드들을 기존 ClsController.java 에 추가하세요
-    // ================================================================
 
     /*****************************************************
      * 수강생 상세정보 단건 조회 (Ajax)
-     * 팝업: cls_stdnt_weekly_popup.jsp
      ******************************************************/
     @RequestMapping(value = "/selectClsStdntInfo.do")
     @ResponseBody
@@ -566,7 +586,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 강의실 접속현황 일별 차트 데이터 조회 (Ajax)
-     * 팝업: cls_stdnt_weekly_popup.jsp
      ******************************************************/
     @RequestMapping(value = "/selectStdntAccessChart.do")
     @ResponseBody
@@ -576,7 +595,6 @@ public class ClsController extends ControllerBase {
 
         vo.setOrgId(SessionInfo.getOrgId(request));
 
-        // 조회 년월 기본값: 현재 년월
         if (vo.getYyyymm() == null || vo.getYyyymm().isEmpty()) {
             vo.setYyyymm(new SimpleDateFormat("yyyyMM").format(new Date()));
         }
@@ -595,7 +613,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 강의실 활동기록 목록 조회 (Ajax, 페이징)
-     * 팝업: cls_stdnt_weekly_popup.jsp
      ******************************************************/
     @RequestMapping(value = "/selectStdntActivityLog.do")
     @ResponseBody
@@ -627,7 +644,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 강의실 활동기록 엑셀 다운로드
-     * 팝업: cls_stdnt_weekly_popup.jsp
      ******************************************************/
     @RequestMapping(value = "/selectStdntActivityLogExcelDown.do")
     public String selectStdntActivityLogExcelDown(ClsActivityLogVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -680,7 +696,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 학습자 주차별 학습현황 팝업 View
-     * URL: /cls/selectStdntWkDetailPopupView.do
      ******************************************************/
     @RequestMapping(value = "/selectStdntWkDetailPopupView.do")
     public String selectStdntWkDetailPopupView(ModelMap model, HttpServletRequest request) throws Exception {
@@ -690,7 +705,6 @@ public class ClsController extends ControllerBase {
         model.addAttribute("userId",   request.getParameter("userId"));
         model.addAttribute("wkNo",     request.getParameter("wkNo"));
 
-        // 추가
         ClsVO clsVO = new ClsVO();
         clsVO.setSbjctId(sbjctId);
         ClsVO clsDetail = clsService.selectClsDetail(clsVO);
@@ -699,9 +713,9 @@ public class ClsController extends ControllerBase {
 
         return "std/popup/cls_stdnt_wk_detail_popup";
     }
+
     /*****************************************************
-     * 주차 학습 요약 + 차시 목록 + 3분 로그 조회 (Ajax)
-     * URL: /cls/selectStdntWkLrnSummary.do
+     * 주차 학습 요약 + 차시 목록 + 학습 로그 조회 (Ajax)
      ******************************************************/
     @RequestMapping(value = "/selectStdntWkLrnSummary.do")
     @ResponseBody
@@ -711,14 +725,12 @@ public class ClsController extends ControllerBase {
         try {
             ClsWkLrnVO result = clsService.selectStdntWkLrnSummary(vo);
 
-            // 차시 목록 조회
             List<ClsChsiLrnVO> chsiList = clsService.selectStdntChsiLrnList(vo);
 
-            // 각 차시별 3분 로그 조회 후 세팅
             if (chsiList != null) {
                 for (ClsChsiLrnVO chsi : chsiList) {
                     ClsLrnLogVO logParam = new ClsLrnLogVO();
-                    logParam.setChsiSchdlId(chsi.getChsiSchdlId());
+                    logParam.setCntntsId(chsi.getCntntsId());
                     logParam.setUserId(vo.getUserId());
                     List<ClsLrnLogVO> logs = clsService.selectStdntLrnLog(logParam);
                     chsi.setLogList(logs);
@@ -739,7 +751,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 출석 처리 (Ajax)
-     * URL: /cls/updateAtndlcProcess.do
      ******************************************************/
     @RequestMapping(value = "/updateAtndlcProcess.do")
     @ResponseBody
@@ -767,14 +778,13 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 출석 처리 취소 (Ajax)
-     * URL: /cls/updateAtndlcCancel.do
      ******************************************************/
     @RequestMapping(value = "/updateAtndlcCancel.do")
     @ResponseBody
     public ProcessResultVO<Object> updateAtndlcCancel(ClsWkLrnVO vo, HttpServletRequest request) throws Exception {
         ProcessResultVO<Object> resultVO = new ProcessResultVO<>();
         vo.setOrgId(SessionInfo.getOrgId(request));
-        vo.setMdfrId(SessionInfo.getUserId(request));  // 수정자
+        vo.setMdfrId(SessionInfo.getUserId(request));
         try {
             int cnt = clsService.updateAtndlcCancel(vo);
             if (cnt > 0) {
@@ -794,7 +804,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 학습자 학습요소 참여현황 제출 목록 조회 (Ajax)
-     * URL: /cls/selectStdntElemSbmsnList.do
      ******************************************************/
     @RequestMapping(value = "/selectStdntElemSbmsnList.do")
     @ResponseBody
@@ -815,8 +824,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 과제 제출기록 조회 (Ajax)
-     * URL: /cls/selectStdntAsmtSbmsnLog.do
-     * 호출처: cls_stdnt_element_popup.jsp → loadSbmsnLog()
      ******************************************************/
     @RequestMapping(value = "/selectStdntElemSbmsnLog.do")
     @ResponseBody
@@ -841,7 +848,6 @@ public class ClsController extends ControllerBase {
 
     /*****************************************************
      * 학습자 주차별 학습현황 단건 조회 (Ajax)
-     * 팝업: cls_stdnt_weekly_popup.jsp
      ******************************************************/
     @RequestMapping(value = "/selectClsStdntWeeklyInfo.do")
     @ResponseBody
@@ -852,7 +858,6 @@ public class ClsController extends ControllerBase {
         vo.setOrgId(SessionInfo.getOrgId(request));
 
         try {
-            // 파라미터 체크
             if (ValidationUtils.isEmpty(vo.getSbjctId()) || ValidationUtils.isEmpty(vo.getUserId())) {
                 throw new AccessDeniedException(getMessage("common.system.error"));
             }
@@ -869,4 +874,5 @@ public class ClsController extends ControllerBase {
 
         return resultVO;
     }
+
 }

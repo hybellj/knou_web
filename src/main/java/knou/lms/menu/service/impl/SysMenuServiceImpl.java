@@ -6,18 +6,19 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
-import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
-import knou.lms.common.vo.OrgMenuVO;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.menu.dao.SysAuthGrpDAO;
 import knou.lms.menu.dao.SysAuthGrpLangDAO;
 import knou.lms.menu.dao.SysMenuDAO;
 import knou.lms.menu.service.SysMenuService;
+import knou.lms.menu.vo.MenuUseOrgVO;
+import knou.lms.menu.vo.MenuVO;
 import knou.lms.menu.vo.MgrSysMenuVO;
 import knou.lms.menu.vo.SysAuthGrpLangVO;
 import knou.lms.menu.vo.SysAuthGrpMenuVO;
@@ -583,4 +584,23 @@ public class SysMenuServiceImpl
         return sysMenuDAO.selectServiceMenuAll(vo);
     }
 
+
+    /*
+    새버전 작업..........................
+    */
+
+
+    /**
+     * 메인메뉴 전체 목록 조회
+     */
+    public List<MenuVO> selectMainMenuAll(MenuVO vo) throws Exception {
+        return sysMenuDAO.selectMainMenuAll(vo);
+    }
+
+    /**
+     * 메인메뉴 기관 사용 전체 목록 조회
+     */
+    public List<MenuUseOrgVO> selectMainMenuUseOrgAll(MenuUseOrgVO vo) throws Exception {
+        return sysMenuDAO.selectMainMenuUseOrgAll(vo);
+    }
 }

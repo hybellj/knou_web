@@ -202,7 +202,7 @@ public interface ClsDAO {
      * @return List<ClsAsmtSbmsnLogVO>
      * @throws Exception
      ******************************************************/
-    public List<ClsAsmtSbmsnLogVO> selectStdntElemSbmsnLog(ClsAsmtSbmsnLogVO vo);
+    public List<ClsAsmtSbmsnLogVO> selectStdntElemSbmsnLog(ClsAsmtSbmsnLogVO vo) throws Exception;
 
     /*****************************************************
      * 학습자 주차별 학습현황 단건 정보를 조회한다.
@@ -211,5 +211,21 @@ public interface ClsDAO {
      * @throws Exception
      ******************************************************/
     public ClsStdntVO selectClsStdntWeeklyInfo(ClsStdntVO vo) throws Exception;
+
+    /*****************************************************
+     * 학습요소 참여현황 목록 건수를 조회한다.
+     * @param ClsElemStatsVO
+     * @return int
+     * @throws Exception
+     ******************************************************/
+    public int selectClsElemStatsListCnt(ClsElemStatsVO vo) throws Exception;
+
+    /*****************************************************
+     * 학습요소 참여현황 목록을 페이징 조회한다.
+     * @param ClsElemStatsVO
+     * @return List<ClsElemStatsVO>
+     * @throws Exception
+     ******************************************************/
+    public List<ClsElemStatsVO> selectClsElemStatsListPaging(ClsElemStatsVO vo) throws Exception;
 
 }

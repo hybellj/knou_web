@@ -19,7 +19,7 @@ public interface SubjectService {
 
     public List<EgovMap> sbjctAdmList(BaseParam param) throws Exception;
     
-    public List<EgovMap> sbjctAdmList(String	subjectId) throws Exception;
+    public List<EgovMap> sbjctAdmList(String subjectId) throws Exception;
 
     public EgovMap middleLastExamSelect(BaseParam param) throws Exception;
 

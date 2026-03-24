@@ -1,4 +1,3 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
@@ -6,32 +5,32 @@
 <head>
 	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
 		<jsp:param name="style" value="classroom"/>
-		<jsp:param name="module" value="chart, fileuploader"/>
+		<jsp:param name="module" value="chart, fileUploader"/>
 	</jsp:include>
 </head>
 
 	<script type="text/javascript">
 		var fUploader = {};
-		var aUploader = {};
-		var aRecord = {};
-		var aPlayer = {};
+		// var aUploader = {};
+		// var aRecord = {};
+		// var aPlayer = {};
 		var edtNo = null;
 		var curUploaderId = "";
 		var oldFilesMap = {};
 		var upType = "";
 
-		var audioRecord = null;
+		// var audioRecord = null;
 
 		$(document).ready(function() {
-			fdbkList();
+			// fdbkList();
 		});
 
 		// 리스트 조회
 		function fdbkList(page) {
 			fUploader = {};
-			aRecord = {};
-			aPlayer = {};
-			makeAudioRecord(0);
+			// aRecord = {};
+			// aPlayer = {};
+			// makeAudioRecord(0);
 
 			var url  = "/forum/forumLect/getFdbk.do";
 			var data = {
@@ -79,9 +78,9 @@
 			$(".editBtn").prop("disabled", true);
 			$(".delBtn").prop("disabled", true);
 			
-			var fileUploader = dx5.get("fileUploader");
-			if (fileUploader != null) {
-				fileUploader.clearItems();
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
+			if (fileUploaderNewFeedback != null) {
+				fileUploaderNewFeedback.clearItems();
 			}
 			
 			if (oldFilesMap[i] != null && oldFilesMap[i].length > 0) {
@@ -91,10 +90,10 @@
 					html += "<button type='button' class='del ml10' style='border:1px solid #aaa;width:16px;height:16px' title='Delete' onclick=\"fdbkFileReset("+(i)+");\"></button>";
 				}
 				$("#upload"+i+"File").html(html);				
-				fileUploader.addOldFileList(oldFilesMap[i]);
+				fileUploaderNewFeedback.addOldFileList(oldFilesMap[i]);
 			}
 			
-			fileUploader.showResetBtn();
+			fileUploaderNewFeedback.showResetBtn();
 		}
 
 		// 피드백 취소 버튼
@@ -115,22 +114,22 @@
 			$(".editBtn").prop("disabled", false);
 			$(".delBtn").prop("disabled", false);
 			
-			var fileUploader = dx5.get("fileUploader");
-			if(fileUploader.getTotalItemCount() > 0){
-				fileUploader.removeAll();
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
+			if(fileUploaderNewFeedback.getTotalItemCount() > 0){
+				fileUploaderNewFeedback.removeAll();
 			}
 			$("#uploadBox").css("visibility", "hidden");
 		}
 
 		// 피드백 저장 버튼
 		function btnFdbkSave(i){
-			var fileUploader = dx5.get("fileUploader");
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
 			upType = "edit";
 			edtNo = i;
 			
 			// 피드백 등록 버튼
-			if (fileUploader.getFileCount() > 0) {
-				fileUploader.startUpload();
+			if (fileUploaderNewFeedback.getFileCount() > 0) {
+				fileUploaderNewFeedback.startUpload();
 			} else {
 				// 저장 호출
 				edtFdbk();
@@ -139,32 +138,32 @@
 
 		// 피드백 저장
 		function edtFdbk() {
-			var fileUploader = dx5.get("fileUploader");
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
 			var delFileIds = [];
 
-			if($("#fdbkAudioBox"+edtNo).css("display") != 'none'){
+			/*if($("#fdbkAudioBox"+edtNo).css("display") != 'none'){
 				if(aRecord[`aRecord`+edtNo].audioFile != '' &&
 						( $("#fdbkAudioBox" +edtNo+ " input:checkbox[name='delFileIds']").length
 							- $("#fdbkAudioBox" +edtNo+ " input:checkbox[name='delFileIds']:checked").length) > 0){
-					 /* 하나의 음성파일만 저장 할 수 있습니다. */
+					 /!* 하나의 음성파일만 저장 할 수 있습니다. *!/
 					alert("<spring:message code='forum.alert.audio.record.error'/>");
 					return false;
 				}
 				for(var i=0; i<$("#fdbkAudioBox" +edtNo+ " input:checkbox[name='delFileIds']:checked").length; i++ ){
 					delFileIds.push($("#fdbkAudioBox" +edtNo+ " input:checkbox[name='delFileIds']:checked").eq(i).val());
 				}
-			}
+			}*/
 
 	 		var url = "/forum/forumLect/edtFdbk.do";
 			var data = {
 				"forumFdbkCd" : $("#fdbk"+edtNo).data("fdbkCd"),
 				"fdbkCts"     : $("#fdbkValue"+edtNo).val(),
-				"uploadFiles" : fileUploader.getUploadFiles(),
-				"uploadPath"  : fileUploader.getUploadPath(),
-				"copyFiles"   : fileUploader.getCopyFiles(),
-				"delFileIds"  : fileUploader.getDelFileIds(),
-				"audioData"   : aRecord[`aRecord`+edtNo].audioData,
-				"audioFile"   : aRecord[`aRecord`+edtNo].audioFile
+				"uploadFiles" : fileUploaderNewFeedback.getUploadFiles(),
+				"uploadPath"  : fileUploaderNewFeedback.getUploadPath(),
+				"copyFiles"   : fileUploaderNewFeedback.getCopyFiles(),
+				"delFileIds"  : fileUploaderNewFeedback.getDelFileIds(),
+				/*"audioData"   : aRecord[`aRecord`+edtNo].audioData,
+				"audioFile"   : aRecord[`aRecord`+edtNo].audioFile*/
 			};
 
 			edtNo = null;
@@ -214,9 +213,9 @@
 		}
 
 		function fdbkAudioOpen(i){
-			edtNo = i;
+			/*edtNo = i;
 			writeOpen();
-			$("#audioView"+i).show();
+			$("#audioView"+i).show();*/
 		}
 
 		function writeOpen(){
@@ -319,58 +318,6 @@
                 html += "           </div>";
                 html += "       </div>";
                 html += "   </div>";
-
-				html += "   <div class='ui box mt10' id='aFileEditView"+(i+1)+"' style='display:none;'>";
-                html += "       <div class='fields mr0'>";
-                html += "           <div class='field'>";
-                html += "               <button class='ui basic icon button' onclick='fdbkFilePopOpen("+(i+1)+");'><i class='save icon'></i><spring:message code='forum.label.fdbk.file.attach' /></button>";
-                html += "           </div>";
-                html += "           <div class='field ui segment flex1 flex-item p4' style='position:relative'>";
-                html += "               <div class='flex align-items-center' id='upload"+(i+1)+"File'>";
-                html += "               </div>";
-                html += "           </div>";
-                html += "       </div>";
-                html += "       <div class='fields mr0'>";
-                html += "           <div class='field'>";
-                html += "               <button class='ui basic icon button' onclick='fdbkAudioPopOpen("+(i+1)+");'><i class='microphone icon'></i><spring:message code='forum.label.fdbk.audio.attach' /></button>";
-                html += "           </div>";
-                html += "           <div class='field ui segment flex1 flex-item p4'>";
-                html += "               <div class='flex align-items-center gap8' id='fdbkEdtAudioView"+(i+1)+"'>";
-                if(aName != ""){
-	                html += "                   <i class='paperclip icon f080'></i>" + aName;
-                }
-                html += "               </div>";
-                html += "           </div>";
-                html += "       </div>";
-                html += "   </div>";
-
-			    html += "<div class='modal fade' id='fdbkAudioPop"+(i+1)+"' tabindex='-1' role='dialog' aria-labelledby='<spring:message code='forum.label.fdbk.audio.attach'/>' data-backdrop='static' data-keyboard='false' aria-hidden='false'>";
-			    html += "    <div class='modal-dialog modal-dialog' role='document'>";
-			    html += "        <div class='modal-content'>";
-				html += "			<div class='modal-header'>";
-			    html += "                <button type='button' class='close' aria-label='<spring:message code='forum.button.close'/>' onclick='fdbkAudioPopClose("+(i+1)+");'>"; // 닫기
-			    html += "                    <span aria-hidden='true'>&times;</span>";
-			    html += "                </button>";
-			    html += "                <h4 class='modal-title'><spring:message code='forum.label.fdbk.audio.attach'/><!-- 피드백 음성녹음 --></h4>";
-			    html += "            </div>";
-			    html += "            <div class='modal-body'>";
-			    html += "            	<div class='modal-page'>";
-			    html += "            		<div id='wrap'>";
-				html += "                		<div class='ui form' style='height:50px'>";
-				html += "							<div id='audioRecord"+(i+1)+"'></div>";
-				html += "						</div>";
-				html += "                		<div class='ui form mt20' style='height:5px'>";
-				html += "							<div id='fdbkAudioBox" + (i+1) + "' style='min-height: 0;'></div>";
-				html += "						</div>";
-				html += "						<div class='bottom-content'>";
-				html += "			           		<a class='ui blue button toggle_btn flex-left-auto' onclick='fdbkAudioPopClose("+(i+1)+");'><spring:message code='forum.button.attaching'/><!-- 첨부하기 --></a>";
-				html += "			            </div>";
-				html += "			    	</div>";
-			    html += "            	</div>";
-			    html += "            </div>";
-			    html += "        </div>";
-			    html += "    </div>";
-			    html += "</div>";
 			    html += "</div>";
 			});
 
@@ -380,7 +327,7 @@
 	 	// 피드백 파일첨부 팝업 열기
 		function fdbkFilePopOpen(id) {
 			curUploaderId = id;
-			var fileUploader = dx5.get("fileUploader");
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
 			var w = $("#upload"+id+"File").parent().outerWidth();
 			var bw = $("#uploadBox .fCloseBtn").outerWidth();
 			var h = $("#upload"+id+"File").parent().outerHeight();
@@ -390,16 +337,16 @@
 			$("#uploadBox").offset({top: pos.top, left: pos.left});
 			$("#uploadBox .dext5-container").css({"width":(w-bw)+"px","height":h+"px"});
 			$("#uploadBox button").css({"height":h+"px"});
-			fileUploader.setUIStyle({itemHeight: h});
+			fileUploaderNewFeedback.setUIStyle({itemHeight: h});
 		}
 
 		// 피드백 파일첨부 팝업 닫기
 		function fdbkFilePopClose(i) {
-			var fileUploader = dx5.get("fileUploader");
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
 			
-			if(fileUploader.getTotalItemCount() > 0){
+			if(fileUploaderNewFeedback.getTotalItemCount() > 0){
 				var html = "";
-				var items = fileUploader.getItems();
+				var items = fileUploaderNewFeedback.getItems();
 
 				html += "<i class='paperclip icon f080'></i>";
 				html += items[0].name;
@@ -420,49 +367,16 @@
 			
 			$("#upload"+id+"File").empty();
 			
-			var fileUploader = dx5.get("fileUploader");
-			if(fileUploader.getTotalItemCount() > 0){
-				fileUploader.removeAll();
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
+			if(fileUploaderNewFeedback.getTotalItemCount() > 0){
+				fileUploaderNewFeedback.removeAll();
 			}
-		}
-
-	 	// 피드백 음성녹음 팝업 열기
-		function fdbkAudioPopOpen(i) {
-			$('#fdbkAudioPop'+i).modal('show');
-		}
-
-		// 피드백 음성녹음 팝업 닫기
-		function fdbkAudioPopClose(i) {
-
-			var html = "";
-			if(aRecord[`aRecord`+i].audioData != ''){
-				if($("#fdbkAudioBox"+i+" input:checkbox[name='delFileIds']").length > 0){
-					if($("#fdbkAudioBox"+i+" input:checkbox[name='delFileIds']:checked").length < 1){
-
-						 /* 하나의 음성파일만 저장 할 수 있습니다. */
-						alert("<spring:message code='forum.alert.audio.record.error'/>");
-						return false;
-					}
-				}
-				html += "<i class='paperclip icon f080'></i>";
-				html += "<spring:message code='forum.label.audio.record.file'/> REC";
-			}else{
-				if($("#fdbkAudioBox"+i+" input:checkbox[name='delFileIds']").length > 0){
-					if($("#fdbkAudioBox"+i+" input:checkbox[name='delFileIds']:checked").length < 1){
-						html += "<i class='paperclip icon f080'></i>";
-						html += $("#fdbkAudioBox"+i+" .file-name").html().split(' ')[0];
-					}
-				}
-			}
-
-			$("#fdbkEdtAudioView"+i).html(html);
-			$('#fdbkAudioPop'+i).modal('hide');
 		}
 
 		// 피드백 파일첨부 팝업 열기
 		function fFilePopOpen(id) {
 			curUploaderId = id;
-			var fileUploader = dx5.get("fileUploader");
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
 			var w = $("#upload"+id+"File").parent().outerWidth();
 			var bw = $("#uploadBox .fCloseBtn").outerWidth();
 			var h = $("#upload"+id+"File").parent().outerHeight();
@@ -472,30 +386,13 @@
 			$("#uploadBox").offset({top: pos.top, left: pos.left});
 			$("#uploadBox .dext5-container").css({"width":(w-bw)+"px","height":h+"px"});
 			$("#uploadBox button").css({"height":h+"px"});
-			fileUploader.setUIStyle({itemHeight: h});
+			fileUploaderNewFeedback.setUIStyle({itemHeight: h});
 		}
 
 		// 피드백 파일첨부 팝업 닫기
 		function fFilePopClose() {
 			$("#uploadBox").css("visibility", "hidden");
 			fdbkFilePopClose();
-		}
-
-	 	// 피드백 음성녹음 팝업 열기
-		function fAudioPopOpen() {
-			$('#fdbkAudioPop').modal('show');
-		}
-
-		// 피드백 음성녹음 팝업 닫기
-		function fAudioPopClose() {
-			var html = "";
-			if(audioRecord.audioData  != ''){
-				html += "<i class='paperclip icon f080'></i>";
-				html += "<spring:message code='forum.label.audio.record.file'/> REC"; // 음성녹음파일
-			}
-
-			$("#fAudioUpload").html(html);
-			$('#fdbkAudioPop').modal('hide');
 		}
 
 		// 피드백 작성 버튼
@@ -507,10 +404,10 @@
 			$(".editBtn").prop("disabled", true);
 			$(".delBtn").prop("disabled", true);
 			
-			var fileUploader = dx5.get("fileUploader");
-			if (fileUploader != null) {
-				fileUploader.clearItems();
-				fileUploader.showResetBtn();
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
+			if (fileUploaderNewFeedback != null) {
+				fileUploaderNewFeedback.clearItems();
+				fileUploaderNewFeedback.showResetBtn();
 			}
 		}
 
@@ -523,9 +420,9 @@
 			$(".editBtn").prop("disabled", false);
 			$(".delBtn").prop("disabled", false);
 			
-			var fileUploader = dx5.get("fileUploader");
-			if(fileUploader.getTotalItemCount() > 0){
-				fileUploader.removeAll();
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
+			if(fileUploaderNewFeedback.getTotalItemCount() > 0){
+				fileUploaderNewFeedback.removeAll();
 			}
 			$("#uploadBox").css("visibility", "hidden");
 			$("#upload0File").html("");
@@ -533,7 +430,7 @@
 
 		// 피드백 등록 버튼
 		function btnRegFdbk(){
-			var fileUploader = dx5.get("fileUploader");
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
 			upType = "add";
 			
 			// 피드백 입력
@@ -542,8 +439,8 @@
 				return false;
 			}
 
-			if (fileUploader.getFileCount() > 0) {
-				fileUploader.startUpload();
+			if (fileUploaderNewFeedback.getFileCount() > 0) {
+				fileUploaderNewFeedback.startUpload();
 			} else {
 				// 저장 호출
 				regFdbk();
@@ -551,7 +448,7 @@
 		};
 
 	    // 파일 업로드 완료
-	    function finishUpload() {
+	    function finishUploadNewFeedback() {
 	    	if (upType == "add") {
 	    		regFdbk();
 	    	}
@@ -562,8 +459,8 @@
 
 		// 피드백 저장
 		function regFdbk() {
-			var fileUploader = dx5.get("fileUploader");
-	 		var url = "/forum/forumLect/Form/regFdbk.do";
+			var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
+	 		var url = "/forum2/forumLect/Form/regFdbk.do";
 			var data = {
 					"crsCreCd" : "${forumVo.crsCreCd}",
 					"forumCd" : "${forumVo.forumCd}",
@@ -572,11 +469,9 @@
 					"userName" : "${userName}",
 					"teamCd" : $("#teamCd").val(),
 					"fdbkCts" : $("#fdbkValue").val(),
-					"uploadFiles" : fileUploader.getUploadFiles(),
-					"copyFiles"   : fileUploader.getCopyFiles(),
-					"uploadPath"  : fileUploader.getUploadPath(),
-					"audioData"   : audioRecord.audioData,
-					"audioFile"   : audioRecord.audioFile
+					"uploadFiles" : fileUploaderNewFeedback.getUploadFiles(),
+					"copyFiles"   : fileUploaderNewFeedback.getCopyFiles(),
+					"uploadPath"  : fileUploaderNewFeedback.getUploadPath(),
 				};
 
 			ajaxCall(url, data, function(data) {
@@ -619,30 +514,24 @@
                     </div>
                 </div>
 
-				<div  id="feedbackWrite" class="flex1" style="display:none;">
+				<div  id="feedbackWrite" class="" style="display:none;">
 					<div class="field ui fluid input">
-                    	<textarea id="fdbkValue" rows="10" class=""  placeholder="<spring:message code='forum.label.feedback.input'/>"></textarea><!-- 피드백 입력 -->
+                    	<textarea id="fdbkValue" rows="5" class="width-100per"  placeholder="<spring:message code='forum.label.feedback.input'/>"></textarea><!-- 피드백 입력 -->
                     </div>
 
-                    <div class="ui box">
-                        <div class="fields mr0">
-                            <div class="field">
-                                <button class="ui basic icon button" onclick="fFilePopOpen(0);"><i class="save icon"></i> <spring:message code='forum.label.fdbk.file.attach'/><!-- 파일첨부 --></button>
-                            </div>
-                            <div class="field ui segment flex1 flex-item p4" style="position:relative">
-                                <div class="flex align-items-center" id="upload0File"></div>
-                            </div>
-                            
-                        </div>
-
-                        <div class="fields  mr0">
-                            <div class="field">
-                                <button class="ui basic icon button" onclick="fAudioPopOpen();"><i class="microphone icon"></i> <spring:message code='forum.label.fdbk.audio.attach'/><!-- 음성녹음 --></button>
-                            </div>
-                            <div class="field ui segment flex1 flex-item p4">
-                                <div class="flex align-items-center" id="fAudioUpload"></div>
-                            </div>
-                        </div>
+                    <div id="uploaderBox" class="mt10 width-100per">
+                        <!-- TODO : 피드백 File Uplaod -->
+                        <uiex:dextuploader
+                                id="fileUploaderNewFeedback"
+                                path="/forum/${forumVo.forumCd}"
+                                limitCount="5"
+                                limitSize="100"
+                                oneLimitSize="100"
+                                listSize="3"
+                                fileList=""
+                                finishFunc="finishUploadNewFeedback()"
+                                allowedTypes="*"
+                        />
                     </div>
                     <div class="fields mt10 ml0 mr0 tr">
                         <a href="javascript:btnRegFdbk()" class="btn type1"><spring:message code='forum.button.save'/><!-- 저장 --></a>
@@ -656,51 +545,53 @@
             </div>
         </div>
 
-    <div class="modal fade" id="fdbkAudioPop" tabindex="-1" role="dialog" aria-labelledby="audio modal" data-backdrop="static" data-keyboard="false" aria-hidden="false">
-        <div class="modal-dialog modal-dialog" role="document">
-            <div class="modal-content">
-				<div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="<spring:message code='forum.button.close'/>" onclick="fAudioPopClose();"><!-- 닫기 -->
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <h4 class="modal-title"><spring:message code='forum.label.fdbk.audio.attach'/><!-- 피드백 음성녹음 --></h4>
-                </div>
-                <div class="modal-body">
-                	<div class="modal-page">
-                		<div id="wrap">
-	                		<div class="ui form" style="height:50px">
-								<div id="audioRecord"></div>
-							</div>
-							<div class="bottom-content">
-				           		<a class="ui blue button toggle_btn flex-left-auto" onclick="fAudioPopClose();"><spring:message code='forum.button.attaching'/><!-- 첨부하기 --></a>
-				            </div>
-				    	</div>
-                	</div>
+       <%-- <div class="modal fade" id="fdbkAudioPop" tabindex="-1" role="dialog" aria-labelledby="audio modal" data-backdrop="static" data-keyboard="false" aria-hidden="false">
+            <div class="modal-dialog modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="<spring:message code='forum.button.close'/>" onclick="fAudioPopClose();"><!-- 닫기 -->
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title"><spring:message code='forum.label.fdbk.audio.attach'/><!-- 피드백 음성녹음 --></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-page">
+                            <div id="wrap">
+                                <div class="ui form" style="height:50px">
+                                    <div id="audioRecord"></div>
+                                </div>
+                                <div class="bottom-content">
+                                    <a class="ui blue button toggle_btn flex-left-auto" onclick="fAudioPopClose();"><spring:message code='forum.button.attaching'/><!-- 첨부하기 --></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    
-	<div id="uploadBox" style="position:absolute;top:0;left:0;visibility:hidden;z-index:999">
-		<div class="flex1" style="display:inline-block;">
-	    	<uiex:dextuploader
-				id="fileUploader"
-				path="/forum/${forumVO.forumCd}"
-				limitCount="1"
-				limitSize="1024"
-				oneLimitSize="1024"
-				listSize="1"
-				finishFunc="finishUpload()"
-				allowedTypes="*"
-				bigSize="false"
-				uiMode="simple"
-			/>
-		</div>
-		<div class="flex1" style="display:inline-block;vertical-align:top">
-			<button onclick="fFilePopClose()" class="ui grey small button fCloseBtn" style="margin-left:-4px;"><span aria-hidden="true">&times;</span></button>
-		</div>
-	</div>
-	
-	<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
+        </div>--%>
+
+        <<%--div id="uploadBox" style="position:absolute;top:0;left:0;visibility:hidden;z-index:999">
+            <div class="flex1" style="display:inline-block;">
+                <div id="fileUploadBlock">
+                    <uiex:dextuploader
+                        id="fileUploaderNewFeedback"
+                        path="/forum/${forumVo.forumCd}"
+                        limitCount="1"
+                        limitSize="100"
+                        oneLimitSize="100"
+                        listSize="1"
+                        finishFunc="finishUploadNewFeedback()"
+                        allowedTypes="*"
+                        bigSize="false"
+                        uiMode="simple"
+                    />
+                </div>
+            </div>
+            <div class="flex1" style="display:inline-block;vertical-align:top">
+                <button onclick="fFilePopClose()" class="ui grey small button fCloseBtn" style="margin-left:-4px;"><span aria-hidden="true">&times;</span></button>
+            </div>
+        </div>--%>
+
+        <script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
 	</body>
 </html>

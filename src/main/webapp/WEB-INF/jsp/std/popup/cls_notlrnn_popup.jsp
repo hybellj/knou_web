@@ -20,7 +20,7 @@
         </h3>
         <div class="right-area">
             <button type="button" class="btn basic" id="btnSendMsg">
-                <spring:message code="button.msg.send"/>
+                메시지 보내기
             </button>
             <button type="button" class="btn type2" id="btnExcelDown">
                 <spring:message code="button.download.excel"/>
@@ -59,8 +59,7 @@
 
     <!-- 닫기 버튼 -->
     <div class="modal_btns">
-        <button type="button" class="btn type2"
-                onclick="closePopup()">
+        <button type="button" class="btn type2" onclick="closePopup()">
             닫기
         </button>
     </div>
@@ -75,6 +74,7 @@
     var wkNo     = parseInt(_p.get("wkNo") || "0", 10);
 
     var currentUserIds = [];
+    var currentUsers = [];
 
     $(function () {
         $("#popSubTitle").text(wkNo + "주차 미학습자");
@@ -83,28 +83,26 @@
 
         $("#btnSendMsg").on("click", function () {
             if (!currentUserIds || currentUserIds.length === 0) {
-                alert("현재 조회된 미학습자가 없습니다.");
+                // ★ 수정: alert() → UiComm.showMessage() (G-3)
+                UiComm.showMessage("현재 조회된 미학습자가 없습니다.", "warning");
                 return;
             }
 
-            // 다수 수신자 rcvUserInfoStr 구성 (| 구분)
-            var rcvUserInfoStr = "";
-            var $rows = $("#notLrnnBody tr");
-            var sendCnt = 0;
-            currentUserIds.forEach(function (uid, i) {
-                if (sendCnt > 0) rcvUserInfoStr += "|";
-                var usernm = $rows.eq(i).find("td").eq(3).text() || "";
-                rcvUserInfoStr += uid + ";" + usernm + ";;";
-                sendCnt++;
-            });
+            var rcvUserInfoStr = currentUsers.map(function (u) {
+                return u.userId + ";" + u.usernm + ";;";
+            }).join("|");
 
-            var form = window.parent.alarmForm;
+            //form.onsubmit = window.open() → window.open() 직접 호출 후 submit
+            var form = window.parent && window.parent.alarmForm;
+            if (!form) {
+                UiComm.showMessage("메시지 발송 폼을 찾을 수 없습니다.", "warning");
+                return;
+            }
             form.action = '<%=CommConst.SYSMSG_URL_SEND%>';
             form.target = "msgWindow";
-            form[name='alarmType'].value      = "S";
-            form[name='rcvUserInfoStr'].value = rcvUserInfoStr;
-            form.onsubmit = window.open("about:blank", "msgWindow",
-                "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
+            form.elements['alarmType'].value = "S";
+            form.elements['rcvUserInfoStr'].value = rcvUserInfoStr;
+            window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
             form.submit();
         });
 
@@ -115,7 +113,6 @@
 
     function closePopup() {
         try {
-            // UiDialog 반환값 기반 닫기
             var dlgId = null;
             if (window.frameElement) {
                 dlgId = $(window.frameElement).closest('[data-dialog-id]').data('dialog-id');
@@ -124,7 +121,6 @@
                 var dlg = window.parent.UiDialog(dlgId);
                 if (dlg && typeof dlg.close === 'function') { dlg.close(); return; }
             }
-            // fallback: X버튼 트리거
             $(window.frameElement).closest('.ui-dialog').find('.ui-dialog-titlebar-close').trigger('click');
         } catch(e) {
             window.close();
@@ -150,7 +146,18 @@
                 }
 
                 var list = res.returnList;
-                currentUserIds = list.map(function (x) { return x.userId; }).filter(Boolean);
+                currentUsers = list.map(function (x) {
+                    return {
+                        userId: x.userId || "",
+                        usernm: x.usernm || ""
+                    };
+                }).filter(function (x) {
+                    return !!x.userId;
+                });
+
+                currentUserIds = currentUsers.map(function (x) {
+                    return x.userId;
+                });
                 $("#popTotalCnt").text(list.length);
 
                 list.forEach(function (item, idx) {
@@ -189,7 +196,7 @@
 
         $("form[name=notLrnnExcelForm]").remove();
         var $form = $('<form name="notLrnnExcelForm" method="post"></form>');
-        $form.attr("action", CTX + "/cls/selectClsStdntListExcelDown.do");
+        $form.attr("action", CTX + "/cls/selectClsNoStudyWeekExcelDown.do");
         $form.append($('<input/>', {type:'hidden', name:'sbjctId',   value: sbjctId}));
         $form.append($('<input/>', {type:'hidden', name:'dvclasNo',  value: dvclasNo}));
         $form.append($('<input/>', {type:'hidden', name:'wkNo',      value: wkNo}));

@@ -45,19 +45,28 @@
                             <div class="item">
                                 <span class="item_tit"><label for="srchYear">학년도/학기</label></span>
                                 <div class="itemList">
-                                    <% pageContext.setAttribute("currentYear", java.time.Year.now().getValue()); %>
-                                    <c:set var="selectedYr" value="${empty vo.searchYr ? currentYear : vo.searchYr}"/>
-                                    <c:set var="selectedSm" value="${empty vo.searchSmstr ? '1' : vo.searchSmstr}"/>
+
+                                    <c:set var="selectedYr" value="${vo.searchYr}"/>
+                                    <c:set var="selectedSm" value="${vo.searchSmstr}"/>
 
                                     <select class="form-select" id="srchYear" name="searchYr">
-                                        <c:forEach var="year" begin="${currentYear - 3}" end="${currentYear}" step="1">
-                                            <option value="${year}" <c:if test="${selectedYr == year.toString()}">selected</c:if>>${year}년</option>
+                                        <c:forEach var="item" items="${yearList}">
+                                            <option value="${item}" ${item eq selectedYr ? 'selected' : ''}>${item}년</option>
                                         </c:forEach>
                                     </select>
+
                                     <select class="form-select" id="srchTerm" name="searchSmstr">
-                                        <option value="1" <c:if test="${selectedSm == '1'}">selected</c:if>>1학기</option>
-                                        <option value="2" <c:if test="${selectedSm == '2'}">selected</c:if>>2학기</option>
+                                        <option value="">학기 선택</option>
+                                        <c:forEach var="item" items="${termList}">
+                                            <c:if test="${item.codeCd eq '10' or item.codeCd eq '20'}">
+                                                <c:set var="termValue" value="${item.codeCd eq '20' ? '2' : '1'}"/>
+                                                <option value="${termValue}" ${termValue eq selectedSm ? 'selected' : ''}>
+                                                    <c:out value="${item.codeNm}" />
+                                                </option>
+                                            </c:if>
+                                        </c:forEach>
                                     </select>
+
                                 </div>
                             </div>
 
@@ -183,7 +192,7 @@
                 {title:"과목명",   field:"sbjctnm",    headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:220},
                 {title:"분반",     field:"dvclasNo",   headerHozAlign:"center", hozAlign:"center", width:70,  minWidth:70},
                 {title:"학점",     field:"crdts",      headerHozAlign:"center", hozAlign:"center", width:60,  minWidth:60},
-                {title:"공동교수",     field:"usernm",     headerHozAlign:"center", hozAlign:"center", width:110, minWidth:110},
+                {title:"공동교수", field:"coProfNm",   headerHozAlign:"center", hozAlign:"center", width:110, minWidth:110},
                 {title:"튜터",     field:"tutor",      headerHozAlign:"center", hozAlign:"center", width:90,  minWidth:90},
                 {title:"조교",     field:"asst",       headerHozAlign:"center", hozAlign:"center", width:90,  minWidth:90},
                 {title:"",         field:"sbjctId",    visible:false}
@@ -266,15 +275,15 @@
                 lineNo:     item.lineNo,
                 sbjctYr:    item.sbjctYr,
                 sbjctSmstr: (item.sbjctSmstr || "").toString().trim(),
-                orgNm:      item.orgNm   || "-",
+                orgNm:      item.orgNm     || "-",
                 deptnm:     item.deptnm,
                 crclmnNo:   crclmnNoLink,
                 sbjctnm:    item.sbjctnm,
                 dvclasNo:   item.dvclasNo,
                 crdts:      item.crdts,
-                usernm:     item.usernm  || "-",
-                tutor:      item.tutor   || "-",
-                asst:       item.asst    || "-",
+                coProfNm:   item.coProfNm || "-",
+                tutor:      item.tutor    || "-",
+                asst:       item.asst     || "-",
                 sbjctId:    item.sbjctId
             });
         });

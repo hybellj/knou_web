@@ -3,7 +3,6 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="fnc" uri="http://localhost/common" %><!-- TODO: 차후 삭제 예정-->
 <!DOCTYPE html>
 <html lang="ko">
 <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
@@ -15,9 +14,34 @@
 		drawChartMy();
 		drawChartAverage();
 	});	
+		
+	function loadLctrPlandocPopView(sbjctId) {	
+	    fetch('/lctr/plandoc/profLctrPlandocPopView.do?subjectId=' + encodeURIComponent(sbjctId))
+	        .then(response => response.text())
+	        .then(data => {
+	            const div = document.getElementById('lecturePlanDoc');
+	            div.style.display = "block";
+	            div.style.position = "fixed";
+	            div.style.top = "50%";
+	            div.style.left = "50%";
+	            div.style.width = "800px";
+	            div.style.maxHeight = "80vh";
+	            div.style.overflow = "auto";
+	            div.style.zIndex = "9999";
+	            div.style.background = "#fff";
+	            div.style.padding = "20px";
+	            div.style.transform = "translate(-50%, -50%)";
+	            div.innerHTML = data;
+	        })
+	        .catch(error => {
+	            document.getElementById('lecturePlanDoc').innerHTML = '에러 발생';
+	            console.error(error);
+	        });
+	}
 </script>
 <link rel="stylesheet" type="text/css" href="/webdoc/assets/css/classroom.css" />
 <body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<div style="display:none;" id="lecturePlanDoc"></div>
     <div id="wrap" class="main">
     
         <!-- common header -->
@@ -82,16 +106,16 @@
                                         <span>학점:<strong>${subjectVM.subjectVO.crdts}학점</strong></span>
                                     </p>
                                     <p class="desc"><!-- 학습기간 --><!-- 수강시작일시 --><!-- 수강종료일시 -->
-                                        <span>학습기간:<strong>${fnc:dateFormat(subjectVM.subjectVO.atndlcSdttm, '.')} 
-                                        ~ ${fnc:dateFormat(subjectVM.subjectVO.atndlcEdttm, '.')}</strong></span>
+                                        <span>학습기간:<strong><uiex:formatDate value="${subjectVM.subjectVO.atndlcSdttm}" type="date"/>
+                                        ~ <uiex:formatDate value="${subjectVM.subjectVO.atndlcEdttm}" type="date"/></strong></span>
                                     </p>
                                 </div>
 
                                 <div class="classSection">
                                     <div class="cls_btn">
-                                        <a href="#0" class="btn"><em>강의</em>계획서</a><!-- 강의 --><!-- 계획서-->
+                                    	<a href="javascript:void(0); onclick=loadLctrPlandocPopView('${subjectVM.subjectVO.sbjctId}');" class="btn"><em>강의</em>계획서</a><!-- 강의 --><!-- 계획서-->
                                         <a href="#0" class="btn"><em>평가</em>기준</a><!-- 평가 --><!-- 기준-->
-                                        <a href="#0" class="btn"><em>강의실</em>나가기</a><!-- 강의실 --><!-- 나가기-->
+                                        <a href="/dashboard/dashboard.do" class="btn"><em>강의실</em>나가기</a><!-- 강의실 --><!-- 나가기-->
                                     </div>
                                 </div>
                             </div>
@@ -479,7 +503,7 @@
 			                                            <p class="tit">${item.atclTtl}</p>
 			                                            <p class="desc">
 			                                                <span class="name">${item.usernm}</span>
-			                                                <span class="date">${fnc:dateFormat(item.regDttm, '.')}</span>
+			                                                <span class="date"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
 			                                            </p>
 			                                        </a>
 			                                        <div class="state">
@@ -551,7 +575,6 @@
 
 					<!-- segment-->
 					<div class="segment">
-
 						
 						<div class="state-info-label">
 	                        <p class="pre"><i class="icon-svg-state"></i>학습 미진행</p>
@@ -610,54 +633,7 @@
 	                    </div>
 	                    <!-- //week_area -->
 	                        
-	                    <!-- 강의목록 -->
-	                    <!-- display none  -->
-	                    <div style="display:none;">
-	                     	<c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="" />
-	
-							<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
-				    
-							    <!-- 주차 -->
-							    <c:if test="${item.firstOrd == 0}">
-							        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${item.LCTR_WKNO_SCHDL_ID}" />
-							
-							        <div class="week">
-							            <h3>
-							                ${item.seqno}주차. ${item.nm}
-							            </h3>
-							        </div>
-							
-							        <ul class="week-contents">
-							    </c:if>
-					
-							    <!-- 주차 하위 콘텐츠 -->
-							    <c:if test="${item.firstOrd == 1}">
-							        <li class="content type-${item.srcTbl}">
-							            <span class="label">
-							                <c:choose>
-							                    <c:when test="${item.srcTbl == 'TB_LMS_LCTR'}">강의</c:when>
-							                    <c:when test="${item.srcTbl == 'TB_LMS_ASMT'}">과제</c:when>
-							                    <c:when test="${item.srcTbl == 'TB_LMS_DSCS'}">토론</c:when>
-							                    <c:when test="${item.srcTbl == 'TB_LMS_SRVY'}">설문</c:when>
-							                    <c:when test="${item.srcTbl == 'TB_LMS_SMNR'}">세미나</c:when>
-							                </c:choose>
-							            </span>
-							
-							            <span class="title">
-							                ${item.nm}
-							            </span>
-							        </li>
-							    </c:if>
-					
-							    <!-- 다음 주차가 나오면 닫기 -->
-							    <c:if test="${item.firstOrd == 0 && PREV_LCTR_WKNO_SCHDL_ID != ''}">
-							        </ul>
-							    </c:if>
-							</c:forEach>
-						</div>
-						<!-- //display none  -->
-						<!-- //강의목록 -->
-						
+	                    <!--  강의목록top -->				
 						<div class="board_top">
 		                    <i class="icon-svg-openbook"></i>
 		                    <h3 class="board-title">강의목록</h3>
@@ -675,715 +651,493 @@
 		                        <a href="#0" class="btn_list_type" aria-label="카드형 보기"><i class="icon-svg-grid" aria-hidden="true"></i></a>
 		                    </div>
 		                </div>
-	                        
-                        <!-- course_list -->                        
-                        <div class="course_list">
-                            <ul class="accordion course_week">
-                                
-                                <!--active 추가 -->
-                                <li class="active">                                    
-                                    <div class="title-wrap"> 
-                                        <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
-                                            <strong>1주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                                <label class="label s_finish">마감</label>
-                                     	       </p>                                             
-                                            <p class="desc">
-                                                <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
-                                                <span>출석<strong>35</strong></span>
-                                                <span>지각<strong>3</strong></span>
-                                                <span>결석<strong>2</strong></span>
-                                            </p>
-                                        </a>                                        
-                                        <div class="btn_right">
-                                            <button class="btn s_basic down">음성</button>
-                                            <button class="btn s_basic down">강의노트</button>
-                                            <button class="btn s_type1">출결관리</button>
-                                            <button class="btn s_type2">강의보기</button>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
-                                                    <i class="xi-ellipsis-v"></i>
-                                                </button>
-                                                <div class="optionWrap option-wrap">
-                                                    <div class="item"><a href="#0">주차 수정</a></div>
-                                                    <div class="item"><a href="#0">주차 추가</a></div>
-                                                </div>
-                                            </div>	
-                                        </div>                                                                    
-                                    </div>
-
-									<!-- div cont -->
-                                    <div class="cont">                                    
-                                        <div class="lecture_box">
-                                            <div class="lecture_tit">
-                                                <p class="labels">
-                                                    <label class="label s_chasi">1차시</label>
-                                                    <label class="label s_basic">동영상</label>
-                                                </p>   
-                                                <strong>우리 생활 주변의 데이터베이스</strong>
-                                            </div>
-                                            <div class="btn_right">
-                                                <div class="desc_info">
-                                                    <span>출석율<strong class="navy">52%</strong></span>
-                                                </div>
-                                                <button class="btn s_basic play">강의보기</button>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn basic icon set settingBtn" aria-label="차시 관리">
-                                                        <i class="xi-ellipsis-v"></i>
-                                                    </button>
-                                                    <div class="optionWrap option-wrap">
-                                                        <div class="item"><a href="#0">차시 수정</a></div>
-                                                        <div class="item"><a href="#0">차시 삭제</a></div>
-                                                    </div>
-                                                </div>	
-                                            </div>
-                                        </div>
-                                        <div class="lecture_box">
-                                            <div class="lecture_tit">
-                                                <p class="labels">
-                                                    <label class="label s_chasi">2차시</label>
-                                                    <label class="label s_basic">PDF</label>
-                                                </p>   
-                                                <strong>데이터베이스 관리 시스템</strong>
-                                            </div>
-                                            <div class="btn_right">
-                                                <div class="desc_info">
-                                                    <span>출석율<strong class="navy">52%</strong></span>
-                                                </div>
-                                                <button class="btn s_basic play">강의보기</button>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn basic icon set settingBtn" aria-label="차시 관리">
-                                                        <i class="xi-ellipsis-v"></i>
-                                                    </button>
-                                                    <div class="optionWrap option-wrap">
-                                                        <div class="item"><a href="#0">차시 수정</a></div>
-                                                        <div class="item"><a href="#0">차시 삭제</a></div>
-                                                    </div>
-                                                </div>	
-                                            </div>
-                                        </div>
-                                        <div class="lecture_box">
-                                            <div class="lecture_tit">
-                                                <p class="labels">
-                                                    <label class="label s_work">과제</label>
-                                                </p>   
-                                                <strong>ER 다이어그램을 그리고 그것을 관계형 모델로 변환해보기</strong>
-                                            </div>
-                                            <div class="btn_right mr">
-                                                <div class="desc_info">
-                                                    <span>제출<strong>20</strong></span>
-                                                    <span>지각<strong>12</strong></span>
-                                                    <span>미제출<strong>2</strong></span>
-                                                </div>
-                                                <button class="btn s_basic set">과제관리</button>                                                
-                                            </div>
-                                        </div>
-                                        <div class="lecture_box">
-                                            <div class="lecture_tit">
-                                                <p class="labels">                                                    
-                                                    <label class="label s_debate">토론</label>
-                                                </p>   
-                                                <strong>찬반토론</strong>
-                                            </div>
-                                            <div class="btn_right mr">
-                                                <div class="desc_info">
-                                                    <span>참여<strong>18</strong></span>
-                                                    <span>미참여<strong>2</strong></span>
-                                                </div>
-                                                <button class="btn s_basic set">토론관리</button>                                                
-                                            </div>
-                                        </div>
-                                        <div class="lecture_box">
-                                            <div class="lecture_tit">
-                                                <p class="labels">                                                    
-                                                    <label class="label s_basic">자료</label>
-                                                </p>   
-                                                <strong>PDF : 학습자료제목</strong>
-                                            </div>
-                                            <div class="btn_right mr">                                               
-                                                <button class="btn s_basic set">학습자료</button>                                                
-                                            </div>
-                                        </div>
-                                        <div class="lecture_box">
-                                            <div class="lecture_tit">
-                                                <p class="labels">                                                    
-                                                    <label class="label s_basic">자료</label>
-                                                </p>   
-                                                <strong>웹링크 : 학습자료제목 학습자료제목 2</strong>
-                                            </div>
-                                            <div class="btn_right mr">                                               
-                                                <button class="btn s_basic set">학습자료</button>                                                
-                                            </div>
-                                        </div>
-
-                                        <div class="lecture_add_box">
-                                            <div class="box_item">
-                                                <div class="title">학습자료 추가<i class="xi-plus-min"></i></div>
-                                                <div class="item_btns">
-                                                    <a href="#0">
-                                                        <i class="icon-svg-play-circle" aria-hidden="true"></i>
-                                                        <span>동영상</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-layout-alt" aria-hidden="true"></i>
-                                                        <span>PDF</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-paperclip" aria-hidden="true"></i>
-                                                        <span>파일</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-share" aria-hidden="true"></i>
-                                                        <span>소셜</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-link" aria-hidden="true"></i>
-                                                        <span>웹링크</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-type-square" aria-hidden="true"></i>
-                                                        <span>텍스트</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="box_item">
-                                                <div class="title">학습요소 추가<i class="xi-plus-min"></i></div>
-                                                <div class="item_btns">
-                                                    <a href="#0">
-                                                        <i class="icon-svg-edit" aria-hidden="true"></i>
-                                                        <span>과제</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-quiz" aria-hidden="true"></i>
-                                                        <span>퀴즈</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-alarm-clock" aria-hidden="true"></i>
-                                                        <span>시험</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-message-chat" aria-hidden="true"></i>
-                                                        <span>토론</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-check-done" aria-hidden="true"></i>
-                                                        <span>설문</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-presentation" aria-hidden="true"></i>
-                                                        <span>세미나</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                    <!--//div cont -->
-                                </li>
-                                <!--active 추가 -->
-                                
-                                <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
-                                        <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
-                                            <strong>2주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                                <label class="label s_ing">공개</label>
-                                            </p>                                             
-                                            <p class="desc">
-                                                <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
-                                                <span>출석<strong>35</strong></span>
-                                                <span>지각<strong>3</strong></span>
-                                                <span>결석<strong>2</strong></span>
-                                            </p>
-                                        </a>                                        
-                                        <div class="btn_right">
-                                            <button class="btn s_basic down">강의노트</button>
-                                            <button class="btn s_type1">출결관리</button>
-                                            <button class="btn s_type2">강의보기</button>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
-                                                    <i class="xi-ellipsis-v"></i>
-                                                </button>
-                                                <div class="optionWrap option-wrap">
-                                                    <div class="item"><a href="#0">주차 수정</a></div>
-                                                    <div class="item"><a href="#0">주차 추가</a></div>
-                                                </div>
-                                            </div>	
-                                        </div>                                                                    
-                                    </div>
-
-                                    <div class="cont">                                        
-                                        <div class="lecture_box">
-                                            <div class="lecture_tit">
-                                                <p class="labels">
-                                                    <label class="label s_chasi">1차시</label>
-                                                    <label class="label s_basic">동영상</label>
-                                                </p>   
-                                                <strong>우리 생활 주변의 데이터베이스</strong>
-                                            </div>
-                                            <div class="btn_right">
-                                                <div class="desc_info">
-                                                    <span>출석율<strong class="navy">52%</strong></span>
-                                                </div>
-                                                <button class="btn s_basic play">강의보기</button>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn basic icon set settingBtn" aria-label="차시 관리">
-                                                        <i class="xi-ellipsis-v"></i>
-                                                    </button>
-                                                    <div class="optionWrap option-wrap">
-                                                        <div class="item"><a href="#0">차시 수정</a></div>
-                                                        <div class="item"><a href="#0">차시 삭제</a></div>
-                                                    </div>
-                                                </div>	
-                                            </div>
-                                        </div>                                        
-
-                                        <div class="lecture_add_box">
-                                            <div class="box_item">
-                                                <div class="title">학습자료 추가<i class="xi-plus-min"></i></div>
-                                                <div class="item_btns">
-                                                    <a href="#0">
-                                                        <i class="icon-svg-play-circle" aria-hidden="true"></i>
-                                                        <span>동영상</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-layout-alt" aria-hidden="true"></i>
-                                                        <span>PDF</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-paperclip" aria-hidden="true"></i>
-                                                        <span>파일</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-share" aria-hidden="true"></i>
-                                                        <span>소셜</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-link" aria-hidden="true"></i>
-                                                        <span>웹링크</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-type-square" aria-hidden="true"></i>
-                                                        <span>텍스트</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="box_item">
-                                                <div class="title">학습요소 추가<i class="xi-plus-min"></i></div>
-                                                <div class="item_btns">
-                                                    <a href="#0">
-                                                        <i class="icon-svg-edit" aria-hidden="true"></i>
-                                                        <span>과제</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-quiz" aria-hidden="true"></i>
-                                                        <span>퀴즈</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-alarm-clock" aria-hidden="true"></i>
-                                                        <span>시험</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-message-chat" aria-hidden="true"></i>
-                                                        <span>토론</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-check-done" aria-hidden="true"></i>
-                                                        <span>설문</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-presentation" aria-hidden="true"></i>
-                                                        <span>세미나</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </li>  
-                                
-                                <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
-                                        <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
-                                            <strong>3주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                            </p>                                             
-                                            <p class="desc">
-                                                <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
-                                                <span>출석<strong>35</strong></span>
-                                                <span>지각<strong>3</strong></span>
-                                                <span>결석<strong>2</strong></span>
-                                            </p>
-                                        </a>                                        
-                                        <div class="btn_right">                                        
-                                            <button class="btn s_type1">세미나 출결관리</button>                                          
-                                            <div class="dropdown">
-                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
-                                                    <i class="xi-ellipsis-v"></i>
-                                                </button>
-                                                <div class="optionWrap option-wrap">
-                                                    <div class="item"><a href="#0">주차 수정</a></div>
-                                                    <div class="item"><a href="#0">주차 추가</a></div>
-                                                </div>
-                                            </div>	
-                                        </div>                                                                    
-                                    </div>
-
-                                    <div class="cont">                                        
-                                        <div class="lecture_box seminar">
-                                            <div class="lecture_tit">
-                                                <p class="labels">
-                                                    <label class="label s_seminar">세미나</label>
-                                                </p>   
-                                                <strong>화상세미나</strong>
-                                            </div>
-                                            <div class="btn_right mr">
-                                                <div class="desc_info">
-                                                    <span>출석<strong>20</strong></span>
-                                                    <span>지각<strong>3</strong></span>
-                                                    <span>결석<strong>1</strong></span>
-                                                </div>
-                                                <button class="btn s_basic set">세미나관리</button>                                                
-                                            </div>
-
-                                            <div class="seminar_detail">
-                                                <div class="row">
-                                                    <button class="btn go_seminar">화상 세미나 참여하기</button>
-                                                    <div class="desc_info">
-                                                        <span>시작일시 :<strong>2025.06.02 16:00</strong></span>
-                                                        <span>진행시간 :<strong>1시간 20분</strong></span>
-                                                    </div>
-                                                </div>
-                                                <div class="row message red">
-                                                    [중요] 반드시 Zoom Meeting 프로그램을 실행하여 참가해 주세요.<br>
-                                                    <span class="caution">Zoom 프로그램이 아닌 브라우저 상의 "브라우저에서 참가"를 클릭하여 입장한 경우에는 출결이 기록되지 않습니다.</span> 
-                                                </div>
-                                                <div class="row message">
-                                                    <div class="list-tit">참가에 실패하는 경우</div>
-                                                    <ul class="list-bullet">
-                                                        <li>화상강의 참가가 원할히 진행되지 않을 경우 아래 버튼을 클릭하여 시도할 수 있습니다.</li>
-                                                        <li>참가 등록 시 아래 표시된 본인 LMS 상의 이메일 주소를 입력해야 자동 출석인정 합니다.</li>
-                                                    </ul>
-
-                                                    <div class="list-tit-bg">이메일 직접 등록하여 참가</div>
-                                                    <ul class="list-bullet">
-                                                        <li>참가 등록시 입력할 이메일 주소 : <strong class="fcRed">아이디@knou.ac.kr</strong></li>
-                                                    </ul>
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>                                        
-
-                                        <div class="lecture_add_box">
-                                            <div class="box_item">
-                                                <div class="title">학습자료 추가<i class="xi-plus-min"></i></div>
-                                                <div class="item_btns">
-                                                    <a href="#0">
-                                                        <i class="icon-svg-play-circle" aria-hidden="true"></i>
-                                                        <span>동영상</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-layout-alt" aria-hidden="true"></i>
-                                                        <span>PDF</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-paperclip" aria-hidden="true"></i>
-                                                        <span>파일</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-share" aria-hidden="true"></i>
-                                                        <span>소셜</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-link" aria-hidden="true"></i>
-                                                        <span>웹링크</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-type-square" aria-hidden="true"></i>
-                                                        <span>텍스트</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="box_item">
-                                                <div class="title">학습요소 추가<i class="xi-plus-min"></i></div>
-                                                <div class="item_btns">
-                                                    <a href="#0">
-                                                        <i class="icon-svg-edit" aria-hidden="true"></i>
-                                                        <span>과제</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-quiz" aria-hidden="true"></i>
-                                                        <span>퀴즈</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-alarm-clock" aria-hidden="true"></i>
-                                                        <span>시험</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-message-chat" aria-hidden="true"></i>
-                                                        <span>토론</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-check-done" aria-hidden="true"></i>
-                                                        <span>설문</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-presentation" aria-hidden="true"></i>
-                                                        <span>세미나</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </li> 
-                                
-                                <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
-                                        <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
-                                            <strong>4주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_offline">오프라인</label>
-                                            </p>                                             
-                                            <p class="desc">
-                                                <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
-                                                <span>출석<strong>-</strong></span>
-                                                <span>지각<strong>-</strong></span>
-                                                <span>결석<strong>-</strong></span>
-                                            </p>
-                                        </a>                                        
-                                        <div class="btn_right">
-                                            <button class="btn s_type1">출결관리</button>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
-                                                    <i class="xi-ellipsis-v"></i>
-                                                </button>
-                                                <div class="optionWrap option-wrap">
-                                                    <div class="item"><a href="#0">주차 수정</a></div>
-                                                    <div class="item"><a href="#0">주차 추가</a></div>
-                                                </div>
-                                            </div>	
-                                        </div>                                                                    
-                                    </div>
-
-                                    <div class="cont">                                        
-                                        <div class="lecture_box">
-                                            <div class="lecture_tit">
-                                                <p class="labels">                                                    
-                                                    <label class="label s_basic">자료</label>
-                                                </p>   
-                                                <strong>PDF : 학습자료제목</strong>
-                                            </div>
-                                            <div class="btn_right">                                               
-                                                <button class="btn s_basic set">학습자료</button>                                                
-                                            </div>
-                                        </div>                                     
-
-                                        <div class="lecture_add_box">
-                                            <div class="box_item">
-                                                <div class="title">학습자료 추가<i class="xi-plus-min"></i></div>
-                                                <div class="item_btns">
-                                                    <a href="#0">
-                                                        <i class="icon-svg-play-circle" aria-hidden="true"></i>
-                                                        <span>동영상</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-layout-alt" aria-hidden="true"></i>
-                                                        <span>PDF</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-paperclip" aria-hidden="true"></i>
-                                                        <span>파일</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-share" aria-hidden="true"></i>
-                                                        <span>소셜</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-link" aria-hidden="true"></i>
-                                                        <span>웹링크</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-type-square" aria-hidden="true"></i>
-                                                        <span>텍스트</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="box_item">
-                                                <div class="title">학습요소 추가<i class="xi-plus-min"></i></div>
-                                                <div class="item_btns">
-                                                    <a href="#0">
-                                                        <i class="icon-svg-edit" aria-hidden="true"></i>
-                                                        <span>과제</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-quiz" aria-hidden="true"></i>
-                                                        <span>퀴즈</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-alarm-clock" aria-hidden="true"></i>
-                                                        <span>시험</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-message-chat" aria-hidden="true"></i>
-                                                        <span>토론</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-check-done" aria-hidden="true"></i>
-                                                        <span>설문</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-presentation" aria-hidden="true"></i>
-                                                        <span>세미나</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </li>   
-
-                                <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
-                                        <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
-                                            <strong>15주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                            </p>                                             
-                                            <p class="desc">
-                                                <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
-                                                <span>출석<strong>-</strong></span>
-                                                <span>지각<strong>-</strong></span>
-                                                <span>결석<strong>-</strong></span>
-                                            </p>
-                                        </a>                                        
-                                        <div class="btn_right">
-                                            <button class="btn s_type1">결시원 현황</button>
-                                            <button class="btn s_type1">장애인/고령자 지원현황</button>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
-                                                    <i class="xi-ellipsis-v"></i>
-                                                </button>
-                                                <div class="optionWrap option-wrap">
-                                                    <div class="item"><a href="#0">주차 수정</a></div>
-                                                    <div class="item"><a href="#0">주차 추가</a></div>
-                                                </div>
-                                            </div>	
-                                        </div>                                                                    
-                                    </div>
-
-                                    <div class="cont">                                        
-                                        <div class="lecture_box">
-                                            <div class="lecture_tit">
-                                                <p class="labels">                                                    
-                                                    <label class="label s_test">시험</label>
-                                                </p>   
-                                                <strong>실시간시험 기말고사</strong>
-                                            </div>
-                                            <div class="btn_right">
-                                                <div class="desc_info">
-                                                    <span>응시<strong>20</strong></span>
-                                                    <span>미응시<strong>2</strong></span>
-                                                </div>                                               
-                                                <button class="btn s_basic set">시험관리</button>                                                
-                                            </div>
-                                        </div> 
-                                        <div class="lecture_box">
-                                            <div class="lecture_tit">
-                                                <p class="labels">                                                    
-                                                    <label class="label s_test">대체과제</label>
-                                                </p>   
-                                                <strong>대체과제명</strong>
-                                            </div>
-                                            <div class="btn_right">
-                                                <div class="desc_info">
-                                                    <span>제출<strong>20</strong></span>
-                                                    <span>지각<strong>2</strong></span>
-                                                    <span>미제출<strong>2</strong></span>
-                                                </div>                                               
-                                                <button class="btn s_basic set">과제관리</button>                                                
-                                            </div>
-                                        </div>                                    
-
-                                        <div class="lecture_add_box">
-                                            <div class="box_item">
-                                                <div class="title">학습자료 추가<i class="xi-plus-min"></i></div>
-                                                <div class="item_btns">
-                                                    <a href="#0">
-                                                        <i class="icon-svg-play-circle" aria-hidden="true"></i>
-                                                        <span>동영상</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-layout-alt" aria-hidden="true"></i>
-                                                        <span>PDF</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-paperclip" aria-hidden="true"></i>
-                                                        <span>파일</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-share" aria-hidden="true"></i>
-                                                        <span>소셜</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-link" aria-hidden="true"></i>
-                                                        <span>웹링크</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-type-square" aria-hidden="true"></i>
-                                                        <span>텍스트</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="box_item">
-                                                <div class="title">학습요소 추가<i class="xi-plus-min"></i></div>
-                                                <div class="item_btns">
-                                                    <a href="#0">
-                                                        <i class="icon-svg-edit" aria-hidden="true"></i>
-                                                        <span>과제</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-quiz" aria-hidden="true"></i>
-                                                        <span>퀴즈</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-alarm-clock" aria-hidden="true"></i>
-                                                        <span>시험</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-message-chat" aria-hidden="true"></i>
-                                                        <span>토론</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-check-done" aria-hidden="true"></i>
-                                                        <span>설문</span>
-                                                    </a>
-                                                    <a href="#0">
-                                                        <i class="icon-svg-presentation" aria-hidden="true"></i>
-                                                        <span>세미나</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
+	                    <!--//강의목록top -->	                    
+	                    
+                        <!-- course_list 목록형 [목록형은 교수의 목록형과 같이 사용-->                        
+                        <div class="course_list" style="display:none;">
+	                        <ul class="accordion course_week">
+		                        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="" />
+								<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
+								    <!-- 주차 -->
+								    <c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 0 }"> <!-- 0이면 주차 타이틀, 1이면 학습콘텐츠, 2이면 학습자료추가-->
+								        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${item.lctrWknoSchdlId}" />								        
+								        <!-- active 추가 -->
+		                                <li class="active">
+		                                    <div class="title-wrap">
+		                                        <a class="title" href="#">
+		                                            <i class="arrow xi-angle-down"></i>
+		                                            <strong>${item.seqno}주차 ${item.nm}</strong>
+		                                            <p class="labels">
+		                                                <label class="label s_online">온라인</label>
+		                                                <label class="label s_offline">오프라인</label>
+		                                                <label class="label s_ing">공개</label>
+		                                                <label class="label s_finish">마감</label>
+		                                     	       </p>
+		                                            <p class="desc">
+		                                                <span>학습기간<strong>
+		                                                	<span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/></span>
+		                                                	 ~ <span class="date"><uiex:formatDate value="${item.edttm}" type="date"/></span>
+		                                                	</strong></span>
+		                                                <span>출석<strong>35</strong></span>
+		                                                <span>지각<strong>3</strong></span>
+		                                                <span>결석<strong>2</strong></span>
+		                                            </p>
+		                                        </a>
+			                                    <div class="btn_right">
+		                                            <button class="btn s_basic down">음성</button>
+		                                            <button class="btn s_basic down">강의노트</button>
+		                                            <button class="btn s_type1">출결관리</button>
+		                                            <button class="btn s_type2">강의보기</button>
+		                                            <div class="dropdown">
+		                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
+		                                                    <i class="xi-ellipsis-v"></i>
+		                                                </button>
+		                                                <div class="optionWrap option-wrap">
+		                                                    <div class="item"><a href="#0">주차 수정</a></div>
+		                                                    <div class="item"><a href="#0">주차 추가</a></div>
+		                                                </div>
+		                                            </div>
+			                                     </div>
+			                                </div>
+			                                
+			                                <!-- divcont -->
+			                            	<div class="cont">
+									</c:if>
+								    <!--//주차-->
+										    
+										    <!-- 학습콘텐츠 -->
+										    <c:if test="${item.firstOrd == '1'}">
+										    <!-- n차시와 성적활동 -->
+										    
+										    <c:choose>
+										    
+		                                        <c:when test="${ item.seqno != 0 }">								        
+									                <div class="lecture_box">
+			                                            <div class="lecture_tit">
+			                                                <p class="labels">
+			                                                   	<label class="label s_chasi">${item.seqno}차시</label>			                                                    	
+			                                                    <label class="label s_basic">동영상</label>
+			                                                </p>
+			                                                <strong>${item.nm}</strong>
+			                                            </div>
+			                                            <div class="btn_right">
+			                                                <div class="desc_info">
+			                                                    <span>출석율<strong class="navy">52%</strong></span>
+			                                                </div>
+			                                                <button class="btn s_basic play">강의보기</button>
+			                                                <div class="dropdown">
+			                                                    <button type="button" class="btn basic icon set settingBtn" aria-label="차시 관리">
+			                                                        <i class="xi-ellipsis-v"></i>
+			                                                    </button>
+			                                                    <div class="optionWrap option-wrap">
+			                                                        <div class="item"><a href="#0">차시 수정</a></div>
+			                                                        <div class="item"><a href="#0">차시 삭제</a></div>
+			                                                    </div>
+			                                                </div>
+			                                            </div>
+			                                        </div>
+			                                    </c:when>
+			                                    
+			                                    <c:when test="${ item.seqno == 0 }">
+			                                    
+			                                    	<c:if test="${item.srcTbl == 'TB_LMS_EXAM_BSC.EXAM'}">
+				                                    	<div class="lecture_box">
+				                                            <div class="lecture_tit">
+				                                                <p class="labels">
+				                                                   	<label class="label s_test">시험</label>
+				                                                </p>
+				                                                <strong>${item.nm}</strong>
+				                                            </div>
+				                                            <div class="btn_right">
+				                                                <div class="desc_info">
+				                                                    <span>시험일시<strong>2025.07.22 16:00</strong></span>
+				                                                </div>
+				                                                <button class="btn s_basic">시험응시<i class="icon-svg-arrow"></i></button>
+				                                            </div>
+				                                        </div>
+			                                        </c:if>
+			                                        
+			                                        <c:if test="${item.srcTbl == 'TB_LMS_EXAM_BSC.QUIZ'}">
+				                                    	<div class="lecture_box">
+				                                            <div class="lecture_tit">
+				                                                <p class="labels">
+				                                                   	<label class="label s_test">퀴즈</label>
+				                                                </p>
+				                                                <strong>${item.nm}</strong>
+				                                            </div>
+				                                            <div class="btn_right">
+				                                                <div class="desc_info">
+				                                                    <span>시험일시<strong>2025.07.22 16:00</strong></span>
+				                                                </div>
+				                                                <button class="btn s_basic">시험응시<i class="icon-svg-arrow"></i></button>
+				                                            </div>
+				                                        </div>
+			                                        </c:if>
+			                                    	
+			                                    	<c:if test="${item.srcTbl == 'TB_LMS_ASMT'}">
+				                                    	<div class="lecture_box">
+				                                            <div class="lecture_tit">
+				                                                <p class="labels">
+				                                                   	<label class="label s_work">과제</label>
+				                                                </p>
+				                                                <strong>${item.nm}</strong>
+				                                            </div>
+				                                            <div class="btn_right mr">
+				                                                <div class="desc_info">
+				                                                    <span>제출<strong>20</strong></span>
+				                                                    <span>지각<strong>12</strong></span>
+				                                                    <span>미제출<strong>2</strong></span>
+				                                                </div>
+				                                                <button class="btn s_basic set">과제관리</button>
+				                                            </div>
+				                                        </div>
+			                                        </c:if>
+			                                        
+			                                        <c:if test="${item.srcTbl == 'TB_LMS_DSCS'}">
+				                                    	<div class="lecture_box">
+				                                            <div class="lecture_tit">
+				                                                <p class="labels">
+				                                                   	<label class="label s_debate">토론</label>
+				                                                </p>
+				                                                <strong>${item.nm}</strong>
+				                                            </div>
+				                                            <div class="btn_right mr">
+				                                                <div class="desc_info">
+				                                                    <span>참여<strong>18</strong></span>
+                                                    				<span>미참여<strong>2</strong></span>
+				                                                </div>
+				                                                <button class="btn s_basic set">토론관리</button>
+				                                            </div>
+				                                        </div>
+			                                        </c:if>
+			                                        
+			                                        <c:if test="${item.srcTbl == 'TB_LMS_SRVY'}">
+				                                    	<div class="lecture_box">
+				                                            <div class="lecture_tit">
+				                                                <p class="labels">
+				                                                   	<label class="label s_seminar">설문</label>
+				                                                </p>
+				                                                <strong>${item.nm}</strong>
+				                                            </div>
+				                                            <div class="btn_right mr">
+				                                                <div class="desc_info">
+				                                                    <span>참여<strong>18</strong></span>
+                                                    				<span>미참여<strong>2</strong></span>
+				                                                </div>
+				                                                <button class="btn s_basic set">설문관리</button>
+				                                            </div>
+				                                        </div>
+			                                        </c:if>
+			                                        
+			                                        <c:if test="${item.srcTbl == 'TB_LMS_SMNR'}">
+				                                    	<div class="lecture_box seminar">
+				                                            <div class="lecture_tit">
+				                                                <p class="labels">
+				                                                   	<label class="label s_seminar">세미나</label>
+				                                                </p>
+				                                                <strong>${item.nm}</strong>
+				                                            </div>
+				                                            <div class="btn_right mr">
+				                                                <div class="desc_info">
+				                                                    <span>출석<strong>20</strong></span>
+				                                                    <span>지각<strong>3</strong></span>
+				                                                    <span>결석<strong>1</strong></span>
+				                                                </div>
+				                                                <button class="btn s_basic set">세미나관리</button>
+				                                            </div>
+				                                            <div class="seminar_detail">
+				                                                <div class="row">
+				                                                    <button class="btn go_seminar">화상 세미나 참여하기</button>
+				                                                    <div class="desc_info">
+				                                                        <span>시작일시 :<strong>2025.06.02 16:00</strong></span>
+				                                                        <span>진행시간 :<strong>1시간 20분</strong></span>
+				                                                    </div>
+				                                                </div>
+				                                                <div class="row message red">
+				                                                    [중요] 반드시 Zoom Meeting 프로그램을 실행하여 참가해 주세요.<br>
+				                                                    <span class="caution">Zoom 프로그램이 아닌 브라우저 상의 "브라우저에서 참가"를 클릭하여 입장한 경우에는 출결이 기록되지 않습니다.</span>
+				                                                </div>
+				                                                <div class="row message">
+				                                                    <div class="list-tit">참가에 실패하는 경우</div>
+				                                                    <ul class="list-bullet">
+				                                                        <li>화상강의 참가가 원할히 진행되지 않을 경우 아래 버튼을 클릭하여 시도할 수 있습니다.</li>
+				                                                        <li>참가 등록 시 아래 표시된 본인 LMS 상의 이메일 주소를 입력해야 자동 출석인정 합니다.</li>
+				                                                    </ul>				
+				                                                    <div class="list-tit-bg">이메일 직접 등록하여 참가</div>
+				                                                    <ul class="list-bullet">
+				                                                        <li>참가 등록시 입력할 이메일 주소 : <strong class="fcRed">아이디@knou.ac.kr</strong></li>
+				                                                    </ul>				
+				                                                </div>				
+				                                            </div>
+				                                        </div>
+			                                        </c:if>
+			                                        			                                        
+			                                        <c:if test="${item.srcTbl == 'TB_LMS_BBS'}">
+				                                    	<div class="lecture_box">
+				                                            <div class="lecture_tit">
+				                                                <p class="labels">
+				                                                   	<label class="label s_chasi">자료</label>
+				                                                </p>
+				                                                <strong>${item.nm}</strong>
+				                                            </div>
+				                                            <div class="btn_right mr">
+				                                                <button class="btn s_basic set">학습자료</button>
+				                                            </div>
+				                                        </div>
+			                                        </c:if>			                                        
+			                                        
+			                                	</c:when>			                                	
+			                                </c:choose>
+											</c:if>
+									<!--//학습콘텐츠 -->
+									
+										<!--학습자료추가 -->
+							    		<c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 2}">
+										        <div class="lecture_add_box">
+		                                            <div class="box_item">
+		                                                <div class="title">학습자료 추가<i class="xi-plus-min"></i></div>
+		                                                <div class="item_btns">
+		                                                    <a href="#0"><i class="icon-svg-play-circle" aria-hidden="true"></i><span>동영상</span></a>
+		                                                    <a href="#0"><i class="icon-svg-layout-alt" aria-hidden="true"></i><span>PDF</span></a>
+		                                                    <a href="#0"><i class="icon-svg-paperclip" aria-hidden="true"></i><span>파일</span></a>
+		                                                    <a href="#0"><i class="icon-svg-share" aria-hidden="true"></i><span>소셜</span></a>
+		                                                    <a href="#0"><i class="icon-svg-link" aria-hidden="true"></i><span>웹링크</span></a>
+		                                                    <a href="#0"><i class="icon-svg-type-square" aria-hidden="true"></i><span>텍스트</span></a>
+		                                                </div>
+		                                            </div>
+		                                            <div class="box_item">
+		                                                <div class="title">학습요소 추가<i class="xi-plus-min"></i></div>
+		                                                <div class="item_btns">
+		                                                    <a href="/asmt2/profAsmtListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-edit" aria-hidden="true"></i><span>과제</span></a>
+		                                                    <a href="/quiz/profQuizListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-quiz" aria-hidden="true"></i><span>퀴즈</span></a>
+		                                                    <a href="/exam/profExamListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-alarm-clock" aria-hidden="true"></i><span>시험</span></a>
+		                                                    <a href="/forum2/forumLect/profForumListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-message-chat" aria-hidden="true"></i><span>토론</span></a>
+		                                                    <a href="/srvy/profSrvyListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-check-done" aria-hidden="true"></i><span>설문</span></a>
+		                                                    <a href="/smnr/profSmnrListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-presentation" aria-hidden="true"></i><span>세미나</span></a>		                                                    
+		                                                </div>
+		                                            </div>
+		                                        </div>
+		                                     </div>
+		                                     <!-- //divcont -->
+                                			</li>                       	
+										</c:if>	
+									<!--//학습자료추가 -->			    
+								</c:forEach>
+							</ul>
                         </div>
-                        <!-- //course_list -->
+                        <!-- //course_list 목록형 -->
+                        
+                        
+                        <!-- courst_list 카드형 -->
+                        <div class="course_list">
+                            <ul class="course_week_card">
+                            	<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
+                            	
+                            		<c:if test="${item.srcTbl == 'TB_LMS_LCTR'}">
+		                                <li>
+		                                    <div class="card_item">
+		                                        <div class="item_header">
+		                                            <div class="title_area">
+		                                                <p class="tit">${item.wkno}주차 ${item.seqno}차시 강의</p>
+		                                            </div>
+		                                             <div class="lecture_tit">
+		                                                <p class="labels">
+		                                                    <label class="label s_basic">동영상</label>
+		                                                </p>
+		                                                <strong>${item.nm}</strong>
+		                                            </div>
+		                                        </div>
+		                                        <div class="extra">
+		                                            <p class="desc">
+		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/>
+		                                                 ~ <span class="date"><uiex:formatDate value="${item.edttm}" type="date"/></strong></span>
+		                                                <span>강의시간<strong>106분</strong><strong>순차학습</strong></span>
+		                                                <span>진도율<strong class="navy">52%</strong></span>
+		                                            </p>
+		                                        </div>
+		                                        <div class="bottom_button">
+		                                            <button class="go">강의보기<i class="icon-svg-play-circle" aria-hidden="true"></i></button>
+		                                        </div>
+		                                    </div>
+		                                </li>
+		                        	</c:if>
+		                        	
+	                                <c:if test="${item.srcTbl == 'TB_LMS_ASMT'}">
+		                                <li>
+		                                    <div class="card_item">
+		                                        <div class="item_header">
+		                                            <div class="title_area">
+		                                                <p class="tit">${item.wkno}주차 과제</p>
+		                                            </div>
+		                                             <div class="lecture_tit">
+		                                                <p class="labels">
+		                                                    <label class="label s_work">과제</label>
+		                                                </p>
+		                                                <strong>${item.nm}</strong>
+		                                            </div>
+		                                        </div>
+		                                        <div class="extra">
+		                                            <p class="desc">
+		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/> ~ 
+		                                                <span class="date"><uiex:formatDate value="${item.edttm}" type="date"/></strong></span>
+		                                                <span>강의시간<strong>106분</strong><strong>순차학습</strong></span>
+		                                                <span>진도율<strong class="navy">52%</strong></span>
+		                                            </p>
+		                                        </div>
+		                                        <div class="bottom_button">
+		                                            <button class="go">제출하기<i class="icon-svg-arrow" aria-hidden="true"></i></button>
+		                                        </div>
+		                                    </div>
+		                                </li>
+		                        	</c:if>
+		                        	
+		                        	
+		                        	<c:if test="${item.srcTbl == 'TB_LMS_DSCS'}">
+		                                <li>
+		                                    <div class="card_item">
+		                                        <div class="item_header">
+		                                            <div class="title_area">
+		                                                <p class="tit">${item.wkno}주차 토론</p>
+		                                            </div>
+		                                             <div class="lecture_tit">
+		                                                <p class="labels">
+		                                                    <label class="label s_debate">토론</label>
+		                                                </p>
+		                                                <strong>${item.nm}</strong>
+		                                            </div>
+		                                        </div>
+		                                        <div class="extra">
+		                                            <p class="desc">
+		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/> ~ 
+		                                                <span class="date"><uiex:formatDate value="${item.edttm}" type="date"/></strong></span>
+		                                                <span>강의시간<strong>106분</strong><strong>순차학습</strong></span>
+		                                                <span>진도율<strong class="navy">52%</strong></span>
+		                                            </p>
+		                                        </div>
+		                                        <div class="bottom_button">
+		                                            <button class="go">참여하기<i class="icon-svg-arrow" aria-hidden="true"></i></button>
+		                                        </div>
+		                                    </div>
+		                                </li>
+		                        	</c:if>
+		                        	
+		                        	<c:if test="${item.srcTbl == 'TB_LMS_SRVY'}">
+		                                <li>
+		                                    <div class="card_item">
+		                                        <div class="item_header">
+		                                            <div class="title_area">
+		                                                <p class="tit">${item.wkno}주차 설문</p>
+		                                            </div>
+		                                             <div class="lecture_tit">
+		                                                <p class="labels">
+		                                                    <label class="label s_seminar">설문</label>
+		                                                </p>
+		                                                <strong>${item.nm}</strong>
+		                                            </div>
+		                                        </div>
+		                                        <div class="extra">
+		                                            <p class="desc">
+		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/> ~ 
+		                                                <span class="date"><uiex:formatDate value="${item.edttm}" type="date"/></strong></span>
+		                                                <span>강의시간<strong>106분</strong><strong>순차학습</strong></span>
+		                                                <span>진도율<strong class="navy">52%</strong></span>
+		                                            </p>
+		                                        </div>
+		                                        <div class="bottom_button">
+		                                            <button class="go">참여하기<i class="icon-svg-arrow" aria-hidden="true"></i></button>
+		                                        </div>
+		                                    </div>
+		                                </li>
+		                        	</c:if>
+		                        	
+		                        	<c:if test="${item.srcTbl == 'TB_LMS_SMNR'}">
+		                                <li>
+		                                    <div class="card_item">
+		                                        <div class="item_header">
+		                                            <div class="title_area">
+		                                                <p class="tit">${item.wkno}주차 세미나</p>
+		                                            </div>
+		                                             <div class="lecture_tit">
+		                                                <p class="labels">
+		                                                    <label class="label s_seminar">설문</label>
+		                                                </p>
+		                                                <strong>${item.nm}</strong>
+		                                            </div>
+		                                        </div>
+		                                        <div class="extra">
+		                                            <p class="desc">
+		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/></strong></span>
+		                                                <span>강의시간<strong>106분</strong><strong>순차학습</strong></span>
+		                                                <span>진도율<strong class="navy">52%</strong></span>
+		                                            </p>
+		                                        </div>
+		                                        <div class="bottom_button">
+		                                            <button class="go">참여하기<i class="icon-svg-arrow" aria-hidden="true"></i></button>
+		                                        </div>
+		                                    </div>
+		                                </li>
+		                        	</c:if>		                        	
+		                        	
+		                        	<c:if test="${item.srcTbl == 'TB_LMS_EXAM_BSC.EXAM'}">
+		                                <li>
+		                                    <div class="card_item">
+		                                        <div class="item_header">
+		                                            <div class="title_area">
+		                                                <p class="tit">${item.wkno}주차 ${item.nm}</p>
+		                                            </div>
+		                                             <div class="lecture_tit">
+		                                                <p class="labels">
+		                                                    <label class="label s_test">시험</label>
+		                                                </p>
+		                                                <strong>${item.nm}</strong>
+		                                            </div>
+		                                        </div>
+		                                        <div class="extra">
+		                                            <p class="desc">
+		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/></strong></span>
+		                                                <span>시험시간<strong>50분</strong><strong>순차학습</strong></span>
+		                                                <span><strong>출석인정</strong></span>
+		                                            </p>
+		                                        </div>
+		                                        <div class="bottom_button">
+		                                            <button class="go">시험응시<i class="icon-svg-arrow" aria-hidden="true"></i></button>
+		                                        </div>
+		                                    </div>
+		                                </li>
+		                        	</c:if>
+		                        	
+		                        	<c:if test="${item.srcTbl == 'TB_LMS_EXAM_BSC.QUIZ'}">
+		                                <li>
+		                                    <div class="card_item">
+		                                        <div class="item_header">
+		                                            <div class="title_area">
+		                                                <p class="tit">${item.wkno}주차 ${item.nm}</p>
+		                                            </div>
+		                                             <div class="lecture_tit">
+		                                                <p class="labels">
+		                                                    <label class="label s_test">퀴즈</label>
+		                                                </p>
+		                                                <strong>${item.nm}</strong>
+		                                            </div>
+		                                        </div>
+		                                        <div class="extra">
+		                                            <p class="desc">
+		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/></strong></span>
+		                                                <span>시험시간<strong>50분</strong><strong>순차학습</strong></span>
+		                                                <span><strong>출석인정</strong></span>
+		                                            </p>
+		                                        </div>
+		                                        <div class="bottom_button">
+		                                            <button class="go">퀴즈응시<i class="icon-svg-arrow" aria-hidden="true"></i></button>
+		                                        </div>
+		                                    </div>
+		                                </li>
+		                        	</c:if>		                        	
+		                        	
+                                </c:forEach>
+                            </ul>
+                        </div>                        
+                        <!-- //courst_list 카드형 -->
 					
 					</div>
 					<!--  //segment -->

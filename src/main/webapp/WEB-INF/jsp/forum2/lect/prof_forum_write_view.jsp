@@ -13,7 +13,7 @@
         var dialog;
         const editors = {};	// 에디터 목록 저장용
 
-        $(window).on('load', function() {
+        $(document).ready(function() {
             // 부주제 조회
             $("input[name='lrnGrpSubForumSettingyns']:checked").each(function(i, e) {
                 var lrnGrpId = $("#lrnGrpId" + e.id.split("_")[1]).val().split(":")[0];	// 학습그룹아이디
@@ -240,11 +240,11 @@
                                             </span>
                                             <div id="teamForumDiv" ${empty forum2VO.dscsId || forum2VO.dscsUnitTycd ne 'TEAM' ? 'style="display:none"' : '' }>
                                                 <c:forEach var="list" items="${dvclasList }" varStatus="i">
-                                                    <div class="form-row" id='lrnGrpView${list.dvclasNo}'>
+                                                    <div class="form-row" id='lrnGrpView${list.dvclasNo}' ${not empty forum2VO.dscsId && list.dvclasNo eq forum2VO.dvclsNo ? '' : 'style="display:none;"'}>
                                                         <div class="input_btn width-100per">
                                                             <label>${list.dvclasNo }반</label>
-                                                            <input type='hidden' id='lrnGrpId${list.dvclasNo}' name='lrnGrpIds' value="${empty forum2VO.dscsId ? '' : list.lrnGrpId}:${list.sbjctId}">
-                                                            <input class="form-control width-60per" type="text" name="name" id="lrnGrpnm${list.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty forum2VO.dscsId ? '' : list.lrnGrpnm}" readonly="" autocomplete="off">
+                                                            <input type='hidden' id='lrnGrpId${list.dvclasNo}' name='lrnGrpIds' value="${empty forum2VO.dscsId ? '' : (list.dvclasNo eq forum2VO.dvclsNo ? forum2VO.lrnGrpId : list.lrnGrpId)}:${list.sbjctId}">
+                                                            <input class="form-control width-60per" type="text" name="name" id="lrnGrpnm${list.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty forum2VO.dscsId ? '' : (list.dvclasNo eq forum2VO.dvclsNo ? forum2VO.dscsGrpnm : '')}" readonly="" autocomplete="off">
                                                             <a class="btn type1 small" onclick="teamCtgrSelectPop('${list.dvclasNo}','${list.sbjctId }')">학습그룹지정</a>
                                                         </div>
                                                     </div>
@@ -253,12 +253,12 @@
                                                         <small class="note2">! 구성된 팀이 없는 경우 메뉴 “과목설정 > 학습그룹지정”에서 팀을 생성해 주세요</small>
                                                     </div>
                                                     </c:if>
-                                                    <div class="ui segment" id="setForumDiv${list.dvclasNo }" style="display:none;">
+                                                    <div class="ui segment" id="setForumDiv${list.dvclasNo}" ${not empty forum2VO.dscsId && list.dvclasNo eq forum2VO.dvclsNo && not empty forum2VO.lrnGrpId ? '' : 'style="display:none;"'}>
                                                         <span class="custom-input">
-                                                            <input type="checkbox" name="lrnGrpSubForumSettingyns" id="lrnGrpSubForumSettingyn_${list.dvclasNo }" data-bscId="${not empty forum2VO.dscsId && list.lrnGrpSubForumSettingyn eq 'Y' ? list.examBscId : '' }" value="Y:${list.sbjctId }" onchange="lrnGrpSubForumSettingynChange(this)" ${not empty vo.examBscId && list.lrnGrpSubForumSettingyn eq 'Y' ? 'checked' : '' }>
-                                                            <label for="lrnGrpSubForumSettingyn_${list.dvclasNo }">학습그룹별 부 주제 설정</label>
+                                                            <input type="checkbox" name="lrnGrpSubForumSettingyns" id="lrnGrpSubForumSettingyn_${list.dvclasNo}" value="Y:${list.sbjctId}" onchange="lrnGrpSubForumSettingynChange(this)" ${not empty forum2VO.dscsId && list.dvclasNo eq forum2VO.dvclsNo && forum2VO.byteamDscsUseyn eq 'Y' ? 'checked' : ''}>
+                                                            <label for="lrnGrpSubForumSettingyn_${list.dvclasNo}">학습그룹별 부 주제 설정</label>
                                                         </span>
-                                                        <div id="subInfoDiv${list.dvclasNo }" ${not empty forum2VO.dscsId && list.lrnGrpSubForumSettingyn eq 'Y' ? '' : 'style="display: none;"' }></div>
+                                                        <div id="subInfoDiv${list.dvclasNo}" ${not empty forum2VO.dscsId && list.dvclasNo eq forum2VO.dvclsNo && forum2VO.byteamDscsUseyn eq 'Y' ? '' : 'style="display: none;"'}></div>
                                                     </div>
                                                 </c:forEach>
                                             </div>
@@ -560,7 +560,7 @@
                         editors[v.teamId + '_editor' + i] = UiEditor({
                             targetId  : v.teamId + '_contentTextArea_' + i,
                             uploadPath: "/forum",
-                            height    : "500px"
+                            height    : "250px"
                         });
                     });
                 }

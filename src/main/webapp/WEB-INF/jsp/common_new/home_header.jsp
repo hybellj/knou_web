@@ -138,71 +138,62 @@
 				}
 
 				function widgetStngColrPopView() {
-					// 과제 유형에 따라 URL 분기(개인, 팀)
-			        var url = "/dashboard/widgetStngColrPopView.do";
-					var data = {
-							orgId: "${orgId}",
-							userId: "${userId}"
-					    };
+				    var url = "/dashboard/widgetStngColrPopView.do";
+				    var data = {
+				        orgId: "${orgId}",
+				        userId: "${userId}"
+				    };
 
-					ajaxCall(url, data, function(res) {
-						if(res.sessChkYn == 'Y') {
-						    if (res.result > 0) {
-						    	var html = "";
-						    		html +="<div class='info-tit'>"
-						    		html +="	<span>컬러를 선택하세요</span>"
-						    		html +="</div>"
-						    		html +="<div class='widget-list'>"
-								    html +="	<span class='custom-input'>"
-								    html +="		<input type='radio' id='color1' name='color' checked>"
-								    html +="		<label for='color1'>기본</label>"
-							        html +="	</span>"
-							        html +="	<span class='custom-input'>"
-							        html +="		<input type='radio' id='color2' name='color'>"
-							        html +="		<label for='color2'>블루</label>"
-							        html +="	</span>"
-							        html +="	<span class='custom-input'>"
-							        html +="		<input type='radio' id='color3' name='color'>"
-							        html +="		<label for='color3'>민트</label>"
-							        html +="	</span>"
-							        html +="	<span class='custom-input'>"
-									html +="		<input type='radio' id='color4' name='color'>"
-									html +="		<label for='color4'>오렌지</label>"
-									html +="	</span>"
-									html +="	<span class='custom-input'>"
-									html +="		<input type='radio' id='color5' name='color'>"
-									html +="		<label for='color5'>레드</label>"
-									html +="	</span>"
-									html +="	<span class='custom-input'>"
-									html +="		<input type='radio' id='color6' name='color'>"
-									html +="		<label for='color6'>퍼플</label>"
-									html +="	</span>"
-									html +="</div>"
+				    ajaxCall(url, data, function(res) {
+				        if (res.sessChkYn === 'Y') {
+				            if (res.result > 0) {
+				                // 1. 컬러 데이터 배열 정의
+				                const colorList = [
+				                    { id: 'color1', label: '기본', value: 'basic' },
+				                    { id: 'color2', label: '블루', value: 'blue' },
+				                    { id: 'color3', label: '민트', value: 'mint' },
+				                    { id: 'color4', label: '오렌지', value: 'orange' },
+				                    { id: 'color5', label: '레드', value: 'red' },
+				                    { id: 'color6', label: '퍼플', value: 'purple' }
+				                ];
 
-						        	$(".widgetStngGrpColr").empty().append(html);
+				                // 2. 반복문을 통한 HTML 생성
+				                var html = "";
+				                html += "<div class='info-tit'><span>컬러를 선택하세요</span></div>";
+				                html += "<div class='widget-list'>";
 
-						    	    if (res.data.color === 'COLOR1') {
-						    	        $("#color1").prop("checked", true);
-						    	    } else if (res.data.color === 'COLOR2') {
-						    	    	$("#color2").prop("checked", true);
-						    	    } else if (res.data.color === 'COLOR3') {
-						    	    	$("#color3").prop("checked", true);
-						    	    } else if (res.data.color === 'COLOR4') {
-						    	    	$("#color4").prop("checked", true);
-						    	    } else if (res.data.color === 'COLOR5') {
-						    	    	$("#color5").prop("checked", true);
-						    	    } else if (res.data.color === 'COLOR6') {
-						    	    	$("#color6").prop("checked", true);
-						    	    }
-						    } else {
-						    	console.error(res.message);
-						    }
-						} else {
-							console.error("세션이 존재하지 않습니다.");
-						}
-					}, function(xhr, status, error) {
-					    alert("<spring:message code='fail.common.msg' />");
-					}, true);
+				                colorList.forEach(function(item) {
+				                    html += "    <span class='custom-input'>";
+				                    html += "        <input type='radio' id='" + item.id + "' name='color' value='" + item.value + "'>";
+				                    html += "        <label for='" + item.id + "'>" + item.label + "</label>";
+				                    html += "    </span>";
+				                });
+
+				                html += "</div>";
+
+				                // DOM 반영
+				                $(".widgetStngGrpColr").empty().append(html);
+
+				                // 3. 선택된 컬러 체크 로직 (find 사용)
+				                if (res.data && res.data.color) {
+				                    const selectedColor = colors.find(c => c.value === res.data.color);
+				                    if (selectedColor) {
+				                        $("#" + selectedColor.id).prop("checked", true);
+				                    }
+				                } else {
+				                    // 기본값: COLOR1 체크
+				                    $("#color1").prop("checked", true);
+				                }
+
+				            } else {
+				                console.error(res.message);
+				            }
+				        } else {
+				            console.error("세션이 존재하지 않습니다.");
+				        }
+				    }, function(xhr, status, error) {
+				        alert("<spring:message code='fail.common.msg' />");
+				    }, true);
 				}
 
 				window.currentZoom = 100;
@@ -397,34 +388,46 @@
                 var MSG_ALIM_EMPTY = '<spring:message code="common.content.not_found"/>';
 
                 // 헤더 알림 관련 전역 변수
-                var headerNotiData = null;
-                var isHeaderNotiLoaded = false;
                 var headerNotiPollingId = null;
+                var headerLoadedChnl = {};
                 var HEADER_NOTI_POLLING_INTERVAL = 120000; // 2분
+
+                var HEADER_CHNL_MAP = {
+                    'PUSH':      { targetId: '#headerPushList', itemClass: 'push', listKey: 'pushList' },
+                    'SMS':       { targetId: '#headerSmsList',  itemClass: 'sms',  listKey: 'smsList' },
+                    'SHRTNT':    { targetId: '#headerMsgList',  itemClass: 'msg',  listKey: 'msgList' },
+                    'ALIM_TALK': { targetId: '#headerTalkList', itemClass: 'talk', listKey: 'talkList' }
+                };
 
                 $(document).ready(function() {
                     // 페이지 로드 시 읽지 않은 알림 개수만 조회
                     headerNotiUnreadCntSelect();
 
-                    // 알림 드롭다운 클릭 시 목록 조회
+                    // 알림 드롭다운 클릭 시 PUSH만 조회
                     $('li.alrim > a[data-medi-ui="mail"]').on('click', function() {
-                        if (!isHeaderNotiLoaded) {
-                            headerNotiList();
+                        if (!headerLoadedChnl['PUSH']) {
+                            headerNotiLoadChnl('PUSH');
+                        }
+                    });
+
+                    // 탭 클릭 시 해당 채널만 조회
+                    $('li.alrim .tab-type1 a.btn').on('click', function() {
+                        var chnlCd = $(this).data('chnl');
+                        if (!headerLoadedChnl[chnlCd]) {
+                            headerNotiLoadChnl(chnlCd);
                         }
                     });
 
                     // Polling 시작
                     headerNotiPollingStart();
 
-                    // 탭 활성화/비활성화 감지
+                    // 브라우저 탭 활성화/비활성화 감지
                     document.addEventListener('visibilitychange', function() {
                         if (document.hidden) {
-                            // 탭 비활성화 시 Polling 중지
                             headerNotiPollingStop();
                         } else {
-                            // 탭 활성화 시 즉시 조회 후 Polling 재시작
                             headerNotiUnreadCntSelect();
-                            isHeaderNotiLoaded = false; // 목록도 다시 로드하도록
+                            headerLoadedChnl = {};
                             headerNotiPollingStart();
                         }
                     });
@@ -468,33 +471,31 @@
                     $('#headerSmsCnt').text(data.smsCnt || 0);
                     $('#headerShrtntCnt').text(data.shrtntCnt || 0);
                     $('#headerAlimtalkCnt').text(data.alimtalkCnt || 0);
+
+                    // 위젯 배지도 업데이트
+                    $('#widgetPushCnt').text(data.pushCnt || 0);
+                    $('#widgetSmsCnt').text(data.smsCnt || 0);
+                    $('#widgetShrtntCnt').text(data.shrtntCnt || 0);
+                    $('#widgetAlimtalkCnt').text(data.alimtalkCnt || 0);
                 }
 
-                function headerNotiList() {
-                    var param = { chnlCd: 'ALL', listCnt: 5 };
+                function headerNotiLoadChnl(chnlCd) {
+                    var info = HEADER_CHNL_MAP[chnlCd];
+                    if (!info) return;
 
-                    ajaxCall('/alimChnlListAjax.do', param, function(data) {
+                    ajaxCall('/alimChnlListAjax.do', { chnlCd: chnlCd, listCnt: 5 }, function(data) {
                         if (data.result > 0 && data.returnVO) {
-                            headerNotiData = data.returnVO;
-                            isHeaderNotiLoaded = true;
-
-                            // 개수 업데이트
-                            if (data.returnVO.unreadCnt) {
-                                headerNotiCntUpdate(data.returnVO.unreadCnt);
-                            }
-
-                            // 목록 렌더링
-                            headerNotiListRender('PUSH', data.returnVO.pushList, '#headerPushList', 'push');
-                            headerNotiListRender('SMS', data.returnVO.smsList, '#headerSmsList', 'sms');
-                            headerNotiListRender('SHRTNT', data.returnVO.msgList, '#headerMsgList', 'msg');
-                            headerNotiListRender('ALIM_TALK', data.returnVO.talkList, '#headerTalkList', 'talk');
+                            var list = data.returnVO[info.listKey];
+                            alimNotiRenderList(chnlCd, list, info.targetId, info.itemClass);
+                            headerLoadedChnl[chnlCd] = true;
                         }
-                    }, function(xhr, status, error) {
-                        console.error('알림 목록 조회 실패');
+                    }, function() {
+                        console.error('알림 목록 조회 실패: ' + chnlCd);
                     }, false, {type: 'GET'});
                 }
 
-                function headerNotiListRender(chnlCd, list, targetSelector, itemClass) {
+                /* 알림 목록 렌더링 (헤더/위젯 공통) */
+                function alimNotiRenderList(chnlCd, list, targetSelector, itemClass) {
                     var $target = $(targetSelector);
                     var html = '';
 

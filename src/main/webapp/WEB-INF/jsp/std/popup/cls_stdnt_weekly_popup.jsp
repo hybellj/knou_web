@@ -351,13 +351,19 @@
     }
 
     function movePrev() {
-        if (curIdx <= 0 || stdntUserIds.length === 0) { alert("이전 학습자가 없습니다."); return; }
+        if (curIdx <= 0 || stdntUserIds.length === 0) {
+            UiComm.showMessage("이전 학습자가 없습니다.", "warning");
+            return;
+        }
+
         curIdx--;
         reloadForUser(stdntUserIds[curIdx]);
     }
-
     function moveNext() {
-        if (curIdx < 0 || curIdx >= stdntUserIds.length - 1) { alert("다음 학습자가 없습니다."); return; }
+        if (curIdx < 0 || curIdx >= stdntUserIds.length - 1) {
+            UiComm.showMessage("다음 학습자가 없습니다.", "warning");
+            return;
+        }
         curIdx++;
         reloadForUser(stdntUserIds[curIdx]);
     }
@@ -477,10 +483,7 @@
             data: { sbjctId: sbjctId, userId: userId },
             success: function (res) {
                 if (!res || res.result !== 1 || !res.returnList || res.returnList.length === 0) { resetElem(); return; }
-                var d = null;
-                for (var i = 0; i < res.returnList.length; i++) {
-                    if (res.returnList[i].userId === userId) { d = res.returnList[i]; break; }
-                }
+                var d = res.returnList[0];
                 if (!d) { resetElem(); return; }
                 $("#elemQa").text((d.qaAnsCnt      || 0) + "/" + (d.qaRegCnt    || 0));
                 $("#elemTalk").text(d.talkReplyCnt || 0);
@@ -488,10 +491,14 @@
                 $("#elemQuiz").text((d.quizSbmsnCnt || 0) + "/" + (d.quizTrgtCnt || 0));
                 $("#elemSrvy").text((d.srvySbmsnCnt || 0) + "/" + (d.srvyTrgtCnt || 0));
                 $("#elemDscc").text((d.dsccSbmsnCnt || 0) + "/" + (d.dsccTrgtCnt || 0));
-                $("#examMidLive").text(d.midScore    != null ? d.midScore    : "-");
-                $("#examMidAlt, #examMidEtc").text("-");
-                $("#examFinalLive").text(d.finalScore != null ? d.finalScore : "-");
-                $("#examFinalAlt, #examFinalEtc").text("-");
+
+                $("#examMidLive").text(d.midLiveScore != null && d.midLiveScore !== "" ? d.midLiveScore : "-");
+                $("#examMidAlt").text(d.midAltScore != null && d.midAltScore !== "" ? d.midAltScore : "-");
+                $("#examMidEtc").text(d.midEtcScore != null && d.midEtcScore !== "" ? d.midEtcScore : "-");
+                $("#examFinalLive").text(d.finalLiveScore != null && d.finalLiveScore !== "" ? d.finalLiveScore : "-");
+                $("#examFinalAlt").text(d.finalAltScore != null && d.finalAltScore !== "" ? d.finalAltScore : "-");
+                $("#examFinalEtc").text(d.finalEtcScore != null && d.finalEtcScore !== "" ? d.finalEtcScore : "-");
+
             },
             error: function () { resetElem(); }
         });
@@ -583,7 +590,12 @@
                 scales: {
                     y: {
                         fontColor: '#333', fontSize: 12,
-                        display: true
+                        display: true,
+                        ticks: {
+                            callback: function (value) {
+                                return value + "%";
+                            }
+                        }
                     }
                 }
             }
@@ -681,21 +693,21 @@
     }
 
     function doSendMsg() {
-        if (!userId) { alert("학습자 정보가 없습니다."); return; }
-
-        var usernm         = $("#infoNm").text() || "";
+        if (!userId) { UiComm.showMessage("학습자 정보가 없습니다.", "warning"); return; }
+        var usernm = $("#infoNm").text() || "";
         var rcvUserInfoStr = userId + ";" + usernm + ";;";
-
-        var form = window.parent.alarmForm;
+        var form = window.parent && window.parent.alarmForm;
+        if (!form) {
+            UiComm.showMessage("메시지 발송 폼을 찾을 수 없습니다.", "warning");
+            return;
+        }
         form.action = '<%=CommConst.SYSMSG_URL_SEND%>';
         form.target = "msgWindow";
-        form[name='alarmType'].value      = "S";
-        form[name='rcvUserInfoStr'].value = rcvUserInfoStr;
-        form.onsubmit = window.open("about:blank", "msgWindow",
-            "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
+        form.elements['alarmType'].value = "S";
+        form.elements['rcvUserInfoStr'].value = rcvUserInfoStr;
+        window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
         form.submit();
     }
-
     function escHtml(v) {
         return String(v)
             .replace(/&/g, "&amp;").replace(/</g, "&lt;")

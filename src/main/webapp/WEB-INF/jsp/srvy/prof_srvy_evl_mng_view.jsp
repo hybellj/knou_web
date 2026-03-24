@@ -129,7 +129,7 @@
 					var ldryn = v.ldryn == "Y" ? "팀장" : "팀원";
 					var mng = "";
 					if(v.ptcpDttm != null) {
-						mng += "<a href='javascript:srvypprEvlPopup(\"" + v.examDtlId + "\", \"" + v.userId + "\")' class='btn basic small'>설문지보기</a>";
+						mng += "<a href='javascript:srvypprEvlPopup(\"" + v.srvyId + "\", \"" + v.srvyPtcpId + "\", \"" + v.userId + "\")' class='btn basic small'>설문지보기</a>";
 					}
 					mng += "<a href='javascript:memoPopup(\"" + v.srvyId + "\", \"" + v.srvyPtcpId + "\", \"" + v.userId + "\")' class='btn basic small'>메모</a>";
 
@@ -157,88 +157,25 @@
 		}
 
 		/**
-		 * 퀴즈시험지평가팝업
-		 * @param {String}  examBscId 		- 시험기본아이디
-		 * @param {String}  examDtlId 		- 시험상세아이디
+		 * 설문지평가팝업
+		 * @param {String}  srvyId 			- 설문아이디
+		 * @param {String}  srvyPtcpId 		- 설문참여아이디
 		 * @param {String}  userId 			- 사용자아이디
-		 * @param {String}  evlyn 			- 평가여부
-		 * @param {String}  tkexamCmptnyn 	- 시험응시완료여부
+		 * @param {String}  srvyPtcpEvlyn 	- 평가여부
+		 * @param {String}  ptcpyn 			- 참여여부
 		 * @param {String}  searchValue 	- 검색어(학과, 학번, 이름)
+		 * @param {String}  searchKey 		- EVL
 		 */
-		function quizExampprEvlPopup(examDtlId, userId) {
-			var data = "examBscId=${vo.examBscId}&examDtlId="+examDtlId+"&userId="+userId+"&srvyPtcpEvlyn="+$("#srvyPtcpEvlyn").val()+"&ptcpyn=Y&searchValue="+$("#searchValue").val();
+		function srvypprEvlPopup(srvyId, srvyPtcpId, userId) {
+			var data = "upSrvyId=${vo.srvyId}&srvyId="+srvyId+"&srvyPtcpId="+srvyPtcpId+"&userId="+userId+"&srvyPtcpEvlyn="+$("#srvyPtcpEvlyn").val()+"&ptcpyn=Y&searchValue="+$("#searchValue").val()+"&searchKey=EVL";
 
 			dialog = UiDialog("dialog1", {
-				title: "시험지 및 평가",
+				title: "설문지보기",
 				width: 600,
 				height: 500,
-				url: "/quiz/profQuizExampprEvlPopup.do?"+data,
+				url: "/srvy/profSrvypprEvlPopup.do?"+data,
 				autoresize: true
 			});
-		}
-
-		/**
-		 * 퀴즈응시이력팝업
-		 * @param {String}  examDtlId 	- 시험상세아이디
-		 * @param {String}  userId 		- 사용자아이디
-		 */
-		function quizTkexamHstryPopup(examDtlId, userId) {
-			var data = "examDtlId="+examDtlId+"&userId="+userId;
-
-			dialog = UiDialog("dialog1", {
-				title: "응시기록 보기",
-				width: 800,
-				height: 300,
-				url: "/quiz/profQuizTkexamHstryPopup.do?"+data,
-				autoresize: true
-			});
-		}
-
-		/**
-		* 퀴즈시험지초기화
-		* @param {String}  tkexamId 	- 시험응시아이디
-		* @param {String}  examBscId 	- 시험기본아이디
-		* @param {String}  examDtlId 	- 시험상세아이디
-		* @param {String}  userId 		- 사용자아이디
-		*/
-		function quizExampprInit(tkexamId, examDtlId, userId) {
-			if("${vo.examQstnsCmptnyn}" == "Y") {
-				UiComm.showMessage("퀴즈 초기화를 하시겠습니까?", "confirm")
-				.then(function(result) {
-					if (result) {
-						UiComm.showLoading(true);
-						var url  = "/quiz/profQuizExampprInitAjax.do";
-						var data = {
-							"tkexamId"  : tkexamId,
-							"examBscId" : "${vo.examBscId}",
-							"examDtlId" : examDtlId,
-							"userId" 	: userId
-						};
-
-						$.ajax({
-					        url 	  : url,
-					        async	  : false,
-					        type 	  : "POST",
-					        dataType : "json",
-					        data 	  : JSON.stringify(data),
-					        contentType: "application/json; charset=UTF-8",
-					    }).done(function(data) {
-					   		UiComm.showLoading(false);
-					    	if (data.result > 0) {
-					    		UiComm.showMessage("퀴즈 초기화가 완료되었습니다.", "success");
-					    		srvyPtcpListSelect();
-					        } else {
-					       		UiComm.showMessage(data.message, "error");
-					        }
-					    }).fail(function() {
-						   	UiComm.showLoading(false);
-						   	UiComm.showMessage("초기화 중 에러가 발생하였습니다.", "error");
-					    });
-					}
-				});
-			} else {
-				UiComm.showMessage("문제 출제 완료 후 가능합니다.", "info");
-			}
 		}
 
 		// 점수 가감 아이콘 표시 확인
@@ -252,9 +189,8 @@
 
 		/**
 		* 평가점수일괄수정
-		* @param {String}  tkexamId 	- 시험응시아이디
-		* @param {String}  examBscId 	- 시험기본아이디
-		* @param {String}  examDtlId 	- 시험상세아이디
+		* @param {String}  srvyId 		- 설문아이디
+		* @param {String}  srvyPtcpId 	- 설문참여아이디
 		* @param {String}  userId 		- 사용자아이디
 		*/
 		function EvlScrBulkModify() {
@@ -333,7 +269,7 @@
 			});
 		}
 
-		// 엑셀 성적 등록
+		// 엑셀 성적 등록 ( 미완료 )
 		function callScoreExcelUpload() {
 			var data = "examBscId=${vo.examBscId}&sbjctId=${vo.sbjctId}";
 
@@ -348,9 +284,9 @@
 
 		/**
 		 * 설문참여목록엑셀다운로드
-		 * @param {String}  examBscId 		시험기본아이디
-	     * @param {String}  tkexamCmptnyn 	응시여부
-	     * @param {String}  evlyn 			평가여부
+		 * @param {String}  srvyId 			설문아이디
+	     * @param {String}  ptcpyn 			참여여부
+	     * @param {String}  srvyPtcpEvlyn 	평가여부
 	     * @param {String}  searchValue 	검색어 ( 학과, 학번, 성명 )
 	     * @param {String}  excelGrid 		엑셀그리드
 		 */
@@ -449,7 +385,7 @@
 		}
 
 		/**
-		 * 퀴즈 삭제
+		 * 퀴즈 삭제 ( 미완료 )
 		 * @param {String}  examBscId 		- 시험기본아이디
 		 * @param {String}  sbjctId 		- 과목아이디
 		 * @param {String}  delyn 			- 삭제여부
@@ -556,19 +492,6 @@
 				    $("#srvySubAsmtTbody").append(html);
 				}
 			}, true);
-		}
-
-		// 퀴즈시험지일괄인쇄
-		function quizExampprBulkPrintPopup() {
-			var data = "examBscId=${vo.examBscId}&ptcpyn="+$("#ptcpyn").val()+"&srvyPtcpEvlyn="+$("#srvyPtcpEvlyn").val()+"&searchValue="+$("#searchValue").val();
-
-			dialog = UiDialog("dialog1", {
-				title: "시험지 인쇄",
-				width: 600,
-				height: 500,
-				url: "/quiz/profQuizExampprBulkPrintPopup.do?"+data,
-				autoresize: true
-			});
 		}
 
 		// 수강생 전체 버튼

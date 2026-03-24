@@ -79,6 +79,8 @@ public interface SrvyFacadeService {
 
 	SrvyMainView getSrvyPtcpList(Map<String, Object> params) throws Exception;
 
+	SrvyMainView loadProfSrvypprEvlPopup(Map<String, Object> params) throws Exception;
+
 	SrvyMainView loadProfSrvyMemoPopup(Map<String, Object> params) throws Exception;
 
 	void profMemoModify(Map<String, Object> params) throws Exception;
@@ -90,5 +92,9 @@ public interface SrvyFacadeService {
 	SrvyMainView getSrvyPtcpStatusExcelDownList(SrvyVO vo) throws Exception;
 
 	SrvyMainView getSrvyRspnsStatusExcelDownList(SrvyVO vo) throws Exception;
+
+	SrvyMainView getSrvyQstnDistributionChart(Map<String, Object> params) throws Exception;
+
+	SrvyMainView loadProfSrvypprPrintPopup(Map<String, Object> params) throws Exception;
 
 }

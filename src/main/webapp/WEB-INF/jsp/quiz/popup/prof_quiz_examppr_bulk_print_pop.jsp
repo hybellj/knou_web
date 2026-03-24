@@ -178,7 +178,7 @@
 
 		// 인쇄
 		function quizStarePaperPrint() {
-			$("#quizStarePaperModal").print({
+			$("#exampprModal").print({
 				globalStyles : true,
 				stylesheet : null,
 				rejectWindow : true,
@@ -192,7 +192,7 @@
 
 		// 워터마크
 		function watermarkedDataURL (text,watermarkDiv) {
-			//var watermarkDiv = $("#quizStarePaperModal");		//워터마크 적용될 영역
+			//var watermarkDiv = $("#exampprModal");		//워터마크 적용될 영역
 			var tempCanvas=document.createElement('canvas');	//워터마크 사용될 임의의 캔버스
 			var tempCtx=tempCanvas.getContext('2d');			//캔버스 2d 컨텐츠
 			var cw,ch;
@@ -228,9 +228,9 @@
 	</script>
 
 	<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
-        <form id="examStarePaperPrintForm" name="examStarePaperPrintForm" method="POST">
+        <form id="exampprPrintForm" name="exampprPrintForm" method="POST">
 			<div id="wrap">
-				<div id="quizStarePaperModal">
+				<div id="exampprModal">
 				<c:forEach var="items" items="${quizTkexamList}" varStatus="status">
 					<div class="ui form">
 						<div class="field">

@@ -14,7 +14,7 @@ import knou.lms.crs.sbjct.vo.SbjctUseYnUpdateVO;
 import knou.lms.crs.sbjct.vo.SbjctVO;
 import knou.lms.org.service.OrgInfoService;
 import knou.lms.org.vo.OrgInfoVO;
-import knou.lms.subject2.service.SubjectServiceImpl;
+import knou.lms.subject2.service.SubjectService;
 import knou.lms.subject2.vo.SubjectVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ public class SbjctController extends ControllerBase {
     private CmmnCdService cmmnCdService;
 
     @Resource(name="subjectService")
-    private SubjectServiceImpl subjectService;
+    private SubjectService subjectService;
 
     /**
      * 과목 등록 > 목록 화면

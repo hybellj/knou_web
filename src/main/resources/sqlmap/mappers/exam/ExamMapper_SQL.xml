@@ -941,6 +941,29 @@
 		   AND SBJCT.SBJCT_ID = #{sbjctId}
 	</select>
 
+    <!-- 중간/기말 고사 시험 목록-->
+    <select id="examList" resultType="examBscVO">
+        SELECT
+        A.EXAM_BSC_ID
+        , A.EXAM_GBNCD
+        , A.MRK_RFLTRT
+        FROM TB_LMS_EXAM_BSC A
+        WHERE 1=1
+        AND A.SBJCT_ID = #{sbjctId}
+        AND A.DELYN = 'N'
+        AND A.USEYN = 'Y'
+        AND A.MRK_RFLTYN = 'Y'
+        AND A.MRK_RFLTRT > 0
+        <choose>
+            <when test='examGbncd == "MID"'>
+                AND A.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_MID_TEAM', 'QUIZ_EXAM_MID')
+            </when>
+            <when test='examGbncd == "LST"'>
+                AND A.EXAM_GBNCD IN ('EXAM_LST', 'EXAM_LST_TEAM', 'QUIZ_EXAM_LST')
+            </when>
+        </choose>
+    </select>
+
     <!-- EXAM - SQL Area -->
     <sql id="listQueryForExam">
         SELECT
@@ -1191,7 +1214,69 @@
                 , #{lrnGrpSubasmtStngyn}
                 , #{rgtrId}
                 , FN_DTTM()
-                , #{byteamSubrexamUseyn})
+                , #{byteamSubrexamUseyn} )
+    </insert>
+
+    <!-- 시험 상세 등록 (수정용) -->
+    <insert id="examDtlRegist2" parameterType="examDtlVO">
+        /*
+             SQL ID : ExamMapper.examDtlRegist2
+             설  명  : 시험 상세 등록 (수정용)
+         */
+        INSERT INTO
+            TB_LMS_EXAM_DTL
+                ( EXAM_DTL_ID
+                , EXAM_BSC_ID
+                , EXAM_TTL
+                , EXAM_CTS
+                , EXAM_MNTS
+                , EXAMTM_LMTYN
+                , EXAM_PSBL_SDTTM
+                , EXAM_PSBL_EDTTM
+                , CNSDR_ADD_MNTS
+                , RGTR_ID
+                , REG_DTTM
+                , MDFR_ID
+                , MOD_DTTM )
+        VALUES
+                ( #{examDtlId}
+                , #{examBscId}
+                , #{examTtl}
+                , #{examCts}
+                , #{examMnts}
+                , 'Y'               /* 시험시간제한여부 */
+                , #{examPsblSdttm}
+                , #{examPsblEdttm}
+                , 0                 /* 배려 추가시간 */
+                , #{rgtrId}
+                , FN_DTTM()
+                , #{mdfrId}
+                , FN_DTTM() )
+    </insert>
+
+    <!-- 시험 대상자 등록 (수정용) -->
+    <insert id="examTrgtrRegist2" parameterType="examTrgtrVO">
+        /*
+             SQL ID : ExamMapper.examTrgtrRegist2
+             설  명  : 시험 대상자 등록 (수정용)
+         */
+        INSERT INTO
+            TB_LMS_EXAM_TRGTR
+                ( EXAM_TRGTR_ID
+                , EXAM_DTL_ID
+                , TEAM_ID
+                , RGTR_ID
+                , REG_DTTM
+                , MDFR_ID
+                , MOD_DTTM )
+        VALUES
+                ( #{examTrgtrId}
+                , #{examDtlId}
+                , #{teamId}
+                , #{rgtrId}
+                , FN_DTTM()
+                , #{mdfrId}
+                , FN_DTTM() )
     </insert>
 
     <!-- 교수 시험목록 조회  -->
@@ -1245,8 +1330,6 @@
             , A.MRK_RFLTYN                                     AS "MRK_RFLTYN"     /* 성적반영여부 */
             , A.MRK_OYN                                        AS "MRK_OYN"        /* 성적공개여부 */
             , A.EXAM_CTS                                       AS "EXAM_CTS"       /* 시험내용 */
-            , TO_CHAR(TO_DATE(B.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS')
-                , 'YYYY.MM.DD HH24:MI')                        AS "EXAM_PSBL_SDTTM" /* 시험일시(시작일) */
             , B.EXAM_MNTS                                      AS "EXAM_MNTS"      /* 시험시간 */
             , A.MRK_RFLTRT                                     AS "MRK_RFLTRT"     /* 성적반영비율 */
             , A.EXAMPPR_OYN                                    AS "EXAMPPR_OYN"    /* 시험지공개여부 */
@@ -1292,6 +1375,49 @@
             A.EXAM_BSC_ID = #{examBscId}
             /* 시험 구분이 퀴즈인 것은 제외 */
             AND A.EXAM_TYCD NOT LIKE '%QUIZ%'
+    </select>
+
+    <!-- 교수 팀 시험 상세조회 -->
+    <select id="selectProfExamTeamDtl" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectProfExamTeamDtl
+            설명 : 교수 팀 시험 상세조회
+        */
+        SELECT
+            A.LRN_GRP_ID                        AS "LRN_GRP_ID"     /* 그룹 ID */
+            , A.LRN_GRPNM                       AS "LRN_GRPNM"      /* 그룹 명 */
+            , B.TEAM_ID                         AS "TEAM_ID"        /* 팀 ID */
+            , B.TEAMNM                          AS "TEAMNM"         /* 팀 명 */
+            , D.USERNM                          AS "LDRNM"          /* 팀 리더 명 */
+            , F.EXAM_TTL                        AS "EXAM_TTL"       /* 시험 제목 */
+            , F.EXAM_CTS                        AS "EXAM_CTS"       /* 시험 내용 */
+            , ( SELECT
+                    COUNT(SUB1.USER_ID)
+                 FROM
+                    TB_LMS_TEAM_MBR SUB1
+                 WHERE
+                    SUB1.TEAM_ID = B.TEAM_ID )  AS "TEAM_MBR_TOT"   /* 팀 인원 */
+        FROM
+            /* 팀 그룹 */
+            TB_LMS_TEAM_GRP A
+            /* 팀 */
+            JOIN TB_LMS_TEAM B
+                ON A.LRN_GRP_ID = B.LRN_GRP_ID
+            /* 팀 멤버 (리더 추출용도) */
+            JOIN TB_LMS_TEAM_MBR C
+                ON B.TEAM_ID = C.TEAM_ID
+                AND C.LDRYN = 'Y'
+            /* 사용자 */
+            JOIN TB_LMS_USER D
+                ON C.USER_ID = D.USER_ID
+            /* 시험 대상자 */
+            JOIN TB_LMS_EXAM_TRGTR E
+                ON B.TEAM_ID = E.TEAM_ID
+            /* 시험 상세 */
+            JOIN TB_LMS_EXAM_DTL F
+                ON E.EXAM_DTL_ID = F.EXAM_DTL_ID
+        WHERE
+            F.EXAM_BSC_ID = #{examBscId}
     </select>
 
     <!-- 팀 시험 평가대상자 목록 페이징 -->
@@ -1340,6 +1466,7 @@
             (<include refid="listQueryForTKexamUser"/>) Z
     </select>
 
+    <!-- 성적 반영 시험목록 -->
     <select id="mrkRfltExamList" parameterType="examBscVO" resultType="examBscVO">
         /*
              SQL ID : ExamDAO.mrkRfltExamList
@@ -1360,6 +1487,20 @@
             AND NOT (EXAM_GBNCD LIKE '%EXAM_MID%' OR EXAM_GBNCD LIKE '%EXAM_LST%')
             AND USEYN = 'Y'
             AND DELYN = 'N'
+    </select>
+
+    <!-- 팀 시험여부 조회 -->
+    <select id="selectBscTeamYn" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectBscTeamYn
+            설명 : 팀 시험여부 조회
+        */
+        SELECT
+            A.BYTEAM_SUBREXAM_USEYN AS "BYTEAM_SUBREXAM_USEYN"  /* 팀별부시험사용여부 */
+        FROM
+            TB_LMS_EXAM_BSC A
+        WHERE
+            A.EXAM_BSC_ID = #{examBscId}
     </select>
 
     <!--  성적 공개여부 수정  -->
@@ -1394,26 +1535,95 @@
         </foreach>
     </update>
 
-    <!-- 중간/기말 고사 시험 목록-->
-    <select id="examList" resultType="examBscVO">
-        SELECT
-              A.EXAM_BSC_ID
-            , A.EXAM_GBNCD
-            , A.MRK_RFLTRT
-        FROM TB_LMS_EXAM_BSC A
-        WHERE 1=1
-            AND A.SBJCT_ID = #{sbjctId}
-            AND A.DELYN = 'N'
-            AND A.USEYN = 'Y'
-            AND A.MRK_RFLTYN = 'Y'
-            AND A.MRK_RFLTRT > 0
-        <choose>
-            <when test='examGbncd == "MID"'>
-            AND A.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_MID_TEAM', 'QUIZ_EXAM_MID')
-            </when>
-            <when test='examGbncd == "LST"'>
-            AND A.EXAM_GBNCD IN ('EXAM_LST', 'EXAM_LST_TEAM', 'QUIZ_EXAM_LST')
-            </when>
-        </choose>
-    </select>
+    <!-- 시험 기본정보 수정 -->
+    <update id="updateExamBscInfo" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.updateExamBscInfo
+            설명 : 시험 기본정보 수정
+        */
+        UPDATE
+            TB_LMS_EXAM_BSC
+        SET
+            EXAM_GBNCD              =   #{examGbncd}
+            , TKEXAM_MTHD_CD        =   #{tkexamMthdCd}
+            , EXAM_TTL              =   #{examTtl}
+            , MRK_RFLTYN            =   #{mrkRfltyn}
+            , MRK_OYN               =   #{mrkOyn}
+            , EXAMPPR_OYN           =   #{exampprOyn}
+            , BYTEAM_SUBREXAM_USEYN =   #{byteamSubrexamUseyn}
+            , MDFR_ID               =   #{mdfrId}
+            , MOD_DTTM              =   FN_DTTM()
+        WHERE
+            EXAM_BSC_ID = #{examBscId}
+    </update>
+
+    <!-- 시험 상세정보 수정 -->
+    <update id="updateExamDtlInfo" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.updateExamDtlInfo
+            설명 : 시험 상세정보 수정
+        */
+        UPDATE
+            TB_LMS_EXAM_DTL
+        SET
+            EXAM_MNTS           =   #{examMnts}
+            , EXAM_PSBL_SDTTM   =   #{examPsblSdttm}
+            , EXAM_PSBL_EDTTM   =   #{examPsblEdttm}
+            , EXAM_TTL          =   #{examTtl}
+            , EXAM_CTS          =   #{examCts}
+            , MDFR_ID           =   #{mdfrId}
+            , MOD_DTTM          =   FN_DTTM()
+        WHERE
+            EXAM_BSC_ID = #{examBscId}
+    </update>
+
+    <!-- 시험 기본정보 삭제 -->
+    <delete id="deleteExamBscInfo" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.deleteExamBscInfo
+            설명 : 시험 기본정보 삭제
+        */
+        DELETE FROM
+            TB_LMS_EXAM_BSC
+        WHERE
+            EXAM_BSC_ID = #{examBscId}
+    </delete>
+
+    <!-- 시험 상세정보 삭제 -->
+    <delete id="deleteExamDtlInfo" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.deleteExamDtlInfo
+            설명 : 시험 상세정보 삭제
+        */
+        DELETE FROM
+            TB_LMS_EXAM_DTL
+        WHERE
+            EXAM_DTL_ID IN ( SELECT
+                                 B.EXAM_DTL_ID
+                             FROM
+                                 TB_LMS_EXAM_BSC A
+                                 JOIN TB_LMS_EXAM_DTL B
+                                    ON A.EXAM_BSC_ID = B.EXAM_BSC_ID
+                             WHERE
+                                 A.EXAM_BSC_ID = #{examBscId} )
+    </delete>
+
+    <!-- 시험 대상자 삭제 -->
+    <delete id="deleteExamTrgtr" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.deleteExamTrgtr
+            설명 : 시험 대상자 삭제
+        */
+        DELETE FROM
+            TB_LMS_EXAM_TRGTR
+        WHERE
+            EXAM_DTL_ID IN ( SELECT
+                                B.EXAM_DTL_ID
+                            FROM
+                                TB_LMS_EXAM_BSC A
+                                JOIN TB_LMS_EXAM_DTL B
+                                    ON A.EXAM_BSC_ID = B.EXAM_BSC_ID
+                            WHERE
+                                A.EXAM_BSC_ID = #{examBscId} )
+    </delete>
 </mapper>

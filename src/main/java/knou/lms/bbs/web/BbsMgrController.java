@@ -261,7 +261,7 @@ public class BbsMgrController extends ControllerBase {
 
         // 글수정, 삭제, 답글, 댓글쓰기 권한체크
         atclEditAuth = BbsAuthUtil.getAtclEditAuth(request, bbsInfoVO, bbsAtclVO);
-        atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsInfoVO, bbsAtclVO);
+        //atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsInfoVO, bbsAtclVO);
         answerWriteAuth = BbsAuthUtil.getAnswerAtclWriteAuth(request, bbsInfoVO);
         commentWriteAuth = BbsAuthUtil.getCommentWriteAuth(request, bbsInfoVO, bbsAtclVO);
 
@@ -714,12 +714,12 @@ public class BbsMgrController extends ControllerBase {
                 throw new BadRequestUrlException(getMessage("bbs.error.not_exists_atcl"));
             }
 
-            String atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsInfoVO, bbsAtclVO);
+            //String atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsInfoVO, bbsAtclVO);
 
-            if(!"Y".equals(atclDeleteAuth)) {
-                // 접근 권한이 없습니다.
-                throw new BadRequestUrlException(getMessage("bbs.error.no_auth"));
-            }
+			/*
+			 * if(!"Y".equals(atclDeleteAuth)) { // 접근 권한이 없습니다. throw new
+			 * BadRequestUrlException(getMessage("bbs.error.no_auth")); }
+			 */
 
             bbsAtclService.deleteBbsAtcl(vo);
 

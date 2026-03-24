@@ -5,6 +5,7 @@ import java.util.List;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.lms.srvy.vo.SrvyQstnVO;
+import knou.lms.srvy.vo.SrvyRspnsVO;
 
 public interface SrvyRspnsService {
 
@@ -66,5 +67,28 @@ public interface SrvyRspnsService {
 	 * @throws Exception
 	 */
 	public List<EgovMap> srvyExcelDownQstnRspnsList(String srvyId) throws Exception;
+
+	/**
+	 * 설문답변목록
+	 *
+	 * @param srvyPtcpId 	설문참여아이디
+	 * @param srvyId 		설문아이디
+	 * @param userId 		사용자아이디
+	 * @return 설문답변목록
+	 * @throws Exception
+	 */
+	public List<SrvyRspnsVO> srvyRspnsList(String srvyPtcpId, String srvyId, String userId) throws Exception;
+
+	/**
+	 * 설문문항답변분포목록
+	 *
+	 * @param sbjctId 		과목아이디
+	 * @param srvyId 		설문아이디
+	 * @param srvypprId 	설문지아이디
+	 * @param srvyQstnId 	설문문항아이디
+	 * @return 설문문항답변분포목록
+	 * @throws Exception
+	 */
+	public List<EgovMap> srvyQstnRspnsDistributionList(String sbjctId, String srvyId, String srvypprId, String srvyQstnId) throws Exception;
 
 }

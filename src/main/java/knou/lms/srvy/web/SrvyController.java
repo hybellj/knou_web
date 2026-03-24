@@ -972,6 +972,82 @@ public class SrvyController extends ControllerBase {
     }
 
     /**
+     * 교수설문지평가팝업
+     *
+     * @param srvyId 			설문아이디
+     * @param srvyPtcpId 		설문참여아이디
+     * @param userId    		사용자아이디
+     * @param srvyPtcpEvlyn    	평가여부
+     * @param ptcpyn    		참여여부
+     * @param searchValue    	검색어(학과, 학번, 이름)
+     * @return prof_srvyppr_evl_pop.jsp
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvypprEvlPopup.do")
+    public String profSrvypprEvlPopup(@RequestParam Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+
+        SrvyMainView srvyMainView = srvyFacadeService.loadProfSrvypprEvlPopup(params);
+        model.addAttribute("params", params);
+        model.addAttribute("vo", srvyMainView.getSrvyEgovMap());
+        model.addAttribute("srvyPtcpnt", srvyMainView.getSrvyPtcpnt());
+        model.addAttribute("srvyPtcpList", srvyMainView.getSrvyPtcpList());
+        model.addAttribute("srvypprList", srvyMainView.getSrvypprList());
+        model.addAttribute("srvyQstnList", srvyMainView.getSrvyQstnList());
+        model.addAttribute("srvyVwitmList", srvyMainView.getSrvyVwitmList());
+        model.addAttribute("srvyQstnVwitmLvlList", srvyMainView.getSrvyQstnVwitmLvlList());
+        model.addAttribute("srvyRspnsList", srvyMainView.getSrvyRspnsList());
+
+        return "srvy/popup/prof_srvyppr_evl_pop";
+    }
+
+    /**
+     * 설문문항분포차트
+     *
+     * @param srvyId  		설문아이디
+     * @param srvyQstnId 	설문문항아이디
+     * @param srvypprId 	설문지아이디
+     * @return 설문문항분포
+     * @throws Exception
+     */
+    @RequestMapping(value="/srvyQstnDistributionChartAjax.do")
+    @ResponseBody
+    public ProcessResultVO<SrvyMainView> srvyQstnDistributionChartAjax(@RequestBody Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<SrvyMainView> resultVO = new ProcessResultVO<SrvyMainView>();
+
+        try {
+        	resultVO.setReturnVO(srvyFacadeService.getSrvyQstnDistributionChart(params));
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("에러가 발생했습니다!");
+        }
+        return resultVO;
+    }
+
+    /**
+     * 교수설문지인쇄팝업
+     *
+     * @param upSrvyId 	상위설문아이디
+     * @param srvyId   	설문아이디
+     * @param userId   	사용자아이디
+     * @return prof_srvyppr_print_pop.jsp
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvypprPrintPopup.do")
+    public String profSrvypprPrintPopup(@RequestParam Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+    	SrvyMainView srvyMainView = srvyFacadeService.loadProfSrvypprPrintPopup(params);
+    	model.addAttribute("params", params);
+        model.addAttribute("srvyPtcpnt", srvyMainView.getSrvyPtcpnt());
+        model.addAttribute("srvypprList", srvyMainView.getSrvypprList());
+        model.addAttribute("srvyQstnList", srvyMainView.getSrvyQstnList());
+        model.addAttribute("srvyVwitmList", srvyMainView.getSrvyVwitmList());
+        model.addAttribute("srvyQstnVwitmLvlList", srvyMainView.getSrvyQstnVwitmLvlList());
+        model.addAttribute("srvyRspnsList", srvyMainView.getSrvyRspnsList());
+
+        return "srvy/popup/prof_srvyppr_print_pop";
+    }
+
+    /**
 	* 교수설문메모팝업
 	*
 	* @param srvyId 		설문아이디
@@ -1084,8 +1160,6 @@ public class SrvyController extends ControllerBase {
     	model.addAttribute("srvyTextQstnRspnsStatusList", srvyMainView.getSrvyTextQstnRspnsStatusList());
     	model.addAttribute("srvyLevelQstnRspnsStatusList", srvyMainView.getSrvyLevelQstnRspnsStatusList());
     	model.addAttribute("colorList", srvyMainView.getColorList());
-
-        //model.addAttribute("chartMap", tkexamService.userTkexamStatusSelect(vo.getExamBscId(), vo.getSbjctId()));
 
         return "srvy/popup/prof_srvy_ptcp_status_pop";
     }

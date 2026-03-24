@@ -13,58 +13,12 @@
 		var PAGE_INDEX = 1;
 		var LIST_SCALE = 10;
 
-		$(document).ready(function() {
-            /* 초기 시험 목록 가져오기 */
-			loadExamList();
-
-            /* 검색 영역 엔터키 입력 */
-            $("#examTtl").on("keyup", function(e) {
-                if(e.keyCode === 13) {
-                    loadExamList(1);
-                }
-            });
-		});
-
-        /**
-         * 시험 화면 이동
-         * - 인자 1개 (tab)          : exam 컨텍스트 없이 이동 (예: 시험 등록) → isModify=N
-         * - 인자 4개 (examBscId, tkexamMthdCd, byteamSubrexamUseyn, tab) : 특정 시험 컨텍스트로 이동 → isModify=Y
-         */
-        function examViewMv(examBscId, tkexamMthdCd, byteamSubrexamUseyn, tab) {
-            var urlMap = {
-                "1" : "/exam/profExamInfoEvlView.do",   // 시험 상세 [시험 정보 및 평가 탭]
-                "2" : "/exam/profExamSbstView.do",      // 시험 상세 [시험 대체 탭]
-                "3" : "/exam/profExamAbsnceView.do",    // 시험 상세 [결시 내용 및 현황 탭]
-                "4" : "/exam/profExamDsblView.do",      // 시험 상세 [장애인/고령자 지원 현황 탭]
-                "5" : "/exam/profExamQuizMngView.do",   // 시험 상세 [퀴즈 관리 탭]
-                "9" : "/exam/profExamWriteView.do"      // 시험 등록/수정 화면
-            };
-
-            var kvArr = [];
-
-            if (arguments.length === 1) {
-                // tab 번호만 전달된 경우 (시험 등록)
-                tab = examBscId;
-                kvArr.push({'key' : 'isModify', 'val' : 'N'});
-            } else {
-                // 시험 컨텍스트와 함께 전달된 경우 (시험 수정)
-                kvArr.push({'key' : 'examBscId',          'val' : examBscId});
-                kvArr.push({'key' : 'tkexamMthdCd',       'val' : tkexamMthdCd});
-                kvArr.push({'key' : 'byteamSubrexamUseyn','val' : byteamSubrexamUseyn});
-                kvArr.push({'key' : 'isModify',           'val' : 'Y'});
-            }
-
-            submitForm(urlMap[tab], "", "", kvArr);
-        }
-
-		/**
-		 * 시험 목록 조회
-		 * @param {Integer}   pageIndex - 현재 페이지
-		 * @param {String}    listScale - 페이징 목록 수
-         * @param {String}    examTtl   - 시험 명
-         * @return {list}
-         *
-		 */
+        /*****************************************************************************
+         * tabulator 관련 기능
+         * 1. loadExamList :            시험 목록 조회 (ajax)
+         * 2. createExamListHtml :      각 컬럼에 들어갈 데이터 세팅 및 버튼 요소 생성
+         *****************************************************************************/
+		/* 1 */
 		function loadExamList(page) {
 			var url = "/exam/profExamPaging.do";
 			var data = {
@@ -100,10 +54,7 @@
                 UiComm.showMessage("<spring:message code='exam.error.list' />", "error");/* 리스트 조회 중 에러가 발생하였습니다. */
             });
         }
-
-        /*
-         * 시험 Tabulator 데이터로 Html 요소 생성
-         */
+        /* 2 */
         function createExamListHtml(examList) {
             let dataList = [];
             if (examList.length == 0) {
@@ -124,10 +75,10 @@
                                         + "inputmask='numeric' inputmode='decimal' maxVal='100' />";
                         mrkRfltrt += "</span>";
                         mrkRfltrt += "<span class='mrkRfltrtDiv'>" + v.mrkRfltrt + "%</span>";
-                    if((v.examGbncd.indexOf("LST") != -1) || (v.examGbncd.indexOf("MID") != -1)) {
+                    if((v.examGbncd.indexOf("LST") != -1) || (v.examGbncd.indexOf("MID") != -1) || (v.examGbncd.indexOf("CMP") != -1)) {
                         mrkRfltrt = "<a class = 'fcOrange'>" + v.mrkRfltrt + "%" + "</a>";
                     } else if(v.mrkRfltyn == 'N') {
-                        mrkRfltrt = "0%";
+                        mrkRfltrt = "<a class = 'fcRed'>" + "0%" + "</a>";
                     }
                     // 응시 현황
                     var tkexamCmptnynTot = "<a class='fcBlue'>" + v.tkexamCmptnynTot + "</a>";
@@ -143,7 +94,8 @@
                     // 성적공개
                     var  mrkOyn = "<input type='checkbox' value=\"" + v.examBscId + "\" class='switch small' " + (v.mrkOyn == "Y" ? "checked" : "") + " data-qstnsCmptn=\"" + v.examQstnsCmptnyn + "\" >";
                     // 관리버튼 (공통 파라미터 축약)
-                    var _p = "\"" + v.examBscId + "\",\"" + v.tkexamMthdCd + "\",\"" + v.byteamSubrexamUseyn + "\"";
+                    var _p  = "\"" + v.examBscId + "\",\"" + v.tkexamMthdCd + "\",\"" + v.byteamSubrexamUseyn + "\"";
+                    var _dp = "\"" + v.examBscId + "\",\"" + v.byteamSubrexamUseyn + "\"";
                     /* context 에 spring message 등록 해야 함 */
                     var manageBtnDefault = "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>응시현황</a>"
                                         + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>시험지 보기</a>"
@@ -152,11 +104,11 @@
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>시험지 보기</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'>결시현황</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>삭제</a></div>";
+                                        + "<div class='item'><a href='javascript:examDelete(" + _dp + ")'>삭제</a></div>";
                     var manageBtnQuiz = "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>퀴즈정보 및 평가</a>";
                     var manageCardBtnQuiz = "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>퀴즈정보 및 평가</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>삭제</a></div>";
+                                        + "<div class='item'><a href='javascript:examDelete(" + _dp + ")'>삭제</a></div>";
                     var manageBtnExam = "<a href='javascript:examViewMv(" + _p + ", 2)' class='btn basic small'>시험대체</a>"
                                         + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>응시현황</a>"
                                         + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>시험지 보기</a>"
@@ -168,7 +120,7 @@
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 4)'>장애인/고령자 지원현황</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'>결시현황</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>삭제</a></div>";
+                                        + "<div class='item'><a href='javascript:examDelete(" + _dp + ")'>삭제</a></div>";
 
                     var manage = "-";
                     var manageBtn = "";
@@ -217,10 +169,12 @@
 
         }
 
-        /**
-         * 성적 반영비율 폼 변환
-         * @param {Integer} type - 변환 타입 번호 ( 1 : 입력폼 활성화, 2 : 취소)
-         */
+        /*****************************************************************************
+         * 성적 반영비율 관련 기능
+         * 1. mrkRfltrtFrmTrsf :        성적 반영비율 폼 변환
+         * 2. mrkRfltrtModify :         성적 반영비율 수정 (ajax)
+         *****************************************************************************/
+        /* 1 */
         function mrkRfltrtFrmTrsf(type) {
             if(type == 1) {
                 $("#mrkRfltrtFrmTrsfBtn").hide();
@@ -234,8 +188,7 @@
                 $(".mrkRfltrtDiv").show();
             }
         }
-
-        // 성적 반영비율 수정
+        /* 2 */
         function mrkRfltrtModify() {
             var isMrkCheck = true;		// 성적 합계 확인 유무
             var sumMrkRfltrt = 0;		// 성적반영비율 합계
@@ -334,6 +287,86 @@
                     UiComm.showMessage("<spring:message code='exam.error.score.open' />", "error");
                 }, true);
             }
+        });
+
+        /**
+         * 시험 화면 이동
+         * - 인자 1개 (tab)          : exam 컨텍스트 없이 이동 (예: 시험 등록) → isModify=N
+         * - 인자 4개 (examBscId, tkexamMthdCd, byteamSubrexamUseyn, tab) : 특정 시험 컨텍스트로 이동 → isModify=Y
+         */
+        function examViewMv(examBscId, tkexamMthdCd, byteamSubrexamUseyn, tab) {
+            var urlMap = {
+                "1" : "/exam/profExamInfoEvlView.do",   // 시험 상세 [시험 정보 및 평가 탭]
+                "2" : "/exam/profExamSbstView.do",      // 시험 상세 [시험 대체 탭]
+                "3" : "/exam/profExamAbsnceView.do",    // 시험 상세 [결시 내용 및 현황 탭]
+                "4" : "/exam/profExamDsblView.do",      // 시험 상세 [장애인/고령자 지원 현황 탭]
+                "5" : "/exam/profExamQuizMngView.do",   // 시험 상세 [퀴즈 관리 탭]
+                "9" : "/exam/profExamWriteView.do"      // 시험 등록/수정 화면
+            };
+
+            var kvArr = [];
+
+            if (arguments.length === 1) {
+                // tab 번호만 전달된 경우 (시험 등록)
+                tab = examBscId;
+                kvArr.push({'key' : 'isModify', 'val' : 'N'});
+            } else {
+                // 시험 컨텍스트와 함께 전달된 경우 (시험 수정)
+                kvArr.push({'key' : 'examBscId',          'val' : examBscId});
+                kvArr.push({'key' : 'tkexamMthdCd',       'val' : tkexamMthdCd});
+                kvArr.push({'key' : 'byteamSubrexamUseyn','val' : byteamSubrexamUseyn});
+                kvArr.push({'key' : 'isModify',           'val' : 'Y'});
+            }
+
+            submitForm(urlMap[tab], "", "", kvArr);
+        }
+
+        /**
+         * 시험 삭제
+         * 응시자가 없을 경우에만 실행
+         * 응시자가 있을 경우 경고 메시지를 출력한다.
+         */
+        function examDelete(examBscId, byteamSubrexamUseyn) {
+            var url = "/exam/tkexamUserCount.do";
+            var data = { examBscId: examBscId, byteamSubrexamUseyn: byteamSubrexamUseyn };
+            ajaxCall(url, data, function(data) {
+                // 응시자가 있을 경우
+                if (data.pageInfo.totalRecordCount > 0) {
+                    UiComm.showMessage("수강중인 수강생이 있습니다.", "error");
+                } else {
+                    UiComm.showMessage("학습중인 수강생이 없습니다.\n정말 삭제하시겠습니까?", "confirm")
+                    .then(function(result) {
+                        if (result) {
+                            ajaxCall("/exam/examDelete.do", { examBscId: examBscId, byteamSubrexamUseyn: byteamSubrexamUseyn }, function(data) {
+                                if (data.result > 0) {
+                                    UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")
+                                    .then(function() {
+                                        location.reload();
+                                    });
+                                } else {
+                                    UiComm.showMessage(data.message, "error");
+                                }
+                            }, function(xhr, status, error) {
+                                UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
+                            }, true);
+                        }
+                    });
+                }
+            }, function(xhr, status, error) {
+                UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
+            });
+        }
+
+        $(document).ready(function() {
+            /* 초기 시험 목록 가져오기 */
+            loadExamList();
+
+            /* 검색 영역 엔터키 입력 */
+            $("#examTtl").on("keyup", function(e) {
+                if(e.keyCode === 13) {
+                    loadExamList(1);
+                }
+            });
         });
 	</script>
 </head>
@@ -537,8 +570,6 @@
                                 {title:"관리",          field:"manage",            headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:600}
                             ]
                         });
-
-                        // (renderComplete 제거: 반영비율 편집 로직은 별도 단계에서 quiz 방식으로 교체 예정)
                         </script>
                     </div>
                 </div>

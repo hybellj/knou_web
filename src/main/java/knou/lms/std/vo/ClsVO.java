@@ -15,6 +15,7 @@ public class ClsVO extends DefaultVO {
     private    int crdts;
     private String profId;
     private String usernm;
+    private String coProfNm; // 공동교수
     private String deptId;
     private String deptnm;
     private String smstrChrtId;
@@ -59,6 +60,9 @@ public class ClsVO extends DefaultVO {
 
     public String getUsernm() { return usernm; }
     public void setUsernm(String usernm) { this.usernm = usernm; }
+
+    public String getCoProfNm() { return coProfNm; }
+    public void setCoProfNm(String coProfNm) { this.coProfNm = coProfNm; }
 
     public String getDeptId() { return deptId; }
     public void setDeptId(String deptId) { this.deptId = deptId; }

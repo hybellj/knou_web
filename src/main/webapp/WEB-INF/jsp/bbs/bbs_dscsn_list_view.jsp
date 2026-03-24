@@ -418,7 +418,7 @@
 
                     <div class="sub-content">
                         <div class="page-info">
-                            <h2 class="page-title">${bbsVO.bbsNm}</h2>
+                            <h2 class="page-title">1:1상담</h2>
                             <div class="navi_bar">
                                 <ul>
                                     <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
@@ -484,7 +484,7 @@
 
 								<div id="atclListArea">
 									<div class="board_top">
-			                            <h3 class="board-title">-</h3>
+			                            <h3 class="board-title">1:1상담</h3>
 			                            <div class="right-area">
 
 											<%-- 리스트/카드 선택 버튼 --%>
