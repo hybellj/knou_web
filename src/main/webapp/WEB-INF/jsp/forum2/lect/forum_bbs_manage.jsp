@@ -1322,7 +1322,7 @@
                             </div>
                             <div class="flex center-text">
                                 <span><spring:message code='forum.label.pros.status' /></span>
-                                <span>${(forumVo.forumAtclConsCnt / forumVo.forumAtclCnt)*100}%</span>
+                                <span>${(forumVo.forumAtclPorsCnt / forumVo.forumAtclCnt)*100}%</span>
                                 <!-- 찬성 현황 -->
                                 <div id="pros_progressbar" style="height: 30px; width: 90%; "></div>
                             </div>
