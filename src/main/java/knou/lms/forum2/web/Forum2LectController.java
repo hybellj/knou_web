@@ -1208,7 +1208,7 @@ public class Forum2LectController extends ControllerBase {
         String teamCd = vo.getTeamCd();
 
         request.setAttribute("forumCd", forumCd);
-        request.setAttribute("stdNo", stdId);
+        request.setAttribute("stdId", stdId);
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         String userName = StringUtil.nvl(SessionInfo.getUserNm(request));

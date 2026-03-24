@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service("forum2FdbkService")
@@ -171,7 +172,9 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
                 FileVO fileVO = new FileVO();
                 fileVO.setRepoCd("FORUM");
                 fileVO.setFileBindDataSn(vo1.getForumFdbkCd());
-                List<FileVO> fileList = sysFileService.list(fileVO).getReturnList();
+                // TODO : 26.3.25 Modify : 임시 막음 처리.
+//                List<FileVO> fileList = sysFileService.list(fileVO).getReturnList();
+                List<FileVO> fileList = new ArrayList<>();
                 vo1.setFileList(fileList);
             }
         }

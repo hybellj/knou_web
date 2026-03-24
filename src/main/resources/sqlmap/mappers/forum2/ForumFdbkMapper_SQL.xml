@@ -10,8 +10,8 @@
 		WITH RECURSIVE fdbk as 
 		(
 			SELECT a.DSCS_FDBK_ID
-				,  a.PAR_FORUM_FDBK_CD
-				,  a.STD_ID
+				,  a.UP_DSCS_FDBK_ID
+				,  a.USER_ID
 				,  a.TEAM_ID
 				,  a.DSCS_ID
 				,  a.FDBK_CTS
@@ -24,17 +24,17 @@
 				, CONVERT(a.DSCS_FDBK_ID, char(100)) AS PATH
 				, a.RGTR_ID AS TO_USER_ID
 			FROM TB_LMS_DSCS_FDBK a
-			WHERE a.PAR_FORUM_FDBK_CD IS NULL
+			WHERE a.UP_DSCS_FDBK_ID IS NULL
 			AND a.DSCS_ID = #{forumCd} 
 			UNION ALL 
 			SELECT a.DSCS_FDBK_ID
-				,  a.PAR_FORUM_FDBK_CD
-				,  a.STD_ID
+				,  a.UP_DSCS_FDBK_ID
+				,  a.USER_ID
 				,  a.TEAM_ID
 				,  a.DSCS_ID
 				,  a.FDBK_CTS
 				,  a.RGTR_ID
-				,  a.FRST_INQ_DTTM
+				,  a.REG_DTTM
 				,  a.MDFR_ID
 				,  a.MOD_DTTM
 				,  a.DELYN
@@ -43,18 +43,18 @@
 				, b.RGTR_ID  AS TO_USER_ID
 			FROM TB_LMS_DSCS_FDBK a 
 			INNER JOIN fdbk b
-			ON a.PAR_FORUM_FDBK_CD = b.DSCS_FDBK_ID 
+			ON a.UP_DSCS_FDBK_ID = b.DSCS_FDBK_ID
 			WHERE a.DSCS_ID = #{forumCd}
 		)
 		SELECT R.*
 		  FROM (SELECT DSCS_FDBK_ID
-					, PAR_FORUM_FDBK_CD
-					, STD_ID
+					, UP_DSCS_FDBK_ID
+					, USER_ID
 					, TEAM_ID
 					, DSCS_ID
 					, FDBK_CTS
 					, RGTR_ID
-					, FRST_INQ_DTTM
+					, REG_DTTM
 					, MDFR_ID
 					, MOD_DTTM
 					, DELYN
@@ -107,7 +107,7 @@
 						AND TEAM_ID=#{teamCd}
 					</when>
 					<otherwise>
-						AND STD_ID = #{stdNo}
+						AND USER_ID = #{stdId}
 					</otherwise>
 				</choose>
 			) R
@@ -124,13 +124,12 @@
 			DSCS_FDBK_ID
 			, DSCS_ID
 			, USER_ID
-			, PAR_FORUM_FDBK_CD
+			, UP_DSCS_FDBK_ID
 			, TEAM_ID
 			, FDBK_CTS
 			, DELYN
-			, RGTRNM
 			, RGTR_ID
-			, FRST_INQ_DTTM
+			, REG_DTTM
 			, MDFR_ID
 			, MOD_DTTM
 		) VALUES (
@@ -141,7 +140,6 @@
 			, #{teamCd}
 			, #{fdbkCts}
 			, 'N'
-			, #{regNm}
 			, #{rgtrId}
 			, FN_DTTM()
 			, #{mdfrId}
@@ -158,7 +156,7 @@
 			  MDFR_ID = #{mdfrId}
 			, MOD_DTTM = FN_DTTM()
 			<if test="parForumFdbkCd != null and parForumFdbkCd != ''">
-			, PAR_FORUM_FDBK_CD = #{parForumFdbkCd}
+			, UP_DSCS_FDBK_ID = #{parForumFdbkCd}
 			</if>
 			<if test="teamCd != null and teamCd != ''">
 			, TEAM_ID = #{teamCd}
@@ -172,7 +170,7 @@
 		WHERE DSCS_FDBK_ID = #{forumFdbkCd}
 			AND DSCS_ID = #{forumCd}
 			<if test="stdId != null and stdId != ''">
-			AND STD_ID = #{stdId}
+			AND USER_ID = #{stdId}
 			</if>
 	</update>
 	
@@ -188,7 +186,7 @@
 		WHERE DSCS_FDBK_ID = #{forumFdbkCd}
 			AND DSCS_ID = #{forumCd}
 			<if test="stdId != null and stdId != ''">
-			AND STD_ID = #{stdId}
+			AND USER_ID = #{stdId}
 			</if>
 	</update>
 
@@ -200,24 +198,22 @@
 		INSERT INTO TB_LMS_DSCS_FDBK (
 			DSCS_FDBK_ID
 			, DSCS_ID
-			, STD_ID
+			, USER_ID
 			, TEAM_ID
 			, FDBK_CTS
 			, DELYN
-			, RGTRNM
 			, RGTR_ID
-			, FRST_INQ_DTTM
+			, REG_DTTM
 			, MDFR_ID
 			, MOD_DTTM
 		)
 		SELECT
 			FN_NEW_ID('FDBK')
 			, DSCS_ID
-			, STD_ID
+			, USER_ID
 			, TEAM_ID
 			, #{fdbkCts}
 			, 'N'
-			, #{regNm}
 			, #{rgtrId}
 			, FN_DTTM()
 			, #{mdfrId}
@@ -265,25 +261,25 @@
 			ForumFdbkDAO.selectFdbk
 		*/
 		SELECT
-			ROW_NUMBER() OVER(ORDER BY FRST_INQ_DTTM) AS LINE_NO
+			ROW_NUMBER() OVER(ORDER BY REG_DTTM) AS LINE_NO
 			, COUNT(DSCS_FDBK_ID) OVER() AS TOTAL_CNT
 			, DSCS_FDBK_ID
-			, PAR_FORUM_FDBK_CD
+			, UP_DSCS_FDBK_ID AS PAR_FORUM_FDBK_CD
 			, DSCS_ID
-			, STD_ID
+			, USER_ID AS STD_ID
 			, TEAM_ID
 			, FDBK_CTS
 			, DELYN
-			, RGTRNM
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTRNM
 			, RGTR_ID
-			, FRST_INQ_DTTM
+			, REG_DTTM
 			, MDFR_ID
 			, MOD_DTTM
-		FROM TB_LMS_DSCS_FDBK
+		FROM TB_LMS_DSCS_FDBK A
 		WHERE DSCS_ID = #{forumCd}
-			AND STD_ID = #{stdId}
+			AND USER_ID = #{stdId}
 			AND DELYN = 'N'
-		ORDER BY FRST_INQ_DTTM DESC
+		ORDER BY REG_DTTM DESC
 	</select>
 
 	<update id="updateFdbk" parameterType="forumFdbkVO">
@@ -319,7 +315,7 @@
 			COUNT(*) AS cntFdbk
 		FROM TB_LMS_DSCS_FDBK
 		WHERE DSCS_ID = #{forumCd}
-			AND STD_ID = #{stdId}
+			AND USER_ID = #{stdId}
 			AND DELYN = 'N'
 	</select>
 

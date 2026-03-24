@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 <head>
@@ -22,7 +23,7 @@
 		// var audioRecord = null;
 
 		$(document).ready(function() {
-			// fdbkList();
+			fdbkList();
 		});
 
 		// 리스트 조회
@@ -32,7 +33,7 @@
 			// aPlayer = {};
 			// makeAudioRecord(0);
 
-			var url  = "/forum/forumLect/getFdbk.do";
+			var url  = "/forum2/forumLect/getFdbk.do";
 			var data = {
 				"forumCd" : "${forumVo.forumCd}",
 				"stdId" : "${stdId}",
@@ -154,7 +155,7 @@
 				}
 			}*/
 
-	 		var url = "/forum/forumLect/edtFdbk.do";
+	 		var url = "/forum2/forumLect/edtFdbk.do";
 			var data = {
 				"forumFdbkCd" : $("#fdbk"+edtNo).data("fdbkCd"),
 				"fdbkCts"     : $("#fdbkValue"+edtNo).val(),
@@ -184,7 +185,7 @@
 		// 피드백 삭제 버튼
 		function btnFdbkDelete(i){
 			if(window.confirm("<spring:message code='forum.button.confirm.del'/>")) { // 정말 삭제하시겠습니까?
-				var url  = "/forum/forumLect/delFdbk.do";
+				var url  = "/forum2/forumLect/delFdbk.do";
 				var data = {
 					"forumFdbkCd" : $("#fdbk"+i).data("fdbkCd")
 				};
@@ -464,7 +465,7 @@
 			var data = {
 					"crsCreCd" : "${forumVo.crsCreCd}",
 					"forumCd" : "${forumVo.forumCd}",
-					"stdNo" : "${stdNo}",
+					"stdId" : "${stdId}",
 					"userId" : "${userId}",
 					"userName" : "${userName}",
 					"teamCd" : $("#teamCd").val(),
