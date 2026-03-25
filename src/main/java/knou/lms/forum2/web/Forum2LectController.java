@@ -11,6 +11,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import knou.lms.crs.term.service.TermService;
+import knou.lms.crs.term.vo.TermVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +84,10 @@ public class Forum2LectController extends ControllerBase {
 
     @Resource(name="forum2FdbkService")
     private ForumFdbkService forum2FdbkService;
+
+    @Resource(name="termService")
+    private TermService termService;
+
 
     @Resource(name="crecrsService")
     private CrecrsService crecrsService;
@@ -273,6 +279,76 @@ public class Forum2LectController extends ControllerBase {
         return resultVO;
     }
 
+    // 이전 토론 가져오기 팝업
+    @RequestMapping(value="/Form/forumCopyPop.do")
+    public String forumCopyPop(Forum2VO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        String orgId = SessionInfo.getOrgId(request);
+        String crsCreCd = vo.getCrsCreCd();
+
+        // 강의실 대표교수 정보 조회
+        // TODO : 26.3.26 임시 막음 처리.
+       /* CreCrsVO creCrsVO = new CreCrsVO();
+        creCrsVO.setCrsCreCd(crsCreCd);
+        creCrsVO = crecrsService.selectTchCreCrs(creCrsVO);
+
+        String repUserId = creCrsVO.getUserId();*/
+        String repUserId = "";
+
+        // 대표교수의 과목이 있는 학기 목록 조회
+        TermVO termVO = new TermVO();
+        termVO.setOrgId(orgId);
+        termVO.setCrsCreCd(crsCreCd);
+        List<TermVO> termList = termService.listTermByProf(termVO);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("termList", termList);
+        model.addAttribute("repUserId", repUserId);
+
+        return "forum2/popup/prof_forum_copy";
+    }
+
+    // 이전 토론 가져오기 리스트 ajax
+    @RequestMapping(value="/Form/forumCopyList.do")
+    @ResponseBody
+    public ProcessResultVO<Forum2VO> fourmCopyList(Forum2VO vo, ModelMap map, HttpServletRequest request) throws Exception {
+        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+
+        String orgId = SessionInfo.getOrgId(request);
+
+        try {
+            vo.setOrgId(orgId);
+
+            resultVO = forum2Service.listMyCreCrsForum(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.common.error"); // 오류가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    // 이전 토론 가져오기 ajax
+    @RequestMapping(value="/Form/forumCopy.do")
+    @ResponseBody
+    public ProcessResultVO<Forum2VO> forumCopy(Forum2VO vo, ModelMap map, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<Forum2VO> returnVO = new ProcessResultVO<Forum2VO>();
+
+        try {
+            Forum2VO forumVO = new Forum2VO();
+            forumVO = forum2Service.select(vo);
+            returnVO.setReturnVO(forumVO);
+            returnVO.setResult(1);
+        } catch(Exception e) {
+            returnVO.setResult(-1);
+            returnVO.setMessage("forum.common.error"); // 오류가 발생했습니다!
+        }
+        return returnVO;
+    }
+
     /**
      * 학습그룹 팀 목록 조회 (팀 토론 부주제 설정용)
      */
@@ -376,37 +452,6 @@ public class Forum2LectController extends ControllerBase {
                 // 성적반영여부(SCORE_APLY_YN)가 Y인 경우에 성적반영 비율 100% 기준으로 1/N 자동 계산하여 성적반영비율 필더(SCORE_RATIO)에 저장
                 forum2Service.setScoreRatio(vo);
 
-                resultVO.setResultSuccess();
-            }
-        } catch (Exception e) {
-            resultVO.setResultFailed(e.getMessage());
-        }
-
-        return resultVO;
-    }
-
-    /**
-     * 토론복사
-     * @param vo
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/profForumCopy.do")
-    @ResponseBody
-    public ProcessResultVO<Forum2VO> profForumCopy(Forum2VO vo, HttpServletRequest request) throws Exception {
-        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
-
-        try {
-            setCommonSessionValue(vo, request);
-
-            if (StringUtil.isNull(vo.getSourceDscssId())) {
-                resultVO.setResultFailed("sourceDscssId is required");
-                return resultVO;
-            }
-
-            resultVO = forum2Service.copyForum(vo);
-            if (resultVO.getResult() == 0) {
                 resultVO.setResultSuccess();
             }
         } catch (Exception e) {

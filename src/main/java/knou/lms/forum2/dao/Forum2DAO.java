@@ -2,7 +2,7 @@ package knou.lms.forum2.dao;
 
 import java.util.List;
 
-import knou.lms.forum.vo.ForumVO;
+import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.forum2.vo.Forum2TeamDscsVO;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
@@ -21,6 +21,9 @@ public interface Forum2DAO {
     int updateForumMrkOyn(Forum2VO vo);
     void updateForumMrkRfltrt(List<Forum2VO> list);
     int deleteForum(Forum2VO vo);
+    public ProcessResultVO<Forum2VO> listMyCreCrsForum(Forum2VO vo) throws Exception;
+    public Forum2VO select(Forum2VO vo) throws Exception;
+
     int copyForum(Forum2VO vo);
 
     int updateChildForumDelYn(Forum2VO vo);

@@ -70,7 +70,7 @@
                             </c:when>
                             <c:otherwise>
                                 <button type="button" class="btn type2" id="btnSave"><spring:message code="forum.button.save"/><!-- 저장 --></a>
-                                <button type="button" class="btn type2" id="btnCopy"><spring:message code="forum.button.copy"/></button>
+                                <button type="button" class="btn type2" id="btnCopy"><spring:message code="forum.button.copy"/><!-- 이전 토론 가져오기 --></button>
                             </c:otherwise>
                         </c:choose>
                             <button type="button" class="btn type2" id="btnGoList"><spring:message code="forum.label.list"/></button>
@@ -400,7 +400,7 @@
         });
 
         $('#btnCopy').on('click', function () {
-            copyForum();
+            forumCopy();
         });
 
         $('#btnGoList').on('click', function () {
@@ -879,7 +879,25 @@
         });
     }
 
-    function copyForum() {
+    // 이전 토론 가져오기
+    function forumCopy() {
+        /*
+        $("#forumCopyForm > input[name='crsCreCd']").val("${forumVo.crsCreCd}");
+        $("#forumCopyForm").attr("target", "forumCopyIfm");
+        $("#forumCopyForm").attr("action", "/forum/forumLect/Form/forumCopyPop.do");
+        $("#forumCopyForm").submit();
+        $('#forumCopyPop').modal('show');
+        */
+        dialog = UiDialog("dialog1", {
+            title: "<spring:message code="forum.button.copy"/>",
+            width: 600,
+            height: 500,
+            url: "/forum2/forumLect/Form/forumCopyPop.do?crsCreCd=" + ${forumVo.crsCreCd},
+            autoresize: true
+        });
+    }
+
+    /*function copyForum() {
         var sourceDscssId = $('#sourceDscssId').val() || $('#dscsId').val();
         if (!sourceDscssId) {
             UiComm.showMessage("sourceDscssId가 필요합니다.", "warning");
@@ -920,7 +938,7 @@
             UiComm.showLoading(false);
             UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
         });
-    }
+    }*/
 </script>
 </body>
 </html>

@@ -7,6 +7,8 @@ import java.util.Map;
 import javax.annotation.Resource;
 
 import knou.framework.common.IdPrefixType;
+import knou.framework.vo.FileVO;
+import knou.lms.common.paging.PagingInfo;
 import knou.lms.forum.vo.ForumVO;
 import knou.lms.forum2.vo.*;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
@@ -351,6 +353,52 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         return resultVO;
     }
 
+    // 내 강의에 등록된 토론 목록 조회
+    @Override
+    public ProcessResultVO<Forum2VO> listMyCreCrsForum(Forum2VO vo) throws Exception {
+
+        /** start of paging */
+        PagingInfo paginationInfo = new PagingInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getListScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        List<Forum2VO> forumList = forumDAO.listMyCreCrsForum(vo);
+
+        if(forumList.size() > 0) {
+            paginationInfo.setTotalRecordCount(forumList.get(0).getTotalCnt());
+        } else {
+            paginationInfo.setTotalRecordCount(0);
+        }
+
+        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+
+        resultVO.setReturnList(forumList);
+        resultVO.setPageInfo(paginationInfo);
+
+        return resultVO;
+    }
+
+    // 토론 정보 조회
+    @Override
+    public Forum2VO select(Forum2VO vo) throws Exception {
+        vo = forumDAO.select(vo);
+        if(vo != null) {
+            // TODO : 26.3.26 : 파일 정보 붙여야 함.
+            /*
+            FileVO fileVO = new FileVO();
+            fileVO.setRepoCd("FORUM");
+            fileVO.setFileBindDataSn(vo.getForumCd());
+            List<FileVO> fileList = sysFileService.list(fileVO).getReturnList();
+            vo.setFileList(fileList);
+            */
+        }
+        return vo;
+    }
+
     /**
      * 토론삭제
      * @param vo
@@ -417,12 +465,27 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         String newDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
         vo.setDscsId(newDscsId);
 
-        /*TODO_copyForum파라미터매핑프로젝트표준확정필요*/
+        /*TODO : 26.3.26
+        파라미터매핑프로젝트표준확정필요
+        */
         forumDAO.copyForum(vo);
 
         Forum2VO detailParam = new Forum2VO();
         detailParam.setDscsId(newDscsId);
         Forum2VO detailVO = forumDAO.selectForum(detailParam);
+
+        // TODO : 26.3.26 파일정보 복사(물리 파일 처리 확인 필요)
+        /*
+        FileVO copyFileVO;
+        copyFileVO = new FileVO();
+        copyFileVO.setOrgId(orgId);
+        copyFileVO.setRepoCd("FORUM");
+        copyFileVO.setFileBindDataSn(forumCd);
+        copyFileVO.setCopyFileBindDataSn(copyForumCd);
+        copyFileVO.setRgtrId(rgtrId);
+
+        sysFileService.copyFileInfoFromOrigin(copyFileVO);
+        */
 
         resultVO.setReturnVO(detailVO);
         resultVO.setResultSuccess();

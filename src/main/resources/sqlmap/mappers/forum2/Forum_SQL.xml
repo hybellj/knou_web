@@ -583,6 +583,94 @@
         </foreach>
     </update>
 
+    <select id="listMyCreCrsForum" parameterType="forum2VO" resultType="forum2VO">
+        /*
+            SQL ID :  ForumDAO.listMyCreCrsForum
+            설명 : 내 강의에 등록된 토론 리스트
+        */
+        SELECT ROW_NUMBER() OVER(ORDER BY A.SBJCTNM, B.FRST_INQ_DTTM DESC) AS lineNo
+        , B.DSCS_ID
+        , B.DSCS_TTL
+        , B.DSCS_TYCD
+        , (SELECT CDNM FROM TB_ORG_CODE WHERE ORG_ID = #{orgId} AND CTGRCD = 'DSCS_TYCD' AND CD = B.DSCS_TYCD LIMIT 1) AS FORUM_CTGR_NM
+        , A.SBJCT_ID
+        , A.CRS_ID
+        , A.SBJCTNM
+        , A.DVCLAS_NO
+        , COUNT(1) OVER() AS totalCnt
+        FROM (
+        SELECT
+        A.SBJCT_ID
+        , A.SBJCT_ID
+        , A.CRS_ID
+        , A.SBJCTNM
+        , A.DVCLAS_NO
+        FROM TB_LMS_SBJCT A
+        JOIN SBJCT_PROF B
+        ON A.SBJCT_ID = B.SBJCT_ID
+        AND B.PROF_TYCD = 'PROFESSOR'
+        AND B.RPRSYN = 'Y'
+        AND B.USER_ID = #{rgtrId}
+        JOIN TB_LMS_TERM_CRE_CRS_RLTN C
+        ON A.SBJCT_ID = C.SBJCT_ID
+        AND C.CRS_SMSTR_ID = #{termCd}
+        WHERE A.DELYN = 'N'
+        AND A.SBJCT_TYCD = 'UNI'
+        <if test="creYear != null and creYear != ''">
+            AND A.SBJCT_ID = #{creYear}
+        </if>
+        <if test="creTerm != null and creTerm != ''">
+            AND A.CRS_ID = #{creTerm}
+        </if>
+        <if test="crsCreCd != null and crsCreCd != ''">
+            AND A.SBJCT_ID = #{crsCreCd}
+        </if>
+        ) A
+        JOIN TB_LMS_DSCS B
+        ON A.SBJCT_ID = B.SBJCT_ID
+        AND B.DELYN = 'N'
+        WHERE 1 = 1
+        <if test="searchValue != null and searchValue != ''">
+            AND LOWER(B.DSCS_TTL) LIKE CONCAT('%', LOWER(#{searchValue}), '%')
+        </if>
+        LIMIT #{firstIndex}, #{listScale}
+    </select>
+
+    <select id="select" parameterType="forum2VO" resultType="forum2VO">
+        /*
+            토론 정보 가져오기 ajax
+            ForumDAO.select
+        */
+        SELECT
+            A.SBJCT_ID
+             , A.DSCS_ID
+             , A.DSCS_TTL
+             , A.DSCS_CTS
+             , A.DVCLAS_REGYN
+             , A.DSCS_SDTTM
+             , A.DSCS_EDTTM
+             , A.MRK_RFLTYN
+             , A.EVL_CTGRCD
+             , A.TEAM_DSCS_STNGYN
+             , A.TEAM_TYCD
+             , A.MRK_OYN
+             , A.APLY_CMNT_RSPNSYN
+             , A.PROS_CONS_FORUM_CFG
+             , A.OKNOKRT_OYN
+             , A.REG_OPEN_YN
+             , A.MLT_OPNN_REGYN
+             , A.OKNOK_MODYN
+             , A.EVL_RSLT_OYN
+             , A.EVL_CRTR_USEYN
+             , A.EVL_CTGRCD
+             , A.EVL_SDTTM
+             , A.EVL_EDTTM
+             , A.MTL_EVLYN
+             , A.OTHER_VIEW_YN
+        FROM TB_LMS_DSCS A
+        WHERE DSCS_ID = #{forumCd}
+    </select>
+
     <update id="deleteForum" parameterType="forum2VO">
         /*
             SQL ID : ForumDAO.deleteForum
