@@ -1,5 +1,0 @@
-﻿risk_id,type,title,severity,description,evidence,recommendation
-R-001,parameter-mismatch,stdNo_vs_stdId_stdIds,High,"JSP는 stdNo/stdNos 전송, 서비스는 stdId/stdIds 사용. 바인딩 누락 시 대상자 미반영 가능.","forum_score_manage.jsp:811|899|1351 + ForumFdbkServiceImpl.java:108 + ForumJoinUserServiceImpl.java:114","컨트롤러에서 stdNo/stdNos -> stdId/stdIds 매핑 보정 또는 JS 파라미터명 통일"
-R-002,response-shape,viewScoreChart_response_wrapper,High,"컨트롤러는 ProcessResultVO(returnVO)로 반환하나 JSP는 data.minScore 직접 접근.","ForumLectController.java:1232 + forum_score_manage.jsp:492","JSP를 data.returnVO.minScore 방식으로 수정하거나 컨트롤러 JSON shape 단순화"
-R-003,maintainability,duplicated_navigation_forms,Medium,"탭 이동/hidden form submit 코드가 다수 JSP에서 반복.","forum_info_manage.jsp|forum_bbs_manage.jsp|forum_score_manage.jsp","공통 JS 유틸로 추출"
-R-004,maintainability,heavy_jsp_script,Medium,"대형 JSP에 화면/비즈니스 로직이 혼재되어 수정 리스크 큼.","forum_write_form.jsp|forum_score_manage.jsp|forum_bbs_manage.jsp","기능 단위 JS 분리 및 모듈화"
