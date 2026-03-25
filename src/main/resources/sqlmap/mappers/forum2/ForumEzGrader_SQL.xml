@@ -7,14 +7,14 @@
 			토론 참여 대상 리스트2
 			ForumEzGraderDAO.listForumJoinUser
 		*/
-		SELECT A.STD_ID AS stdNo
+		SELECT A.STD_ID AS stdId
 			, A.USER_ID AS userId
-			, IFNULL(A.SCR, 0) AS SCR
+			, NVL(A.SCR, 0) AS SCR
 			, A.EVLYN AS evalYn
 			, A.DEPTNM AS deptNm
 			, A.USERNM AS userNm
 			, A.USER_ID AS userId
-			, IF(A.ATCL_CNT > 0, 'JOIN', 'NOTJOIN') AS joinStatus
+			, CASE WHEN A.ATCL_CNT > 0 THEN 'JOIN' ELSE 'NOTJOIN' END AS joinStatus
 		FROM (
 			SELECT A.STD_ID
 				, A.USER_ID
@@ -57,7 +57,7 @@
 						AND AA.DELYN = 'N'
 						AND AA.FRST_INQ_DTTM >= BB.DSCS_EDTTM
 				) AFTER_CMNT_CNT
-			FROM TB_LMS_ATNDLC_SBJCT A
+			FROM TB_LMS_ATNDLC A
 				LEFT JOIN TB_LMS_DSCS_PTCP B
 					ON A.STD_ID = B.STD_ID
 					AND B.DELYN = 'N'
@@ -100,7 +100,7 @@
 			ORDER BY A.USERNM
 		</if>
 		<if test="searchSort != null and searchSort == 'SUBMIT_DT'">
-			ORDER BY IF(A.ATCL_CNT > 0, 1, 2), A.USER_ID
+			ORDER BY CASE WHEN A.ATCL_CNT > 0 THEN 1 ELSE 2 END, A.USER_ID
 		</if>
 	</select>
 
@@ -113,8 +113,8 @@
 	</resultMap>
 
 	<resultMap id="teamMemberMap" type="forumJoinUserVO">
-		<id property="stdNo" column="STD_ID" /> 
-		<result property="leaderYn" column="TEAM_LDRYN" />
+		<id property="stdId" column="STD_ID" />
+		<result property="leaderYn" column="LDRYN" />
 		<result property="SCR" column="SCR" />
 		<result property="evalYn" column="EVLYN" />
 		<result property="userId" column="USER_ID" />
@@ -134,14 +134,14 @@
 			, A.TEAM_ID
 			, A.TEAMNM
 			, A.STD_ID
-			, A.TEAM_LDRYN
+			, A.LDRYN
 			, A.SCR
 			, A.EVLYN
 			, A.USER_ID
 			, A.DEPTNM
 			, A.USERNM
 			, A.USER_ID
-			, IF(A.ATCL_CNT + A.CMNT_CNT > 0, 'JOIN', 'NOTJOIN') AS JOIN_STATUS
+			, CASE WHEN A.ATCL_CNT + A.CMNT_CNT > 0 THEN 'JOIN' ELSE 'NOTJOIN' END AS JOIN_STATUS
 		FROM (
 			SELECT A.TEAM_TYCD
 				, A.TEAM_CTGRNM
@@ -149,13 +149,14 @@
 				, B.TEAMNM
 				, H.DSCS_ID
 				, C.STD_ID
-				, C.TEAM_LDRYN
+				, C.LDRYN
 				, G.SCR
 				, G.EVLYN
 				, D.USER_ID
-				, E.DEPTNM
+				/*, E.DEPTNM */
+			    , NVL((SELECT EE.DEPTNM FROM TB_LMS_DEPT EE WHERE EE.DEPT_ID = E.DEPT_ID), '-') AS DEPTNM
 				, E.USERNM
-				, F.USER_ID
+				/*, F.USER_ID*/ /* 중복 필드 */
 				, (
 					SELECT COUNT(1)
 					FROM TB_LMS_DSCS_ATCL AA
@@ -188,14 +189,14 @@
 						AND AA.DSCS_ID = H.DSCS_ID
 						AND AA.DELYN = 'N'
 				) AS AFTER_CMNT_CNT 
-			FROM TB_LMS_TEAM_CTGR A
+			FROM TB_LMS_TEAM A
 				JOIN TB_LMS_TEAM B
 					ON A.TEAM_TYCD = B.TEAM_TYCD
 				JOIN TB_LMS_DSCS H
 					ON A.TEAM_TYCD = H.TEAM_TYCD
 				JOIN TB_LMS_TEAM_MBR C
 					ON B.TEAM_ID = C.TEAM_ID
-				JOIN TB_LMS_ATNDLC_SBJCT D
+				JOIN TB_LMS_ATNDLC D
 					ON C.STD_ID = D.STD_ID  
 				JOIN TB_LMS_USR E
 					ON D.USER_ID = E.USER_ID
@@ -214,10 +215,12 @@
 		<if test="searchKey != null and searchKey == 'NOTJOIN'">
 			AND A.ATCL_CNT + A.CMNT_CNT = 0
 		</if>
+		/* TODO : 26.3.25:Tobe 사용안함.-제거 필요 */
+		  /*
 		<if test="searchKey != null and searchKey == 'AFTER'">
 			AND (A.AFTER_ATCL_CNT > 0 OR A.AFTER_CMNT_CNT > 0)
 		</if>
-
+			*/
 		<if test="searchSort != null and searchSort == 'USER_ID'">
 			ORDER BY LENGTH(A.TEAMNM), A.TEAMNM, A.USER_ID
 		</if>
@@ -225,7 +228,7 @@
 			ORDER BY LENGTH(A.TEAMNM), A.TEAMNM, A.USERNM
 		</if>
 		<if test="searchSort != null and searchSort == 'SUBMIT_DT'">
-			ORDER BY LENGTH(A.TEAMNM), A.TEAMNM, IF(A.ATCL_CNT + A.CMNT_CNT > 0, 1, 2), A.USERNM
+			ORDER BY LENGTH(A.TEAMNM), A.TEAMNM, CASE WHEN A.ATCL_CNT + A.CMNT_CNT > 0 THEN 1 ELSE 2 END, A.USERNM
 		</if>
 	</select>
 
@@ -257,7 +260,7 @@
 			ezGrader 문항별 배점 총합 조회2
 			ForumEzGraderDAO.selectSumAllotScore
 		*/
-		SELECT SUM(IFNULL((
+		SELECT SUM(NVL((
 			SELECT MAX(MTL_EVL_MRK_GRDCD)
 			FROM MTL_EVL_GRD AA
 			WHERE AA.ASMT_MTL_EVL_RSLT_ID = A.ASMT_MTL_EVL_RSLT_ID
@@ -288,88 +291,60 @@
 		</if>
 	</select>
 
-	<insert id="initStdScoreToAllTeamMember" parameterType="forumEzGraderRsltVO" >
+	<insert id="initStdScoreToAllTeamMember" parameterType="forumEzGraderRsltVO">
 		/*
-			팀원 모두에게 문항별 평가한 내용을 토대로 총  평가점수 부여2
-			ForumEzGraderDAO.initStdScoreToAllTeamMember 
+			팀원 모두에게 문항별 평가한 내용을 토대로 총 평가점수 부여2
+			ForumEzGraderDAO.initStdScoreToAllTeamMember
+			-- MERGE 사용 사유(Upsert): 팀원별 기존 점수 존재 시 덮어쓰기, 없으면 신규 삽입
 		*/
-		INSERT INTO TB_LMS_DSCS_PTCP (
-			TEAM_ID
-			, DSCS_ID
-			, STD_ID
-			, SCR
-			, RGTR_ID
-			, FRST_INQ_DTTM
-			, MDFR_ID
-			, MOD_DTTM
-		)
-		SELECT
-			A.TEAM_ID
-			, #{forumCd}
-			, A.STD_ID
-			<choose>
-				<when test="evalScore != null and evalScore != ''">
-					, ROUND(B.EVL_TOT_SCR / #{evalScore} * 100)
-				</when>
-				<otherwise>
-					, 0
-				</otherwise>
-			</choose>
-			, #{rgtrId}
-			, FN_DTTM()
-			, #{rgtrId}
-			, FN_DTTM()
-		FROM TB_LMS_TEAM_MBR A
-		LEFT JOIN MTL_EVL_RSLT B
-			ON A.TEAM_ID = B.RLTN_TEAM_CD
-			AND A.STD_ID = B.EVLTEE_ID
-			AND B.ASMT_MTL_EVL_RSLT_ID = #{evalCd}
-		WHERE A.TEAM_ID = #{rltnTeamCd}
-		<if test="evalTrgtUserId != null and evalTrgtUserId != ''">
-			AND A.STD_ID = #{evalTrgtUserId}
-		</if>
-		ON DUPLICATE KEY UPDATE
-		<choose>
-			<when test="evalScore != null and evalScore != ''">
-				STD_ID = A.STD_ID, SCR = #{evalScore}
-			</when>
-			<otherwise>
-				STD_ID = A.STD_ID, SCR = 0
-			</otherwise>
-		</choose>
+		MERGE INTO TB_LMS_DSCS_PTCP T
+		USING (
+			SELECT A.TEAM_ID
+				, A.STD_ID
+				<choose>
+					<when test="evalScore != null and evalScore != ''">
+						, ROUND(B.EVL_TOT_SCR / #{evalScore} * 100) AS SCR
+					</when>
+					<otherwise>
+						, 0 AS SCR
+					</otherwise>
+				</choose>
+			FROM TB_LMS_TEAM_MBR A
+			LEFT JOIN MTL_EVL_RSLT B
+				ON A.TEAM_ID = B.RLTN_TEAM_CD
+				AND A.STD_ID = B.EVLTEE_ID
+				AND B.ASMT_MTL_EVL_RSLT_ID = #{evalCd}
+			WHERE A.TEAM_ID = #{rltnTeamCd}
+			<if test="evalTrgtUserId != null and evalTrgtUserId != ''">
+				AND A.STD_ID = #{evalTrgtUserId}
+			</if>
+		) S
+		ON (T.DSCS_ID = #{forumCd} AND T.STD_ID = S.STD_ID)
+		WHEN MATCHED THEN
+			UPDATE SET SCR = S.SCR, MDFR_ID = #{rgtrId}, MOD_DTTM = FN_DTTM()
+		WHEN NOT MATCHED THEN
+			INSERT (TEAM_ID, DSCS_ID, STD_ID, SCR, RGTR_ID, FRST_INQ_DTTM, MDFR_ID, MOD_DTTM)
+			VALUES (S.TEAM_ID, #{forumCd}, S.STD_ID, S.SCR, #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
 	</insert>
 
-	<update id="updateJoinUserScore" parameterType="forumEzGraderRsltVO" >
+	<update id="updateJoinUserScore" parameterType="forumEzGraderRsltVO">
 		/*
 			토론 참여 유저(미참여자 포함)에 평가점수 부여2
 			ForumEzGraderDAO.updateJoinUserScore
+			-- MERGE 사용 사유(Upsert): 참여자 점수 존재 시 덮어쓰기, 없으면 신규 삽입
 		*/
-		INSERT INTO TB_LMS_DSCS_PTCP (
-			STD_ID
-			, DSCS_ID
-			, SCR
-			, EVLYN
-			, DELYN
-			, RGTR_ID
-			, FRST_INQ_DTTM
-			, MDFR_ID
-			, MOD_DTTM
-		) VALUES (
-			#{evalTrgtUserId}
-			, #{forumCd}
-			, #{evalScore}
-			, 'Y'
-			, 'N'
-			, #{rgtrId}
-			, FN_DTTM()
-			, #{rgtrId}
-			, FN_DTTM()
-		)
-		ON DUPLICATE KEY UPDATE
-			SCR = #{evalScore}
-			, EVLYN = #{evalYn}
-			, MDFR_ID = #{mdfrId}
-			, MOD_DTTM = FN_DTTM()
+		MERGE INTO TB_LMS_DSCS_PTCP T
+		USING (SELECT #{evalTrgtUserId} AS STD_ID, #{forumCd} AS DSCS_ID FROM DUAL) S
+		ON (T.DSCS_ID = S.DSCS_ID AND T.STD_ID = S.STD_ID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				SCR        = #{evalScore}
+				, EVLYN    = #{evalYn}
+				, MDFR_ID  = #{mdfrId}
+				, MOD_DTTM = FN_DTTM()
+		WHEN NOT MATCHED THEN
+			INSERT (STD_ID, DSCS_ID, SCR, EVLYN, DELYN, RGTR_ID, FRST_INQ_DTTM, MDFR_ID, MOD_DTTM)
+			VALUES (#{evalTrgtUserId}, #{forumCd}, #{evalScore}, 'Y', 'N', #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
 	</update>
 
 	<select id="selectEzgEvalInfo" parameterType="forumEzGraderVO" resultType="egovMap">
@@ -421,7 +396,7 @@
 			, D.MTL_EVL_GRD_TTL
 			, D.MTL_EVL_GRD_CTS
 			, D.MTL_EVL_MRK_GRDCD
-			, IFNULL(MAX(D.MTL_EVL_MRK_GRDCD) OVER(PARTITION BY A.ASMT_MTL_EVL_RSLT_ID, C.QSTN_ID), 100) AS ALLOT_SCORE
+			, NVL(MAX(D.MTL_EVL_MRK_GRDCD) OVER(PARTITION BY A.ASMT_MTL_EVL_RSLT_ID, C.QSTN_ID), 100) AS ALLOT_SCORE
 		FROM TB_LMS_MUT_EVAL_RLTN A
 		JOIN MTL_EVL B
 			ON A.ASMT_MTL_EVL_RSLT_ID = B.ASMT_MTL_EVL_RSLT_ID
@@ -449,46 +424,31 @@
 		</if>
 	</delete>
 
-	<insert id="insertStdScoreToAllTeamMember" parameterType="forumEzGraderRsltVO" >
+	<insert id="insertStdScoreToAllTeamMember" parameterType="forumEzGraderRsltVO">
 		/*
-			팀원 모두에게 총  평가점수 부여2
-			ForumEzGraderDAO.insertStdScoreToAllTeamMember 
+			팀원 모두에게 총 평가점수 부여2
+			ForumEzGraderDAO.insertStdScoreToAllTeamMember
+			-- MERGE 사용 사유(Upsert): 팀원별 기존 점수 존재 시 덮어쓰기, 없으면 신규 삽입
 		*/
-		INSERT INTO TB_LMS_DSCS_PTCP (
-			TEAM_ID
-			, DSCS_ID
-			, STD_ID
-			, SCR
-			, RGTR_ID
-			, FRST_INQ_DTTM
-			, MDFR_ID
-			, MOD_DTTM
-		)
-		SELECT
-			A.TEAM_ID
-			, #{forumCd}
-			, A.STD_ID
-			, #{evalScore}
-			, #{rgtrId}
-			, FN_DTTM()
-			, #{rgtrId}
-			, FN_DTTM()
-		FROM TB_LMS_TEAM_MBR A
-		WHERE 1 = 1
-		<if test="evalTrgtUserId != null and evalTrgtUserId != ''">
-			AND TEAM_ID = #{rltnTeamCd}
-			AND STD_ID = #{evalTrgtUserId}
-		</if>
-		<if test="evalTrgtUserId == null or evalTrgtUserId == ''">
-			AND TEAM_ID = #{rltnTeamCd}
-		</if>
-		ON DUPLICATE KEY UPDATE
-		<if test="evalTrgtUserId != null and evalTrgtUserId != ''">
-			STD_ID = #{evalTrgtUserId}, SCR = #{evalScore}
-		</if>
-		<if test="evalTrgtUserId == null or evalTrgtUserId == ''">
-			STD_ID = A.STD_ID, SCR = #{evalScore}
-		</if>
+		MERGE INTO TB_LMS_DSCS_PTCP T
+		USING (
+			SELECT A.TEAM_ID, A.STD_ID
+			FROM TB_LMS_TEAM_MBR A
+			WHERE 1 = 1
+			<if test="evalTrgtUserId != null and evalTrgtUserId != ''">
+				AND TEAM_ID = #{rltnTeamCd}
+				AND STD_ID = #{evalTrgtUserId}
+			</if>
+			<if test="evalTrgtUserId == null or evalTrgtUserId == ''">
+				AND TEAM_ID = #{rltnTeamCd}
+			</if>
+		) S
+		ON (T.DSCS_ID = #{forumCd} AND T.STD_ID = S.STD_ID)
+		WHEN MATCHED THEN
+			UPDATE SET SCR = #{evalScore}, MDFR_ID = #{rgtrId}, MOD_DTTM = FN_DTTM()
+		WHEN NOT MATCHED THEN
+			INSERT (TEAM_ID, DSCS_ID, STD_ID, SCR, RGTR_ID, FRST_INQ_DTTM, MDFR_ID, MOD_DTTM)
+			VALUES (S.TEAM_ID, #{forumCd}, S.STD_ID, #{evalScore}, #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
 	</insert>
 
 	<insert id="insertEvalRsltToAllTeamMember" parameterType="forumEzGraderRsltVO" >

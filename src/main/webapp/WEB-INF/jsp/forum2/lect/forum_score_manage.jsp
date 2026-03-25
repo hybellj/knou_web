@@ -549,7 +549,6 @@
 				width: 600,
 				height: 350,
 				url: "/forum2/forumLect/forumScoreExcelUploadPop.do?" + queryString,
-				autoresize: true
 			});
 		}
 
@@ -602,7 +601,7 @@
 
 		// EZ-Grader 팝업 닫기버튼
 		function onCloseEzGraderPop(){
-			$('.modal').modal('hide');
+			// $('.modal').modal('hide');
 			listForumUser(1);
 		}
 

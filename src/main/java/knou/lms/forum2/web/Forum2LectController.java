@@ -1115,7 +1115,7 @@ public class Forum2LectController extends ControllerBase {
         request.setAttribute("forumFdbkList", forumFdbkList);
         request.setAttribute("forumVo", forumVO);
 
-        return "forum/lect/forum_score_eval_feedBack";
+        return "forum2/lect/forum_score_eval_feedBack";
     }
 
     // 성적분포현황 BarChart
@@ -1882,6 +1882,7 @@ public class Forum2LectController extends ControllerBase {
         vo.setMdfrId(SessionInfo.getUserId(request));
     }
 
+    // TODO : 26.3.24 : 임시 변환용(추후 삭제 예정)
     private ForumVO convertForum2VOtoForumVO(Forum2VO src) throws Exception {
         ForumVO dest = new ForumVO();
 
