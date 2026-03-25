@@ -62,6 +62,7 @@
 			, COUNT(1) OVER() AS totalCnt
 			, forumFdbkCd
 			, fdbkCts
+			, oknokGbnCd
 			, profMemo
 			, teamNm
 			, CASE WHEN memberRole = 'Y' THEN '팀장' ELSE '팀원' END AS memberRole
@@ -170,6 +171,18 @@
 									  AND CX.DELYN = 'N'
 								  )) AS forumCmntCnt
 				, 0 AS afterCmntCnt
+				, CASE
+				    WHEN C.DSCS_UNIT_TYCD != 'TEAM' AND C.OKNOK_STNGYN = 'Y'
+				    THEN NVL(
+				        (SELECT B.OKNOK_GBNCD
+				         FROM TB_LMS_DSCS_ATCL B
+				         WHERE B.DSCS_ID = C.DSCS_ID
+				           AND B.RGTR_ID = A.USER_ID
+				           AND B.DELYN = 'N'
+				           AND ROWNUM = 1),
+				        '-')
+				    ELSE '-'
+				  END AS oknokGbnCd
 				, 'N' AS evalRsltOpenYn
 				, '' AS evalStartDttm
 				, '' AS evalEndDttm
@@ -308,6 +321,27 @@
 	            FN_DTTM(),
 	            'N'
 	        )
+	</insert>
+
+	<insert id="ensureJoinUser" parameterType="forumJoinUserVO">
+		/*
+			교수 메모 팝업 전용: 참여자 미존재 시에만 INSERT (score 덮어쓰기 없음)
+			ForumJoinUserDAO.ensureJoinUser
+		*/
+		MERGE INTO TB_LMS_DSCS_PTCP T
+		USING (
+			SELECT #{stdId} AS USER_ID, #{forumCd} AS DSCS_ID FROM DUAL
+		) S
+		ON (T.USER_ID = S.USER_ID AND T.DSCS_ID = S.DSCS_ID)
+		WHEN NOT MATCHED THEN
+			INSERT (
+				DSCS_PTCP_ID, USER_ID, DSCS_ID, TEAM_ID, SCR, EVLYN,
+				RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM, DELYN
+			)
+			VALUES (
+				#{dscsPtcpId}, #{stdId}, #{forumCd}, #{teamCd}, NULL, 'N',
+				#{rgtrId}, FN_DTTM(), #{mdfrId}, FN_DTTM(), 'N'
+			)
 	</insert>
 
 	<select id="listStdScore" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">

@@ -22,7 +22,8 @@ public class ForumJoinUserVO extends DefaultVO {
     private String  delYn;          // 삭제 여부
     private String  profMemo;       // 교수 메모
     private String  fdbkCts;        // 피드백
-    
+    private String  oknokGbnCd;     // 찬반구분코드 원시값 (OK/NOTOK/-)
+
     private String  forumTitle;     // 토론제목
     private String  forumStartDttm; // 토론시작일시
     private String  forumEndDttm;   // 토론 종료일시
@@ -213,6 +214,12 @@ public class ForumJoinUserVO extends DefaultVO {
     }
     public void setFdbkCts(String fdbkCts) {
         this.fdbkCts = fdbkCts;
+    }
+    public String getOknokGbnCd() {
+        return oknokGbnCd;
+    }
+    public void setOknokGbnCd(String oknokGbnCd) {
+        this.oknokGbnCd = oknokGbnCd;
     }
     public String getTeamNm() {
         return teamNm;

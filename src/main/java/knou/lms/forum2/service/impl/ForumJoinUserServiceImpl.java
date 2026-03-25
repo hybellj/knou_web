@@ -259,18 +259,18 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
     // 교수 메모 팝업창 정보
     @Override
     public ForumJoinUserVO selectProfMemo(ForumJoinUserVO vo) throws Exception {
-        int cnt = forumJoinUserDAO.getForumJoinUser(vo);
-        if(cnt == 0) {
-            // 토론 참여자(tb_lms_forum_join_user) 테이블에 등록
-            ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
-            forumJoinUserVO.setScore(null);
-            forumJoinUserVO.setForumCd(vo.getForumCd());
-            forumJoinUserVO.setTeamCd(vo.getTeamCd());
-            forumJoinUserVO.setStdId(vo.getStdId());
-            forumJoinUserVO.setRgtrId(vo.getUserId());
-            forumJoinUserVO.setMdfrId(vo.getUserId());
-            forumJoinUserVO.setDscsPtcpId(IdGenerator.getNewId(IdPrefixType.DSPTC.getCode()));
-            forumJoinUserDAO.insertStdScore(forumJoinUserVO);
+        // ensureJoinUser: WHEN NOT MATCHED THEN INSERT 만 실행 (기존 점수 덮어쓰기 없음)
+        ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+        forumJoinUserVO.setForumCd(vo.getForumCd());
+        forumJoinUserVO.setTeamCd(vo.getTeamCd());
+        forumJoinUserVO.setStdId(vo.getStdId());
+        forumJoinUserVO.setRgtrId(vo.getUserId());
+        forumJoinUserVO.setMdfrId(vo.getUserId());
+        forumJoinUserVO.setDscsPtcpId(IdGenerator.getNewId(IdPrefixType.DSPTC.getCode()));
+        try {
+            forumJoinUserDAO.ensureJoinUser(forumJoinUserVO);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // ORA-00001: UNIQUE 제약 위반 = row 이미 존재 → 무시하고 진행
         }
         return forumJoinUserDAO.selectProfMemo(vo);
     }

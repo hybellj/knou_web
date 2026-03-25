@@ -67,6 +67,9 @@ public interface ForumJoinUserDAO {
 
     public int getForumJoinUser(ForumJoinUserVO vo) throws Exception;
 
+    // 교수 메모 팝업 전용: 참여자 미존재 시에만 INSERT (score 덮어쓰기 없음)
+    public int ensureJoinUser(ForumJoinUserVO vo) throws Exception;
+
     // 메모
     public ForumJoinUserVO getMemo(ForumVO vo) throws Exception;
 

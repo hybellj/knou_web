@@ -133,6 +133,12 @@
 				<%--scoreHtml += "		<div class=\"ui basic label\"><spring:message code='forum.label.point' /></div>"; // 점--%>
 
 				var fdkHtml = "<i class=\"xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('"+ v.forumCd +"', '"+ v.userId +"', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
+				var oknokHtml = "-";
+				if(v.oknokGbnCd === "OK") {
+					oknokHtml = "<spring:message code='forum.label.oknok.ok' />";        // 찬성
+				} else if(v.oknokGbnCd === "NOTOK") {
+					oknokHtml = "<spring:message code='forum.label.oknok.notok' />";     // 반대
+				}
 				var joinStatusHtml = "";
 				if(v.joinStatus == "미참여") {
 					joinStatusHtml += "<span class='fcRed'>"+ v.joinStatus +"</span>";
@@ -152,6 +158,7 @@
 					usernm: 			v.userNm,
 					totScr:				scoreHtml,
 					fdk:				fdkHtml,
+					oknokGbn:			oknokHtml,
 					joinStatus:			joinStatusHtml,
 					joinDtdm:			v.joinDtdm,
 					evlyn: 				v.evalYn,
@@ -474,7 +481,6 @@
 			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumProfMemoPop.do");
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
-
 
 			$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
 			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
@@ -905,7 +911,7 @@
 			dialog = UiDialog("dialog1", {
 				title: "토론현황 그래프",
 				width: 600,
-				height: 500,
+				height: 400,
 				url: "/forum2/forumLect/forumChartViewPop.do?" + queryString,
 				autoresize: true
 			});
@@ -1246,6 +1252,7 @@
 									("${forumVo.forumCtgrCd}" == "TEAM" ? {title: "역할", field: "ldryn", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
 									{title:"평가점수", 	field:"totScr", 			headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},
 									{title:"피드백", 	field:"fdk", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									("${forumVo.forumCtgrCd}" != "TEAM" && "${forumVo.prosConsForumCfg}" == "Y" ? {title:"찬반", field:"oknokGbn", headerHozAlign:"center", hozAlign:"center", width:60, minWidth:60} : null),
 									{title:"참여상태", 	field:"joinStatus", 		headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
 									{title:"참여일시", 	field:"joinDtdm", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
 									{title:"평가여부", 	field:"evlyn", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},

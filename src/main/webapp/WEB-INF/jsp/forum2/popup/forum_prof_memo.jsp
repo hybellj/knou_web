@@ -56,6 +56,6 @@ function saveProfMemo() {
 			<button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="forum.button.close" /></button><!-- 닫기 -->
 		</div>
 	</div>
-	<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
+<%--	<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>--%>
 </body>
 </html>

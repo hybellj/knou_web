@@ -1,6 +1,6 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 <head>
@@ -254,17 +254,15 @@
     </form>
 
 	<body class="modal-page">
-        <div id="wrap">
+		<div id="wrap" class="flex flex-column">
 			<div class="ui form" style="height:auto;">
-				<div class="fields" style="height:100%;">
-					<div class="field p_w100">
-						<div class="ui segment" style="height:100%;">
-							<p><spring:message code="forum.label.forum.status" /> <!-- 토론 현황 -->
-							<div class="ui stackable equal width grid">
-								<c:if test="${forumVo.prosConsForumCfg eq 'Y'}">
-								<div class="column">
-									<canvas id="pieChart" height="250"></canvas>
-									<script>
+				<div class="ui segment" style="height:100%;">
+					<p><spring:message code="forum.label.forum.status" /> <!-- 토론 현황 -->
+					<table style="width:100%; table-layout:fixed;"><tr>
+						<td style="width:50%; vertical-align:top; padding:4px;">
+							<c:if test="${forumVo.prosConsForumCfg eq 'Y'}">
+								<canvas id="pieChart" height="250"></canvas>
+								<script>
 									var ctx = document.getElementById("pieChart");
 									var myChart = new Chart(ctx, {
 										type: 'pie',
@@ -272,12 +270,12 @@
 											labels: ["<spring:message code='forum.label.pros'/>", "<spring:message code='forum.label.cons'/>"], // 찬성, 반대
 											datasets: [{
 												backgroundColor: [
-												'#36a2eb',
-												'#ff6384',
-												'#ff9f40'
-											],
-											borderWidth:1,
-											data: ["${forumVo.forumAtclPorsCnt}", "${forumVo.forumAtclConsCnt}"]
+													'#36a2eb',
+													'#ff6384',
+													'#ff9f40'
+												],
+												borderWidth:1,
+												data: ["${forumVo.forumAtclPorsCnt}", "${forumVo.forumAtclConsCnt}"]
 											}]
 										},
 										options: {
@@ -335,27 +333,23 @@
 											}
 										}
 									});
-									</script>
-								</div>
-								</c:if>
-								<c:if test="${forumVo.prosConsForumCfg eq 'N'}">
-								<div class="column">
-									<canvas id="pieChart" height="250"></canvas>
-								</div>
-								</c:if>
-								<div class="column">
-									<canvas id="barChart" height="250"></canvas>
-								</div>
-							</div>
-						</div>
-					</div>
+								</script>
+							</c:if>
+							<c:if test="${forumVo.prosConsForumCfg eq 'N'}">
+								<canvas id="pieChart" height="250"></canvas>
+							</c:if>
+						</td>
+						<td style="width:50%; vertical-align:top; padding:4px;">
+							<canvas id="barChart" height="250"></canvas>
+						</td>
+					</tr></table>
 				</div>
 			</div>
 			<div class="btns">
                 <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="forum.button.close" /></button><!-- 닫기 -->
             </div>
         </div>
-		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
+<%--		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>--%>
 	</body>
 	
 	<!-- 엑셀 샘플 -->
