@@ -21,7 +21,7 @@ public interface Forum2DAO {
     int updateForumMrkOyn(Forum2VO vo);
     void updateForumMrkRfltrt(List<Forum2VO> list);
     int deleteForum(Forum2VO vo);
-    public ProcessResultVO<Forum2VO> listMyCreCrsForum(Forum2VO vo) throws Exception;
+    public List<Forum2VO> listMyCreCrsForum(Forum2VO vo) throws Exception;
     public Forum2VO select(Forum2VO vo) throws Exception;
 
     int copyForum(Forum2VO vo);

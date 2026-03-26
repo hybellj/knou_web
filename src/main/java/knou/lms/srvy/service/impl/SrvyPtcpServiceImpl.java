@@ -13,6 +13,7 @@ import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenUtil;
 import knou.lms.srvy.dao.SrvyPtcpDAO;
 import knou.lms.srvy.service.SrvyPtcpService;
+import knou.lms.srvy.vo.SrvyVO;
 
 @Service("srvyPtcpService")
 public class SrvyPtcpServiceImpl extends ServiceBase implements SrvyPtcpService {
@@ -127,6 +128,21 @@ public class SrvyPtcpServiceImpl extends ServiceBase implements SrvyPtcpService 
 	@Override
 	public EgovMap srvyPtcpCntSelect(String srvyId, String sbjctId) throws Exception {
 		return srvyPtcpDAO.srvyPtcpCntSelect(srvyId, sbjctId);
+	}
+
+	/**
+	* 설문참여목록조회 ( Ez-Grader )
+	*
+	* @param srvyId     	설문아이디
+    * @param sbjctId 		과목아이디
+    * @param searchKey  	참여여부
+    * @param searchSort  	정렬코드
+	* @return 설문참여목록조회
+	* @throws Exception
+	*/
+	@Override
+	public List<EgovMap> srvyPtcpListByEzGrader(SrvyVO vo) throws Exception {
+		return srvyPtcpDAO.srvyPtcpListByEzGrader(vo);
 	}
 
 }

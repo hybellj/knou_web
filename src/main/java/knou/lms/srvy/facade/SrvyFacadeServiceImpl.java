@@ -27,6 +27,7 @@ import knou.lms.srvy.service.SrvyRspnsService;
 import knou.lms.srvy.service.SrvyService;
 import knou.lms.srvy.service.SrvyVwitmService;
 import knou.lms.srvy.service.SrvypprService;
+import knou.lms.srvy.vo.SrvyPtcpVO;
 import knou.lms.srvy.vo.SrvyQstnVO;
 import knou.lms.srvy.vo.SrvyVO;
 import knou.lms.srvy.vo.SrvypprVO;
@@ -491,7 +492,7 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
      	// 설문문항 목록 조회
      	srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList((String) params.get("srvyId"), ""));
 
-     	// 설문보기항목일괄조회(레벨형)
+     	// 설문보기항목일괄조회
      	srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList((String) params.get("srvyId"), "", ""));
 
      	// 설문문항보기항목레벨일괄조회
@@ -700,7 +701,7 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
      	// 설문문항 목록 조회
      	srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList((String) params.get("srvyId"), ""));
 
-     	// 설문보기항목일괄조회(레벨형)
+     	// 설문보기항목일괄조회
      	srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList((String) params.get("srvyId"), "", ""));
 
      	// 설문문항보기항목레벨일괄조회
@@ -708,6 +709,48 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
 
         // 설문답변목록
         srvyMainView.setSrvyRspnsList(srvyRspnsService.srvyRspnsList((String) params.get("srvyPtcpId"), (String) params.get("srvyId"), (String) params.get("userId")));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView loadSrvyEzgraderPopup(SrvyVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문조회
+		srvyMainView.setSrvyEgovMap(srvyService.srvySelect(vo));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView getSrvyPtcpListByEzGrader(SrvyVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문참여목록조회 ( Ez-Grader )
+		srvyMainView.setSrvyPtcpList(srvyPtcpService.srvyPtcpListByEzGrader(vo));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public SrvyMainView getProfSrvyRspnsListByEzGrader(SrvyPtcpVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문지 목록 조회
+     	srvyMainView.setSrvypprList(srvypprService.srvypprList(vo.getSrvyId(), ""));
+
+     	// 설문문항 목록 조회
+     	srvyMainView.setSrvyQstnList(srvyQstnService.srvyQstnList(vo.getSrvyId(), ""));
+
+     	// 설문보기항목일괄조회
+     	srvyMainView.setSrvyVwitmList(srvyVwitmService.srvyVwitmBulkList(vo.getSrvyId(), "", ""));
+
+     	// 설문문항보기항목레벨일괄조회
+        srvyMainView.setSrvyQstnVwitmLvlList(srvyQstnVwitmLvlService.srvyQstnVwitmLvlBulkList(vo.getSrvyId(), ""));
+
+		// 설문답변목록
+        srvyMainView.setSrvyRspnsList(srvyRspnsService.srvyRspnsList(vo.getSrvyPtcpId(), vo.getSrvyId(), vo.getUserId()));
 
 		return srvyMainView;
 	}

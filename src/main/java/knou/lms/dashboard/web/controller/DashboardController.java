@@ -2451,6 +2451,7 @@ public class DashboardController extends ControllerBase {
     	String upMenuId = StringUtil.nvl(request.getParameter("upMenuId"));
     	String menuId = StringUtil.nvl(request.getParameter("menuId"));
 
+    	model.addAttribute("authrtGrpcd", SessionInfo.getAuthrtGrpcd(request));
     	model.addAttribute("menuUrl", menuUrl);
     	model.addAttribute("menuNm", menuNm);
     	model.addAttribute("upMenuId", upMenuId);

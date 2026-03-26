@@ -266,4 +266,12 @@ public interface BbsAtclDAO {
      * @throws Exception
      ******************************************************/
     public List<BbsAtclVO> selectBbsAtclGrpNtcList(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 게시글 목록 - 답변
+     * @param vo
+     * @return List<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    public List<BbsAtclVO> selectBbsAtclRspnsList(BbsAtclVO vo) throws Exception;
 }

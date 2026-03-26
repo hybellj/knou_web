@@ -889,11 +889,10 @@
         $('#forumCopyPop').modal('show');
         */
         dialog = UiDialog("dialog1", {
-            title: "<spring:message code="forum.button.copy"/>",
+            title: "<spring:message code='forum.button.copy'/>",
             width: 600,
             height: 500,
-            url: "/forum2/forumLect/Form/forumCopyPop.do?crsCreCd=" + ${forumVo.crsCreCd},
-            autoresize: true
+            url: "/forum2/forumLect/Form/forumCopyPop.do?sbjctId=" + '${forum2VO.sbjctId}'
         });
     }
 

@@ -9,7 +9,8 @@ import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.crs.crecrs.service.CrecrsService;
 import knou.lms.std2.service.StdInfoService;
 import knou.lms.std2.vo.AtndlcVO;
-import knou.lms.subject2.service.SubjectService;
+import knou.lms.subject.service.SubjectService;
+
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

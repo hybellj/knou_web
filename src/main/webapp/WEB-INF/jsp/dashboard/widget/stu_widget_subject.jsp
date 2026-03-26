@@ -17,8 +17,8 @@
 	                            <span class="info_txt">튜터 김하늘</span>
 	                            <span class="info_txt">3학점</span>
 	                        </p>
-	                        <p class="tit"><a href="/subject/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>                                                        
-	                    </div>                                                                                                                                                        
+	                        <p class="tit"><a href="/subject/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
+	                    </div>
 	                </div>
 	                <div class="extra">
 	                    <div class="info">
@@ -29,7 +29,7 @@
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                       
+	                        </p>
 	                    </div>
 	                    <div class="info">
 	                        <p class="point">
@@ -39,14 +39,14 @@
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                       
-	                    </div>   
+	                        </p>
+	                    </div>
 	                    <div class="my_prog_rate">
 	                        <div class="progress">
 	                            <div class="bar blue_type" style="width: 40%;"></div>
 	                        </div>
-	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>                                                
-	                    </div>                                    
+	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+	                    </div>
 	                </div>
 	                <div class="bottom_button">
 	                   <div class="card_btns">
@@ -73,8 +73,8 @@
 	                            <span class="info_txt">튜터 김하늘</span>
 	                            <span class="info_txt">3학점</span>
 	                        </p>
-	                        <p class="tit"><a href="/subject/subject.do?subjectId=SBJCT20260001"">데이터베이스의 이해와 활용</a></p>                                                        
-	                    </div>                                                                                                                                                        
+	                        <p class="tit"><a href="/subject/subject.do?subjectId=SBJCT20260001"">데이터베이스의 이해와 활용</a></p>
+	                    </div>
 	                </div>
 	                <div class="extra">
 	                    <div class="info">
@@ -85,7 +85,7 @@
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                       
+	                        </p>
 	                    </div>
 	                    <div class="info">
 	                        <p class="point">
@@ -95,14 +95,14 @@
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                       
-	                    </div>   
+	                        </p>
+	                    </div>
 	                    <div class="my_prog_rate">
 	                        <div class="progress">
 	                            <div class="bar blue_type" style="width: 40%;"></div>
 	                        </div>
-	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>                                                
-	                    </div>                                    
+	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+	                    </div>
 	                </div>
 	                <div class="bottom_button">
 	                   <div class="card_btns">
@@ -129,8 +129,8 @@
 	                            <span class="info_txt">튜터 한여름</span>
 	                            <span class="info_txt">3학점</span>
 	                        </p>
-	                        <p class="tit"><a href="#0">간결하고 힘찬 영어 쓰기 - 품격 있는 영작</a></p>                                                        
-	                    </div>                                                                                                                                                        
+	                        <p class="tit"><a href="#0">간결하고 힘찬 영어 쓰기 - 품격 있는 영작</a></p>
+	                    </div>
 	                </div>
 	                <div class="extra">
 	                    <div class="info">
@@ -138,7 +138,7 @@
 	                            <span class="tit">과제제출:</span>
 	                            <span>2025.04.26 16:00</span>
 	                        </p>
-	                                                                             
+
 	                    </div>
 	                    <div class="info">
 	                        <p class="point">
@@ -148,21 +148,21 @@
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                       
-	                    </div>   
+	                        </p>
+	                    </div>
 	                    <div class="my_prog_rate">
 	                        <div class="progress">
 	                            <div class="bar blue_type" style="width: 40%;"></div>
 	                        </div>
-	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>                                                
-	                    </div>                                    
+	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+	                    </div>
 	                </div>
 	                <div class="bottom_button">
 	                   <div class="card_btns">
 	                        <a href="#0">공지<span>2</span></a>
 	                        <a href="#0">Q&A<span>2</span></a>
 	                        <a href="#0">1 : 1<span>2</span></a>
-	                        <a href="#0">과제<span>2</span></a>                                                     
+	                        <a href="#0">과제<span>2</span></a>
 	                        <a href="#0">설문<span>2</span></a>
 	                        <a href="#0">시험<span>2</span></a>
 	                    </div>
@@ -179,19 +179,19 @@
 	                            <span class="info_txt">온라인</span>
 	                            <span class="info_txt">3학점</span>
 	                        </p>
-	                        <p class="tit"><a href="#0">New TEPS 실전 연습-기본편</a></p>                                                        
-	                    </div>                                                                                                                                                        
+	                        <p class="tit"><a href="#0">New TEPS 실전 연습-기본편</a></p>
+	                    </div>
 	                </div>
 	                <div class="extra">
 	                    <div class="info">
 	                        <p class="point">
 	                            <span class="tit">중간고사:</span>
-	                            <span>2025.04.26 16:00</span>                                                            
+	                            <span>2025.04.26 16:00</span>
 	                        </p>
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                    
+	                        </p>
 	                    </div>
 	                    <div class="info">
 	                        <p class="point">
@@ -201,20 +201,20 @@
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                       
-	                    </div>   
+	                        </p>
+	                    </div>
 	                    <div class="my_prog_rate">
 	                        <div class="progress">
 	                            <div class="bar blue_type" style="width: 40%;"></div>
 	                        </div>
-	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>                                                
-	                    </div>                                    
+	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+	                    </div>
 	                </div>
 	                <div class="bottom_button">
 	                   <div class="card_btns">
 	                        <a href="#0">공지<span>2</span></a>
 	                        <a href="#0">Q&A<span>2</span></a>
-	                        <a href="#0">1 : 1<span>2</span></a>                                                   
+	                        <a href="#0">1 : 1<span>2</span></a>
 	                        <a href="#0">설문<span>2</span></a>
 	                        <a href="#0">시험<span>2</span></a>
 	                    </div>
@@ -231,8 +231,8 @@
 	                            <span class="info_txt">튜터 김하늘</span>
 	                            <span class="info_txt">3학점</span>
 	                        </p>
-	                        <p class="tit"><a href="#0">AI와 빅데이터 경영입문 2반</a></p>                                                        
-	                    </div>                                                                                                                                                        
+	                        <p class="tit"><a href="#0">AI와 빅데이터 경영입문 2반</a></p>
+	                    </div>
 	                </div>
 	                <div class="extra">
 	                    <div class="info">
@@ -243,7 +243,7 @@
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                       
+	                        </p>
 	                    </div>
 	                    <div class="info">
 	                        <p class="point">
@@ -253,14 +253,14 @@
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                       
-	                    </div>   
+	                        </p>
+	                    </div>
 	                    <div class="my_prog_rate">
 	                        <div class="progress">
 	                            <div class="bar blue_type" style="width: 40%;"></div>
 	                        </div>
-	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>                                                
-	                    </div>                                    
+	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+	                    </div>
 	                </div>
 	                <div class="bottom_button">
 	                   <div class="card_btns">
@@ -287,8 +287,8 @@
 	                            <span class="info_txt">튜터 김하늘</span>
 	                            <span class="info_txt">3학점</span>
 	                        </p>
-	                        <p class="tit"><a href="#0">AI와 빅데이터 경영입문 2반</a></p>                                                        
-	                    </div>                                                                                                                                                        
+	                        <p class="tit"><a href="#0">AI와 빅데이터 경영입문 2반</a></p>
+	                    </div>
 	                </div>
 	                <div class="extra">
 	                    <div class="info">
@@ -299,7 +299,7 @@
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                       
+	                        </p>
 	                    </div>
 	                    <div class="info">
 	                        <p class="point">
@@ -309,14 +309,14 @@
 	                        <p class="desc">
 	                            <span class="tit">시간:</span>
 	                            <span>40분</span>
-	                        </p>                                                       
-	                    </div>   
+	                        </p>
+	                    </div>
 	                    <div class="my_prog_rate">
 	                        <div class="progress">
 	                            <div class="bar blue_type" style="width: 40%;"></div>
 	                        </div>
-	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>                                                
-	                    </div>                                    
+	                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+	                    </div>
 	                </div>
 	                <div class="bottom_button">
 	                   <div class="card_btns">
@@ -324,7 +324,7 @@
 	                        <a href="#0">Q&A<span>2</span></a>
 	                        <a href="#0">1 : 1<span>2</span></a>
 	                        <a href="#0">과제<span>2</span></a>
-	                        <a href="#0">토론<span>2</span></a>                                                        
+	                        <a href="#0">토론<span>2</span></a>
 	                    </div>
 	                </div>
 	            </div>
@@ -344,7 +344,7 @@
 										김하늘</span> <span class="info_txt">3학점</span>
 								</p>
 								<p class="tit">
-									<a href="/subject.do?subjectId=SBJCT20260001">자바 프로그래밍 초급</a>
+									<a href="/subject/subject.do?subjectId=SBJCT20260001">자바 프로그래밍 초급</a>
 								</p>
 							</div>
 							<div class="extra">
@@ -638,7 +638,7 @@
 			</ul>
 		</div>
 	</div>
-	
+
 	<div id="subjectCat2" class="tab-content" style="display: none;">
 	    <div class="no_content">
 	        <div class="no_text">
@@ -647,11 +647,11 @@
 	        </div>
 	    </div>
 	</div>
-	
+
 	<div id="subjectCat3" class="tab-content" style="display: none;">
 		학위과정 강의리스트
 	</div>
-	
+
 	<div id="subjectCat4" class="tab-content" style="display: none;">
 		평생교육 강의리스트
 	</div>
@@ -682,10 +682,10 @@ function setSubjectWidget() {
 
 	dashboardWidget.addInTitle("wigt_stu_subject", inTitle);
 	dashboardWidget.addSubTitle("wigt_stu_subject", subTitle);
-	
+
 	// select 필드에 chosen 적용
 	UiChosen();
-	
+
 	// localdb에서 카테고리,mode 가져오기
 	let subjectCat = UiComm.db.getItem("stu:widget_subject_cat");
 	let listMode = UiComm.db.getItem("stu:widget_subject_mode");

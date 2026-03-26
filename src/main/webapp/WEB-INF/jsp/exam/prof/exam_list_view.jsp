@@ -323,8 +323,6 @@
 
         /**
          * 시험 삭제
-         * 응시자가 없을 경우에만 실행
-         * 응시자가 있을 경우 경고 메시지를 출력한다.
          */
         function examDelete(examBscId, byteamSubrexamUseyn) {
             var url = "/exam/tkexamUserCount.do";
@@ -332,7 +330,23 @@
             ajaxCall(url, data, function(data) {
                 // 응시자가 있을 경우
                 if (data.pageInfo.totalRecordCount > 0) {
-                    UiComm.showMessage("수강중인 수강생이 있습니다.", "error");
+                    UiComm.showMessage("학습중인 수강생이 있습니다.\n삭제할 경우 수강생의 학습정보가 삭제됩니다.\n정말 삭제하시겠습니까?", "confirm")
+                    .then(function(result) {
+                        if (result) {
+                            ajaxCall("/exam/examDelete.do", { examBscId: examBscId, byteamSubrexamUseyn: byteamSubrexamUseyn }, function(data) {
+                                if (data.result > 0) {
+                                    UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")
+                                        .then(function() {
+                                            location.reload();
+                                        });
+                                } else {
+                                    UiComm.showMessage(data.message, "error");
+                                }
+                            }, function(xhr, status, error) {
+                                UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
+                            }, true);
+                        }
+                    });
                 } else {
                     UiComm.showMessage("학습중인 수강생이 없습니다.\n정말 삭제하시겠습니까?", "confirm")
                     .then(function(result) {

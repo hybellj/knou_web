@@ -29,36 +29,41 @@
 
         /*****************************************************************************
          * tabulator 관련 기능
-         * 1. initExamInfoListTable :   컬럼 정의 (대상자 전체 | 팀)
-         * 2. loadExamInfoList :        컬럼에 들어갈 데이터 ajax 호출
-         * 3. changeInfoListScale :     페이지 row수 세팅
+         * 1. initExamInfoListTable :    컬럼 정의 (대상자 전체 | 팀)
+         * 2. createExamInfoListHtml :   각 컬럼에 들어갈 데이터 세팅 및 요소 생성
+         * 3. loadExamInfoList :         컬럼에 들어갈 데이터 ajax 호출
+         * 4. changeInfoListScale :      페이지 row수 세팅
          *****************************************************************************/
         /* 1 */
         function initExamInfoListTable() {
             if (examInfoListTable) return;
+            var examScrTitle = curTkexamMthdCd === 'QUIZ' ? "퀴즈점수" : "시험점수";
             var examInfoColumns = curByteamSubrexamUseyn === 'Y' ? [
                 {title:"No",       field:"lineNo",        headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                {title:"팀명",     field:"teamnm",        headerHozAlign:"center", hozAlign:"left",   width:120, minWidth:120},
-                {title:"학과",     field:"deptnm",        headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"대표아이디",field:"userRprsId",    headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"학번",     field:"stntNo",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"팀명",     field:"teamnm",        headerHozAlign:"center", hozAlign:"left",   width:140, minWidth:140},
+                {title:"학과",     field:"deptnm",        headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
+                {title:"대표아이디",field:"userRprsId",    headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
+                {title:"학번",     field:"stdntNo",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
                 {title:"이름",     field:"usernm",        headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
                 {title:"역할",     field:"ldryn",         headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"시험점수", field:"examScr",       headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가점수", field:"totScr",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"응시상태", field:"tkexamCmptnyn", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"응시횟수", field:"tkexamCnt",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가여부", field:"evlyn",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
+                {title:examScrTitle, field:"examScr",       headerHozAlign:"center", hozAlign:"center", width:80, minWidth:80},
+                {title:"평가점수", field:"totScr",        headerHozAlign:"center", hozAlign:"center", width:80, minWidth:80},
+                {title:"응시횟수", field:"tkexamCnt",     headerHozAlign:"center", hozAlign:"center", width:80, minWidth:80},
+                {title:"응시상태", field:"tkexamCmptnyn", headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"평가여부", field:"evlyn",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"관리",    field:"manage",         headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:600}
             ] : [
-                {title:"No",       field:"lineNo",        headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                {title:"학과",     field:"deptnm",        headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"대표아이디",field:"userRprsId",    headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
+                {title:"No",      field:"lineNo",        headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
+                {title:"학과",     field:"deptnm",        headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
+                {title:"대표아이디",field:"userRprsId",    headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
+                {title:"학번",     field:"stdntNo",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
                 {title:"이름",     field:"usernm",        headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"시험점수", field:"examScr",       headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가점수", field:"totScr",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"응시상태", field:"tkexamCmptnyn", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"응시횟수", field:"tkexamCnt",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가여부", field:"evlyn",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
+                {title:examScrTitle, field:"examScr",       headerHozAlign:"center", hozAlign:"center", width:80, minWidth:80},
+                {title:"평가점수", field:"totScr",        headerHozAlign:"center", hozAlign:"center", width:80, minWidth:80},
+                {title:"응시횟수", field:"tkexamCnt",     headerHozAlign:"center", hozAlign:"center", width:80, minWidth:80},
+                {title:"응시상태", field:"tkexamCmptnyn", headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"평가여부", field:"evlyn",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"관리",    field:"manage",         headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:600}
             ];
             examInfoListTable = UiTable("examInfoList", {
                 lang: "ko",
@@ -68,6 +73,83 @@
             });
         }
         /* 2 */
+        function createExamInfoListHtml(list) {
+            let dataList = [];
+            if (list.length == 0) {
+                return dataList;
+            } else {
+                list.forEach(function(v, i) {
+                    // 시험점수
+                    var examScr = (v.examScr === 0 || v.examScr === "0") ? "-" : v.examScr;
+                    // 평가점수
+                    var totScr = v.totScr;
+                    if(v.tkexamSdttm == null) { totScr = v.evlyn == "Y" ? v.totScr : "-"; }
+                    // 평가여부
+                    var evlyn = v.evlyn === 'Y' ? "평가완료" : "<span class='fcRed'>미평가</span>";
+                    // 응시상태
+                    var tkexamCmptnGbnnmMap = {
+                        "INIT"      : "<span class='fcOrange'>미응시</span>",
+                        "NOTKEXAM"  : "<span class='fcRed'>미응시</span>",
+                        "COMPLETED" : "응시완료",
+                        "TKEXAMING" : "<span class='fcBlue'>응시중</span>"
+                    };
+                    var tkexamCmptnyn = tkexamCmptnGbnnmMap[v.tkexamCmptnGbncd] || "-";
+                    // 관리 버튼
+                    var manageBtns = "";
+                    if (curTkexamMthdCd === 'RLTM') {
+                        manageBtns += "<a class='btn basic small'>시험지보기</a>"
+                        manageBtns += "<a class='btn basic small'>메모</a>"
+                    } else {
+                        manageBtns += "<a class='btn basic small'>퀴즈초기화</a>"
+                        manageBtns += "<a class='btn basic small'>시험지보기</a>"
+                        manageBtns += "<a class='btn basic small'>응시기록</a>"
+                        manageBtns += "<a class='btn basic small'>메모</a>"
+                    }
+
+                    if (curByteamSubrexamUseyn === 'Y') {
+                        // 역할 (팀인 경우)
+                        var ldryn = v.ldryn === 'Y' ? "팀장" : "팀원";
+                        dataList.push({
+                            lineNo:         v.lineNo
+                            , teamnm:       v.teamnm
+                            , deptnm:       v.deptnm
+                            , userRprsId:   v.userRprsId
+                            , stdntNo:      v.stdntNo
+                            , usernm:       v.usernm
+                            , ldryn:        ldryn
+                            , examScr:      examScr
+                            , totScr:       totScr
+                            , tkexamCmptnyn:tkexamCmptnyn
+                            , tkexamCnt:    v.tkexamCnt + "회"
+                            , evlyn:        evlyn
+                            , manage:       manageBtns
+                            , examDtlId:    v.examDtlId
+                            , tkexamId:     v.tkexamId
+                            , userId:       v.userId
+                        });
+                    } else {
+                        dataList.push({
+                            lineNo:         v.lineNo
+                            , deptnm:       v.deptnm
+                            , userRprsId:   v.userRprsId
+                            , stdntNo:      v.stdntNo
+                            , usernm:       v.usernm
+                            , examScr:      examScr
+                            , totScr:       totScr
+                            , tkexamCmptnyn:tkexamCmptnyn
+                            , tkexamCnt:    v.tkexamCnt + "회"
+                            , evlyn:        evlyn
+                            , manage:       manageBtns
+                            , examDtlId:    v.examDtlId
+                            , tkexamId:     v.tkexamId
+                            , userId:       v.userId
+                        });
+                    }
+                });
+            }
+            return dataList;
+        }
+        /* 3 */
         function loadExamInfoList(pageIndex) {
             initExamInfoListTable();
             PAGE_INDEX = pageIndex || PAGE_INDEX;
@@ -76,16 +158,21 @@
                 url: "/exam/tkexamUserPaging.do",
                 type: "GET",
                 data: {
-                    examBscId: curExamBscId,
-                    byteamSubrexamUseyn: curByteamSubrexamUseyn,
-                    pageIndex: PAGE_INDEX,
-                    listScale: LIST_SCALE
+                    examBscId           : curExamBscId,
+                    byteamSubrexamUseyn : curByteamSubrexamUseyn,
+                    tkexamCmptnyn       : $("#tkexamCmptnyn").val(),
+                    evlyn    		    : $("#evlyn").val(),
+                    searchValue 	    : $("#searchValue").val(),
+                    pageIndex           : PAGE_INDEX,
+                    listScale           : LIST_SCALE
                 },
                 dataType: "json",
                 success: function(data) {
                     if (data.result > 0) {
+                        var returnList = data.returnList || [];
+                        var dataList   = createExamInfoListHtml(returnList);
                         examInfoListTable.clearData();
-                        examInfoListTable.replaceData(data.returnList || []);
+                        examInfoListTable.replaceData(dataList);
                         examInfoListTable.setPageInfo(data.pageInfo);
                     } else {
                         alert(data.message);
@@ -99,7 +186,7 @@
                 }
             });
         }
-        /* 3 */
+        /* 4 */
         function changeInfoListScale(scale) {
             LIST_SCALE = scale;
             loadExamInfoList(1);
@@ -110,6 +197,7 @@
          * 1. plusMinusIconControl :    점수 등록 <=> 점수 가감 타입 변경
          * 2. toggleIcon :              일괄 성적처리 +- 아이콘 변경
          * 3. toggleIconTrigger :       초기 Radio 버튼 클릭 이벤트
+         * 4. EvlScrBulkModify  :       선택된 학습자에게 입력한 점수를 일괄 등록/가감
          *****************************************************************************/
         /* 1 */
         function plusMinusIconControl(scoreType){
@@ -128,6 +216,64 @@
         /* 3 */
         function toggleIconTrigger() {
             $("#scoreBatch").trigger("click");
+        }
+        /* 4 */
+        function EvlScrBulkModify() {
+            let validator = UiValidator("scoreForm");
+            validator.then(function(result) {
+                if (result) {
+                    if (examInfoListTable.getSelectedData("userId").length == 0) {
+                        UiComm.showMessage("일괄 성적처리할 학습자를 선택해주세요.", "info");
+                        return;
+                    }
+
+                    var score = $("#scoreValue").val();
+                    if ($("input[name='scoreType']:checked").val() == "addition") {
+                        if (!$("#scr-toggle-icon").children("i").attr("class").includes("xi-plus")) {
+                            score = score * (-1);
+                        }
+                    }
+
+                    var scrList = [];
+                    for (var i = 0; i < examInfoListTable.getSelectedData("userId").length; i++) {
+                        var scr = {
+                            examDtlId : examInfoListTable.getSelectedData("examDtlId")[i],
+                            tkexamId  : examInfoListTable.getSelectedData("tkexamId")[i],
+                            userId    : examInfoListTable.getSelectedData("userId")[i],
+                            scr       : score,
+                            scoreType : $("input[name='scoreType']:checked").val()
+                        };
+                        scrList.push(scr);
+                    }
+
+                    $.ajax({
+                        url: "/quiz/profQuizEvlScrBulkModifyAjax.do",
+                        type: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify(scrList),
+                        dataType: "json",
+                        beforeSend: function () {
+                            UiComm.showLoading(true);
+                        },
+                        success: function (data) {
+                            if (data.result > 0) {
+                                UiComm.showMessage("<spring:message code='exam.alert.batch.score' />", "success");
+                                $("#scoreValue").val("");
+                                examTkexamListSelect();
+                            } else {
+                                UiComm.showMessage(data.message, "error");
+                            }
+                            UiComm.showLoading(false);
+                        },
+                        error: function () {
+                            UiComm.showMessage("<spring:message code='exam.error.batch.score' />", "error");
+                        },
+                        complete: function () {
+                            UiComm.showLoading(false);
+                        }
+                    });
+                }
+            });
         }
 
         /*****************************************************************************
@@ -201,6 +347,24 @@
 			$("#examSubsbjctbody").append(html);
 		}
 
+
+        /*****************************************************************************
+         * 검색 영역 기능
+         * 1. 수강생 검색
+         * 2. 수강생 전체 검색 및 검색영역 초기화
+         *****************************************************************************/
+        /* 1 */
+        function examTkexamListSelect (){
+            loadExamInfoList(1);
+        }
+        /* 2 */
+        function resetListSelect() {
+            $("#tkexamCmptnyn").val('').trigger('chosen:updated');
+            $("#evlyn").val('').trigger("chosen:updated");
+            $("#searchValue").val("");
+            examTkexamListSelect();
+        }
+
         /**
          * 시험 화면 이동
          * @param {String}  examBscId           - 시험 기본 ID
@@ -240,25 +404,41 @@
             ajaxCall(url, data, function(data) {
                 // 응시자가 있을 경우
                 if (data.pageInfo.totalRecordCount > 0) {
-                    UiComm.showMessage("수강중인 수강생이 있습니다.", "error");
+                    UiComm.showMessage("학습중인 수강생이 있습니다.\n삭제할 경우 수강생의 학습정보가 삭제됩니다.\n정말 삭제하시겠습니까?", "confirm")
+                    .then(function(result) {
+                        if (result) {
+                            ajaxCall("/exam/examDelete.do", { examBscId: examBscId, byteamSubrexamUseyn: byteamSubrexamUseyn }, function(data) {
+                                if (data.result > 0) {
+                                    UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")
+                                        .then(function() {
+                                            location.reload();
+                                        });
+                                } else {
+                                    UiComm.showMessage(data.message, "error");
+                                }
+                            }, function(xhr, status, error) {
+                                UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
+                            }, true);
+                        }
+                    });
                 } else {
                     UiComm.showMessage("학습중인 수강생이 없습니다.\n정말 삭제하시겠습니까?", "confirm")
-                        .then(function(result) {
-                            if (result) {
-                                ajaxCall("/exam/examDelete.do", { examBscId: examBscId, byteamSubrexamUseyn: byteamSubrexamUseyn }, function(data) {
-                                    if (data.result > 0) {
-                                        UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")
-                                            .then(function() {
-                                                location.href = "/exam/profExamListView.do";
-                                            });
-                                    } else {
-                                        UiComm.showMessage(data.message, "error");
-                                    }
-                                }, function(xhr, status, error) {
-                                    UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
-                                }, true);
-                            }
-                        });
+                    .then(function(result) {
+                        if (result) {
+                            ajaxCall("/exam/examDelete.do", { examBscId: examBscId, byteamSubrexamUseyn: byteamSubrexamUseyn }, function(data) {
+                                if (data.result > 0) {
+                                    UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")
+                                        .then(function() {
+                                            location.href = "/exam/profExamListView.do";
+                                        });
+                                } else {
+                                    UiComm.showMessage(data.message, "error");
+                                }
+                            }, function(xhr, status, error) {
+                                UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
+                            }, true);
+                        }
+                    });
                 }
             }, function(xhr, status, error) {
                 UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
@@ -560,20 +740,20 @@
                                 <!-- 시험정보 및 평가 검색영역 -->
                                 <div class="search-typeA margin-bottom-4">
                                     <div class="text-center">
-                                        <select class="form-select" id="tkexamCmptnyn" onchange="quizTkexamListSelect()">
+                                        <select class="form-select" id="tkexamCmptnyn">
                                             <option value="">응시여부</option>
                                             <option value="all"><spring:message code="exam.common.search.all" /><!-- 전체 --></option>
                                             <option value="N">미응시</option>
                                             <option value="Y">응시완료</option>
                                         </select>
-                                        <select class="form-select" id="evlyn" onchange="quizTkexamListSelect()">
+                                        <select class="form-select" id="evlyn">
                                             <option value="">평가여부</option>
                                             <option value="all"><spring:message code="exam.common.search.all" /><!-- 전체 --></option>
                                             <option value="Y">평가</option>
                                             <option value="N">미평가</option>
                                         </select>
                                         <input class="form-control" type="text" id="searchValue" value="" placeholder="<spring:message code="message.search.input.dept.user.user.nm" />"><!-- 학과/학번/성명 입력 -->
-                                        <button type="button" class="btn type1" onclick="quizTkexamListSelect()">검색</button>
+                                        <button type="button" class="btn type1" onclick="examTkexamListSelect()">검색</button>
                                         <button type="button" class="btn type1" onclick="resetListSelect()">수강생 전체</button>
                                     </div>
                                 </div>

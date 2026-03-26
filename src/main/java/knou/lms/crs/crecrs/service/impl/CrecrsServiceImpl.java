@@ -42,7 +42,7 @@ import knou.lms.score.service.ScoreService;
 import knou.lms.score.vo.ScoreVO;
 import knou.lms.std.dao.StdDAO;
 import knou.lms.std.vo.StdVO;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.vo.SubjectVO;
 import knou.lms.user.dao.UsrUserInfoDAO;
 import knou.lms.user.vo.UsrUserInfoVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;

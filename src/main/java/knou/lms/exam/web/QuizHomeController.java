@@ -12,6 +12,7 @@ import knou.framework.exception.AjaxProcessException;
 import knou.framework.exception.BadRequestUrlException;
 import knou.framework.exception.MediopiaDefineException;
 import knou.framework.util.ExcelUtilPoi;
+import knou.framework.util.FileUtil;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
@@ -31,6 +32,7 @@ import knou.lms.exam.facade.QuizFacadeService;
 import knou.lms.exam.service.*;
 import knou.lms.exam.vo.*;
 import knou.lms.exam.web.view.QuizMainView;
+import knou.lms.file.vo.AtflVO;
 import knou.lms.lesson.service.LessonScheduleService;
 import knou.lms.lesson.vo.LessonScheduleVO;
 import knou.lms.log.lesson.service.LogLessonActnHstyService;
@@ -1356,6 +1358,112 @@ public class QuizHomeController extends ControllerBase {
         } catch(Exception e) {
             resultVO.setResult(-1);
             resultVO.setMessage("점수 수정 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /**
+     * 교수퀴즈엑셀성적등록팝업
+     *
+     * @param examBscId 시험기본아이디
+     * @param sbjctId 	과목아이디
+     * @return prof_quiz_excel_scr_regist_pop.jsp
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizExcelScrRegistPopup.do")
+    public String profQuizExcelScrRegistPopup(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        request.setAttribute("vo", vo);
+
+        return "quiz/popup/prof_quiz_excel_scr_regist_pop";
+    }
+
+    /**
+     * 교수퀴즈성적등록샘플엑셀다운로드
+     *
+     * @param examBscId 	시험기본아이디
+     * @param excelGrid 	엑셀그리드
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizScrRegistSampleExcelDown.do")
+    public String profQuizScrRegistSampleExcelDown(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String title = getMessage("exam.label.std.list"); // 학습자목록
+
+        Map<String, Object> searchMap = new HashMap<String, Object>();
+        searchMap.put("examBscId", vo.getExamBscId());
+        List<EgovMap> tkexamList = tkexamService.quizTkexamList(searchMap);
+
+        // POI의 SXSSFWorkbook를 이용한 대용량 엑셀 출력 공통 함수 이용
+        // 엑셀 정보값 세팅
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title", title);  // 시험학습자목록
+        map.put("sheetName", title);   // 학습자목록
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list", tkexamList);
+
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("outFileName", title);  // 학습자목록
+        params.put("sheetName", title);    // 학습자목록
+        params.put("list", tkexamList);
+
+        //엑셀화
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        params.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(params);
+
+        return "excelView";
+    }
+
+    /**
+     * 교수퀴즈성적엑셀업로드
+     *
+     * @param examBscId 	시험기본아이디
+     * @param excelGrid 	엑셀그리드
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizScrExcelUpload.do")
+    @ResponseBody
+    public ProcessResultVO<ExamBscVO> profQuizScrExcelUpload(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        vo.setRgtrId(userId);
+
+        try {
+        	List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+
+        	// 첨부파일
+        	if (uploadFileList.size() > 0) {
+	        	for (AtflVO atflVO : uploadFileList) {
+		        	atflVO.setRefId(vo.getExamBscId());
+		        	atflVO.setRgtrId(vo.getRgtrId());
+		        	atflVO.setMdfrId(vo.getMdfrId());
+		        	atflVO.setAtflRepoId(CommConst.REPO_EXAM); // 첨부파일 저장소 아이디
+	        	}
+
+	        	// 첨부파일 저장
+	        	//attachFileDAO.insertAtflList(uploadFileList);
+        	}
+
+            //엑셀 읽기위한 정보값 세팅
+            HashMap<String, Object> map = new HashMap<String, Object>();
+            map.put("startRaw", 5);
+            map.put("excelGrid", vo.getExcelGrid());
+            //map.put("fileVO", fileVO);
+            map.put("searchKey", "excelUpload");
+
+            //엑셀 리더
+            ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+            List<?> list = excelUtilPoi.simpleReadGrid(map);
+
+            //읽어온 값으로 update
+            //examStareService.updateExampleExcelStareScore(vo, list);
+            resultVO.setResult(1);
+            //resultVO.setMessage(getMessage("exam.alert.save.score"));/* 점수 저장이 완료되었습니다. */
+
+        } catch(Exception e) {
+            e.printStackTrace();
+            resultVO.setResult(-1);
         }
         return resultVO;
     }

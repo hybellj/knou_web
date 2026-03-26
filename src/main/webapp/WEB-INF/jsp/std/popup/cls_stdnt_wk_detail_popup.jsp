@@ -49,9 +49,9 @@
         </span>
         <div class="right-area">
             <div class="state-txt-label">
-                <p><span class="state_ok" aria-label="출석">○</span> 출석</p>
+                <p><span class="state_ok"   aria-label="출석">○</span> 출석</p>
                 <p><span class="state_late" aria-label="지각">△</span> 지각</p>
-                <p><span class="state_no" aria-label="결석">X</span> 결석</p>
+                <p><span class="state_no"   aria-label="결석">X</span> 결석</p>
             </div>
         </div>
     </div>
@@ -59,7 +59,7 @@
     <!-- ③ 주차 요약 + 차시 목록 -->
     <div class="course_history">
 
-        <!-- 주차 요약 (h_top) -->
+        <!-- 주차 요약 -->
         <div class="h_top" id="wkSummaryArea">
             <div class="h_left">
                 <strong class="tit" id="wkTitleLeft">-</strong>
@@ -75,10 +75,10 @@
                     <span><strong id="reqMinSpan">-</strong></span>
                     <span>학습시간<strong id="lrnTimeSpan">- ( 기간 후 : - )</strong></span>
                 </p>
-                <!-- ★ 수정: 버튼 분리 — 출석 상태에 따라 하나씩만 노출 -->
+                <!-- 출석 상태에 따라 버튼 하나씩만 노출 -->
                 <div id="atndBtnArea" style="display:none;">
                     <button type="button" class="btn s_type2" id="btnAtndProcess" onclick="doAtndProcess()">출석처리</button>
-                    <button type="button" class="btn s_type2" id="btnAtndCancel"  onclick="doAtndCancel()"  style="display:none; margin-left:4px;">출석처리 취소</button>
+                    <button type="button" class="btn s_type2" id="btnAtndCancel"  onclick="doAtndCancel()" style="display:none; margin-left:4px;">출석처리 취소</button>
                 </div>
             </div>
         </div>
@@ -117,6 +117,9 @@
         loadWkDetail();
     });
 
+    /* =====================================================
+       팝업 닫기
+       ===================================================== */
     function closePopup() {
         try {
             var dlgId = null;
@@ -128,12 +131,14 @@
                 if (dlg && typeof dlg.close === 'function') { dlg.close(); return; }
             }
             $(window.frameElement).closest('.ui-dialog').find('.ui-dialog-titlebar-close').trigger('click');
-        } catch(e) { window.close(); }
+        } catch (e) {
+            window.close();
+        }
     }
 
-    /* ==========================================
+    /* =====================================================
        수강생 기본정보
-       ========================================== */
+       ===================================================== */
     function loadStdntInfo() {
         $.ajax({
             url: CTX + "/cls/selectClsStdntInfo.do",
@@ -153,13 +158,12 @@
         });
     }
 
-    /* ==========================================
-       주차 학습 상세
-       ========================================== */
+    /* =====================================================
+       주차 학습 상세 조회
+       ===================================================== */
     function loadWkDetail() {
         var wkNo = parseInt($("#selWkNo").val(), 10);
 
-        // 초기화
         $("#atndBtnArea").hide();
         $("#chsiList").html('<li><div class="t_center" style="padding:20px; color:#aaa;">조회 중...</div></li>');
 
@@ -176,13 +180,20 @@
                 renderWkSummary(res.returnVO, wkNo);
                 renderChsiList(res.returnVO ? (res.returnVO.chsiList || []) : []);
             },
-            error: function () { renderWkSummary(null, wkNo); renderChsiList([]); }
+            error: function () {
+                renderWkSummary(null, wkNo);
+                renderChsiList([]);
+            }
         });
     }
 
-    /* ==========================================
+    /* =====================================================
        주차 요약 렌더링
-       ========================================== */
+       [버그 수정 2] sts 비교 기준 통일: "O" → "ATND"
+         - SQL에서 atndSts 는 ATND / LATE / ABSNT 로 내려옴
+         - 기존 코드는 버튼 분기에서 sts === "O" 를 비교 → 항상 false
+         - 화면 표시용 텍스트(stsTxt)와 상태 코드(sts)를 분리해서 처리
+       ===================================================== */
     function renderWkSummary(d, wkNo) {
         var wkLabel = wkNo + "주차 학습기록";
 
@@ -192,7 +203,7 @@
             $("#wkPeriodSpan").text("-");
             $("#wkTotMinSpan").text("-");
             $("#wkMthdSpan").text("-");
-            $("#atndStsSpan").attr("class", "state_no").text("-");
+            $("#atndStsSpan").attr("class", "state_no").attr("aria-label", "결석").text("-");
             $("#atndStsLabelSpan").text("-");
             $("#reqMinSpan").text("-");
             $("#lrnTimeSpan").text("- ( 기간 외: - )");
@@ -204,16 +215,19 @@
 
         $("#wkTitleLeft").text(wkLabel);
 
-        var period = "-";
-        if (d.lrnStDt && d.lrnEndDt) period = d.lrnStDt + " ~ " + d.lrnEndDt;
+        var period = (d.lrnStDt && d.lrnEndDt) ? d.lrnStDt + " ~ " + d.lrnEndDt : "-";
         $("#wkPeriodSpan").text(period);
         $("#wkTotMinSpan").text((d.totDurMin || 0) + "분");
         $("#wkMthdSpan").text(d.lrnMthd || "-");
 
-        var sts    = d.atndSts || "X";
-        var stsCls = sts === "O" ? "state_ok" : sts === "△" ? "state_late" : "state_no";
-        var stsLbl = sts === "O" ? "출석" : sts === "△" ? "지각" : "결석";
-        $("#atndStsSpan").attr("class", stsCls).attr("aria-label", stsLbl).text(sts);
+        // ★ [수정 2] sts 는 DB 코드값(ATND/LATE/ABSNT) 그대로 사용
+        //            stsTxt/stsCls/stsLbl 은 화면 표시용으로 별도 분리
+        var sts    = d.atndSts || "ABSNT";
+        var stsCls = sts === "ATND" ? "state_ok"   : sts === "LATE" ? "state_late" : "state_no";
+        var stsLbl = sts === "ATND" ? "출석"        : sts === "LATE" ? "지각"       : "결석";
+        var stsTxt = sts === "ATND" ? "○"           : sts === "LATE" ? "△"          : "X";
+
+        $("#atndStsSpan").attr("class", stsCls).attr("aria-label", stsLbl).text(stsTxt);
         $("#atndStsLabelSpan").text(stsLbl);
 
         $("#reqMinSpan").text((d.totalLrnMin || 0) + "분");
@@ -222,15 +236,17 @@
         var aftPrd = (d.aftPrdLrnMin || 0) + "분 " + (d.aftPrdLrnSec || 0) + "초";
         $("#lrnTimeSpan").text(inPrd + " ( 기간 외: " + aftPrd + " )");
 
-        // ★ 수정: 출석인증 기간 내이고 마지막 주차가 아닐 때만 버튼 영역 노출
+        // 버튼 영역 노출 조건: 출석인증 기간 내 + 마지막 주차 아님
         if ((d.atndCertUseYn || "N") === "Y" && (d.lastWkYn || "N") !== "Y") {
             $("#atndBtnArea").show();
 
-            // ★ 수정: 출석 상태 → 취소 버튼만, 결석/지각 상태 → 출석처리 버튼만
-            if (sts === "O") {
+            // ★ [수정 2] "O" → "ATND" 로 비교 기준 통일
+            if (sts === "ATND") {
+                // 이미 출석 → 취소 버튼만 표시
                 $("#btnAtndProcess").hide();
                 $("#btnAtndCancel").show();
             } else {
+                // 지각/결석 → 출석처리 버튼만 표시
                 $("#btnAtndProcess").show();
                 $("#btnAtndCancel").hide();
             }
@@ -239,9 +255,9 @@
         }
     }
 
-    /* ==========================================
-       차시 목록 렌더링 (accordion course_week 구조)
-       ========================================== */
+    /* =====================================================
+       차시 목록 렌더링
+       ===================================================== */
     function renderChsiList(list) {
         var $ul = $("#chsiList").empty();
 
@@ -251,24 +267,23 @@
         }
 
         list.forEach(function (chsi, idx) {
-            var isOpen  = (idx === 0);
-            var liId    = "chsiLi_" + idx;
-            var contId  = "chsiCont_" + idx;
+            var isOpen = (idx === 0);
+            var liId   = "chsiLi_"   + idx;
+            var contId = "chsiCont_" + idx;
 
-            var lrnSts  = chsi.lrnSts || "";
-            var stsCls  = lrnSts === "학습완료" ? "state_ok"
-                : lrnSts === "학습중"   ? "state_late" : "state_no";
-            var stsTxt  = lrnSts || "-";
+            var lrnSts = chsi.lrnSts || "";
+            var stsCls = lrnSts === "학습완료" ? "state_ok" : lrnSts === "학습중" ? "state_late" : "state_no";
 
             var $li = $('<li class="' + (isOpen ? 'active' : '') + '" id="' + liId + '"></li>');
 
             var $titleWrap = $(
                 '<div class="title-wrap">'
-                + '<div class="chasi_tit">[ ' + escHtml(chsi.chsiNo || '') + '차시 ] ' + escHtml(chsi.chsiTitle || '') + '</div>'
+                + '<div class="chasi_tit">[ ' + escHtml(chsi.chsiNo || '') + '차시 ] '
+                + escHtml(chsi.chsiTitle || '') + '</div>'
                 + '</div>'
             );
 
-            var $a = $('<a class="title" href="#"></a>');
+            var $a    = $('<a class="title" href="#"></a>');
             var $lbox = $(
                 '<div class="lecture_box">'
                 + '<div class="lecture_tit">'
@@ -276,11 +291,12 @@
                 + '<strong>' + escHtml(chsi.cntntsTitle || '') + '</strong>'
                 + '</div>'
                 + '<div class="btn_right">'
-                + '<label class="state ' + stsCls + '">' + escHtml(stsTxt) + '</label>'
+                + '<label class="state ' + stsCls + '">' + escHtml(lrnSts || '-') + '</label>'
                 + '</div>'
                 + '<i class="arrow xi-angle-' + (isOpen ? 'up' : 'down') + '"></i>'
                 + '</div>'
             );
+
             $a.append($lbox);
             $a.on("click", function (e) {
                 e.preventDefault();
@@ -288,8 +304,7 @@
             });
             $titleWrap.append($a);
 
-            var $cont = $('<div class="cont" id="' + contId + '"></div>');
-            if (!isOpen) $cont.hide();
+            var $cont    = $('<div class="cont" id="' + contId + '"></div>');
             var $tblWrap = $(
                 '<div class="table-wrap scroll">'
                 + '<table class="table-type1">'
@@ -298,11 +313,14 @@
                 + '<col style="width:14%"><col style=""><col style="width:16%">'
                 + '</colgroup>'
                 + '<thead><tr><th colspan="6" class="all">학습기록</th></tr></thead>'
-                + '<tbody id="logBody_' + idx + '"><tr><td colspan="6" class="t_center" style="color:var(--txt_04);">조회 중...</td></tr></tbody>'
+                + '<tbody id="logBody_' + idx + '">'
+                + '<tr><td colspan="6" class="t_center" style="color:var(--txt_04);">조회 중...</td></tr>'
+                + '</tbody>'
                 + '</table></div>'
             );
-            $cont.append($tblWrap);
 
+            if (!isOpen) $cont.hide();
+            $cont.append($tblWrap);
             renderLogBody(idx, chsi.logList);
 
             $li.append($titleWrap).append($cont);
@@ -347,25 +365,57 @@
         }
     }
 
-    /* ==========================================
-       출석처리 / 취소
-       ========================================== */
-    function refreshParentWeeklyPage() {
+    /* =====================================================
+       출석처리 후 부모 창 갱신
+       ===================================================== */
+    function refreshParentWeeklyPage(callbackName) {
         try {
-            if (!window.parent) return;
+            if (!callbackName) return;
 
-            if (typeof window.parent.searchStdntList === "function") {
-                window.parent.searchStdntList(window.parent.stdntCurrentPageNo || 1);
-            }
+            var targets = collectParentWindows();
+            if (!targets || targets.length === 0) return;
 
-            if (typeof window.parent.loadWklyStats === "function") {
-                window.parent.loadWklyStats();
+            for (var i = 0; i < targets.length; i++) {
+                var win = targets[i];
+
+                try {
+                    if (win && typeof win[callbackName] === "function") {
+                        win[callbackName]();
+                    }
+                } catch (e) {
+                    console.error("weekly parent callback relay fail", e);
+                }
             }
         } catch (e) {
             console.error("weekly parent refresh failed", e);
         }
     }
+    /**
+     * 현재 창부터 최상위까지 부모 창 목록을 수집
+     * 동일 origin 인 창만 포함 (cross-origin 은 접근 자체가 차단되므로 try/catch 로 걸러짐)
+     */
+    function collectParentWindows() {
+        var wins   = [];
+        var cursor = window;
 
+        // 최대 10단계까지만 순회 (무한 루프 방지)
+        for (var i = 0; i < 10; i++) {
+            try {
+                var parent = cursor.parent;
+                if (!parent || parent === cursor) break; // 최상위 도달
+                wins.push(parent);
+                cursor = parent;
+            } catch (e) {
+                break; // cross-origin 창 → 더 이상 올라갈 수 없음
+            }
+        }
+
+        return wins;
+    }
+
+    /* =====================================================
+       출석 처리
+       ===================================================== */
     function doAtndProcess() {
         var wkNo = parseInt($("#selWkNo").val(), 10);
 
@@ -379,8 +429,7 @@
                 if (!result) return;
                 $.ajax({
                     url: CTX + "/cls/updateAtndlcProcess.do",
-                    type: "POST",
-                    dataType: "json",
+                    type: "POST", dataType: "json",
                     data: {
                         sbjctId:         sbjctId,
                         userId:          userId,
@@ -391,7 +440,7 @@
                         UiComm.showMessage((res && res.message) || "출석 처리가 완료되었습니다.", "success");
                         if (res && res.result === 1) {
                             loadWkDetail();
-                            refreshParentWeeklyPage();
+                            refreshParentWeeklyPage("saveForcedAttendCallBack");
                         }
                     },
                     error: function () {
@@ -401,6 +450,9 @@
             });
     }
 
+    /* =====================================================
+       출석 처리 취소
+       ===================================================== */
     function doAtndCancel() {
         var wkNo = parseInt($("#selWkNo").val(), 10);
 
@@ -414,8 +466,7 @@
                 if (!result) return;
                 $.ajax({
                     url: CTX + "/cls/updateAtndlcCancel.do",
-                    type: "POST",
-                    dataType: "json",
+                    type: "POST", dataType: "json",
                     data: {
                         sbjctId:         sbjctId,
                         userId:          userId,
@@ -426,7 +477,7 @@
                         UiComm.showMessage((res && res.message) || "출석 처리가 취소되었습니다.", "success");
                         if (res && res.result === 1) {
                             loadWkDetail();
-                            refreshParentWeeklyPage();
+                            refreshParentWeeklyPage("cancelForcedAttendCallBack");
                         }
                     },
                     error: function () {
@@ -436,14 +487,16 @@
             });
     }
 
-
-    /* ==========================================
+    /* =====================================================
        메시지 보내기
-       ========================================== */
+       ===================================================== */
     function doSendMsg() {
-        if (!userId) { UiComm.showMessage("학습자 정보가 없습니다.", "warning"); return; }
+        if (!userId) {
+            UiComm.showMessage("학습자 정보가 없습니다.", "warning");
+            return;
+        }
 
-        var usernm = $("#infoNm").text() || "";
+        var usernm         = $("#infoNm").text() || "";
         var rcvUserInfoStr = userId + ";" + usernm + ";;";
 
         var form = window.parent && window.parent.alarmForm;
@@ -454,16 +507,21 @@
 
         form.action = '<%=CommConst.SYSMSG_URL_SEND%>';
         form.target = "msgWindow";
-        form.elements['alarmType'].value = "S";
+        form.elements['alarmType'].value      = "S";
         form.elements['rcvUserInfoStr'].value = rcvUserInfoStr;
         window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
         form.submit();
     }
 
+    /* =====================================================
+       유틸
+       ===================================================== */
     function escHtml(v) {
         return String(v)
-            .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
     }
 </script>
 </body>

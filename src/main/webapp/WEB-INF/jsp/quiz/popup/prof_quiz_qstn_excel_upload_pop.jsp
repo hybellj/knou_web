@@ -139,7 +139,7 @@
             	<!-- 파일업로더 -->
             	<uiex:dextuploader
 					id="fileUploader"
-					path="/quiz/${vo.examDtlId }"
+					path="/exam/${vo.examDtlId }"
 					limitCount="1"
 					limitSize="100"
 					oneLimitSize="100"

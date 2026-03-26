@@ -1,12 +1,11 @@
 package knou.lms.msg.facade;
 
-import java.util.List;
-
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.vo.MsgRcptnAgreVO;
 import knou.lms.org.vo.OrgInfoVO;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+
+import java.util.List;
 
 public interface MsgRcptnAgreFacadeService {
 

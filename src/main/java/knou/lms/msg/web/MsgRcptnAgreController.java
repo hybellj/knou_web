@@ -1,19 +1,5 @@
 package knou.lms.msg.web;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
@@ -24,6 +10,18 @@ import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.facade.MsgRcptnAgreFacadeService;
 import knou.lms.msg.vo.MsgRcptnAgreVO;
 import knou.lms.org.vo.OrgInfoVO;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 @Controller
 public class MsgRcptnAgreController extends ControllerBase {

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import knou.framework.context2.UserContext;
+import knou.lms.srvy.vo.SrvyPtcpVO;
 import knou.lms.srvy.vo.SrvyQstnVO;
 import knou.lms.srvy.vo.SrvyVO;
 import knou.lms.srvy.vo.SrvypprVO;
@@ -96,5 +97,11 @@ public interface SrvyFacadeService {
 	SrvyMainView getSrvyQstnDistributionChart(Map<String, Object> params) throws Exception;
 
 	SrvyMainView loadProfSrvypprPrintPopup(Map<String, Object> params) throws Exception;
+
+	SrvyMainView loadSrvyEzgraderPopup(SrvyVO vo) throws Exception;
+
+	SrvyMainView getSrvyPtcpListByEzGrader(SrvyVO vo) throws Exception;
+
+	SrvyMainView getProfSrvyRspnsListByEzGrader(SrvyPtcpVO vo) throws Exception;
 
 }

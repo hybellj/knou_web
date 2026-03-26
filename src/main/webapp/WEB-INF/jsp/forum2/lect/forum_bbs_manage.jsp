@@ -29,6 +29,41 @@
             top: 50%;
             margin-top: -8px; /* 세로 중앙 정렬 */
         }
+
+        /* title_area 우측 date+dropdown 그룹 */
+        .answer .title_area .right-area { display: flex; align-items: center; gap: 8px; }
+
+        /* 대댓글 recmt_form 배경색 - 최상위 댓글 작성폼과 통일 (common.css:1162 오버라이드) */
+        .Comment .comment_list ul li .recmt_form { background-color: #F0F2F6; padding: 1.5rem 2.5rem; }
+
+        /* dropdown - tmpl_atclBody (.right-area) */
+        .right-area .dropdown { position: relative; display: inline-block; }
+        .right-area .dropdown .option-wrap { position: absolute; top: calc(100% + 2px); right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); overflow: hidden; max-height: 0; opacity: 0; transition: all 0.25s ease; pointer-events: none; z-index: 10; }
+        .right-area .dropdown .option-wrap.show { max-height: 200px; opacity: 1; pointer-events: auto; }
+        .right-area .dropdown .option-wrap .item { padding: 8px 12px; white-space: nowrap; transition: all 0.3s ease; }
+        .right-area .dropdown .option-wrap .item:hover { background: #f2f2f2; }
+
+        /* dropdown - _tmpl_cmntEditBtns (.cmtBtnGroup) */
+        .cmtBtnGroup .dropdown { position: relative; display: inline-block; }
+        .cmtBtnGroup .dropdown .option-wrap { position: absolute; top: calc(100% + 2px); right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); overflow: hidden; max-height: 0; opacity: 0; transition: all 0.25s ease; pointer-events: none; z-index: 20; }
+        .cmtBtnGroup .dropdown .option-wrap.show { max-height: 200px; opacity: 1; pointer-events: auto; }
+        .cmtBtnGroup .dropdown .option-wrap .item { padding: 8px 12px; white-space: nowrap; transition: all 0.3s ease; }
+        .cmtBtnGroup .dropdown .option-wrap .item:hover { background: #f2f2f2; }
+
+        /* 게시글/댓글 프로필 이미지 */
+        .title_area .user_img,
+        .cmt_info .user_img {
+            display: inline-block;
+            width: 28px; height: 28px;
+            border-radius: 100%;
+            overflow: hidden;
+            vertical-align: middle;
+            margin-right: 6px;
+            background: #F4F4F4;
+            flex-shrink: 0;
+        }
+        .title_area .user_img img,
+        .cmt_info .user_img img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 
     <script type="text/javascript">
@@ -194,9 +229,17 @@
     }
 
 
+    var _ctxPath = '${pageContext.request.contextPath}';
+
     // =========================================================
     // 1. 유틸 함수
     // =========================================================
+
+    // 프로필 이미지 HTML 생성 (내부유틸)
+    function _userImgHtml(phtFile) {
+        var src = phtFile ? (_ctxPath + phtFile) : (_ctxPath + '/webdoc/img/icon-hycu-symbol-grey.svg');
+        return "<span class='user_img'><img src='" + src + "' aria-hidden='true' alt='사진'></span>";
+    }
 
     // 날짜 포맷 변환 (내부유틸)
     function _formatDttm(dttm) {
@@ -222,17 +265,22 @@
         if(rs.delYn == "Y") { return ''; }
         var isOwner = (rs.rgtrId == "${userId}");
         var replyBtn = (depth < 4)
-            ? "<button class=\"cmtWri\" data-atcl-sn=\""+ rs.atclSn +"\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\"><spring:message code='forum.button.cmnt'/></button>"
+            ? "<button class=\"cmtWri btn basic small\" data-atcl-sn=\""+ rs.atclSn +"\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\"><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.writer'/></button>"/* 댓글 작성 */
             : '';
         if (!isOwner) {
             return replyBtn ? "<span class=\"cmtBtnGroup\">"+ replyBtn +"</span>" : '';
         }
         return [
             "<span class=\"cmtBtnGroup\">",
-            "    <button class=\"cmtUpt\" data-atcl-sn=\""+ rs.atclSn +"\" data-rgtr-id=\""+ rs.rgtrId +"\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\" data-level=\""+ rs.level +"\" data-ans-req-yn=\""+ rs.ansReqYn +"\"><spring:message code='forum.button.mod'/></button>",
-            "    <button class=\"cmtDel\" data-rgtr-id=\""+ rs.rgtrId +"\" data-cmnt-sn=\""+ rs.cmntSn +"\"><spring:message code='forum.button.del'/></button>",
-            "    <button class=\"cmtHide\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\">댓글 숨김</button>",
             replyBtn,
+            "    <div class=\"dropdown\">",
+            "        <button type=\"button\" class=\"btn basic icon set settingBtn\" aria-label=\"댓글 관리\"><i class=\"xi-ellipsis-v\"></i></button>",
+            "        <div class=\"option-wrap\">",
+            "            <div class=\"item\"><button class=\"cmtUpt\" data-atcl-sn=\""+ rs.atclSn +"\" data-rgtr-id=\""+ rs.rgtrId +"\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\" data-level=\""+ rs.level +"\" data-ans-req-yn=\""+ rs.ansReqYn +"\"><spring:message code='forum.button.mod'/></button></div>",
+            "            <div class=\"item\"><button class=\"cmtDel\" data-rgtr-id=\""+ rs.rgtrId +"\" data-cmnt-sn=\""+ rs.cmntSn +"\"><spring:message code='forum.button.del'/></button></div>",
+            "            <div class=\"item\"><button class=\"cmtHide\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\">댓글 숨김</button></div>",
+            "        </div>",
+            "    </div>",
             "</span>"
         ].join('');
     }
@@ -249,12 +297,38 @@
             var sep = fIdx > 0 ? " | " : "";
             fileLinks.push(sep + "<a href=\"javascript:fileDown('"+ item.fileSn +"', '"+ item.repoCd +"');\" class=\"link\">"+ item.fileNm +"</a>");
         });
-        var titleText = v.regNm + "(" + v.userId + ")" + _tmpl_prosConsBadge(v);
+        var titleText = _userImgHtml(v.phtFile) + v.regNm + "(" + v.userId + ")" + _tmpl_prosConsBadge(v);
         if(fileLinks.length > 0) titleText += " | " + fileLinks.join('');
+        var dropdownHtml;
+        if(v.rgtrId == "${userId}" && v.delYn == "N") {
+            dropdownHtml = [
+                "<div class='dropdown'>",
+                "    <button type='button' class='btn basic icon set settingBtn' aria-label='게시글 관리'><i class='xi-ellipsis-v'></i></button>",
+                "    <div class='option-wrap'>",
+                "        <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'>참여글 숨김</a></div>",
+                "        <div class='item'><a href='javascript:void(0)' data-action='editPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>수정</a></div>",
+                "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>삭제</a></div>",
+                "    </div>",
+                "</div>"
+            ].join('');
+        } else {
+            dropdownHtml = [
+                "<div class='dropdown'>",
+                "    <button type='button' class='btn basic icon set settingBtn' aria-label='게시글 관리'><i class='xi-ellipsis-v'></i></button>",
+                "    <div class='option-wrap'>",
+                "        <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'>참여글 숨김</a></div>",
+                "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>삭제</a></div>",
+                "    </div>",
+                "</div>"
+            ].join('');
+        }
         return [
             "<div class='title_area'>",
             "    <strong class='title'>" + titleText + "</strong>",
-            "    <span class='date'><b>" + v.regNm + "</b><em>" + regDttm + "</em></span>",
+            "    <div class='right-area'>",
+            "        <span class='date'><b>" + v.ctsLen + "</b><em>" + regDttm + "</em></span>",
+            dropdownHtml,
+            "    </div>",
             "</div>"
         ].join('');
     }
@@ -271,41 +345,9 @@
         var delBadge = (v.delYn == "Y")
             ? " <span class=\"ui red label p4 f080\">[삭제됨]</span>"
             : '';
-        var editBtns = '';
-        if(v.rgtrId == "${userId}" && v.delYn == "N") {
-            editBtns = [
-                "<div class='bottom_btn'>",
-                "    <div class='right-area'>",
-                "        <div class='dropdown'>",
-                "            <button class='settingBtn'></button>",
-                "            <div class='option-wrap'>",
-                "                <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'>참여글 숨김</a></div>",
-                "                <div class='item'><a href='javascript:void(0)' data-action='editPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>수정</a></div>",
-                "                <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>삭제</a></div>",
-                "            </div>",
-                "        </div>",
-                "    </div>",
-                "</div>"
-            ].join('');
-        } else {
-            editBtns = [
-                "<div class='bottom_btn'>",
-                "    <div class='right-area'>",
-                "        <div class='dropdown'>",
-                "            <button class='settingBtn'></button>",
-                "            <div class='option-wrap'>",
-                "                <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'>참여글 숨김</a></div>",
-                "                <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>삭제</a></div>",
-                "            </div>",
-                "        </div>",
-                "    </div>",
-                "</div>"
-            ].join('');
-        }
         return [
             "<div class='cont'>",
             "    " + ctsHtml + delBadge,
-            editBtns,
             "</div>"
         ].join('');
     }
@@ -318,7 +360,7 @@
             "        <button class='toggle_commentlist' id='cmntOpen"+ i +"'>",
             "            <i class='icon-svg-message'></i>" + cmntCount + "개의 댓글이 있습니다. <i class='icon-svg-arrow-down'></i>",
             "        </button>",
-            "        <button class='toggle_commentwrite btn basic'><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.write'/></button>",
+            "        <button class='toggle_commentwrite btn basic'><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.writer'/></button>", /*댓글 작성*/
             "    </div>",
             "    <div class='comment_list'>",
             "        <div class='recmt_form' id='toggleBox"+ i +"' style='display:none;'>",
@@ -336,8 +378,8 @@
             "                    <textarea title='<spring:message code="forum.label.input.cmnt"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.label.input.cmnt"/>' id='cmntText"+ i +"'></textarea>",
             "                    <div class='bottom_btn'>",
             "                        <span class='custom-input'>",
-            "                            <input type='checkbox' id='ansReqYn"+ i +"' name='ansReqYn'>",
-            "                            <label for='ansReqYn"+ i +"'><span class='small'><spring:message code='forum.checkbox.label.request' /></span></label>",
+            "                            <input type='checkbox' id='ansReqYn"+ i +"' name='ansReqYn' disabled>",
+            "                            <label for='ansReqYn"+ i +"'><span class='small'><spring:message code='forum.checkbox.label.request' /></span></label>",/*답변을 요청합니다.*/
             "                        </span>",
             "                        <div class='right-area'>",
             "                            <button type='button' class='btn type2' data-action='addCmnt' data-atcl-sn='"+ atclSn +"' data-post-idx='"+ i +"'><spring:message code='forum.button.reg'/></button>",
@@ -369,21 +411,21 @@
                 "        <legend class='sr_only'>댓글등록</legend>",
                 "        <div class='memo'>",
                 "            <div class='simple_answer'>",
-                "                <span>간편답글</span>",
+                "                <span><spring:message code='forum.button.label.info' /></span>",
                 "                <div class='answer_btn'>",
-                "                    <a href='#0' onclick=\"setCts(0, '"+ fi +"');\">찬성</a>",
-                "                    <a href='#0' onclick=\"setCts(1, '"+ fi +"');\">반대</a>",
-                "                    <a href='#0' onclick=\"setCts(2, '"+ fi +"');\">기타</a>",
+                "                    <a href='#0' onclick=\"setCts(0, '"+ fi +"');\"><spring:message code='forum.button.cts0' /></a>",
+                "                    <a href='#0' onclick=\"setCts(1, '"+ fi +"');\"><spring:message code='forum.button.cts1' /></a>",
+                "                    <a href='#0' onclick=\"setCts(2, '"+ fi +"');\"><spring:message code='forum.button.cts2' /></a>",
                 "                </div>",
                 "            </div>",
-                "            <textarea title='<spring:message code="forum.alert.input.forum_reply"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.alert.input.forum_reply"/>' id='cmntText"+ fi +"'></textarea>",
+                "            <textarea title='<spring:message code="forum.label.input.cmnt"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.label.input.cmnt"/>' id='cmntText"+ fi +"'></textarea>",
                 "            <div class='bottom_btn'>",
                 "                <span class='custom-input'>",
-                "                    <input type='checkbox' id='ansReqYn"+ fi +"' name='ansReqYn'>",
-                "                    <label for='ansReqYn"+ fi +"'><span class='small'>답글 요청</span></label>",
+                "                    <input type='checkbox' id='ansReqYn"+ fi +"' name='ansReqYn' disabled>",
+                "                    <label for='ansReqYn"+ fi +"'><span class='small'><spring:message code='forum.checkbox.label.request' /></span></label>",
                 "                </span>",
                 "                <div class='right-area'>",
-                "                    <button type='button' class='btn type2 cmt_create' data-atcl-sn='"+ rs.atclSn +"' data-cmnt-sn='"+ rs.cmntSn +"' data-post-idx='"+ postIdx +"' data-flat-idx='"+ flatIdx +"'>등록</button>",
+                "                    <button type='button' class='btn type2 cmt_create' data-atcl-sn='"+ rs.atclSn +"' data-cmnt-sn='"+ rs.cmntSn +"' data-post-idx='"+ postIdx +"' data-flat-idx='"+ flatIdx +"'><spring:message code='forum.button.reg'/></button>",
                 "                </div>",
                 "            </div>",
                 "        </div>",
@@ -404,6 +446,7 @@
             "<li"+ liClass +">",
             "    <div class='item'>",
             "        <div class='cmt_info'>",
+            "            " + _userImgHtml(rs.phtFile),
             "            <strong class='name'>"+ rs.rgtrnm +"</strong>",
             "            <span class='date'>"+ regDate +"</span>",
             "        </div>",
@@ -1087,9 +1130,9 @@
         if(hidePostBtn) {
             var dropdown = hidePostBtn.closest('.dropdown');
             if(dropdown) {
-                var cont = dropdown.closest('.cont');
+                var cont = dropdown.closest('.answer').querySelector('.cont');
                 if(cont && !cont.querySelector('.hide-badge')) {
-                    cont.insertAdjacentHTML('beforeend', '<span class="fcRed fw-bold">[숨겨짐]</span>');
+                    cont.insertAdjacentHTML('beforeend', '<span class="hide-badge fcRed fw-bold">[숨겨짐]</span>');
                 }
                 dropdown.querySelector('.option-wrap').classList.remove('show');
             }

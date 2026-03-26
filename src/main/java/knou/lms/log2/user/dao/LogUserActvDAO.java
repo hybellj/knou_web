@@ -6,6 +6,10 @@ import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 @Mapper("logUserActvDAO")
 public interface LogUserActvDAO {
 
-	Object userSbjctOfrngActvHstryList(@Param("sbjctOfrngId") String sbjctOfrngId, 
-			@Param("timeRange") int timeRange) throws Exception;
+	/*
+	 * Object userSbjctOfrngActvHstryList(@Param("sbjctOfrngId") String
+	 * sbjctOfrngId,
+	 * 
+	 * @Param("timeRange") int timeRange) throws Exception;
+	 */
 }

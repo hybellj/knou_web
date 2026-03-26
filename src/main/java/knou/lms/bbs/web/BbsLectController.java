@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.MenuInfo;
+import knou.framework.common.RepoInfo;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
 import knou.framework.exception.AccessDeniedException;
@@ -38,6 +39,7 @@ import knou.framework.util.FileUtil;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
 import knou.framework.vo.FileVO;
+import knou.lms.bbs.facade.BbsFacadeService;
 import knou.lms.bbs.service.BbsAtclService;
 import knou.lms.bbs.service.BbsCmntService;
 import knou.lms.bbs.service.BbsInfoService;
@@ -67,9 +69,13 @@ import knou.lms.org.service.OrgCodeService;
 import knou.lms.org.vo.OrgCodeVO;
 import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
+import knou.lms.subject.dto.SubjectParam;
+import knou.lms.subject.service.SubjectFacadeService;
+import knou.lms.subject.web.view.SubjectViewModel;
 import knou.lms.user.service.UsrUserInfoService;
 import knou.lms.user.vo.UsrUserInfoVO;
 
+import knou.lms.common.dto.BaseParam;
 @Controller
 @RequestMapping(value = "/bbs/bbsLect")
 public class BbsLectController extends ControllerBase {
@@ -125,6 +131,11 @@ public class BbsLectController extends ControllerBase {
     @Resource(name = "semesterService")
     private SemesterService semesterService;
 
+    @Resource(name="bbsFacadeService")
+	private BbsFacadeService bbsFacadeService;
+
+    @Resource(name="subjectFacadeService")
+    private SubjectFacadeService subjectFacadeService;
     /** 게시판 START **/
 
     /*****************************************************
@@ -3076,4 +3087,783 @@ public class BbsLectController extends ControllerBase {
         return "bbs/lect/popup/prev_atcl_list_pop";
     }
 
+
+
+
+
+    /*
+    TODO 새로 생성되거나 명칭 변경해서 작업하는 메쏘드는 여기 아래에......
+    */
+
+
+
+    /*****************************************************
+     * 게시판 게시글 목록 조회 화면
+     * @param vo
+     * @param model
+     * @param request
+     * @return "bbs/bbs_atcl_list_view"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclListView.do")
+    public String bbsAtclListView(BbsVO bbsVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+    	boolean isAdmin = BbsAuthUtil.isAdmin(request);
+
+		if(ValidationUtils.isEmpty(bbsVO.getBbsId())) {
+			throw new BadRequestUrlException(getMessage("common.system.error"));
+		}
+
+		bbsVO.setOrgId(userCtx.getOrgId());
+		bbsVO.setLangCd(userCtx.getLangCd());
+		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
+
+		if(bbsVO == null) { // 게시판 정보를 찾을 수 없습니다.
+			throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
+		}
+
+		if(BbsAuthUtil.isStudent(request)) {
+            logLessonActnHstyService.saveLessonActnHsty(request, "", CommConst.CONN_BBS, bbsVO.getBbsnm() + " 내용확인");
+        }
+
+        // 게시판정보에 파라메터값 재설정 (게시판정보 조회에서 초기화돼서 재설정)
+        setEparamToVO(bbsVO);
+
+        String atclWriteAuth = "N"; // 글쓰기 권한
+
+        //atclWriteAuth = BbsAuthUtil.getAtclWriteAuth(request, bbsVO);
+
+        // 파라메터 설정
+        addEparam("bbsId", bbsVO.getBbsId());
+        addEparam("bbsTycd", bbsVO.getBbsTycd());
+
+        // 조회필터옵션 세팅
+    	EgovMap filterOptions = bbsFacadeService.loadFilterOptions(userCtx);
+    	model.addAttribute("filterOptions", filterOptions);
+
+    	SubjectViewModel subjectVM = new SubjectViewModel();
+		/* String subjectId = request.getParameter("subjectId"); */
+        String subjectId = "SBJCT20260001";
+
+        BaseParam param = new SubjectParam(subjectId, userCtx, 3);
+
+        subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
+        model.addAttribute("subjectVM", subjectVM);
+
+		model.addAttribute("atclWriteAuth", atclWriteAuth);
+        model.addAttribute("bbsVO", bbsVO);
+        model.addAttribute("templateUrl", TEMPLATE_URL);
+
+        return "bbs/lect/bbs_atcl_list_view";
+    }
+
+    /*****************************************************
+     * 게시판 게시글 목록조회(Ajax)
+     * @param bbsAtclVO
+     * @param model
+     * @param request
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<BbsAtclVO> bbsAtclListAjax(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
+
+        String orgId = SessionInfo.getOrgId(request);
+        String userId = SessionInfo.getUserId(request);
+        String langCd = SessionInfo.getLocaleKey(request);
+
+        String bbsIds = request.getParameter("bbsIds"); // 게시판 id ',' 구분자
+        String upAtclId = request.getParameter("upAtclId");
+
+        try {
+            bbsAtclVO.setOrgId(orgId);
+            bbsAtclVO.setLangCd(langCd);
+
+            // 게시판 id ',' 구분자로 들어온 경우
+            if(ValidationUtils.isNotEmpty(bbsIds)) {
+                List<String> bbsIdList = Arrays.asList(bbsIds.split(","));
+                bbsAtclVO.setBbsIdList(bbsIdList);
+                bbsAtclVO.setBbsId(null);
+            }
+            bbsAtclVO.setVwerId(userId);
+            bbsAtclVO.setUpAtclId(upAtclId);
+            bbsAtclVO.setAtclLv(1);
+
+            resultVO = bbsAtclService.selectBbsAtclList(bbsAtclVO);
+            resultVO.setResult(1);
+            resultVO.setEparam(getEparam());
+        } catch(Exception e) {
+            LOGGER.debug("e: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 게시글 보기
+     * @param bbsAtclVO
+     * @param model
+     * @param request
+     * @return "bbs/bbs_atcl_view"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclView.do")
+    public String bbsAtclView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+        boolean isAdmin = BbsAuthUtil.isAdmin(request);
+
+        String atclEditAuth = "Y";      // 글수정 권한
+        String atclDeleteAuth  = "Y";   // 글삭제 권한
+        String answerWriteAuth = "N";   // 답글쓰기 권한
+        String commentWriteAuth = "N";  // 댓글쓰기 권한
+
+        String bbsId = bbsAtclVO.getBbsId();
+        String gubun = bbsAtclVO.getGubun();
+        String atclId = bbsAtclVO.getAtclId();
+
+        String orgId = userCtx.getOrgId();
+        String langCd = userCtx.getLangCd();
+
+        if(ValidationUtils.isEmpty(bbsId) || ValidationUtils.isEmpty(bbsAtclVO)) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        // 게시판 정보 조회
+        BbsVO bbsVO = new BbsVO();
+        bbsVO.setBbsId(bbsId);
+        bbsVO.setOrgId(orgId);
+		bbsVO.setLangCd(langCd);
+		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
+
+        if(bbsVO == null) {
+            // 게시판 정보를 찾을 수 없습니다.
+            throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
+        }
+
+        if(BbsAuthUtil.isStudent(request)) {
+         // 강의실 활동 로그 등록
+            logLessonActnHstyService.saveLessonActnHsty(request, "", CommConst.CONN_BBS, bbsVO.getBbsnm() + " 내용확인");
+        }
+
+        if(!isAdmin) {
+            bbsAtclVO.setLockYn("N");
+            bbsAtclVO.setLearnerViewModeYn("Y");
+        }
+        if(CommConst.BBS_ID_SYSTEM_NOTICE.equals(bbsId)) {
+            bbsAtclVO.setHaksaYear(bbsAtclVO.getHaksaYear());
+            bbsAtclVO.setHaksaTerm(bbsAtclVO.getHaksaTerm());
+        }
+
+        // 게시글 조회
+        bbsAtclVO.setAtclId(atclId);
+        bbsAtclVO = bbsAtclService.selectBbsAtcl(bbsAtclVO);
+
+        if(bbsAtclVO  == null) {
+            // 게시글 정보를 찾을 수 없습니다.
+            throw new BadRequestUrlException(getMessage("bbs.error.not_exists_atcl"));
+        }
+
+        SubjectViewModel subjectVM = new SubjectViewModel();
+		/* String subjectId = request.getParameter("subjectId"); */
+        String subjectId = "SBJCT20260001";
+
+        BaseParam param = new SubjectParam(subjectId, userCtx, 3);
+
+        subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
+        model.addAttribute("subjectVM", subjectVM);
+
+        model.addAttribute("bbsVO", bbsVO);
+        model.addAttribute("bbsAtclVO", bbsAtclVO);
+        model.addAttribute("atclEditAuth", atclEditAuth);
+        model.addAttribute("atclDeleteAuth", atclDeleteAuth);
+        model.addAttribute("answerWriteAuth", answerWriteAuth);
+        model.addAttribute("commentWriteAuth", commentWriteAuth);
+        model.addAttribute("templateUrl", TEMPLATE_URL);
+
+        String url = "bbs/lect/bbs_atcl_view";
+
+        // 수정화면
+        if ("edit".equals(gubun)) {
+        	// 첨부파일저장소 설정
+            bbsVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_BBS, bbsId));
+
+        	url = "bbs/lect/bbs_atcl_write";
+        }
+
+        return url;
+    }
+
+    /*****************************************************
+     * 게시글 쓰기
+     * @param BbsAtclVO
+     * @param model
+     * @param request
+     * @return "bbs/bbs_atcl_write"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclWrite.do")
+    public String bbsAtclWrite(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+        boolean isAdmin = BbsAuthUtil.isAdmin(request);
+
+        String orgId = userCtx.getOrgId();
+        String langCd = userCtx.getLangCd();
+
+        String bbsId = bbsAtclVO.getBbsId();
+
+        String atclWriteAuth = "Y"; // 글쓰기 권한
+
+        // 게시판 정보 조회
+        BbsVO bbsVO = new BbsVO();
+        bbsVO.setBbsId(bbsId);
+        bbsVO.setOrgId(orgId);
+		bbsVO.setLangCd(langCd);
+		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
+
+        if(bbsVO == null) {
+            // 게시판 정보를 찾을 수 없습니다.
+            throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
+        }
+
+        // 페이지/검색 파라메터 삭제
+        delEparamPageSearch();
+
+        // 첨부파일저장소 설정
+        bbsVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_BBS, bbsId));
+
+        // 글쓰기 권한 체크
+        //atclWriteAuth = BbsAuthUtil.getAtclWriteAuth(request, bbsVO);
+
+        SubjectViewModel subjectVM = new SubjectViewModel();
+		/* String subjectId = request.getParameter("subjectId"); */
+        String subjectId = "SBJCT20260001";
+
+        BaseParam param = new SubjectParam(subjectId, userCtx, 3);
+
+        subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
+        model.addAttribute("subjectVM", subjectVM);
+
+        model.addAttribute("atclWriteAuth", atclWriteAuth);
+        model.addAttribute("bbsVO", bbsVO);
+        model.addAttribute("bbsAtclVO", bbsAtclVO);
+        model.addAttribute("templateUrl", TEMPLATE_URL);
+
+        return "bbs/lect/bbs_atcl_write";
+    }
+
+    /*****************************************************
+     * 게시글 저장(등록)
+     * @param vo
+     * @param model
+     * @param request
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclSave.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<BbsAtclVO> bbsAtclSave(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+        ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
+
+        boolean isAdmin = BbsAuthUtil.isAdmin(request);
+        String orgId = userCtx.getOrgId();
+        String userId = userCtx.getUserId();
+        String langCd = userCtx.getLangCd();
+
+        String bbsId = bbsAtclVO.getBbsId();
+
+        String uploadFiles = bbsAtclVO.getUploadFiles();
+        String uploadPath = bbsAtclVO.getUploadPath();
+
+        bbsAtclVO.setOrgId(orgId);
+        bbsAtclVO.setRgtrId(userId);
+        bbsAtclVO.setMdfrId(userId);
+        bbsAtclVO.setRgtrnm(SessionInfo.getUserNm(request));
+
+        try {
+            // 로그인 체크
+            if(ValidationUtils.isEmpty(userId)) {
+                throw new SessionBrokenException(getMessage("common.system.no_auth"));
+            }
+
+            // 파라미터 체크
+            if(ValidationUtils.isEmpty(bbsId)) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+
+            // 게시판 정보 조회
+            BbsVO bbsVO = new BbsVO();
+            bbsVO.setOrgId(orgId);
+            bbsVO.setBbsId(bbsId);
+            bbsVO.setLangCd(langCd);
+            bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
+
+            if(bbsVO == null) {
+                // 게시판 정보를 찾을 수 없습니다.
+                throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
+            }
+
+            if ("edit".equals(bbsAtclVO.getGubun())) {
+            	// 게시글 수정
+                bbsAtclService.updateBbsAtcl(bbsAtclVO);
+            }
+            else {
+                // 게시글 저장
+                bbsAtclService.insertBbsAtcl(bbsAtclVO);
+            }
+
+            resultVO.setReturnVO(bbsAtclVO);
+            resultVO.setResult(1);
+            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        } catch(MediopiaDefineException e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(e.getMessage());
+
+            if(ValidationUtils.isNotEmpty(uploadFiles) && ValidationUtils.isNotEmpty(uploadPath)) {
+                FileUtil.delUploadFileList(uploadFiles, uploadPath);
+            }
+        } catch(Exception e) {
+            LOGGER.debug("e: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+
+            if(ValidationUtils.isNotEmpty(uploadFiles) && ValidationUtils.isNotEmpty(uploadPath)) {
+                FileUtil.delUploadFileList(uploadFiles, uploadPath);
+            }
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 게시글 수정 화면
+     * @param bbsAtclVO
+     * @param model
+     * @param request
+     * @return "bbs/bbs_atcl_view"
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclEditWrite.do")
+    public String bbsAtclEditWrite(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+    	boolean isAdmin = BbsAuthUtil.isAdmin(request);
+
+        String orgId = userCtx.getOrgId();
+        String userId = userCtx.getUserId();
+        String langCd = userCtx.getLangCd();
+
+        String bbsId = bbsAtclVO.getBbsId();
+        String atclId = bbsAtclVO.getAtclId();
+
+        String atclEditAuth = "N";      // 글수정 권한
+        String atclDeleteAuth  = "N";   // 글삭제 권한
+        String answerWriteAuth = "N";   // 답글쓰기 권한
+        String commentWriteAuth = "N";  // 댓글쓰기 권한
+
+        if(ValidationUtils.isEmpty(bbsId) || ValidationUtils.isEmpty(bbsAtclVO)) {
+            // 시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        // 게시판 정보 조회
+        BbsVO bbsVO = new BbsVO();
+        bbsVO.setOrgId(orgId);
+        bbsVO.setBbsId(bbsId);
+        bbsVO.setLangCd(langCd);
+
+        bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
+        if(bbsVO == null) {
+            // 게시판 정보를 찾을 수 없습니다.
+            throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
+        }
+
+        if(BbsAuthUtil.isStudent(request)) {
+         // 강의실 활동 로그 등록
+            logLessonActnHstyService.saveLessonActnHsty(request, "", CommConst.ACTN_HSTY_COURSE_HOME, bbsVO.getBbsnm() + " 내용확인");
+        }
+
+        // 게시글 조회
+        BbsAtclVO bbsSearchVO = new BbsAtclVO();
+        bbsSearchVO.setAtclId(atclId);
+
+        if(!isAdmin) {
+        	bbsSearchVO.setLockYn("N");
+            bbsSearchVO.setLearnerViewModeYn("Y");
+        }
+        if(CommConst.BBS_ID_SYSTEM_NOTICE.equals(bbsId)) {
+        	bbsSearchVO.setHaksaYear(bbsAtclVO.getHaksaYear());
+            bbsSearchVO.setHaksaTerm(bbsAtclVO.getHaksaTerm());
+        }
+
+        bbsSearchVO = bbsAtclService.selectBbsAtcl(bbsAtclVO);
+
+        if(bbsSearchVO  == null) {
+            // 게시글 정보를 찾을 수 없습니다.
+            throw new BadRequestUrlException(getMessage("bbs.error.not_exists_atcl"));
+        }
+
+        // 첨부파일저장소 설정
+        bbsVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_BBS, bbsId));
+
+        model.addAttribute("bbsVO", bbsVO);
+        model.addAttribute("bbsAtclVO", bbsAtclVO);
+        model.addAttribute("atclEditAuth", atclEditAuth);
+        model.addAttribute("atclDeleteAuth", atclDeleteAuth);
+        model.addAttribute("answerWriteAuth", answerWriteAuth);
+        model.addAttribute("commentWriteAuth", commentWriteAuth);
+        model.addAttribute("templateUrl", TEMPLATE_URL);
+
+        return "bbs/bbs_atcl_view";
+    }
+
+    /*****************************************************
+     * 게시판 게시글 답변 조회(Ajax)
+     * @param bbsAtclVO
+     * @param model
+     * @param request
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclRspnsListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<BbsAtclVO> bbsAtclRspnsListAjax(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
+
+        String orgId = SessionInfo.getOrgId(request);
+        String userId = SessionInfo.getUserId(request);
+        String bbsIds = request.getParameter("bbsIds"); // 게시판 id ',' 구분자
+        String langCd = SessionInfo.getLocaleKey(request);
+        String upAtclId = request.getParameter("upAtclId");
+
+        try {
+            bbsAtclVO.setOrgId(orgId);
+            bbsAtclVO.setLangCd(langCd);
+
+            // 게시판 id ',' 구분자로 들어온 경우
+            if(ValidationUtils.isNotEmpty(bbsIds)) {
+                List<String> bbsIdList = Arrays.asList(bbsIds.split(","));
+                bbsAtclVO.setBbsIdList(bbsIdList);
+                bbsAtclVO.setBbsId(null);
+            }
+            bbsAtclVO.setCrsCreCd(null);
+            bbsAtclVO.setVwerId(userId);
+            bbsAtclVO.setUpAtclId(upAtclId);
+
+            resultVO = bbsAtclService.selectBbsAtclRspnsList(bbsAtclVO);
+            resultVO.setResult(1);
+            resultVO.setEparam(getEparam());
+        } catch(Exception e) {
+            LOGGER.debug("e: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 게시판 게시글 댓글 목록조회(Ajax)
+     * @param bbsAtclVO
+     * @param model
+     * @param request
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclCmntListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<BbsCmntVO> bbsAtclCmntListAjax(BbsCmntVO bbsCmntVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+        ProcessResultVO<BbsCmntVO> resultVO = new ProcessResultVO<>();
+
+        String orgId = userCtx.getOrgId();
+        String userId = userCtx.getUserId();
+        String atclId = request.getParameter("atclId");
+
+        try {
+        	bbsCmntVO.setOrgId(orgId);
+        	bbsCmntVO.setAtclId(atclId);
+        	bbsCmntVO.setUserId(userId);
+
+            resultVO = bbsCmntService.selectBbsAtclCmntList(bbsCmntVO);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            LOGGER.debug("e: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 댓글 등록
+     * @param vo
+     * @param model
+     * @param request
+     * @return ProcessResultVO<BbsCmntVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclCmntRegist.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<BbsCmntVO> bbsAtclCmntRegist(BbsCmntVO bbsCmntVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+        ProcessResultVO<BbsCmntVO> resultVO = new ProcessResultVO<>();
+
+        boolean isAdmin = BbsAuthUtil.isAdmin(request);
+
+        String orgId = userCtx.getOrgId();
+        String userId = userCtx.getUserId();
+        String langCd = userCtx.getLangCd();
+
+        String bbsId = request.getParameter("bbsId");
+        String atclCmntCts = request.getParameter("atclCmntCts");
+        String rgtrId = request.getParameter("userId");
+        String atclId = request.getParameter("atclId");
+
+        String upAtclCmntId = bbsCmntVO.getUpAtclCmntId();
+
+        String commentWriteAuth = "N";
+
+        bbsCmntVO.setRgtrId(userId);
+
+        try {
+            // 로그인 체크
+            if(ValidationUtils.isEmpty(userId)) {
+                throw new SessionBrokenException(getMessage("common.system.no_auth"));
+            }
+
+            // 파라미터 체크
+            if(ValidationUtils.isEmpty(bbsId) || ValidationUtils.isEmpty(atclId)) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+
+            // 게시판 정보 조회
+            BbsVO bbsVO = new BbsVO();
+            bbsVO.setOrgId(orgId);
+            bbsVO.setBbsId(bbsId);
+            bbsVO.setLangCd(langCd);
+            bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
+
+            if(bbsVO == null) {
+                // 게시판 정보를 찾을 수 없습니다.
+                throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
+            }
+
+            // 게시글 조회
+            BbsAtclVO bbsAtclVO = new BbsAtclVO();
+            bbsAtclVO.setOrgId(orgId);
+            bbsAtclVO.setBbsId(bbsId);
+            bbsAtclVO.setAtclId(atclId);
+            bbsAtclVO.setUserId(userId);
+			bbsAtclVO.setLangCd(langCd);
+            bbsAtclVO = bbsAtclService.selectBbsAtcl(bbsAtclVO);
+            bbsAtclVO.setUserId(userId);
+            if(bbsAtclVO  == null) {
+                // 게시글 정보를 찾을 수 없습니다.
+                throw new BadRequestUrlException(getMessage("bbs.error.not_exists_atcl"));
+            }
+
+            // 댓글 쓰기권한 체크
+			//commentWriteAuth = BbsAuthUtil.getCommentWriteAuth(request, bbsVO, bbsAtclVO);
+
+			// 접근 권한이 없습니다.
+			/*
+			 * if(!"Y".equals(commentWriteAuth)) { throw new
+			 * AccessDeniedException(getMessage("bbs.error.no_auth")); }
+			 */
+
+			bbsCmntVO.setRgtrId(userId);
+			bbsCmntVO.setAtclCmntCts(atclCmntCts);
+			bbsCmntVO.setUpAtclCmntId(upAtclCmntId);
+			bbsCmntVO.setAtclId(atclId);
+
+            bbsCmntService.bbsAtclCmntRegist(bbsCmntVO);
+
+            resultVO.setResult(1);
+            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        } catch(MediopiaDefineException e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(e.getMessage());
+        } catch(Exception e) {
+            LOGGER.debug("e: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 게시글 > 댓글 삭제
+     * @param vo
+     * @param model
+     * @param request
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclCmntDelete.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<BbsCmntVO> bbsAtclCmntDelete(BbsCmntVO bbsCmntVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+        ProcessResultVO<BbsCmntVO> resultVO = new ProcessResultVO<>();
+
+        boolean isAdmin = BbsAuthUtil.isAdmin(request);
+
+        String atclCmntId = bbsCmntVO.getAtclCmntId();
+        String bbsId = bbsCmntVO.getBbsId();
+
+        String atclId = request.getParameter("atclId");
+
+        String orgId = userCtx.getOrgId();
+        String userId = userCtx.getUserId();
+        String langCd = userCtx.getLangCd();
+
+        try {
+            // 로그인 체크
+            if(ValidationUtils.isEmpty(userId)) {
+                throw new SessionBrokenException(getMessage("common.system.no_auth"));
+            }
+
+            // 파라미터 체크
+            if (/* ValidationUtils.isEmpty(bbsId) || */ ValidationUtils.isEmpty(atclCmntId)) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+
+            // 게시판 정보 조회
+            BbsVO bbsVO = new BbsVO();
+            bbsVO.setOrgId(orgId);
+            bbsVO.setBbsId(bbsId);
+            bbsVO.setLangCd(langCd);
+            bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
+
+            if(bbsVO == null) {
+                // 게시판 정보를 찾을 수 없습니다.
+                throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
+            }
+
+            // 게시글 조회
+            BbsAtclVO bbsAtclVO = new BbsAtclVO();
+            bbsAtclVO.setOrgId(orgId);
+            bbsAtclVO.setBbsId(bbsId);
+            bbsAtclVO.setAtclId(atclId);
+            bbsAtclVO.setUserId(userId);
+			bbsAtclVO.setLangCd(langCd);
+            bbsAtclVO = bbsAtclService.selectBbsAtcl(bbsAtclVO);
+
+            bbsAtclVO.setUserId(userId);
+            if(bbsAtclVO  == null) {
+                // 게시글 정보를 찾을 수 없습니다.
+                throw new BadRequestUrlException(getMessage("bbs.error.not_exists_atcl"));
+            }
+
+            //String atclDeleteAuth = BbsAuthUtil.getAtclDeleteAuth(request, bbsInfoVO, bbsAtclVO);
+
+			/*
+			 * if(!"Y".equals(atclDeleteAuth)) { // 접근 권한이 없습니다. throw new
+			 * BadRequestUrlException(getMessage("bbs.error.no_auth")); }
+			 */
+
+            bbsCmntService.bbsAtclCmntDelete(bbsCmntVO);
+
+            resultVO.setResult(1);
+            resultVO.setMessage(getMessage("bbs.alert.success_delete")); // 정상적으로 삭제되었습니다.
+        } catch(MediopiaDefineException e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(e.getMessage());
+        } catch(Exception e) {
+            LOGGER.debug("e: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 답변 등록
+     * @param vo
+     * @param model
+     * @param request
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclRspnsRegist.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<BbsAtclVO> bbsAtclRspnsRegist(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+    	ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
+
+        boolean isAdmin = BbsAuthUtil.isAdmin(request);
+
+        String orgId = userCtx.getOrgId();
+        String userId = userCtx.getUserId();
+        String langCd = userCtx.getLangCd();
+
+        String bbsId = bbsAtclVO.getBbsId();
+        String atclId = bbsAtclVO.getAtclId();
+
+        String commentWriteAuth = "N";
+
+        try {
+            // 로그인 체크
+            if(ValidationUtils.isEmpty(userId)) {
+                throw new SessionBrokenException(getMessage("common.system.no_auth"));
+            }
+
+            // 파라미터 체크
+            if(ValidationUtils.isEmpty(bbsId) || ValidationUtils.isEmpty(atclId)) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+
+            // 게시판 정보 조회
+            BbsVO bbsVO = new BbsVO();
+            bbsVO.setOrgId(orgId);
+            bbsVO.setBbsId(bbsId);
+            bbsVO.setLangCd(langCd);
+            bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
+
+            if(bbsVO == null) {
+                // 게시판 정보를 찾을 수 없습니다.
+                throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
+            }
+
+            // 게시판 댓글 사용여부 체크
+			/*
+			 * if(!"Y".equals(bbsInfoVO.getCmntUseYn())) { // 접근 권한이 없습니다. throw new
+			 * BadRequestUrlException(getMessage("bbs.error.no_auth")); }
+			 */
+
+            // 댓글 쓰기권한 체크
+			/*
+			 * commentWriteAuth = BbsAuthUtil.getCommentWriteAuth(request, bbsInfoVO,
+			 * bbsAtclVO);
+			 *
+			 * if(!"Y".equals(commentWriteAuth)) { // 접근 권한이 없습니다. throw new
+			 * AccessDeniedException(getMessage("bbs.error.no_auth")); }
+			 */
+            bbsAtclVO.setUserId(userId);
+            bbsAtclVO.setUpAtclId(atclId);
+            bbsAtclVO.setAtclLv(2); // 댓글
+
+            bbsAtclService.bbsAtclRspnsRegist(bbsAtclVO);
+
+            resultVO.setResult(1);
+            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        } catch(MediopiaDefineException e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage(e.getMessage());
+        } catch(Exception e) {
+            LOGGER.debug("e: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
 }

@@ -723,6 +723,7 @@ public class ClsController extends ControllerBase {
         ProcessResultVO<ClsWkLrnVO> resultVO = new ProcessResultVO<>();
         vo.setOrgId(SessionInfo.getOrgId(request));
         try {
+            validateClsWkAccess(vo, false);
             ClsWkLrnVO result = clsService.selectStdntWkLrnSummary(vo);
 
             List<ClsChsiLrnVO> chsiList = clsService.selectStdntChsiLrnList(vo);
@@ -760,6 +761,7 @@ public class ClsController extends ControllerBase {
         vo.setRgtrId(SessionInfo.getUserId(request));
         vo.setMdfrId(SessionInfo.getUserId(request));
         try {
+            validateClsWkAccess(vo, true);
             int cnt = clsService.updateAtndlcProcess(vo);
             if (cnt > 0) {
                 resultVO.setResultSuccess();
@@ -786,6 +788,7 @@ public class ClsController extends ControllerBase {
         vo.setOrgId(SessionInfo.getOrgId(request));
         vo.setMdfrId(SessionInfo.getUserId(request));
         try {
+            validateClsWkAccess(vo, true);
             int cnt = clsService.updateAtndlcCancel(vo);
             if (cnt > 0) {
                 resultVO.setResultSuccess();
@@ -873,6 +876,26 @@ public class ClsController extends ControllerBase {
         }
 
         return resultVO;
+    }
+    // 서버 접근 검증
+    private void validateClsWkAccess(ClsWkLrnVO vo, boolean requireSchdlId) throws Exception {
+        if (ValidationUtils.isEmpty(vo.getSbjctId())
+                || ValidationUtils.isEmpty(vo.getUserId())
+                || vo.getWkNo() <= 0) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
+        }
+
+        if (requireSchdlId && ValidationUtils.isEmpty(vo.getLctrWknoSchdlId())) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
+        }
+
+        if (clsService.checkClsStdntAccessCnt(vo) <= 0) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
+        }
+
+        if (clsService.checkClsWkSchdlAccessCnt(vo) <= 0) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
+        }
     }
 
 }

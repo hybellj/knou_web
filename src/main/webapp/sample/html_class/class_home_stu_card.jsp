@@ -46,6 +46,7 @@
                         </div>
                         <div class="sec">
                             <button type="button" class="btn type1"><i class="xi-book-o"></i>학습자 매뉴얼</button>
+                            <button type="button" class="btn type2"><i class="xi-log-out"></i>강의실나가기</button>
                         </div>
                     </div>
                 </div>

@@ -8,14 +8,15 @@ classroom - layout, common
 }
 /* classroom - layout */
 .class main.common { flex-direction: row; flex-wrap: wrap; background-color: #373F57;}
-.class .class_sub { display: flex; flex: 1; flex-direction: column;  background: #E2E7EF; padding: 3.4rem ; border-radius: 4rem 0 0 0; }
+.class .class_sub { display: flex; flex: 1; flex-direction: column; background: #E2E7EF; padding: 3.4rem ; border-radius: 4rem 0 0 0; }
 .class .class_sub_top {display: flex; justify-content: flex-end; gap: 3rem; background-color: #373F57; padding: 1rem 3.4rem 1rem 0;}
-.class .class_sub .sub-content {width: 100%; display: flex; flex-direction: column;  }
+.class .class_sub .sub-content {width: 100%; display: flex; flex-direction: column; margin-bottom: 2rem; }
 .class .footer {width: 100%; display: flex;}
 .class .class_sub_top .btn-wrap {display: flex;}
 .class .class_sub_top .btn-wrap .form-select {color: #fff; border-color: rgb(189, 189, 189, .5);  background-color: transparent;}
 .class .class_sub_top .btn-wrap .form-select.wide {min-width: 17rem;}
 .class .class_sub_top .btn-wrap .btn.type1 { background: hsl(227, 4%, 60%, .3); color: #fff; border-color: #4c5263; }
+.class .class_sub_top .btn-wrap .btn.type2 { background: #4c5c8a; color: #fff; border-color: #4c5c8a; }
 
 .class .navi_bar li { display: inline-block; color: var(--white-50);}
 .class .navi_bar .xi-home-o { font-size: 1.5rem; color: var(--white-50);}
@@ -29,16 +30,27 @@ classroom - layout, common
     .class .class_sub {border-radius: var(--border-radius-20);}
     .class .class_sub_top { justify-content:space-between; padding: 1rem 2rem 1rem 2rem;}
 }
+@media(max-width: 1024px){  
+    .class .class_sub_top .navi_bar {display: none;}
+    .class .class_sub_top .btn-wrap {justify-content: end;}
+}
 @media(max-width: 768px){  
     .class .class_sub {padding: 1.5rem ; }
-    .class .class_sub_top .navi_bar {display: none;}
+    /* .class .class_sub_top .navi_bar {display: none;} */
+    .class .class_sub_top .btn-wrap {flex-direction: column;}
     .class .class_sub_top .btn-wrap .first {display: flex; width: 100%; gap: .5rem;}
+    .class .class_sub_top .btn-wrap .sec {display: flex; height: 3.7rem;  gap: .5rem;}
+    .class .class_sub_top .btn-wrap .sec .btn {flex: 1;}
     .class .class_sub_top .btn-wrap {flex-wrap: wrap; width: 100%;}
     .class .class_sub_top .btn-wrap .form-select {flex: 1;}
 }
 @media(max-width: 480px){  
+    .class .class_sub {border-radius: 20px 20px 0 0;}
     .class .class_sub_top .btn-wrap .sec {display: flex; width: 100%; gap: .5rem;}
-     .class .class_sub_top .btn-wrap .btn {flex: 1;}
+    .class .class_sub_top .btn-wrap .btn {flex: 1;}
+}
+@media(max-width: 410px){  
+    .class .class_sub_top .btn-wrap .sec .btn i {display: none;}
 
 }
 
@@ -175,6 +187,9 @@ classroom - main
 }
 
 /* class top info - left - prof */
+.segment.class-area.prof .info-left .class_info {margin-bottom: 1.5rem;}
+.segment.class-area.prof .info-left .class_info .class_tit .labels {margin-bottom: .2rem;}
+
 .info-left .class_info { flex: 1; max-width: 100%; display: flex; position: relative; z-index: 1; justify-content: space-between; margin-bottom: 2.5rem;}
 .info-left .class_info .classSection { display: flex; flex-wrap: wrap; color: #fff; font-weight: 300; }
 .info-left .class_info h2 {font-size: 2.6rem; font-weight: 700; color: var(--txt_02);}
@@ -387,7 +402,7 @@ classroom - main
 
 
 /* 접속현황 레이어 */
-.user-option-wrap { position: absolute; display: none; flex-direction: column; gap: 8px; width: 330px; padding: 20px; background-color: #fff; box-shadow: 0 4px 24px hsl(0 0% 0% / .2); border-radius: var(--border-radius-10); top: 29px; right: -20px; }
+.user-option-wrap { position: absolute; display: none; flex-direction: column; gap: 8px; width: 300px; padding: 20px; background-color: #fff; box-shadow: 0 4px 24px hsl(0 0% 0% / .2); border-radius: var(--border-radius-10); top: 29px; right: -20px; }
 
 .item.user .btn.expanded + .user-option-wrap { display: flex; z-index: 405;}
 .sec_item_tit .btn.expanded + .user-option-wrap { display: flex; z-index: 405; top: 26px;}
@@ -450,7 +465,6 @@ classroom - main
 
 /* class main 최근게시물 - 타이틀 */
 .class_sub .segment .box_title { position: relative; display: flex; align-items: center; border-bottom: 1px solid hsl(0, 0%, 0%, .1); margin-bottom: 1rem; padding-bottom: 1rem; flex-wrap: wrap; gap: .8rem; padding-right: 2.5rem; }
-
 .class_sub .segment .box_title i {width: 2rem; height: 2rem;}
 .class_sub .segment .box_title .h3 { display: inline-flex; align-items: center; margin-right: auto; font-size: 2rem; color: var(--txt_01); letter-spacing: -.05em; }
 .class_sub .segment .box_title .h3 em {margin-right: .6rem;}
@@ -953,3 +967,42 @@ classroom - main - stu
     .course_week_card>li .card_item { padding: 1.2rem 2rem 1.5rem 2rem ; }
     .course_week_card>li .card_item .lecture_tit {min-height: auto;}
 }
+
+/* =======================================================================================
+classroom - sub - common
+======================================================================================= */
+.class_sub .page-info {margin-bottom: 2.5rem;}
+.prof-box + .board_top { margin-top: 3rem; }
+
+/* 교수/튜터/조교정보 */
+.prof-box { display: grid; width: 100%; grid-template-columns: repeat(2, 1fr); gap: 3rem; /*padding: 2.2rem 2.5rem;*/ border-radius: 10px; border: 0px solid #D0D0D0; }
+.prof-box .left_item {display: flex; gap: 2rem; flex-direction: column; align-items: center; }
+.prof-box .user-wrap {gap: 3rem; padding: 2.5rem 3.5rem; border: 1px solid #D0D0D0; border-radius: 10px;}
+.prof-box .user-wrap .user-img {margin: 0 auto; }
+.prof-box .table_list {padding: 0rem; background: #fff; border-radius: 1rem; border: none; }
+.prof-box .table_list ul.list {flex-direction: column; padding: .8rem 0; font-size: 1.5rem; border-bottom: 1px solid #E0E4E9; }
+.prof-box .table_list ul.list > li {border: 0; padding: 0rem 1.5rem; flex-wrap: wrap;}
+.prof-box .table_list ul.list > li.head {width: 100%; background-color: transparent;}
+.prof-box .table_list ul.list > li label {font-weight: 600;}
+.prof-box .table_list ul.list > li .note2 {margin-top: .5rem; width: 100%;}
+.prof-box .table_list ul.list > li:has(.form-select)  {margin-top: .5rem;}
+.prof-box .table_list ul.list:last-child {border-bottom: none;}
+@media(max-width:1280px) {
+    .prof-box {grid-template-columns: repeat(1, 1fr);}
+}
+@media(max-width:950px) {
+    .prof-box .user-wrap {flex-direction: row;}    
+}
+@media(max-width:600px) {
+    .prof-box {gap: 3rem;}
+    .prof-box .user-wrap {flex-direction: column; gap: 0rem; padding: 1.5rem 1rem;} 
+    .prof-box .user-wrap + .user-wrap {border-top: 1px solid #D0D0D0; padding-top: 3rem;}
+    .prof-box .table_list {padding: 1rem;}
+    .prof-box .left_item {gap: .8rem;}
+}
+
+/* 루브릭 - 평가 */
+.rubrics_wrap {}
+.rubrics_wrap .rubrics_write .item {display: flex; align-items: center;}
+.rubrics_wrap .rubrics_write .item .label_num { width: 2rem;   background-color: #ebebeb;}
+

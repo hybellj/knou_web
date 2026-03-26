@@ -138,6 +138,7 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
     @Override
     public void insertBbsAtcl(BbsAtclVO vo) throws Exception {
         String bbsId = vo.getBbsId();
+        String atclOptnId = vo.getAtclOptnId();
         String rgtrId = vo.getRgtrId();
 
         // 비공개여부
@@ -217,17 +218,6 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
             //String newAtclId = IdGenerator.getNewId("ATCL");
             //vo.setAtclId(newAtclId);
 
-            String atclId = vo.getAtclId();
-            String newAtclId = "";
-
-        	// 데이터가 없으면 신규 등록
-        	if (atclId == null || atclId.trim().isEmpty()) {
-        		newAtclId = IdGenUtil.genNewId(IdPrefixType.BBATC);
-        		vo.setAtclId(newAtclId);
-        	} else {
-        		vo.setAtclId(atclId);
-        	}
-
             // 스크립트 태그 제거
             vo.setAtclTtl(StringUtil.removeScript(vo.getAtclTtl()));
             //vo.setAtclCts(StringUtil.removeScript(vo.getAtclCts()));
@@ -246,7 +236,28 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
             }
 
             // 게시글 저장
-            bbsAtclDAO.insertBbsAtcl(vo);
+			/* bbsAtclDAO.insertBbsAtcl(vo); */
+
+            String atclId = vo.getAtclId();
+            String newAtclId = "";
+
+        	// 데이터가 없으면 신규 등록
+        	if (atclId == null || atclId.trim().isEmpty()) {
+        		newAtclId = IdGenUtil.genNewId(IdPrefixType.BBATC);
+        		vo.setAtclId(newAtclId);
+        	} else {
+        		vo.setAtclId(atclId);
+        	}
+
+        	if (atclOptnId == null || atclOptnId.trim().isEmpty()) {
+        		vo.setAtclOptnId(IdGenUtil.genNewId(IdPrefixType.BBOPT));
+        	}
+
+            // TB_LMS_BBS_ATCL
+        	bbsAtclDAO.bbsAtclSbjctRegist(vo);
+
+        	// TB_LMS_BBS_ATCL_OPTN
+        	bbsAtclDAO.bbsAtclOptnRegist(vo);
 
             // 첨부파일
             if (uploadFileList.size() > 0) {
@@ -994,6 +1005,31 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         List<BbsAtclVO> atclList;
 
 	    atclList = bbsAtclDAO.selectBbsAtclGrpNtcList(vo);
+
+        // 페이지 전체 건수정보 설정
+       	pageInfo.setTotalRecord(atclList);
+
+        processResultVO.setReturnList(atclList);
+        processResultVO.setPageInfo(pageInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 게시판게시글 목록
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<BbsAtclVO> selectBbsAtclRspnsList(BbsAtclVO vo) throws Exception {
+        ProcessResultVO<BbsAtclVO> processResultVO = new ProcessResultVO<>();
+
+        // 페이지 정보 설정
+        PageInfo pageInfo = new PageInfo(vo);
+
+        // 목록 조회
+        List<BbsAtclVO> atclList = bbsAtclDAO.selectBbsAtclRspnsList(vo);
 
         // 페이지 전체 건수정보 설정
        	pageInfo.setTotalRecord(atclList);

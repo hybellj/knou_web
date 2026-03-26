@@ -1,7 +1,8 @@
 package knou.lms.lecture2.vo;
 
 import knou.lms.cmmn.vo.CmmnCdVO;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.vo.SubjectVO;
+
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import java.util.List;

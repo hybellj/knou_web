@@ -1,7 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="knou.lms.subject2.dao.SubjectDAO">
+<mapper namespace="knou.lms.subject.dao.SubjectDAO">
+
+	<select id="stdntSubjectConnectList" parameterType="map" resultType="eGovMap">
+		/*	설명 : 사용자과목접속목록조회 - 현재시간보다 120분이전 접속기록조회*/		
+		SELECT 	*
+		FROM (
+			    SELECT
+			        	S.SBJCT_ID,
+			        	S.SBJCTNM,
+			        	USR.USER_ID,
+			        	USR.USERNM,
+			        	O.ORGNM,
+			        	ROW_NUMBER() OVER ( PARTITION BY LUA.USER_ID ORDER BY LUA.ACTV_DATETIME DESC ) AS RN, 
+			        	NVL(USR.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL
+			        	
+			    FROM 	TB_LMS_SBJCT S
+			    JOIN 	TB_LMS_LOG_USER_ACTV LUA ON LUA.SBJCT_ID = S.SBJCT_ID
+			    									AND LUA.ACTV_DATETIME >= (SYSDATE - NUMTODSINTERVAL( 120, 'MINUTE'))
+			    JOIN 	TB_LMS_USER USR 	ON USR.USER_ID 	= LUA.USER_ID
+			    JOIN 	TB_LMS_ORG O       	ON O.ORG_ID 	= USR.ORG_ID
+			    WHERE 	S.SBJCT_ID = #{sbjctId}
+		)
+		WHERE RN = 1
+		ORDER BY USERNM
+	</select>
+	
+	<select id="subjectConnectStdCntSelect" resultType="int">
+		/*	설	명 	: 과목접속수강생수조회 	*/
+	 	SELECT	COUNT(DISTINCT LUA.USER_ID) AS SBJCT_CNTN_CNT
+		FROM	TB_LMS_ATNDLC A
+				JOIN TB_LMS_LOG_USER_ACTV LUA ON LUA.SBJCT_ID = A.SBJCT_ID
+		    			AND LUA.ACTV_DATETIME >= ( SYSDATE - NUMTODSINTERVAL( 120, 'MINUTE' ) )
+		WHERE 	1 = 1	AND A.SBJCT_ID = #{sbjctId}
+	</select>	
+	
+	<select id="subjectTotalStdCntSelect" resultType="int">
+		/*	설	명 	: 과목총수강생수조회 	*/
+	 	SELECT	COUNT(A.USER_ID) SBJCT_TOT_STD_CNT
+		FROM	TB_LMS_ATNDLC A
+		WHERE	1 = 1 	AND A.SBJCT_ID = #{sbjctId}
+	</select>
+	
+
+	<select id="connectStdCntSelect" resultType="int">
+		/*	설	명 	: 접속수강생수조회 	*/
+	 	SELECT	COUNT(DISTINCT LUA.USER_ID) AS CNTN_CNT
+		FROM	TB_LMS_SBJCT_ADM ADM
+				JOIN TB_LMS_LOG_USER_ACTV LUA ON LUA.SBJCT_ID = ADM.SBJCT_ID
+		    			AND LUA.ACTV_DATETIME >= ( SYSDATE - NUMTODSINTERVAL( 120, 'MINUTE' ) )
+		WHERE ADM.USER_ID = #{userId}
+	</select>	
+	
+	<select id="totalStdCntSelect" resultType="int">
+		/*	설	명 	: 총수강생수조회 	*/
+	 	SELECT	COUNT(A.USER_ID) TOT_STD_CNT
+		FROM	TB_LMS_SBJCT_ADM ADM
+				JOIN 	TB_LMS_SBJCT S ON ADM.SBJCT_ID = S.SBJCT_ID AND S.DELYN = 'N'
+				JOIN 	TB_LMS_ATNDLC A ON S.SBJCT_ID = A.SBJCT_ID
+		WHERE	1 = 1 	AND ADM.USER_ID = #{userId}
+	</select>
+
+	<select id="currLctrWknoSchdlSelect" resultType="knou.lms.subject.vo.LectureWknoScheduleVO">
+		/*	설	명 	: 현재강의주차일정조회 	*/
+	 	SELECT	LCTR_WKNO, LCTR_WKNO_SYMD || '000000' LCTR_WKNO_SYMD , LCTR_WKNO_EYMD || '000000' LCTR_WKNO_EYMD
+		FROM 	TB_LMS_LCTR_WKNO_SCHDL LWS
+		WHERE 	TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN LWS.LCTR_WKNO_SYMD AND LWS.LCTR_WKNO_EYMD
+				AND	LWS.SBJCT_ID = #{sbjctId} AND	LWS.DELYN = 'N'
+				AND ROWNUM = 1
+	</select>
 
 	<select id="middleLastExamSelect" parameterType="string" resultType="eGovMap">
 		/*	설	명 	: 중간고사기말고사조회		*/		
@@ -19,8 +87,7 @@
 		GROUP 	BY SO.SBJCT_ID
 	</select>
 
-
-	<select id="subjectSelect" parameterType="string" resultType="knou.lms.subject2.vo.SubjectVO">
+	<select id="subjectSelect" parameterType="string" resultType="knou.lms.subject.vo.SubjectVO">
 		/*	설	명 	: 과목조회		*/		
 		SELECT	SBJCT.*
 				, DEPT.DEPTNM
@@ -71,7 +138,7 @@
 		    , NVL(CNTCT.OFFI_PHN, '-') AS OFFI_PHN
 		    , NVL(
 		          CASE
-		              WHEN USR.USE_EML_GBNCD = 'INDV' THEN CNTCT.INDV_EML
+		              WHEN USR.USE_EML_GBNCD = 'INDV' OR USR.USE_EML_GBNCD IS NULL THEN CNTCT.INDV_EML
 		              WHEN USR.USE_EML_GBNCD = 'LNKG' THEN CNTCT.LNKG_EML
 		          END
 		        , '-') AS EML
@@ -88,13 +155,17 @@
 		        , MAX(CASE WHEN CNTCT_TYCD = 'INDV_EML' THEN CNTCT END) AS INDV_EML
 		        , MAX(CASE WHEN CNTCT_TYCD = 'LNKG_EML' THEN CNTCT END) AS LNKG_EML
 		    FROM TB_LMS_USER_CNTCT CNTCT
-		    GROUP BY
-		          USER_ID
+		    GROUP BY USER_ID
 		) CNTCT ON CNTCT.USER_ID = USR.USER_ID
 		WHERE ADM.SBJCT_ID = #{subjectId}
 		ORDER BY
-		      ADM.SBJCT_ADM_TYCD
-		    , USR.USERNM
+		      	CASE ADM.SBJCT_ADM_TYCD
+			        WHEN 'PROF' THEN 1
+			        WHEN 'TUT'  THEN 2
+			        WHEN 'ASSI' THEN 3
+			        ELSE 4
+			    END
+		    	, USR.USERNM
 	</select>
 
 	<select id="subjectLearningActvList" parameterType="map" resultType="egovMap">

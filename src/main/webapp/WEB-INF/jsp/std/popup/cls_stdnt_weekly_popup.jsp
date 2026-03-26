@@ -82,8 +82,6 @@
             </div>
         </div>
 
-        <div class="msg-box basic" id="wkInfoRow" style="margin-bottom:8px;"></div>
-
         <!-- 주차별 출결 -->
         <div class="table-wrap">
             <table class="table-type1">
@@ -374,7 +372,6 @@
 
         for (var w = 1; w <= WK_CNT; w++) { $("#wkSts" + w).text("-"); }
         $("#wkSummary").text("-");
-        $("#wkInfoRow").text("");
         resetElem();
         $("#actBody").html('<tr><td colspan="5" class="t_center">조회 중...</td></tr>');
         $("#actPagerPages").empty();
@@ -439,31 +436,21 @@
                 if (!res || res.result !== 1 || !res.returnVO) return;
 
                 var d = res.returnVO;
-
-                var info = "";
-                if (d.stdntNo) info += "학번 " + d.stdntNo;
-                if (d.entyR && d.entyR !== "-") info += " / 입학년도 " + d.entyR;
-                if (d.scyr && d.scyr !== "-") info += " / " + d.scyr + "학년";
-                $("#wkInfoRow").text(info);
-
                 for (var w = 1; w <= WK_CNT; w++) {
                     var v = d['wk' + w + 'Sts'] || null;
                     var html;
 
                     if (!v) {
                         html = '-';
-                    } else if (v === 'O') {
+                    } else if (v === 'ATND') {
                         html = '<span class="state_ok" aria-label="출석">○</span>';
-                    } else if (v === '△') {
+                    } else if (v === 'LATE') {
                         html = '<span class="state_late" aria-label="지각">△</span>';
-                    } else {
+                    } else if (v === 'ABSNT') {
                         html = '<span class="state_no" aria-label="결석">X</span>';
+                    } else {
+                        html = '-';
                     }
-
-                    if (w === initWkNo) {
-                        html = '<span style="background:#fff9c4;border-radius:3px;padding:0 2px;">' + html + '</span>';
-                    }
-
                     $("#wkSts" + w).html(html);
                 }
 
@@ -712,6 +699,30 @@
         return String(v)
             .replace(/&/g, "&amp;").replace(/</g, "&lt;")
             .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+    // 콜백 추가
+    function saveForcedAttendCallBack() {
+        loadWklyData();
+
+        try {
+            if (window.parent && typeof window.parent.saveForcedAttendCallBack === "function") {
+                window.parent.saveForcedAttendCallBack();
+            }
+        } catch (e) {
+            console.error("saveForcedAttendCallBack relay fail", e);
+        }
+    }
+
+    function cancelForcedAttendCallBack() {
+        loadWklyData();
+
+        try {
+            if (window.parent && typeof window.parent.cancelForcedAttendCallBack === "function") {
+                window.parent.cancelForcedAttendCallBack();
+            }
+        } catch (e) {
+            console.error("cancelForcedAttendCallBack relay fail", e);
+        }
     }
 </script>
 </body>

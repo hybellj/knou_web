@@ -12,7 +12,7 @@ import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.crs.crecrs.vo.CreCrsTchRltnVO;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.std.vo.StdVO;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.vo.SubjectVO;
 import knou.lms.user.vo.UsrUserInfoVO;
 
 public interface CrecrsService {

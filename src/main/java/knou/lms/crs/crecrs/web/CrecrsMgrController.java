@@ -53,7 +53,7 @@ import knou.lms.org.vo.OrgCodeVO;
 import knou.lms.score.service.ScoreService;
 import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.vo.SubjectVO;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.service.UsrUserInfoService;
 import knou.lms.user.vo.UsrDeptCdVO;

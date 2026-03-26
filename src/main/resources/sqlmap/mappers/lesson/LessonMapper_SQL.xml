@@ -235,7 +235,7 @@
 		      AND A.SBJCT_LCTR_CONTS_ID = #{lessonCntsId}
 	</select>
 	
-	<select id="listLessonProgress" parameterType="knou.lms.subject2.vo.SubjectVO" resultType="egovMap">
+	<select id="listLessonProgress" parameterType="knou.lms.subject.vo.SubjectVO" resultType="egovMap">
 		/*
 			 SQL ID : listLessonProgress
 			 설  명 : 학습진도관리 목록 조회

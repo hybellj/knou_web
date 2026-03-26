@@ -40,7 +40,6 @@
                                 </ul>
                             </div>
                         </div>
-
                        
                         <div class="search-typeA">
                             <div class="item">
@@ -175,7 +174,6 @@
 								</span>
 							</div>
 						</div>
-
 
                         <div class="msg-box warning mt20">
                             <p class="txt ct"><strong>성적처리기간 : </strong>2026.07.25 09:00 ~ 2026.09.25 23:59</p>
@@ -462,7 +460,7 @@
                                                     display: true,
                                                     text: '성적분포도비율(%)',
                                                     font: { size: 16 },
-                                                    color: '#222'
+                                                    color: '#333'
                                                 },
                                                 tooltip: {
                                                     callbacks: {
@@ -482,21 +480,21 @@
                                                         const percent = ((value / total) * 100).toFixed(1);
                                                         return value + '명 (' + percent + '%)';
                                                     },
-                                                    color: '#333',
-                                                    font: { weight: 'bold', size: 12 }
+                                                    color: '#666',
+                                                    font: { weight: 'bold', size: 11 }
                                                 }
                                             },
                                             scales: {
                                                 x: {
                                                     beginAtZero: true,
                                                     max: Math.max(...scoreData) * 1.2, // 막대 끝에 라벨 공간 확보
-                                                    ticks: { color: '#333' },
+                                                    ticks: { color: '#666' },
                                                     title: { display: false, text: '인원수' },
                                                     grid: { color: '#eee' }
                                                 },
                                                 y: {
                                                     reverse: true,
-                                                    ticks: { color: '#333', font: { size: 12 } },
+                                                    ticks: { color: '#666', font: { size: 11 } },
                                                     title: { display: true, text: '점수 구간' }
                                                 }
                                             }
@@ -551,7 +549,7 @@
                                             const barData = {
                                                 labels: BarLabels,
                                                 datasets: [{
-                                                    data: [70, 80, 95, 20],
+                                                    data: [70, 80, 92, 20],
                                                     backgroundColor: [                                               
                                                         'rgba(85, 154, 226, .8)',
                                                         'rgba(85, 154, 226, 1)',
@@ -574,33 +572,54 @@
                                                             display: true,
                                                             text: '성적분포현황',
                                                             font: { size: 16 },
-                                                            color: '#222'
+                                                            color: '#333'
                                                         },
+                                                        datalabels: {
+                                                            anchor: 'end',   // 막대 끝 기준
+                                                            align: 'top',   
+                                                            offset: -2,
+                                                            color: '#666',
+                                                            font: {
+                                                                weight: 'bold',
+                                                                size: 11
+                                                            },
+                                                            formatter: function(value) {
+                                                                return value; // 표시할 값
+                                                            }
+                                                        }
                                                     },
                                                     scales: {
                                                         y: {
-                                                            ticks: { color: '#333', font: { size: 12 }, stepSize: 20 },
+                                                            ticks: { color: '#666', font: { size: 12 }, stepSize: 20 },
                                                             title: { display: true, text: '점수' }                                                          
                                                         },
                                                         x: {
-                                                            ticks: { color: '#333', font: { size: 12 } },
+                                                            ticks: { color: '#666', font: { size: 12 } },
                                                         }
                                                     }
-                                                }
+                                                },
+                                                plugins: [ChartDataLabels] // datalabels 플러그인 활성화                                                                   
                                             };
                                             new Chart(document.getElementById('barChart'), barConfig);
                                         </script>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
-
-
 
                     </div>
 
                 </div>
+
+                <!-- modal popup 보여주기 버튼(개발시 삭제) -->
+                <div class="modal-btn-box">
+                    <button type="button" class="btn modal__btn" data-modal-open="modal1">성적산출 > 상대평가비중</button> 
+                    <button type="button" class="btn modal__btn" data-modal-open="modal2">성적산출 > 절대평가비중</button>  
+                    <button type="button" class="btn modal__btn" data-modal-open="modal3">성적산출 > P/F평가비중</button>   
+                    <button type="button" class="btn modal__btn" data-modal-open="modal4">분반 성적 비교</button>        
+                </div>
+                <!--// modal popup 보여주기 버튼(개발시 삭제) -->
+
             </div>
             <!-- //content -->
 
@@ -611,6 +630,764 @@
 
         </main>
         <!-- //dashboard-->
+
+        <!-- Modal 1 -->
+        <div class="modal-overlay" id="modal1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-lg" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">상대평가비중</h2> 
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body"> 
+                    <div class="mScore_gap">
+                        <div class="col-7">
+                            <div class="board_top">  
+                                <h3 class="board-title">상대평가</h3>                              
+                                <div class="right-area">
+                                    <span class="total_txt">[ 대상인원 <b>50</b>명 ]</span>
+                                </div>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="table-type3">
+                                    <colgroup>
+                                        <col style="width:22%">
+                                        <col style="width:22%">                                        
+                                        <col style="">
+                                        <col style="width:20%">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>등급</th>
+                                            <th>평점</th>
+                                            <th>등급분포비율</th>
+                                            <th>인원</th>                                   
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">A+</strong></th>
+                                            <td data-th="평점">4.5</td>
+                                            <td data-th="등급분포비율">~ 20%</td>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">A</strong></th>
+                                            <td data-th="평점">4.0</td>
+                                            <td data-th="등급분포비율">~ 40%</td>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>  
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">B+</strong></th>
+                                            <td data-th="평점">3.5</td>
+                                            <td data-th="등급분포비율">~ 60%</td>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">B</strong></th>
+                                            <td data-th="평점">3.0</td>
+                                            <td data-th="등급분포비율">~ 80%</td>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr> 
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">C+</strong></th>
+                                            <td data-th="평점">2.5</td>
+                                            <td rowspan="4" data-th="등급분포비율">잔여 비율
+                                            범위 내에서
+                                            지정
+                                            </td>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>  
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">C</strong></th>
+                                            <td data-th="평점">2.5</td>                                            
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>  
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">D+</strong></th>
+                                            <td data-th="평점">1.5</td>                                            
+                                            <td data-th="인원">10</td>                                   
+                                        </tr>  
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">D</strong></th>
+                                            <td data-th="평점">1</td>                                            
+                                            <td data-th="인원">9</td>                                   
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">F</strong></th>
+                                            <td data-th="평점">0.0</td> 
+                                            <td data-th="등급분포비율">자동 배당</td>                                           
+                                            <td data-th="인원">1</td>                                   
+                                        </tr> 
+                                        <tr class="total">
+                                            <th colspan="3" data-th="합계"><strong>합계</strong></th>
+                                            <td data-th="인원"><strong>50 명</strong></td>                                                                           
+                                        </tr>                                  
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-5">
+                            <div class="board_top">
+                                <h3 class="board-title">실시간 등급 분포도 비율</h3>                                
+                            </div>
+                            <div class="table-wrap">
+                                <table class="table-type3">
+                                    <colgroup>
+                                        <col style="width:22%">                                        
+                                        <col style="">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>등급</th>
+                                            <th>분포도 비율(%)</th>                               
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">A+</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">20%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 20%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">A</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">20%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 20%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">B+</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">20%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 20%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">B</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">20%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 20%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">C+</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">10%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 10%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>    
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">C</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">7.5%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 7.5%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr> 
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">D+</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">0%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 0%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr> 
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">D</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">0%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 0%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>  
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">F</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">2.5%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 2.5%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr> 
+                                        <tr class="total">
+                                            <th data-th="합계"><strong>합계</strong></th>
+                                            <td data-th="분포도 비율(%)"><strong>100%</strong></td>                                                                           
+                                        </tr>                            
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div> 
+                                    
+                    <div class="modal_btns">
+                        <button type="button" class="btn type1">성적처리저장</button>
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal 2 -->
+        <div class="modal-overlay" id="modal2" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-lg" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">절대평가비중</h2> 
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body"> 
+                    <div class="mScore_gap">
+                        <div class="col-7">
+                            <div class="board_top">
+                                <h3 class="board-title">절대평가</h3>
+                                <div class="right-area">
+                                    <span class="total_txt">[ 대상인원 <b>50</b>명 ]</span>
+                                </div>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="table-type3">
+                                    <colgroup>
+                                        <col style="width:22%">
+                                        <col style="width:22%">                                        
+                                        <col style="">
+                                        <col style="width:20%">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>등급</th>
+                                            <th>평점</th>
+                                            <th>점수</th>
+                                            <th>인원</th>                                   
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">A+</strong></th>
+                                            <td data-th="평점">4.5</td>
+                                            <td data-th="점수">95 ~ 100</td>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">A</strong></th>
+                                            <td data-th="평점">4.0</td>
+                                            <td data-th="점수">90 ~ 94</td>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>  
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">B+</strong></th>
+                                            <td data-th="평점">3.5</td>
+                                            <td data-th="점수">85 ~ 89</td>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">B</strong></th>
+                                            <td data-th="평점">3.0</td>
+                                            <td data-th="점수">80 ~ 84</td>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr> 
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">C+</strong></th>
+                                            <td data-th="평점">2.5</td>
+                                            <td data-th="점수">75 ~ 79</td>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>  
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">C</strong></th>
+                                            <td data-th="평점">2.5</td>
+                                            <td data-th="점수">70 ~ 74</td>                                            
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>  
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">D+</strong></th>
+                                            <td data-th="평점">1.5</td>   
+                                            <td data-th="점수">65 ~ 69</td>                                         
+                                            <td data-th="인원">10</td>                                   
+                                        </tr>  
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">D</strong></th>
+                                            <td data-th="평점">1</td> 
+                                            <td data-th="점수">60 ~ 64</td>                                           
+                                            <td data-th="인원">9</td>                                   
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">F</strong></th>
+                                            <td data-th="평점">0.0</td> 
+                                            <td data-th="점수">60미만</td>                                          
+                                            <td data-th="인원">1</td>                                   
+                                        </tr>
+                                        <tr class="total">
+                                            <th colspan="3" data-th="합계"><strong>합계</strong></th>
+                                            <td data-th="인원"><strong>50 명</strong></td>                                                                           
+                                        </tr>                                    
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-5">
+                            <div class="board_top">
+                                <h3 class="board-title">실시간 등급 분포도 비율</h3>                                
+                            </div>
+                            <div class="table-wrap">
+                                <table class="table-type3">
+                                    <colgroup>
+                                        <col style="width:22%">                                        
+                                        <col style="">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>등급</th>
+                                            <th>분포도 비율(%)</th>                               
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">A+</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">20%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 20%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">A</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">20%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 20%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">B+</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">20%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 20%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">B</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">20%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 20%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">C+</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">10%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 10%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>    
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">C</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">7.5%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 7.5%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr> 
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">D+</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">0%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 0%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr> 
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">D</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">0%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 0%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>  
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">F</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">2.5%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 2.5%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr> 
+                                        <tr class="total">
+                                            <th data-th="합계"><strong>합계</strong></th>
+                                            <td data-th="분포도 비율(%)"><strong>100%</strong></td>                                                                           
+                                        </tr>                              
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>     
+                                    
+                    <div class="modal_btns">
+                        <button type="button" class="btn type1">성적처리저장</button>
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal 3 -->
+        <div class="modal-overlay" id="modal3" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-md" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">P/F 평가비중</h2> 
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body"> 
+                    <div class="mScore_gap">
+                        <div class="col-5">
+                            <div class="board_top">
+                                <h3 class="board-title">P/F 평가</h3>
+                                <div class="right-area">
+                                    <span class="total_txt">[ 대상인원 <b>50</b>명 ]</span>
+                                </div>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="table-type3">
+                                    <colgroup>                                        
+                                        <col style="width:50%">                                        
+                                        <col style="">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>등급</th>
+                                            <th>인원</th>                              
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">P</strong></th>                                           
+                                            <td data-th="인원">45</td>                                   
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">F</strong></th>
+                                            <td data-th="인원">5</td>                                   
+                                        </tr>                                          
+                                        <tr class="total">
+                                            <th data-th="합계"><strong>합계</strong></th>
+                                            <td data-th="인원"><strong>50 명</strong></td>                                                                           
+                                        </tr>                                    
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-7">
+                            <div class="board_top">
+                                <h3 class="board-title">실시간 등급 분포도 비율</h3>                                
+                            </div>
+                            <div class="table-wrap">
+                                <table class="table-type3">
+                                    <colgroup>
+                                        <col style="width:22%">                                        
+                                        <col style="">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>등급</th>
+                                            <th>분포도 비율(%)</th>                               
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">P</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">20%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 20%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>
+                                        <tr>
+                                            <th data-th="등급"><strong class="txt_grade">F</strong></th>
+                                            <td data-th="분포도 비율(%)">
+                                                <div class="prog_rate">
+                                                    <span class="meta">20%</span>
+                                                    <div class="progress">
+                                                        <div class="bar blue_type" style="width: 20%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>                               
+                                        </tr>                                        
+                                        <tr class="total">
+                                            <th data-th="합계"><strong>합계</strong></th>
+                                            <td data-th="분포도 비율(%)"><strong>100%</strong></td>                                                                           
+                                        </tr>                              
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>     
+                                    
+                    <div class="modal_btns">
+                        <button type="button" class="btn type1">성적처리저장</button>
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal 4 -->
+        <div class="modal-overlay" id="modal4" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-xl" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">분반 성적 비교</h2> 
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body"> 
+                    <div class="board_top">
+                        <h3 class="board-title">분반 성적 분포</h3>                               
+                    </div>                    
+                    <div class="table-wrap">
+                        <table class="table-type1">
+                            <colgroup>
+                                <col style="width:7%">
+                                <col style="width:7%">
+                                <col style="width:10%">
+                                <col style="">
+                                <col style="width:8%">
+                                <col style="width:7%">
+                                <col style="width:7%">
+                                <col style="width:7%">
+                                <col style="width:7%">
+                                <col style="width:7%">
+                                <col style="width:7%">
+                                <col style="width:7%">
+                                <col style="width:7%">
+                                
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>점수</th>
+                                    <th>수강생</th>
+                                    <th>산출총점 평균</th>
+                                    <th>최종점수 평균</th>
+                                    <th>95 ~ 100</th>
+                                    <th>90 ~ 94</th>
+                                    <th>85 ~ 89</th>
+                                    <th>80 ~ 84</th>
+                                    <th>75 ~ 79</th>
+                                    <th>70 ~ 74</th>
+                                    <th>65 ~ 69</th>
+                                    <th>60 ~ 64</th>
+                                    <th>60미만</th>                                        
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-th="점수">1반</td>
+                                    <td data-th="수강생">50</td>
+                                    <td data-th="산출총점 평균">85.25</td>
+                                    <td data-th="최종점수 평균">85.25</td>                                        
+                                    <td data-th="95 ~ 100">2</td>
+                                    <td data-th="90 ~ 94">7</td>
+                                    <td data-th="85 ~ 89">9</td>
+                                    <td data-th="80 ~ 84">9</td>
+                                    <td data-th="75 ~ 79">11</td>
+                                    <td data-th="70 ~ 74">5</td>
+                                    <td data-th="65 ~ 69">3</td>
+                                    <td data-th="60 ~ 64">3</td>
+                                    <td data-th="60미만">1</td>                                       
+                                </tr>
+                                <tr>
+                                    <td data-th="점수">2반</td>
+                                    <td data-th="수강생">50</td>
+                                    <td data-th="산출총점 평균">85.25</td>
+                                    <td data-th="최종점수 평균">85.25</td>                                        
+                                    <td data-th="95 ~ 100">2</td>
+                                    <td data-th="90 ~ 94">7</td>
+                                    <td data-th="85 ~ 89">9</td>
+                                    <td data-th="80 ~ 84">9</td>
+                                    <td data-th="75 ~ 79">11</td>
+                                    <td data-th="70 ~ 74">5</td>
+                                    <td data-th="65 ~ 69">3</td>
+                                    <td data-th="60 ~ 64">3</td>
+                                    <td data-th="60미만">1</td>                                       
+                                </tr>
+                                <tr>
+                                    <td data-th="점수">3반</td>
+                                    <td data-th="수강생">50</td>
+                                    <td data-th="산출총점 평균">85.25</td>
+                                    <td data-th="최종점수 평균">85.25</td>                                        
+                                    <td data-th="95 ~ 100">2</td>
+                                    <td data-th="90 ~ 94">7</td>
+                                    <td data-th="85 ~ 89">9</td>
+                                    <td data-th="80 ~ 84">9</td>
+                                    <td data-th="75 ~ 79">11</td>
+                                    <td data-th="70 ~ 74">5</td>
+                                    <td data-th="65 ~ 69">3</td>
+                                    <td data-th="60 ~ 64">3</td>
+                                    <td data-th="60미만">1</td>                                       
+                                </tr>
+                                <tr>
+                                    <td data-th="점수">4반</td>
+                                    <td data-th="수강생">50</td>
+                                    <td data-th="산출총점 평균">85.25</td>
+                                    <td data-th="최종점수 평균">85.25</td>                                        
+                                    <td data-th="95 ~ 100">2</td>
+                                    <td data-th="90 ~ 94">7</td>
+                                    <td data-th="85 ~ 89">9</td>
+                                    <td data-th="80 ~ 84">9</td>
+                                    <td data-th="75 ~ 79">11</td>
+                                    <td data-th="70 ~ 74">5</td>
+                                    <td data-th="65 ~ 69">3</td>
+                                    <td data-th="60 ~ 64">3</td>
+                                    <td data-th="60미만">1</td>                                       
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="chart-container mt30" style="height: 320px;">
+                        <canvas id="classScoreChart"></canvas>
+                    </div>
+                    <script>
+                        const labels = [
+                            '산출총점평균','최종점수평균',
+                            '60미만','60~64','65~69','70~74','75~79',
+                            '80~84','85~89','90~94','95~100'
+                        ];
+
+                        // 막대 데이터 (인원수)
+                        const datasets = [
+                            {
+                                type: 'bar',
+                                label: '1반',
+                                data: [3, 8, 1, 3, 3, 5, 11, 9, 9, 7, 2],        
+                                backgroundColor: 'rgb(255, 224, 116, 0.8)'
+                            },
+                            {
+                                type: 'bar',
+                                label: '2반',
+                                data: [3, 9, 1, 4, 2, 4, 12, 8, 10, 8, 2],
+                                backgroundColor: 'rgb(93, 193, 171, 0.8)'
+                            },
+                            {
+                                type: 'bar',
+                                label: '3반',
+                                data: [5, 10, 0, 2, 2, 3, 10, 11, 11, 10, 3],
+                                backgroundColor: 'rgb(57, 160, 219, 0.8)'
+                                
+                            },
+                            {
+                                type: 'bar',
+                                label: '4반',
+                                data: [2, 9, 1, 2, 4, 6, 10, 10, 9, 8, 1],
+                                backgroundColor: 'rgb(129, 155, 168, 0.8)'
+                            }    
+                        ];
+
+                        const config = {
+                            data: {
+                                labels: labels,
+                                datasets: datasets
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                datasets: {
+                                bar: {
+                                        barThickness: 10 
+                                    }
+                                },
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: '분반별 점수 분포 및 평균',
+                                        font: { size: 16 },
+                                        color: '#333'
+                                    },
+                                    legend: {
+                                        position: 'top',
+                                        labels: {
+                                            boxWidth: 15
+                                        }
+                                    }           
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        
+                                    }
+                                }
+                            }
+                        };
+                        new Chart(document.getElementById('classScoreChart'), config);
+                    </script>
+                       
+                                    
+                    <div class="modal_btns">
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="<%=request.getContextPath()%>/webdoc/assets/js/modal.js" defer></script>
 
     </div>
 

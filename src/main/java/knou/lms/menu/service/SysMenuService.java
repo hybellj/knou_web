@@ -190,4 +190,11 @@ public interface SysMenuService {
      * 메인메뉴 기관 사용 전체 목록 조회
      */
     public List<MenuUseOrgVO> selectMainMenuUseOrgAll(MenuUseOrgVO vo) throws Exception;
+
+    /**
+     * 강의실 메뉴 목록 조회
+     * @return List<MenuVO>
+     * @throws Exception
+     */
+    public List<MenuVO> selectLectMenuList(MenuVO vo) throws Exception;
 }

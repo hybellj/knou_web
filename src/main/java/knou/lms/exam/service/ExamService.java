@@ -32,12 +32,6 @@ public interface ExamService {
     // 교수 팀 시험 상세조회
     public List<ExamVO> selectProfExamTeamDtl (ExamVO vo) throws Exception;
 
-    // 팀 시험 평가대상자 목록 페이징
-    public ProcessResultVO<ExamVO> listTkexamTeamUserPaging(ExamVO vo) throws Exception;
-
-    // 팀 시험 평가대상자 카운트
-    public int countTkexamTeamUser(ExamVO vo) throws Exception;
-
     // 시험 평가대상자 목록 페이징
     public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo) throws Exception;
 

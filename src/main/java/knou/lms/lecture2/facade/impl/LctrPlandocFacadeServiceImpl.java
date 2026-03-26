@@ -24,9 +24,9 @@ import knou.lms.lecture2.vo.LctrPlandocVO;
 import knou.lms.lecture2.vo.LctrPlandocView;
 import knou.lms.mrk.service.MarkItemSettingService;
 import knou.lms.mrk.vo.MarkItemSettingVO;
-import knou.lms.subject2.dto.SubjectParam;
-import knou.lms.subject2.service.SubjectService;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.dto.SubjectParam;
+import knou.lms.subject.service.SubjectService;
+import knou.lms.subject.vo.SubjectVO;
 
 @Service("lctrPlandocFacadeService")
 public class LctrPlandocFacadeServiceImpl extends ServiceBase implements LctrPlandocFacadeService {

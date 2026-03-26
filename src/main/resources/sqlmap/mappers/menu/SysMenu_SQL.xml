@@ -637,8 +637,8 @@
 			A.*
 		FROM TB_LMS_MENU A
 		WHERE 1=1
-			AND MENU_GBNCD = 'MAIN'
-		ORDER BY MENU_TYCD, MENU_LV, MENU_SEQ
+			AND MENU_GBNCD IN ('MAIN','LECT')
+		ORDER BY MENU_AUTH_TYCD, MENU_LV, MENU_SEQ
     </select>
 
 	<select id="selectMainMenuUseOrgAll" resultType="menuUseOrgVO">
@@ -650,8 +650,23 @@
 			A.*
 		FROM TB_LMS_MENU_USE_ORG A
 		WHERE 1=1
-			AND MENU_GBNCD = 'MAIN'
-		ORDER BY ORG_ID, MENU_TYCD
+			AND MENU_GBNCD IN ('MAIN','LECT')
+		ORDER BY ORG_ID, MENU_AUTH_TYCD
+    </select>
+
+	<select id="selectLectMenuList" resultType="menuVO">
+        /*
+             SQL ID : SysMenuDAO.selectLectMenuList
+             	설  명 : 강의실 메뉴 목록 조회
+        */
+		SELECT
+			A.*
+		FROM TB_LMS_MENU A, TB_LMS_MENU_USE_SBJCT B
+		WHERE 1=1
+			AND A.MENU_ID = B.MENU_ID
+			AND B.SBJCT_ID = #{sbjctId}
+			AND B.USEYN = 'Y'
+		ORDER BY A.MENU_AUTH_TYCD, A.MENU_LV, A.MENU_SEQ
     </select>
 
 </mapper>

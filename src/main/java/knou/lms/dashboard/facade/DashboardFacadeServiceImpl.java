@@ -9,7 +9,7 @@ import knou.lms.bbs2.service.Bbs2Service;
 import knou.lms.common.dto.BaseParam;
 import knou.lms.dashboard.web.view.DashboardViewModel;
 import knou.lms.lecture2.service.LectureScheduleService;
-import knou.lms.subject2.service.SubjectService;
+import knou.lms.subject.service.SubjectService;
 
 @Service("dashboardFacadeService")
 public class DashboardFacadeServiceImpl implements DashboardFacadeService {

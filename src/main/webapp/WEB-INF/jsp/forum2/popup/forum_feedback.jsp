@@ -298,7 +298,8 @@
                 html += "               </div>";
                 html += "           </div>";
                 html += "       </div>";
-                html += "       <div class='fields mr0'>";
+                // 음성 녹음 기능 막음 처리.
+                /*html += "       <div class='fields mr0'>";
                 html += "           <div class='field'>";
                 html += "               <button class='ui basic icon button'><i class='microphone icon'></i><spring:message code='forum.label.fdbk.audio.attach'/></button>"; // 음성녹음
                 html += "           </div>";
@@ -317,7 +318,7 @@
 				}
                 html += "               </div>";
                 html += "           </div>";
-                html += "       </div>";
+                html += "       </div>";*/
                 html += "   </div>";
 			    html += "</div>";
 			});
@@ -500,24 +501,26 @@
 	</div>
 
     <body class="modal-page">
-        <div id="wrap" class="flex flex-column">
+        <div id="wrap">
             <div class="ui form">
-            	<div class="option-content">
+                <div class="msg-box basic board_top">
                     <h2 class="page-title">${creCrsVO.crsCreNm } (${creCrsVO.declsNo }<spring:message code="forum.label.decls.name" />)</h2><!-- 반 -->
-                    <div class="mla fcBlue">
-                        <button type="button" class="ui blue small button addBtn" onclick="btnAddFdbk();"${student =='STD' ? ' style="display:none;"': ''}><spring:message code="forum.button.feedback.add" /><!-- 피드백 등록 --></button>
-                        <button type="button" class="ui basic small button" onclick="btnCancelFdbk();" style="display:none;"><spring:message code="forum.button.feedback.cancel" /><!-- 피드백 취소 --></button>
-                        <b>${forumJoinUserVO.deptNm } ${forumJoinUserVO.userId } ${forumJoinUserVO.userNm }
-                            <c:if test="${student ne 'STD'}">
-                            <span class="f150">${forumJoinUserVO.score}<spring:message code="forum.label.point" /></span><!-- 점 -->
-                            </c:if>
-                        </b>
+                    <div class="right-area">
+                        <div class="mla fcBlue">
+                            <button type="button" class="btn type1 small" onclick="btnAddFdbk();"${student =='STD' ? ' style="display:none;"': ''}><spring:message code="forum.button.feedback.add" /><!-- 피드백 등록 --></button>
+                            <button type="button" class="btn type2 small" onclick="btnCancelFdbk();" style="display:none;"><spring:message code="forum.button.feedback.cancel" /><!-- 피드백 취소 --></button>
+                            <b>${forumJoinUserVO.deptNm } ${forumJoinUserVO.userId } ${forumJoinUserVO.userNm }
+                                <c:if test="${student ne 'STD'}">
+                                <span class="f150">${forumJoinUserVO.score}<spring:message code="forum.label.point" /></span><!-- 점 -->
+                                </c:if>
+                            </b>
+                        </div>
                     </div>
                 </div>
 
 				<div  id="feedbackWrite" class="" style="display:none;">
 					<div class="field ui fluid input">
-                    	<textarea id="fdbkValue" rows="5" class="width-100per"  placeholder="<spring:message code='forum.label.feedback.input'/>"></textarea><!-- 피드백 입력 -->
+                    	<textarea id="fdbkValue" style="width:100%;height:100px;resize: none;" rows="5" placeholder="<spring:message code='forum.label.feedback.input'/>"></textarea><!-- 피드백 입력 -->
                     </div>
 
                     <div id="uploaderBox" class="mt10 width-100per">
@@ -525,23 +528,23 @@
                         <uiex:dextuploader
                                 id="fileUploaderNewFeedback"
                                 path="/forum/${forumVo.forumCd}"
-                                limitCount="5"
+                                limitCount="3"
                                 limitSize="100"
                                 oneLimitSize="100"
-                                listSize="3"
+                                listSize="1"
                                 fileList=""
                                 finishFunc="finishUploadNewFeedback()"
                                 allowedTypes="*"
                         />
                     </div>
-                    <div class="fields mt10 ml0 mr0 tr">
+                    <div class="text-center mt10">
                         <a href="javascript:btnRegFdbk()" class="btn type1"><spring:message code='forum.button.save'/><!-- 저장 --></a>
                     </div>
                 </div>
                 <div id="feedbackList" class="mt10"></div>
             </div>
 
-            <div class="bottom-content">
+            <div class="bottom-content text-center mt10">
                 <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code='forum.button.close'/><!-- 닫기 --></button>
             </div>
         </div>

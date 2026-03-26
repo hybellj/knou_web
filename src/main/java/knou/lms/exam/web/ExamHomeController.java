@@ -632,15 +632,9 @@ public class ExamHomeController extends ControllerBase {
 
         vo.setExamBscId(examBscId);
         vo.setCrsCreCd(crsCreCd);
-        System.out.println("byteamSubrexamUseyn ?" + vo.getByteamSubrexamUseyn());
         try {
-            if (byteamSubrexamUseyn.equals("Y")) {
-                // 팀 시험 평가대상자
-                resultVO = examService.listTkexamTeamUserPaging(vo);
-            } else {
-                // 시험 평가대상자
-                resultVO = examService.listTkexamUserPaging(vo);
-            }
+            // 시험 평가대상자
+            resultVO = examService.listTkexamUserPaging(vo);
             resultVO.setResultSuccess();
         } catch(Exception e) {
             resultVO.setResultFailed();
@@ -666,15 +660,8 @@ public class ExamHomeController extends ControllerBase {
 
         vo.setExamBscId(examBscId);
         vo.setCrsCreCd(crsCreCd);
-        System.out.println("byteamSubrexamUseyn ?" + vo.getByteamSubrexamUseyn());
         try {
-            if (byteamSubrexamUseyn.equals("Y")) {
-                // 팀 시험 평가대상자
-                resultVO = examService.listTkexamTeamUserPaging(vo);
-            } else {
-                // 시험 평가대상자
-                resultVO = examService.listTkexamUserPaging(vo);
-            }
+            resultVO = examService.listTkexamUserPaging(vo);
             resultVO.setResultSuccess();
         } catch(Exception e) {
             resultVO.setResultFailed();

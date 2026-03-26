@@ -1,10 +1,9 @@
 package knou.lms.msg.dao;
 
-import java.util.List;
-
+import knou.lms.msg.vo.MsgTmpltVO;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
-import knou.lms.msg.vo.MsgTmpltVO;
+import java.util.List;
 
 @Mapper("msgTmpltDAO")
 public interface MsgTmpltDAO {

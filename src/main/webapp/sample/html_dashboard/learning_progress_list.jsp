@@ -91,6 +91,7 @@
                                         <label for="checkType1">미학습자 전체</label>
                                     </span>
                                     <div class="percent_area">
+                                        <span class="tit">출석률</span>
                                         <div class="input_btn">
                                             <input class="form-control sm" id="percentInput" type="text" maxlength="2"><label>% 이상</label>
                                         </div>

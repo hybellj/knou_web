@@ -12,6 +12,7 @@ public class ExamVO extends DefaultVO {
      * 신규 작성 VO 영역
      *****************************************************/
     private String  examBscId;          // 시험기본 ID
+    private String  examDtlId;          // 시험기본 ID
     private String  examTycd;           // 시험유형코드
     private String  examGbncd;          // 시험구분코드
     private String  examGbnnm;          // 시험구분코드명
@@ -53,11 +54,16 @@ public class ExamVO extends DefaultVO {
     private String  evlyn;              // 평가여부
     private String  rgtrId;             // 등록자 ID
     private String  mdfrId;             // 수정자 ID
+    private String  tkexamId;           // 시험 응시 ID
+    private String  tkexamSdttm;        // 시험 응시 시작일
+    private String  tkexamEdttm;        // 시험 응시 종료일
+    private String  tkexamCmptnGbncd;   // 시험 응시 상태코드
 
     private String  lrnGrpId;           // 그룹 ID
     private String  lrnGrpnm;           // 그룹 명
     private String  ldrnm;              // 리더 명
     private Integer teamMbrTot;         // 팀 인원 COUNT
+
 
     private ExamDtlVO examDtlVO;        // 시험상세정보VO
     private List<String> lrnGrpIds;		// 팀 시험 등록용 학습그룹아이디:개설과목아이디 목록
@@ -70,6 +76,12 @@ public class ExamVO extends DefaultVO {
     }
     public void setExamBscId(String examBscId) {
         this.examBscId = examBscId;
+    }
+    public String getExamDtlId() {
+        return examDtlId;
+    }
+    public void setExamDtlId(String examDtlId) {
+        this.examDtlId = examDtlId;
     }
     public String getExamTycd() {
         return examTycd;
@@ -336,7 +348,30 @@ public class ExamVO extends DefaultVO {
     public void setTeamMbrTot(Integer teamMbrTot) {
         this.teamMbrTot = teamMbrTot;
     }
-
+    public String getTkexamId() {
+        return tkexamId;
+    }
+    public void setTkexamId(String tkexamId) {
+        this.tkexamId = tkexamId;
+    }
+    public String getTkexamSdttm() {
+        return tkexamSdttm;
+    }
+    public void setTkexamSdttm(String tkexamSdttm) {
+        this.tkexamSdttm = tkexamSdttm;
+    }
+    public String getTkexamEdttm() {
+        return tkexamEdttm;
+    }
+    public void setTkexamEdttm(String tkexamEdttm) {
+        this.tkexamEdttm = tkexamEdttm;
+    }
+    public String getTkexamCmptnGbncd() {
+        return tkexamCmptnGbncd;
+    }
+    public void setTkexamCmptnGbncd(String tkexamCmptnGbncd) {
+        this.tkexamCmptnGbncd = tkexamCmptnGbncd;
+    }
     public ExamDtlVO getExamDtlVO() {
         return examDtlVO;
     }

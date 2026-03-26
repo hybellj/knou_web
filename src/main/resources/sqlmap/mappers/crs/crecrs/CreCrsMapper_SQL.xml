@@ -3803,7 +3803,7 @@
 		WHERE SBJCT_ID = #{crsCreCd}
 	</update>
 
-	<select id="listSbjctOfring" parameterType="knou.lms.subject2.vo.SubjectVO" resultType="egovMap">
+	<select id="listSbjctOfring" parameterType="knou.lms.subject.vo.SubjectVO" resultType="egovMap">
 		/*
 			 SQL ID : CreCrsDAO.listSbjctOfring
 			 설  명 : 학위연도,기관,학기기수,학과에 따른 개설과목 조회

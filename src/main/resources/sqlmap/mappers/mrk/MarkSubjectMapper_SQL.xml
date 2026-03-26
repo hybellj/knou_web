@@ -350,7 +350,7 @@
                 FROM TB_LMS_EXAM_ABSNCE A
                 JOIN TB_LMS_EXAM_BSC B
                     ON A.EXAM_BSC_ID = B.EXAM_BSC_ID
-                    AND B.SBJCT_ID = 'SBJCT_OFRNG_ID2'
+                    AND B.SBJCT_ID = #{sbjctId}
                     AND B.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_MID_TEAM','EXAM_LST', 'EXAM_LST_TEAM')
                     AND B.TKEXAM_MTHD_CD = 'RLTM'
                 WHERE 1=1
@@ -412,6 +412,329 @@
                 AND STD.SBJCT_ID = #{sbjctId}
             GROUP BY A.USER_ID, C.SBJCT_ID
         ) A
+    </select>
+    
+    <select id="invalidMrkRfltrtSumQuizSelect" parameterType="String" resultType="int">
+        /*
+          SQL ID: markSubjectDAO.invalidMrkRfltrtSumQuizSelect
+			 설  명 : 해당 과목의 퀴즈 성적반영비율의 합이 100%인지 여부를 체크한다.
+         */
+        SELECT COUNT(1)
+        FROM (
+            SELECT SUM(NVL(AA.MRK_RFLTRT, 0)) AS SUM_MRK_RFLTRT
+            FROM TB_LMS_EXAM_BSC AA
+            JOIN TB_LMS_SBJCT SBJ
+                ON AA.SBJCT_ID = SBJ.SBJCT_ID
+                AND SBJ.SBJCT_ID = #{sbjctId}
+            LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR
+                ON (SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID AND SBJ.SBJCT_REF_TYCD = 'CHRT')
+            WHERE 1=1
+                AND AA.EXAM_TYCD = 'QUIZ'
+                AND AA.EXAM_GBNCD IN ('QUIZ', 'QUIZ_TEAM')
+                AND AA.DELYN = 'N'
+                AND AA.USEYN = 'Y'
+                AND AA.MRK_RFLTYN = 'Y'
+        )
+        WHERE SUM_MRK_RFLTRT IS NULL OR SUM_MRK_RFLTRT != 100
+    </select>
+
+    <select id="invalidMrkRfltrtSumAsmtSelect" parameterType="String" resultType="int">
+        /*
+          SQL ID: markSubjectDAO.invalidMrkRfltrtSumAsmtSelect
+			 설  명 : 해당 과목의 과제 성적반영비율의 합이 100%인지 여부를 체크한다.
+         */
+        SELECT COUNT(1)
+        FROM (
+            SELECT SUM(NVL(AA.MRK_RFLTRT, 0)) AS SUM_MRK_RFLTRT
+            FROM TB_LMS_ASMT AA
+            JOIN TB_LMS_SBJCT SBJ
+                ON AA.SBJCT_ID = SBJ.SBJCT_ID
+                AND SBJ.SBJCT_ID = #{sbjctId}
+            LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR
+                ON (SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID AND SBJ.SBJCT_REF_TYCD = 'CHRT')
+            WHERE 1=1
+                AND AA.DELYN = 'N'
+                AND AA.MRK_RFLTYN = 'Y'
+        )
+        WHERE SUM_MRK_RFLTRT IS NULL OR SUM_MRK_RFLTRT != 100
+    </select>
+
+    <select id="invalidMrkRfltrtSumDscsSelect" parameterType="String" resultType="int">
+        /*
+            SQL ID: markSubjectDAO.invalidMrkRfltrtSumDscsSelect
+            설  명 : 해당 과목의 토론 성적반영비율의 합이 100%인지 여부를 체크한다.
+        */
+        SELECT COUNT(1)
+        FROM (
+            SELECT SUM(NVL(AA.MRK_RFLTRT, 0)) AS SUM_MRK_RFLTRT
+            FROM TB_LMS_DSCS AA
+            JOIN TB_LMS_SBJCT SBJ
+                ON AA.SBJCT_ID = SBJ.SBJCT_ID
+                AND SBJ.SBJCT_ID = #{sbjctId}
+            LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR
+                ON (SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID AND SBJ.SBJCT_REF_TYCD = 'CHRT')
+            WHERE 1=1
+                AND AA.DELYN ='N'
+                AND AA.MRK_RFLTYN = 'Y'
+        )
+        WHERE SUM_MRK_RFLTRT IS NULL OR SUM_MRK_RFLTRT != 100;
+    </select>
+
+    <select id="invalidMrkRfltrtSumSmnrSelect" parameterType="String" resultType="int">
+        /*
+            SQL ID: markSubjectDAO.invalidMrkRfltrtSumSmnrSelect
+            설  명 : 해당 과목의 세미나 성적반영비율의 합이 100%인지 여부를 체크한다.
+        */
+        SELECT COUNT(1)
+        FROM (
+            SELECT
+--                 SUM(NVL(AA.MRK_RFLTRT, 0)) AS SUM_MRK_RFLTRT
+                100 AS SUM_MRK_RFLTRT /*컬럼 변경 작업 전으로 우선 100점 처리*/
+            FROM TB_LMS_SMNR AA
+            JOIN TB_LMS_SBJCT SBJ
+                ON AA.SBJCT_ID = SBJ.SBJCT_ID
+                AND SBJ.SBJCT_ID = #{sbjctId}
+            LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR
+                ON (SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID AND SBJ.SBJCT_REF_TYCD = 'CHRT')
+            WHERE 1=1
+                AND AA.DELYN ='N'
+        )
+        WHERE SUM_MRK_RFLTRT IS NULL OR SUM_MRK_RFLTRT != 100
+    </select>
+
+    <select id="invalidMrkRfltrtSumSrvySelect" parameterType="String" resultType="int">
+        /*
+            SQL ID: markSubjectDAO.invalidMrkRfltrtSumSrvySelect
+            설  명 : 해당 과목의 설문 성적반영비율의 합이 100%인지 여부를 체크한다.
+        */
+        SELECT COUNT(1)
+        FROM (
+            SELECT SUM(NVL(AA.MRK_RFLTRT, 0)) AS SUM_MRK_RFLTRT
+            FROM TB_LMS_SRVY AA
+            JOIN TB_LMS_SBJCT SBJ
+                ON AA.SBJCT_ID = SBJ.SBJCT_ID
+                AND SBJ.SBJCT_ID = #{sbjctId}
+            LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR
+                ON (SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID AND SBJ.SBJCT_REF_TYCD = 'CHRT')
+            WHERE 1=1
+                AND AA.DELYN = 'N'
+                AND AA.USEYN = 'Y'
+                AND AA.MRK_RFLTYN = 'Y'
+             )
+        WHERE SUM_MRK_RFLTRT IS NULL OR SUM_MRK_RFLTRT != 100
+    </select>
+
+    <delete id="allStdMrkSbjctDelete" parameterType="String">
+        /*
+            SQL ID: markSubjectDAO.allStdMrkSbjctDelete
+            설  명 : 해당 과목의 모든 학생 성적 데이터를 삭제한다.
+        */
+        DELETE FROM TB_LMS_MRK_SBJCT SBJ
+        WHERE SBJ.USER_ID IN (
+            SELECT USER_ID
+            FROM TB_LMS_ATNDLC STD
+            WHERE STD.SBJCT_ID = #{sbjctId}
+        )
+    </delete>
+
+    <delete id="allStdMrkSbjctDtlDelete" parameterType="String">
+        /*
+            SQL ID: markSubjectDAO.allStdMrkSbjctDtlDelete
+            설  명 : 해당 과목의 모든 학생 성적 상세 데이터를 삭제한다.
+        */
+        DELETE FROM TB_LMS_MRK_SBJCT_DTL DTL
+        WHERE DTL.MRK_ITM_TYCD IN (
+            SELECT X.MRK_ITM_TYCD
+            FROM TB_LMS_MRK_ITM_STNG X
+            WHERE X.SBJCT_ID = #{sbjctId}
+        )
+    </delete>
+
+    <select id="stdMrkSbjctList" parameterType="String" resultType="egovMap">
+        /*
+             SQL ID : markSubjectDAO.stdMrkSbjctList
+             설  명 : 해당 과목에 수강하는 사용자 아이디를 가져온다.
+        */
+        SELECT
+              USER_ID
+            , SBJCT_ID
+        FROM TB_LMS_ATNDLC_SBJCT
+        WHERE SBJCT_ID = #{sbjctId}
+            AND ATNDLC_CNCL_DTTM IS NULL
+        AND AUDITYN = 'N'
+    </select>
+
+    <select id="stdAttdSummaryByWeekSelect" parameterType="String" resultType= "egovMap">
+        /*
+             SQL ID : markSubjectDAO.stdAttdSummaryByWeekSelect
+             설  명 :  해당 과목 강의 컨텐츠가 있는 주차 수,
+                      학생이 수강완료한 주차 수, 자각한 주차 수를 조회한다..
+        */
+        WITH STD_INFO AS ( -- 학생
+            SELECT
+                  A.USER_ID
+                , A.SBJCT_ID
+            FROM TB_LMS_ATNDLC A
+            JOIN TB_LMS_USER B
+                ON A.USER_ID = B.USER_ID
+                AND B.USER_ID = #{userId}
+            WHERE A.SBJCT_ID = #{sbjctId}
+                AND A.ATNDLC_STSCD = 'ATNDLC'
+        ), LESSON_CONTS AS ( -- 강의컨텐츠가 있는 주차 정보
+            SELECT
+                  WK.SBJCT_ID
+                , WK.LCTR_WKNO_SCHDL_ID
+                , WK.LCTR_WKNO_SEQNO
+            FROM TB_LMS_LCTR_WKNO_SCHDL WK
+            WHERE WK.SBJCT_ID = #{sbjctId}
+                AND WK.DELYN = 'N'
+                AND (
+                    WK.LCTR_TYCD = 'LCTR' -- 강의 컨텐츠
+                    OR
+                    EXISTS ( -- 비디오컨텐츠..
+                        SELECT 1
+                        FROM TB_LMS_LCTR LC
+                        JOIN TB_LMS_LCTR_CONTS CON
+                            ON LC.LCTR_ID = CON.LCTR_ID
+                        WHERE LC.LCTR_WKNO_SCHDL_ID = WK.LCTR_WKNO_SCHDL_ID
+                            AND ( CON.LCTR_CONTS_TYCD = 'VDO' OR CON.CONTS_URL IS NOT NULL)
+                    )
+                )
+            ORDER BY LCTR_WKNO_SEQNO ASC
+        )
+        -- 강의컨텐츠가 있는 주차 수, 완료한 주차 수, 지각한 주차 수
+        SELECT
+              A.USER_ID
+            , COUNT(A.LCTR_WKNO_SCHDL_ID) AS LCTR_SCHDL_CNT
+            , NVL( SUM(CASE WHEN A.LRN_STSCD = 'CMPTN' THEN 1 ELSE 0 END) , 0)AS COMPLETE_CNT
+            , NVL( SUM(CASE WHEN A.LRN_STSCD = 'LATE' THEN 1 ELSE 0 END) , 0)AS LATE_CNT
+        FROM (
+            -- 주별 학습자 학습상태
+            SELECT
+                  STD.USER_ID
+                , CON.LCTR_WKNO_SCHDL_ID
+                , CON.LCTR_WKNO_SEQNO
+                , STS.LRN_STSCD
+            FROM STD_INFO STD
+            CROSS JOIN LESSON_CONTS CON
+            LEFT JOIN TB_LMS_BYWK_USER_LRN_STS STS
+                ON STD.USER_ID = STS.USER_ID
+                AND CON.LCTR_WKNO_SCHDL_ID = STS.LCTR_WKNO_SCHDL_ID
+        ) A
+        GROUP BY A.USER_ID
+    </select>
+
+    <select id="examScoreList" parameterType="String" resultType="MarkSubjectDetailVO" >
+        /*
+         SQL ID : markSubjectDAO.examScoreList
+         설  명 : 학습자들의 중간or기말고사 점수를 조회한다.
+        */
+        WITH
+        -- [과목 수강생 전체와 시험 기본정보 매핑]
+        BASE_INFO_LIST AS (
+            SELECT
+                  B.SBJCT_ID
+                , B.EXAM_BSC_ID
+                , B.MRK_RFLTRT
+                , A.USER_ID
+                , B.EXAM_GBNCD
+            FROM TB_LMS_ATNDLC  A
+            JOIN TB_LMS_EXAM_BSC B
+                ON A.SBJCT_ID = B.SBJCT_ID
+            <choose>
+                <when test="searchKey != null and searchKey == 'MIDEXAM'">
+                    AND B.EXAM_GBNCD IN ('EXAM_MID', 'QUIZ_EXAM_MID', 'EXAM_MID_TEAM')
+                </when>
+                <when test="searchKey != null and searchKey == 'LSTEXAM'">
+                    AND B.EXAM_GBNCD IN ('EXAM_LST', 'QUIZ_EXAM_LST', 'EXAM_LST_TEAM')
+                </when>
+            </choose>
+            WHERE 1=1
+                AND B.MRK_RFLTYN = 'Y'
+                AND B.MRK_RFLTRT > 0
+                AND B.DELYN = 'N'
+                AND B.USEYN = 'Y'
+        ),
+        -- [일반/재시험 점수 및 패널티 계산]
+        NORMAL_SCORE AS (
+            SELECT
+                  TK.USER_ID
+                , DTL.EXAM_BSC_ID
+                -- 미채점인경우 -1
+                , (CASE WHEN RS.EVLYN = 'Y' THEN RS.TOT_SCR ELSE -1 END) AS SCORE
+                , CASE WHEN (TK.RETKEXAM_YN = 'Y' AND DTL.REEXAMYN = 'Y')
+                    THEN (DTL.REEXAM_MRK_RFLTRT  / 100)
+                    ELSE 1
+                END AS PENALTY
+            FROM TB_LMS_TKEXAM TK
+            JOIN TB_LMS_TKEXAM_RSLT RS
+                ON TK.TKEXAM_ID = RS.TKEXAM_ID
+            JOIN TB_LMS_EXAM_DTL DTL
+                ON TK.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+                AND NOT EXISTS( -- 결시자 제외 (중복방지)
+                    SELECT 1
+                    FROM TB_LMS_EXAM_ABSNCE ABS
+                    WHERE ABS.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                    AND ABS.USER_ID = TK.USER_ID
+                    AND ABS.APLY_STSCD = 'APRV'
+                )
+        ),
+        --[결시자 확인 및 대체과제/시험 체크]
+        SUBSTITUTE_SCORE AS (
+            SELECT
+                  ABS.USER_ID
+                , ABS.EXAM_BSC_ID AS TARGET_BSC_ID
+                -- 대체 퀴즈/과제 중 점수 있는 것을 선택 AND 미채점인 경우 -1
+                , CASE WHEN (SB_QUIZ_RS.TKEXAM_ID IS NOT NULL AND SB_QUIZ_RS.EVLYN = 'N')
+                        OR (SB_ASMT_RS.ASMT_SBMSN_ID IS NOT NULL AND SB_ASMT_RS.EVLYN = 'N')
+                    THEN -1
+                    ELSE COALESCE(SB_QUIZ_RS.TOT_SCR, SB_ASMT_RS.SCR, 0)
+                END AS SUB_SCORE
+                , (ABS.ABSNCE_RFLTRT  / 100) AS ABS_PENALTY
+            FROM TB_LMS_EXAM_ABSNCE ABS
+            JOIN TB_LMS_EXAM_EVL_SBST SBST ON ABS.EXAM_BSC_ID = SBST.EXAM_BSC_ID
+            -- [경로 A: 대체 퀴즈 점수 조인]
+            LEFT JOIN TB_LMS_EXAM_DTL SB_QUIZ
+                ON SBST.EXAM_SBST_ID = SB_QUIZ.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM SB_QUIZ_TK
+                ON SB_QUIZ.EXAM_DTL_ID = SB_QUIZ_TK.EXAM_DTL_ID
+            LEFT JOIN TB_LMS_TKEXAM_RSLT SB_QUIZ_RS
+                ON SB_QUIZ_TK.TKEXAM_ID = SB_QUIZ_RS.TKEXAM_ID
+                AND ABS.USER_ID = SB_QUIZ_RS.USER_ID
+            -- [경로 B: 대체 과제 점수 조인]
+            LEFT JOIN TB_LMS_ASMT SB_ASMT
+                ON SBST.EXAM_SBST_ID = SB_ASMT.ASMT_ID
+            LEFT JOIN TB_LMS_ASMT_SBMSN SB_ASMT_TK
+                ON SB_ASMT.ASMT_ID = SB_ASMT_TK.ASMT_ID
+                AND ABS.USER_ID = SB_ASMT_TK.USER_ID
+            LEFT JOIN TB_LMS_ASMT_EVL SB_ASMT_RS
+                ON SB_ASMT_TK.ASMT_SBMSN_ID = SB_ASMT_RS.ASMT_SBMSN_ID
+            WHERE ABS.APLY_STSCD = 'APRV'
+        )
+        SELECT
+              A.USER_ID
+            , A.EXAM_GBNCD
+            , A.EXAM_BSC_ID
+            -- 최종 원점수(일반/재시험 점수 OR 결시 대체 점수)
+            , CASE WHEN (NVL(B.SCORE, 0) = -1 OR NVL(C.SUB_SCORE, 0) = -1)
+                THEN -1
+                ELSE COALESCE(B.SCORE * B.PENALTY, C.SUB_SCORE * C.ABS_PENALTY, 0)
+            END AS RAW_SCORE
+            -- 성적 반영 비율 계산 최종점수 (최종 원점수 * 반영비율)
+            , CASE WHEN (NVL(B.SCORE, 0) = -1 OR NVL(C.SUB_SCORE, 0) = -1)
+                THEN -1
+                ELSE COALESCE(B.SCORE * B.PENALTY, C.SUB_SCORE * C.ABS_PENALTY, 0 ) * (A.MRK_RFLTRT / 100)
+            END AS FINAL_SCORE
+        FROM BASE_INFO_LIST A
+        -- 일반/재시험 점수 매칭
+        LEFT JOIN NORMAL_SCORE B
+            ON A.USER_ID = B.USER_ID
+            AND A.EXAM_BSC_ID = B.EXAM_BSC_ID
+        -- 결시 대체 점수 매칭
+        LEFT JOIN SUBSTITUTE_SCORE C
+            ON A.USER_ID = C.USER_ID
+            AND A.EXAM_BSC_ID = C.TARGET_BSC_ID
+        ORDER BY A.SBJCT_ID , A.EXAM_BSC_ID , A.USER_ID
     </select>
 
 </mapper>

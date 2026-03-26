@@ -247,7 +247,7 @@ public enum IdPrefixType {
     MSTML("MSTML", "메시지탬플릿"),
     AAMSG("AAMSG", "자동알림메시지"),
     AATGT("AATGT", "자동알림메시지대상"),
-
+    MSCOS("MSCOS","메지시발신비용"),
     // 교재
     TB("TB", "교재"),
     TBK("TBK", "교재"),

@@ -8,5 +8,5 @@ public interface LogUserActvService {
      * @param 	timeRange	시간범위 - 30분전
      * @throws 	Exception
      */
-	public Object userSbjctOfrngActvHstryList(String subjectId, int timeRange) throws Exception;
+	//public Object userSbjctOfrngActvHstryList(String subjectId, int timeRange) throws Exception;
 }

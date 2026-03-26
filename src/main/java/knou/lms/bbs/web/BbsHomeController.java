@@ -1730,8 +1730,9 @@ public class BbsHomeController extends ControllerBase {
 
         String orgId = SessionInfo.getOrgId(request);
         String userId = SessionInfo.getUserId(request);
-        String bbsIds = request.getParameter("bbsIds"); // 게시판 id ',' 구분자
         String langCd = SessionInfo.getLocaleKey(request);
+
+        String bbsIds = request.getParameter("bbsIds"); // 게시판 id ',' 구분자
         String upAtclId = request.getParameter("upAtclId");
 
         try {
@@ -1744,9 +1745,9 @@ public class BbsHomeController extends ControllerBase {
                 bbsAtclVO.setBbsIdList(bbsIdList);
                 bbsAtclVO.setBbsId(null);
             }
-            bbsAtclVO.setCrsCreCd(null);
             bbsAtclVO.setVwerId(userId);
             bbsAtclVO.setUpAtclId(upAtclId);
+            bbsAtclVO.setAtclLv(1);
 
             resultVO = bbsAtclService.selectBbsAtclList(bbsAtclVO);
             resultVO.setResult(1);
@@ -2065,6 +2066,50 @@ public class BbsHomeController extends ControllerBase {
     }
 
     /*****************************************************
+     * 게시판 게시글 답변 조회(Ajax)
+     * @param bbsAtclVO
+     * @param model
+     * @param request
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclRspnsListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<BbsAtclVO> bbsAtclRspnsListAjax(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
+
+        String orgId = SessionInfo.getOrgId(request);
+        String userId = SessionInfo.getUserId(request);
+        String bbsIds = request.getParameter("bbsIds"); // 게시판 id ',' 구분자
+        String langCd = SessionInfo.getLocaleKey(request);
+        String upAtclId = request.getParameter("upAtclId");
+
+        try {
+            bbsAtclVO.setOrgId(orgId);
+            bbsAtclVO.setLangCd(langCd);
+
+            // 게시판 id ',' 구분자로 들어온 경우
+            if(ValidationUtils.isNotEmpty(bbsIds)) {
+                List<String> bbsIdList = Arrays.asList(bbsIds.split(","));
+                bbsAtclVO.setBbsIdList(bbsIdList);
+                bbsAtclVO.setBbsId(null);
+            }
+            bbsAtclVO.setCrsCreCd(null);
+            bbsAtclVO.setVwerId(userId);
+            bbsAtclVO.setUpAtclId(upAtclId);
+
+            resultVO = bbsAtclService.selectBbsAtclRspnsList(bbsAtclVO);
+            resultVO.setResult(1);
+            resultVO.setEparam(getEparam());
+        } catch(Exception e) {
+            LOGGER.debug("e: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
      * 게시판 게시글 댓글 목록조회(Ajax)
      * @param bbsAtclVO
      * @param model
@@ -2080,12 +2125,13 @@ public class BbsHomeController extends ControllerBase {
         ProcessResultVO<BbsCmntVO> resultVO = new ProcessResultVO<>();
 
         String orgId = userCtx.getOrgId();
-        String userId = userCtx.getUserId();
         String atclId = request.getParameter("atclId");
+        String userId = userCtx.getUserId();
 
         try {
         	bbsCmntVO.setOrgId(orgId);
         	bbsCmntVO.setAtclId(atclId);
+        	bbsCmntVO.setUserId(userId);
 
             resultVO = bbsCmntService.selectBbsAtclCmntList(bbsCmntVO);
             resultVO.setResult(1);
@@ -2309,12 +2355,13 @@ public class BbsHomeController extends ControllerBase {
         String langCd = userCtx.getLangCd();
 
         String bbsId = bbsAtclVO.getBbsId();
-        String atclId = bbsAtclVO.getAtclId();
-        String atclOptnId = bbsAtclVO.getAtclOptnId();
-
-        bbsAtclVO.setAtclId(atclId);
-        bbsAtclVO.setAtclOptnId(atclOptnId);
-        bbsAtclVO.setRgtrId(userId);
+		/*
+		 * String atclId = bbsAtclVO.getAtclId(); String atclOptnId =
+		 * bbsAtclVO.getAtclOptnId();
+		 *
+		 * bbsAtclVO.setAtclId(atclId); bbsAtclVO.setAtclOptnId(atclOptnId);
+		 * bbsAtclVO.setRgtrId(userId);
+		 */
 
         try {
             // 로그인 체크

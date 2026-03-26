@@ -43,16 +43,10 @@ public interface ExamDAO {
     // 교수 시험목록 카운트
     public int countProfExam(ExamVO vo) throws Exception;
 
-    // 팀 시험 평가대상자 목록 페이징
-    public List<ExamVO> listTkexamTeamUserPaging(ExamVO vo) throws Exception;
-
-    // 팀 시험 평가대상자 카운트
-    public int countTkexamTeamUser(ExamVO vo) throws Exception;
-
     // 시험 평가대상자 목록 페이징
     public List<ExamVO> listTkexamUserPaging(ExamVO vo) throws Exception;
 
-    // 시험 평가대상자 목록 카운트
+    // 시험 평가대상자 카운트
     public int countTkexamUser(ExamVO vo) throws Exception;
 
     // 팀 시험여부 조회
@@ -66,9 +60,6 @@ public interface ExamDAO {
 
     // 시험 성적 반영비율 수정
     public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
-
-    // 중간/기말고사 시험 목록
-    public List<ExamBscVO> examList(@Param("sbjctId") String sbjctId, @Param("examGbncd") String examGbncd ) throws Exception;
 
     // 시험 기본정보 수정
     public void updateExamBscInfo(ExamVO vo) throws Exception;

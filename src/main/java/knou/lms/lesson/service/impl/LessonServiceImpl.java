@@ -20,7 +20,7 @@ import knou.lms.lesson.vo.LessonPageVO;
 import knou.lms.lesson.vo.LessonScheduleVO;
 import knou.lms.lesson.vo.LessonTimeVO;
 import knou.lms.lesson.vo.LessonVO;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.vo.SubjectVO;
 
 @Service("lessonService")
 public class LessonServiceImpl extends ServiceBase implements LessonService {

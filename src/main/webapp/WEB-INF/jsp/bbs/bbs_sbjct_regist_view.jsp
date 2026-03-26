@@ -2,6 +2,15 @@
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko">
+
+<style>
+    /* 에디터 박스보다 위에 오도록 설정 */
+    .editor-box {
+        position: relative;
+        z-index: 1; /* 에디터는 낮게 */
+    }
+</style>
+
 <head>
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
         <jsp:param name="style" value="${templateUrl eq 'bbsHome' ? 'dashboard' : templateUrl eq 'bbsLect' ? 'classroom' : templateUrl eq 'bbsMgr' ? 'admin' : ''}"/>

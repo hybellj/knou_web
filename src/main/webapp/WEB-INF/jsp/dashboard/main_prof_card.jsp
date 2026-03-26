@@ -138,7 +138,7 @@
 		  			widgetUseId : "PROF",
 		  			widgetId    : "PROF",
 		    	  	widgetNm    : "PROF",
-		    	  	orgId       : "LMSBASIC",
+		    	  	orgId       : "${orgId}",
 		    		widgetUserStngCts  : JSON.stringify(finalData)
 		};
 

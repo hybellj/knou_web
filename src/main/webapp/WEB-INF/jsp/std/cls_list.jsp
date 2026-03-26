@@ -22,106 +22,138 @@
             <div class="dashboard_sub">
                 <div class="sub-content">
 
-                    <!-- page-info / breadcrumb -->
+                    <%-- ===== 페이지 타이틀 ===== --%>
                     <div class="page-info">
                         <h2 class="page-title">전체수업현황</h2>
                         <div class="navi_bar">
                             <ul>
                                 <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                <li>강의</li>
+                                <li><spring:message code="dashboard.lesson"/></li>
                                 <li><span class="current">전체수업현황</span></li>
                             </ul>
                         </div>
                     </div>
 
-                    <!-- 검색 영역 -->
+                    <%-- ===== 검색 영역 ===== --%>
                     <form id="clsListForm" onsubmit="return false;">
-                        <input type="hidden" id="pageIndex" name="pageIndex" value="<c:out value='${empty vo.pageIndex ? 1 : vo.pageIndex}'/>"/>
-                        <input type="hidden" id="listScale" name="listScale" value="<c:out value='${empty vo.listScale ? 20 : vo.listScale}'/>"/>
-                        <input type="hidden" id="pageScale" name="pageScale" value="<c:out value='${empty vo.pageScale ? 10 : vo.pageScale}'/>"/>
+                        <input type="hidden" id="pageIndex" name="pageIndex"
+                               value="<c:out value='${empty vo.pageIndex ? 1 : vo.pageIndex}'/>"/>
+                        <input type="hidden" id="listScale" name="listScale"
+                               value="<c:out value='${empty vo.listScale ? 20 : vo.listScale}'/>"/>
+                        <input type="hidden" id="pageScale" name="pageScale"
+                               value="<c:out value='${empty vo.pageScale ? 10 : vo.pageScale}'/>"/>
 
-                        <!-- 학년도/학기 + 운영과목 검색 -->
                         <div class="search-typeA">
-                            <div class="item">
-                                <span class="item_tit"><label for="srchYear">학년도/학기</label></span>
-                                <div class="itemList">
 
+                            <%-- 학년도 / 학기 --%>
+                            <div class="item">
+                                <span class="item_tit">
+                                    <label for="srchYear">
+                                        <spring:message code="common.year"/>/<spring:message code="common.term"/> <%-- 학년도/학기 --%>
+                                    </label>
+                                </span>
+                                <div class="itemList">
                                     <c:set var="selectedYr" value="${vo.searchYr}"/>
                                     <c:set var="selectedSm" value="${vo.searchSmstr}"/>
 
                                     <select class="form-select" id="srchYear" name="searchYr">
                                         <c:forEach var="item" items="${yearList}">
-                                            <option value="${item}" ${item eq selectedYr ? 'selected' : ''}>${item}년</option>
+                                            <option value="${item}" ${item eq selectedYr ? 'selected' : ''}>
+                                                    ${item}년
+                                            </option>
                                         </c:forEach>
                                     </select>
 
                                     <select class="form-select" id="srchTerm" name="searchSmstr">
-                                        <option value="">학기 선택</option>
+                                        <option value="">학기 선택</option> 
                                         <c:forEach var="item" items="${termList}">
                                             <c:if test="${item.codeCd eq '10' or item.codeCd eq '20'}">
                                                 <c:set var="termValue" value="${item.codeCd eq '20' ? '2' : '1'}"/>
                                                 <option value="${termValue}" ${termValue eq selectedSm ? 'selected' : ''}>
-                                                    <c:out value="${item.codeNm}" />
+                                                    <c:out value="${item.codeNm}"/>
                                                 </option>
                                             </c:if>
                                         </c:forEach>
                                     </select>
-
                                 </div>
                             </div>
 
+                            <%-- 운영과목 (학위원 / 학과 / 과목) --%>
                             <div class="item">
-                                <span class="item_tit"><label for="srchSbjt">운영과목</label></span>
+                                <span class="item_tit"><label for="srchSbjt">운영과목</label></span> 
                                 <div class="itemList">
                                     <select class="form-select" id="srchUniv" name="univGbn">
-                                        <option value="">학위원</option>
-                                        <option value="C" <c:if test="${vo.univGbn == 'C'}">selected</c:if>>학부</option>
-                                        <option value="G" <c:if test="${vo.univGbn == 'G'}">selected</c:if>>대학원</option>
+                                        <option value="">학위원</option> 
+                                        <option value="C" <c:if test="${vo.univGbn == 'C'}">selected</c:if>>학부</option> 
+                                        <option value="G" <c:if test="${vo.univGbn == 'G'}">selected</c:if>>대학원</option> 
                                     </select>
+
                                     <select class="form-select" id="srchDept" name="deptId">
-                                        <option value="">학과</option>
+                                        <option value="">학과</option> 
                                         <c:forEach var="item" items="${deptList}">
-                                            <option value="${item.deptId}" <c:if test="${vo.deptId == item.deptId}">selected</c:if>>${item.deptnm}</option>
+                                            <option value="${item.deptId}"
+                                                    <c:if test="${vo.deptId == item.deptId}">selected</c:if>>
+                                                    ${item.deptnm}
+                                            </option>
                                         </c:forEach>
                                     </select>
+
                                     <select class="form-select wide" id="srchSbjt" name="sbjctId">
-                                        <option value="">운영과목</option>
+                                        <option value="">운영과목</option> 
                                         <c:forEach var="item" items="${subjectList}">
-                                            <option value="${item.sbjctId}" <c:if test="${vo.sbjctId == item.sbjctId}">selected</c:if>>
-                                                    ${item.sbjctnm}<c:if test="${not empty item.dvclasNo}"> (${item.dvclasNo}반)</c:if><c:if test="${not empty item.crclmnNo}"> [${item.crclmnNo}]</c:if>
+                                            <option value="${item.sbjctId}"
+                                                    <c:if test="${vo.sbjctId == item.sbjctId}">selected</c:if>>
+                                                    ${item.sbjctnm}
+                                                <c:if test="${not empty item.dvclasNo}"> (${item.dvclasNo}반)</c:if>
+                                                <c:if test="${not empty item.crclmnNo}"> [${item.crclmnNo}]</c:if>
                                             </option>
                                         </c:forEach>
                                     </select>
                                 </div>
                             </div>
 
+                            <%-- 검색어 --%>
                             <div class="item">
-                                <span class="item_tit"><label for="srchKeyword">검색어</label></span>
+                                <span class="item_tit">
+                                    <label for="srchKeyword">
+                                        <spring:message code="common.search.keyword"/> <%--  검색어 --%>
+                                    </label>
+                                </span>
                                 <div class="itemList">
                                     <input class="form-control wide" type="text" id="srchKeyword"
-                                           name="searchKeyword" placeholder="과목명/과목코드/학과/교수명 입력"
+                                           name="searchKeyword"
+                                           placeholder="과목명/과목코드/학과/교수명 입력" 
                                            value="<c:out value='${vo.searchKeyword}'/>">
                                 </div>
                             </div>
 
                             <div class="button-area">
-                                <button type="button" class="btn search" id="btnSearch">검색</button>
+                                <button type="button" class="btn search" id="btnSearch">
+                                    <spring:message code="button.search"/> <%-- 검색 --%>
+                                </button>
                             </div>
+
                         </div>
 
-                        <!-- 목록 헤더: 총건수 + 목록수 조절 -->
+                        <%-- 목록 헤더: 총건수 + 목록수 조절 --%>
                         <div class="board_top">
                             <h3 class="board-title">
-                                운영과목
-                                <span class="total_num">총 <strong id="totalCnt">0</strong>건</span>
+                                운영과목 
+                                <span class="total_num">
+                                    <spring:message code="common.page.total"/> <%-- 총 --%>
+                                    <strong id="totalCnt">0</strong>
+                                    <spring:message code="common.page.total_count"/> <%-- 건 --%>
+                                </span>
                             </h3>
                             <div class="right-area">
-                                <uiex:listScale func="changeListScale" value="${empty vo.listScale ? 20 : vo.listScale}"/>
+                                <uiex:listScale func="changeListScale"
+                                                value="${empty vo.listScale ? 20 : vo.listScale}"/>
                             </div>
                         </div>
+
                     </form>
 
-                    <!-- 목록 테이블 (UiTable 렌더링) -->
+                    <%-- ===== 목록 테이블 ===== --%>
                     <div class="table-wrap">
                         <div id="clsListTable"></div>
                     </div>
@@ -142,21 +174,23 @@
     var clsListTable = null;
 
     $(document).ready(function () {
-        initClsListTable();
-
         var ls = $("#listScale").val();
         if (ls) LIST_SCALE = parseInt(ls, 10);
 
+        initClsListTable();
+        loadSubjectOptions(true); // 드롭다운 갱신 + 목록 최초 조회
+
+        // 검색 버튼
         $("#btnSearch").on("click", function () {
             loadClsList(1);
         });
 
-        // 학년도/학기/학위원/학과 변경 시 과목 드롭다운 갱신
+        // 학년도/학기/학위원/학과 변경 → 과목 드롭다운 갱신 + 목록 재조회
         $("#srchYear, #srchTerm, #srchUniv, #srchDept").on("change", function () {
-            loadSubjectOptions();
+            loadSubjectOptions(true);
         });
 
-        // 과목 선택 시 즉시 검색
+        // 과목 선택 → 즉시 목록 조회
         $("#srchSbjt").on("change", function () {
             loadClsList(1);
         });
@@ -165,13 +199,11 @@
         $("#srchKeyword").on("keydown", function (e) {
             if (e.keyCode === 13) { e.preventDefault(); loadClsList(1); }
         });
-
-        loadSubjectOptions();
     });
 
-    /* ===========================
+    /* =====================================================
        UiTable 초기화
-       =========================== */
+       ===================================================== */
     function initClsListTable() {
         clsListTable = UiTable("clsListTable", {
             lang: "ko",
@@ -183,19 +215,19 @@
                 }
             },
             columns: [
-                {title:"번호",     field:"lineNo",     headerHozAlign:"center", hozAlign:"center", width:70,  minWidth:70},
-                {title:"년도",     field:"sbjctYr",    headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"학기",     field:"sbjctSmstr", headerHozAlign:"center", hozAlign:"center", width:60,  minWidth:60},
-                {title:"기관",     field:"orgNm",      headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"학과",     field:"deptnm",     headerHozAlign:"center", hozAlign:"left",   width:150, minWidth:150},
-                {title:"과목코드", field:"crclmnNo",   headerHozAlign:"center", hozAlign:"center", width:110, minWidth:110, formatter:"html"},
-                {title:"과목명",   field:"sbjctnm",    headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:220},
-                {title:"분반",     field:"dvclasNo",   headerHozAlign:"center", hozAlign:"center", width:70,  minWidth:70},
-                {title:"학점",     field:"crdts",      headerHozAlign:"center", hozAlign:"center", width:60,  minWidth:60},
-                {title:"공동교수", field:"coProfNm",   headerHozAlign:"center", hozAlign:"center", width:110, minWidth:110},
-                {title:"튜터",     field:"tutor",      headerHozAlign:"center", hozAlign:"center", width:90,  minWidth:90},
-                {title:"조교",     field:"asst",       headerHozAlign:"center", hozAlign:"center", width:90,  minWidth:90},
-                {title:"",         field:"sbjctId",    visible:false}
+                { title: "<spring:message code='common.number.no'/>",          field: "lineNo",     headerHozAlign: "center", hozAlign: "center", width: 70,  minWidth: 70  }, <%-- 번호 --%>
+                { title: "<spring:message code='common.year'/>",               field: "sbjctYr",    headerHozAlign: "center", hozAlign: "center", width: 80,  minWidth: 80  }, <%-- 년도 --%>
+                { title: "<spring:message code='common.term'/>",               field: "sbjctSmstr", headerHozAlign: "center", hozAlign: "center", width: 60,  minWidth: 60  }, <%-- 학기 --%>
+                { title: "기관",                                                field: "orgNm",      headerHozAlign: "center", hozAlign: "center", width: 100, minWidth: 100 }, 
+                { title: "학과",                                                field: "deptnm",     headerHozAlign: "center", hozAlign: "left",   width: 150, minWidth: 150 }, 
+                { title: "<spring:message code='crs.common.subject.code'/>",   field: "crclmnNo",   headerHozAlign: "center", hozAlign: "center", width: 110, minWidth: 110, formatter: "html" }, <%-- 과목코드 --%>
+                { title: "<spring:message code='dashboard.course_name'/>",     field: "sbjctnm",    headerHozAlign: "center", hozAlign: "left",   width: 0,   minWidth: 220 }, <%-- 과목명 --%>
+                { title: "분반",                                                field: "dvclasNo",   headerHozAlign: "center", hozAlign: "center", width: 70,  minWidth: 70  }, 
+                { title: "학점",                                                field: "crdts",      headerHozAlign: "center", hozAlign: "center", width: 60,  minWidth: 60  }, 
+                { title: "공동교수",                                            field: "coProfNm",   headerHozAlign: "center", hozAlign: "center", width: 110, minWidth: 110 }, 
+                { title: "튜터",                                                field: "tutor",      headerHozAlign: "center", hozAlign: "center", width: 90,  minWidth: 90  }, 
+                { title: "조교",                                                field: "asst",       headerHozAlign: "center", hozAlign: "center", width: 90,  minWidth: 90  }, 
+                { title: "",                                                    field: "sbjctId",    visible: false }
             ]
         });
     }
@@ -204,9 +236,9 @@
         loadClsList(page || 1);
     }
 
-    /* ===========================
-       목록 조회
-       =========================== */
+    /* =====================================================
+       운영과목 목록 조회
+       ===================================================== */
     function loadClsList(pageIndex) {
         PAGE_INDEX = pageIndex || 1;
         $("#pageIndex").val(PAGE_INDEX);
@@ -215,8 +247,8 @@
         UiComm.showLoading(true);
 
         $.ajax({
-            url: CTX + "/cls/selectClsListPaging.do",
-            type: "GET",
+            url:      CTX + "/cls/selectClsListPaging.do",
+            type:     "GET",
             dataType: "json",
             data: {
                 searchYr:      $("#srchYear").val()    || "",
@@ -247,8 +279,8 @@
                 }
             },
             error: function (xhr, status, error) {
-                console.error("전체수업현황 목록 조회 실패:", error);
-                UiComm.showMessage("에러가 발생했습니다!", "error");
+                console.error("[cls_list] 목록 조회 실패:", error);
+                UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
                 clsListTable.setData([]);
                 $("#totalCnt").text("0");
             },
@@ -259,67 +291,64 @@
     }
 
     function createClsListData(list) {
-        var dataList = [];
-        if (!list || list.length === 0) return dataList;
+        if (!list || list.length === 0) return [];
 
-        list.forEach(function (item) {
-            var crclmnNoLink =
-                '<a href="#_" class="link" '
-                + 'onclick="goDetail(\'' + escapeJs(item.sbjctId) + '\',\''
-                + escapeJs(item.dvclasNo) + '\',\''
-                + escapeJs(item.sbjctnm) + '\');return false;">'
+        return list.map(function (item) {
+            var crclmnNoLink = '<a href="#_" class="link"'
+                + ' onclick="goDetail(\'' + escapeJs(item.sbjctId)  + '\','
+                +                    '\'' + escapeJs(item.dvclasNo) + '\','
+                +                    '\'' + escapeJs(item.sbjctnm)  + '\');return false;">'
                 + escapeHtml(item.crclmnNo || '')
                 + '</a>';
 
-            dataList.push({
+            return {
                 lineNo:     item.lineNo,
                 sbjctYr:    item.sbjctYr,
                 sbjctSmstr: (item.sbjctSmstr || "").toString().trim(),
-                orgNm:      item.orgNm     || "-",
-                deptnm:     item.deptnm,
+                orgNm:      item.orgNm    || "-",
+                deptnm:     item.deptnm   || "-",
                 crclmnNo:   crclmnNoLink,
-                sbjctnm:    item.sbjctnm,
-                dvclasNo:   item.dvclasNo,
+                sbjctnm:    item.sbjctnm  || "-",
+                dvclasNo:   item.dvclasNo || "-",
                 crdts:      item.crdts,
                 coProfNm:   item.coProfNm || "-",
                 tutor:      item.tutor    || "-",
                 asst:       item.asst     || "-",
                 sbjctId:    item.sbjctId
-            });
+            };
         });
-
-        return dataList;
     }
 
-    /* ===========================
+    /* =====================================================
        상세 페이지 이동
-       =========================== */
+       ===================================================== */
     function goDetail(sbjctId, dvclasNo, sbjctnm) {
         UiComm.showLoading(true);
         location.href = CTX + "/cls/selectClsStdntListView.do"
             + "?sbjctId="  + encodeURIComponent(sbjctId)
-            + "&dvclasNo=" + encodeURIComponent(dvclasNo)
-            + "&sbjctnm="  + encodeURIComponent(sbjctnm || "");
+            + "&dvclasNo=" + encodeURIComponent(dvclasNo  || "")
+            + "&sbjctnm="  + encodeURIComponent(sbjctnm   || "");
     }
 
-    /* ===========================
-       목록 수 변경
-       =========================== */
+    /* =====================================================
+       목록 수 변경 (listScale 드롭다운)
+       ===================================================== */
     function changeListScale(scale) {
         LIST_SCALE = parseInt(scale || "20", 10);
         $("#listScale").val(LIST_SCALE);
         loadClsList(1);
     }
 
-    /* ===========================
+    /* =====================================================
        과목 드롭다운 갱신
-       =========================== */
-    function loadSubjectOptions() {
+       triggerSearch: true 이면 드롭다운 갱신 후 목록도 재조회
+       ===================================================== */
+    function loadSubjectOptions(triggerSearch) {
         var currentValue = $("#srchSbjt").val() || "";
 
         $.ajax({
-            url: CTX + "/cls/selectClsSubjectList.do",
-            type: "GET",
+            url:      CTX + "/cls/selectClsSubjectList.do",
+            type:     "GET",
             dataType: "json",
             data: {
                 searchYr:    $("#srchYear").val() || "",
@@ -345,26 +374,42 @@
                 });
 
                 $("#srchSbjt").html(html.join(""));
+
+                // 기존 선택값이 새 목록에 없으면 초기화
                 if ($("#srchSbjt").val() !== currentValue) {
                     $("#srchSbjt").val("");
                 }
+
+                // 목록 재조회 요청이 있을 때만 호출
+                if (triggerSearch) {
+                    loadClsList(1);
+                }
             },
-            complete: function () {
-                loadClsList(1);
+            error: function () {
+                if (triggerSearch) {
+                    loadClsList(1);
+                }
             }
         });
     }
 
+    /* =====================================================
+       유틸
+       ===================================================== */
     function escapeHtml(v) {
-        if (v === null || v === undefined) return "";
+        if (v == null) return "";
         return String(v)
-            .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+            .replace(/&/g,  "&amp;")
+            .replace(/</g,  "&lt;")
+            .replace(/>/g,  "&gt;")
+            .replace(/"/g,  "&quot;");
     }
 
     function escapeJs(v) {
-        if (v === null || v === undefined) return "";
-        return String(v).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        if (v == null) return "";
+        return String(v)
+            .replace(/\\/g, "\\\\")
+            .replace(/'/g,  "\\'");
     }
 </script>
 

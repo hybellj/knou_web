@@ -8,7 +8,7 @@ import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import knou.lms.crs.crecrs.vo.CreCrsTchRltnVO;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.crs.crecrs.vo.HpIntchVO;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.vo.SubjectVO;
 import knou.lms.user.vo.UsrUserInfoVO;
 
 @Mapper("crecrsDAO")

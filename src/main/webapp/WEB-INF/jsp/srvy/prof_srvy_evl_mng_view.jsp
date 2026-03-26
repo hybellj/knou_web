@@ -369,8 +369,7 @@
 			});
 
 			if (userListTable.getSelectedData("userId").length == 0) {
-				/* 메시지 발송 대상자를 선택하세요. */
-				alert("<spring:message code='common.alert.sysmsg.select_user'/>");
+				UiComm.showMessage("<spring:message code='common.alert.sysmsg.select_user'/>", "warning");	/* 메시지 발송 대상자를 선택하세요. */
 				return;
 			}
 
@@ -385,37 +384,39 @@
 		}
 
 		/**
-		 * 퀴즈 삭제 ( 미완료 )
-		 * @param {String}  examBscId 		- 시험기본아이디
-		 * @param {String}  sbjctId 		- 과목아이디
-		 * @param {String}  delyn 			- 삭제여부
+		 * 설문삭제
+		 * @param {String}  srvyId 		- 설문아이디
+		 * @param {String}  sbjctId 	- 과목아이디
+		 * @param {String}  delyn 		- 삭제여부
 		 */
-		function quizDelete() {
+		function srvyDelete() {
 			var confirm = "";
-			if("${vo.tkexamStrtUserCnt}" > 0) {
-				confirm = "<spring:message code='exam.label.quiz' /> <spring:message code='exam.confirm.exist.answer.user.y' />";/* 퀴즈 *//* 응시한 학습자가 있습니다. 삭제 시 학습정보가 삭제됩니다.정말 삭제하시겠습니까? */
+			if(${vo.ptcpUserCnt > 0}) {
+				confirm = "설문 응시한 학습자가 있습니다. 삭제 시 학습정보가 삭제됩니다. 정말 삭제하시겠습니까?";
 			} else {
-				confirm = "<spring:message code='exam.label.quiz' /> <spring:message code='exam.confirm.exist.answer.user.n' />";/* 퀴즈 *//* 응시한 학습자가 없습니다. 삭제 하시겠습니까? */
+				confirm = "<spring:message code='resh.confirm.exist.answer.user.n' />";/* 설문 응시한 학습자가 없습니다. 삭제 하시겠습니까? */
 			}
 			UiComm.showMessage(confirm, "confirm")
 			.then(function(result) {
 				if (result) {
-					var url  = "/quiz/quizDeleteAjax.do";
+					var url  = "/srvy/srvyDeleteAjax.do";
 					var data = {
-						  examBscId 	: "${vo.examBscId}"
-						, "sbjctId"		: "${vo.sbjctId}"
-						, "delyn"		: "Y"
+						  "srvyId" 	: "${vo.srvyId}"
+						, "sbjctId"	: "${vo.sbjctId}"
+						, "delyn"	: "Y"
 					};
 
 					ajaxCall(url, data, function(data) {
 						if (data.result > 0) {
-			        		alert("<spring:message code='exam.alert.delete' />");/* 정상 삭제 되었습니다. */
-			        		quizViewMv(9);
+							UiComm.showMessage("<spring:message code='exam.alert.delete' />", "success", 500)	/* 정상 삭제 되었습니다. */
+							.then(function(result) {
+								srvyViewMv(9);
+							});
 			            } else {
-			             	alert(data.message);
+			             	UiComm.showMessage(data.message, "error");
 			            }
 		    		}, function(xhr, status, error) {
-		    			alert("<spring:message code='exam.error.delete' />");/* 삭제 중 에러가 발생하였습니다. */
+		    			UiComm.showMessage("<spring:message code='exam.error.delete' />", "error");/* 삭제 중 에러가 발생하였습니다. */
 		    		}, true);
 				}
 			});
@@ -499,7 +500,20 @@
 			$("#ptcpyn").val('').trigger('chosen:updated');
 			$("#srvyPtcpEvlyn").val('').trigger("chosen:updated");
 			$("#searchValue").val("");
-			quizTkexamListSelect();
+			srvyPtcpListSelect();
+		}
+
+		// EZ-Grader 팝업
+		function ezGraderPopup() {
+			var data = "srvyId=${vo.srvyId}&sbjctId=${vo.sbjctId}";
+
+			dialog = UiDialog("dialog1", {
+				title: "EZ-Grader",
+				width: 1000,
+				height: 600,
+				url: "/srvy/ezgrader/srvyEzGraderPopup.do?"+data,
+				autoresize: true
+			});
 		}
 	</script>
 </head>
@@ -668,7 +682,7 @@
 						<div class="board_top margin-top-4 padding-2 bcLgrey4">
 							<h4>설문평가</h4>
 							<div class="right-area">
-								<a href="javascript:ezgraderPopup()" class="btn basic small">EZ-Grader</a>
+								<a href="javascript:ezGraderPopup()" class="btn basic small">EZ-Grader</a>
 								<a href="javascript:callScoreExcelUpload()" class="btn basic small"><spring:message code="exam.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
 								<a href="javascript:sendMsg()" class="btn basic small">보내기</a>
 							</div>

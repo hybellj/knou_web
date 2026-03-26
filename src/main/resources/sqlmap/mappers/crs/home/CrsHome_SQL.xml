@@ -2146,6 +2146,7 @@
 		</if>
 	</select>
 	
+	<!-- SubjectDAO.currLctrWknoSchdlSelect 로 대체 ======================================================= 사용안합니다.260325 jinkoon
 	<select id="crsHomeCurrentWeek" parameterType="lessonScheduleVO" resultType="egovMap">
 		/*
 			 SQL ID : CrsHomeDAO.crsHomeCurrentWeek
@@ -2160,5 +2161,5 @@
 		WHERE TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A.LCTR_SYMD AND A.LCTR_EYMD
 		AND A.SBJCT_ID = #{crsCreCd}
 		GROUP BY A.SBJCT_ID
-	</select>
+	</select>-->
 </mapper>

@@ -35,14 +35,14 @@
 		        contentType: "application/json; charset=UTF-8",
 		    }).done(function(data) {
 		    	if (data.result > 0) {
-		    		alert("<spring:message code='exam.alert.insert.memo' />");/* 메모 저장이 완료되었습니다. */
+		    		UiComm.showMessage("<spring:message code='exam.alert.insert.memo' />", "success");	/* 메모 저장이 완료되었습니다. */
 	        		window.parent.srvyPtcpListSelect();
 	        		window.parent.closeDialog();
 		        } else {
-		        	alert(data.message);
+		        	UiComm.showMessage(data.message, "error");
 		        }
 		    }).fail(function() {
-		    	alert("<spring:message code='exam.error.memo.insert' />");/* 메모 저장 중 에러가 발생하였습니다. */
+		    	UiComm.showMessage("<spring:message code='exam.error.memo.insert' />", "error");	/* 메모 저장 중 에러가 발생하였습니다. */
 		    });
 		}
 	</script>

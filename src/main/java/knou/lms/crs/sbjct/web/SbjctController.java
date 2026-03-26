@@ -14,8 +14,9 @@ import knou.lms.crs.sbjct.vo.SbjctUseYnUpdateVO;
 import knou.lms.crs.sbjct.vo.SbjctVO;
 import knou.lms.org.service.OrgInfoService;
 import knou.lms.org.vo.OrgInfoVO;
-import knou.lms.subject2.service.SubjectService;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.service.SubjectService;
+import knou.lms.subject.vo.SubjectVO;
+
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

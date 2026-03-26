@@ -1,12 +1,5 @@
 package knou.lms.msg.service.impl;
 
-import java.util.List;
-
-import javax.annotation.Resource;
-
-import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
-import org.springframework.stereotype.Service;
-
 import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenerator;
@@ -14,6 +7,11 @@ import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.dao.MsgTmpltDAO;
 import knou.lms.msg.service.MsgTmpltService;
 import knou.lms.msg.vo.MsgTmpltVO;
+import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.List;
 
 @Service("msgTmpltService")
 public class MsgTmpltServiceImpl extends ServiceBase implements MsgTmpltService {

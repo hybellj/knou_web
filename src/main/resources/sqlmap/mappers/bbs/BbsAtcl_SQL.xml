@@ -678,7 +678,9 @@
 			AND A.BBS_ID = B.BBS_ID
 			AND A.BBS_ID = #{bbsId}
 			AND A.DELYN = 'N'
-
+			<if test="atclLv != null and atclLv != ''">
+				AND A.ATCL_LV = #{atclLv}
+			</if>
 			<if test="orgId != null and orgId != ''">
 				AND B.ORG_ID = #{orgId}
 			</if>

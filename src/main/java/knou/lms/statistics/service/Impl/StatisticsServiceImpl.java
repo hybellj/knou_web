@@ -12,7 +12,7 @@ import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.statistics.dao.StatisticsDAO;
 import knou.lms.statistics.service.StatisticsService;
 import knou.lms.statistics.vo.StatisticsVO;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.vo.SubjectVO;
 
 @Service("statisticsService")
 public class StatisticsServiceImpl implements StatisticsService {

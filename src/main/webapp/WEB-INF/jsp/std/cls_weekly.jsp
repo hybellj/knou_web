@@ -445,8 +445,15 @@
                     }
                 });
 
-                var nums = rates.filter(function (v) { return typeof v === "number" && !isNaN(v); });
-                var avg  = nums.length ? nums.reduce(function (a, b) { return a + b; }, 0) / nums.length : null;
+                var sumNotLrnnCnt = 0;
+                var sumTotalCnt = 0;
+
+                res.returnList.forEach(function (r) {
+                    sumNotLrnnCnt += Number(r.notLrnnCnt || 0);
+                    sumTotalCnt += Number(r.totalCnt || 0);
+                });
+
+                var avg = sumTotalCnt > 0 ? (sumNotLrnnCnt / sumTotalCnt * 100) : null;
 
                 var tr = '<tr><td class="t_center" data-th="구분">비율</td>';
                 for (var i = 0; i < MAX_WK; i++) {
@@ -518,9 +525,9 @@
                 window._lastStdntUserIds = lastStdntUsers.map(function (x) { return x.userId; });
 
                 function sts(v) {
-                    if (v === 'O')  return '<span class="state_ok" aria-label="출석">○</span>';
-                    if (v === '△') return '<span class="state_late" aria-label="지각">△</span>';
-                    if (v === 'X')  return '<span class="state_no" aria-label="결석">X</span>';
+                    if (v === 'ATND')  return '<span class="state_ok" aria-label="출석">○</span>';
+                    if (v === 'LATE')  return '<span class="state_late" aria-label="지각">△</span>';
+                    if (v === 'ABSNT') return '<span class="state_no" aria-label="결석">X</span>';
                     return '-';
                 }
 
@@ -896,6 +903,16 @@
         $form.append($('<input/>', {type:'hidden', name:'keyword',   value: $("#elemStdntKeyword").val()}));
         $form.append($('<input/>', {type:'hidden', name:'excelGrid', value: JSON.stringify(excelGrid)}));
         $form.appendTo("body").submit();
+    }
+     // 콜백 추가
+    function saveForcedAttendCallBack() {
+        searchStdntList(stdntCurrentPageNo || 1);
+        loadWklyStats();
+    }
+
+    function cancelForcedAttendCallBack() {
+        searchStdntList(stdntCurrentPageNo || 1);
+        loadWklyStats();
     }
 </script>
 </body>

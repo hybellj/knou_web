@@ -221,36 +221,6 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     }
 
     /*****************************************************
-     * 팀 시험 평가대상자 목록 페이징
-     * @param vo
-     * @return ProcessResultVO<ExamVO>
-     * @throws Exception
-     ******************************************************/
-    @Override
-    public ProcessResultVO<ExamVO> listTkexamTeamUserPaging(ExamVO vo) throws Exception{
-        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
-
-        PaginationInfo paginationInfo = new PaginationInfo();
-        paginationInfo.setCurrentPageNo(vo.getPageIndex());
-        paginationInfo.setRecordCountPerPage(vo.getListScale());
-        paginationInfo.setPageSize(vo.getPageScale());
-
-        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
-        vo.setLastIndex(paginationInfo.getLastRecordIndex());
-
-        int totCnt = examDAO.countTkexamTeamUser(vo);
-
-        paginationInfo.setTotalRecordCount(totCnt);
-
-        List<ExamVO> resultList = examDAO.listTkexamTeamUserPaging(vo);
-
-        processResultVO.setReturnList(resultList);
-        processResultVO.setPageInfo(paginationInfo);
-
-        return processResultVO;
-    }
-
-    /*****************************************************
      * 시험 평가대상자 목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
@@ -278,18 +248,6 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         processResultVO.setPageInfo(paginationInfo);
 
         return processResultVO;
-    }
-
-    /*****************************************************
-     * 팀 시험 평가대상자 인원 수 조회
-     * @param vo
-     * @return ProcessResultVO<ExamVO>
-     * @throws Exception
-     ******************************************************/
-    @Override
-    public int countTkexamTeamUser(ExamVO vo) throws Exception{
-        int totCnt = examDAO.countTkexamTeamUser(vo);
-        return totCnt;
     }
 
     /*****************************************************
@@ -496,24 +454,19 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         // Case A. 팀 시험인 경우
         if ("Y".equals(vo.getByteamSubrexamUseyn())) {
             // A-1. 시험 대상자 삭제
-            System.out.println("A-1. : deleteExamTrgtr");
             examDAO.deleteExamTrgtr(vo);
 
             // A-2. 시험 상세정보 삭제
-            System.out.println("A-2. : deleteExamDtlInfo");
             examDAO.deleteExamDtlInfo(vo);
 
             // A-3. 시험 기본정보 삭제
-            System.out.println("A-3. : deleteExamBscInfo");
             examDAO.deleteExamBscInfo(vo);
         } else {
             // Case B. 일반 시험인 경우
             // B-1. 시험 상세정보 삭제
-            System.out.println("B-1. : deleteExamDtlInfo");
             examDAO.deleteExamDtlInfo(vo);
 
             // B-2. 시험 기본정보 삭제
-            System.out.println("B-2. : deleteExamBscInfo");
             examDAO.deleteExamBscInfo(vo);
         }
     }

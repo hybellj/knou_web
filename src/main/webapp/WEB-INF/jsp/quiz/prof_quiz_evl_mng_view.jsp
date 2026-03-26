@@ -346,7 +346,7 @@
 				title: "엑셀 성적등록",
 				width: 600,
 				height: 500,
-				url: "/quiz/quizScoreExcelUploadPop.do?"+data,
+				url: "/quiz/profQuizExcelScrRegistPopup.do?"+data,
 				autoresize: true
 			});
 		}
@@ -816,7 +816,7 @@
                         	</colgroup>
                         	<tbody>
                         		<tr>
-                        			<th class="flex-item-center">일괄 성적처리</th>
+                        			<th class="bcLgrey">일괄 성적처리</th>
                         			<td>
                         				<form id="scoreForm" onsubmit="return false;">
 	                        				<div class="form-inline">

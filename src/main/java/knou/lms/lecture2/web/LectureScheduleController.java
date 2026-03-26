@@ -43,8 +43,8 @@ import knou.lms.log2.user.service.LogUserActvService;
 import knou.lms.resh.service.ReshService;
 import knou.lms.score.service.ScoreConfService;
 import knou.lms.std.service.StdService;
-import knou.lms.subject2.dto.SubjectParam;
-import knou.lms.subject2.service.SubjectService;
+import knou.lms.subject.dto.SubjectParam;
+import knou.lms.subject.service.SubjectService;
 import knou.lms.sys.service.SysJobSchService;
 
 @Controller

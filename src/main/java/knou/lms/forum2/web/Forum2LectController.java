@@ -286,7 +286,7 @@ public class Forum2LectController extends ControllerBase {
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
         String orgId = SessionInfo.getOrgId(request);
-        String crsCreCd = vo.getCrsCreCd();
+        String sbjctId = vo.getSbjctId();
 
         // 강의실 대표교수 정보 조회
         // TODO : 26.3.26 임시 막음 처리.
@@ -299,8 +299,8 @@ public class Forum2LectController extends ControllerBase {
 
         // 대표교수의 과목이 있는 학기 목록 조회
         TermVO termVO = new TermVO();
-        termVO.setOrgId(orgId);
-        termVO.setCrsCreCd(crsCreCd);
+//        termVO.setOrgId(orgId);
+        termVO.setCrsCreCd(sbjctId);
         List<TermVO> termList = termService.listTermByProf(termVO);
 
         model.addAttribute("vo", vo);

@@ -307,4 +307,92 @@
 		 GROUP BY SRVY.SRVY_ID, SRVY.UP_SRVY_ID
     </select>
 
+    <select id="srvyPtcpListByEzGrader" parameterType="srvyVO" resultType="egovMap">
+    	/*
+             SQL ID : SrvyPtcpDAO.srvyPtcpListByEzGrader
+             설  명 : 설문참여목록조회 ( Ez-Grader )
+         */
+        SELECT
+        	  A.*
+        	, ROW_NUMBER() OVER(PARTITION BY A.TEAM_ID
+	        	<if test="searchSort != null and searchSort == 'USER_ID'">
+		        	ORDER BY A.TEAM_ID, A.USER_ID
+		        </if>
+		        <if test="searchSort != null and searchSort == 'USER_NM'">
+		        	ORDER BY A.TEAM_ID, A.USERNM
+		        </if>
+		        <if test="searchSort != null and searchSort == 'SUBMIT_DT'">
+		        	ORDER BY A.TEAM_ID, A.PTCPYN DESC, A.PTCP_DTTM
+		        </if>
+        	  ) AS TNUM
+
+          FROM (
+			SELECT
+				  SRVY.SRVY_ID
+				, ATNDLC.USER_ID
+				, USR.USERNM
+				, USR.STDNT_NO
+				, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE ORG_ID = USR.ORG_ID AND DEPT_ID = USR.DEPT_ID) AS DEPTNM
+				, TEAM.SRVY_ID AS SUB_SRVY_ID
+				, PTCP.SRVY_PTCP_ID
+				, PTCP.PTCP_DTTM
+				, NVL(PTCP.PTCP_EVL_SCR, 0) AS PTCP_EVL_SCR
+				, PTCP.PROF_MEMO
+				, CASE WHEN PTCP.PTCP_DTTM IS NOT NULL THEN 'Y' ELSE 'N' END AS PTCPYN
+				, TEAM.TEAM_ID
+				, TEAM.TEAMNM
+				, CASE WHEN TEAM.TEAM_ID IS NOT NULL
+		               THEN 'SRVY_TEAM' ELSE 'SRVY' END AS SRVY_GBN
+			  FROM TB_LMS_SRVY SRVY
+			  JOIN TB_LMS_ATNDLC ATNDLC
+			    ON SRVY.SBJCT_ID = ATNDLC.SBJCT_ID
+			   AND ATNDLC.AUDITYN = 'N'
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+			  JOIN TB_LMS_USER USR
+			    ON ATNDLC.USER_ID = USR.USER_ID
+			   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+			  LEFT JOIN (
+			  	SELECT
+					  NVL(SRVY.UP_SRVY_ID, SRVY.SRVY_ID) AS SRVY_ID
+					, PTCP.SRVY_PTCP_ID
+					, PTCP.USER_ID
+					, PTCP.PTCP_DTTM
+					, PTCP.PTCP_EVL_SCR
+					, PTCP.PROF_MEMO
+				  FROM TB_LMS_SRVY_PTCP PTCP
+				  JOIN TB_LMS_SRVY SRVY
+				    ON SRVY.DELYN = 'N'
+				   AND SRVY.USEYN = 'Y'
+				   AND (SRVY.SRVY_ID = #{srvyId} OR SRVY.UP_SRVY_ID = #{srvyId})
+				   AND PTCP.SRVY_ID = SRVY.SRVY_ID
+			  ) PTCP
+			    ON SRVY.SRVY_ID = PTCP.SRVY_ID
+			   AND ATNDLC.USER_ID = PTCP.USER_ID
+			  LEFT JOIN (
+			  	SELECT
+					  SRVY.SRVY_ID
+					, SRVY_TRGT.TEAM_ID
+					, (SELECT TEAMNM FROM TB_LMS_TEAM WHERE TEAM_CPST_CMPTNYN = 'Y' AND TEAM_ID = SRVY_TRGT.TEAM_ID) AS TEAMNM
+					, MBR.USER_ID
+				  FROM TB_LMS_SRVY SRVY
+				  JOIN TB_LMS_SRVY_TRGT SRVY_TRGT
+				    ON SRVY.SRVY_ID = SRVY_TRGT.SRVY_ID
+				  JOIN TB_LMS_TEAM_MBR MBR
+				    ON SRVY_TRGT.TEAM_ID = MBR.TEAM_ID
+				 WHERE SRVY.DELYN = 'N'
+				   AND SRVY.USEYN = 'Y'
+				   AND SRVY.UP_SRVY_ID = #{srvyId}
+			  ) TEAM
+			    ON ATNDLC.USER_ID = TEAM.USER_ID
+			 WHERE SRVY.DELYN = 'N'
+			   AND SRVY.USEYN = 'Y'
+			   AND SRVY.SRVY_ID = #{srvyId}
+			   AND SRVY.SBJCT_ID = #{sbjctId}
+		) A
+		<if test="searchKey != null and searchKey != ''">
+	    	WHERE A.PTCPYN = #{searchKey}
+	    </if>
+    </select>
+
 </mapper>

@@ -47,8 +47,8 @@ function saveProfMemo() {
 				<b>${vo.deptNm } ${vo.userId } ${vo.userNm } <span class="f150">${vo.score}<spring:message code="forum.label.point" /></span></b><!-- 점 -->
 			</div>
 		</div>
-		<div>
-			<textarea class="form-control" id="profMemo" style="width:100%;height:100px" maxLenCheck="byte,4000,true,true">${vo.profMemo}</textarea>
+		<div class="field ui fluid input">
+			<textarea id="profMemo" style="width:100%;height:100px;resize: none;" maxLenCheck="byte,4000,true,true">${vo.profMemo}</textarea>
 		</div>
 
 		<div class="btns">

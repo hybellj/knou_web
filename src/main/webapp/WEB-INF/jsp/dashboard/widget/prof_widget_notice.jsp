@@ -206,11 +206,11 @@ function setNoticeWidget() {
 function moveNoticeWidgetMore() {
 	// 전체공지
 	if (noticeWidgetCat === "noticeCat2") {
-		moveMenu(null, "/bbs/bbsHome/bbsAtclListView.do?bbsId=LMSBASIC_NOTICE", "PRO0000000074", "PRO0000000080", "전체공지");
+		moveMenu(null, "/bbs/bbsHome/bbsAtclListView.do?bbsId=LMSBASIC_NOTICE", "PROMAIN000014", "PROMAIN000016", "전체공지", "tab");
 	}
 	// 과목 공지
 	else if (noticeWidgetCat === "noticeCat3") {
-		moveMenu(null, "/bbs/bbsHome/bbsSbjctListView.do?bbsId=LMSBASIC_NTC", "PRO0000000074", "PRO0000000079", "과목공지");
+		moveMenu(null, "/bbs/bbsHome/bbsSbjctListView.do?bbsId=LMSBASIC_NTC", "PROMAIN000014", "PROMAIN000015", "과목공지", "tab");
 	}
 }
 

@@ -29,7 +29,7 @@ function UiDialog(id, opts) {
 	}
 
 	if (opts.url) {
-		dialogBox.html(`<iframe frameborder="0" scrolling="auto" src="${opts.url}" style="border:0;width:100%;height:calc(100% - 10px);"></iframe>`);
+		dialogBox.html(`<iframe frameborder="0" scrolling="auto" src="about:blank" style="border:0;width:100%;height:calc(100% - 10px);"></iframe>`);
 	}
 	else if (opts.html) {
 		dialogBox.html(opts.html);
@@ -54,22 +54,27 @@ function UiDialog(id, opts) {
 			$(this).parent().addClass("dialog-box");
 			UiComm.showTopLayer($(this).parent());
 
-			if (autoresize && opts.url) {
+			if (opts.url) {
 				let thisDialog = $(this);
 				let iframe = $(this).children("iframe");
+
 				if (iframe.length > 0) {
-					iframe.on("load", function() {
-						let frameBody = this.contentWindow.document.body;
+					iframe.attr("src", opts.url);
 
-						let updateHeight = () => {
-							thisDialog.dialog("option", "height", $(frameBody).outerHeight(true) + 80);
-						};
+					if (autoresize) {
+						iframe.on("load", function() {
+							let frameBody = this.contentWindow.document.body;
 
-						updateHeight();
+							let updateHeight = () => {
+								thisDialog.dialog("option", "height", $(frameBody).outerHeight(true) + 80);
+							};
 
-						let observer = new MutationObserver(updateHeight);
-						observer.observe(frameBody, {childList: true, subtree: true, attributes: true});
-					});
+							updateHeight();
+
+							let observer = new MutationObserver(updateHeight);
+							observer.observe(frameBody, {childList: true, subtree: true, attributes: true});
+						});
+					}
 				}
 			}
 		},

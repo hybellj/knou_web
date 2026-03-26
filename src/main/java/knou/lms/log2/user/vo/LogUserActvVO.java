@@ -217,6 +217,4 @@ public class LogUserActvVO extends DefaultVO {
 	public void setModDttm(String modDttm) {
 		this.modDttm = modDttm;
 	}
-    
-    
 }

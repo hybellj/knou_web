@@ -56,7 +56,17 @@
         <main class="common">
 
             <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp?view=on"/>
+            <c:choose>
+            	<c:when test="${authrtGrpcd eq 'PROF'}">
+            		<jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp?view=on"/>
+            	</c:when>
+            	<c:when test="${authrtGrpcd eq 'STDNT'}">
+            		<jsp:include page="/WEB-INF/jsp/common_new/home_gnb_stu.jsp?view=on"/>
+            	</c:when>
+            	<c:when test="${authrtGrpcd eq 'ADM'}">
+            		<jsp:include page="/WEB-INF/jsp/common_new/home_gnb_adm.jsp?view=on"/>
+            	</c:when>
+            </c:choose>
             <!-- //gnb -->
 
             <!-- content -->

@@ -481,7 +481,7 @@
 			D.DEPTNM                  AS deptNm
 			 , U.USER_ID               AS userId
 			 , U.USERNM               AS userNm
-			 , NVL(A.SCR, 0)           AS SCR
+			 , NVL(A.SCR, 0)           AS score
 			 , B.SBJCT_ID              AS crsCreCd
 			 , B.DSCS_TTL              AS forumTitle
 			 , B.DSCS_SDTTM            AS forumStartDttm
@@ -498,8 +498,8 @@
 			 LEFT JOIN TB_LMS_DEPT D
 					   ON U.DEPT_ID = D.DEPT_ID
 		WHERE 1 = 1
-		  AND A.DSCS_ID = #{forumCd}
 		  AND A.USER_ID = #{stdId}
+		  AND A.DSCS_ID = #{forumCd}
 	</select>
 
 	<update id="editForumProfMemo" parameterType="forumJoinUserVO">
@@ -511,8 +511,8 @@
 			MDFR_ID = #{mdfrId}
 			, MOD_DTTM = FN_DTTM()
 			, PROF_MEMO = #{profMemo}
-		WHERE DSCS_ID = #{forumCd}
-			AND USER_ID = #{stdId}
+		WHERE USER_ID = #{stdId}
+			AND DSCS_ID = #{forumCd}
 	</update>
 
 	<select id="getForumJoinUser" resultType="int">
@@ -553,8 +553,9 @@
 				LEFT JOIN TB_LMS_DSCS_CMNT C
 				ON (B.DSCS_ATCL_ID = C.DSCS_ATCL_ID AND A.USER_ID = C.USER_ID AND C.DELYN = 'N')
 			</if>
-		WHERE A.DSCS_ID = #{forumCd}
-			AND A.USER_ID = #{stdId}
+
+		WHERE A.USER_ID = #{stdId}
+			AND A.DSCS_ID = #{forumCd}
 			AND B.ATCL_CTS_LEN >= #{ctsLen}
 			<if test='chkCmnt == "Y"'>
 				AND (B.ATCL_CTS_LEN >= #{ctsLen} OR C.CMNT_CTS_LEN >= #{ctsLen})
@@ -687,8 +688,8 @@
 		*/
 		UPDATE TB_LMS_DSCS_PTCP SET
 			TEAM_ID = #{teamCd}
-		 WHERE DSCS_ID = #{forumCd}
-		   AND USER_ID = #{stdId}
+		WHERE USER_ID = #{stdId}
+		  AND DSCS_ID = #{forumCd}
 	</update>
 
 	<update id="updateJoinUserEvalN" parameterType="forumJoinUserVO">
@@ -701,8 +702,8 @@
 			, SCR = NULL
 			, MDFR_ID = #{mdfrId}
 			, MOD_DTTM = FN_DTTM()
-		 WHERE DSCS_ID = #{forumCd}
-		   AND USER_ID = #{stdNo}
+		 WHERE USER_ID = #{stdId}
+			AND DSCS_ID = #{forumCd}
 	</update>
 
 	<select id="selectStudentsNotInPtcp" parameterType="forumVO" resultType="forumJoinUserVO">

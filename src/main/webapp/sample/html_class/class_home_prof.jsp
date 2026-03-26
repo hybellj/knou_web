@@ -46,16 +46,22 @@
                         <div class="sec">
                             <button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
                             <button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
+                            <button type="button" class="btn type2"><i class="xi-log-out"></i>강의실나가기</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="class_sub">
                     <!-- 강의실 상단 -->
-                    <div class="segment class-area">
+                    <div class="segment class-area prof">
                         <div class="info-left">
                             <div class="class_info">
-                                <h2>데이터베이스의 이해와 활용 1반</h2>
+                                <div class="class_tit">
+                                    <p class="labels">
+                                        <label class="label uniA">대학원</label>
+                                    </p>
+                                    <h2>데이터베이스의 이해와 활용 1반</h2>
+                                </div>
                                 <div class="classSection">
                                     <div class="cls_btn">
                                         <a href="#0" class="btn">강의계획서</a>
@@ -126,7 +132,6 @@
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                         <div class="info-right">
 
@@ -156,8 +161,7 @@
                                                             <img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진">
                                                         </div>
                                                         <div class="user-desc">
-                                                            <p class="name">나방송</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>정보와기술</p>
+                                                            <p class="name">나방송</p>                                                           
                                                         </div>
                                                         <div class="btn_wrap">
                                                             <button type="button"><i class="xi-info-o"></i></button>
@@ -171,8 +175,7 @@
                                                             <img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진">
                                                         </div>
                                                         <div class="user-desc">
-                                                            <p class="name">최남단</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>데이터베이스의 이해와 활용</p>
+                                                            <p class="name">최남단</p>                                                            
                                                         </div>
                                                         <div class="btn_wrap">
                                                             <button type="button"><i class="xi-info-o"></i></button>
@@ -186,8 +189,7 @@
                                                             <img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진">
                                                         </div>
                                                         <div class="user-desc">
-                                                            <p class="name">나방송</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>정보와기술</p>
+                                                            <p class="name">나방송</p>                                                            
                                                         </div>
                                                         <div class="btn_wrap">
                                                             <button type="button"><i class="xi-info-o"></i></button>
@@ -201,8 +203,7 @@
                                                             <img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진">
                                                         </div>
                                                         <div class="user-desc">
-                                                            <p class="name">최남단</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>데이터베이스의 이해와 활용</p>
+                                                            <p class="name">최남단</p>                                                            
                                                         </div>
                                                         <div class="btn_wrap">
                                                             <button type="button"><i class="xi-info-o"></i></button>
@@ -216,8 +217,7 @@
                                                             <img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진">
                                                         </div>
                                                         <div class="user-desc">
-                                                            <p class="name">최남단</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>데이터베이스의 이해와 활용</p>
+                                                            <p class="name">최남단</p>                                                            
                                                         </div>
                                                         <div class="btn_wrap">
                                                             <button type="button"><i class="xi-info-o"></i></button>
@@ -234,7 +234,6 @@
                                         <span class="small">250</span>
                                     </div>
                                 </div>
-
                                 <div class="item week">
                                     <div class="item_icon"><i class="icon-svg-calendar-check-02" aria-hidden="true"></i></div>
                                     <div class="item_tit">2025.04.14 ~ 04.20</div>
@@ -246,17 +245,14 @@
 
                                 <div class="item attend">
                                     <div class="item_icon"><i class="icon-svg-pie-chart-01" aria-hidden="true"></i></div>
-                                    <div class="item_tit">7주차 출석 40 / 50</div>
+                                    <div class="item_tit">7주차 출석 <strong class="fcBlue">40</strong> / 50</div>
                                     <div class="item_info">
                                         <span class="big">80</span>
                                         <span class="small">%</span>
                                     </div>
                                 </div>
-
                             </div>
-
                         </div>
-
                     </div>
                     <!-- //강의실 상단 -->
 
@@ -1227,14 +1223,393 @@
 
                     </div>
 
-                </div>
+                    <!-- modal popup 보여주기 버튼(개발시 삭제) -->
+                    <div class="modal-btn-box">
+                        <button type="button" class="btn modal__btn" data-modal-open="modal1">학습진도관리</button> 
+                        <button type="button" class="btn modal__btn" data-modal-open="modal2">평가비중</button> 
+                        <!-- <button type="button" class="btn modal__btn" data-modal-open="modal3">평가방법 : 루브릭</button>                    -->
+                    </div>
+                    <!--// modal popup 보여주기 버튼(개발시 삭제) -->
 
+                </div>               
             </div>
             <!-- //content -->
 
 
         </main>
         <!-- //classroom-->
+
+        <!-- Modal 1 -->
+        <div class="modal-overlay" id="modal1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-lg" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">학습진도관리</h2> 
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body"> 
+                    <div class="msg-box info">
+                        <p class="txt">운영과목과 수강생의 학습현황을 조회할 수 있습니다. <strong>학습 부진자 관리</strong>에 활용하시기 바랍니다.</p>
+                    </div>
+                    <div class="msg-box basic">
+                        <ul class="list-dot">
+                            <li>출석율은 현재 오픈 차시 중 정상 출석한 차시에 대한 비율로 표기됩니다.</li>
+                            <li>매 주차별로 부진자 (출석율 100% 미만)에게 알림 발송 가능합니다.</li>
+                            <li>운영과목 수강생의 수에 따라 조회에 다소 시간이 걸릴 수 있습니다</li>
+                        </ul>
+                    </div>
+
+                    <div class="search-typeA">                        
+                        <div class="item">
+                            <div class="itemList">
+                                <span class="custom-input">
+                                    <input type="checkbox" name="name" id="checkType1">
+                                    <label for="checkType1">미학습자 전체</label>
+                                </span>
+                                <div class="percent_area">
+                                    <span class="tit">출석률</span>
+                                    <div class="input_btn">
+                                        <input class="form-control sm" id="percentInput" type="text" maxlength="2"><label>% 이상</label>
+                                    </div>
+                                    <span class="txt-sort">~</span>
+                                    <div class="input_btn">
+                                        <input class="form-control sm" id="percentInput" type="text" maxlength="2"><label>% 미만</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="button-area">
+                            <button type="button" class="btn search">검색</button>
+                        </div>
+                    </div>
+
+                    <div class="lecture_status_box full">                            
+                        <div class="box_item">
+                            <div class="title">운영과목<i class="xi-angle-right-min"></i></div>
+                            <div class="item_txt">
+                                <p class="desc">
+                                    <i class="icon-svg-group" aria-hidden="true"></i>
+                                    수강생 수 : <strong>60명</strong>
+                                </p>
+                                <p class="desc">
+                                    <i class="icon-svg-bar-chart" aria-hidden="true"></i>
+                                    평균 학습 진도율 : <strong>66%</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="board_top">
+                        <h3 class="board-title">학습진도현황</h3>
+                        <div class="right-area">
+                            <button type="button" class="btn basic">메시지 보내기</button>
+                            <button type="button" class="btn basic">엑셀 다운로드</button>
+                            <select class="form-select type-num" id="select" title="페이지당 리스트수를 선택하세요.">
+                                <option value="ALL" selected="selected">10</option>
+                                <option value="20">20</option>
+                                <option value="30">30</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!--table-type2-->
+                    <div class="table-wrap">
+                        <table class="table-type2">
+                            <colgroup>
+                                <col style="width:5%">
+                                <col style="width:6%">                                                                
+                                <col style="width:11%">
+                                <col style="">
+                                <col style="width:15%">                                                                
+                                <col style="width:7%">
+                                <col style="width:8%">
+                                <col style="width:10%">
+                                <col style="width:10%">
+                                <col style="width:10%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <span class="custom-input onlychk"><input type="checkbox" id="chkall"><label for="chkall"></label></span>
+                                    </th>
+                                    <th>번호</th>
+                                    <th>이름</th>                                  
+                                    <th>아이디</th>
+                                    <th>학번</th>
+                                    <th>학년</th>
+                                    <th>수강과목수</th>
+                                    <th>오픈차시
+                                    <sapn class="c-point01">(A)</sapn>
+                                    </th>
+                                    <th>학습차시
+                                    <sapn class="c-point01">(B)</sapn>
+                                    </th>
+                                    <th>출석율
+                                    <sapn class="c-point01">(B/A)</sapn>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-th="선택">
+                                        <span class="custom-input onlychk"><input type="checkbox" id="chk1"><label for="chk1"></label></span>
+                                    </td>
+                                    <td data-th="번호">90</td>
+                                    <td data-th="이름">학습자4</td>
+                                    <td data-th="아이디">Test01</td>                                                                        
+                                    <td data-th="학번">K202612547</td>
+                                    <td data-th="학년">2</td>
+                                    <td data-th="수강과목수">5</td>
+                                    <td data-th="오픈주차(A)">40</td>
+                                    <td data-th="학습주차(B)">30</td>
+                                    <td data-th="출석율(B/A)">75%</td>
+                                </tr>
+                                <tr>
+                                    <td data-th="선택">
+                                        <span class="custom-input onlychk"><input type="checkbox" id="chk1"><label for="chk1"></label></span>
+                                    </td>
+                                    <td data-th="번호">90</td>
+                                    <td data-th="이름">학습자4</td>
+                                    <td data-th="아이디">Test01</td>                                                                        
+                                    <td data-th="학번">K202612547</td>
+                                    <td data-th="학년">2</td>
+                                    <td data-th="수강과목수">5</td>
+                                    <td data-th="오픈주차(A)">40</td>
+                                    <td data-th="학습주차(B)">30</td>
+                                    <td data-th="출석율(B/A)">75%</td>
+                                </tr>
+                                <tr>
+                                    <td data-th="선택">
+                                        <span class="custom-input onlychk"><input type="checkbox" id="chk1"><label for="chk1"></label></span>
+                                    </td>
+                                    <td data-th="번호">90</td>
+                                    <td data-th="이름">학습자4</td>
+                                    <td data-th="아이디">Test01</td>                                                                        
+                                    <td data-th="학번">K202612547</td>
+                                    <td data-th="학년">2</td>
+                                    <td data-th="수강과목수">5</td>
+                                    <td data-th="오픈주차(A)">40</td>
+                                    <td data-th="학습주차(B)">30</td>
+                                    <td data-th="출석율(B/A)">75%</td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                    <!--//table-type2-->
+
+                    <%-- 테이블의 페이징 정보 생성할때 아래 내용 참조하여 작업하고 아래와 같은 HTML 코드를 직접 만들지 않는다.
+                        1) UiTable() 함수를 사용하여 테이블 생성할경우는 해당 프로그램에서 페이지 정보 생성하도록 한다.
+                        2) Controller에서 페이지정보(PageInfo) 객체를 받아을 경우 <uiex:paging> 태그를 사용하여 생성한다.
+                            <uiex:paging pageInfo="${pageInfo}" pageFunc="listPaging"/>
+                    --%>
+                    <!-- board foot -->
+                    <div class="board_foot">
+                        <div class="page_info">
+                            <span class="total_page">전체 <b>12</b>건</span>
+                            <span class="current_page">현재 페이지 <strong>1</strong>/10</span>
+                        </div>
+                        <div class="board_pager">
+                            <span class="inner">
+                                <button class="page" type="button" role="button" aria-label="First Page" title="처음 페이지" data-page="1" disabled=""><i class="icon-page-first"></i></button>
+                                <button class="page" type="button" role="button" aria-label="Prev Page" title="이전 페이지" data-page="1" disabled=""><i class="icon-page-prev"></i></button>
+                                <span class="pages">
+                                    <button class="page active" type="button" role="button" aria-label="Page 1" title="1 페이지" data-page="1">1</button>
+                                    <button class="page" type="button" role="button" aria-label="Page 2" title="2 페이지" data-page="2">2</button>
+                                    <button class="page" type="button" role="button" aria-label="Page 3" title="3 페이지" data-page="3">3</button>
+                                </span>
+                                <button class="page" type="button" role="button" aria-label="Next Page" title="다음 페이지" data-page="2"><i class="icon-page-next"></i></button>
+                                <button class="page" type="button" role="button" aria-label="Last Page" title="마지막 페이지" data-page="3"><i class="icon-page-last"></i></button>
+                            </span>
+                        </div>
+                    </div>
+
+                                    
+                    <div class="modal_btns">
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal 2 -->
+        <div class="modal-overlay" id="modal2" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-xl" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">평가비중</h2> 
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="board_top">
+                        <h3 class="board-title">평가비중 (강의계획서)</h3>                       
+                    </div> 
+                    <div class="table-wrap">
+                        <table class="table-type1">
+                            <colgroup>
+                                <col style="">
+                                <col style="width:12%">
+                                <col style="width:12%">
+                                <col style="width:10%">
+                                <col style="width:10%">
+                                <col style="width:10%">
+                                <col style="width:10%">
+                                <col style="width:10%">
+                                <col style="width:10%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>평가항목</th>
+                                    <th>중간고사</th>
+                                    <th>기말고사</th>
+                                    <th>시험</th>
+                                    <th>출석</th>
+                                    <th>과제</th>
+                                    <th>토론</th>
+                                    <th>퀴즈</th>
+                                    <th>설문</th>                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th data-th="평가항목">비율</th>
+                                    <td data-th="중간고사">25%</td>
+                                    <td data-th="기말고사">25%</td>
+                                    <td data-th="시험">10%</td>
+                                    <td data-th="출석">10%</td>
+                                    <td data-th="과제">10%</td>
+                                    <td data-th="토론">10%</td>
+                                    <td data-th="퀴즈">5%</td>
+                                    <td data-th="설문">5%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="board_top">
+                        <h4 class="sub-title">성적 반영비율 관리</h4>    
+                        <div class="right-area">
+                            <!-- Tab btn -->
+                            <div class="tab_btn">
+                                <a href="#tab01" class="current">과제</a>
+                                <a href="#tab02">토론</a>
+                                <a href="#tab03">퀴즈</a>
+                                <a href="#tab04">설문</a>
+                                <a href="#tab05">세미나</a>
+                            </div>
+                            <button type="button" class="btn basic">성적반영 비율관리</button>
+                        </div>
+                    </div>
+
+                    <!--table-type-->
+                    <div class="table-wrap">
+                        <table class="table-type2">
+                            <colgroup>
+                                <col style="width:4%">
+                                <col style="width:10%">
+                                <col style="">                                
+                                <col style="width:14%">
+                                <col style="width:14%">
+                                <col style="width:8%">
+                                <col style="width:9%">                                    
+                                <col style="width:8%">
+                                <col style="width:8%">                                                                                                        
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>번호</th>
+                                    <th>구분</th>
+                                    <th>과제명</th>
+                                    <th>제출기간</th> 
+                                    <th>연장제출마감</th>  
+                                    <th>평가방법</th>                                       
+                                    <th>성적반영비율</th>
+                                    <th>성적공개</th>
+                                    <th>진행상태</th>                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-th="번호">1</td>
+                                    <td data-th="구분">일반과제</td>
+                                    <td data-th="과제명" class="t_left">과제과제과제 과제명 입니다.</td>
+                                    <td data-th="제출기간">2026.06.13 18:00 ~ 2026.06.17 22:00</td>    
+                                    <td data-th="연장제출마감">2026.06.22 22:00</td>    
+                                    <td data-th="평가방법">점수형</td>                                 
+                                    <td data-th="성적반영비율">25%</td>
+                                    <td data-th="성적공개">
+                                        <input type="checkbox" value="Y" class="switch small" checked="checked">
+                                    </td>
+                                    <td data-th="진행상태">진행</td>
+                                </tr>   
+                                <tr>
+                                    <td data-th="번호">2</td>
+                                    <td data-th="구분">팀과제</td>
+                                    <td data-th="과제명" class="t_left">과제과제과제 과제명 입니다.</td>
+                                    <td data-th="제출기간">2026.06.13 18:00 ~ 2026.06.17 22:00</td>    
+                                    <td data-th="연장제출마감">2026.06.22 22:00</td>    
+                                    <td data-th="평가방법">
+                                        <a href="#0" class="title link">루브릭</a>
+                                    </td>                                 
+                                    <td data-th="성적반영비율">25%</td>
+                                    <td data-th="성적공개">
+                                        <input type="checkbox" value="N" class="switch small">
+                                    </td>
+                                    <td data-th="진행상태">대기</td>
+                                </tr> 
+                                <tr>
+                                    <td data-th="번호">3</td>
+                                    <td data-th="구분">일반과제</td>
+                                    <td data-th="과제명" class="t_left">과제과제과제 과제명 입니다.</td>
+                                    <td data-th="제출기간">2026.06.13 18:00 ~ 2026.06.17 22:00</td>    
+                                    <td data-th="연장제출마감">2026.06.22 22:00</td>    
+                                    <td data-th="평가방법">점수형</td>                                 
+                                    <td data-th="성적반영비율">25%</td>
+                                    <td data-th="성적공개">
+                                        <input type="checkbox" value="Y" class="switch small" checked="checked">
+                                    </td>
+                                    <td data-th="진행상태">완료</td>
+                                </tr>                                                                       
+                            </tbody>
+                        </table>
+                    </div>
+                    <!--//table-type-->                          
+                                    
+                    <div class="modal_btns">
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal 3 -->
+        <div class="modal-overlay" id="modal3" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-lg" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">평가방법 : 루브릭</h2> 
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="msg-box warning ">
+                        <p class="txt">
+                            <i class="xi-error" aria-hidden="true"></i>
+                            <strong>평가 진행 혹은 완료된 후</strong>, 평가비중을 수정하면 이미 진행된 평가 내용은 모두 삭제되어 초기화됩니다.
+                        </p>
+                    </div>
+                    <div class="board_top">
+                        <h3 class="board-title">루브릭 평가</h3>                       
+                    </div> 
+                    
+                    <div class="rubrics_wrap">
+
+                    </div>                                       
+                                    
+                    <div class="modal_btns">
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="<%=request.getContextPath()%>/webdoc/assets/js/modal.js" defer></script>
 
     </div>
 

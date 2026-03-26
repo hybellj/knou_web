@@ -1,12 +1,10 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
-<%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 <head>
 	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
 		<jsp:param name="style" value="classroom"/>
-		<jsp:param name="module" value="chart, fileUploader"/>
 	</jsp:include>
 	<style>
 		@media all and (min-width:768px) {
@@ -78,7 +76,7 @@
 		// 학기 변경 - 강의실 세팅
 		function changeTerm(termCd) {
 			setEmptyList();
-			
+			debugger;
 			var url = "/crs/creCrsHome/listRepUserCrsCreByTerm.do";
 			var data = {
 				  termCd: termCd

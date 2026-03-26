@@ -491,7 +491,7 @@
 				width: 600,
 				height: 350,
 				url: "/forum2/forumLect/forumProfMemoPop.do?" + queryString,
-				autoresize: true
+				// autoresize: true
 			});
 		}
 
@@ -1207,7 +1207,7 @@
 														<uiex:dextuploader
 																id="fileUploader"
 																path="${path}"
-																limitCount="1"
+																limitCount="3"
 																limitSize="100"
 																oneLimitSize="100"
 																listSize="1"

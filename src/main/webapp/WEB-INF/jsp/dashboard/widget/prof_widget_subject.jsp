@@ -16,7 +16,7 @@
 								</p>
 
 								<p class="tit">
-									<a href="/subject.do?subjectId=SBJCT20260001">자바 프로그래밍 초급</a>
+									<a href="/subject/subject.do?subjectId=SBJCT20260001">자바 프로그래밍 초급</a>
 								</p>
 							</div>
 						</div>
@@ -304,7 +304,7 @@
 										김하늘</span> <span class="info_txt">3학점</span>
 								</p>
 								<p class="tit">
-									<a href="/subject.do?subjectId=SBJCT20260001">자바 프로그래밍 초급</a>
+									<a href="/subject/subject.do?subjectId=SBJCT20260001">자바 프로그래밍 초급</a>
 								</p>
 							</div>
 							<div class="extra">

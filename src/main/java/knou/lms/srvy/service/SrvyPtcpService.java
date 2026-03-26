@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
+import knou.lms.srvy.vo.SrvyVO;
+
 public interface SrvyPtcpService {
 
 	/**
@@ -83,5 +85,17 @@ public interface SrvyPtcpService {
 	* @throws Exception
 	*/
 	public EgovMap srvyPtcpCntSelect(String srvyId, String sbjctId) throws Exception;
+
+	/**
+	* 설문참여목록조회 ( Ez-Grader )
+	*
+	* @param srvyId     	설문아이디
+    * @param sbjctId 		과목아이디
+    * @param searchKey  	참여여부
+    * @param searchSort  	정렬코드
+	* @return 설문참여목록조회
+	* @throws Exception
+	*/
+	public List<EgovMap> srvyPtcpListByEzGrader(SrvyVO vo) throws Exception;
 
 }

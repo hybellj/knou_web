@@ -1,14 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.log2.user.dao.LogUserActvDAO">
-	
-	<select id="userSbjctOfrngActvHstryList" parameterType="map" resultType="eGovMap">
-		/*	설명 : 사용자과목개설활동이력목록조회 - 현재시간보다 30분이전 접속기록조회*/	
-		SELECT	*		
-		FROM 	TB_LMS_LOG_USER_ACTV A		
-		WHERE 	A.ACTV_DTTM &gt;= TO_CHAR(SYSDATE - NUMTODSINTERVAL(#{timeRange}, 'MINUTE'), 'YYYYMMDDHH24MISS')
-		   		AND A.SBJCT_ID = #{subjectId}		   		
-		ORDER 	BY	A.USER_ID
+		
+	<select id="stdntSubjectConnectList" parameterType="map" resultType="eGovMap">
+		/*	설명 : 사용자과목접속목록조회 - 현재시간보다 120분이전 접속기록조회*/		
+		SELECT *
+		FROM (
+		    SELECT
+		        S.SBJCT_ID,
+		        LUA.USER_ID,
+		        S.SBJCTNM,
+		        USR.USERNM,
+		        O.ORGNM,
+		        ROW_NUMBER() OVER ( PARTITION BY LUA.USER_ID ORDER BY LUA.ACTV_DATETIME DESC ) AS RN, 
+		        NVL(USR.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL
+		    FROM TB_LMS_SBJCT_ADM ADM
+		    JOIN TB_LMS_LOG_USER_ACTV LUA ON LUA.SBJCT_ID = ADM.SBJCT_ID
+		        AND LUA.ACTV_DATETIME >= (SYSDATE - NUMTODSINTERVAL(120, 'MINUTE'))
+		    JOIN TB_LMS_SBJCT S 	ON S.SBJCT_ID = ADM.SBJCT_ID
+		    JOIN TB_LMS_USER USR 	ON USR.USER_ID = LUA.USER_ID
+		    JOIN TB_LMS_ORG O       ON O.ORG_ID = USR.ORG_ID
+		    WHERE ADM.USER_ID = #{userId}
+		)
+		WHERE RN = 1
+		ORDER BY USERNM
 	</select>
 		
 </mapper>

@@ -399,4 +399,26 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
         }
         return out;
     }
+
+    /*****************************************************
+     * cls 학생 접근 가능 여부를 체크한다.
+     * @param ClsWkLrnVO
+     * @return int
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public int checkClsStdntAccessCnt(ClsWkLrnVO vo) throws Exception {
+        return clsDAO.checkClsStdntAccessCnt(vo);
+    }
+
+    /*****************************************************
+     * cls 주차 스케줄 접근 가능 여부를 체크한다.
+     * @param ClsWkLrnVO
+     * @return int
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public int checkClsWkSchdlAccessCnt(ClsWkLrnVO vo) throws Exception {
+        return clsDAO.checkClsWkSchdlAccessCnt(vo);
+    }
 }

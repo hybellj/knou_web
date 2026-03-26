@@ -34,7 +34,7 @@ import knou.lms.org.service.OrgCodeService;
 import knou.lms.statistics.facade.StatisticsFacadeService;
 import knou.lms.statistics.service.StatisticsService;
 import knou.lms.statistics.vo.StatisticsVO;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.vo.SubjectVO;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.vo.UsrDeptCdVO;
 

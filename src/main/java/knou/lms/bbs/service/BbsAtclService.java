@@ -187,4 +187,12 @@ public interface BbsAtclService {
      * @throws Exception
      ******************************************************/
     public ProcessResultVO<BbsAtclVO> selectBbsAtclGrpNtcPopView(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 게시글 답변 목록 조회
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    public ProcessResultVO<BbsAtclVO> selectBbsAtclRspnsList(BbsAtclVO vo) throws Exception;
 }

@@ -1,9 +1,9 @@
 package knou.lms.msg.service;
 
-import java.util.List;
-
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.vo.MsgTmpltVO;
+
+import java.util.List;
 
 public interface MsgTmpltService {
 

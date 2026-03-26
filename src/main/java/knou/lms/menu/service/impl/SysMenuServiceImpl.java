@@ -603,4 +603,13 @@ public class SysMenuServiceImpl
     public List<MenuUseOrgVO> selectMainMenuUseOrgAll(MenuUseOrgVO vo) throws Exception {
         return sysMenuDAO.selectMainMenuUseOrgAll(vo);
     }
+
+    /**
+     * 강의실 메뉴 목록 조회
+     * @return List<MenuVO>
+     * @throws Exception
+     */
+    public List<MenuVO> selectLectMenuList(MenuVO vo) throws Exception {
+    	return sysMenuDAO.selectLectMenuList(vo);
+    }
 }

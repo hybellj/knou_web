@@ -67,8 +67,8 @@ pageContext.setAttribute("menuList", menuList);
 			            <%-- 상위 메뉴 --%>
 			            <a id="MENU_${menu.menuId}" href="#class_lnb" index="${status.index}"
 			                class="<c:if test='${menu.menuId == curMenuId}'>current</c:if>"
-			                menuUrl="${menu.menuUrl}" upMenuId="${menu.upMenuId}" menuId="${menu.menuId}"
-			                onclick="moveMenu(this, '${menu.menuUrl}','${menu.upMenuId}', '${menu.menuId}');return false;"
+			                menuUrl="${menu.menuUrl}" upMenuId="${menu.upMenuId}" menuId="${menu.menuId}" linkTargetTycd="${menu.linkTargetTycd}"
+			                onclick="moveMenu(this, '${menu.menuUrl}','${menu.upMenuId}', '${menu.menuId}', '${menu.menunm}', '${menu.linkTargetTycd}');return false;"
 			                title="${menu.menunm}">
 			                <i class="${menu.menuImgFileId}" aria-hidden="true"></i>
 			                <span>${menu.menunm}</span>
@@ -81,7 +81,7 @@ pageContext.setAttribute("menuList", menuList);
 			                        <li id="${sub.menuId}">
 			                            <a id="SUBMENU_${sub.menuId}" href="#class_lnb"
 			                                class="<c:if test='${sub.menuId == curMenuId}'>current</c:if>"
-			                                onclick="moveMenu(this, '${sub.menuUrl}', '${sub.upMenuId}', '${sub.menuId}'); return false;"
+			                                onclick="moveMenu(this, '${sub.menuUrl}', '${sub.upMenuId}', '${sub.menuId}', '${menu.menunm}', '${menu.linkTargetTycd}'); return false;"
 			                                title="${sub.menunm}">
 			                                <span>${sub.menunm}</span>
 			                            </a>
@@ -114,7 +114,7 @@ pageContext.setAttribute("menuList", menuList);
     }
 
 	// 메뉴 이동
-	function moveMenu(obj, menuUrl, upMenuId, menuId, menuNm){
+	function moveMenu(obj, menuUrl, upMenuId, menuId, menuNm, linkTargetTycd){
 		if (menuUrl === '') {
 			return;
 		}
@@ -140,11 +140,8 @@ pageContext.setAttribute("menuList", menuList);
 		$("#moveForm input[name=upMenuId]").val(upMenuId);
 		$("#moveForm input[name=menuId]").val(menuId);
 
-		if (index == "0") {
-			$("#moveForm").attr("action", menuUrl);
-			$("#moveForm").submit();
-		}
-		else {
+		// Tab에 표시
+		if (linkTargetTycd == "tab") {
 			if (typeof TAB_MENU == 'undefined') {
 				let url = "/dashboard/mainTabpage.do"
 				$("#moveForm").attr("action", url);
@@ -153,6 +150,21 @@ pageContext.setAttribute("menuList", menuList);
 			else {
 				TAB_MENU.addTabMenu(menuNm, menuUrl, upMenuId, menuId)
 			}
+		}
+		// 윈도우에 표시
+		else if (linkTargetTycd == "window") {
+			$("#moveForm").attr("action", menuUrl);
+			$("#moveForm").attr("target", "_blank");
+			$("#moveForm").submit();
+		}
+		// 타 사이트 호출
+		else if (linkTargetTycd == "other") {
+			window.open(menuUrl, '_blank');
+		}
+		// self 표시
+		else {
+			$("#moveForm").attr("action", menuUrl);
+			$("#moveForm").submit();
 		}
 	}
 

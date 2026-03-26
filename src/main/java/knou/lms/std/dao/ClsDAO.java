@@ -228,4 +228,20 @@ public interface ClsDAO {
      ******************************************************/
     public List<ClsElemStatsVO> selectClsElemStatsListPaging(ClsElemStatsVO vo) throws Exception;
 
+    /*****************************************************
+     * cls 학생 접근 가능 여부 체크
+     * @param ClsWkLrnVO
+     * @return int
+     * @throws Exception
+     ******************************************************/
+    public int checkClsStdntAccessCnt(ClsWkLrnVO vo) throws Exception;
+
+    /*****************************************************
+     * cls 주차 스케줄 접근 가능 여부 체크
+     * @param ClsWkLrnVO
+     * @return int
+     * @throws Exception
+     ******************************************************/
+    public int checkClsWkSchdlAccessCnt(ClsWkLrnVO vo) throws Exception;
+
 }

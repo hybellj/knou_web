@@ -24,6 +24,7 @@ public class ClsChsiLrnVO extends DefaultVO {
     // 학습 상태
     private String lrnSts;        // 학습완료 / 학습중 / 미학습
     private String atndTrgtYn;    // 출결대상 여부 (Y/N)
+    private String scoreText;     // 점수 표시 문자열
 
     // 학습기간
     private String lrnStDt;       // 학습 시작일 (YYYY.MM.DD)
@@ -58,6 +59,9 @@ public class ClsChsiLrnVO extends DefaultVO {
 
     public String getAtndTrgtYn()               { return atndTrgtYn; }
     public void setAtndTrgtYn(String v)         { this.atndTrgtYn = v; }
+
+    public String getScoreText()                { return scoreText; }
+    public void setScoreText(String v)          { this.scoreText = v; }
 
     public String getLrnStDt()                  { return lrnStDt; }
     public void setLrnStDt(String v)            { this.lrnStDt = v; }

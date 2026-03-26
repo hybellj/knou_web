@@ -28,6 +28,8 @@ public class MenuVO extends DefaultVO {
 	private String 		sslUseyn;		// SSL사용여부
 	private String 		menuImgFileId;	// 이미지 파일 아이디
 	private String 		menuGbncd;		// 메뉴구분코드
+	private String 		linkTargetTycd;	// 링크타겟유형코드
+	private String 		menuAuthTycd;	// 메뉴권한유형코드
 
 	private List<MenuVO> subMenuList;	// 서브메뉴 목록
 	private List<BbsVO>  subBbsList;	// 서브 게시판 목록
@@ -195,6 +197,22 @@ public class MenuVO extends DefaultVO {
 
 	public void setSubBbsList(List<BbsVO> subBbsList) {
 		this.subBbsList = subBbsList;
+	}
+
+	public String getLinkTargetTycd() {
+		return linkTargetTycd;
+	}
+
+	public void setLinkTargetTycd(String linkTargetTycd) {
+		this.linkTargetTycd = linkTargetTycd;
+	}
+
+	public String getMenuAuthTycd() {
+		return menuAuthTycd;
+	}
+
+	public void setMenuAuthTycd(String menuAuthTycd) {
+		this.menuAuthTycd = menuAuthTycd;
 	}
 
 }

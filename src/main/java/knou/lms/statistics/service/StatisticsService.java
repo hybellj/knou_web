@@ -6,7 +6,7 @@ import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.statistics.vo.StatisticsVO;
-import knou.lms.subject2.vo.SubjectVO;
+import knou.lms.subject.vo.SubjectVO;
 
 public interface StatisticsService {
 	
