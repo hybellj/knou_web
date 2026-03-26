@@ -1,0 +1,16 @@
+CREATE TABLE 시스템명_access_logs (
+    log_id           BIGINT PRIMARY KEY AUTO_INCREMENT, -- 로그 고유 번호
+    user_id          VARCHAR(50) NOT NULL,             -- 1. 사용자 식별정보 (취급자 ID)
+    access_date      DATETIME DEFAULT CURRENT_TIMESTAMP, -- 2. 접속일시
+    ip_address       VARCHAR(45) NOT NULL,             -- 3. 접속지 정보 (IPv4)
+    action_type      char('I', 'R', 'U', 'D', 'L'),                 -- 4. 수행업무 (입력, 조회, 수정, 삭제, 다운로드(L) 등)
+    target_subject   VARCHAR(100),                        -- 5. 정보주체 식별정보 (접근된 고객 식별자)
+    access_reason    TEXT,                                   -- [강화] 다운로드/대량조회 시 사유 기록
+    system_name      VARCHAR(4)                        -- [강화] 접속한 시스템 명칭/업무관리-시스템 코드관리/
+    program_id       VARCHAR(255)                        -- [강화] ************.do 형태로 식별될 수 있도록
+);
+
+1. 개인정보처리자만 로그를 남길 것,
+2. 5만명 이상 2년 보관/미만 1년
+3. 테이블명의 시스템  예)학사 haksa_access_log 대학원 grad_access_log
+4. 개인정보 화면에 수행업무 (입력, 조회, 수정, 삭제, 다운로드(L) 등)이 기록
