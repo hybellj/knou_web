@@ -16,7 +16,6 @@ public class MsgShrtntVO extends DefaultVO {
     private String ttl;
     private String txtCts;
     private String htmlCts;
-    private String sndngOnlyyn;
     private String rsrvSndngSdttm;
     private String dgrsYr;
     private String smstr;
@@ -59,7 +58,6 @@ public class MsgShrtntVO extends DefaultVO {
     private String rsrvYn;
     private String sndngYn;
     private int sndngSuccCnt;
-    private int fileCnt;
 
     // === 발신 폼용 ===
     private String rcvrListJson;
@@ -136,14 +134,6 @@ public class MsgShrtntVO extends DefaultVO {
 
     public void setHtmlCts(String htmlCts) {
         this.htmlCts = htmlCts;
-    }
-
-    public String getSndngOnlyyn() {
-        return sndngOnlyyn;
-    }
-
-    public void setSndngOnlyyn(String sndngOnlyyn) {
-        this.sndngOnlyyn = sndngOnlyyn;
     }
 
     public String getRsrvSndngSdttm() {
@@ -416,14 +406,6 @@ public class MsgShrtntVO extends DefaultVO {
 
     public void setSndngSuccCnt(int sndngSuccCnt) {
         this.sndngSuccCnt = sndngSuccCnt;
-    }
-
-    public int getFileCnt() {
-        return fileCnt;
-    }
-
-    public void setFileCnt(int fileCnt) {
-        this.fileCnt = fileCnt;
     }
 
     public String getRcvrListJson() {

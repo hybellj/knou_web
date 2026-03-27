@@ -380,9 +380,6 @@
     		var srvyPtcpId 	= target.attr("data-ptcpid");	// 설문참여아이디
     		var userId 		= target.attr("data-userid");	// 사용자아이디
 
-    		console.log(srvyId);
-    		console.log(srvyPtcpId);
-    		console.log(userId);
     		var url  = "/srvy/srvyProfMemoModifyAjax.do";
 			var data = {
 				"srvyId" 		: srvyId,

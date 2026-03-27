@@ -135,4 +135,59 @@
 		 </choose>
 	</select>
 
+	<delete id="srvyQstnListVwitmAllDelete" parameterType="srvyVO">
+		/*
+             SQL ID : SrvyVwitmDAO.srvyQstnListVwitmAllDelete
+             설  명  : 설문문항목록보기항목전체삭제
+         */
+        DELETE FROM TB_LMS_SRVY_VWITM
+	     WHERE SRVY_QSTN_ID IN (
+	    		SELECT
+					SRVY_QSTN_ID
+				  FROM TB_LMS_SRVY_QSTN QSTN
+				  JOIN TB_LMS_SRVYPPR SRVYPPR
+				    ON QSTN.SRVYPPR_ID = SRVYPPR.SRVYPPR_ID
+				  JOIN TB_LMS_SRVY SRVY
+				    ON SRVYPPR.SRVY_ID = SRVY.SRVY_ID
+				 WHERE SRVY.SRVY_ID = #{srvyId}
+	    	)
+	</delete>
+
+	<update id="srvyVwitmMvmnSrvypprIdModify" parameterType="String">
+		/*
+             SQL ID : SrvyVwitmDAO.srvyVwitmMvmnSrvypprIdModify
+             설  명  : 설문보기항목설문지이동아이디수정
+         */
+        UPDATE (
+		    SELECT
+		    	  VWITM.MVMN_SRVY_QSTN_ID AS MVMN_SRVY_QSTN_ID
+		     	, 'NEXT' AS NEW_MVMN_SRVY_QSTN_ID
+		    FROM TB_LMS_SRVY_VWITM VWITM
+		    JOIN (
+		    	SELECT
+					A.SRVY_VWITM_ID
+				  FROM (
+					SELECT
+						  VWITM.SRVY_VWITM_ID
+						, SRVYPPR.SRVY_SEQNO
+						, (SELECT SRVY_SEQNO FROM TB_LMS_SRVYPPR WHERE SRVYPPR_ID = VWITM.MVMN_SRVY_QSTN_ID) AS MVMN_SRVY_SEQNO
+						, NVL((SELECT 'N' FROM TB_LMS_SRVYPPR WHERE SRVYPPR_ID = VWITM.MVMN_SRVY_QSTN_ID), 'Y') AS SRVY_DELYN
+					  FROM TB_LMS_SRVYPPR SRVYPPR
+					  JOIN TB_LMS_SRVY_QSTN QSTN
+					    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+					   AND QSTN.DELYN = 'N'
+					   AND QSTN.SRVY_MVMN_USEYN = 'Y'
+					  JOIN TB_LMS_SRVY_VWITM VWITM
+					    ON QSTN.SRVY_QSTN_ID = VWITM.SRVY_QSTN_ID
+					 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+					   AND VWITM.MVMN_SRVY_QSTN_ID NOT IN ('NEXT', 'END')
+				) A
+				WHERE A.SRVY_SEQNO > A.MVMN_SRVY_SEQNO
+				   OR A.SRVY_DELYN = 'Y'
+		    ) A
+		      ON VWITM.SRVY_VWITM_ID = A.SRVY_VWITM_ID
+		)
+		SET MVMN_SRVY_QSTN_ID = NEW_MVMN_SRVY_QSTN_ID
+	</update>
+
 </mapper>

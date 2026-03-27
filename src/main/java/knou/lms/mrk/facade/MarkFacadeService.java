@@ -12,4 +12,6 @@ public interface MarkFacadeService {
 
     ProcessResultVO<EgovMap> stdMrkListSelect(String orgId, String sbjctId, String searchType) throws Exception;
 
+    void profStdMrkInitAjax(String sbjctId, String orgId, String userId) throws Exception;
+
 }

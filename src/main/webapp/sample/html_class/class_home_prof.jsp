@@ -1227,7 +1227,7 @@
                     <div class="modal-btn-box">
                         <button type="button" class="btn modal__btn" data-modal-open="modal1">학습진도관리</button> 
                         <button type="button" class="btn modal__btn" data-modal-open="modal2">평가비중</button> 
-                        <!-- <button type="button" class="btn modal__btn" data-modal-open="modal3">평가방법 : 루브릭</button>                    -->
+                        <button type="button" class="btn modal__btn" data-modal-open="modal3">평가방법 : 루브릭</button>                   
                     </div>
                     <!--// modal popup 보여주기 버튼(개발시 삭제) -->
 
@@ -1599,7 +1599,80 @@
                     </div> 
                     
                     <div class="rubrics_wrap">
-
+                        <div class="rub_write">
+                            <div class="top"><input class="form-control width-100per" type="text" name="name" id="readonly_label" value="과제 루브릭 평가 제목입니다." readonly="" autocomplete="off"></div>
+                            <div class="eval_item">
+                                <div class="item">
+                                    <label class="label_num">1</label>
+                                    <input class="form-control wide" type="text" value="창의력" readonly>
+                                    <input class="form-control sm" type="text" value="30%" >
+                                    <button type="button" class="btn basic icon"><i class="xi-close"></i></button>
+                                </div>
+                                <div class="item">
+                                    <label class="label_num">2</label>
+                                    <input class="form-control wide" type="text" value="문장력" readonly>
+                                    <input class="form-control sm" type="text" value="30%" >
+                                    <button type="button" class="btn basic icon"><i class="xi-close"></i></button>
+                                </div>
+                                <div class="item">
+                                    <label class="label_num">3</label>
+                                    <input class="form-control wide" type="text" value="구성력" readonly>
+                                    <input class="form-control sm" type="text" value="30%" >
+                                    <button type="button" class="btn basic icon"><i class="xi-close"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sub-box rub_grade">                        
+                            <div class="board_top">
+                                <h3 class="board-title">평가 등급</h3>   
+                                <div class="form-inline">
+                                    <span class="custom-input">
+                                        <input type="radio" name="evalType1" id="evalType1" value="5" checked="">
+                                        <label for="evalType1">5점 척도</label>
+                                    </span>
+                                    <span class="custom-input ml5">
+                                        <input type="radio" name="evalType1" id="evalType2" value="3">
+                                        <label for="evalType2">3점 척도</label>
+                                    </span>
+                                    <span class="custom-input ml5">
+                                        <input type="radio" name="evalType1" id="evalType3" value="10">
+                                        <label for="evalType3">자유척도</label>
+                                    </span>
+                                </div>                    
+                            </div>
+                            <div class="grade_item">
+                                <div class="item">
+                                    <div class="input_btn">
+                                        <input class="form-control sm" id="gradeInput" type="text" value="5" autocomplete="off"><label>점</label>
+                                    </div>                                        
+                                    <input class="form-control wide" type="text" value="매우 잘 했어요">                                       
+                                </div>
+                                <div class="item">
+                                    <div class="input_btn">
+                                        <input class="form-control sm" id="gradeInput" type="text" value="4" autocomplete="off"><label>점</label>
+                                    </div>                                        
+                                    <input class="form-control wide" type="text" value="잘 했어요">                                       
+                                </div>
+                                <div class="item">
+                                    <div class="input_btn">
+                                        <input class="form-control sm" id="gradeInput" type="text" value="3" autocomplete="off"><label>점</label>
+                                    </div>                                        
+                                    <input class="form-control wide" type="text" value="보통입니다">                                       
+                                </div>
+                                <div class="item">
+                                    <div class="input_btn">
+                                        <input class="form-control sm" id="gradeInput" type="text" value="2" autocomplete="off"><label>점</label>
+                                    </div>                                        
+                                    <input class="form-control wide" type="text" value="노력하세요">                                       
+                                </div>
+                                <div class="item">
+                                    <div class="input_btn">
+                                        <input class="form-control sm" id="gradeInput" type="text" value="1" autocomplete="off"><label>점</label>
+                                    </div>                                        
+                                    <input class="form-control wide" type="text" value="더 노력하세요">                                       
+                                </div>
+                            </div>                                                            
+                        </div>
                     </div>                                       
                                     
                     <div class="modal_btns">

@@ -1,11 +1,10 @@
 package knou.lms.msg.service;
 
-import java.util.List;
-
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.vo.MsgShrtntVO;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+
+import java.util.List;
 
 public interface MsgShrtntService {
 

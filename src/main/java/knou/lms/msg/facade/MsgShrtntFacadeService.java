@@ -1,13 +1,13 @@
 package knou.lms.msg.facade;
 
-import java.util.List;
-
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.file.vo.AtflVO;
 import knou.lms.msg.vo.MsgShrtntVO;
 import knou.lms.org.vo.OrgInfoVO;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+
+import java.io.InputStream;
+import java.util.List;
 
 public interface MsgShrtntFacadeService {
 
@@ -33,9 +33,11 @@ public interface MsgShrtntFacadeService {
 
     List<MsgShrtntVO> selectShrtntSndngRcvrExcelList(MsgShrtntVO vo);
 
-    void registShrtntSndngWithFiles(MsgShrtntVO vo, List<AtflVO> fileList) throws Exception;
+    void registShrtntSndngWithFiles(MsgShrtntVO vo, String uploadFiles, String uploadPath) throws Exception;
 
-    void modifyShrtntSndngWithFiles(MsgShrtntVO vo, List<AtflVO> fileList, String[] delFileIds) throws Exception;
+    void modifyShrtntSndngWithFiles(MsgShrtntVO vo, String uploadFiles, String uploadPath, String[] delFileIds) throws Exception;
+
+    List<MsgShrtntVO> parseExcelAndSearchRcvr(InputStream excelInputStream) throws Exception;
 
     int updateMsgRsrvCncl(MsgShrtntVO vo);
 

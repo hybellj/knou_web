@@ -67,6 +67,8 @@ public class Forum2VO extends DefaultVO {
     private Integer forumMyFdbk;                // 패드백
     private Integer forumEvalCnt;               // 평가한 인원수
 
+    private String smstrChrtId;                 // 학기기수아이디
+
     public String getDscsId() {
         return dscsId;
     }
@@ -508,6 +510,9 @@ public class Forum2VO extends DefaultVO {
     public void setForumEvalCnt(Integer forumEvalCnt) {
         this.forumEvalCnt = forumEvalCnt;
     }
+
+    public String getSmstrChrtId() { return smstrChrtId; }
+    public void setSmstrChrtId(String smstrChrtId) { this.smstrChrtId = smstrChrtId; }
 }
 
 

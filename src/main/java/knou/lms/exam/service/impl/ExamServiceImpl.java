@@ -263,6 +263,36 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     }
 
     /*****************************************************
+     * 시험 평가대상자 목록 조회
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    public List<EgovMap> tkexamUserList(Map<String, Object> params) throws Exception {
+        return examDAO.tkexamUserList(params);
+    }
+
+    /*****************************************************
+     * 사용자 시험 응시현황 (파이)차트데이터 조회
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    public EgovMap selectUserTkexamStatusForPieChart(String examBscId, String sbjctId) throws Exception {
+        return examDAO.selectUserTkexamStatusForPieChart(examBscId, sbjctId);
+    }
+
+    /*****************************************************
+     * 사용자 시험 응시현황 (가로선)차트데이터 조회
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    public List<EgovMap> selectUserTkexamStatusForHrChart(String examBscId, String sbjctId) throws Exception {
+        return examDAO.selectUserTkexamStatusForHrChart(examBscId, sbjctId);
+    }
+
+    /*****************************************************
      * 성적 공개여부 수정
      * @param vo
      * @throws Exception
@@ -523,14 +553,12 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         	if(vo.getExamDtlVO() != null) dtlVO.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
             bscVO.setExamDtlVO(examDAO.quizDtlSelect(dtlVO));	// 퀴즈상세 정보 조회
 
+            // 첨부파일
             if(bscVO.getFileCnt() > 0) {
-            	String examBscId = bscVO.getExamBscId();
-            	FileVO fileVO = new FileVO();
-            	fileVO.setRepoCd(CommConst.REPO_EXAM);
-            	fileVO.setFileBindDataSn(examBscId);
-            	ProcessResultVO<FileVO> resultVO = (ProcessResultVO<FileVO>) sysFileService.list(fileVO);
+            	AtflVO atflVO = new AtflVO();
+                atflVO.setRefId(bscVO.getExamBscId());
 
-                List<FileVO> fileList = resultVO.getReturnList();
+                List<AtflVO> fileList = attachFileService.selectAtflListByRefId(atflVO);
                 bscVO.setFileList(fileList);
             }
         }
@@ -1033,14 +1061,6 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         examDAO.examBscModify(vo);		// 퀴즈기본 삭제여부 수정
 
         quizMrkRfltrtModify(vo);		// 퀴즈 성적반영비율 수정
-
-//        FileVO fileVO = new FileVO();
-//        fileVO.setRepoCd("EXAM_CD");
-//        fileVO.setFileBindDataSn(vo.getExamBscId());
-//        List<FileVO> fileList = sysFileService.list(fileVO).getReturnList();
-//        for(FileVO fvo : fileList) {
-//            sysFileService.removeFile(fvo.getFileSn());
-//        }
     }
 
     /**

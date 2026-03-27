@@ -1224,6 +1224,7 @@ h4.sub-title::before {
 .btn.basic.icon.search i {width: 20px; height: 20px;}
 .btn.basic.icon.search:hover {background: #161925; color: #72c4ff; border-color: #161925;}
 .board_top + .board_top {margin-top: 2rem;}
+.board_top .board-title + .form-inline { margin-left: 1.7rem; }
 .board_top:has(+ h4.sub-title) {margin-bottom: 2rem;}
 .btns + .board_top {margin-top: 4.5rem; padding-top: 1rem; border-top: 2px solid #F0F2F6;}
 /* .board_top.class { padding: 2rem 2.5rem 2rem 2.5rem; border-radius: 10px; box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.1); } */
@@ -1459,6 +1460,7 @@ error style
 
 /* modal 안 요소 정리 */
 .modal-body .msg-box {padding: 1.5rem 2rem; margin-bottom: 1rem;}
+.modal-body .msg-box + .board_top {margin-top: 2rem;}
 .modal-body .table_list ul.list > li {padding: .8rem 1.2rem;}
 /* .modal-body .table_list ul.list > li.head {width: 25%;} */
 .modal-body .table-type1 thead tr th {height: auto; padding: .8rem .8rem;}

@@ -68,7 +68,7 @@ public class ControllerBase {
 			this.session 		= request.getSession();
 			this.modelMap 		= modelMap;
 			this.message 		= new Message(request);
-			this.eparam 		= request.getParameter("eparam");
+			this.eparam 		= request.getParameter("encParam");
 			this.eparamMap 		= new HashMap<>();
 			String pageType		= request.getParameter("pageType");
 			String referer 		= request.getHeader("referer");
@@ -127,6 +127,8 @@ public class ControllerBase {
 				//modelMap.addAttribute("curUpMenuId", upMenuId);
 				modelMap.addAttribute("curMenuId", menuId);
 			}
+
+			modelMap.addAttribute("eparamMap", this.eparamMap);
 
 			SessionUtil.setSessionValue(request, "PAGE_TYPE", type);
 			SessionUtil.setSessionValue(request, "BODY_CLASS", bodyClass);
@@ -445,6 +447,7 @@ public class ControllerBase {
 		eparamMap.put(name, value);
 		eparam = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(eparamMap).toString());
 		modelMap.addAttribute("eparam", eparam);
+		modelMap.addAttribute("eparamMap", this.eparamMap);
 	}
 
 	/**
@@ -462,6 +465,7 @@ public class ControllerBase {
 				eparam = "";
 			}
 			modelMap.addAttribute("eparam", eparam);
+			modelMap.addAttribute("eparamMap", this.eparamMap);
 		}
 	}
 
@@ -472,6 +476,7 @@ public class ControllerBase {
 		eparamMap = new HashMap<>();
 		eparam = "";
 		modelMap.addAttribute("eparam", eparam);
+		modelMap.addAttribute("eparamMap", this.eparamMap);
 	}
 
 	/**

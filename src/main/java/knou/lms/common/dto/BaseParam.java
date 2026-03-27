@@ -5,12 +5,12 @@ public abstract class BaseParam {
 	String	orgId;
 	String	userId;
 	int		limitTop;
-	String	subjectId;
+	String	sbjctId;
 	
 	public BaseParam() {};
 	
-	public BaseParam(String subjectId) {
-		this.setSubjectId(subjectId);
+	public BaseParam(String sbjctId) {
+		this.setSbjctId(sbjctId);
 	}
 	
 	public BaseParam(String orgId, String userId, int limitTop) {
@@ -19,10 +19,10 @@ public abstract class BaseParam {
 		this.setLimitTop(limitTop);
 	}
 	
-	public BaseParam(String orgId, String userId, String subjectId, int limitTop) {
+	public BaseParam(String orgId, String userId, String sbjctId, int limitTop) {
 		this.setOrgId(orgId);
 		this.setUserId(userId);
-		this.setSubjectId(subjectId);
+		this.setSbjctId(sbjctId);
 		this.setLimitTop(limitTop);
 	}
 	
@@ -44,10 +44,10 @@ public abstract class BaseParam {
 	public void setLimitTop(int limitTop) {
 		this.limitTop = limitTop;
 	}
-	public String getSubjectId() {
-		return subjectId;
+	public String getSbjctId() {
+		return sbjctId;
 	}
-	public void setSubjectId(String subjectId) {
-		this.subjectId = subjectId;
+	public void setSbjctId(String sbjctId) {
+		this.sbjctId = sbjctId;
 	}	
 }

@@ -49,11 +49,20 @@ public interface ExamDAO {
     // 시험 평가대상자 카운트
     public int countTkexamUser(ExamVO vo) throws Exception;
 
+    // 시험 평가대상자 목록 조회
+    public List<EgovMap> tkexamUserList(Map<String, Object> vo) throws Exception;
+
     // 팀 시험여부 조회
     public ExamVO selectBscTeamYn (ExamVO vo) throws Exception;
 
     // 성적 반영 시험 목록
     public List<ExamBscVO> mrkRfltExamList(ExamBscVO vo) throws Exception;
+
+    // 사용자 시험 응시현황 (파이)차트데이터 조회
+    public EgovMap selectUserTkexamStatusForPieChart(@Param("examBscId") String examBscId, @Param("sbjctId") String sbjctId) throws Exception;
+
+    // 사용자 시험 응시현황 (가로선)차트데이터 조회
+    public List<EgovMap> selectUserTkexamStatusForHrChart(@Param("examBscId") String examBscId, @Param("sbjctId") String sbjctId) throws Exception;
 
     // 성적 공개여부 수정
     public void updateMrkOyn(ExamVO vo) throws Exception;

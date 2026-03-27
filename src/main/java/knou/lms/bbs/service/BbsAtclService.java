@@ -195,4 +195,5 @@ public interface BbsAtclService {
      * @throws Exception
      ******************************************************/
     public ProcessResultVO<BbsAtclVO> selectBbsAtclRspnsList(BbsAtclVO vo) throws Exception;
+
 }

@@ -10,6 +10,7 @@ import knou.framework.exception.AccessDeniedException;
 import knou.framework.exception.BadRequestUrlException;
 import knou.framework.exception.MediopiaDefineException;
 import knou.framework.util.*;
+import knou.framework.vo.FileVO;
 import knou.lms.asmt.service.AsmtProService;
 import knou.lms.asmt.vo.AsmtVO;
 import knou.lms.common.vo.DefaultVO;
@@ -20,8 +21,11 @@ import knou.lms.crs.term.service.TermService;
 import knou.lms.crs.term.vo.TermVO;
 import knou.lms.erp.service.ErpService;
 import knou.lms.erp.vo.ErpEnrollmentVO;
+import knou.lms.exam.facade.QuizFacadeService;
 import knou.lms.exam.service.*;
 import knou.lms.exam.vo.*;
+import knou.lms.exam.web.view.QuizMainView;
+import knou.lms.file.vo.AtflVO;
 import knou.lms.forum.service.ForumJoinUserService;
 import knou.lms.forum.service.ForumService;
 import knou.lms.forum.vo.ForumVO;
@@ -48,13 +52,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping(value="/exam")
@@ -64,6 +66,15 @@ public class ExamHomeController extends ControllerBase {
 
     @Resource(name="examService")
     private ExamService examService;
+
+    @Resource(name="quizFacadeService")
+    private QuizFacadeService quizFacadeService;
+
+    @Resource(name="tkexamRsltService")
+    private TkexamRsltService tkexamRsltService;
+
+    @Resource(name="tkexamService")
+    private TkexamService tkexamService;
 
     @Resource(name="crecrsService")
     private CrecrsService crecrsService;
@@ -130,7 +141,7 @@ public class ExamHomeController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "exam/exam_list"
+     * @return view
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamListView.do")
@@ -166,7 +177,9 @@ public class ExamHomeController extends ControllerBase {
     /*****************************************************
      * 시험 [등록|수정] 페이지 (교수)
      * @param ExamVO
-     * @return "exam/exam_write"
+     * @param model
+     * @param request
+     * @return view
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamWriteView.do")
@@ -231,7 +244,9 @@ public class ExamHomeController extends ControllerBase {
     /*****************************************************
      * 시험 관리 페이지 (시험정보 및 평가 탭)
      * @param ExamVO
-     * @return "exam/exam_write"
+     * @param model
+     * @param request
+     * @return view
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamInfoEvlView.do")
@@ -284,7 +299,9 @@ public class ExamHomeController extends ControllerBase {
     /*****************************************************
      * 시험 관리 페이지 (시험 대체 탭)
      * @param ExamVO
-     * @return "exam/prof/exam_info_sbst"
+     * @param model
+     * @param request
+     * @return view
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamSbstView.do")
@@ -337,7 +354,9 @@ public class ExamHomeController extends ControllerBase {
     /*****************************************************
      * 시험 관리 페이지 (결시 내용 및 현황 탭)
      * @param ExamVO
-     * @return "exam/prof/exam_info_absnce"
+     * @param model
+     * @param request
+     * @return view
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamAbsnceView.do")
@@ -390,7 +409,9 @@ public class ExamHomeController extends ControllerBase {
     /*****************************************************
      * 시험 관리 페이지 (장애인/고령자 지원 현황 탭)
      * @param ExamVO
-     * @return "exam/prof/exam_info_dsbl"
+     * @param model
+     * @param request
+     * @return view
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamDsblView.do")
@@ -443,7 +464,9 @@ public class ExamHomeController extends ControllerBase {
     /*****************************************************
      * 시험 관리 페이지 (퀴즈관리 탭)
      * @param ExamVO
-     * @return "exam/prof/exam_info_dsbl"
+     * @param model
+     * @param request
+     * @return view
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamQuizMngView.do")
@@ -493,11 +516,105 @@ public class ExamHomeController extends ControllerBase {
         return "exam/prof/exam_info_quiz_mng";
     }
 
+
+    /*****************************************************
+     * 사용자 시험 응시현황 (파이)차트데이터 조회(팝업)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamUserTkexamStatusPieChartPopup.do")
+    public String selectUserTkexamStatusForPieChart(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        model.addAttribute("chartMap", examService.selectUserTkexamStatusForPieChart(vo.getExamBscId(), vo.getSbjctId()));
+
+        return "exam/prof/popup/exam_user_tkexam_status_piechart_pop";
+    }
+
+    /*****************************************************
+     * 사용자 시험 응시현황 (가로선)차트데이터 조회(팝업)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamUserTkexamStatusHrChartPopup.do")
+    public String selectUserTkexamStatusForHrChart(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        model.addAttribute("chartMap", examService.selectUserTkexamStatusForPieChart(vo.getExamBscId(), vo.getSbjctId()));
+        model.addAttribute("chartList", examService.selectUserTkexamStatusForHrChart(vo.getExamBscId(), vo.getSbjctId()));
+
+        return "exam/prof/popup/exam_user_tkexam_status_hrchart_pop";
+    }
+
+    /*****************************************************
+     * 교수 메모 조회(팝업)
+     * @param Map<String, Object>
+     * @param model
+     * @param request
+     * @return view
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamMemoPopup.do")
+    public String profQuizMemoPopup(@RequestParam Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+        QuizMainView quizMainView = quizFacadeService.loadProfQuizMemoPopup(params);
+
+        model.addAttribute("vo", quizMainView.getExamBscVO());
+        model.addAttribute("quizExamnee", quizMainView.getQuizExamnee());
+        model.addAttribute("profMemo", quizMainView.getProfMemo());
+
+        return "exam/prof/popup/prof_exam_memo_pop";
+    }
+
+    /*****************************************************
+     * 교수 시험 응시이력(팝업)
+     * @param TkexamVO
+     * @param model
+     * @param request
+     * @return view
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamTkexamHstryPopup.do")
+    public String profExamTkexamHstryPopup(TkexamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        QuizMainView quizMainView = quizFacadeService.loadProfQuizTkexamHstryPopup(vo);
+        model.addAttribute("quizExamnee", quizMainView.getQuizExamnee());
+        model.addAttribute("tkexamHstryList", quizMainView.getTkexamHstryList());
+
+        return "exam/prof/popup/prof_exam_tkexam_hstry_pop";
+    }
+
+    /*****************************************************
+     * 교수 시험 엑셀 성적등록(팝업)
+     * @param ExamBscVO
+     * @param model
+     * @param request
+     * @return view
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamExcelScrRegistPopup.do")
+    public String profQuizExcelScrRegistPopup(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        request.setAttribute("vo", vo);
+
+        vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM));
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("userId", userId);
+
+        return "exam/prof/popup/prof_exam_excel_scr_regist_pop";
+    }
+
     /*****************************************************
      * 시험 등록
-     * @param vo
-     * @param ExamVO
-     * @return ProcessResultVO<ExamVO>
+     * @param ExamBscVO
+     * @param RequestParam
+     * @param model
+     * @param request
+     * @return resultVO
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/examRegist.do", method = RequestMethod.POST)
@@ -546,12 +663,61 @@ public class ExamHomeController extends ControllerBase {
         return resultVO;
     }
 
+    /*****************************************************
+     * 교수 시험성적 엑셀 업로드&등록
+     * @param ExamBscVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamScrExcelUpload.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamBscVO> profExamScrExcelUpload(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        vo.setRgtrId(userId);
+        vo.setMdfrId(userId);
+
+        try {
+            List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+
+            FileVO fileVO = new FileVO();
+            fileVO.setUploadFiles(vo.getUploadFiles());
+            fileVO.setCopyFiles(vo.getCopyFiles());
+            fileVO.setFilePath(vo.getUploadPath());
+            fileVO.setRepoCd(vo.getRepoCd());
+            fileVO.setRgtrId(vo.getRgtrId());
+
+            //엑셀 읽기위한 정보값 세팅
+            HashMap<String, Object> map = new HashMap<String, Object>();
+            map.put("startRaw", 5);
+            map.put("excelGrid", vo.getExcelGrid());
+            map.put("fileVO", fileVO);
+            map.put("searchKey", "excelUpload");
+
+            //엑셀 리더
+            ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+            List<?> list = excelUtilPoi.simpleReadGrid(map);
+
+            //읽어온 값으로 update
+            //examStareService.updateExampleExcelStareScore(vo, list);
+            resultVO.setResult(1);
+            //resultVO.setMessage(getMessage("exam.alert.save.score"));/* 점수 저장이 완료되었습니다. */
+
+        } catch(Exception e) {
+            e.printStackTrace();
+            resultVO.setResult(-1);
+        }
+        return resultVO;
+    }
 
     /*****************************************************
      * 교수 시험목록 페이징
-     * @param vo
      * @param ExamVO
-     * @return ProcessResultVO<ExamVO>
+     * @param model
+     * @param request
+     * @return resultVO
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamPaging.do")
@@ -565,7 +731,6 @@ public class ExamHomeController extends ControllerBase {
         vo.setOrgId(orgId);
         vo.setExamTtl(examTtl);
         vo.setCrsCreCd(crsCreCd);
-        System.out.println("examTtl ?" + examTtl);
         try {
             resultVO = examService.listProfExamPaging(vo);
             resultVO.setResultSuccess();
@@ -578,9 +743,10 @@ public class ExamHomeController extends ControllerBase {
 
     /*****************************************************
      * 교수 시험 상세 조회
-     * @param vo
      * @param ExamVO
-     * @return ProcessResultVO<ExamVO>
+     * @param model
+     * @param request
+     * @return resultVO
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamDtl.do")
@@ -617,9 +783,10 @@ public class ExamHomeController extends ControllerBase {
 
     /*****************************************************
      * 시험 평가대상자 목록 페이징
-     * @param vo
      * @param ExamVO
-     * @return ProcessResultVO<ExamVO>
+     * @param model
+     * @param request
+     * @return resultVO
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/tkexamUserPaging.do")
@@ -645,9 +812,10 @@ public class ExamHomeController extends ControllerBase {
 
     /*****************************************************
      * 시험 평가대상자 인원 조회
-     * @param vo
      * @param ExamVO
-     * @return ProcessResultVO<ExamVO>
+     * @param model
+     * @param request
+     * @return resultVO
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/tkexamUserCount.do")
@@ -671,10 +839,33 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
+     * 시험 학습그룹 부주제 목록 조회
+     * @param ExamDtlVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examLrnGrpSubAsmtListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<ExamDtlVO> examLrnGrpSubAsmtListAjax(ExamDtlVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamDtlVO> resultVO = new ProcessResultVO<ExamDtlVO>();
+
+        try {
+            resultVO.setReturnList(examService.quizLrnGrpSubAsmtList(vo));
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("리스트 조회 중 에러가 발생하였습니다.");
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
      * 성적 공개여부 수정
-     * @param vo
      * @param ExamVO
-     * @return ProcessResultVO<ExamVO>
+     * @return resultVO
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/editMrkOyn.do", method = RequestMethod.POST)
@@ -702,9 +893,10 @@ public class ExamHomeController extends ControllerBase {
 
     /*****************************************************
      * 시험 성적 반영비율 수정
-     * @param vo
-     * @param ExamVO
-     * @return ProcessResultVO<ExamVO>
+     * @param List<ExamBscVO>
+     * @param model
+     * @param request
+     * @return resultVO
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/editMrkRfltrt.do")
@@ -732,9 +924,11 @@ public class ExamHomeController extends ControllerBase {
 
     /*****************************************************
      * 시험 수정
-     * @param vo
      * @param ExamVO
-     * @return ProcessResultVO<ExamVO>
+     * @param dtlInfoStr
+     * @param model
+     * @param request
+     * @return resultVO
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/examModify.do", method = RequestMethod.POST)
@@ -772,10 +966,38 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
+     * 교수 시험 평가점수 일괄 수정
+     * @param List<Map<String, Object>>
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamEvlScrBulkModifyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> profExamEvlScrBulkModifyAjax(@RequestBody List<Map<String, Object>> list, ModelMap model, HttpServletRequest request) throws Exception {
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        try {
+            for(Map<String, Object> map : list) {
+                map.put("rgtrId", userId);
+            }
+            tkexamRsltService.profQuizEvlScrBulkModify(list);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("점수 수정 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
      * 시험 삭제
-     * @param vo
      * @param ExamVO
-     * @return ProcessResultVO<ExamVO>
+     * @param model
+     * @param request
+     * @return resultVO
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/examDelete.do", method = RequestMethod.POST)
@@ -802,6 +1024,84 @@ public class ExamHomeController extends ControllerBase {
         }
         return resultVO;
     }
+
+    /*****************************************************
+     * 시험 대상자 엑셀 다운로드
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return excelView
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamTkexamStatusExcelDown.do")
+    public String profExamTkexamStatusExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        HashMap<String, Object> map = new HashMap<>();
+        String title = "시험대상자목록";
+
+        map.put("title", title);
+        map.put("sheetName", title);
+        map.put("excelGrid", vo.getExcelGrid());
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("examBscId", vo.getExamBscId());
+        params.put("tkexamCmptnyn", request.getParameter("tkexamCmptnyn"));
+        params.put("evlyn", request.getParameter("evlyn"));
+        params.put("searchValue", vo.getSearchValue());
+        map.put("list", examService.tkexamUserList(params));
+        map.put("ext", ".xlsx(big)");
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String currentDate = sdf.format(new Date());
+
+
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", title + "_" + currentDate);
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /*****************************************************
+     * 시험 대상자 엑셀 다운로드
+     * @param ExamBscVO
+     * @param model
+     * @param request
+     * @return excelView
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamScrRegistSampleExcelDown.do")
+    public String profExamScrRegistSampleExcelDown(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String title = getMessage("exam.label.std.list"); // 학습자목록
+
+        Map<String, Object> searchMap = new HashMap<String, Object>();
+        searchMap.put("examBscId", vo.getExamBscId());
+        List<EgovMap> tkexamList = tkexamService.quizTkexamList(searchMap);
+
+        // POI의 SXSSFWorkbook를 이용한 대용량 엑셀 출력 공통 함수 이용
+        // 엑셀 정보값 세팅
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title", title);  // 시험학습자목록
+        map.put("sheetName", title);   // 학습자목록
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list", tkexamList);
+
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("outFileName", title);  // 학습자목록
+        params.put("sheetName", title);    // 학습자목록
+        params.put("list", tkexamList);
+
+        //엑셀화
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        params.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(params);
+
+        return "excelView";
+    }
+
 
     /*****************************************************
      * 기존에 있던 Controller 영역

@@ -26,22 +26,8 @@ public class ClsStdntVO extends DefaultVO {
     // TB_LMS_DEPT
     private String deptnm;        // 학과명
 
-    // TB_LMS_BYWK_USER_LRN_STS - 주차별 학습상태 (MyBatis 결과 매핑용)
-    private String wk1Sts;
-    private String wk2Sts;
-    private String wk3Sts;
-    private String wk4Sts;
-    private String wk5Sts;
-    private String wk6Sts;
-    private String wk7Sts;
-    private String wk8Sts;
-    private String wk9Sts;
-    private String wk10Sts;
-    private String wk11Sts;
-    private String wk12Sts;
-    private String wk13Sts;
-    private String wk14Sts;
-    private String wk15Sts;
+    // 주차별 학습상태 목록 (동적 주차 대응)
+    private List<ClsWkStsVO> wkStsList;
 
     // 출석/지각/결석 집계
     private int atndCnt;
@@ -84,50 +70,8 @@ public class ClsStdntVO extends DefaultVO {
     public String getDeptnm() { return deptnm; }
     public void setDeptnm(String deptnm) { this.deptnm = deptnm; }
 
-    public String getWk1Sts() { return wk1Sts; }
-    public void setWk1Sts(String wk1Sts) { this.wk1Sts = wk1Sts; }
-
-    public String getWk2Sts() { return wk2Sts; }
-    public void setWk2Sts(String wk2Sts) { this.wk2Sts = wk2Sts; }
-
-    public String getWk3Sts() { return wk3Sts; }
-    public void setWk3Sts(String wk3Sts) { this.wk3Sts = wk3Sts; }
-
-    public String getWk4Sts() { return wk4Sts; }
-    public void setWk4Sts(String wk4Sts) { this.wk4Sts = wk4Sts; }
-
-    public String getWk5Sts() { return wk5Sts; }
-    public void setWk5Sts(String wk5Sts) { this.wk5Sts = wk5Sts; }
-
-    public String getWk6Sts() { return wk6Sts; }
-    public void setWk6Sts(String wk6Sts) { this.wk6Sts = wk6Sts; }
-
-    public String getWk7Sts() { return wk7Sts; }
-    public void setWk7Sts(String wk7Sts) { this.wk7Sts = wk7Sts; }
-
-    public String getWk8Sts() { return wk8Sts; }
-    public void setWk8Sts(String wk8Sts) { this.wk8Sts = wk8Sts; }
-
-    public String getWk9Sts() { return wk9Sts; }
-    public void setWk9Sts(String wk9Sts) { this.wk9Sts = wk9Sts; }
-
-    public String getWk10Sts() { return wk10Sts; }
-    public void setWk10Sts(String wk10Sts) { this.wk10Sts = wk10Sts; }
-
-    public String getWk11Sts() { return wk11Sts; }
-    public void setWk11Sts(String wk11Sts) { this.wk11Sts = wk11Sts; }
-
-    public String getWk12Sts() { return wk12Sts; }
-    public void setWk12Sts(String wk12Sts) { this.wk12Sts = wk12Sts; }
-
-    public String getWk13Sts() { return wk13Sts; }
-    public void setWk13Sts(String wk13Sts) { this.wk13Sts = wk13Sts; }
-
-    public String getWk14Sts() { return wk14Sts; }
-    public void setWk14Sts(String wk14Sts) { this.wk14Sts = wk14Sts; }
-
-    public String getWk15Sts() { return wk15Sts; }
-    public void setWk15Sts(String wk15Sts) { this.wk15Sts = wk15Sts; }
+    public List<ClsWkStsVO> getWkStsList() { return wkStsList; }
+    public void setWkStsList(List<ClsWkStsVO> wkStsList) { this.wkStsList = wkStsList; }
 
     public int getAtndCnt() { return atndCnt; }
     public void setAtndCnt(int atndCnt) { this.atndCnt = atndCnt; }

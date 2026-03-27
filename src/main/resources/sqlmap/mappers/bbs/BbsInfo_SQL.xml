@@ -1261,7 +1261,61 @@
 			, USEYN
 		FROM TB_LMS_BBS
 		WHERE 1=1
+			AND ORG_ID = #{orgId}
 			AND BBS_ID = #{bbsId}
+			AND SBJCT_ID = #{sbjctId}
 	</select>
+
+	<insert id="bbsInfoRegist" parameterType="bbsVO">
+		/*
+             SQL ID : BbsAtclDAO.bbsInfoRegist
+             설  명 : 게시판 정보 저장
+         */
+		INSERT INTO TB_LMS_BBS (
+			BBS_ID
+			, ORG_ID
+			, SBJCT_ID
+			, BBS_REF_TYPE_ID
+			, BBS_REF_TYCD
+			, BBSNM
+			, BBS_ENNM
+			, BBS_EXPLN
+			, BBS_TYCD
+			, BBS_LANG_CD
+			, MENU_ID
+			, MN_IMG_FILE_ID
+			, LIST_CNT
+			, ATFL_MAX_CNT
+			, ATFL_MAXSZ
+			, ATFL_USEYN
+			, DELYN
+			, USEYN
+			, BBS_ADDYN
+			, RGTR_ID
+			, REG_DTTM
+		) VALUES (
+			#{bbsId}
+			, #{orgId}
+			, #{sbjctId}
+			, NULL
+			, NULL
+			, #{bbsNm}
+			, #{bbsEnnm}
+			, #{bbsExpln}
+			, #{bbsTycd}
+			, #{langCd}
+			, 'MENU_BBS_01'
+			, NULL
+			, 20
+			, 10
+			, 100
+			, 'Y'
+			, 'N'
+			, 'Y'
+			, 'N'
+			, #{userId}
+	        , FN_DTTM()
+		)
+	</insert>
 
 </mapper>

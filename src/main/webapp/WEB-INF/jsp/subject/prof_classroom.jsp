@@ -235,9 +235,9 @@
 		                                                	<span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/></span>
 		                                                	 ~ <span class="date"><uiex:formatDate value="${item.edttm}" type="date"/></span>
 		                                                	</strong></span>
-		                                                <span>출석<strong>35</strong></span>
-		                                                <span>지각<strong>3</strong></span>
-		                                                <span>결석<strong>2</strong></span>
+		                                                <span>출석<strong>${item.atndCnt}</strong></span>
+		                                                <span>지각<strong>${item.rateCnt}</strong></span>
+		                                                <span>결석<strong>${item.absntCnt}</strong></span>
 		                                            </p>
 		                                        </a>
 			                                    <div class="btn_right">

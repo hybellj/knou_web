@@ -8,6 +8,7 @@ import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
 import knou.lms.srvy.vo.SrvyQstnVO;
 import knou.lms.srvy.vo.SrvyQstnVwitmLvlVO;
+import knou.lms.srvy.vo.SrvyVO;
 
 @Mapper("srvyQstnVwitmLvlDAO")
 public interface SrvyQstnVwitmLvlDAO {
@@ -63,5 +64,13 @@ public interface SrvyQstnVwitmLvlDAO {
 	 * @throws Exception
 	 */
 	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(@Param("srvyId") String srvyId, @Param("searchType") String searchType) throws Exception;
+
+	/**
+	 * 설문문항목록보기항목레벨전체삭제
+	 *
+	 * @param SrvyVO
+	 * @throws Exception
+	 */
+	public void srvyQstnListVwitmLvlAllDelete(SrvyVO vo) throws Exception;
 
 }

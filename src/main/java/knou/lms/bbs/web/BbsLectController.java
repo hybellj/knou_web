@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
+import knou.framework.common.IdPrefixType;
 import knou.framework.common.MenuInfo;
 import knou.framework.common.RepoInfo;
 import knou.framework.common.SessionInfo;
@@ -36,6 +37,7 @@ import knou.framework.exception.SessionBrokenException;
 import knou.framework.util.DateTimeUtil;
 import knou.framework.util.ExcelUtilPoi;
 import knou.framework.util.FileUtil;
+import knou.framework.util.IdGenUtil;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
 import knou.framework.vo.FileVO;
@@ -3109,18 +3111,66 @@ public class BbsLectController extends ControllerBase {
     public String bbsAtclListView(BbsVO bbsVO, ModelMap model, HttpServletRequest request) throws Exception {
     	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
 
+    	String bbsId = request.getParameter("bbsId");
+    	// 값이 null이거나 비어있다면 VO에서 가져옴
+    	if (bbsId == null || bbsId.trim().isEmpty()) {
+    	    bbsId = bbsVO.getBbsId();
+    	}
+    	String bbsTycd = bbsVO.getBbsTycd();
+    	String sbjctId = bbsVO.getSbjctId();
+    	String returnUrl = "";
+
     	boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
 		if(ValidationUtils.isEmpty(bbsVO.getBbsId())) {
 			throw new BadRequestUrlException(getMessage("common.system.error"));
 		}
 
+		bbsVO.setSbjctId(sbjctId);
 		bbsVO.setOrgId(userCtx.getOrgId());
 		bbsVO.setLangCd(userCtx.getLangCd());
+		bbsVO.setBbsId(bbsId);
+		bbsVO.setBbsTycd(bbsTycd);
 		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
 		if(bbsVO == null) { // 게시판 정보를 찾을 수 없습니다.
-			throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
+			bbsVO = new BbsVO();
+
+			bbsVO.setOrgId(userCtx.getOrgId());
+			bbsVO.setSbjctId(sbjctId);
+
+			if("NTC".equals(bbsId)) {
+				bbsVO.setBbsId("NTC");
+				bbsVO.setBbsNm("공지사항");
+				bbsVO.setBbsEnnm("Notice");
+				bbsVO.setBbsExpln("과목 공지사항 게시판");
+				bbsVO.setBbsTycd("NTC");
+			} else if("DATARM".equals(bbsId)) {
+				bbsVO.setBbsId("DATARM");
+				bbsVO.setBbsNm("강의자료실");
+				bbsVO.setBbsEnnm("Notice");
+				bbsVO.setBbsExpln("과목 강의자료실 게시판");
+				bbsVO.setBbsTycd("DATARM");
+			} else if("QNA".equals(bbsId)) {
+				bbsVO.setBbsId("QNA");
+				bbsVO.setBbsNm("강의Q&A");
+				bbsVO.setBbsEnnm("Notice");
+				bbsVO.setBbsExpln("과목 강의Q&A 게시판");
+				bbsVO.setBbsTycd("QNA");
+			} else if("1ON1".equals(bbsId)) {
+				bbsVO.setBbsId("1ON1");
+				bbsVO.setBbsNm("1:1상담");
+				bbsVO.setBbsEnnm("Notice");
+				bbsVO.setBbsExpln("과목 1:1상담 게시판");
+				bbsVO.setBbsTycd("1ON1");
+			}
+
+			bbsVO.setLangCd("ko");
+			bbsVO.setUserId(userCtx.getUserId());
+			// TB_LMS_BBS 데이터 생성
+			bbsInfoService.bbsInfoRegist(bbsVO);
+
+			//throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
 		}
 
 		if(BbsAuthUtil.isStudent(request)) {
@@ -3148,6 +3198,20 @@ public class BbsLectController extends ControllerBase {
 
         BaseParam param = new SubjectParam(subjectId, userCtx, 3);
 
+        if("NTC".equals(bbsId)) {
+        	bbsVO.setBbsId("NTC");
+			returnUrl = "bbs/lect/bbs_atcl_list_view";
+		} else if("DATARM".equals(bbsId)) {
+			bbsVO.setBbsId("DATARM");
+			returnUrl = "bbs/lect/bbs_lctr_datarm_list_view";
+		} else if("QNA".equals(bbsId)) {
+			bbsVO.setBbsId("QNA");
+			returnUrl = "bbs/lect/bbs_lctr_qna_list_view";
+		} else if("1ON1".equals(bbsId)) {
+			bbsVO.setBbsId("1ON1");
+			returnUrl = "bbs/lect/bbs_dscsn_list_view";
+		}
+
         subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
         model.addAttribute("subjectVM", subjectVM);
 
@@ -3155,7 +3219,7 @@ public class BbsLectController extends ControllerBase {
         model.addAttribute("bbsVO", bbsVO);
         model.addAttribute("templateUrl", TEMPLATE_URL);
 
-        return "bbs/lect/bbs_atcl_list_view";
+        return returnUrl;
     }
 
     /*****************************************************
@@ -3222,7 +3286,13 @@ public class BbsLectController extends ControllerBase {
         String answerWriteAuth = "N";   // 답글쓰기 권한
         String commentWriteAuth = "N";  // 댓글쓰기 권한
 
-        String bbsId = bbsAtclVO.getBbsId();
+		/* String bbsId = bbsAtclVO.getBbsId(); */
+        String bbsId = request.getParameter("bbsId");
+        if (bbsId == null || bbsId.trim().isEmpty()) {
+    	    bbsId = bbsAtclVO.getBbsId();
+    	}
+
+        String sbjctId = bbsAtclVO.getSbjctId();
         String gubun = bbsAtclVO.getGubun();
         String atclId = bbsAtclVO.getAtclId();
 
@@ -3238,6 +3308,7 @@ public class BbsLectController extends ControllerBase {
         bbsVO.setBbsId(bbsId);
         bbsVO.setOrgId(orgId);
 		bbsVO.setLangCd(langCd);
+		bbsVO.setSbjctId(sbjctId);
 		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
         if(bbsVO == null) {
@@ -3278,7 +3349,6 @@ public class BbsLectController extends ControllerBase {
         model.addAttribute("subjectVM", subjectVM);
 
         model.addAttribute("bbsVO", bbsVO);
-        model.addAttribute("bbsAtclVO", bbsAtclVO);
         model.addAttribute("atclEditAuth", atclEditAuth);
         model.addAttribute("atclDeleteAuth", atclDeleteAuth);
         model.addAttribute("answerWriteAuth", answerWriteAuth);
@@ -3287,13 +3357,16 @@ public class BbsLectController extends ControllerBase {
 
         String url = "bbs/lect/bbs_atcl_view";
 
-        // 수정화면
         if ("edit".equals(gubun)) {
-        	// 첨부파일저장소 설정
+            bbsAtclVO.setGubun("edit"); // JSP에서 구분하기 위해 값 세팅
+
+            // 첨부파일 저장소 재설정
             bbsVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_BBS, bbsId));
 
-        	url = "bbs/lect/bbs_atcl_write";
+            url = "bbs/lect/bbs_atcl_write";
         }
+
+        model.addAttribute("bbsAtclVO", bbsAtclVO);
 
         return url;
     }
@@ -3314,15 +3387,15 @@ public class BbsLectController extends ControllerBase {
 
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
-
         String bbsId = bbsAtclVO.getBbsId();
-
+        String sbjctId = bbsAtclVO.getSbjctId();
         String atclWriteAuth = "Y"; // 글쓰기 권한
 
         // 게시판 정보 조회
         BbsVO bbsVO = new BbsVO();
-        bbsVO.setBbsId(bbsId);
         bbsVO.setOrgId(orgId);
+        bbsVO.setBbsId(bbsId);
+        bbsVO.setSbjctId(sbjctId);
 		bbsVO.setLangCd(langCd);
 		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
@@ -3377,6 +3450,8 @@ public class BbsLectController extends ControllerBase {
         String userId = userCtx.getUserId();
         String langCd = userCtx.getLangCd();
 
+        String sbjctId = bbsAtclVO.getSbjctId();
+
         String bbsId = bbsAtclVO.getBbsId();
 
         String uploadFiles = bbsAtclVO.getUploadFiles();
@@ -3402,6 +3477,7 @@ public class BbsLectController extends ControllerBase {
             BbsVO bbsVO = new BbsVO();
             bbsVO.setOrgId(orgId);
             bbsVO.setBbsId(bbsId);
+            bbsVO.setSbjctId(sbjctId);
             bbsVO.setLangCd(langCd);
             bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
@@ -3413,8 +3489,7 @@ public class BbsLectController extends ControllerBase {
             if ("edit".equals(bbsAtclVO.getGubun())) {
             	// 게시글 수정
                 bbsAtclService.updateBbsAtcl(bbsAtclVO);
-            }
-            else {
+            } else {
                 // 게시글 저장
                 bbsAtclService.insertBbsAtcl(bbsAtclVO);
             }
@@ -3864,6 +3939,48 @@ public class BbsLectController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 게시판 > 과목공지 > 상세
+     * @param bbsAtclVO
+     * @param model
+     * @param request
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/bbsAtclDtlView.do")
+    @ResponseBody
+    public ProcessResultVO<BbsAtclVO> bbsAtclDtlView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+        ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
+
+        // 세션 및 기본 정보 추출
+        String orgId = userCtx.getOrgId();
+        String userId = userCtx.getUserId();
+        String langCd = userCtx.getLangCd();
+
+        try {
+            // 1. 단일 조회를 위한 파라미터 세팅
+            bbsAtclVO.setOrgId(orgId);
+            bbsAtclVO.setLangCd(langCd);
+            bbsAtclVO.setVwerId(userId); // 조회자 ID
+
+            bbsAtclVO.setBbsIdList(null);
+
+            // 2. 서비스 호출 (단일 VO 객체를 반환하는 로직)
+            resultVO = bbsAtclService.selectBbsSbjctDtlView(bbsAtclVO);
+            // 성공 결과 설정
+            resultVO.setResult(1);
+
+        } catch(Exception e) {
+            LOGGER.error("게시글 상세 조회 중 오류 발생: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage());
+        }
+
         return resultVO;
     }
 }

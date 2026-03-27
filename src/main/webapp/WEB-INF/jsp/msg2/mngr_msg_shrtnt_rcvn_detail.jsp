@@ -68,7 +68,21 @@
 
     /* 읽음 처리 */
     function fn_markRead() {
-        ajaxCall('/msgShrtntReadAjax.do', { msgShrtntSndngId: msgShrtntSndngId }, function(res) {});
+        ajaxCall('/msgShrtntReadAjax.do', { msgShrtntSndngId: msgShrtntSndngId }, function(res) {
+            if (res.result > 0) {
+                fn_refreshUnreadCnt();
+            }
+        });
+    }
+
+    /* 알림 미읽음 카운트 갱신 */
+    function fn_refreshUnreadCnt() {
+        try {
+            let topWin = (parent !== window) ? parent : window;
+            if (topWin.headerNotiUnreadCntSelect) {
+                topWin.headerNotiUnreadCntSelect();
+            }
+        } catch(e) {}
     }
 
     /* 답장 */

@@ -98,12 +98,12 @@
                     var manageBtns = "";
                     if (curTkexamMthdCd === 'RLTM') {
                         manageBtns += "<a class='btn basic small'>시험지보기</a>"
-                        manageBtns += "<a class='btn basic small'>메모</a>"
+                        manageBtns += "<a href='javascript:memoPopup(\"" + v.examDtlId + "\", \"" + v.tkexamId + "\", \"" + v.userId + "\")' class='btn basic small'>메모</a>"
                     } else {
                         manageBtns += "<a class='btn basic small'>퀴즈초기화</a>"
                         manageBtns += "<a class='btn basic small'>시험지보기</a>"
-                        manageBtns += "<a class='btn basic small'>응시기록</a>"
-                        manageBtns += "<a class='btn basic small'>메모</a>"
+                        manageBtns += "<a href='javascript:examTkexamHstryPopup(\"" + v.examDtlId + "\", \"" + v.userId + "\")' class='btn basic small'>응시기록</a>"
+                        manageBtns += "<a href='javascript:memoPopup(\"" + v.examDtlId + "\", \"" + v.tkexamId + "\", \"" + v.userId + "\")' class='btn basic small'>메모</a>"
                     }
 
                     if (curByteamSubrexamUseyn === 'Y') {
@@ -247,7 +247,7 @@
                     }
 
                     $.ajax({
-                        url: "/quiz/profQuizEvlScrBulkModifyAjax.do",
+                        url: "/exam/profExamEvlScrBulkModifyAjax.do",
                         type: "POST",
                         contentType: "application/json",
                         data: JSON.stringify(scrList),
@@ -296,8 +296,8 @@
 
         /*****************************************************************************
          * 팀 시험일 경우 생성되는 요소 제어 기능
-         * 1. examDtlInfoVO 모델 를 JS 배열로 변환
-         * 2. 팀 시험 부주제 목록 HTML append
+         * 1. var examDtlInfoList :     examDtlInfoVO 모델 를 JS 배열로 변환
+         * 2. examSubAsmtListAppend :   팀 시험 부주제 목록 HTML append
          *****************************************************************************/
         /* 1 */
 		var examDtlInfoList = [
@@ -350,8 +350,8 @@
 
         /*****************************************************************************
          * 검색 영역 기능
-         * 1. 수강생 검색
-         * 2. 수강생 전체 검색 및 검색영역 초기화
+         * 1. examTkexamListSelect :    수강생 검색
+         * 2. resetListSelect :         수강생 전체 검색 및 검색영역 초기화
          *****************************************************************************/
         /* 1 */
         function examTkexamListSelect (){
@@ -363,6 +363,152 @@
             $("#evlyn").val('').trigger("chosen:updated");
             $("#searchValue").val("");
             examTkexamListSelect();
+        }
+
+        /*****************************************************************************
+         * 엑셀 관련 기능
+         * 1. examTkexamStatusExcelDown:    시험 응시현황 엑셀 다운로드
+         * 2.
+         *****************************************************************************/
+        /* 1 */
+        function examTkexamStatusExcelDown() {
+            var examScrTitle = curTkexamMthdCd === 'QUIZ' ? "퀴즈점수" : "시험점수";
+            var ldrynObj = {
+                Y: "팀장", N: "팀원"
+            };
+            var tkexamCmptnObj = {
+                INIT: "초기화"
+                , NOTKEXAM: "미응시"
+                , COMPLETED: "응시완료"
+                , TKEXAMING: "응시중"
+            };
+
+            var excelGrid = { colModel: [] };
+
+            excelGrid.colModel.push({label: 'No.',      name: 'lineNo',             align: 'center',    width: '1000'});
+            if (curByteamSubrexamUseyn === 'Y') {
+                excelGrid.colModel.push({label: '팀명', name: 'teamnm',             align: 'left',      width: '4000'});
+            }
+            excelGrid.colModel.push({label: '학과',     name: 'deptnm',             align: 'left',      width: '5000'});
+            excelGrid.colModel.push({label: '대표아이디', name: 'userRprsId',        align: 'left',      width: '5000'});
+            excelGrid.colModel.push({label: '학번',     name: 'stdntNo',            align: 'center',    width: '5000'});
+            excelGrid.colModel.push({label: '이름',     name: 'usernm',             align: 'center',    width: '5000'});
+            if (curByteamSubrexamUseyn === 'Y') {
+                excelGrid.colModel.push({label: '역할', name: 'ldryn',              align: 'left',      width: '5000',  codes: ldrynObj});
+            }
+            excelGrid.colModel.push({label: examScrTitle, name: 'examScr',          align: 'center',    width: '3000'});
+            excelGrid.colModel.push({label: '평가점수', name: 'totScr',             align: 'center',    width: '3000'});
+            excelGrid.colModel.push({label: '응시상태', name: 'tkexamCmptnGbncd',   align: 'left',      width: '5000',  codes: tkexamCmptnObj});
+            excelGrid.colModel.push({label: '응시횟수', name: 'tkexamCnt',          align: 'center',    width: '3000'});
+            excelGrid.colModel.push({label: '평가여부', name: 'evlyn',              align: 'left',      width: '5000'});
+
+            var kvArr = [];
+            kvArr.push({'key': 'examBscId',         'val': curExamBscId});
+            kvArr.push({'key': 'tkexamCmptnyn',     'val': $("#tkexamCmptnyn").val()});
+            kvArr.push({'key': 'evlyn',             'val': $("#evlyn").val()});
+            kvArr.push({'key': 'searchValue',       'val': $("#searchValue").val()});
+            kvArr.push({'key': 'excelGrid',         'val': JSON.stringify(excelGrid)});
+
+            submitForm("/exam/profExamTkexamStatusExcelDown.do", "", "", kvArr);
+        }
+
+        /*****************************************************************************
+         * 팝업 관련 기능
+         * 1. examPieChartPop:      시험 응시현황 (파이)차트 팝업
+         * 2. examHrChartPop:       시험 응시현황 (가로선)차트 팝업
+         * 3. memoPopup:            메모 보기 팝업
+         * 4. examTkexamHstryPopup: 시험 응시이력 팝업
+         * 5. excelScrRegistPopup : 엑셀 성적등록 팝업
+         * 6. sendMsg :             메세지 보내기
+         *****************************************************************************/
+        /* 1 */
+        function examPieChartPop() {
+            var data = "examBscId=${vo.examBscId}&sbjctId=${examVO.sbjctId}";
+
+            dialog = UiDialog("dialog1", {
+                title: "응시현황",
+                width: 800,
+                height: 500,
+                url: "/exam/profExamUserTkexamStatusPieChartPopup.do?"+data,
+                autoresize: true
+            });
+        }
+        /* 2 */
+        function examHrChartPop() {
+            var data = "examBscId=${vo.examBscId}&sbjctId=${examVO.sbjctId}";
+
+            dialog = UiDialog("dialog1", {
+                title: "응시현황",
+                width: 800,
+                height: 500,
+                url: "/exam/profExamUserTkexamStatusHrChartPopup.do?"+data,
+                autoresize: true
+            });
+        }
+        /* 3 */
+        function memoPopup(examDtlId, tkexamId, userId) {
+            var data = "examBscId=${vo.examBscId}&examDtlId="+examDtlId+"&tkexamId="+tkexamId+"&userId="+userId;
+
+            dialog = UiDialog("dialog1", {
+                title: "메모",
+                width: 600,
+                height: 350,
+                url: "/exam/profExamMemoPopup.do?"+data
+            });
+        }
+        /* 4 */
+        function examTkexamHstryPopup(examDtlId, userId) {
+            var data = "examDtlId="+examDtlId+"&userId="+userId;
+
+            dialog = UiDialog("dialog1", {
+                title: "응시기록 보기",
+                width: 800,
+                height: 300,
+                url: "/exam/profExamTkexamHstryPopup.do?"+data,
+                autoresize: true
+            });
+        }
+        /* 5 */
+        function excelScrRegistPopup() {
+            var data = "examBscId=${vo.examBscId}&sbjctId=${examVO.sbjctId}";
+
+            dialog = UiDialog("dialog1", {
+                title: "엑셀 성적등록",
+                width: 600,
+                height: 500,
+                url: "/exam/profExamExcelScrRegistPopup.do?"+data,
+                autoresize: true
+            });
+        }
+        /* 6 */
+        //
+        function sendMsg() {
+            var rcvUserInfoStr = "";
+            var sendCnt = 0;
+
+            $.each($('#examInfoList').find("input:checkbox[name=evalChk]:not(:disabled):checked"), function() {
+                sendCnt++;
+                if (sendCnt > 1) rcvUserInfoStr += "|";
+                rcvUserInfoStr += $(this).attr("user_id");
+                rcvUserInfoStr += ";" + $(this).attr("user_nm");
+                rcvUserInfoStr += ";" + $(this).attr("mobile");
+                rcvUserInfoStr += ";" + $(this).attr("email");
+            });
+
+            if (examInfoListTable.getSelectedData("userId").length == 0) {
+                /* 메시지 발송 대상자를 선택하세요. */
+                alert("<spring:message code='common.alert.sysmsg.select_user'/>");
+                return;
+            }
+
+            window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
+
+            var form = document.alarmForm;
+            form.action = "<%=CommConst.SYSMSG_URL_SEND%>";
+            form.target = "msgWindow";
+            form[name='alarmType'].value = "S"; // 발송구분(SMS:S, PUSH:P, EMAIL:E, 쪽지:N)
+            form[name='rcvUserInfoStr'].value = rcvUserInfoStr; //보내는사람 정보
+            form.submit();
         }
 
         /**
@@ -411,7 +557,7 @@
                                 if (data.result > 0) {
                                     UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")
                                         .then(function() {
-                                            location.reload();
+                                            location.href = "/exam/profExamListView.do";
                                         });
                                 } else {
                                     UiComm.showMessage(data.message, "error");
@@ -733,7 +879,9 @@
                                 <div class="board_top margin-top-4 padding-2">
                                     <h4>시험평가</h4>
                                     <div class="right-area">
-                                        <a href="javascript:callScoreExcelUpload()" class="btn basic small"><spring:message code="exam.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
+                                        <c:if test="${vo.tkexamMthdCd eq 'QUIZ'}">
+                                            <a href="javascript:excelScrRegistPopup()" class="btn basic small"><spring:message code="exam.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
+                                        </c:if>
                                         <a href="javascript:sendMsg()" class="btn basic small">보내기</a>
                                     </div>
                                 </div>
@@ -789,11 +937,17 @@
                                 </table>
                                 <div class="board_top">
                                     <div class="right-area">
-                                        <button type="button" id="info-ppl-prnt" class="btn type2">시험지 일괄 인쇄</button>
-                                        <button type="button" id="info-ppl-xlsx-dnld" class="btn type1">시험지 일괄 엑셀 다운로드</button>
-                                        <button type="button" id="info-xlsx-dnld" class="btn type1">엑셀로 다운로드</button>
-                                        <button type="button" data-btn-type = "RLTM" id="info-scr-rltm-chrt" class="btn type2">성적분포도</button>
-                                        <button type="button" data-btn-type = "QUIZ" id="info-scr-quiz-chrt" class="btn type2">응시현황 그래프</button>
+                                        <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
+                                            <a class="btn type2">온라인시험 채점하기</a>
+                                            <a href="javascript:examTkexamStatusExcelDown()" class="btn type1">엑셀로 다운로드</a>
+                                            <a href="javascript:examHrChartPop()" class="btn type2">성적분포도</a>
+                                        </c:if>
+                                        <c:if test="${vo.tkexamMthdCd eq 'QUIZ'}">
+                                            <a class="btn type2">시험지 일괄 인쇄</a>
+                                            <a class="btn type1">시험지 일괄 엑셀 다운로드</a>
+                                            <a href="javascript:examTkexamStatusExcelDown()" class="btn type1">엑셀로 다운로드</a>
+                                            <a href="javascript:examPieChartPop()" class="btn type2">응시현황 그래프</a>
+                                        </c:if>
                                         <uiex:listScale func="changeInfoListScale" value="10" />
                                     </div>
                                 </div>

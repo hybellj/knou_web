@@ -267,7 +267,7 @@
                 stdntNo: UiComm.escapeHtml(v.stdntNo || ''),
                 userRprsId2: UiComm.escapeHtml(v.userRprsId2 || ''),
                 cts: ctsHtml,
-                sndngDttm: UiComm.formatDate(v.sndngDttm, 'datetime'),
+                sndngDttm: UiComm.formatDate(v.sndngDttm, 'datetime2'),
                 fileCnt: v.fileCnt > 0 ? '<i class="xi-paperclip"></i>' : '',
                 readYn: readYnHtml,
                 msgShrtntSndngId: v.msgShrtntSndngId
@@ -287,13 +287,13 @@
             let rnum = total - ((currentPage - 1) * listScale) - i;
             let ttlHtml = '<a href="javascript:fn_sndngDetail(\'' + v.msgId + '\')">' + UiComm.escapeHtml(v.ttl || '') + '</a>';
             let sndngDttmHtml = v.sndngYn === 'N'
-                ? '<span class="txt-blue">' + UiComm.formatDate(v.efctvSndngDttm, 'datetime') + '</span>'
-                : UiComm.formatDate(v.efctvSndngDttm, 'datetime');
+                ? '<span class="txt-blue">' + UiComm.formatDate(v.efctvSndngDttm, 'datetime2') + '</span>'
+                : UiComm.formatDate(v.efctvSndngDttm, 'datetime2');
             let rsrvCnclDttmHtml = v.rsrvSndngCnclDttm
-                ? '<span class="txt-red">' + UiComm.formatDate(v.rsrvSndngCnclDttm, 'datetime') + '</span>'
+                ? '<span class="txt-red">' + UiComm.formatDate(v.rsrvSndngCnclDttm, 'datetime2') + '</span>'
                 : '-';
             let rsrvCnclHtml = (v.rsrvYn === 'Y' && !v.rsrvSndngCnclDttm)
-                ? '<button class="btn basic small" onclick="fn_openRsrvCnclPopup(\'' + v.msgId + '\', \'' + UiComm.escapeHtml(v.ttl || '') + '\', \'' + UiComm.formatDate(v.efctvSndngDttm, 'datetime') + '\', ' + (v.rcvrCnt || 0) + ')"><spring:message code="msg.shrtnt.label.rsrvCncl" text="예약취소"/></button>'
+                ? '<button class="btn basic small" onclick="fn_openRsrvCnclPopup(\'' + v.msgId + '\', \'' + UiComm.escapeHtml(v.ttl || '') + '\', \'' + UiComm.formatDate(v.efctvSndngDttm, 'datetime2') + '\', ' + (v.rcvrCnt || 0) + ')"><spring:message code="msg.shrtnt.label.rsrvCncl" text="예약취소"/></button>'
                 : '-';
 
             dataList.push({
@@ -385,8 +385,8 @@
         $('#rsrvCnclTtl').text(ttl);
         $('#rsrvCnclDttm').text(rsrvDttm);
         $('#rsrvCnclRcvrCnt').text(rcvrCnt);
-        $('#rsrvCnclUser').text('${usernm}');
-        $('#rsrvCnclNowDttm').text(UiComm.formatDate(new Date().toISOString().replace(/[-T:\.Z]/g, '').substring(0, 14), 'datetime'));
+        $('#rsrvCnclUser').text('${fn:escapeXml(usernm)}');
+        $('#rsrvCnclNowDttm').text(UiComm.formatDate(new Date().toISOString().replace(/[-T:\.Z]/g, '').substring(0, 14), 'datetime2'));
         $('#rsrvCnclModal').addClass('active').attr('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
     }

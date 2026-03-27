@@ -24,8 +24,16 @@
 	<jsp:include page="/WEB-INF/jsp/bbs/common/bbs_common_inc.jsp"/>
 
 	<script type="text/javascript">
-		var ATCL_ID 		= '<c:out value="${bbsAtclVO.atclId}" />';
-		var TEMPLATE_URL    = '<c:out value="${templateUrl}" />';
+		var BBS_ID 		 = '<c:out value="${bbsAtclVO.bbsId}" />';
+		var ATCL_ID      = '<c:out value="${bbsAtclVO.atclId}" />';
+		var TEMPLATE_URL = '<c:out value="${templateUrl}" />';
+		var MODE         = '<c:out value="${bbsAtclVO.gubun == 'edit' ? 'U' : 'C'}" />';
+
+		$(document).ready(function() {
+			if(MODE == 'U') {
+                bbsAtclModifyForm();
+            }
+		});
 
     	// 저장 버튼
     	function saveConfirm() {
@@ -73,14 +81,13 @@
 
     	// 게시글 저장
     	function atclSave() {
-
     		// VO 필드명에 맞춰 가공된 값 세팅
             $("#optnSdttm").val(makeDateTimeStr("optnStartDate", "optnStartTime"));
             $("#optnEdttm").val(makeDateTimeStr("optnEndDate", "optnEndTime"));
             $("#rsrvSdttm").val(makeDateTimeStr("rsrvStartDate", "rsrvStartTime"));
             $("#rsrvEdttm").val(makeDateTimeStr("rsrvEndDate", "rsrvEndTime"));
             $("#autoAlimSdttm").val(makeDateTimeStr("autoAlimStartDate", "autoAlimStartTime"));
-            $("#autoAlimEdttm").val(makeDateTimeStr("autoAlimEdttm", "autoAlimEndTime"));
+            $("#autoAlimEdttm").val(makeDateTimeStr("autoAlimEndDate", "autoAlimEndTime"));
 
     		var dx = dx5.get("fileUploader");
     		$("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
@@ -108,6 +115,90 @@
     		document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
     	}
 
+    	function bbsAtclModifyForm() {
+            var url  = "/bbs/" + TEMPLATE_URL + "/bbsAtclDtlView.do";
+            var data = { bbsId : BBS_ID, atclId : ATCL_ID };
+
+            ajaxCall(url, data, function(data) {
+                if(data.result > 0 && data.returnVO) {
+                    var vo = data.returnVO;
+
+                    // 주요 옵션
+                    if(vo.optnCd === 'IMPT') {
+						$("#optnCdI").prop("checked", true);
+					} else if(vo.optnCd === 'FIX') {
+						$("#optnCdF").prop("checked", true);
+					} else {
+						$("#optnCdN").prop("checked", true);
+					}
+
+					// 주요 옵션 일자
+                    setSplitDateTime(vo.optnSdttm, 'optnStartDate', 'optnStartTime');
+                    setSplitDateTime(vo.optnEdttm, 'optnEndDate', 'optnEndTime');
+
+                    // 제목
+                    $("#atclTtl").val(vo.atclTtl);
+
+                    // 내용
+                    editor.openHTML(vo.atclCts);
+
+                    if(vo.fileList && vo.fileList.length > 0) {
+                        setTimeout(function(){
+                            var dx = dx5.get("fileUploader");
+                            dx.addCopyFiles(vo.fileList);
+                        }, 500);
+                    }
+
+					// 분반 일괄등록
+					var i = vo.dvclasNo;
+					$("#dvclasNo"+i).prop("checked", true);
+
+					// 부가옵션 - 댓글 사용
+                    if(vo.cmntPrmyn === "Y") {
+						$("#cmntPrmyn").prop("checked", true);
+                    }
+
+					// 등록 예약
+                    if(vo.rsrvyn === "Y") {
+					    $("#rsrvyn").prop("checked", true);
+					    $("#sw_rsrvyn").attr("aria-checked", "true").addClass("ui-switcher-on");
+					}
+
+					// 등록 예약 일자
+                    setSplitDateTime(vo.rsrvSdttm, 'rsrvStartDate', 'rsrvStartTime');
+                    setSplitDateTime(vo.rsrvEdttm, 'rsrvEndDate', 'rsrvEndTime');
+
+                    // 공개여부
+                    if(vo.oyn === "Y") {
+						$("#oyn").prop("checked", true);
+						$("#sw_oyn").attr("aria-checked", "true").trigger("change");
+					}
+
+                    // 공지사항 구분
+                    if(vo.ntcGbncd === "Y") {
+						$("#ntcGbncdY").prop("checked", true);
+                    } else {
+                    	$("#ntcGbncdN").prop("checked", true);
+                    }
+
+                    // 자동 알림 예약 등록
+                    if(vo.autoAlimyn === "Y") {
+						$("#autoAlimyn").prop("checked", true);
+						$("#sw_autoAlimyn").attr("aria-checked", "true").trigger("change");
+					}
+
+                    // 자동 알림 예약 등록 일자
+                    setSplitDateTime(vo.autoAlimSdttm, 'autoAlimStartDate', 'autoAlimStartTime');
+                    setSplitDateTime(vo.autoAlimEdttm, 'autoAlimEndDate', 'autoAlimEndTime');
+                }
+            });
+        }
+
+    	function setSplitDateTime(fullStr, dateInputId, timeInputId) {
+            if (!fullStr || fullStr.length !== 14) return;
+            if (dateInputId) document.getElementById(dateInputId).value = fullStr.substring(0, 8);
+            if (timeInputId) document.getElementById(timeInputId).value = fullStr.substring(8, 14);
+        }
 	</script>
 </head>
 
@@ -344,6 +435,7 @@
 								<input type="hidden" name="uploadPath"   id="uploadPath"   value="${bbsVO.uploadPath}" />
 								<input type="hidden" name="atclId"       id="atclId"       value="${bbsAtclVO.atclId}"/>
 								<input type="hidden" name="atclOptnId"   id="atclOptnId"   value="${bbsAtclVO.atclOptnId}">
+								<input type="hidden" name="sbjctId"      id="sbjctId"      value="${bbsAtclVO.sbjctId}">
 								<input type="hidden" name="optnUseyn"    id="optnUseyn"    value="Y">
 								<input type="hidden" name="delFileIdStr" id="delFileIdStr" value="" />
 

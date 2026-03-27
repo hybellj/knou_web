@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
+import knou.framework.common.IdPrefixType;
 import knou.framework.common.RepoInfo;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
@@ -13,6 +14,7 @@ import knou.framework.exception.BadRequestUrlException;
 import knou.framework.exception.MediopiaDefineException;
 import knou.framework.util.ExcelUtilPoi;
 import knou.framework.util.FileUtil;
+import knou.framework.util.IdGenUtil;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
@@ -32,6 +34,7 @@ import knou.lms.exam.facade.QuizFacadeService;
 import knou.lms.exam.service.*;
 import knou.lms.exam.vo.*;
 import knou.lms.exam.web.view.QuizMainView;
+import knou.lms.file.service.AttachFileService;
 import knou.lms.file.vo.AtflVO;
 import knou.lms.lesson.service.LessonScheduleService;
 import knou.lms.lesson.vo.LessonScheduleVO;
@@ -60,6 +63,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -70,6 +75,9 @@ public class QuizHomeController extends ControllerBase {
 
     @Resource(name="quizFacadeService")
     private QuizFacadeService quizFacadeService;
+
+    @Resource(name="attachFileService")
+    private AttachFileService attachFileService;
 
 
     @Resource(name="examService")
@@ -1431,6 +1439,7 @@ public class QuizHomeController extends ControllerBase {
 
         try {
         	List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+        	List<String> fileIdList = new ArrayList<>();
 
         	// 첨부파일
         	if (uploadFileList.size() > 0) {
@@ -1438,29 +1447,65 @@ public class QuizHomeController extends ControllerBase {
 		        	atflVO.setRefId(vo.getExamBscId());
 		        	atflVO.setRgtrId(vo.getRgtrId());
 		        	atflVO.setMdfrId(vo.getMdfrId());
-		        	atflVO.setAtflRepoId(CommConst.REPO_EXAM); // 첨부파일 저장소 아이디
+		        	atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+		        	fileIdList.add(atflVO.getAtflId());
 	        	}
 
 	        	// 첨부파일 저장
-	        	//attachFileDAO.insertAtflList(uploadFileList);
+	        	attachFileService.insertAtflList(uploadFileList);
         	}
+
+        	AtflVO atflVO = uploadFileList.get(0);
 
             //엑셀 읽기위한 정보값 세팅
             HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put("startRaw", 5);
+            map.put("startRaw", 4);
             map.put("excelGrid", vo.getExcelGrid());
-            //map.put("fileVO", fileVO);
+            map.put("atflVO", atflVO);
             map.put("searchKey", "excelUpload");
 
             //엑셀 리더
             ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
-            List<?> list = excelUtilPoi.simpleReadGrid(map);
+            List<Map<String, Object>> list = (List<Map<String, Object>>) excelUtilPoi.simpleReadGrid(map);
 
-            //읽어온 값으로 update
-            //examStareService.updateExampleExcelStareScore(vo, list);
+            // 퀴즈응시목록조회
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("examBscId", vo.getExamBscId());
+            List<EgovMap> tkexamList = tkexamService.quizTkexamList(params);
+
+            if(list.size() > 0) {
+            	// 성적등록용목록
+            	List<Map<String, Object>> scrList = new ArrayList<Map<String, Object>>();
+
+            	for(Map<String, Object> user : list) {
+            		String stdUserId = user.get("B").toString();
+            		Optional<EgovMap> result = tkexamList.stream()
+            			    .filter(tkexam -> stdUserId.equals(tkexam.get("userId")))
+            			    .findFirst();
+
+            		if(result.isPresent()) {
+            			Map<String, Object> scr = new HashMap<String, Object>();
+            			scr.put("examDtlId", result.get().get("examDtlId"));
+            			if(result.get().get("tkexamId") == null) {
+            				scr.put("tkexamId", IdGenUtil.genNewId(IdPrefixType.TKEXM));
+            			} else {
+            				scr.put("tkexamId", result.get().get("tkexamId"));
+            			}
+            			scr.put("userId", stdUserId);
+            			scr.put("scr", new BigDecimal(user.get("D").toString()));
+            			scr.put("scoreType", "batch");
+            			scr.put("rgtrId", vo.getRgtrId());
+            			scrList.add(scr);
+            		}
+            	}
+            	// 퀴즈점수엑셀일괄등록
+            	tkexamRsltService.profQuizEvlScrBulkModify(scrList);
+            }
+
+            // 첨부파일 삭제
+            attachFileService.deleteAtflByAtflIds(fileIdList.toArray(new String[0]));
+
             resultVO.setResult(1);
-            //resultVO.setMessage(getMessage("exam.alert.save.score"));/* 점수 저장이 완료되었습니다. */
-
         } catch(Exception e) {
             e.printStackTrace();
             resultVO.setResult(-1);

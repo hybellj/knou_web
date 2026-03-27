@@ -78,7 +78,7 @@ aside.common.class nav.gnb_class a:not(.current):hover:after { display: inline-b
 aside.common.class nav.gnb_class ul > *:first-child { padding-top: 8px; }
 aside.common.class nav.gnb_class ul > *:last-child { padding-bottom: 12px; }
 aside.common.class nav.gnb_class ul {background-color: hsl(213, 29%, 42%, .5); border-radius: var(--border-radius-10);}
-aside.common.class nav.gnb_class .gnb-item > a { --hh: 44px; display: flex; align-items: center; font-weight: 500; min-height: var(--hh); padding-left: .5rem; border-radius: 30px 0 0 30px; background-color:transparent; }
+aside.common.class nav.gnb_class .gnb-item > a { --hh: 44px; display: flex; align-items: center; font-weight: 500; min-height: var(--hh); padding-left: .5rem; border-radius: 30px; background-color:transparent; }
 aside.common.class nav.gnb_class .gnb-item > a > span { max-width: calc( 100% - 60px); white-space: nowrap; text-align: left; }
 aside.common.class.expanded nav.gnb_class .gnb-item > a > span { max-width: calc( 100% - 60px); white-space: normal; line-height: 1.2em; max-height: 3.6em; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: left; }
 aside.common.class nav.gnb_class .gnb-item > a >.bi, aside.common.class nav.gnb_class .gnb-item > a >i { flex: none; display: inline-flex; align-items: center; justify-content: center; min-height: calc(44px - 8px - 8px); width: 46px; border-radius: var(--border-radius-6px); }
@@ -94,10 +94,15 @@ aside.common.class .class-title { padding: 1rem 0 0rem 2.2rem; font-size: 2rem; 
 
 /* aside gnb menu - modify-new */
 .class-title {padding:.5rem 0 0 3.8rem; font-size: 3.2rem; font-weight: 600; color: var(--white-50); margin-bottom: .5rem; letter-spacing: -.05em;}
-aside.common.class .scrollarea {padding-right: 0; min-height: calc( 100% - 188px);
+/* aside.common.class .scrollarea {padding-right: 0; min-height: calc( 100% - 188px);
     scollbar-color: gray darkgray;
     scollbar-width: thin;
-	scrollbar-width: none; /* 파이어폭스, 크롬, 엣지 스크롤바 숨기기 */}
+    scrollbar-width: none;
+	} */
+aside.common.class .scrollarea::-webkit-scrollbar { width: 4px; }
+aside.common.class .scrollarea::-webkit-scrollbar-thumb { background-color: var(--white-40); border-radius: 10px; }
+aside.common.class .scrollarea::-webkit-scrollbar-track { background-color: hsla(0, 0%, 0%, 0.2); border-radius: 10px; }
+
 aside.common.class.expanded ~ .content-wrap.common {margin-left: 310px; margin-right: 0; width: calc(100% - 360px); display: flex; flex-direction: column; padding:18px 0 0 0; transition:none; background-color: #373F57;}
 
 
@@ -1003,6 +1008,31 @@ classroom - sub - common
 
 /* 루브릭 - 평가 */
 .rubrics_wrap {}
-.rubrics_wrap .rubrics_write .item {display: flex; align-items: center;}
-.rubrics_wrap .rubrics_write .item .label_num { width: 2rem;   background-color: #ebebeb;}
+.rubrics_wrap .rub_write {display: flex; flex-direction: column;}
+.rubrics_wrap .rub_write .eval_item {display: flex; flex-direction: column; gap: .8rem; margin-top: .8rem;}
+.rubrics_wrap .rub_write .eval_item .item {display: flex; }
+.rubrics_wrap .rub_write .eval_item .item .label_num { align-items: center; justify-content: center; width: 4rem; background-color: #ebebeb; border-radius: 5px 0 0 5px;}
+.rubrics_wrap .rub_write .eval_item .item .wide {flex: 1;}
+.rubrics_wrap .rub_write .eval_item .item .sm {border-left: 0; border-right: 0; width: 7rem; color:var(--blue-600);}
+.rubrics_wrap .rub_write .eval_item .item input {border-radius: 0; }
+.rubrics_wrap .rub_write .eval_item .item .btn.icon {border-radius: 0 5px 5px 0; }
+.rubrics_wrap .rub_write .eval_item .item .btn.icon i {font-size:1.5rem; }
+.rubrics_wrap .rub_grade {margin-top: 2rem;}
+.rubrics_wrap .rub_grade .board-title {font-size: 1.7rem;}
+.rubrics_wrap .rub_grade .board_top .board-title + .form-inline {margin-left: 2.8rem;}
+.rubrics_wrap .rub_grade .grade_item {display: flex; flex-direction: column; gap: .8rem; margin-top: 1.2rem;}
+.rubrics_wrap .rub_grade .grade_item .item {display: flex; gap: .8rem;}
+.rubrics_wrap .rub_grade .grade_item .item .wide {flex: 1;}
+@media(max-width:480px) {
+    .rubrics_wrap .rub_grade .board_top {flex-direction: column; align-items: flex-start;}
+    .rubrics_wrap .rub_grade .board_top .board-title + .form-inline {margin-left: 0;}
+    .rubrics_wrap .rub_grade .board_top .form-inline .custom-input input + label {margin-right: 1rem;}
+}
 
+/* 토론 */
+.board_card_list.class {grid-template-columns: repeat(3, 1fr);}
+.board_card_list.class .card_item .extra .desc p {border-bottom: 0; padding: .4rem 0;}
+.board_card_list.class .card_item .card_header {gap: 0;}
+.board_card_list.class .card_item .card_header .btn_right {margin-left: auto;}
+.board_card_list.class .card_item .card_header .label {border-radius: 4px;}
+.board_card_list.class .card_item .board_tit .labels {gap: 0rem; margin-bottom: .5rem;}

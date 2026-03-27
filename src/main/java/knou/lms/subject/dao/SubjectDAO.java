@@ -47,4 +47,6 @@ public interface SubjectDAO {
 	public int subjectConnectStdCntSelect(String sbjctId) throws Exception ;
 
 	public int subjectTotalStdCntSelect(String sbjctId) throws Exception ;
+
+	public EgovMap lctrWknoAtndcrtSelect(@Param("sbjctId") String sbjctId, @Param("lctrWknoSchdlId") String lctrWknoSchdlId) throws Exception;
 }

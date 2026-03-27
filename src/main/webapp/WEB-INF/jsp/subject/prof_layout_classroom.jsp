@@ -224,9 +224,9 @@ function loadLessonProgressManage(sbjctId) {
 
 								<div class="item attend">
                                     <div class="item_icon"><i class="icon-svg-pie-chart-01" aria-hidden="true"></i></div>
-                                    <div class="item_tit">${lctrWknoSchdlVO.lctrWkno}주차 출석 40 / 50</div>
+                                    <div class="item_tit">${lctrWknoSchdlVO.lctrWkno}주차 출석 ${lctrWknoAtndcrt.atndCnt} / ${sbjctTotalStdCnt}</div>
                                     <div class="item_info">
-                                        <span class="big">80</span>
+                                        <span class="big">${lctrWknoAtndcrt.atndRate}</span>
                                         <span class="small">%</span>
                                     </div>
                                 </div>

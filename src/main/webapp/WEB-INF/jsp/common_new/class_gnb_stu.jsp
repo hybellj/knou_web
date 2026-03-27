@@ -1,6 +1,31 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@page import="knou.lms.user.vo.UsrUserInfoVO"%>
+<%@page import="java.util.List"%>
+<%@page import="knou.lms.menu.vo.MenuVO"%>
+<%@page import="knou.framework.common.MenuInfo"%>
+<%@page import="knou.framework.common.ParamInfo"%>
+<%@page import="knou.framework.common.SessionInfo"%>
+<%@include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%
+String orgId = SessionInfo.getOrgId(request);
+String authrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
+String sbjctId = ParamInfo.getParamValue(request, "sbjctId");
+
+// 강의실메뉴 가져 오기
+MenuVO menuVO = new MenuVO();
+menuVO.setAuthrtGrpcd(authrtGrpcd);
+menuVO.setMenuGbncd("LECT");
+menuVO.setSbjctId(sbjctId);
+List<MenuVO> menuList = MenuInfo.getLectMenuInfo(request, menuVO);
+pageContext.setAttribute("menuList", menuList);
+%>
 
 	<aside id="gnb_class" class="common class gnb-menu expanded">
+		<form id="moveForm" method="post">
+			<input name="eparam" type="hidden" value="${eparam}">
+			<input name="extParam" type="hidden" value="">
+		</form>
+
         <div class="option-control-wrap">
 			<button type="button" class="btn border-0 btn-close ctrl-gnb">
 				<i class="icon-svg-close mobile-elem" aria-hidden="true"></i>
@@ -17,83 +42,34 @@
 		<div class="scrollarea">
             <!-- gnb menu -->
             <nav class="gnb_class">
+			    <c:forEach items="${menuList}" var="menu" varStatus="status">
+			        <div class="gnb-item">
+			            <%-- 상위 메뉴 --%>
+			            <a id="MENU_${menu.menuId}" href="#_" index="${status.index}"
+			                class="<c:if test='${menu.menuId == curMenuId or (empty curMenuId && status.index eq 0)}'>current</c:if>"
+			                onclick="moveMenu(this, '${menu.menuUrl}','${menu.upMenuId}', '${menu.menuId}', '${menu.menunm}', '${menu.linkTargetTycd}');return false;"
+			                title="${menu.menunm}">
+			                <i class="${menu.menuImgFileId}" aria-hidden="true"></i>
+			                <span>${menu.menunm}</span>
+			            </a>
 
-                <div class="gnb-item">
-                    <a href="#0" class="current"><i class="icon-svg-monitor" aria-hidden="true"></i><span>내강의실</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-notice" aria-hidden="true"></i><span>공지사항</span></a>
-                    <ul>
-                        <li><a href="#0"><span>2depth</span></a></li>
-                        <li><a href="#0"><span>2depth</span></a></li>
-                    </ul>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-save" aria-hidden="true"></i><span>강의자료실</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-question" aria-hidden="true"></i><span>강의Q&A</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-message" aria-hidden="true"></i><span>1:1상담</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-users-edit" aria-hidden="true"></i><span>팀게시판</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-edit" aria-hidden="true"></i><span>과제</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-quiz" aria-hidden="true"></i><span>퀴즈</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-check-done" aria-hidden="true"></i><span>설문</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-message-chat" aria-hidden="true"></i><span>토론</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-presentation" aria-hidden="true"></i><span>세미나</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-alarm-clock" aria-hidden="true"></i><span>시험</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-calendar" aria-hidden="true"></i><span>수업일정</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-folder-search" aria-hidden="true"></i><span>수강현황</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-file-check" aria-hidden="true"></i><span>강의평가</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-pie-chart" aria-hidden="true"></i><span>성적확인</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="/subject/sbjctAdmList.do?subjectId=SBJCT20260001" ><i class="icon-svg-user-square" aria-hidden="true"></i><span>교수/튜터/조교정보</span></a>
-                </div>
-
-                <div class="gnb-item">
-                    <a href="#0" ><i class="icon-svg-users-plus" aria-hidden="true"></i><span>팀구성</span></a>
-                </div>
-
+			            <%-- 서브 메뉴 --%>
+			            <c:if test="${not empty menu.subMenuList}">
+			                <ul id="SUB_${menu.menuId}">
+			                    <c:forEach items="${menu.subMenuList}" var="sub">
+			                        <li id="${sub.menuId}">
+			                            <a id="SUBMENU_${sub.menuId}" href="#_"
+			                                class="<c:if test='${sub.menuId == curMenuId}'>current</c:if>"
+			                                onclick="moveMenu(this, '${sub.menuUrl}', '${sub.upMenuId}', '${sub.menuId}', '${menu.menunm}', '${menu.linkTargetTycd}'); return false;"
+			                                title="${sub.menunm}">
+			                                <span>${sub.menunm}</span>
+			                            </a>
+			                        </li>
+			                    </c:forEach>
+			                </ul>
+			            </c:if>
+			        </div>
+			    </c:forEach>
             </nav>
             <!-- //gnb menu -->
 
@@ -101,3 +77,40 @@
 
 	</aside>
 
+	<script>
+	function initClassLnbMenu() {
+		/*
+    	// NAV 메뉴
+        $('#class_lnb ul > li').click(function() {
+            if ($(this).hasClass("open") != true) {
+                $('#class_lnb ul > li').removeClass("open");
+                $(this).addClass("open");
+            } else {
+                $('#class_lnb ul > li').removeClass("open");
+            }
+        });
+		*/
+    }
+
+	// 메뉴 이동
+	function moveMenu(obj, menuUrl, upMenuId, menuId, menuNm, linkTargetTycd){
+		if (menuUrl === '') {
+			return;
+		}
+
+		let extParam = UiComm.makeExtParam({upMenuId: upMenuId, menuId: menuId});
+		$("#moveForm input[name=extParam]").val(extParam);
+
+		// 타 사이트 호출
+		if (linkTargetTycd == "other") {
+			window.open(menuUrl, '_blank');
+		}
+		// self 표시
+		else {
+			$("#moveForm").attr("action", menuUrl);
+			$("#moveForm").submit();
+		}
+	}
+
+	initClassLnbMenu();
+	</script>

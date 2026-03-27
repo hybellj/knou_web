@@ -151,12 +151,6 @@ pageContext.setAttribute("auditYn", SessionInfo.getAuditYn(request)); // 청강�
 				TAB_MENU.addTabMenu(menuNm, menuUrl, upMenuId, menuId)
 			}
 		}
-		// 윈도우에 표시
-		else if (linkTargetTycd == "window") {
-			$("#moveForm").attr("action", menuUrl);
-			$("#moveForm").attr("target", "_blank");
-			$("#moveForm").submit();
-		}
 		// 타 사이트 호출
 		else if (linkTargetTycd == "other") {
 			window.open(menuUrl, '_blank');

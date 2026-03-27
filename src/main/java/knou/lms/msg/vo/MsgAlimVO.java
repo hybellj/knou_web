@@ -6,6 +6,7 @@ public class MsgAlimVO extends DefaultVO {
     private static final long serialVersionUID = 1L;
 
     private String sndngTycd;
+    private String mblSndngTycd;
     private int listCnt = 5;
 
     private String msgId;
@@ -30,6 +31,14 @@ public class MsgAlimVO extends DefaultVO {
 
     public void setSndngTycd(String sndngTycd) {
         this.sndngTycd = sndngTycd;
+    }
+
+    public String getMblSndngTycd() {
+        return mblSndngTycd;
+    }
+
+    public void setMblSndngTycd(String mblSndngTycd) {
+        this.mblSndngTycd = mblSndngTycd;
     }
 
     public int getListCnt() {

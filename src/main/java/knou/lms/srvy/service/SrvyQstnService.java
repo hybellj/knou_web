@@ -1,11 +1,14 @@
 package knou.lms.srvy.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
+import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.srvy.vo.SrvyQstnVO;
+import knou.lms.srvy.vo.SrvyVO;
 
 public interface SrvyQstnService {
 
@@ -97,5 +100,25 @@ public interface SrvyQstnService {
 	* @throws Exception
 	*/
 	public void srvyQstnCopy(List<Map<String, Object>> list) throws Exception;
+
+	/**
+	* 설문문항엑셀샘플데이터
+	*
+	* @param srvyId 	설문아이디
+	* @param excelGrid 	엑셀그리드
+	* @throws Exception
+	*/
+	public HashMap<String, Object> srvyQstnExcelSampleData(SrvyVO vo) throws Exception;
+
+	/**
+	* 설문문항엑셀업로드
+	*
+	* @param srvyId 		설문아이디
+    * @param uploadFiles 	파일목록
+    * @param uploadPath 	파일경로
+    * @param excelGrid 		엑셀그리드
+	* @throws Exception
+	*/
+	public ProcessResultVO<SrvyVO> srvyQstnExcelUpload(SrvyVO vo) throws Exception;
 
 }

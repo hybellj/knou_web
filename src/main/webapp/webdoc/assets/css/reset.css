@@ -739,7 +739,7 @@ label > input:not([type="checkbox"]):not([type="radio"]),
 label > select, label > textarea { width: 100%;}:focus-visible { outline: 2px solid var(--primary-500); border-color: transparent; }
 /* input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus { outline: 2px solid var(--primary-500); border-color: transparent; } */
 input:not([type="checkbox"]):not([type="radio"]):disabled, select:disabled, textarea:disabled { filter: contrast(85%); opacity: .6; cursor: not-allowed; }
-input:not([type="checkbox"]):not([type="radio"])[readonly], select[readonly], textarea[readonly] { cursor: not-allowed; }
+/* input:not([type="checkbox"]):not([type="radio"])[readonly], select[readonly], textarea[readonly] { cursor: not-allowed; } */
 
 /* @media(max-width:768px) {
 	label.type2:has(select) { flex: none; overflow: visible; }

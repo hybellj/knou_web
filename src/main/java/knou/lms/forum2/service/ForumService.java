@@ -15,7 +15,7 @@ public interface ForumService {
     ProcessResultVO<Forum2VO> modifyForumMrkOyn(Forum2VO vo) throws Exception;
     void updateForumMrkRfltrt(List<Forum2VO> list) throws Exception;
     ProcessResultVO<Forum2VO> saveForum(Forum2VO vo) throws Exception;
-    ProcessResultVO<Forum2VO> listMyCreCrsForum(Forum2VO vo) throws Exception;
+    ProcessResultVO<Forum2VO> selectProfSbjctForumList(Forum2VO vo) throws Exception;
     Forum2VO select(Forum2VO vo) throws Exception;
     ProcessResultVO<Forum2VO> deleteForum(Forum2VO vo) throws Exception;
     ProcessResultVO<Forum2VO> copyForum(Forum2VO vo) throws Exception;
@@ -23,4 +23,6 @@ public interface ForumService {
     ProcessResultVO<Forum2TeamDscsVO> selectForumLrnGrpTeamList(Forum2TeamDscsVO vo) throws Exception;
     void setScoreRatio(Forum2VO forumVO) throws Exception;
     EgovMap viewScoreChart(Forum2VO vo) throws Exception;
+    List<EgovMap> selectProfSmstrChrtList(Forum2VO vo) throws Exception;
+    List<EgovMap> selectProfSmstrChrtSbjctList(Forum2VO vo) throws Exception;
 }

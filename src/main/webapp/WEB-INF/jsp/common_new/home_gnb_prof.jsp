@@ -22,12 +22,6 @@ List<MenuVO> menuList = MenuInfo.getMenuInfo(request, menuVO);
 pageContext.setAttribute("menuList", menuList);
 %>
 
-<script type="text/javascript">
-	$(function(){
-		initClassLnbMenu();
-	});
-</script>
-
 	<aside id="gnb" class="common gnb-menu expanded">
 		<form id="moveForm" method="post">
 			<input name="menuNm" type="hidden" value="">
@@ -96,13 +90,10 @@ pageContext.setAttribute("menuList", menuList);
 		</div>
 	</aside>
 	<script>
+
+	// 메뉴 이벤트 설정
 	function initClassLnbMenu() {
-    	/********** NAV 메뉴 **********/
-        $('#class_lnb ul > li').each(function() {
-            if ($(this).find('ul').length == true) {
-                //$(this).addClass('sub-menu');
-            };
-        });
+    	/*
         $('#class_lnb ul > li').click(function() {
             if ($(this).hasClass("open") != true) {
                 $('#class_lnb ul > li').removeClass("open");
@@ -111,6 +102,7 @@ pageContext.setAttribute("menuList", menuList);
                 $('#class_lnb ul > li').removeClass("open");
             }
         });
+    	*/
     }
 
 	// 메뉴 이동
@@ -151,12 +143,6 @@ pageContext.setAttribute("menuList", menuList);
 				TAB_MENU.addTabMenu(menuNm, menuUrl, upMenuId, menuId)
 			}
 		}
-		// 윈도우에 표시
-		else if (linkTargetTycd == "window") {
-			$("#moveForm").attr("action", menuUrl);
-			$("#moveForm").attr("target", "_blank");
-			$("#moveForm").submit();
-		}
 		// 타 사이트 호출
 		else if (linkTargetTycd == "other") {
 			window.open(menuUrl, '_blank');
@@ -167,6 +153,8 @@ pageContext.setAttribute("menuList", menuList);
 			$("#moveForm").submit();
 		}
 	}
+
+	initClassLnbMenu();
 
 	</script>
 

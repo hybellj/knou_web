@@ -1,5 +1,6 @@
 package knou.lms.srvy.web.view;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +78,8 @@ public class SrvyMainView {
 	List<SrvyRspnsVO> srvyRspnsList;
 
 	List<EgovMap> srvyQstnRspnsDistributionList;
+
+	HashMap<String, Object> srvyQstnSampleMap;
 
 	public ProcessResultVO<EgovMap> getProfSrvyList() {
 		return profSrvyList;
@@ -324,6 +327,14 @@ public class SrvyMainView {
 
 	public void setSrvyQstnRspnsDistributionList(List<EgovMap> srvyQstnRspnsDistributionList) {
 		this.srvyQstnRspnsDistributionList = srvyQstnRspnsDistributionList;
+	}
+
+	public HashMap<String, Object> getSrvyQstnSampleMap() {
+		return srvyQstnSampleMap;
+	}
+
+	public void setSrvyQstnSampleMap(HashMap<String, Object> srvyQstnSampleMap) {
+		this.srvyQstnSampleMap = srvyQstnSampleMap;
 	}
 
 }

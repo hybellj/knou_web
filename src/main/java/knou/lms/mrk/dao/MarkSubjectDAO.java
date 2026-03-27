@@ -32,18 +32,22 @@ public interface MarkSubjectDAO {
 
     public List<EgovMap> stdMrkSbjctList(@Param("sbjctId")String sbjctId)throws Exception;
 
-    public EgovMap stdAttdSummaryByWeekSelect(@Param("sbjctId")String sbjctId, @Param("userId")String userId)throws Exception;
+    public List<EgovMap> stdAttdSummaryByWeekSelect(@Param("sbjctId")String sbjctId)throws Exception;
 
-    public List<MarkSubjectDetailVO> examScoreList(@Param("sbjctId")String sbjctId, @Param("searchKey")String searchKey)throws Exception;
-//
-//    public double asmtScoreList(String sbjctId) throws Exception;
-//
-//    public double dscsScoreList(String sbjctId) throws Exception;
-//
-//    public double quizScoreList(String sbjctId) throws Exception;
-//
-//    public double srvyScoreList(String sbjctId) throws Exception;
-//
-//    public double smnrScoreList(String sbjctId) throws Exception;
+    public List<EgovMap> examEvlScoreList(@Param("sbjctId")String sbjctId, @Param("searchKey")String searchKey)throws Exception;
+
+    public List<EgovMap> smnrEvlScoreList(@Param("sbjctId")String sbjctId) throws Exception;
+
+    public List<EgovMap> asmtEvlScoreList(String sbjctId) throws Exception;
+
+    public List<EgovMap> dscsEvlScoreList(String sbjctId) throws Exception;
+
+    public List<EgovMap> quizEvlScoreList(String sbjctId) throws Exception;
+
+    public List<EgovMap> srvyEvlScoreList(String sbjctId) throws Exception;
+
+    public int mrkSbjctBatchInsert(MarkSubjectVO vo)throws Exception;
+
+    public int mrkSbjctDtlBatchInsert(MarkSubjectDetailVO vo)throws Exception;
 
 }

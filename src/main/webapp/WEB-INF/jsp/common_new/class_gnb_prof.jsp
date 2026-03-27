@@ -24,8 +24,6 @@ pageContext.setAttribute("menuList", menuList);
 			<input name="extParam" type="hidden" value="">
 		</form>
 
-eparam=${eparam},${curMenuId}
-
         <div class="option-control-wrap">
 			<button type="button" class="btn border-0 btn-close ctrl-gnb">
 				<i class="icon-svg-close mobile-elem" aria-hidden="true"></i>
@@ -105,14 +103,8 @@ eparam=${eparam},${curMenuId}
 		let extParam = UiComm.makeExtParam({upMenuId: upMenuId, menuId: menuId});
 		$("#moveForm input[name=extParam]").val(extParam);
 
-		// 윈도우에 표시
-		if (linkTargetTycd == "window") {
-			$("#moveForm").attr("action", menuUrl);
-			$("#moveForm").attr("target", "_blank");
-			$("#moveForm").submit();
-		}
 		// 타 사이트 호출
-		else if (linkTargetTycd == "other") {
+		if (linkTargetTycd == "other") {
 			window.open(menuUrl, '_blank');
 		}
 		// self 표시

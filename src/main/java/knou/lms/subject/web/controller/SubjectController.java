@@ -100,13 +100,13 @@ public class SubjectController extends ControllerBase {
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 
-    	// 암호화 파라메터 설정
+    	// 	암호화 파라메터 설정
     	addEparam("sbjctId", sbjctId);
     	addEparam("orgId", vo.getOrgId());
 
     	LectureWknoScheduleVO lctrWknoSchdlVO = subjectService.currLctrWknoSchdlSelect(sbjctId);
     	model.addAttribute("lctrWknoSchdlVO", lctrWknoSchdlVO);
-
+    	
     	int connectStdCnt = subjectService.connectStdCntSelect(userCtx.getUserId());
     	model.addAttribute("connectStdCnt", connectStdCnt);
 
@@ -120,8 +120,8 @@ public class SubjectController extends ControllerBase {
     	model.addAttribute("sbjctTotalStdCnt", sbjctTotalStdCnt);
 
     	List<EgovMap> stdntSubjectConnectList = subjectService.stdntSubjectConnectList(sbjctId);
-    	model.addAttribute("stdntSubjectConnectList", stdntSubjectConnectList);
-
+    	model.addAttribute("stdntSubjectConnectList", stdntSubjectConnectList);  	
+    	
     	BaseParam param = new SubjectParam(sbjctId, userCtx, 3);
 
     	subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
@@ -143,10 +143,10 @@ public class SubjectController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value={"/sbjctAdmList.do"})
-    public String sbjctAdmList(HttpServletRequest request, ModelMap model) throws Exception {
+    public String sbjctAdmList(SubjectVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 
     	SubjectViewModel subjectVM = new SubjectViewModel();
-    	String subjectId = request.getParameter("subjectId");
+    	String sbjctId = vo.getSbjctId();
 
     	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
     	if ( null == userCtx ) {
@@ -154,18 +154,18 @@ public class SubjectController extends ControllerBase {
     		return "redirect:" + new URLBuilder("", "login.do",request).toString();
     	}
 
-    	if ( null == subjectId || "".equals(subjectId)) {
+    	if ( null == sbjctId || "".equals(sbjctId)) {
     		LOGGER.info("과목아이디가 없습니다.");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 
     	// 과목접근권한확인
-    	if ( ! subjectService.hasSubjectAuthority( subjectId, userCtx ) ) {
+    	if ( ! subjectService.hasSubjectAuthority( sbjctId, userCtx ) ) {
     		LOGGER.info("권한이 없습니다");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 
-    	BaseParam param = new SubjectParam(subjectId, userCtx, 3);
+    	BaseParam param = new SubjectParam(sbjctId, userCtx, 3);
 
     	subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
 
@@ -173,7 +173,7 @@ public class SubjectController extends ControllerBase {
     	model.addAttribute("subjectVM", subjectVM);
 
 
-    	List<EgovMap> users = subjectService.sbjctAdmList(subjectId);
+    	List<EgovMap> users = subjectService.sbjctAdmList(sbjctId);
 
     	model.addAttribute("users", users);
     	model.addAttribute("contentPage", "/WEB-INF/jsp/subject/sbjct_adm_list.jsp");

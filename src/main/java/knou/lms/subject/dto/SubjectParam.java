@@ -5,27 +5,27 @@ import knou.lms.common.dto.BaseParam;
 
 public class SubjectParam extends BaseParam {
 	
-	public SubjectParam(String subjectId) {
-		setSubjectId(subjectId);
+	public SubjectParam(String sbjctId) {
+		setSbjctId(sbjctId);
 	}
 	
-	public SubjectParam(String subjectId, UserContext userCtx) {
+	public SubjectParam(String sbjctId, UserContext userCtx) {
 		this.setOrgId(userCtx.getOrgId());
 		this.setUserId(userCtx.getUserId());
-		this.setSubjectId(subjectId);
+		this.setSbjctId(sbjctId);
 	}	
 	
-	public SubjectParam(String subjectId, UserContext userCtx, int limitTop) {
+	public SubjectParam(String sbjctId, UserContext userCtx, int limitTop) {
 		this.setOrgId(userCtx.getOrgId());
 		this.setUserId(userCtx.getUserId());
-		this.setSubjectId(subjectId);
+		this.setSbjctId(sbjctId);
 		this.setLimitTop(limitTop);
 	}	
 	
-	public SubjectParam(String orgId, String userId, String subjectId, int limitTop) {
+	public SubjectParam(String orgId, String userId, String sbjctId, int limitTop) {
 		this.setOrgId(orgId);
 		this.setUserId(userId);
-		this.setSubjectId(subjectId);
+		this.setSbjctId(sbjctId);
 		this.setLimitTop(limitTop);
 	}	
 }

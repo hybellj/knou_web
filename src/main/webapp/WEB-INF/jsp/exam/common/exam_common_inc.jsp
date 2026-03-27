@@ -1,9 +1,17 @@
 <%@page import="knou.framework.util.SessionUtil"%>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script type="text/javascript" src="/webdoc/js/chart.min.js"></script>
+<script type="text/javascript" src="/webdoc/js/Chart.PieceLabel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
 <script type="text/javascript">
 	window.closeModal = function() {
 	    $('.modal').modal('hide');
 	};
+
+    window.closeDialog = function() {
+        dialog.close();
+    };
 
 	var examCommon = {
 		// 모달 생성

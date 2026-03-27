@@ -181,5 +181,11 @@ public interface BbsInfoDAO {
      ******************************************************/
     public BbsVO selectBbs(BbsVO vo) throws Exception;
 
-
+    /*****************************************************
+     * 게시판 정보 저장
+     * @param vo
+     * @return BbsVO
+     * @throws Exception
+     ******************************************************/
+    public void bbsInfoRegist(BbsVO vo) throws Exception;
 }

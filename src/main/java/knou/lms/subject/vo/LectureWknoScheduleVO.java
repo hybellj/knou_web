@@ -13,6 +13,7 @@ public class LectureWknoScheduleVO  implements Serializable{
 	
 	String	lctrWknoSymd;
 	String	lctrWknoEymd;
+	String	lctrWknoSchdlId;
 	
 	public int getLctrWkno() {
 		return lctrWkno;
@@ -31,5 +32,8 @@ public class LectureWknoScheduleVO  implements Serializable{
 	}
 	public void setLctrWknoEymd(String lctrWknoEymd) {
 		this.lctrWknoEymd = lctrWknoEymd;
+	}
+	public String getLctrWknoSchdlId() {
+		return this.lctrWknoSchdlId;
 	}
 }

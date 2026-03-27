@@ -64,9 +64,9 @@
 let msgWidgetCat = "msgCat1";
 
 let WIDGET_CHNL_MAP = {
-	'msgCat2': { chnlCd: 'SMS',       targetId: '#widgetSmsList',  itemClass: 'sms',  listKey: 'smsList',  tycd: 'SMS' },
-	'msgCat3': { chnlCd: 'SHRTNT',    targetId: '#widgetMsgList',  itemClass: 'msg',  listKey: 'msgList',  tycd: 'SHRTNT' },
-	'msgCat4': { chnlCd: 'ALIM_TALK', targetId: '#widgetTalkList', itemClass: 'talk', listKey: 'talkList', tycd: 'ALIM_TALK' }
+	'msgCat2': { chnlCd: 'SMS',       targetId: '#widgetSmsList',  itemClass: 'sms',  listKey: 'list',  tycd: 'SMS' },
+	'msgCat3': { chnlCd: 'SHRTNT',    targetId: '#widgetMsgList',  itemClass: 'msg',  listKey: 'list',  tycd: 'SHRTNT' },
+	'msgCat4': { chnlCd: 'ALIM_TALK', targetId: '#widgetTalkList', itemClass: 'talk', listKey: 'list', tycd: 'ALIM_TALK' }
 };
 let widgetLoadedChnl = { 'msgCat1': true };
 

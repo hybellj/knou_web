@@ -111,6 +111,14 @@ public interface ClsService {
      ******************************************************/
     public List<ClsElemStatsVO> selectClsElemStatsListExcelDown(ClsElemStatsVO vo) throws Exception;
 
+    /**
+     * 수강생별 주차 학습상태 목록을 조회한다.
+     * @param ClsStdntVO
+     * @return List<ClsWkStsVO>
+     * @throws Exception
+     */
+    List<ClsWkStsVO> selectClsStdntWkStsList(ClsStdntVO vo) throws Exception;
+
     /*****************************************************
      * 수강생 상세 정보를 조회한다.
      * @param ClsStdntInfoVO

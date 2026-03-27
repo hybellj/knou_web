@@ -21,11 +21,9 @@ public interface Forum2DAO {
     int updateForumMrkOyn(Forum2VO vo);
     void updateForumMrkRfltrt(List<Forum2VO> list);
     int deleteForum(Forum2VO vo);
-    public List<Forum2VO> listMyCreCrsForum(Forum2VO vo) throws Exception;
+
     public Forum2VO select(Forum2VO vo) throws Exception;
-
     int copyForum(Forum2VO vo);
-
     int updateChildForumDelYn(Forum2VO vo);
     int updateChildForumDtls(Forum2TeamDscsVO vo);
 
@@ -33,13 +31,12 @@ public interface Forum2DAO {
     List<Forum2TeamDscsVO> selectForumLrnGrpTeamList(Forum2TeamDscsVO vo);
     int updateTeamDscsOyn(Forum2TeamDscsVO vo);
 
-    // 성적반영비율 토론 리스트
     public List<Forum2VO> getScoreRatio(Forum2VO vo) throws Exception;
 
-    // 성적반영비율 초기화
     public void setScoreRatio(Forum2VO vo) throws Exception;
-
-    // 성적분포현황 BarChart
     public EgovMap selectScoreChart(Forum2VO vo) throws Exception;
 
+    List<EgovMap> selectProfSmstrChrtList(Forum2VO vo);
+    List<EgovMap> selectProfSmstrChrtSbjctList(Forum2VO vo);
+    public List<Forum2VO> selectProfSbjctForumList(Forum2VO vo) throws Exception;
 }

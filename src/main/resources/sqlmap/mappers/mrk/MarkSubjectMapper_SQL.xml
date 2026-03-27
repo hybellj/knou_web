@@ -550,6 +550,123 @@
         )
     </delete>
 
+    <select id="examEvlScoreList" parameterType="String" resultType="egovMap" >
+        /*
+        SQL ID : markSubjectDAO.examScoreList
+        설  명 : 학습자들의 중간or기말고사 평가점수를 조회한다.
+        */
+        WITH
+        /*-- [과목 수강생 전체와 시험 기본정보 매핑]*/
+        BASE_INFO_LIST AS (
+            SELECT
+                  B.SBJCT_ID
+                , B.EXAM_BSC_ID
+                , B.MRK_RFLTRT
+                , A.USER_ID
+                , B.EXAM_GBNCD
+            FROM TB_LMS_ATNDLC  A
+            JOIN TB_LMS_EXAM_BSC B
+                ON A.SBJCT_ID = B.SBJCT_ID
+        <choose>
+            <when test="searchKey != null and searchKey == 'MIDEXAM'">
+                AND B.EXAM_GBNCD IN ('EXAM_MID', 'QUIZ_EXAM_MID', 'EXAM_MID_TEAM')
+            </when>
+            <when test="searchKey != null and searchKey == 'LSTEXAM'">
+                AND B.EXAM_GBNCD IN ('EXAM_LST', 'QUIZ_EXAM_LST', 'EXAM_LST_TEAM')
+            </when>
+        </choose>
+                AND B.MRK_RFLTYN = 'Y'
+                AND B.MRK_RFLTRT > 0
+                AND B.DELYN = 'N'
+                AND B.USEYN = 'Y'
+            WHERE 1=1
+                AND A.SBJCT_ID = #{sbjctId}
+                AND A.AUDITYN = 'N'
+                AND A.ATNDLC_CNCL_DTTM IS NULL
+        ),
+        /* -- [일반/재시험 점수 및 패널티 계산]*/
+        NORMAL_SCORE AS (
+            SELECT
+                  TK.USER_ID
+                , DTL.EXAM_BSC_ID
+                /*-- 미채점인경우 -1*/
+                , CASE WHEN RS.EVLYN = 'Y' THEN RS.TOT_SCR ELSE -1 END AS SCORE
+                , CASE WHEN (TK.RETKEXAM_YN = 'Y' AND DTL.REEXAMYN = 'Y')
+                    THEN (DTL.REEXAM_MRK_RFLTRT  / 100)
+                    ELSE 1
+                END AS PENALTY
+            FROM TB_LMS_TKEXAM TK
+            JOIN TB_LMS_TKEXAM_RSLT RS
+                ON TK.TKEXAM_ID = RS.TKEXAM_ID
+            JOIN TB_LMS_EXAM_DTL DTL
+                ON TK.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+                AND NOT EXISTS( -- 결시자 제외 (중복방지)
+                    SELECT 1
+                    FROM TB_LMS_EXAM_ABSNCE ABS
+                    WHERE ABS.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                    AND ABS.USER_ID = TK.USER_ID
+                    AND ABS.APLY_STSCD = 'APRV'
+                )
+        ),
+        /*--[결시자 확인 및 대체과제/시험 체크]*/
+        SUBSTITUTE_SCORE AS (
+            SELECT
+                  ABS.USER_ID
+                , ABS.EXAM_BSC_ID AS TARGET_BSC_ID
+                /*-- 대체 퀴즈/과제 중 점수 있는 것을 선택 AND 미채점인 경우 -1*/
+                , CASE WHEN (SB_QUIZ_RS.TKEXAM_ID IS NOT NULL AND SB_QUIZ_RS.EVLYN = 'N')
+                        OR (SB_ASMT_RS.ASMT_SBMSN_ID IS NOT NULL AND SB_ASMT_RS.EVLYN = 'N')
+                    THEN -1
+                    ELSE COALESCE(SB_QUIZ_RS.TOT_SCR, SB_ASMT_RS.SCR, 0)
+                END AS SUB_SCORE
+                , (ABS.ABSNCE_RFLTRT  / 100) AS ABS_PENALTY
+            FROM TB_LMS_EXAM_ABSNCE ABS
+            JOIN TB_LMS_EXAM_EVL_SBST SBST ON ABS.EXAM_BSC_ID = SBST.EXAM_BSC_ID
+            /*-- [경로 A: 대체 퀴즈 점수 조인]*/
+            LEFT JOIN TB_LMS_EXAM_DTL SB_QUIZ
+                ON SBST.EXAM_SBST_ID = SB_QUIZ.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM SB_QUIZ_TK
+                ON SB_QUIZ.EXAM_DTL_ID = SB_QUIZ_TK.EXAM_DTL_ID
+            LEFT JOIN TB_LMS_TKEXAM_RSLT SB_QUIZ_RS
+                ON SB_QUIZ_TK.TKEXAM_ID = SB_QUIZ_RS.TKEXAM_ID
+                AND ABS.USER_ID = SB_QUIZ_RS.USER_ID
+            /*-- [경로 B: 대체 과제 점수 조인]*/
+            LEFT JOIN TB_LMS_ASMT SB_ASMT
+                ON SBST.EXAM_SBST_ID = SB_ASMT.ASMT_ID
+            LEFT JOIN TB_LMS_ASMT_SBMSN SB_ASMT_TK
+                ON SB_ASMT.ASMT_ID = SB_ASMT_TK.ASMT_ID
+                AND ABS.USER_ID = SB_ASMT_TK.USER_ID
+            LEFT JOIN TB_LMS_ASMT_EVL SB_ASMT_RS
+                ON SB_ASMT_TK.ASMT_SBMSN_ID = SB_ASMT_RS.ASMT_SBMSN_ID
+            WHERE ABS.APLY_STSCD = 'APRV'
+        )
+        SELECT
+              A.SBJCT_ID
+            , A.USER_ID
+            , A.EXAM_BSC_ID
+            /*-- 최종 원점수(일반/재시험 점수 OR 결시 대체 점수)*/
+            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 OR MIN(NVL(C.SUB_SCORE, 0)) = -1
+                THEN -1
+                ELSE SUM(COALESCE(B.SCORE * B.PENALTY, C.SUB_SCORE * C.ABS_PENALTY, 0))
+            END AS RAW_SCORE
+            /*-- 성적 반영 비율 계산 최종점수 (최종 원점수 * 반영비율)*/
+            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 OR MIN(NVL(C.SUB_SCORE, 0)) = -1
+                THEN -1
+                ELSE SUM(COALESCE(B.SCORE * B.PENALTY, C.SUB_SCORE * C.ABS_PENALTY, 0 ) * (A.MRK_RFLTRT / 100))
+            END AS FINAL_SCORE
+        FROM BASE_INFO_LIST A
+        /*-- 일반/재시험 점수 매칭*/
+        JOIN NORMAL_SCORE B
+            ON A.USER_ID = B.USER_ID
+            AND A.EXAM_BSC_ID = B.EXAM_BSC_ID
+        /*-- 결시 대체 점수 매칭*/
+        LEFT JOIN SUBSTITUTE_SCORE C
+            ON A.USER_ID = C.USER_ID
+            AND A.EXAM_BSC_ID = C.TARGET_BSC_ID
+        GROUP BY A.SBJCT_ID, A.USER_ID
+        ORDER BY A.SBJCT_ID, A.USER_ID
+    </select>
+
     <select id="stdMrkSbjctList" parameterType="String" resultType="egovMap">
         /*
              SQL ID : markSubjectDAO.stdMrkSbjctList
@@ -577,7 +694,6 @@
             FROM TB_LMS_ATNDLC A
             JOIN TB_LMS_USER B
                 ON A.USER_ID = B.USER_ID
-                AND B.USER_ID = #{userId}
             WHERE A.SBJCT_ID = #{sbjctId}
                 AND A.ATNDLC_STSCD = 'ATNDLC'
         ), LESSON_CONTS AS ( -- 강의컨텐츠가 있는 주차 정보
@@ -624,117 +740,304 @@
         GROUP BY A.USER_ID
     </select>
 
-    <select id="examScoreList" parameterType="String" resultType="MarkSubjectDetailVO" >
+    <select id="smnrEvlScoreList" parameterType="String" resultType="egovMap">
         /*
-         SQL ID : markSubjectDAO.examScoreList
-         설  명 : 학습자들의 중간or기말고사 점수를 조회한다.
+         SQL ID : markSubjectDAO.smnrEvlScoreList
+         설  명 : 학습자들의 세미나 평가점수를 조회한다.
+        */
+        SELECT
+              SBJ.SBJCT_ID
+            , STD.USER_ID
+            , 100 AS RAW_SCORE /* 세미나 작업 전이라 임시로 100점 넣어둠 */
+        FROM TB_LMS_SMNR SMNR
+        JOIN TB_LMS_SBJCT SBJ
+            ON SMNR.SBJCT_ID = SBJ.SBJCT_ID
+            AND SBJ.SBJCT_ID = #{sbjctId}
+        JOIN TB_LMS_ATNDLC STD
+            ON SBJ.SBJCT_ID = STD.SBJCT_ID
+        WHERE 1=1
+            AND SMNR.DELYN = 'N'
+            AND SMNR.ATNDC_PROCYN = 'Y'
+        GROUP BY SBJ.SBJCT_ID, STD.USER_ID
+        ORDER BY SBJ.SBJCT_ID, STD.USER_ID
+    </select>
+
+    <select id="asmtEvlScoreList" parameterType="String" resultType="egovMap">
+        /*
+             SQL ID : markSubjectDAO.asmtEvlScoreList
+             설  명 : 학습자들의 과제 평가점수를 조회한다.
         */
         WITH
-        -- [과목 수강생 전체와 시험 기본정보 매핑]
+        /* 과목 수강생 + 기준과제(부모)정보 */
         BASE_INFO_LIST AS (
             SELECT
-                  B.SBJCT_ID
-                , B.EXAM_BSC_ID
+                  A.SBJCT_ID
+                , B.ASMT_ID AS BASE_ASMT_ID /*기준 과제 ID*/
+                , A.USER_ID
+                , B.MRK_RFLTRT /*반영비율*/
+            FROM TB_LMS_ATNDLC A
+            JOIN TB_LMS_ASMT B
+                ON A.SBJCT_ID = B.SBJCT_ID
+                AND A.SBJCT_ID = #{sbjctId}
+                AND B.UP_ASMT_ID IS NULL /*최상위 과제만 선택*/
+                AND B.MRK_RFLTYN = 'Y'
+                AND B.MRK_RFLTRT > 0
+                AND B.ASMT_GBNCD IN ('ASMT', 'ASMT_TEAM', 'PRCTC_ASMT', 'PRCTC_ASMT_TEAM')
+                AND B.DELYN = 'N'
+        ),
+        /* 과제 제출 및 평가점수 추출(최신건 기준) */
+        ASMT_SCORE AS (
+            SELECT
+                  ASMT.SBJCT_ID
+                /*팀과제면 부모 ID, 개인과제면 자기자신ID를 기준ID로 설정*/
+                , NVL(ASMT.UP_ASMT_ID, ASMT.ASMT_ID) AS BASE_ASMT_ID
+                , SBM.USER_ID
+                , CASE WHEN EVL.EVLYN = 'Y' THEN EVL.SCR ELSE -1 END AS SCORE
+                /* 팀과제의 경우 부모ID에서 재시험반영비율 가져옴 */
+                , CASE WHEN SBM.RESBMSNYN = 'Y'
+                    THEN ( CASE WHEN ASMT.UP_ASMT_ID IS NULL
+                        THEN (ASMT.RESBMSN_MRK_RFLTRT / 100)
+                        ELSE (NVL(UP.RESBMSN_MRK_RFLTRT, ASMT.RESBMSN_MRK_RFLTRT) / 100)
+                    END )
+                    ELSE 1
+                END AS PENALTY
+            FROM (
+                SELECT
+                      ROW_NUMBER()OVER(PARTITION BY A.ASMT_ID, A.USER_ID ORDER BY A.REG_DTTM DESC) AS RN
+                    , A.ASMT_ID
+                    , A.ASMT_SBMSN_ID
+                    , A.USER_ID
+                    , A.RESBMSNYN
+                FROM TB_LMS_ASMT_SBMSN A
+            ) SBM
+            JOIN TB_LMS_ASMT ASMT
+                ON SBM.ASMT_ID = ASMT.ASMT_ID
+            /*부모 정보 조인용*/
+            LEFT JOIN TB_LMS_ASMT UP
+                ON ASMT.UP_ASMT_ID = UP.ASMT_ID
+            LEFT JOIN TB_LMS_ASMT_EVL EVL
+                ON SBM.ASMT_SBMSN_ID = EVL.ASMT_SBMSN_ID
+            WHERE SBM.RN = 1
+        )
+        SELECT
+              A.SBJCT_ID
+            , A.USER_ID
+            /*-- 하나라도 미채점(-1)이 있으면 전체 -1, 아니면 합산*/
+            , CASE WHEN MIN(NVL(B.SCORE,0)) = -1
+                THEN -1
+                ELSE SUM(NVL(B.SCORE, 0) * B.PENALTY)
+            END AS RAW_SCORE
+            /* 반영비율이 계산된 최종 점수*/
+            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1
+                THEN -1
+                ELSE SUM(NVL(B.SCORE, 0) * B.PENALTY * (A.MRK_RFLTRT / 100))
+            END AS FINAL_SCORE
+        FROM BASE_INFO_LIST A
+        JOIN ASMT_SCORE B
+            ON A.USER_ID = B.USER_ID
+            AND A.BASE_ASMT_ID = B.BASE_ASMT_ID
+        GROUP BY A.SBJCT_ID, A.USER_ID
+        ORDER BY A.SBJCT_ID, A.USER_ID
+    </select>
+
+    <select id="dscsEvlScoreList" parameterType="String" resultType="egovMap">
+        /*
+             SQL ID : markSubjectDAO.dscsEvlScoreList
+             설  명 : 학습자들의 토론 평가점수를 조회한다.
+        */
+        WITH
+            BASE_INFO_LIST AS (
+                SELECT
+                      A.SBJCT_ID
+                    , B.DSCS_ID AS BASE_DSCS_ID /*기준 토론 ID*/
+                    , B.MRK_RFLTRT
+                    , A.USER_ID
+                FROM TB_LMS_ATNDLC A
+                JOIN TB_LMS_DSCS B
+                    ON A.SBJCT_ID = B.SBJCT_ID
+                    AND B.SBJCT_ID = #{sbjctId}
+                    AND B.UP_DSCS_ID IS NULL /*최상위 토론만 선택*/
+                    AND B.MRK_RFLTYN = 'Y'
+                    AND B.MRK_RFLTRT > 0
+                    AND B.DELYN = 'N'
+            ),
+            DSCS_SCORE AS (
+                SELECT
+                      DSCS.DSCS_ID
+                    /*팀토론이면 부모ID, 일반토론이면 자기자신ID를 기준ID로 설정*/
+                    , NVL(DSCS.UP_DSCS_ID, DSCS.DSCS_ID) AS BASE_DSCS_ID
+                    , PTCT.USER_ID
+                    , CASE WHEN PTCT.EVLYN = 'Y' THEN PTCT.SCR ELSE -1 END AS SCORE
+                FROM TB_LMS_DSCS_PTCP PTCT
+                JOIN TB_LMS_DSCS DSCS
+                    ON PTCT.DSCS_ID = DSCS.DSCS_ID
+                LEFT JOIN TB_LMS_DSCS UP
+                    ON DSCS.UP_DSCS_ID = UP.DSCS_ID
+            )
+            SELECT
+                  A.SBJCT_ID
+                , A.USER_ID
+                , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE, 0)) END AS RAW_SCORE
+                , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE, 0) * A.MRK_RFLTRT / 100) END AS FINAL_SCORE
+            FROM BASE_INFO_LIST A
+            JOIN DSCS_SCORE B
+                ON A.USER_ID = B.USER_ID
+                AND A.BASE_DSCS_ID = B.BASE_DSCS_ID
+            GROUP BY A.SBJCT_ID, A.USER_ID
+            ORDER BY A.SBJCT_ID, A.USER_ID
+    </select>
+
+    <select id="quizEvlScoreList" parameterType="String" resultType="egovMap">
+        /*
+             SQL ID : markSubjectDAO.quizEvlScoreList
+             설  명 : 학습자들의 퀴즈 평가점수를 조회한다.
+        */
+        WITH
+            BASE_INFO_LIST AS (
+                SELECT
+                      A.SBJCT_ID
+                    , B.EXAM_BSC_ID
+                    , A.USER_ID
+                    , B.MRK_RFLTRT
+                FROM TB_LMS_ATNDLC A
+                JOIN TB_LMS_EXAM_BSC B
+                    ON A.SBJCT_ID = B.SBJCT_ID
+                    AND B.SBJCT_ID = #{sbjctId}
+                    AND B.EXAM_TYCD = 'QUIZ'
+                    AND B.EXAM_GBNCD IN ('QUIZ', 'QUIZ_TEAM')
+                    AND B.MRK_RFLTYN = 'Y'
+                    AND B.MRK_RFLTRT > 0
+                    AND B.DELYN = 'N'
+                    AND B.USEYN = 'Y'
+            ),
+        QUIZ_SCORE AS (
+            SELECT
+                  K.USER_ID
+                , DTL.EXAM_BSC_ID
+                /*미채점인 경우 -1*/
+                , CASE WHEN RS.EVLYN = 'Y' THEN RS.TOT_SCR ELSE -1 END AS SCORE
+                , CASE WHEN (TK.RETKEXAM_YN = 'Y' AND DTL.REEXAMYN = 'Y')
+                    THEN (DTL.REEXAM_MRK_RFLTRT  / 100)
+                     ELSE 1
+                END AS PENALTY
+            FROM TB_LMS_TKEXAM TK
+                JOIN TB_LMS_TKEXAM_RSLT RS
+                    ON TK.TKEXAM_ID = RS.TKEXAM_ID
+                JOIN TB_LMS_EXAM_DTL DTL
+                    ON TK.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+        )
+        SELECT
+              A.SBJCT_ID
+            , A.USER_ID
+            /*최종 원점수(일반/재시험 점수)*/
+            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE,0) * B.PENALTY) END AS RAW_SCORE
+            /* 성적반영비율 계산 최종점수 */
+            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE,0) * B.PENALTY  * (A.MRK_RFLTRT / 100)) END AS FINAL_SCORE
+        FROM BASE_INFO_LIST A
+        JOIN QUIZ_SCORE B
+            ON A.USER_ID = B.USER_ID
+            AND A.EXAM_BSC_ID = B.EXAM_BSC_ID
+        GROUP BY A.SBJCT_ID, A.USER_ID
+        ORDER BY A.SBJCT_ID, A.USER_ID
+    </select>
+
+    <select id="srvyEvlScoreList" parameterType="String" resultType="egovMap">
+        /*
+             SQL ID : markSubjectDAO.srvyScoreEvlList
+             설  명 : 학습자들의 설문 평가점수를 조회한다.
+        */
+        WITH
+        BASE_INFO_LIST AS (
+            SELECT
+                  A.SBJCT_ID
+                , B.SRVY_ID AS BASE_SRVY_ID
                 , B.MRK_RFLTRT
                 , A.USER_ID
-                , B.EXAM_GBNCD
-            FROM TB_LMS_ATNDLC  A
-            JOIN TB_LMS_EXAM_BSC B
+            FROM TB_LMS_ATNDLC A
+            JOIN TB_LMS_SRVY B
                 ON A.SBJCT_ID = B.SBJCT_ID
-            <choose>
-                <when test="searchKey != null and searchKey == 'MIDEXAM'">
-                    AND B.EXAM_GBNCD IN ('EXAM_MID', 'QUIZ_EXAM_MID', 'EXAM_MID_TEAM')
-                </when>
-                <when test="searchKey != null and searchKey == 'LSTEXAM'">
-                    AND B.EXAM_GBNCD IN ('EXAM_LST', 'QUIZ_EXAM_LST', 'EXAM_LST_TEAM')
-                </when>
-            </choose>
-            WHERE 1=1
+                AND B.SBJCT_ID =''
+                AND B.UP_SRVY_ID IS NULL /*최상위 설문만 선택*/
                 AND B.MRK_RFLTYN = 'Y'
                 AND B.MRK_RFLTRT > 0
                 AND B.DELYN = 'N'
                 AND B.USEYN = 'Y'
         ),
-        -- [일반/재시험 점수 및 패널티 계산]
-        NORMAL_SCORE AS (
+        SRVY_SCORE AS (
             SELECT
-                  TK.USER_ID
-                , DTL.EXAM_BSC_ID
-                -- 미채점인경우 -1
-                , (CASE WHEN RS.EVLYN = 'Y' THEN RS.TOT_SCR ELSE -1 END) AS SCORE
-                , CASE WHEN (TK.RETKEXAM_YN = 'Y' AND DTL.REEXAMYN = 'Y')
-                    THEN (DTL.REEXAM_MRK_RFLTRT  / 100)
-                    ELSE 1
-                END AS PENALTY
-            FROM TB_LMS_TKEXAM TK
-            JOIN TB_LMS_TKEXAM_RSLT RS
-                ON TK.TKEXAM_ID = RS.TKEXAM_ID
-            JOIN TB_LMS_EXAM_DTL DTL
-                ON TK.EXAM_DTL_ID = DTL.EXAM_DTL_ID
-                AND NOT EXISTS( -- 결시자 제외 (중복방지)
-                    SELECT 1
-                    FROM TB_LMS_EXAM_ABSNCE ABS
-                    WHERE ABS.EXAM_BSC_ID = DTL.EXAM_BSC_ID
-                    AND ABS.USER_ID = TK.USER_ID
-                    AND ABS.APLY_STSCD = 'APRV'
-                )
-        ),
-        --[결시자 확인 및 대체과제/시험 체크]
-        SUBSTITUTE_SCORE AS (
-            SELECT
-                  ABS.USER_ID
-                , ABS.EXAM_BSC_ID AS TARGET_BSC_ID
-                -- 대체 퀴즈/과제 중 점수 있는 것을 선택 AND 미채점인 경우 -1
-                , CASE WHEN (SB_QUIZ_RS.TKEXAM_ID IS NOT NULL AND SB_QUIZ_RS.EVLYN = 'N')
-                        OR (SB_ASMT_RS.ASMT_SBMSN_ID IS NOT NULL AND SB_ASMT_RS.EVLYN = 'N')
-                    THEN -1
-                    ELSE COALESCE(SB_QUIZ_RS.TOT_SCR, SB_ASMT_RS.SCR, 0)
-                END AS SUB_SCORE
-                , (ABS.ABSNCE_RFLTRT  / 100) AS ABS_PENALTY
-            FROM TB_LMS_EXAM_ABSNCE ABS
-            JOIN TB_LMS_EXAM_EVL_SBST SBST ON ABS.EXAM_BSC_ID = SBST.EXAM_BSC_ID
-            -- [경로 A: 대체 퀴즈 점수 조인]
-            LEFT JOIN TB_LMS_EXAM_DTL SB_QUIZ
-                ON SBST.EXAM_SBST_ID = SB_QUIZ.EXAM_BSC_ID
-            LEFT JOIN TB_LMS_TKEXAM SB_QUIZ_TK
-                ON SB_QUIZ.EXAM_DTL_ID = SB_QUIZ_TK.EXAM_DTL_ID
-            LEFT JOIN TB_LMS_TKEXAM_RSLT SB_QUIZ_RS
-                ON SB_QUIZ_TK.TKEXAM_ID = SB_QUIZ_RS.TKEXAM_ID
-                AND ABS.USER_ID = SB_QUIZ_RS.USER_ID
-            -- [경로 B: 대체 과제 점수 조인]
-            LEFT JOIN TB_LMS_ASMT SB_ASMT
-                ON SBST.EXAM_SBST_ID = SB_ASMT.ASMT_ID
-            LEFT JOIN TB_LMS_ASMT_SBMSN SB_ASMT_TK
-                ON SB_ASMT.ASMT_ID = SB_ASMT_TK.ASMT_ID
-                AND ABS.USER_ID = SB_ASMT_TK.USER_ID
-            LEFT JOIN TB_LMS_ASMT_EVL SB_ASMT_RS
-                ON SB_ASMT_TK.ASMT_SBMSN_ID = SB_ASMT_RS.ASMT_SBMSN_ID
-            WHERE ABS.APLY_STSCD = 'APRV'
+                  SRVY.SRVY_ID
+                /*팀설문이면 부모ID, 일반설문이면 자기자신ID를 기준ID로 설정*/
+                , NVL(SRVY.UP_SRVY_ID, SRVY.SRVY_ID ) AS BASE_SRVY_ID
+                , PTCP.USER_ID
+                , CASE WHEN PTCP.SRVY_PTCP_EVLYN = 'Y' THEN PTCP.PTCP_EVL_SCR ELSE -1 END AS SCORE
+            FROM TB_LMS_SRVY_PTCP PTCP
+            JOIN TB_LMS_SRVY SRVY
+                ON PTCP.SRVY_ID = PTCP.SRVY_ID
+            LEFT JOIN TB_LMS_SRVY UP
+                ON SRVY.UP_SRVY_ID = UP.SRVY_ID
         )
         SELECT
-              A.USER_ID
-            , A.EXAM_GBNCD
-            , A.EXAM_BSC_ID
-            -- 최종 원점수(일반/재시험 점수 OR 결시 대체 점수)
-            , CASE WHEN (NVL(B.SCORE, 0) = -1 OR NVL(C.SUB_SCORE, 0) = -1)
-                THEN -1
-                ELSE COALESCE(B.SCORE * B.PENALTY, C.SUB_SCORE * C.ABS_PENALTY, 0)
-            END AS RAW_SCORE
-            -- 성적 반영 비율 계산 최종점수 (최종 원점수 * 반영비율)
-            , CASE WHEN (NVL(B.SCORE, 0) = -1 OR NVL(C.SUB_SCORE, 0) = -1)
-                THEN -1
-                ELSE COALESCE(B.SCORE * B.PENALTY, C.SUB_SCORE * C.ABS_PENALTY, 0 ) * (A.MRK_RFLTRT / 100)
-            END AS FINAL_SCORE
+              A.SBJCT_ID
+            , A.USER_ID
+            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE, 0)) END AS RAW_SCORE
+            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE, 0) * A.MRK_RFLTRT / 100) END AS FINAL_SCORE
         FROM BASE_INFO_LIST A
-        -- 일반/재시험 점수 매칭
-        LEFT JOIN NORMAL_SCORE B
+        JOIN SRVY_SCORE B
             ON A.USER_ID = B.USER_ID
-            AND A.EXAM_BSC_ID = B.EXAM_BSC_ID
-        -- 결시 대체 점수 매칭
-        LEFT JOIN SUBSTITUTE_SCORE C
-            ON A.USER_ID = C.USER_ID
-            AND A.EXAM_BSC_ID = C.TARGET_BSC_ID
-        ORDER BY A.SBJCT_ID , A.EXAM_BSC_ID , A.USER_ID
+            AND A.BASE_SRVY_ID = B.BASE_SRVY_ID
+        GROUP BY A.SBJCT_ID, A.USER_ID
+        ORDER BY A.SBJCT_ID, A.USER_ID
     </select>
+
+
+
+    <insert id="mrkSbjctBatchInsert" parameterType="java.util.List">
+        INSERT INTO TB_LMS_MRK_SBJCT (
+              MRK_SBJCT_ID
+            , USER_ID
+            , SBJCT_ID
+            , SCR_CNVS_STSCD
+            , RGTR_ID
+            , REG_DTTM
+            , TOT_SCR
+            , LST_SCR
+            , ADTN_SCR
+        )
+        <foreach collection="list" item="item" separator="UNION ALL">
+            SELECT
+                  #{item.mrkSbjctId}
+                , #{item.userId}
+                , #{item.sbjctId}
+                , #{item.scrCnvsStsCd}
+                , #{item.rgtrId},
+                , FN_DTTM()
+                , #{item.totScr}
+                , #{item.lstScr}
+                , #{item.adtnScr}
+            FROM DUAL
+        </foreach>
+    </insert>
+
+
+    <insert id="mrkSbjctDtlBatchInsert" parameterType="markSubjectDetailVO">
+        INSERT INTO TB_LMS_MRK_SBJCT_DTL (
+              MRK_SBJCT_DTL_ID
+            , MRK_SBJCT_ID
+            , MRK_ITM_TYCD
+            , SCR
+            , RGTR_ID
+            , REG_DTTM
+        )
+        <foreach collection="list" item="item" separator="UNION ALL">
+            SELECT
+                  #{item.mrkSbjctDtlIdId}
+                , #{item.mrkSjbctId}
+                , #{item.mrkItmTycd}
+                , #{item.scr}
+                , #{item.rgtrId}
+                , FN_DTTM()
+            FROM DUAL
+        </foreach>
+    </insert>
 
 </mapper>

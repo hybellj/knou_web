@@ -349,8 +349,8 @@
     var dvclasNo = "${param.dvclasNo}";
     var initTab  = "${initTab}";
 
-    // 동적 주차 수
-    var MAX_WK = ${not empty wkCnt ? wkCnt : 15};
+    // 주차 수
+    var MAX_WK = Number("${wkCnt}");
 
     // TAB1 페이징
     var stdntCurrentPageNo  = 1;
@@ -429,7 +429,7 @@
         $.ajax({
             url: CTX + "/cls/selectClsWklyStats.do",
             type: "GET", dataType: "json",
-            data: { sbjctId: sbjctId },
+            data: { sbjctId: sbjctId , dvclasNo: dvclasNo },
             success: function (res) {
                 var $body = $("#wklyBody").empty();
                 if (!res || res.result !== 1 || !res.returnList || res.returnList.length === 0) {
@@ -542,6 +542,11 @@
                     var uid   = (item.userId || '');
                     var chkId = 'chkStdnt_' + idx;
 
+                    var wkMap = {};
+                    (item.wkStsList || []).forEach(function (x) {
+                        wkMap[x.wkNo] = x.atndSts;
+                    });
+
                     var row = '<tr>'
                         + '<td class="t_center"><span class="custom-input onlychk">'
                         + '<input type="checkbox" id="' + chkId + '"'
@@ -558,7 +563,7 @@
                         + '<td class="t_center" data-th="학년">'    + (item.scyr   || '-') + '</td>';
 
                     for (var w = 1; w <= MAX_WK; w++) {
-                        row += wkCell(uid, w, item['wk' + w + 'Sts']);
+                        row += wkCell(uid, w, wkMap[w]);
                     }
 
                     row += '<td class="t_center" data-th="출석/지각/결석">'
@@ -603,7 +608,7 @@
         e.preventDefault();
         var userId = $(this).data("userId");
         if (!userId) { UiComm.showMessage("userId가 없습니다.", "warning"); return; }
-        UiDialog("stdntWkPop", {
+        UiDialog("stdntLrnPop", {
             title: "학습자 학습현황",
             width: 1140, height: 820,
             url: CTX + "/cls/selectStdntWkPopupView.do?sbjctId=" + encodeURIComponent(sbjctId)
@@ -621,7 +626,7 @@
         var userId = $(this).data("userId");
         var wkNo   = $(this).data("wkNo");
         if (!userId) { UiComm.showMessage("userId가 없습니다.", "warning"); return; }
-        UiDialog("stdntWkDetailPop_" + userId + "_" + wkNo, {
+        UiDialog("stdntWeekLrnPop_" + userId + "_" + wkNo, {
             title: "학습자 주차별 학습현황",
             width: 1140, height: 820,
             url: CTX + "/cls/selectStdntWkDetailPopupView.do?sbjctId=" + encodeURIComponent(sbjctId)
@@ -815,7 +820,7 @@
         e.preventDefault();
         var userId = $(this).data("userId");
         if (!userId) { UiComm.showMessage("userId가 없습니다.", "warning"); return; }
-        UiDialog("stdntWkPop_" + userId, {
+        UiDialog("stdntLrnPop_" + userId, {
             title: "학습자 학습현황",
             width: 1140, height: 820,
             url: CTX + "/cls/selectStdntWkPopupView.do?sbjctId=" + encodeURIComponent(sbjctId)

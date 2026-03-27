@@ -738,8 +738,10 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
             // TODO -->> 내용은 저장할때 태그 제거하지 않고 내용 조회할때 태그제거하도록 변경해야함...
             //vo.setAtclCts(StringUtil.removeScript(vo.getAtclCts()));
 
-            // 수정
+            // 수정 - 게시글
             bbsAtclDAO.updateBbsAtcl(vo);
+            // 수정 - 게시글 옵션
+            bbsAtclDAO.bbsAtclOptnRegist(vo);
 
             // 첨부파일
             if (uploadFileList.size() > 0) {

@@ -124,4 +124,22 @@
 		 </choose>
 	</select>
 
+	<delete id="srvyQstnListVwitmLvlAllDelete" parameterType="srvyVO">
+		/*
+             SQL ID : SrvyQstnVwitmLvlDAO.srvyQstnListVwitmLvlAllDelete
+             설  명  : 설문문항목록보기항목레벨전체삭제
+         */
+        DELETE FROM TB_LMS_SRVY_QSTN_VWITM_LVL
+	     WHERE SRVY_QSTN_ID IN (
+	    		SELECT
+					SRVY_QSTN_ID
+				  FROM TB_LMS_SRVY_QSTN QSTN
+				  JOIN TB_LMS_SRVYPPR SRVYPPR
+				    ON QSTN.SRVYPPR_ID = SRVYPPR.SRVYPPR_ID
+				  JOIN TB_LMS_SRVY SRVY
+				    ON SRVYPPR.SRVY_ID = SRVY.SRVY_ID
+				 WHERE SRVY.SRVY_ID = #{srvyId}
+	    	)
+	</delete>
+
 </mapper>

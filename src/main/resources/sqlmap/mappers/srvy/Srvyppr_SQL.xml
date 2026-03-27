@@ -45,7 +45,14 @@
 	        	, #{srvyId} AS SRVY_ID
 	        	, #{srvyTtl} AS SRVY_TTL
 	        	, #{srvyCts} AS SRVY_CTS
+	        	<choose>
+	        		<when test="srvySeqno != null">
+	        	, #{srvySeqno} AS SRVY_SEQNO
+	        		</when>
+	        		<otherwise>
 	        	, (SELECT NVL(MAX(SRVY_SEQNO), 0) + 1 FROM TB_LMS_SRVYPPR WHERE SRVY_ID = #{srvyId}) AS SRVY_SEQNO
+	        		</otherwise>
+	        	</choose>
 	        	, #{rgtrId} AS RGTR_ID
 	          FROM DUAL
 	    ) PPR
@@ -167,5 +174,42 @@
 						ELSE SRVYPPR.SRVY_SEQNO - 1
 					END
 	</update>
+
+	<delete id="srvypprAllDelete" parameterType="srvyVO">
+		/*
+             SQL ID : SrvypprDAO.srvypprAllDelete
+             설  명  : 설문지전체삭제
+         */
+        DELETE FROM TB_LMS_SRVYPPR
+         WHERE SRVY_ID = #{srvyId}
+	</delete>
+
+	<insert id="srvypprBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : SrvypprDAO.srvypprBulkRegist
+             설  명 : 설문지일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_SRVYPPR (
+	         	  SRVYPPR_ID
+				, SRVY_ID
+				, SRVY_TTL
+				, SRVY_CTS
+				, SRVY_SEQNO
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.srvypprId}
+				, #{item.srvyId}
+				, #{item.srvyTtl}
+				, #{item.srvyCts}
+				, #{item.srvySeqno}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
 
 </mapper>

@@ -149,6 +149,7 @@
 		    		$("#"+srvypprId+"QstnForm .qstnTypeDiv > table > tbody").append(html);
 		    		$("#"+srvypprId+"QstnForm .qstnTypeDiv select[name=mvmnSrvyQstnId]").chosen({disable_search: true});
 		    		$("#"+srvypprId+"QstnForm .qstnTypeDiv .etcSelectDiv").hide();
+		    		initSrvypprMvmn(srvypprId, "");	// 다음설문지아이디 초기화
 			},
 			/**
 			 * 레벨형 문항 HTML 추가
@@ -368,7 +369,7 @@
 							html += "	</div>";
 							html += "	<div class='padding-3 margin-top-0 srvyQstnDiv'>";
 							v.qstn.forEach(function(vv, ii) {
-								html += "	<div class='sub-content-box board_top sortQstnDiv' data-id='" + vv.srvyQstnId + "' data-seqno='" + vv.qstnSeqno + "' data-pprid='" + vv.srvypprId + "'>";
+								html += "	<div class='sub-content-box board_top sortQstnDiv' data-id='" + vv.srvyQstnId + "' data-seqno='" + vv.qstnSeqno + "' data-pprid='" + vv.srvypprId + "' data-mvmnyn='" + vv.srvyMvmnUseyn + "'>";
 	        					html += "		<i class='xi-arrows-v icon-chg'></i>";
 	        					html += "		<span>" + v.srvySeqno + ". " + vv.qstnSeqno + "</span>";
 	        					html += "		<a href='javascript:qstnModFrmView(\"" + v.srvypprId + "\", \"" + vv.srvyQstnId + "\")'>" + escapeHtml(vv.qstnTtl) + "</a>";
@@ -466,8 +467,7 @@
 				title: "페이지 추가",
 				width: 800,
 				height: 500,
-				url: "/srvy/profSrvypprRegistPopup.do?srvyId="+$("#srvyId").val(),
-				autoresize: true
+				url: "/srvy/profSrvypprRegistPopup.do?srvyId="+$("#srvyId").val()
 			});
 	    }
 
@@ -587,6 +587,7 @@
 			     	if(!$("#"+srvypprId+"QstnForm .qstnTypeDiv input[name=srvyMvmnUseyn]").is(":checked")) {
 						$("#"+srvypprId+"QstnForm .qstnTypeDiv .etcSelectDiv").hide();
 					}
+			     	initSrvypprMvmn(srvypprId, "Y");	// 다음설문지아이디 초기화
 		 		}
 		    } else if(vwitmLiCnt > vwitmCnt) {
 		 		for(var i = vwitmLiCnt; i > vwitmCnt-1; i--) {
@@ -618,6 +619,7 @@
 				if(!$("#"+srvypprId+"QstnForm .qstnTypeDiv input[name=srvyMvmnUseyn]").is(":checked")) {
 					$("#"+srvypprId+"QstnForm .qstnTypeDiv .etcSelectDiv").hide();
 				}
+				initSrvypprMvmn(srvypprId, "Y");	// 다음설문지아이디 초기화
 			} else {
 				$("#"+srvypprId+"_etc").remove();
 			}
@@ -629,7 +631,19 @@
 		* @param {obj}  	obj 		- 변경객체
 		*/
 		function mvmnSelectView(obj, srvypprId) {
+			let srvyQstnId = $("#"+srvypprId+"QstnForm input[name=srvyQstnId]").val();
 			if(obj.checked) {
+				var isMvmn = false;
+				$("div.srvypprDiv[data-id='"+srvypprId+"'] div.sortQstnDiv:not([data-id='"+srvyQstnId+"']").each(function(i) {
+					if($(this).attr("data-mvmnyn") == "Y") {
+						isMvmn = true;
+					}
+				});
+				if(isMvmn) {
+					UiSwitcherOff(obj.id);
+					UiComm.showMessage("한 페이지에 하나의 문항만 분기 가능합니다.", "info");
+					return false;
+				}
 				$("#"+srvypprId+"QstnForm .qstnTypeDiv .etcSelectDiv").show();
 			} else {
 				$("#"+srvypprId+"QstnForm .qstnTypeDiv .etcSelectDiv").hide();
@@ -716,7 +730,8 @@
 	        		if(qstn.qstnRspnsTycd == "ONE_CHC" || qstn.qstnRspnsTycd == "MLT_CHC") {
 						// 보기내용
 						var vwitmCnt = qstn.etcInptUseyn == "Y" ? vwitmList.length - 1 : vwitmList.length;
-	        			$("#"+srvypprId+"QstnForm select[name=vwitmCnt]").val(vwitmCnt).trigger("change");
+	        			$("#"+srvypprId+"QstnForm select[name=vwitmCnt]").val(vwitmCnt).trigger("chosen:updated");
+	        			$("#"+srvypprId+"QstnForm select[name=vwitmCnt]").trigger("change");
 	        			vwitmList.forEach(function(v, i) {
 	        				$("#"+srvypprId+"Vwitm_"+v.vwitmSeqno).val(v.vwitmCts);
 	        			});
@@ -731,6 +746,9 @@
 	        			if(qstn.srvyMvmnUseyn == "Y") {
 	        				UiSwitcherOn(srvypprId+"srvyMvmnUseyn");
 	        				$("#"+srvypprId+"srvyMvmnUseyn").trigger("change");
+	        				vwitmList.forEach(function(v, i) {
+								$("#"+srvypprId+"QstnForm .etcSelectDiv select[name=mvmnSrvyQstnId]").eq(i).val(v.mvmnSrvyQstnId).trigger('chosen:updated');
+		        			});
 	        			}
 	        		// OX선택형
 	        		} else if(qstn.qstnRspnsTycd == "OX_CHC") {
@@ -740,6 +758,9 @@
 	        			if(qstn.srvyMvmnUseyn == "Y") {
 	        				UiSwitcherOn(srvypprId+"srvyMvmnUseyn");
 	        				$("#"+srvypprId+"srvyMvmnUseyn").trigger("change");
+	        				vwitmList.forEach(function(v, i) {
+								$("#"+srvypprId+"QstnForm .etcSelectDiv select[name=mvmnSrvyQstnId]").eq(i).val(v.mvmnSrvyQstnId).trigger('chosen:updated');
+		        			});
 	        			}
 					// 레벨형
 	        		} else if(qstn.qstnRspnsTycd == "LEVEL") {
@@ -1107,7 +1128,6 @@
 
 			// 변경할 순번값 찾기
 			$("div.srvypprDiv[data-id='"+srvypprId+"'] div.sortQstnDiv").each(function(i) {
-				console.log(this);
 				if(qstnSeqno == $(this).attr("data-seqno")) {
 					newQstnSeqno = i + 1;
 				}
@@ -1133,7 +1153,7 @@
 			}
 		}
 
-		// 문항엑셀업로드팝업 ( 미완료 )
+		// 문항엑셀업로드팝업
 		function qstnExcelUploadPopup() {
 			if(!canSrvyEdit()) {
 		    	return false;
@@ -1143,7 +1163,7 @@
 				title: "엑셀 문항등록",
 				width: 600,
 				height: 500,
-				url: "/quiz/profQuizQstnExcelUploadPopup.do?examDtlId="+$("#examDtlId").val(),
+				url: "/srvy/profSrvyQstnExcelUploadPopup.do?srvyId="+$("#srvyId").val(),
 				autoresize: true
 			});
 		}
@@ -1219,6 +1239,28 @@
 				});
 			}
 	    }
+
+		// 다음설문지아이디 초기화
+		function initSrvypprMvmn(srvypprId, lastyn) {
+			var html = "<option value='NEXT'>다음 페이지로 이동</option>";
+			let srvySeqno = $(".srvypprDiv[data-id='"+srvypprId+"']").attr("data-seqno");
+			$(".srvypprDiv").filter(function () {
+				return parseInt($(this).attr("data-seqno"), 10) > srvySeqno;
+			}).each(function () {
+				let seqno 	= $(this).attr("data-seqno");
+				let id		= $(this).attr("data-id");
+				html += "<option value='" + id + "'>" + seqno + "페이지로 이동</option>";
+			});
+			html += "<option value='END'>설문 종료</option>";
+
+			if(lastyn == "Y") {
+				$("#"+srvypprId+"QstnForm .etcSelectDiv select[name=mvmnSrvyQstnId]").last().empty().append(html);
+				$("#"+srvypprId+"QstnForm .etcSelectDiv select[name=mvmnSrvyQstnId]").last().val('NEXT').trigger('chosen:updated');
+			} else {
+				$("#"+srvypprId+"QstnForm .etcSelectDiv select[name=mvmnSrvyQstnId]").empty().append(html);
+				$("#"+srvypprId+"QstnForm .etcSelectDiv select[name=mvmnSrvyQstnId]").val('NEXT').trigger('chosen:updated');
+			}
+		}
 
 		/**
 		 * 설문화면이동

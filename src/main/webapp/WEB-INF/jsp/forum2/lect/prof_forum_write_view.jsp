@@ -15,16 +15,16 @@
 
         $(document).ready(function() {
             // 부주제 조회
-            $("input[name='lrnGrpSubForumSettingyns']:checked").each(function(i, e) {
+            $("input[name='lrnGrpSubForumSettingyns']:checked").each(function (i, e) {
                 var lrnGrpId = $("#lrnGrpId" + e.id.split("_")[1]).val().split(":")[0];	// 학습그룹아이디
                 var lrnGrpnm = $("#lrnGrpnm" + e.id.split("_")[1]).val();				// 학습그룹명
                 var dvclasNo = e.id.split("_")[1];										// 분반 순서
                 var sbjctId = e.value.split(":")[1];									// 과목아이디
 
-                selectTeam(lrnGrpId, lrnGrpnm, dvclasNo+":"+sbjctId);
+                selectTeam(lrnGrpId, lrnGrpnm, dvclasNo + ":" + sbjctId);
             });
 
-            // dvclasChcChange($("#allDeclas")[0]);
+            initCheckedDvclas();
         });
     </script>
     <title>교수자 토론 등록/수정</title>
@@ -117,13 +117,15 @@
                                                     <dd>
                                                         <div class="editor-box">
                                                             <%-- HTML 에디터 --%>
-                                                            <uiex:htmlEditor
-                                                                    id="dscsCts"
-                                                                    name="dscsCts"
-                                                                    uploadPath="${forum2VO.uploadPath}"
-                                                                    value="${forum2VO.dscsCts}"
-                                                                    height="300px"
-                                                            />
+                                                            <textarea id="dscsCts" name="dscsCts" required="true"><c:out value="${forum2VO.dscsCts}"/></textarea>
+                                                            <script>
+                                                                // HTML 에디터
+                                                                let editor = UiEditor({
+                                                                    targetId: "dscsCts",
+                                                                    uploadPath: "${forum2VO.uploadPath}",
+                                                                    height: "300px"
+                                                                });
+                                                            </script>
                                                         </div>
                                                     </dd>
                                                 </dl>
@@ -390,6 +392,13 @@
         initForumTeamList();
     });
 
+    // 체크된 분반 초기화
+    function initCheckedDvclas() {
+        $("input[name='sbjctIds']:checked").each(function() {
+            dvclasChcChange(this);
+        });
+    }
+
     function bindEvents() {
         $('#dscsUnitTycd').on('change', function () {
             toggleTeamArea();
@@ -523,7 +532,7 @@
             width: 600,
             height: 500,
             url: "/team/teamHome/teamCtgrSelectPop.do?sbjctId="+sbjctId+"&searchFrom="+i + ":" + sbjctId,
-            autoresize: true
+            autoresize: false
         });
     }
 
@@ -575,7 +584,7 @@
         if (!list || list.length === 0) {
             return '<p class="p_gray">팀 정보가 없습니다.</p>';
         }
-        var html = "<table class='table-type5'>";
+        var html = "<table class='table-type2'>";
         html += "    <colgroup>";
         html += "        <col class='width-10per' />";
         html += "        <col class='' />";
@@ -890,54 +899,133 @@
         */
         dialog = UiDialog("dialog1", {
             title: "<spring:message code='forum.button.copy'/>",
-            width: 600,
+            width: 800,
             height: 500,
-            url: "/forum2/forumLect/Form/forumCopyPop.do?sbjctId=" + '${forum2VO.sbjctId}'
+            url: "/forum2/forumLect/Form/forumCopyPop.do?sbjctId=" + '${forum2VO.sbjctId}',
+            autoresize: false
         });
     }
 
-    /*function copyForum() {
-        var sourceDscssId = $('#sourceDscssId').val() || $('#dscsId').val();
-        if (!sourceDscssId) {
-            UiComm.showMessage("sourceDscssId가 필요합니다.", "warning");
-            return;
-        }
-        var url = '<c:url value="/forum2/forumLect/profForumCopy.do" />';
-        var param = {
-            sourceDscssId: sourceDscssId,
-            targetCrsId: $('#sbjctId').val(),
-            targetdvclsNo: $('#dvclsNo').val(),
-            targetLrnGrpId: $('#lrnGrpId').val(),
-            targetDscsGrpId: $('#dscsGrpId').val()
-        };
-
+    // 이전 토론 가져오기 팝업에서 선택 시 호출 (window.parent.copyForum)
+    function copyForum(forumCd) {
         UiComm.showLoading(true);
         $.ajax({
-            url 	 : url,
-            async	 : false,
-            type 	 : "POST",
-            dataType : "json",
-            data 	 : param,
-            beforeSend: function () {
-                UiComm.showLoading(true);
-            }
-        }).done(function(data) {
+            url     : "/forum2/forumLect/Form/forumCopy.do",
+            async   : false,
+            type    : "POST",
+            dataType: "json",
+            data    : { "dscsId": forumCd }
+        }).done(function(resp) {
             UiComm.showLoading(false);
-            if (data.result > 0) {
-                var returnVO = data.returnVO || {};
-                if (returnVO.dscsId) {
-                    location.href = '<c:url value="/forum2/forumLect/profForumWriteView.do" />?dscsId=' + encodeURIComponent(returnVO.dscsId);
-                    return;
+            if (resp.result > 0) {
+                var v = resp.returnVO;
+                if (!v) { UiComm.showMessage("데이터가 없습니다.", "error"); return; }
+
+                // 토론 제목
+                $('#dscsTtl').val(v.dscsTtl || '');
+
+                // 토론 내용 (HTML 에디터)
+                editor.openHTML(v.dscsCts);
+
+                // 참여기간: dscsSdttm/dscsEdttm = yyyyMMddHHmmss
+                var sdttm = v.dscsSdttm || '';
+                var edttm = v.dscsEdttm || '';
+                $('#dateSt').val(sdttm.substring(0, 8));
+                $('#timeSt').val(sdttm.substring(8, 12));
+                $('#dateEd').val(edttm.substring(0, 8));
+                $('#timeEd').val(edttm.substring(8, 12));
+                $('#dscsSdttm').val(sdttm);
+                $('#dscsEdttm').val(edttm);
+
+                // 성적반영
+                $("input[name='mrkRfltyn'][value='" + (v.mrkRfltyn || 'Y') + "']").prop('checked', true);
+
+                // 성적공개
+                $("input[name='mrkOyn'][value='" + (v.mrkOyn || 'Y') + "']").prop('checked', true);
+
+                // 평가방법
+                $("input[name='evlScrTycd'][value='" + (v.evlScrTycd || 'SCR') + "']").prop('checked', true);
+
+                // 팀 영역 초기화 (selectTeam 이전 상태로 리셋)
+                $("div[id^='lrnGrpView']").each(function() {
+                    var dvclasNo = this.id.replace('lrnGrpView', '');
+                    $('#lrnGrpId'  + dvclasNo).val('');
+                    $('#lrnGrpnm'  + dvclasNo).val('');
+                    $('#subInfoDiv' + dvclasNo).empty();
+                    $('#lrnGrpSubForumSettingyn_' + dvclasNo).prop('checked', false);
+                    $('#lrnGrpView'  + dvclasNo).hide();
+                    $('#setForumDiv' + dvclasNo).hide();
+                });
+                initCheckedDvclas();
+
+                // 팀 토론 여부
+                var isTeam = (v.dscsUnitTycd === 'TEAM') ? 'Y' : 'N';
+                $("input[name='dscsUnitTycd'][value='" + isTeam + "']").prop('checked', true);
+                teamynChange(isTeam);
+
+                // 팀 토론인 경우 학습그룹 정보 복원
+                if (isTeam === 'Y' && v.dvclsNo && v.lrnGrpId) {
+                    var dvclasNo = v.dvclsNo;
+                    var $chk = $('#lrnGrpSubForumSettingyn_' + dvclasNo);
+                    if ($chk.length) {
+                        var sbjctId = $chk.val().split(':')[1];                    // "Y:sbjctId" → sbjctId
+                        $('#lrnGrpView' + dvclasNo).css("display", "flex");        // 분반 행 노출
+                        selectTeam(v.lrnGrpId, v.dscsGrpnm || '', dvclasNo + ':' + sbjctId);  // 그룹명/ID 세팅 + 팀목록 로드
+                        if (v.byteamDscsUseyn === 'Y') {
+                            $chk.prop('checked', true);
+                            $('#subInfoDiv' + dvclasNo).show();                    // 부주제 영역 노출
+                        }
+                    }
                 }
-                UiComm.showMessage(result.message, "success");
+
+                // 참여글 보기 옵션 (checkbox + hidden)
+                var oatclInqyn = v.oatclInqyn || 'N';
+                $('#oatclInqyn').prop('checked', oatclInqyn === 'Y');
+                $('#oatclInqynHidden').val(oatclInqyn);
+
+                // 댓글 답변 요청
+                $("input[name='cmntRspnsReqyn'][value='" + (v.cmntRspnsReqyn || 'Y') + "']").prop('checked', true);
+
+                // 찬반 토론 설정
+                $("input[name='oknokStngyn'][value='" + (v.oknokStngyn || 'N') + "']").prop('checked', true);
+
+                // 찬반 비율 공개
+                var oknokrtOyn = v.oknokrtOyn || 'N';
+                $('#oknokrtOyn').prop('checked', oknokrtOyn === 'Y');
+                $('#oknokrtOynHidden').val(oknokrtOyn);
+
+                // 작성자 공개
+                var oknokRgtrOyn = v.oknokRgtrOyn || 'N';
+                $('#oknokRgtrOyn').prop('checked', oknokRgtrOyn === 'Y');
+                $('#oknokRgtrOynHidden').val(oknokRgtrOyn);
+
+                // 의견 글 복수 등록
+                var mltOpnnRegyn = v.mltOpnnRegyn || 'N';
+                $('#mltOpnnRegyn').prop('checked', mltOpnnRegyn === 'Y');
+                $('#mltOpnnRegynHidden').val(mltOpnnRegyn);
+
+                // 찬반 의견 변경가능
+                var oknokModyn = v.oknokModyn || 'N';
+                $('#oknokModyn').prop('checked', oknokModyn === 'Y');
+                $('#oknokModynHidden').val(oknokModyn);
+
+                closeDialog();
             } else {
-                UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
+                UiComm.showMessage(resp.message || "<spring:message code='forum.common.error'/>", "error");
             }
         }).fail(function() {
             UiComm.showLoading(false);
-            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
+            UiComm.showMessage("<spring:message code='forum.common.error'/>", "error");
         });
-    }*/
+    }
+
+    // 팝업 dialog 닫기 (window.parent.closeDialog()로 호출됨)
+    function closeDialog() {
+        if (dialog) {
+            dialog.close();
+        }
+    }
+
 </script>
 </body>
 </html>

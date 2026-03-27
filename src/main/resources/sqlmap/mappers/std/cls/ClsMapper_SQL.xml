@@ -2,16 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="knou.lms.std.dao.ClsDAO">
-
-    <!--
-        전체수업현황 Mapper
-        - 운영과목 목록
-        - 주차별 학습현황
-        - 미학습자 통계/목록
-        - 학습요소 참여현황
-        - 학습자 상세/로그/팝업 조회
-    -->
-
     <!-- ============================================================ -->
     <!--  공통 SQL 조각                                               -->
     <!-- ============================================================ -->
@@ -31,7 +21,7 @@
                 WHEN L.LRN_STSCD = 'ABSNT' THEN 1
                 ELSE 0
               END) AS LRN_STS_ORD
-      FROM TB_LMS_BYWK_USER_LRN_STS L
+      FROM TB_LMS_BYWKNO_USER_LRN_STS L
       JOIN TB_LMS_LCTR_WKNO_SCHDL WS
         ON WS.LCTR_WKNO_SCHDL_ID = L.LCTR_WKNO_SCHDL_ID
       WHERE WS.SBJCT_ID = #{sbjctId}
@@ -70,48 +60,37 @@
         <if test="srchKeyword != null and srchKeyword != ''">
             AND (
             LOWER(U.USERNM) LIKE FN_LIKE_VAL(LOWER(#{srchKeyword}))
-            OR  U.STDNT_NO      LIKE FN_LIKE_VAL(#{srchKeyword})
-            OR  LOWER(D.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{srchKeyword}))
+            OR U.STDNT_NO LIKE FN_LIKE_VAL(#{srchKeyword})
+            OR LOWER(D.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{srchKeyword}))
             )
         </if>
+    </sql>
+
+    <sql id="clsSearchHavingCondition">
         <if test="absnWknoFrom > 0 or absnWknoTo > 0">
-            AND EXISTS (
-            SELECT 1
-            FROM (
-            SELECT MAX(LCTR_WKNO) AS CURR_WKNO
-            FROM TB_LMS_LCTR_WKNO_SCHDL
-            WHERE SBJCT_ID = #{sbjctId}
-            AND NVL(DELYN, 'N') = 'N'
-            AND LCTR_WKNO_SYMD IS NOT NULL
-            AND LCTR_WKNO_SYMD &lt;&gt; '00000000'
-            AND LCTR_WKNO_SYMD &lt;= TO_CHAR(SYSDATE, 'YYYYMMDD')
-            ) CW
-            JOIN TB_LMS_LCTR_WKNO_SCHDL S_F
-            ON S_F.SBJCT_ID = #{sbjctId}
-            AND NVL(S_F.DELYN, 'N') = 'N'
-            AND S_F.LCTR_WKNO &lt; CW.CURR_WKNO
-            LEFT JOIN WK_USER_LRN_STS W_F
-            ON W_F.USER_ID = U.USER_ID
-            AND W_F.SBJCT_ID = #{sbjctId}
-            AND W_F.WKNO = S_F.LCTR_WKNO
-            LEFT JOIN PRGRT_TO_STS C_F
-            ON C_F.SBJCT_ID = #{sbjctId}
-            WHERE 1 = 1
+            HAVING SUM(
+            CASE
+            WHEN S.LCTR_WKNO IS NOT NULL
             <if test="absnWknoFrom > 0">
-                AND S_F.LCTR_WKNO &gt;= #{absnWknoFrom}
+                AND S.LCTR_WKNO &gt;= #{absnWknoFrom}
             </if>
             <if test="absnWknoTo > 0">
-                AND S_F.LCTR_WKNO &lt;= #{absnWknoTo}
+                AND S.LCTR_WKNO &lt;= #{absnWknoTo}
             </if>
-            AND CASE
-            WHEN W_F.WKNO IS NULL THEN 1
-            WHEN NVL(W_F.LRN_STS_ORD, 0) IN (2, 3) THEN 0
-            WHEN NVL(W_F.LRN_STS_ORD, 0) = 1 THEN 1
-            WHEN W_F.LRN_PRGRT >= NVL(C_F.ATND_MIN_PRGRT, 80) THEN 0
-            WHEN W_F.LRN_PRGRT >= NVL(C_F.LATE_MIN_PRGRT, 60) THEN 0
+            AND (
+            CASE
+            WHEN W.WKNO IS NULL THEN 1
+            WHEN NVL(W.LRN_STS_ORD, 0) IN (2, 3) THEN 0
+            WHEN NVL(W.LRN_STS_ORD, 0) = 1 THEN 1
+            WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT, 80) THEN 0
+            WHEN W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT, 60) THEN 0
             ELSE 1
-            END = 1
-            )
+            END
+            ) = 1
+            THEN 1
+            ELSE 0
+            END
+            ) &gt; 0
         </if>
     </sql>
 
@@ -540,21 +519,6 @@
         ELSE 1
         END
         ) AS ABSNCE_CNT
-        , MAX(CASE WHEN S.LCTR_WKNO =  1 THEN <include refid="atndStsCaseByWkno"/> END) AS WK1_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  2 THEN <include refid="atndStsCaseByWkno"/> END) AS WK2_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  3 THEN <include refid="atndStsCaseByWkno"/> END) AS WK3_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  4 THEN <include refid="atndStsCaseByWkno"/> END) AS WK4_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  5 THEN <include refid="atndStsCaseByWkno"/> END) AS WK5_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  6 THEN <include refid="atndStsCaseByWkno"/> END) AS WK6_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  7 THEN <include refid="atndStsCaseByWkno"/> END) AS WK7_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  8 THEN <include refid="atndStsCaseByWkno"/> END) AS WK8_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  9 THEN <include refid="atndStsCaseByWkno"/> END) AS WK9_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 10 THEN <include refid="atndStsCaseByWkno"/> END) AS WK10_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 11 THEN <include refid="atndStsCaseByWkno"/> END) AS WK11_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 12 THEN <include refid="atndStsCaseByWkno"/> END) AS WK12_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 13 THEN <include refid="atndStsCaseByWkno"/> END) AS WK13_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 14 THEN <include refid="atndStsCaseByWkno"/> END) AS WK14_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 15 THEN <include refid="atndStsCaseByWkno"/> END) AS WK15_STS
         , SUM(
         CASE
         WHEN S.LCTR_WKNO IS NOT NULL
@@ -603,6 +567,7 @@
         , U.STDNT_NO
         , D.DEPTNM
         , E.SCYR
+        <include refid="clsSearchHavingCondition"/>
         )
         SELECT
         ROW_NUMBER() OVER(ORDER BY S.STDNT_NO ASC) AS lineNo
@@ -615,39 +580,38 @@
         , S.ABSNCE_CNT AS absnCnt
         , S.ATND_CNT   AS atndCnt
         , S.LATE_CNT   AS lateCnt
-        , S.WK1_STS    AS wk1Sts
-        , S.WK2_STS    AS wk2Sts
-        , S.WK3_STS    AS wk3Sts
-        , S.WK4_STS    AS wk4Sts
-        , S.WK5_STS    AS wk5Sts
-        , S.WK6_STS    AS wk6Sts
-        , S.WK7_STS    AS wk7Sts
-        , S.WK8_STS    AS wk8Sts
-        , S.WK9_STS    AS wk9Sts
-        , S.WK10_STS   AS wk10Sts
-        , S.WK11_STS   AS wk11Sts
-        , S.WK12_STS   AS wk12Sts
-        , S.WK13_STS   AS wk13Sts
-        , S.WK14_STS   AS wk14Sts
-        , S.WK15_STS   AS wk15Sts
         FROM STDNT_BASE S
         ORDER BY S.STDNT_NO ASC
     </select>
+
     <!-- 주차별 학습현황 수강생 목록 건수 조회 -->
     <select id="selectClsStdntListCnt"
             parameterType="knou.lms.std.vo.ClsStdntVO"
             resultType="int">
         WITH
         <include refid="wkUserLrnSts"/>,
-        <include refid="prgrtToSts"/>
-        SELECT COUNT(DISTINCT U.USER_ID)
-        FROM TB_LMS_ATNDLC E
-        JOIN TB_LMS_USER U ON U.USER_ID = E.USER_ID
-        JOIN TB_LMS_DEPT D ON D.DEPT_ID = U.DEPT_ID
-        LEFT JOIN (
-        SELECT W.USER_ID
+        <include refid="prgrtToSts"/>,
+        CURRENT_WK AS (
+        SELECT MAX(LCTR_WKNO) AS CURR_WKNO
+        FROM TB_LMS_LCTR_WKNO_SCHDL
+        WHERE SBJCT_ID = #{sbjctId}
+        AND NVL(DELYN, 'N') = 'N'
+        AND LCTR_WKNO_SYMD IS NOT NULL
+        AND LCTR_WKNO_SYMD &lt;> '00000000'
+        AND LCTR_WKNO_SYMD &lt;= TO_CHAR(SYSDATE, 'YYYYMMDD')
+        ),
+        STDNT_BASE AS (
+        SELECT
+        U.USER_ID
+        , U.USERNM
+        , U.STDNT_NO
+        , D.DEPTNM
+        , NULL AS ENTRNS_YR
+        , E.SCYR AS GRADE
         , SUM(
         CASE
+        WHEN S.LCTR_WKNO IS NULL THEN 0
+        WHEN W.WKNO IS NULL THEN 1
         WHEN NVL(W.LRN_STS_ORD, 0) IN (2, 3) THEN 0
         WHEN NVL(W.LRN_STS_ORD, 0) = 1 THEN 1
         WHEN W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT, 80) THEN 0
@@ -655,12 +619,58 @@
         ELSE 1
         END
         ) AS ABSNCE_CNT
-        FROM WK_USER_LRN_STS W
-        LEFT JOIN PRGRT_TO_STS C ON C.SBJCT_ID = W.SBJCT_ID
-        GROUP BY W.USER_ID
-        ) AB ON AB.USER_ID = U.USER_ID
+        , SUM(
+        CASE
+        WHEN S.LCTR_WKNO IS NOT NULL
+        AND (
+        NVL(W.LRN_STS_ORD, 0) = 3
+        OR W.LRN_PRGRT >= NVL(C.ATND_MIN_PRGRT, 80)
+        ) THEN 1
+        ELSE 0
+        END
+        ) AS ATND_CNT
+        , SUM(
+        CASE
+        WHEN S.LCTR_WKNO IS NOT NULL
+        AND (
+        NVL(W.LRN_STS_ORD, 0) = 2
+        OR (
+        NVL(W.LRN_STS_ORD, 0) = 0
+        AND W.LRN_PRGRT >= NVL(C.LATE_MIN_PRGRT, 60)
+        AND W.LRN_PRGRT &lt; NVL(C.ATND_MIN_PRGRT, 80)
+        )
+        ) THEN 1
+        ELSE 0
+        END
+        ) AS LATE_CNT
+        FROM TB_LMS_ATNDLC E
+        JOIN TB_LMS_USER U
+        ON U.USER_ID = E.USER_ID
+        JOIN TB_LMS_DEPT D
+        ON D.DEPT_ID = U.DEPT_ID
+        CROSS JOIN CURRENT_WK CW
+        LEFT JOIN TB_LMS_LCTR_WKNO_SCHDL S
+        ON S.SBJCT_ID = E.SBJCT_ID
+        AND NVL(S.DELYN, 'N') = 'N'
+        AND S.LCTR_WKNO &lt; CW.CURR_WKNO
+        LEFT JOIN WK_USER_LRN_STS W
+        ON W.USER_ID = U.USER_ID
+        AND W.SBJCT_ID = E.SBJCT_ID
+        AND W.WKNO = S.LCTR_WKNO
+        LEFT JOIN PRGRT_TO_STS C
+        ON C.SBJCT_ID = E.SBJCT_ID
         WHERE E.SBJCT_ID = #{sbjctId}
         <include refid="clsSearchCondition"/>
+        GROUP BY
+        U.USER_ID
+        , U.USERNM
+        , U.STDNT_NO
+        , D.DEPTNM
+        , E.SCYR
+        <include refid="clsSearchHavingCondition"/>
+        )
+        SELECT COUNT(*)
+        FROM STDNT_BASE
     </select>
 
     <!-- 주차별 학습현황 수강생 목록 페이징 조회 -->
@@ -698,21 +708,6 @@
         ELSE 1
         END
         ) AS ABSNCE_CNT
-        , MAX(CASE WHEN S.LCTR_WKNO =  1 THEN <include refid="atndStsCaseByWkno"/> END) AS WK1_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  2 THEN <include refid="atndStsCaseByWkno"/> END) AS WK2_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  3 THEN <include refid="atndStsCaseByWkno"/> END) AS WK3_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  4 THEN <include refid="atndStsCaseByWkno"/> END) AS WK4_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  5 THEN <include refid="atndStsCaseByWkno"/> END) AS WK5_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  6 THEN <include refid="atndStsCaseByWkno"/> END) AS WK6_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  7 THEN <include refid="atndStsCaseByWkno"/> END) AS WK7_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  8 THEN <include refid="atndStsCaseByWkno"/> END) AS WK8_STS
-        , MAX(CASE WHEN S.LCTR_WKNO =  9 THEN <include refid="atndStsCaseByWkno"/> END) AS WK9_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 10 THEN <include refid="atndStsCaseByWkno"/> END) AS WK10_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 11 THEN <include refid="atndStsCaseByWkno"/> END) AS WK11_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 12 THEN <include refid="atndStsCaseByWkno"/> END) AS WK12_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 13 THEN <include refid="atndStsCaseByWkno"/> END) AS WK13_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 14 THEN <include refid="atndStsCaseByWkno"/> END) AS WK14_STS
-        , MAX(CASE WHEN S.LCTR_WKNO = 15 THEN <include refid="atndStsCaseByWkno"/> END) AS WK15_STS
         , SUM(
         CASE
         WHEN S.LCTR_WKNO IS NOT NULL
@@ -761,6 +756,7 @@
         , U.STDNT_NO
         , D.DEPTNM
         , E.SCYR
+        <include refid="clsSearchHavingCondition"/>
         )
         SELECT *
         FROM (
@@ -778,21 +774,6 @@
         , S.ABSNCE_CNT AS absnCnt
         , S.ATND_CNT   AS atndCnt
         , S.LATE_CNT   AS lateCnt
-        , S.WK1_STS    AS wk1Sts
-        , S.WK2_STS    AS wk2Sts
-        , S.WK3_STS    AS wk3Sts
-        , S.WK4_STS    AS wk4Sts
-        , S.WK5_STS    AS wk5Sts
-        , S.WK6_STS    AS wk6Sts
-        , S.WK7_STS    AS wk7Sts
-        , S.WK8_STS    AS wk8Sts
-        , S.WK9_STS    AS wk9Sts
-        , S.WK10_STS   AS wk10Sts
-        , S.WK11_STS   AS wk11Sts
-        , S.WK12_STS   AS wk12Sts
-        , S.WK13_STS   AS wk13Sts
-        , S.WK14_STS   AS wk14Sts
-        , S.WK15_STS   AS wk15Sts
         FROM STDNT_BASE S
         ORDER BY S.STDNT_NO ASC
         ) P
@@ -818,22 +799,35 @@
         WHERE SBJCT_ID = #{sbjctId}
         AND NVL(DELYN, 'N') = 'N'
         AND LCTR_WKNO_SYMD IS NOT NULL
-        AND LCTR_WKNO_SYMD &lt;&gt; '00000000'
+        AND LCTR_WKNO_SYMD &lt;> '00000000'
         AND LCTR_WKNO_SYMD &lt;= TO_CHAR(SYSDATE, 'YYYYMMDD')
         ),
         WK_LIST AS (
-        SELECT DISTINCT
-        S.LCTR_WKNO AS WKNO
+        SELECT DISTINCT S.LCTR_WKNO AS WKNO
         FROM TB_LMS_LCTR_WKNO_SCHDL S
         CROSS JOIN CURRENT_WK C
         WHERE S.SBJCT_ID = #{sbjctId}
         AND NVL(S.DELYN, 'N') = 'N'
         AND C.CURR_WKNO IS NOT NULL
         AND S.LCTR_WKNO &lt; C.CURR_WKNO
+        ),
+        BASE_STDNT AS (
+        SELECT DISTINCT
+        E.USER_ID
+        , E.SBJCT_ID
+        FROM TB_LMS_ATNDLC E
+        JOIN TB_LMS_USER U
+        ON U.USER_ID = E.USER_ID
+        JOIN TB_LMS_DEPT D
+        ON D.DEPT_ID = U.DEPT_ID
+        WHERE E.SBJCT_ID = #{sbjctId}
+        <if test="orgId != null and orgId != ''">
+            AND U.ORG_ID = #{orgId}
+        </if>
         )
         SELECT
-        WK.WKNO                    AS wkNo
-        , COUNT(DISTINCT A.USER_ID)  AS totalCnt
+        WK.WKNO AS wkNo
+        , COUNT(DISTINCT A.USER_ID) AS totalCnt
         , SUM(
         CASE
         WHEN W.WKNO IS NULL THEN 1
@@ -860,16 +854,15 @@
         , 2)
         END AS notLrnnRt
         FROM WK_LIST WK
-        JOIN TB_LMS_ATNDLC A
+        JOIN BASE_STDNT A
         ON A.SBJCT_ID = #{sbjctId}
         LEFT JOIN WK_USER_LRN_STS W
-        ON W.USER_ID  = A.USER_ID
+        ON W.USER_ID = A.USER_ID
         AND W.SBJCT_ID = A.SBJCT_ID
-        AND W.WKNO     = WK.WKNO
+        AND W.WKNO = WK.WKNO
         LEFT JOIN PRGRT_TO_STS C
         ON C.SBJCT_ID = A.SBJCT_ID
         GROUP BY WK.WKNO
-        ORDER BY WK.WKNO ASC
     </select>
 
     <!-- ============================================================ -->
@@ -986,6 +979,51 @@
     </select>
 
     <!-- ============================================================ -->
+    <!--  수강생 주차별 학습상태 목록 조회                                -->
+    <!-- ============================================================ -->
+
+    <!-- 수강생별 주차 학습상태 목록 조회 -->
+    <select id="selectClsStdntWkStsList"
+            parameterType="knou.lms.std.vo.ClsStdntVO"
+            resultType="knou.lms.std.vo.ClsWkStsVO">
+        WITH
+        <include refid="wkUserLrnSts"/>,
+        <include refid="prgrtToSts"/>,
+        CURRENT_WK AS (
+        SELECT MAX(LCTR_WKNO) AS CURR_WKNO
+        FROM TB_LMS_LCTR_WKNO_SCHDL
+        WHERE SBJCT_ID = #{sbjctId}
+        AND NVL(DELYN, 'N') = 'N'
+        AND LCTR_WKNO_SYMD IS NOT NULL
+        AND LCTR_WKNO_SYMD &lt;> '00000000'
+        AND LCTR_WKNO_SYMD &lt;= TO_CHAR(SYSDATE, 'YYYYMMDD')
+        )
+        SELECT
+        U.USER_ID   AS userId
+        , S.LCTR_WKNO AS wkNo
+        , <include refid="atndStsCaseByWkno"/> AS atndSts
+        FROM TB_LMS_ATNDLC E
+        JOIN TB_LMS_USER U
+        ON U.USER_ID = E.USER_ID
+        JOIN TB_LMS_DEPT D
+        ON D.DEPT_ID = U.DEPT_ID
+        CROSS JOIN CURRENT_WK CW
+        LEFT JOIN TB_LMS_LCTR_WKNO_SCHDL S
+        ON S.SBJCT_ID = E.SBJCT_ID
+        AND NVL(S.DELYN, 'N') = 'N'
+        AND S.LCTR_WKNO &lt; CW.CURR_WKNO
+        LEFT JOIN WK_USER_LRN_STS W
+        ON W.USER_ID = U.USER_ID
+        AND W.SBJCT_ID = E.SBJCT_ID
+        AND W.WKNO = S.LCTR_WKNO
+        LEFT JOIN PRGRT_TO_STS C
+        ON C.SBJCT_ID = E.SBJCT_ID
+        WHERE E.SBJCT_ID = #{sbjctId}
+        <include refid="clsSearchCondition"/>
+        ORDER BY U.USER_ID, S.LCTR_WKNO
+    </select>
+
+    <!-- ============================================================ -->
     <!--  학습자 정보                                                  -->
     <!-- ============================================================ -->
 
@@ -1097,7 +1135,11 @@
         AND A.SBJCT_ID = #{sbjctId}
         )
         <if test="keyword != null and keyword != ''">
-            AND L.USER_REQ_CTS LIKE '%' || #{keyword} || '%'
+            AND (
+            L.USER_REQ_CTS LIKE '%' || #{keyword} || '%'
+            OR NVL(L.CNTN_BRWSR, L.REQ_TYCD) LIKE '%' || #{keyword} || '%'
+            OR L.CNTN_IP LIKE '%' || #{keyword} || '%'
+            )
         </if>
     </select>
 
@@ -1111,7 +1153,7 @@
         FROM (
         SELECT
         ROW_NUMBER() OVER(ORDER BY L.ACTV_DTTM DESC)  AS lineNo
-        , TO_CHAR(L.ACTV_DTTM,'YYYY.MM.DD HH24:MI:SS') AS actDttm
+        , TO_CHAR(TO_DATE(L.ACTV_DTTM,'YYYYMMDDHH24MISS'),'YYYY.MM.DD HH24:MI:SS') AS actDttm
         , L.USER_REQ_CTS                                 AS actConts
         , NVL(L.CNTN_BRWSR, L.REQ_TYCD)                 AS deviceNm
         , L.CNTN_IP                                      AS ipAddr
@@ -1124,7 +1166,11 @@
         AND A.SBJCT_ID = #{sbjctId}
         )
         <if test="keyword != null and keyword != ''">
-            AND L.USER_REQ_CTS LIKE '%' || #{keyword} || '%'
+            AND (
+            L.USER_REQ_CTS LIKE '%' || #{keyword} || '%'
+            OR NVL(L.CNTN_BRWSR, L.REQ_TYCD) LIKE '%' || #{keyword} || '%'
+            OR L.CNTN_IP LIKE '%' || #{keyword} || '%'
+            )
         </if>
         ORDER BY L.ACTV_DTTM DESC
         ) X
@@ -1139,7 +1185,7 @@
             resultType="knou.lms.std.vo.ClsActivityLogVO">
         SELECT
         ROW_NUMBER() OVER(ORDER BY L.ACTV_DTTM DESC)    AS lineNo
-        , TO_CHAR(L.ACTV_DTTM,'YYYY.MM.DD HH24:MI:SS')    AS actDttm
+        , TO_CHAR(TO_DATE(L.ACTV_DTTM,'YYYYMMDDHH24MISS'),'YYYY.MM.DD HH24:MI:SS') AS actDttm
         , L.USER_REQ_CTS                                  AS actConts
         , NVL(L.CNTN_BRWSR, L.REQ_TYCD)                   AS deviceNm
         , L.CNTN_IP                                       AS ipAddr
@@ -1153,7 +1199,11 @@
         AND A.SBJCT_ID = #{sbjctId}
         )
         <if test="keyword != null and keyword != ''">
-            AND L.USER_REQ_CTS LIKE '%' || #{keyword} || '%'
+            AND (
+            L.USER_REQ_CTS LIKE '%' || #{keyword} || '%'
+            OR NVL(L.CNTN_BRWSR, L.REQ_TYCD) LIKE '%' || #{keyword} || '%'
+            OR L.CNTN_IP LIKE '%' || #{keyword} || '%'
+            )
         </if>
         ORDER BY L.ACTV_DTTM DESC
     </select>
@@ -1220,7 +1270,7 @@
                        THEN 'Y'
                    ELSE 'N'
             END                                                     AS "lastWkYn"
-        FROM TB_LMS_BYWK_USER_LRN_STS A
+        FROM TB_LMS_BYWKNO_USER_LRN_STS A
                  JOIN TB_LMS_LCTR_WKNO_SCHDL WS ON WS.LCTR_WKNO_SCHDL_ID = A.LCTR_WKNO_SCHDL_ID
         WHERE WS.SBJCT_ID      = #{sbjctId}
           AND A.USER_ID        = #{userId}
@@ -1294,7 +1344,7 @@
 
     <!-- 학습자 수강상태 출석 처리 -->
     <update id="updateAtndlcProcess" parameterType="knou.lms.std.vo.ClsWkLrnVO">
-        UPDATE TB_LMS_BYWK_USER_LRN_STS
+        UPDATE TB_LMS_BYWKNO_USER_LRN_STS
         SET BFR_LRN_STSCD = LRN_STSCD
           , LRN_STSCD     = 'ATND'
           , MDFR_ID       = #{mdfrId}
@@ -1305,7 +1355,7 @@
 
     <!-- 학습자 수강상태 출석 처리 취소 -->
     <update id="updateAtndlcCancel" parameterType="knou.lms.std.vo.ClsWkLrnVO">
-        UPDATE TB_LMS_BYWK_USER_LRN_STS
+        UPDATE TB_LMS_BYWKNO_USER_LRN_STS
         SET LRN_STSCD     = NVL(BFR_LRN_STSCD,'ABSNT')
           , BFR_LRN_STSCD = NULL
           , MDFR_ID       = #{mdfrId}
@@ -1758,8 +1808,8 @@
         , USERNM     AS usernm
         , STDNT_NO   AS stdntNo
         , DEPTNM     AS deptnm
-        , ENTYR      AS entyR
-        , SCYR       AS scyr
+        , ENTRNS_YR  AS entyR
+        , GRADE      AS scyr
         , ABSNCE_CNT AS absnCnt
         , ATND_CNT   AS atndCnt
         , LATE_CNT   AS lateCnt
@@ -1779,6 +1829,7 @@
         , WK14_STS   AS wk14Sts
         , WK15_STS   AS wk15Sts
         FROM STDNT_BASE
+        WHERE USER_ID = #{userId}
     </select>
 
 

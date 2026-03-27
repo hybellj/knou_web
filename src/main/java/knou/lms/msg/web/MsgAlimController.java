@@ -27,11 +27,17 @@ public class MsgAlimController extends ControllerBase {
 
     private static final int LIST_CNT = 5;
 
-    /**
+    private static final String CHNL_PUSH = "PUSH";
+    private static final String CHNL_SMS = "SMS";
+    private static final String CHNL_SHRTNT = "SHRTNT";
+    private static final String CHNL_ALIM_TALK = "ALIM_TALK";
+
+    /*****************************************************
      * 읽지 않은 알림 개수 조회
      * @param request
-     * @return
-     */
+     * @return ProcessResultVO<EgovMap>
+     * @throws Exception
+     ******************************************************/
     @RequestMapping("/alimUnrdCntSelectAjax.do")
     @ResponseBody
     public ProcessResultVO<EgovMap> alimUnrdCntSelectAjax(HttpServletRequest request) throws Exception {
@@ -60,12 +66,13 @@ public class MsgAlimController extends ControllerBase {
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 채널별 알림 목록 조회
      * @param request
      * @param chnlCd
-     * @return
-     */
+     * @return ProcessResultVO<Map<String, Object>>
+     * @throws Exception
+     ******************************************************/
     @RequestMapping("/alimChnlListAjax.do")
     @ResponseBody
     public ProcessResultVO<Map<String, Object>> alimChnlListAjax(
@@ -88,14 +95,11 @@ public class MsgAlimController extends ControllerBase {
 
             Map<String, Object> data = new HashMap<>();
 
-            if ("PUSH".equals(chnlCd)) {
-                data.put("pushList", msgAlimService.selectPushList(msgAlimVO));
-            } else if ("SMS".equals(chnlCd)) {
-                data.put("smsList", msgAlimService.selectSmsList(msgAlimVO));
-            } else if ("SHRTNT".equals(chnlCd)) {
-                data.put("msgList", msgAlimService.selectShrtntList(msgAlimVO));
-            } else if ("ALIM_TALK".equals(chnlCd)) {
-                data.put("talkList", msgAlimService.selectAlimtalkList(msgAlimVO));
+            if (CHNL_SHRTNT.equals(chnlCd)) {
+                data.put("list", msgAlimService.selectShrtntList(msgAlimVO));
+            } else {
+                msgAlimVO.setMblSndngTycd(chnlCd);
+                data.put("list", msgAlimService.selectMblSndngList(msgAlimVO));
             }
 
             resultVO.setReturnVO(data);

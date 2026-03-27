@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
+import knou.lms.srvy.vo.SrvyPtcpVO;
 import knou.lms.srvy.vo.SrvyVO;
 
 public interface SrvyPtcpService {
@@ -97,5 +98,16 @@ public interface SrvyPtcpService {
 	* @throws Exception
 	*/
 	public List<EgovMap> srvyPtcpListByEzGrader(SrvyVO vo) throws Exception;
+
+	/**
+	* 설문성적엑셀업로드
+	*
+	* @param srvyId 		설문아이디
+    * @param uploadFiles 	파일목록
+    * @param uploadPath 	파일경로
+    * @param excelGrid 	엑셀그리드
+	* @throws Exception
+	*/
+	public void srvyScrExcelUpload(SrvyPtcpVO vo) throws Exception;
 
 }

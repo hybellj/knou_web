@@ -734,6 +734,82 @@ public class SrvyController extends ControllerBase {
     }
 
     /**
+     * 교수설문문항엑셀업로드팝업
+     *
+     * @param srvyId	설문아이디
+     * @return prof_srvy_qstn_excel_upload_pop.jsp
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyQstnExcelUploadPopup.do")
+    public String profSrvyQstnExcelUploadPopup(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    	String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        vo.setUserId(userId);
+        vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_SRVY, vo.getSrvyId()));	// 첨부파일저장소 설정
+        model.addAttribute("vo", vo);
+
+        return "srvy/popup/prof_srvy_qstn_excel_upload_pop";
+    }
+
+    /**
+     * 교수설문문항등록샘플엑셀다운로드
+     *
+     * @param srvyId		설문아이디
+     * @param excelGrid 	엑셀그리드
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyQstnRegistSampleExcelDown.do")
+    public String profSrvyQstnRegistSampleExcelDown(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    	SrvyMainView srvyMainView = srvyFacadeService.getSrvyQstnExcelSampleData(vo);
+    	HashMap<String, Object> map = srvyMainView.getSrvyQstnSampleMap();
+        List<EgovMap> list = null;
+        if (map != null) {
+            list = (List<EgovMap>) map.get("list");
+        }
+
+        //엑셀 정보값 세팅
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("outFileName", "설문문항");
+        params.put("sheetName", "sample");
+        params.put("list", list);
+
+        //엑셀화
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        params.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(params);
+
+        return "excelView";
+    }
+
+    /**
+     * 교수설문문항엑셀업로드
+     *
+     * @param srvyId 		설문아이디
+     * @param uploadFiles 	파일목록
+     * @param uploadPath 	파일경로
+     * @param excelGrid 	엑셀그리드
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyQstnExcelUpload.do")
+    @ResponseBody
+    public ProcessResultVO<SrvyVO> profSrvyQstnExcelUpload(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<SrvyVO> resultVO = new ProcessResultVO<SrvyVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String orgId  = StringUtil.nvl(SessionInfo.getOrgId(request));
+        vo.setOrgId(orgId);
+        vo.setRgtrId(userId);
+
+        try {
+        	resultVO = srvyFacadeService.srvyQstnExcelUpload(vo);
+        } catch(Exception e) {
+            e.printStackTrace();
+            resultVO.setResult(-1);
+        }
+        return resultVO;
+    }
+
+    /**
      * 설문문항등록
      *
      * @param SrvyQstnVO 문항정보
@@ -765,7 +841,7 @@ public class SrvyController extends ControllerBase {
     }
 
     /**
-     * 퀴즈문항수정
+     * 설문문항수정
      *
      * @param QstnVO 문항 정보
      * @return ProcessResultVO<QstnVO>
@@ -1162,6 +1238,86 @@ public class SrvyController extends ControllerBase {
     	model.addAttribute("colorList", srvyMainView.getColorList());
 
         return "srvy/popup/prof_srvy_ptcp_status_pop";
+    }
+
+    /**
+     * 교수설문엑셀성적등록팝업
+     *
+     * @param srvyId 	설문아이디
+     * @param sbjctId 	과목아이디
+     * @return prof_srvy_excel_scr_regist_pop.jsp
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyExcelScrRegistPopup.do")
+    public String profSrvyExcelScrRegistPopup(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    	vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_SRVY, vo.getSrvyId()));
+        request.setAttribute("vo", vo);
+
+        return "srvy/popup/prof_srvy_excel_scr_regist_pop";
+    }
+
+    /**
+     * 교수설문성적등록샘플엑셀다운로드
+     *
+     * @param srvyId 		설문아이디
+     * @param excelGrid 	엑셀그리드
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyScrRegistSampleExcelDown.do")
+    public String profSrvyScrRegistSampleExcelDown(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String title = "학습자목록";
+
+        Map<String, Object> searchMap = new HashMap<String, Object>();
+        searchMap.put("srvyId", vo.getSrvyId());
+        List<EgovMap> srvyPtcpList = srvyFacadeService.getSrvyPtcpList(searchMap).getSrvyPtcpList();
+
+        // POI의 SXSSFWorkbook를 이용한 대용량 엑셀 출력 공통 함수 이용
+        // 엑셀 정보값 세팅
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title", title);  		// 시험학습자목록
+        map.put("sheetName", title);   	// 학습자목록
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list", srvyPtcpList);
+
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("outFileName", title);  // 학습자목록
+        params.put("sheetName", title);    // 학습자목록
+        params.put("list", srvyPtcpList);
+
+        //엑셀화
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        params.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(params);
+
+        return "excelView";
+    }
+
+    /**
+     * 교수설문성적엑셀업로드
+     *
+     * @param srvyId 		설문아이디
+     * @param uploadFiles 	파일목록
+     * @param uploadPath 	파일경로
+     * @param excelGrid 	엑셀그리드
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profSrvyScrExcelUpload.do")
+    @ResponseBody
+    public ProcessResultVO<SrvyPtcpVO> profSrvyScrExcelUpload(SrvyPtcpVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<SrvyPtcpVO> resultVO = new ProcessResultVO<SrvyPtcpVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        vo.setRgtrId(userId);
+
+        try {
+        	srvyFacadeService.srvyScrExcelUpload(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            e.printStackTrace();
+            resultVO.setResult(-1);
+        }
+        return resultVO;
     }
 
     /**

@@ -1888,12 +1888,11 @@
 				        					<tr>
 				        						<th><label>첨부파일</label></th>
 				        						<td class="t_left" colspan="3">
-				        							<c:forEach var="list" items="${vo.fileList }">
-														<button class="ui icon small button" id="file_${list.fileSn }" title="<spring:message code="asmnt.label.attachFile.download" />" onclick="fileDown(`${list.fileSn }`, `${list.repoCd }`)"><i class="ion-android-download"></i> </button>
-														<script>
-															byteConvertor("${list.fileSize}", "${list.fileNm}", "${list.fileSn}");
-														</script>
-													</c:forEach>
+				        							<c:if test="${not empty vo.fileList}">
+														<div class="add_file_list">
+															<uiex:filedownload fileList="${vo.fileList}"/>
+														</div>
+													</c:if>
 				        						</td>
 				        					</tr>
 				        					<tr>

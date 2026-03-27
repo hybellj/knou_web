@@ -244,7 +244,7 @@
             $("#rsrvSdttm").val(makeDateTimeStr("rsrvStartDate", "rsrvStartTime"));
             $("#rsrvEdttm").val(makeDateTimeStr("rsrvEndDate", "rsrvEndTime"));
             $("#autoAlimSdttm").val(makeDateTimeStr("autoAlimStartDate", "autoAlimStartTime"));
-            $("#autoAlimEdttm").val(makeDateTimeStr("autoAlimEdttm", "autoAlimEndTime"));
+            $("#autoAlimEdttm").val(makeDateTimeStr("autoAlimEndDate", "autoAlimEndTime"));
 
             var dx = dx5.get("fileUploader");
             $("#delFileIdStr").val(dx.getDelFileIdStr());
@@ -272,7 +272,7 @@
                 title: "수강생 추가",
                 width: 1000,
                 height: 800,
-                url: "/bbs/" + TEMPLATE_URL +"/bbsSbjctGrpNtcPopView.do"
+                url: "/bbs/" + TEMPLATE_URL +"/bbsAtclGrpNtcPopView.do"
             });
         }
 

@@ -41,7 +41,7 @@
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.rcptnAgre.label.org" text="기관"/></option>';
                 res.returnList.forEach(function(v) {
-                    html += '<option value="' + v.orgId + '">' + v.orgnm + '</option>';
+                    html += '<option value="' + v.orgId + '">' + UiComm.escapeHtml(v.orgnm) + '</option>';
                 });
                 $('#popOrgId').html(html);
                 fn_refreshChosen('#popOrgId');
@@ -56,7 +56,7 @@
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과/부서선택"/></option>';
                 res.returnList.forEach(function(v) {
-                    html += '<option value="' + v.deptId + '">' + v.deptnm + '</option>';
+                    html += '<option value="' + v.deptId + '">' + UiComm.escapeHtml(v.deptnm) + '</option>';
                 });
                 $('#popDeptId').html(html);
                 fn_refreshChosen('#popDeptId');
@@ -72,7 +72,7 @@
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="과목선택"/></option>';
                 res.returnList.forEach(function(v) {
-                    html += '<option value="' + v.sbjctId + '">' + v.sbjctnm + '</option>';
+                    html += '<option value="' + v.sbjctId + '">' + UiComm.escapeHtml(v.sbjctnm) + '</option>';
                 });
                 $('#popSbjctId').html(html);
                 fn_refreshChosen('#popSbjctId');
@@ -220,9 +220,9 @@
             {title:"<spring:message code='msg.shrtnt.col.userTycd' text='사용자구분'/>",                      field:"userTycdNm", headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:60},
             {title:"<spring:message code='msg.shrtnt.col.stdntNo' text='학번/사번'/>",                        field:"stdntNo",    headerHozAlign:"center", hozAlign:"center", width:90,  minWidth:70},
             {title:"<spring:message code='msg.shrtnt.col.usernm' text='이름'/>",                              field:"usernm",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:70},
-            {title:"<spring:message code='msg.shrtnt.col.deptnm' text='학과/부서'/>",                         field:"deptnm",     headerHozAlign:"center", hozAlign:"center", width:130, minWidth:80},
+            {title:"<spring:message code='msg.shrtnt.col.deptnm' text='학과/부서'/>",                         field:"deptnm",     headerHozAlign:"center", hozAlign:"center", width:180, minWidth:100},
             {title:"<spring:message code='msg.shrtnt.col.mblPhn' text='연락처'/>",                            field:"mblPhn",     headerHozAlign:"center", hozAlign:"center", width:120, minWidth:90},
-            {title:"<spring:message code='msg.shrtnt.col.eml' text='이메일'/>",                               field:"rprsEml",    headerHozAlign:"center", hozAlign:"center", width:170, minWidth:110}
+            {title:"<spring:message code='msg.shrtnt.col.eml' text='이메일'/>",                               field:"rprsEml",    headerHozAlign:"center", hozAlign:"left"}
         ]
     });
 </script>

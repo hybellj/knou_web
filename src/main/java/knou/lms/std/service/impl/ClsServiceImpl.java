@@ -14,6 +14,8 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.ArrayList;
+import java.util.Map;
 
 @Service("clsService")
 public class ClsServiceImpl extends ServiceBase implements ClsService {
@@ -139,7 +141,18 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     @Override
     public List<ClsStdntVO> selectClsStdntList(ClsStdntVO vo) throws Exception {
         setDefaultWkList(vo);
-        return clsDAO.selectClsStdntList(vo);
+
+        List<ClsStdntVO> list = clsDAO.selectClsStdntList(vo);
+        List<ClsWkStsVO> wkStsList = clsDAO.selectClsStdntWkStsList(vo);
+
+        Map<String, List<ClsWkStsVO>> wkStsMap = wkStsList.stream()
+                .collect(Collectors.groupingBy(ClsWkStsVO::getUserId));
+
+        for (ClsStdntVO item : list) {
+            item.setWkStsList(wkStsMap.getOrDefault(item.getUserId(), new ArrayList<>()));
+        }
+
+        return list;
     }
 
     /*****************************************************
@@ -161,7 +174,18 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
             vo.setLastIndex(pi.getLastRecordIndex());
             int totCnt = clsDAO.selectClsStdntListCnt(vo);
             pi.setTotalRecordCount(totCnt);
-            out.setReturnList(clsDAO.selectClsStdntListPaging(vo));
+
+            List<ClsStdntVO> list = clsDAO.selectClsStdntListPaging(vo);
+            List<ClsWkStsVO> wkStsList = clsDAO.selectClsStdntWkStsList(vo);
+
+            Map<String, List<ClsWkStsVO>> wkStsMap = wkStsList.stream()
+                    .collect(Collectors.groupingBy(ClsWkStsVO::getUserId));
+
+            for (ClsStdntVO item : list) {
+                item.setWkStsList(wkStsMap.getOrDefault(item.getUserId(), new ArrayList<>()));
+            }
+            // 주차별 학습상태 목록을 userId 기준으로 묶어 학생 목록에 세팅
+            out.setReturnList(list);
             out.setPageInfo(pi);
             out.setResult(1);
         } catch (Exception e) {
@@ -215,6 +239,17 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     @Override
     public List<ClsElemStatsVO> selectClsElemStatsListExcelDown(ClsElemStatsVO vo) throws Exception {
         return clsDAO.selectClsElemStatsList(vo);
+    }
+
+    /*****************************************************
+     * 수강생별 주차 학습상태 목록을 조회한다.
+     * @param ClsStdntVO
+     * @return List<ClsWkStsVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<ClsWkStsVO> selectClsStdntWkStsList(ClsStdntVO vo) throws Exception {
+        return clsDAO.selectClsStdntWkStsList(vo);
     }
 
     /*****************************************************

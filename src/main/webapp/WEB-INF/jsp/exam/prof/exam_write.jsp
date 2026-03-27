@@ -186,7 +186,7 @@
                 if (lrnGrpIdVal && $("#subInfoDiv" + suffix).children().length === 0) {
                     var lrnGrpId  = lrnGrpIdVal.split(":")[0];
                     var examBscId = $(obj).data("bscId");
-                    var url  = "/quiz/quizLrnGrpSubAsmtListAjax.do";
+                    var url  = "/exam/examLrnGrpSubAsmtListAjax.do";
                     var data = { lrnGrpId: lrnGrpId, examBscId: examBscId };
                     ajaxCall(url, data, function(data) {
                         if (data.result > 0) {
@@ -247,7 +247,7 @@
             $("#lrnGrpnm" + idList[0]).val(lrnGrpnm);
             $("#setExamTeamDiv" + idList[0]).show();
 
-            var url  = "/quiz/quizLrnGrpSubAsmtListAjax.do";
+            var url  = "/exam/examLrnGrpSubAsmtListAjax.do";
             var data = {
                 lrnGrpId  : lrnGrpId,
                 examBscId : $("#lrnGrpSubasmtStngyn_" + idList[0]).data("bscid")
@@ -304,16 +304,18 @@
                         html += "</table>";
                     }
 
-                    $("#subInfoDiv" + idList[0]).empty().html(html);
-                    if(returnList.length > 0) {
-                        returnList.forEach(function(v, i) {
-                            // html 에디터 생성
-                            editors[v.teamId+'_editor'+i] = UiEditor({
-                                targetId: v.teamId+'_contentTextArea_'+i,
-                                uploadPath: "/exam",
-                                height: "200px"
+                    if ($("#lrnGrpSubsbjctUseyn_" + idList[0]).is(':checked')) {
+                        $("#subInfoDiv" + idList[0]).empty().html(html);
+                        if(returnList.length > 0) {
+                            returnList.forEach(function(v, i) {
+                                // html 에디터 생성
+                                editors[v.teamId+'_editor'+i] = UiEditor({
+                                    targetId: v.teamId+'_contentTextArea_'+i,
+                                    uploadPath: "/exam",
+                                    height: "200px"
+                                });
                             });
-                        });
+                        }
                     }
                 } else {
                     UiComm.showMessage(data.message, "error");

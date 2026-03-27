@@ -52,7 +52,7 @@ import knou.lms.user.vo.UsrUserInfoVO;
 
 @Controller
 public class LoginController extends ControllerBase {
-    private static Logger log = Logger.getLogger(LoginController.class);
+    private static Logger log = Logger.getLogger(LoginControllerTOBE.class);
     
     @Autowired
     private LoginService loginService;
@@ -136,8 +136,7 @@ public class LoginController extends ControllerBase {
 	 * @throws Exception
 	 */
 	@RequestMapping(value="/loginProc.do")
-    public String loginProc(UsrLoginVO vo, Map commandMap, ModelMap model, 
-            HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public String loginProc(UsrLoginVO vo, Map commandMap, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
 	    
 	    UsrUserInfoVO uuivo = new UsrUserInfoVO();
 		/* String orgId = vo.getOrgId(); */

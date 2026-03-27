@@ -83,7 +83,6 @@
 
         $("#btnSendMsg").on("click", function () {
             if (!currentUserIds || currentUserIds.length === 0) {
-                // ★ 수정: alert() → UiComm.showMessage() (G-3)
                 UiComm.showMessage("현재 조회된 미학습자가 없습니다.", "warning");
                 return;
             }
@@ -164,9 +163,9 @@
                     $body.append(
                         '<tr>'
                         + '<td class="t_center" data-th="No">'      + (idx + 1) + '</td>'
-                        + '<td class="t_center" data-th="학과">'     + escHtml(item.deptnm  || '') + '</td>'
-                        + '<td class="t_center" data-th="학번">'     + escHtml(item.stdntNo || '') + '</td>'
-                        + '<td class="t_center" data-th="이름">'     + escHtml(item.usernm  || '') + '</td>'
+                        + '<td class="t_center" data-th="학과">'     + escHtml(item.deptnm  || '-') + '</td>'
+                        + '<td class="t_center" data-th="학번">'     + escHtml(item.stdntNo || '-') + '</td>'
+                        + '<td class="t_center" data-th="이름">'     + escHtml(item.usernm  || '-') + '</td>'
                         + '<td class="t_center" data-th="입학년도">' + escHtml(item.entyR   || '-') + '</td>'
                         + '<td class="t_center" data-th="학년">'     + escHtml(item.scyr    || '-') + '</td>'
                         + '</tr>'

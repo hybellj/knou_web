@@ -126,8 +126,8 @@ public class Forum2LectController extends ControllerBase {
 
         // TODO : Test Code 값 추후 수정 예정.(setSbjctId, setLrnGrpId)
         // - 필수값 체크 : 과목 ID 가 없을 경우 (잘못된 접근)
-        forum2ListVO.setSbjctId(test_sbjctId);
-        forum2ListVO.setLrnGrpId("LRN_GRP_01");
+        forum2ListVO.setSbjctId(forum2ListVO.getSbjctId() != null ? forum2ListVO.getSbjctId() : test_sbjctId);
+        forum2ListVO.setLrnGrpId(forum2ListVO.getLrnGrpId() != null ? forum2ListVO.getLrnGrpId() : test_lrnGrpId);
 
         model.addAttribute("forum2ListVO", forum2ListVO);
 
@@ -295,33 +295,48 @@ public class Forum2LectController extends ControllerBase {
         creCrsVO = crecrsService.selectTchCreCrs(creCrsVO);
 
         String repUserId = creCrsVO.getUserId();*/
-        String repUserId = "";
+        String repUserId = StringUtil.nvl(SessionInfo.getUserId(request));
 
-        // 대표교수의 과목이 있는 학기 목록 조회
-        TermVO termVO = new TermVO();
-//        termVO.setOrgId(orgId);
-        termVO.setCrsCreCd(sbjctId);
-        List<TermVO> termList = termService.listTermByProf(termVO);
+        // 대표교수의 과목이 있는 학기기수 목록 조회
+        Forum2VO forumVO = new Forum2VO();
+        forumVO.setSbjctId(sbjctId);
+        List<EgovMap> smstrChrtList = forum2Service.selectProfSmstrChrtList(forumVO);
 
         model.addAttribute("vo", vo);
-        model.addAttribute("termList", termList);
+        model.addAttribute("smstrChrtList", smstrChrtList);
         model.addAttribute("repUserId", repUserId);
 
         return "forum2/popup/prof_forum_copy";
     }
 
+    // 교수학기기수별과목목록 조회 ajax (토론 복사 팝업용)
+    @RequestMapping(value="/Form/smstrChrtSbjctListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> smstrChrtSbjctListAjax(Forum2VO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+        try {
+            resultVO.setReturnList(forum2Service.selectProfSmstrChrtSbjctList(vo));
+            resultVO.setResult(1);
+        } catch (Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("forum.common.error");
+        }
+        return resultVO;
+    }
+
     // 이전 토론 가져오기 리스트 ajax
     @RequestMapping(value="/Form/forumCopyList.do")
     @ResponseBody
-    public ProcessResultVO<Forum2VO> fourmCopyList(Forum2VO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<Forum2VO> fourmCopyList(@RequestBody Forum2VO vo, ModelMap map, HttpServletRequest request) throws Exception {
         ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
 
         String orgId = SessionInfo.getOrgId(request);
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
         try {
+            vo.setUserId(userId);
             vo.setOrgId(orgId);
-
-            resultVO = forum2Service.listMyCreCrsForum(vo);
+            resultVO = forum2Service.selectProfSbjctForumList(vo);
             resultVO.setResult(1);
         } catch(Exception e) {
             resultVO.setResult(-1);
@@ -339,7 +354,10 @@ public class Forum2LectController extends ControllerBase {
 
         try {
             Forum2VO forumVO = new Forum2VO();
-            forumVO = forum2Service.select(vo);
+            forumVO = forum2Service.selectForum(vo);
+            // 복사시 이전 토론 ID 는 제거한다.
+            forumVO.setDscsId("");
+
             returnVO.setReturnVO(forumVO);
             returnVO.setResult(1);
         } catch(Exception e) {

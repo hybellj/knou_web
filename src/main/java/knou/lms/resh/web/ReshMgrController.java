@@ -7,7 +7,7 @@ import knou.framework.util.LocaleUtil;
 import knou.framework.util.StringUtil;
 import knou.framework.util.URLBuilder;
 import knou.lms.common.vo.ProcessResultVO;
-import knou.lms.login.web.LoginController;
+import knou.lms.login.web.LoginControllerTOBE;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.resh.service.ReshAnsrService;
 import knou.lms.resh.service.ReshQstnService;
@@ -31,7 +31,7 @@ import java.util.*;
 @RequestMapping(value = "/resh/reshMgr")
 public class ReshMgrController extends ControllerBase {
 
-    private static final Logger log = Logger.getLogger(LoginController.class);
+    private static final Logger log = Logger.getLogger(LoginControllerTOBE.class);
 
 
     @Resource(name = "reshService")

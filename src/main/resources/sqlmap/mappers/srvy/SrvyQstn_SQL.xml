@@ -266,4 +266,58 @@
 		) A
 	</insert>
 
+	<delete id="srvyQstnAllDelete" parameterType="srvyVO">
+		/*
+             SQL ID : SrvyQstnDAO.srvyQstnAllDelete
+             설  명  : 설문문항전체삭제
+         */
+        DELETE FROM TB_LMS_SRVY_QSTN
+         WHERE SRVYPPR_ID IN (
+	         	SELECT
+					SRVYPPR.SRVYPPR_ID
+				  FROM TB_LMS_SRVYPPR SRVYPPR
+				  JOIN TB_LMS_SRVY SRVY
+				    ON SRVYPPR.SRVY_ID = SRVY.SRVY_ID
+				 WHERE SRVY.SRVY_ID = #{srvyId}
+         )
+	</delete>
+
+	<insert id="srvyQstnBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : SrvyQstnDAO.srvyQstnBulkRegist
+             설  명 : 설문문항일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_SRVY_QSTN (
+	         	  SRVY_QSTN_ID
+				, SRVYPPR_ID
+				, QSTN_GBNCD
+				, QSTN_RSPNS_TYCD
+				, QSTN_SEQNO
+				, QSTN_TTL
+				, QSTN_CTS
+				, ESNTL_RSPNSYN
+				, ETC_INPT_USEYN
+				, SRVY_MVMN_USEYN
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.srvyQstnId}
+				, #{item.srvypprId}
+				, #{item.qstnGbncd}
+				, #{item.qstnRspnsTycd}
+				, #{item.qstnSeqno}
+				, #{item.qstnTtl}
+				, #{item.qstnCts}
+				, #{item.esntlRspnsyn}
+				, #{item.etcInptUseyn}
+				, #{item.srvyMvmnUseyn}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
 </mapper>

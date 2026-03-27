@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
 import knou.lms.srvy.vo.SrvyQstnVO;
+import knou.lms.srvy.vo.SrvyVO;
 import knou.lms.srvy.vo.SrvyVwitmVO;
 
 @Mapper("srvyVwitmDAO")
@@ -64,5 +65,21 @@ public interface SrvyVwitmDAO {
 	 * @throws Exception
 	 */
 	public List<SrvyVwitmVO> srvyVwitmBulkList(@Param("srvyId") String srvyId, @Param("qstnRspnsTycd") String qstnRspnsTycd, @Param("searchType") String searchType) throws Exception;
+
+	/**
+	 * 설문문항목록보기항목전체삭제
+	 *
+	 * @param SrvyVO
+	 * @throws Exception
+	 */
+	public void srvyQstnListVwitmAllDelete(SrvyVO vo) throws Exception;
+
+	/**
+	 * 설문보기항목설문지이동아이디수정
+	 *
+	 * @param srvyId 	설문아이디
+	 * @throws Exception
+	 */
+	public void srvyVwitmMvmnSrvypprIdModify(@Param("srvyId") String srvyId) throws Exception;
 
 }

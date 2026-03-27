@@ -19,6 +19,7 @@ import knou.framework.common.ServiceBase;
 import knou.framework.context2.UserContext;
 import knou.lms.cmmn.service.CmmnCdService;
 import knou.lms.cmmn.vo.CmmnCdVO;
+import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.exam.service.ExamService;
 import knou.lms.srvy.service.SrvyPtcpService;
 import knou.lms.srvy.service.SrvyQstnService;
@@ -753,6 +754,28 @@ public class SrvyFacadeServiceImpl extends ServiceBase implements SrvyFacadeServ
         srvyMainView.setSrvyRspnsList(srvyRspnsService.srvyRspnsList(vo.getSrvyPtcpId(), vo.getSrvyId(), vo.getUserId()));
 
 		return srvyMainView;
+	}
+
+	@Override
+	public void srvyScrExcelUpload(SrvyPtcpVO vo) throws Exception {
+		// 설문성적엑셀업로드
+		srvyPtcpService.srvyScrExcelUpload(vo);
+	}
+
+	@Override
+	public SrvyMainView getSrvyQstnExcelSampleData(SrvyVO vo) throws Exception {
+		SrvyMainView srvyMainView = new SrvyMainView();
+
+		// 설문문항엑셀샘플데이터
+		srvyMainView.setSrvyQstnSampleMap(srvyQstnService.srvyQstnExcelSampleData(vo));
+
+		return srvyMainView;
+	}
+
+	@Override
+	public ProcessResultVO<SrvyVO> srvyQstnExcelUpload(SrvyVO vo) throws Exception {
+		// 설문문항엑셀업로드
+		return srvyQstnService.srvyQstnExcelUpload(vo);
 	}
 
 }

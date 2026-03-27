@@ -12,9 +12,5 @@ public interface MsgAlimService {
 
     List<MsgAlimVO> selectShrtntList(MsgAlimVO vo);
 
-    List<MsgAlimVO> selectPushList(MsgAlimVO vo);
-
-    List<MsgAlimVO> selectSmsList(MsgAlimVO vo);
-
-    List<MsgAlimVO> selectAlimtalkList(MsgAlimVO vo);
+    List<MsgAlimVO> selectMblSndngList(MsgAlimVO vo);
 }

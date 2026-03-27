@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
+import knou.lms.srvy.vo.SrvyVO;
 import knou.lms.srvy.vo.SrvypprVO;
 
 @Mapper("srvypprDAO")
@@ -74,5 +75,21 @@ public interface SrvypprDAO {
 	 * @throws Exception
 	 */
 	public void srvySeqnoModify(SrvypprVO vo) throws Exception;
+
+	/**
+	* 설문지전체삭제
+	*
+	* @param SrvyVO
+	* @throws Exception
+	*/
+	public void srvypprAllDelete(SrvyVO vo) throws Exception;
+
+	/**
+	 * 설문지일괄등록
+	 *
+	 * @param List<SrvypprVO>
+	 * @throws Exception
+	 */
+	public void srvypprBulkRegist(List<SrvypprVO> vo) throws Exception;
 
 }

@@ -3009,24 +3009,22 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsAtclGrpNtcPopView.do")
-    @ResponseBody
-    public ProcessResultVO<BbsAtclVO> bbsAtclGrpNtcPopView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-        ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
+    public String bbsAtclGrpNtcPopView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
 
-        String orgId = SessionInfo.getOrgId(request);
-        String userId = SessionInfo.getUserId(request);
-        String langCd = SessionInfo.getLocaleKey(request);
+        String orgId = userCtx.getOrgId();
+        String userId = userCtx.getUserId();
+        String langCd = userCtx.getLangCd();
 
-        try {
-            bbsAtclVO.setOrgId(orgId);
-			resultVO = bbsAtclService.selectBbsAtclGrpNtcPopView(bbsAtclVO);
-            resultVO.setResult(1);
-        } catch(Exception e) {
-            LOGGER.debug("e: ", e);
-            resultVO.setResult(-1);
-            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
-        }
-        return resultVO;
+        String bbsId = bbsAtclVO.getBbsId();
+        String atclId = bbsAtclVO.getAtclId();
+
+		/*
+		 * bbsAtclVO = bbsAtclService.selectBbsAtcl(bbsAtclVO);
+		 */
+        model.addAttribute("bbsAtclVO", bbsAtclVO);
+
+        return "bbs/popup/bbs_sbjct_grp_ntc_popview";
     }
 }
 

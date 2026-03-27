@@ -38,6 +38,15 @@ public interface ExamService {
     // 시험 평가대상자 목록 카운트
     public int countTkexamUser(ExamVO vo) throws Exception;
 
+    // 시험 평가대상자 목록 조회
+    public List<EgovMap> tkexamUserList(Map<String, Object> vo) throws Exception;
+
+    // 사용자 시험 응시현황 (파이)차트데이터 조회
+    public EgovMap selectUserTkexamStatusForPieChart(String examBscId, String sbjctId) throws Exception;
+
+    // 사용자 시험 응시현황 (가로선)차트데이터 조회
+    public List<EgovMap> selectUserTkexamStatusForHrChart(String examBscId, String sbjctId) throws Exception;
+
     // 성적 반영비율 수정
     public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
 

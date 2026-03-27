@@ -393,10 +393,10 @@
                 var HEADER_NOTI_POLLING_INTERVAL = 120000; // 2분
 
                 var HEADER_CHNL_MAP = {
-                    'PUSH':      { targetId: '#headerPushList', itemClass: 'push', listKey: 'pushList' },
-                    'SMS':       { targetId: '#headerSmsList',  itemClass: 'sms',  listKey: 'smsList' },
-                    'SHRTNT':    { targetId: '#headerMsgList',  itemClass: 'msg',  listKey: 'msgList' },
-                    'ALIM_TALK': { targetId: '#headerTalkList', itemClass: 'talk', listKey: 'talkList' }
+                    'PUSH':      { targetId: '#headerPushList', itemClass: 'push', listKey: 'list' },
+                    'SMS':       { targetId: '#headerSmsList',  itemClass: 'sms',  listKey: 'list' },
+                    'SHRTNT':    { targetId: '#headerMsgList',  itemClass: 'msg',  listKey: 'list' },
+                    'ALIM_TALK': { targetId: '#headerTalkList', itemClass: 'talk', listKey: 'list' }
                 };
 
                 $(document).ready(function() {

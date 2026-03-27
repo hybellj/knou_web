@@ -156,6 +156,7 @@
 				   END AS TKEXAM_STRT_USER_CNT
 			, (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_EXAM_TRGTR WHERE EXAM_DTL_ID = (SELECT EXAM_DTL_ID FROM TB_LMS_EXAM_DTL WHERE EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USEYN = 'Y' AND DELYN = 'N' AND ROWNUM = 1))) AS LRN_GRP_ID
 			, (SELECT LRN_GRPNM FROM TB_LMS_TEAM_GRP WHERE USEYN = 'Y' AND DELYN = 'N' AND SBJCT_ID = EXAM_BSC.SBJCT_ID AND LRN_GRP_ID = (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_EXAM_TRGTR WHERE EXAM_DTL_ID = (SELECT EXAM_DTL_ID FROM TB_LMS_EXAM_DTL WHERE EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USEYN = 'Y' AND DELYN = 'N' AND ROWNUM = 1)))) LRN_GRPNM
+			, FN_REF_FILE_CNT(EXAM_BSC.EXAM_BSC_ID) AS FILE_CNT
            FROM TB_LMS_EXAM_BSC EXAM_BSC
           WHERE EXAM_BSC_ID = #{examBscId}
 	</select>
@@ -945,31 +946,35 @@
     <sql id="listQueryForExam">
         SELECT
             ROW_NUMBER() OVER(ORDER BY TO_DATE(D.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS') DESC
-                            , A.EXAM_BSC_ID ASC)    AS "LINE_NO"            /* Row Number */
-            , A.EXAM_BSC_ID                         AS "EXAM_BSC_ID"        /* 시험기본 ID */
-            , A.EXAM_TYCD                           AS "EXAM_TYCD"          /* 시험유형코드 */
-            , A.EXAM_GBNCD                          AS "EXAM_GBNCD"         /* 시험구분코드 */
-            , B.CDNM                                AS "EXAM_GBNNM"         /* 시험구분코드명 */
-            , A.TKEXAM_MTHD_CD                      AS "TKEXAM_MTHD_CD"     /* 시험응시방법코드 */
+                                    , A.EXAM_BSC_ID ASC)    AS "LINE_NO"            /* Row Number */
+            , A.EXAM_BSC_ID                                 AS "EXAM_BSC_ID"        /* 시험기본 ID */
+            , A.EXAM_TYCD                                   AS "EXAM_TYCD"          /* 시험유형코드 */
+            , A.EXAM_GBNCD                                  AS "EXAM_GBNCD"         /* 시험구분코드 */
+            , B.CDNM                                        AS "EXAM_GBNNM"         /* 시험구분코드명 */
+            , A.TKEXAM_MTHD_CD                              AS "TKEXAM_MTHD_CD"     /* 시험응시방법코드 */
             , CASE
                 WHEN A.TKEXAM_MTHD_CD IS NULL THEN ''
                 ELSE C.CDNM
-            END                                     AS "TKEXAM_MTHD_NM"     /* 시험응시방법코드명 */
-            , A.EXAM_TTL                            AS "EXAM_TTL"           /* 시험제목 */
-            , D.EXAM_PSBL_SDTTM                     AS "EXAM_PSBL_SDTTM"    /* 시험 시작일 */
-            , D.EXAM_PSBL_EDTTM                     AS "EXAM_PSBL_EDTTM"    /* 시험 종료일 */
-            , TO_CHAR(TO_DATE(D.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS'), 'YYYY.MM.DD HH24:MI')
-                || ' ~ ' || TO_CHAR(TO_DATE(D.EXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS'), 'HH24:MI')  AS "EXAM_DRTN"  /* 시험일시(기간) */
-            , D.EXAM_MNTS                           AS "EXAM_MNTS"          /* 시험시간 */
-            , A.MRK_RFLTYN                          AS "MRK_RFLTYN"         /* 성적반영여부 */
-            , TO_NUMBER(A.MRK_RFLTRT)               AS "MRK_RFLTRT"         /* 반영비율 */
-            , COUNT(CASE WHEN E.TKEXAM_CMPTNYN = 'Y' THEN 1 END)
-                || '/' || COUNT(E.TKEXAM_CMPTNYN)   AS "TKEXAM_CMPTNYN_TOT" /* 응시현황 */
-            , COUNT(CASE WHEN F.EVLYN = 'Y' THEN 1 END)
-                || '/' || COUNT(F.EVLYN)            AS "EVLYN_TOT"          /* 평가현황 */
-            , D.EXAM_QSTNS_CMPTNYN                  AS "EXAM_QSTNS_CMPTNYN" /* 출제상태 */
-            , A.MRK_OYN                             AS "MRK_OYN"            /* 성적공개 */
-            , A.BYTEAM_SUBREXAM_USEYN               AS "BYTEAM_SUBREXAM_USEYN"      /* 팀 시험 여부 */
+            END                                             AS "TKEXAM_MTHD_NM"     /* 시험응시방법코드명 */
+            , A.EXAM_TTL                                    AS "EXAM_TTL"           /* 시험제목 */
+            , D.EXAM_PSBL_SDTTM                             AS "EXAM_PSBL_SDTTM"    /* 시험 시작일 */
+            , D.EXAM_PSBL_EDTTM                             AS "EXAM_PSBL_EDTTM"    /* 시험 종료일 */
+            , D.EXAM_MNTS                                   AS "EXAM_MNTS"          /* 시험시간 */
+            , A.MRK_RFLTYN                                  AS "MRK_RFLTYN"         /* 성적반영여부 */
+            , TO_NUMBER(A.MRK_RFLTRT)                       AS "MRK_RFLTRT"         /* 반영비율 */
+            /* 응시현황: (응시자) / (전체 수강생 - 결시자) */
+            , CASE
+                WHEN A.BYTEAM_SUBREXAM_USEYN = 'Y' THEN NVL(TKEXAM_TEAM.CNT, 0)
+                ELSE NVL(TKEXAM_INDI.CNT, 0)
+            END || '/' || NVL(TOTAL_USR.CNT, 0)             AS "TKEXAM_CMPTNYN_TOT" /* 응시현황 */
+            /* 평가현황: (평가 완료자) / (전체 수강생 - 결시자) */
+            , CASE
+                WHEN A.BYTEAM_SUBREXAM_USEYN = 'Y' THEN NVL(EVLYN_TEAM.CNT, 0)
+                ELSE NVL(EVLYN_INDI.CNT, 0)
+            END || '/' || NVL(TOTAL_USR.CNT, 0)             AS "EVLYN_TOT"          /* 평가현황 */
+            , A.EXAM_QSTNS_CMPTNYN                          AS "EXAM_QSTNS_CMPTNYN" /* 출제상태 */
+            , A.MRK_OYN                                     AS "MRK_OYN"            /* 성적공개 */
+            , A.BYTEAM_SUBREXAM_USEYN                       AS "BYTEAM_SUBREXAM_USEYN" /* 팀 시험 여부 */
         FROM
             TB_LMS_EXAM_BSC A
             /* 시험구분코드 (공통코드) */
@@ -980,15 +985,129 @@
             LEFT JOIN TB_LMS_CMMN_CD C
                 ON A.TKEXAM_MTHD_CD = C.CD
                 AND C.UP_CD = 'TKEXAM_MTHD_CD'
-            /* 시험상세 */
-            LEFT JOIN TB_LMS_EXAM_DTL D
+            /* 시험상세 - EXAM_BSC_ID당 최신 1건만 선택 */
+            LEFT JOIN ( SELECT
+                            *
+                        FROM
+                            ( SELECT
+                                D.*
+                                , ROW_NUMBER() OVER (PARTITION BY D.EXAM_BSC_ID
+                                                        ORDER BY D.EXAM_DTL_ID DESC) AS RN
+                            FROM
+                                TB_LMS_EXAM_DTL D )
+                        WHERE
+                            RN = 1 ) D
                 ON A.EXAM_BSC_ID = D.EXAM_BSC_ID
-            /* 응시현황 (응시 수 COUNT) */
-            LEFT JOIN TB_LMS_TKEXAM E
-                ON D.EXAM_DTL_ID = E.EXAM_DTL_ID
-            /* 평가현황 (평가 수 COUNT) */
-            LEFT JOIN TB_LMS_TKEXAM_RSLT F
-                ON E.TKEXAM_ID = F.TKEXAM_ID
+            /* 응시자 수 - 팀 시험: EXAM_BSC_ID별 응시한 팀 멤버 수 (전체 DTL 합산) */
+            LEFT JOIN ( SELECT
+                            BSC.EXAM_BSC_ID
+                            , COUNT(1) AS CNT
+                        FROM
+                            TB_LMS_EXAM_TRGTR TRGTR
+                        JOIN TB_LMS_EXAM_DTL DTL
+                            ON DTL.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+                        JOIN TB_LMS_EXAM_BSC BSC
+                            ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                        JOIN TB_LMS_TEAM_MBR MBR
+                            ON MBR.TEAM_ID = TRGTR.TEAM_ID
+                        WHERE
+                            EXISTS ( SELECT
+                                         1
+                                    FROM
+                                        TB_LMS_TKEXAM TK
+                                    WHERE
+                                        TK.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+                                        AND TK.USER_ID = MBR.USER_ID )
+                        GROUP BY
+                            BSC.EXAM_BSC_ID ) TKEXAM_TEAM
+                ON TKEXAM_TEAM.EXAM_BSC_ID = A.EXAM_BSC_ID
+            /* 응시자 수 - 기본 시험: EXAM_BSC_ID별 응시한 수강생 수 (전체 DTL 합산, ATNDLC 기준) */
+            LEFT JOIN ( SELECT
+                            BSC.EXAM_BSC_ID
+                            , COUNT(DISTINCT TK.USER_ID) AS CNT
+                        FROM
+                            TB_LMS_TKEXAM TK
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                            JOIN TB_LMS_EXAM_BSC BSC
+                                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                            JOIN TB_LMS_ATNDLC ATD
+                                ON ATD.SBJCT_ID = BSC.SBJCT_ID
+                                AND ATD.USER_ID = TK.USER_ID
+                                AND ATD.AUDITYN = 'N'
+                                AND ATD.ATNDLC_STSCD = 'ATNDLC'
+                        GROUP BY
+                            BSC.EXAM_BSC_ID ) TKEXAM_INDI
+                ON TKEXAM_INDI.EXAM_BSC_ID = A.EXAM_BSC_ID
+            /* 평가 완료자 수 - 팀 시험: EXAM_BSC_ID별 EVLYN='Y' 인 팀 멤버 수 (전체 DTL 합산) */
+            LEFT JOIN ( SELECT
+                            BSC.EXAM_BSC_ID
+                            , COUNT(1) AS CNT
+                        FROM
+                            TB_LMS_EXAM_TRGTR TRGTR
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON DTL.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+                            JOIN TB_LMS_EXAM_BSC BSC
+                                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                            JOIN TB_LMS_TEAM_MBR MBR
+                                ON MBR.TEAM_ID = TRGTR.TEAM_ID
+                            JOIN TB_LMS_TKEXAM TK
+                                ON TK.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+                                AND TK.USER_ID = MBR.USER_ID
+                            JOIN TB_LMS_TKEXAM_RSLT RSLT
+                                ON RSLT.TKEXAM_ID = TK.TKEXAM_ID
+                                AND RSLT.USER_ID = MBR.USER_ID
+                        WHERE
+                            RSLT.EVLYN = 'Y'
+                        GROUP BY
+                            BSC.EXAM_BSC_ID ) EVLYN_TEAM
+                ON EVLYN_TEAM.EXAM_BSC_ID = A.EXAM_BSC_ID
+            /* 평가 완료자 수 - 기본 시험: EXAM_BSC_ID별 EVLYN='Y' 인 수강생 수 (전체 DTL 합산, ATNDLC 기준) */
+            LEFT JOIN ( SELECT
+                            BSC.EXAM_BSC_ID
+                            , COUNT(DISTINCT TK.USER_ID) AS CNT
+                        FROM
+                            TB_LMS_TKEXAM TK
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                            JOIN TB_LMS_EXAM_BSC BSC
+                                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                            JOIN TB_LMS_ATNDLC ATD
+                                ON ATD.SBJCT_ID = BSC.SBJCT_ID
+                                AND ATD.USER_ID = TK.USER_ID
+                                AND ATD.AUDITYN = 'N'
+                                AND ATD.ATNDLC_STSCD = 'ATNDLC'
+                            JOIN TB_LMS_TKEXAM_RSLT RSLT
+                                ON RSLT.TKEXAM_ID = TK.TKEXAM_ID
+                                AND RSLT.USER_ID = TK.USER_ID
+                        WHERE
+                            RSLT.EVLYN = 'Y'
+                        GROUP BY
+                            BSC.EXAM_BSC_ID ) EVLYN_INDI
+                ON EVLYN_INDI.EXAM_BSC_ID = A.EXAM_BSC_ID
+            /* 전체 수강생 수 - 결시 승인자 제외 (TKEXAM_CMPTNYN_TOT, EVLYN_TOT 분모 공통) */
+            LEFT JOIN ( SELECT
+                            BSC.EXAM_BSC_ID
+                            , COUNT(DISTINCT ATD.USER_ID) AS CNT
+                        FROM
+                            TB_LMS_ATNDLC ATD
+                        JOIN TB_LMS_EXAM_BSC BSC
+                            ON BSC.SBJCT_ID = ATD.SBJCT_ID
+                        WHERE
+                            ATD.AUDITYN      = 'N'
+                            AND ATD.ATNDLC_STSCD = 'ATNDLC'
+                            AND NOT EXISTS ( SELECT
+                                                 1
+                                            FROM
+                                                TB_LMS_EXAM_ABSNCE ABSNCE
+                                            WHERE
+                                                ABSNCE.EXAM_BSC_ID = BSC.EXAM_BSC_ID
+                                                /* 결시자 제외 */
+                                                AND ABSNCE.APLY_STSCD = 'APRV'
+                                                AND ABSNCE.USER_ID = ATD.USER_ID )
+                        GROUP BY
+                            BSC.EXAM_BSC_ID ) TOTAL_USR
+                ON TOTAL_USR.EXAM_BSC_ID = A.EXAM_BSC_ID
         WHERE
             A.SBJCT_ID = #{crsCreCd}
             /* 시험 구분이 퀴즈인 것은 제외 */
@@ -996,22 +1115,6 @@
         <if test = "examTtl != null and examTtl != ''">
             AND A.EXAM_TTL LIKE '%' || #{examTtl} || '%'
         </if>
-        GROUP BY
-            A.EXAM_BSC_ID
-            , A.EXAM_TYCD
-            , A.EXAM_GBNCD
-            , C.CDNM
-            , B.CDNM
-            , A.TKEXAM_MTHD_CD
-            , A.EXAM_TTL
-            , D.EXAM_PSBL_SDTTM
-            , D.EXAM_PSBL_EDTTM
-            , D.EXAM_MNTS
-            , A.MRK_RFLTYN
-            , A.MRK_RFLTRT
-            , A.MRK_OYN
-            , D.EXAM_QSTNS_CMPTNYN
-            , A.BYTEAM_SUBREXAM_USEYN
     </sql>
 
     <sql id="listQueryForTKexamUser">
@@ -1041,6 +1144,8 @@
             , A.TKEXAM_SDTTM    AS "TKEXAM_SDTTM"   /* 응시 시작일 */
             , A.TKEXAM_EDTTM    AS "TKEXAM_EDTTM"   /* 응시 종료일 */
             , A.TKEXAM_ID       AS "TKEXAM_ID"      /* 시험 응시 ID */
+            , A.MOBILE_NO       AS "MOBILE_NO"      /* 사용자 전화번호 */
+            , A.EMAIL           AS "EMAIL"          /* 사용자 이메일 */
             , CASE
                 WHEN A.TKEXAM_SDTTM IS NULL THEN
                     CASE
@@ -1354,6 +1459,7 @@
             , A.MRK_RFLTRT                                     AS "MRK_RFLTRT"     /* 성적반영비율 */
             , A.EXAMPPR_OYN                                    AS "EXAMPPR_OYN"    /* 시험지공개여부 */
             , A.BYTEAM_SUBREXAM_USEYN                          AS "BYTEAM_SUBREXAM_USEYN"  /* 팀시험여부 */
+            , A.SBJCT_ID                                       AS "SBJCT_ID"        /* 과목 ID */
             , CASE
                 WHEN E.EXAM_SBST_TYCD = 'SBST_ASMT' THEN '과제'
                 WHEN E.EXAM_SBST_TYCD = 'SBST_DSCS' THEN '토론'
@@ -1465,6 +1571,15 @@
             (<include refid="listQueryForTKexamUser"/>) Z
     </select>
 
+    <!-- 시험 평가대상자 목록 조회 -->
+    <select id="tkexamUserList" parameterType="map" resultType="egovMap">
+        /*
+            SQL ID : ExamDAO.tkexamUserList
+            설명 : 시험 평가대상자 목록 조회
+        */
+        <include refid="listQueryForTKexamUser"/>
+    </select>
+
     <!-- 성적 반영 시험목록 -->
     <select id="mrkRfltExamList" parameterType="examBscVO" resultType="examBscVO">
         /*
@@ -1500,6 +1615,226 @@
             TB_LMS_EXAM_BSC A
         WHERE
             A.EXAM_BSC_ID = #{examBscId}
+    </select>
+
+    <!-- 사용자 시험 응시현황 (파이)차트데이터 조회 -->
+    <select id="selectUserTkexamStatusForPieChart" parameterType="String" resultType="egovMap">
+        /*
+             SQL ID : TkexamDAO.selectUserTkexamStatusForPieChart
+             설  명  : 사용자 시험 응시현황 (파이)차트데이터 조회
+         */
+        SELECT
+            NVL(SUM(CASE WHEN TKEXAM_CD = 'N' THEN 1 ELSE 0 END), 0)    AS NO_TKEXAM_CNT
+            , NVL(SUM(CASE WHEN TKEXAM_CD = 'T' THEN 1 ELSE 0 END), 0)  AS TEMP_SAVE_CNT
+            , NVL(SUM(CASE WHEN TKEXAM_CD = 'C' THEN 1 ELSE 0 END), 0)  AS COMPLETE_CNT
+            , NVL(ROUND(AVG(QUIZ_SCR)), 0)                              AS AVG_SCORE
+            , NVL(MAX(QUIZ_SCR), 0)                                     AS MAX_SCORE
+            , NVL(MIN(QUIZ_SCR), 0)                                     AS MIN_SCORE
+            , NVL(ROUND(SUM(CASE WHEN LINE_NO <![CDATA[ <= ]]> CNT THEN QUIZ_SCR ELSE 0 END)
+                                / NULLIF(CNT,0)),0)                     AS TOP_AVG_SCORE
+        FROM
+            ( SELECT
+                QUIZ_SCR
+                , TKEXAM_CD
+                , ROW_NUMBER() OVER (ORDER BY QUIZ_SCR DESC)    AS LINE_NO
+		        , COUNT(1) OVER () / 10                         AS CNT
+            FROM
+                ( SELECT
+                    TKEXAM.QUIZ_SCR
+                    , CASE
+                        WHEN TKEXAM.TKEXAM_SDTTM IS NULL THEN 'N'
+                        WHEN TKEXAM.TKEXAM_EDTTM IS NULL THEN 'T'
+                        WHEN TKEXAM.TKEXAM_EDTTM IS NOT NULL THEN 'C'
+                    END AS TKEXAM_CD
+                    , CASE
+                        /* 일반 시험 */
+                        WHEN EXAM_BSC.EXAM_GBNCD IN (SELECT
+                                                        CD
+                                                     FROM
+                                                         TB_LMS_CMMN_CD
+                                                     WHERE
+                                                         UP_CD = 'EXAM_GBNCD'
+                                                         AND CD NOT LIKE '%QUIZ%'
+                                                         AND CD NOT LIKE '%TEAM%') THEN
+                              CASE
+                                  WHEN SBJCT_USER.USER_ID NOT IN (SELECT
+                                                                      USER_ID
+                                                                  FROM
+                                                                      TB_LMS_EXAM_ABSNCE
+                                                                  WHERE
+                                                                      /* 결시자 제외 */
+                                                                      APLY_STSCD = 'APRV'
+                                                                      AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID) THEN 'Y'
+                                  ELSE 'N'
+                              END
+                        /* 팀 시험 */
+                        WHEN EXAM_BSC.EXAM_GBNCD IN (SELECT
+                                                        CD
+                                                     FROM
+                                                         TB_LMS_CMMN_CD
+                                                     WHERE
+                                                         UP_CD = 'EXAM_GBNCD'
+                                                         AND CD NOT LIKE '%QUIZ%') THEN
+                            CASE
+                                WHEN SBJCT_USER.USER_ID IN (SELECT
+                                                                TEAM_MBR.USER_ID
+                                                            FROM
+                                                                TB_LMS_TEAM_MBR TEAM_MBR
+                                                                JOIN TB_LMS_EXAM_TRGTR EXAM_TRGTR
+                                                                    ON TEAM_MBR.TEAM_ID = EXAM_TRGTR.TEAM_ID
+                                                            WHERE
+                                                                /* 시험 기본 - 시험 상세 ID 추출 */
+                                                                EXAM_TRGTR.EXAM_DTL_ID IN (SELECT
+                                                                                                EXAM_DTL_ID
+                                                                                            FROM
+                                                                                                TB_LMS_EXAM_DTL
+                                                                                            WHERE
+                                                                                                EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
+                                                                                                AND USEYN = 'Y'
+                                                                                                AND DELYN = 'N' )
+                                                                /* 결시자 제외 */
+                                                                AND SBJCT_USER.USER_ID NOT IN (SELECT
+                                                                                                   USER_ID
+                                                                                               FROM
+                                                                                                   TB_LMS_EXAM_ABSNCE
+                                                                                               WHERE
+                                                                                                   APLY_STSCD = 'APRV'
+                                                                                                   AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID)) THEN 'Y'
+                                ELSE 'N'
+                            END
+                    END AS IS_TARGET
+                FROM
+                    TB_LMS_EXAM_BSC EXAM_BSC
+                    JOIN TB_LMS_SBJCT SBJCT
+                        ON EXAM_BSC.SBJCT_ID = SBJCT.SBJCT_ID
+                    JOIN (SELECT
+                              USER_ID
+                              , SBJCT_ID
+                          FROM
+                              TB_LMS_ATNDLC
+                          WHERE
+                              AUDITYN = 'N'
+                              AND SBJCT_ID = #{sbjctId} ) SBJCT_USER
+                        ON SBJCT.SBJCT_ID = SBJCT_USER.SBJCT_ID
+                    LEFT JOIN (SELECT
+                                   TKEXAM.USER_ID
+                                   , TKEXAM.TKEXAM_SDTTM
+                                   , TKEXAM.TKEXAM_EDTTM
+                                   , NVL(SUM(ANSW.SCR), 0) AS QUIZ_SCR
+                              FROM
+                                  TB_LMS_TKEXAM TKEXAM
+                                  JOIN TB_LMS_EXAM_DTL EXAM_DTL
+                                      ON TKEXAM.EXAM_DTL_ID = EXAM_DTL.EXAM_DTL_ID
+                                      AND EXAM_DTL.EXAM_BSC_ID = #{examBscId}
+                                      AND EXAM_DTL.USEYN = 'Y'
+                                      AND EXAM_DTL.DELYN = 'N'
+                                  LEFT JOIN TB_LMS_EXAMPPR EXAMPPR
+                                      ON TKEXAM.TKEXAM_ID = EXAMPPR.TKEXAM_ID
+                                      AND TKEXAM.USER_ID = EXAMPPR.USER_ID
+                                  LEFT JOIN TB_LMS_TKEXAM_ANSW_SHT ANSW
+                                      ON EXAMPPR.EXAMPPR_ID = ANSW.EXAMPPR_ID
+                                      AND EXAMPPR.USER_ID = ANSW.USER_ID
+                              WHERE
+                                  TKEXAM.DELYN = 'N'
+                              GROUP BY
+                                  TKEXAM.USER_ID
+                                  , TKEXAM.TKEXAM_SDTTM
+                                  , TKEXAM.TKEXAM_EDTTM ) TKEXAM
+                        ON SBJCT_USER.USER_ID = TKEXAM.USER_ID
+                WHERE
+                    EXAM_BSC.EXAM_BSC_ID = #{examBscId}
+                    AND EXAM_BSC.DELYN = 'N'
+                    AND EXAM_BSC.USEYN = 'Y')
+            WHERE IS_TARGET = 'Y')
+        GROUP BY CNT
+    </select>
+
+
+    <!-- 사용자 시험 응시현황 (가로선)차트데이터 조회 -->
+    <select id="selectUserTkexamStatusForHrChart" parameterType="String" resultType="egovMap">
+        /*
+            SQL ID : TkexamDAO.selectUserTkexamStatusForHrChart
+            설  명  : 사용자 시험 응시현황 (가로선)차트데이터 조회
+        */
+        /* 점수 구간 정의 */
+        WITH SCORE_T AS (SELECT -1 AS SP, 10 AS EP, '0~10' AS LABEL, 1 AS ODR FROM dual
+                        UNION ALL SELECT 10, 20, '11~20',  2 FROM dual
+                        UNION ALL SELECT 20, 30, '21~30',  3 FROM dual
+                        UNION ALL SELECT 30, 40, '31~40',  4 FROM dual
+                        UNION ALL SELECT 40, 50, '41~50',  5 FROM dual
+                        UNION ALL SELECT 50, 60, '51~60',  6 FROM dual
+                        UNION ALL SELECT 60, 70, '61~70',  7 FROM dual
+                        UNION ALL SELECT 70, 80, '71~80',  8 FROM dual
+                        UNION ALL SELECT 80, 90, '81~90',  9 FROM dual
+                        UNION ALL SELECT 90, 100, '91~100', 10 FROM dual)
+        /* 대상자 목록: SBJCT_ID 파라미터로 수강 학생 조회 (팀 여부 무관) */
+        , STD_T AS (SELECT
+                        USER_ID
+                    FROM
+                        TB_LMS_ATNDLC
+                    WHERE
+                        SBJCT_ID = #{sbjctId}
+                        /* 수강중인 수강생만 */
+                        AND ATNDLC_STSCD = 'ATNDLC'
+                        AND AUDITYN = 'N')
+        /* 시험 상세 목록: EXAM_BSC_ID 파라미터로 해당 시험의 EXAM_DTL_ID 조회 */
+        , EXAM_DTL_T AS (SELECT
+                             DTL.EXAM_DTL_ID
+                        FROM
+                            TB_LMS_EXAM_BSC BSC
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                                AND DTL.DELYN = 'N'
+                        WHERE
+                            BSC.EXAM_BSC_ID = #{examBscId}
+                            AND BSC.DELYN = 'N')
+        /* TKEXAM_ID 가 없는 미응시자는 이 CTE 에 포함되지 않음 LEFT JOIN 으로 0점 처리 */
+        , TKEXAM_SCR_T AS (SELECT
+                                ANSW.USER_ID
+                                , EXAMPPR.TKEXAM_ID
+                                , SUM(ANSW.SCR) AS EXAM_SCR
+                            FROM
+                                TB_LMS_TKEXAM_ANSW_SHT ANSW
+                                JOIN TB_LMS_EXAMPPR EXAMPPR
+                                    ON ANSW.EXAMPPR_ID = EXAMPPR.EXAMPPR_ID
+                                    AND ANSW.USER_ID = EXAMPPR.USER_ID
+                                JOIN TB_LMS_TKEXAM TK
+                                    ON EXAMPPR.TKEXAM_ID = TK.TKEXAM_ID
+                                    AND TK.DELYN = 'N'
+                                JOIN EXAM_DTL_T
+                                    ON TK.EXAM_DTL_ID = EXAM_DTL_T.EXAM_DTL_ID
+                            GROUP BY
+                                ANSW.USER_ID
+                                , EXAMPPR.TKEXAM_ID)
+        /* 재응시가 있는 경우 유저당 최고 점수 적용 */
+        , USER_MAX_SCR_T AS (SELECT
+                                USER_ID
+                                , MAX(EXAM_SCR) AS SCR
+                            FROM
+                                TKEXAM_SCR_T
+                            GROUP BY
+                                USER_ID)
+        /* 대상자 전체 + 점수 결합 (미응시자 = 0점) */
+        ,EXAM_SCORE_RAW AS (SELECT
+                                S.USER_ID
+                                , NVL(U.SCR, 0) AS SCR
+                            FROM
+                                STD_T S
+                                LEFT JOIN USER_MAX_SCR_T U
+                                    ON S.USER_ID = U.USER_ID)
+        SELECT
+            T.LABEL
+            , COUNT(S.USER_ID) AS CNT
+        FROM
+            SCORE_T T
+            LEFT JOIN EXAM_SCORE_RAW S
+<![CDATA[       ON T.SP < S.SCR     ]]>
+<![CDATA[       AND T.EP >= S.SCR   ]]>
+        GROUP BY
+            T.LABEL
+            , T.ODR
+        ORDER BY
+            T.ODR
     </select>
 
     <!--  성적 공개여부 수정  -->

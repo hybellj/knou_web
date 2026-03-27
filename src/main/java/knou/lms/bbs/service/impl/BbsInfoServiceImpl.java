@@ -598,15 +598,26 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @throws Exception
      ******************************************************/
     @Override
-    public BbsVO isValidBbsInfo(BbsVO bbsVO, boolean isAdmin) throws Exception {
-    	bbsVO.setSysUseYn("Y"); // 시스템 게시판 여부
+    public BbsVO isValidBbsInfo(BbsVO vo, boolean isAdmin) throws Exception {
+    	vo.setSysUseYn("Y"); // 시스템 게시판 여부
 
         if (!isAdmin) {
-        	bbsVO.setUseYn("Y");
+        	vo.setUseYn("Y");
         }
 
-        BbsVO resultVO = bbsInfoDAO.selectBbs(bbsVO);
+        BbsVO resultVO = bbsInfoDAO.selectBbs(vo);
 
         return resultVO;
+    }
+
+    /*****************************************************
+     * 게시판 정보 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void bbsInfoRegist(BbsVO vo) throws Exception {
+
+    	bbsInfoDAO.bbsInfoRegist(vo);
     }
 }

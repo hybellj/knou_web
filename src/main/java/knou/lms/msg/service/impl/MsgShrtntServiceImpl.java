@@ -1,16 +1,5 @@
 package knou.lms.msg.service.impl;
 
-import java.util.List;
-
-import javax.annotation.Resource;
-
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.springframework.stereotype.Service;
-
 import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenerator;
@@ -18,12 +7,23 @@ import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.dao.MsgShrtntDAO;
 import knou.lms.msg.service.MsgShrtntService;
 import knou.lms.msg.vo.MsgShrtntVO;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.List;
 
 @Service("msgShrtntService")
 public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntService {
 
     @Resource(name = "msgShrtntDAO")
     private MsgShrtntDAO msgShrtntDAO;
+
+    private static final String MSG_TYCD_SHRTNT = "SHRTNT";
 
     private PaginationInfo initPagination(MsgShrtntVO vo) {
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -52,31 +52,31 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 쪽지 수신 상세 조회
      * @param vo
-     * @return
-     */
+     * @return MsgShrtntVO
+     ******************************************************/
     @Override
     public MsgShrtntVO selectShrtntRcvnDetail(MsgShrtntVO vo) {
         return msgShrtntDAO.selectShrtntRcvnDetail(vo);
     }
 
-    /**
+    /*****************************************************
      * 쪽지 읽음 처리
      * @param vo
-     * @return
-     */
+     * @return int
+     ******************************************************/
     @Override
     public int updateShrtntReadDttm(MsgShrtntVO vo) {
         return msgShrtntDAO.updateShrtntReadDttm(vo);
     }
 
-    /**
+    /*****************************************************
      * 쪽지 수신자 삭제 (논리)
      * @param vo
-     * @return
-     */
+     * @return int
+     ******************************************************/
     @Override
     public int updateShrtntRcvrDelyn(MsgShrtntVO vo) {
         return msgShrtntDAO.updateShrtntRcvrDelyn(vo);
@@ -99,11 +99,11 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 쪽지 발신 상세 조회
      * @param vo
-     * @return
-     */
+     * @return MsgShrtntVO
+     ******************************************************/
     @Override
     public MsgShrtntVO selectShrtntSndngDetail(MsgShrtntVO vo) {
         return msgShrtntDAO.selectShrtntSndngDetail(vo);
@@ -126,21 +126,21 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 쪽지 발신자 삭제 (논리)
      * @param vo
-     * @return
-     */
+     * @return int
+     ******************************************************/
     @Override
     public int updateShrtntSndngrDelyn(MsgShrtntVO vo) {
         return msgShrtntDAO.updateShrtntSndngrDelyn(vo);
     }
 
-    /**
+    /*****************************************************
      * 쪽지 발신 수신자 엑셀 목록 조회
      * @param vo
-     * @return
-     */
+     * @return List<MsgShrtntVO>
+     ******************************************************/
     @Override
     public List<MsgShrtntVO> selectShrtntSndngRcvrExcelList(MsgShrtntVO vo) {
         return msgShrtntDAO.selectShrtntSndngRcvrExcelList(vo);
@@ -156,7 +156,7 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
     public int registShrtntSndng(MsgShrtntVO vo) throws Exception {
         String msgId = IdGenerator.getNewId(IdPrefixType.MSG.getCode());
         vo.setMsgId(msgId);
-        vo.setMsgTycd("SHRTNT");
+        vo.setMsgTycd(MSG_TYCD_SHRTNT);
 
         msgShrtntDAO.insertMsg(vo);
 
@@ -243,61 +243,61 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 수신 대상자 목록 조회
      * @param vo
-     * @return
-     */
+     * @return List<MsgShrtntVO>
+     ******************************************************/
     @Override
     public List<MsgShrtntVO> selectMsgRcvTrgtrList(MsgShrtntVO vo) {
         return msgShrtntDAO.selectMsgRcvTrgtrList(vo);
     }
 
-    /**
+    /*****************************************************
      * 학사년도 목록 조회
      * @param vo
-     * @return
-     */
+     * @return List<MsgShrtntVO>
+     ******************************************************/
     @Override
     public List<MsgShrtntVO> selectShrtntYrList(MsgShrtntVO vo) {
         return msgShrtntDAO.selectShrtntYrList(vo);
     }
 
-    /**
+    /*****************************************************
      * 학기 목록 조회
      * @param vo
-     * @return
-     */
+     * @return List<EgovMap>
+     ******************************************************/
     @Override
     public List<EgovMap> selectShrtntSmstrList(MsgShrtntVO vo) {
         return msgShrtntDAO.selectShrtntSmstrList(vo);
     }
 
-    /**
+    /*****************************************************
      * 학과 목록 조회
      * @param vo
-     * @return
-     */
+     * @return List<MsgShrtntVO>
+     ******************************************************/
     @Override
     public List<MsgShrtntVO> selectShrtntDeptList(MsgShrtntVO vo) {
         return msgShrtntDAO.selectShrtntDeptList(vo);
     }
 
-    /**
+    /*****************************************************
      * 운영과목 목록 조회
      * @param vo
-     * @return
-     */
+     * @return List<MsgShrtntVO>
+     ******************************************************/
     @Override
     public List<MsgShrtntVO> selectShrtntSbjctList(MsgShrtntVO vo) {
         return msgShrtntDAO.selectShrtntSbjctList(vo);
     }
 
-    /**
+    /*****************************************************
      * 엑셀 업로드 수신자 조회 (아이디 목록 기준)
      * @param vo
-     * @return
-     */
+     * @return List<MsgShrtntVO>
+     ******************************************************/
     @Override
     public List<MsgShrtntVO> selectShrtntRcvrByUserIds(MsgShrtntVO vo) {
         return msgShrtntDAO.selectShrtntRcvrByUserIds(vo);

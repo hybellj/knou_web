@@ -44,4 +44,6 @@ public interface SubjectService {
 	public int subjectConnectStdCntSelect(String sbjctId)  throws Exception;
 
 	public int subjectTotalStdCntSelect(String sbjctId) throws Exception;
+
+	public EgovMap lctrWknoAtndcrtSelect(String sbjctId, String lctrWknoSchdlId) throws Exception;
 }

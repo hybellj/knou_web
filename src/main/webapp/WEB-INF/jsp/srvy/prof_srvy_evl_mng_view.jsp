@@ -269,15 +269,19 @@
 			});
 		}
 
-		// 엑셀 성적 등록 ( 미완료 )
-		function callScoreExcelUpload() {
-			var data = "examBscId=${vo.examBscId}&sbjctId=${vo.sbjctId}";
+		/**
+		 * 엑셀성적등록팝업
+		 * @param {String}  srvyId 		- 설문아이디
+		 * @param {String}  sbjctId 	- 과목아이디
+		 */
+		function excelScrRegistPopup() {
+			var data = "srvyId=${vo.srvyId}&sbjctId=${vo.sbjctId}";
 
 			dialog = UiDialog("dialog1", {
 				title: "엑셀 성적등록",
 				width: 600,
 				height: 500,
-				url: "/quiz/quizScoreExcelUploadPop.do?"+data,
+				url: "/srvy/profSrvyExcelScrRegistPopup.do?"+data,
 				autoresize: true
 			});
 		}
@@ -683,7 +687,7 @@
 							<h4>설문평가</h4>
 							<div class="right-area">
 								<a href="javascript:ezGraderPopup()" class="btn basic small">EZ-Grader</a>
-								<a href="javascript:callScoreExcelUpload()" class="btn basic small"><spring:message code="exam.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
+								<a href="javascript:excelScrRegistPopup()" class="btn basic small"><spring:message code="exam.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
 								<a href="javascript:sendMsg()" class="btn basic small">보내기</a>
 							</div>
 						</div>

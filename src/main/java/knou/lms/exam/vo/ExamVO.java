@@ -28,6 +28,7 @@ public class ExamVO extends DefaultVO {
     private String  evlynTot;           // 평가현황 (평가/전체)
     private String  examQstnsCmptnyn;   // 출제상태
     private String  mrkOyn;             // 성적공개
+    private String  sbjctId;            // 과목 ID
     private String  crsCreCd;           // 과목 코드 (파라미터)
     private String  tabType;            // 메뉴 탭 지정 (파라미터)
     private String  mrkRfltyn;          // 성적반영여부
@@ -46,6 +47,8 @@ public class ExamVO extends DefaultVO {
     private String  stdntNo;            // 학번
     private String  userId;             // 사용자 ID
     private String  usernm;             // 사용자 이름
+    private String  mobileNo;           // 사용자 전화번호
+    private String  email;              // 사용자 이메일
     private String  ldryn;              // 역할 (팀장/팀원)
     private String  examScr;            // 시험 점수 레이블
     private String  totScr;             // 총 점수 (평가점수)
@@ -63,7 +66,6 @@ public class ExamVO extends DefaultVO {
     private String  lrnGrpnm;           // 그룹 명
     private String  ldrnm;              // 리더 명
     private Integer teamMbrTot;         // 팀 인원 COUNT
-
 
     private ExamDtlVO examDtlVO;        // 시험상세정보VO
     private List<String> lrnGrpIds;		// 팀 시험 등록용 학습그룹아이디:개설과목아이디 목록
@@ -160,6 +162,12 @@ public class ExamVO extends DefaultVO {
     }
     public void setMrkOyn(String mrkOyn) {
         this.mrkOyn = mrkOyn;
+    }
+    public String getSbjctId() {
+        return sbjctId;
+    }
+    public void setSbjctId(String sbjctId) {
+        this.sbjctId = sbjctId;
     }
     public String getCrsCreCd() {
         return crsCreCd;
@@ -275,6 +283,18 @@ public class ExamVO extends DefaultVO {
     }
     public void setUsernm(String usernm) {
         this.usernm = usernm;
+    }
+    public String getMobileNo() {
+        return mobileNo;
+    }
+    public void setMobileNo(String mobileNo) {
+        this.mobileNo = mobileNo;
+    }
+    public String getEmail() {
+        return email;
+    }
+    public void setEmail(String email) {
+        this.email = email;
     }
     public String getLdryn() {
         return ldryn;

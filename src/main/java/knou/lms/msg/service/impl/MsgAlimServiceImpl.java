@@ -16,66 +16,44 @@ public class MsgAlimServiceImpl extends ServiceBase implements MsgAlimService {
     @Resource(name = "msgAlimDAO")
     private MsgAlimDAO msgAlimDAO;
 
-    /**
+    private static final int DEFAULT_LIST_CNT = 5;
+
+    private void ensureListCnt(MsgAlimVO vo) {
+        if (vo.getListCnt() <= 0) {
+            vo.setListCnt(DEFAULT_LIST_CNT);
+        }
+    }
+
+    /*****************************************************
      * 알림 유형별 읽지 않은 건수 조회
      * @param vo
-     * @return
-     */
+     * @return EgovMap
+     ******************************************************/
     @Override
     public EgovMap selectAlimUnrdCnt(MsgAlimVO vo) {
         return msgAlimDAO.selectAlimUnrdCnt(vo);
     }
 
-    /**
+    /*****************************************************
      * 쪽지 최근 목록 조회
      * @param vo
-     * @return
-     */
+     * @return List<MsgAlimVO>
+     ******************************************************/
     @Override
     public List<MsgAlimVO> selectShrtntList(MsgAlimVO vo) {
-        if (vo.getListCnt() <= 0) {
-            vo.setListCnt(5);
-        }
+        ensureListCnt(vo);
         return msgAlimDAO.selectShrtntList(vo);
     }
 
-    /**
-     * PUSH 최근 목록 조회
+    /*****************************************************
+     * 모바일 채널(PUSH/SMS/ALIM_TALK) 최근 목록 조회
      * @param vo
-     * @return
-     */
+     * @return List<MsgAlimVO>
+     ******************************************************/
     @Override
-    public List<MsgAlimVO> selectPushList(MsgAlimVO vo) {
-        if (vo.getListCnt() <= 0) {
-            vo.setListCnt(5);
-        }
-        return msgAlimDAO.selectPushList(vo);
-    }
-
-    /**
-     * SMS 최근 목록 조회
-     * @param vo
-     * @return
-     */
-    @Override
-    public List<MsgAlimVO> selectSmsList(MsgAlimVO vo) {
-        if (vo.getListCnt() <= 0) {
-            vo.setListCnt(5);
-        }
-        return msgAlimDAO.selectSmsList(vo);
-    }
-
-    /**
-     * 알림톡 최근 목록 조회
-     * @param vo
-     * @return
-     */
-    @Override
-    public List<MsgAlimVO> selectAlimtalkList(MsgAlimVO vo) {
-        if (vo.getListCnt() <= 0) {
-            vo.setListCnt(5);
-        }
-        return msgAlimDAO.selectAlimtalkList(vo);
+    public List<MsgAlimVO> selectMblSndngList(MsgAlimVO vo) {
+        ensureListCnt(vo);
+        return msgAlimDAO.selectMblSndngList(vo);
     }
 
 }

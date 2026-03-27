@@ -671,7 +671,7 @@
 									initialSort: [{column:"regDate", dir:"desc"}],
 									pageFunc: listPaging,
 									columns: [
-										{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
+										{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// No
 										{title:"<spring:message code='bbs.label.form_title'/>", field:"atclTtl",	headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200, 	headerSort:true},	// 제목
 										{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDttm", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	headerSort:true,	formatter:"date"},	// 등록일자
 										{title:"<spring:message code='bbs.label.reg_user'/>", 	field:"rgtrnm", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 작성자

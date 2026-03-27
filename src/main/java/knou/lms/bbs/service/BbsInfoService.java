@@ -189,5 +189,12 @@ public interface BbsInfoService {
     * @return BbsVO
     * @throws Exception
     ******************************************************/
-   public BbsVO isValidBbsInfo(BbsVO bbsVO, boolean isAdmin) throws Exception;
+   public BbsVO isValidBbsInfo(BbsVO vo, boolean isAdmin) throws Exception;
+
+   /*****************************************************
+    * 게시판 정보 저장
+    * @param vo
+    * @throws Exception
+    ******************************************************/
+   public void bbsInfoRegist(BbsVO vo) throws Exception;
 }

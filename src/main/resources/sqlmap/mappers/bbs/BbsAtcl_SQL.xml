@@ -668,14 +668,20 @@
 	<sql id="bbsAtclListQuery">
 		SELECT
 			  A.*
+			, C.ATCL_OPTN_ID
+			, C.OPTN_CD
+			, C.OPTN_USEYN
+			, C.OPTN_SDTTM
+			, C.OPTN_EDTTM
 			, CASE WHEN A.REG_DTTM &gt; FN_DTTM_SUB(7) THEN 'Y' ELSE 'N' END AS IS_NEW <!-- 새글여부 -->
 			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL_CMNT XX WHERE XX.ATCL_ID IN (SELECT ATCL_ID FROM TB_LMS_BBS_ATCL WHERE UP_ATCL_ID = A.ATCL_ID)) AS CMNT_CNT <!-- 댓글수 -->
 			, FN_REF_FILE_CNT(A.ATCL_ID) AS FILE_CNT <!-- 첨부파일수 -->
 			, ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
 			, COUNT(*) OVER() AS TOTAL_CNT
-		FROM TB_LMS_BBS_ATCL A, TB_LMS_BBS B
+		FROM TB_LMS_BBS_ATCL A
+		INNER JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
+		LEFT JOIN TB_LMS_BBS_ATCL_OPTN C ON A.ATCL_ID = C.ATCL_ID
 		WHERE 1=1
-			AND A.BBS_ID = B.BBS_ID
 			AND A.BBS_ID = #{bbsId}
 			AND A.DELYN = 'N'
 			<if test="atclLv != null and atclLv != ''">
@@ -1259,13 +1265,92 @@
         	SQL ID : BbsAtclDAO.updateBbsAtcl
         	설  명 : 게시판게시글 수정
          */
-		UPDATE TB_LMS_BBS_ATCL
+		<!-- UPDATE TB_LMS_BBS_ATCL
 		SET
 			  ATCL_TTL		= #{atclTtl}
 			, ATCL_CTS		= #{atclCts}
 			, MDFR_ID		= #{mdfrId}
 			, MOD_DTTM		= FN_DTTM()
-		WHERE ATCL_ID = #{atclId}
+		WHERE ATCL_ID = #{atclId} -->
+		MERGE INTO TB_LMS_BBS_ATCL A
+		USING DUAL
+		   ON (A.ATCL_ID = #{atclId})
+		 WHEN MATCHED THEN
+		    UPDATE SET
+		    	  A.ORG_ID      = #{orgId}
+		    	, A.DEPT_ID     = #{deptId}
+		    	, A.SBJCT_ID    = #{sbjctId}
+		        , A.ATCL_TTL    = #{atclTtl}
+		        , A.ATCL_CTS    = #{atclCts}
+		        , A.RGTRNM      = #{rgtrnm}
+		        , A.DVCLAS_NO   = #{dvclasNo}
+		        , A.OYN         = #{oyn}
+		        , A.NTC_GBNCD   = #{ntcGbncd}
+		        , A.RSRVYN      = #{rsrvyn}
+		        , A.RSRV_SDTTM  = #{rsrvSdttm}
+		        , A.RSRV_EDTTM  = #{rsrvEdttm}
+		        , A.CMNT_PRMYN  = #{cmntPrmyn}
+		        , A.AUTO_ALIMYN  = #{autoAlimyn}
+		        , A.AUTO_ALIM_SDTTM  = #{autoAlimSdttm}
+		        , A.AUTO_ALIM_EDTTM  = #{autoAlimEdttm}
+		        , A.MDFR_ID      = #{rgtrId}
+		        , A.MOD_DTTM     = FN_DTTM()
+		 WHEN NOT MATCHED THEN
+		    INSERT (
+		    	ORG_ID
+				, DEPT_ID
+				, SBJCT_ID
+		        , ATCL_ID
+		        , USER_ID
+		        , UP_ATCL_ID
+		        , BBS_ID
+		        , ATCL_TTL
+		        , ATCL_CTS
+		        , ATCL_LV
+		        , FVRT_CNT
+		        , INQ_CNT
+		        , PROC_STSCD
+		        , RGTRNM
+		        , DVCLAS_NO
+		        , CMNT_PRMYN
+		        , RSRVYN
+		        , RSRV_SDTTM
+		        , RSRV_EDTTM
+		        , OYN
+		        , NTC_GBNCD
+		        , AUTO_ALIMYN
+		        , AUTO_ALIM_SDTTM
+		        , AUTO_ALIM_EDTTM
+		        , RGTR_ID
+		        , REG_DTTM
+		    ) VALUES (
+		        #{orgId}
+		        , #{deptId}
+		        , #{sbjctId}
+		        , #{atclId}
+		        , #{userId}
+		        , #{upAtclId}
+		        , #{bbsId}
+		        , #{atclTtl}
+		        , #{atclCts}
+		        , 1
+		        , 0
+		        , 0
+		        , 'S'
+		        , #{rgtrnm}
+		        , #{dvclasNo}
+		        , #{cmntPrmyn}
+		        , #{rsrvyn}
+		        , #{rsrvSdttm}
+		        , #{rsrvEdttm}
+		        , #{oyn}
+		        , #{ntcGbncd}
+		        , #{autoAlimyn}
+		        , #{autoAlimSdttm}
+		        , #{autoAlimEdttm}
+		        , #{rgtrId}
+		        , FN_DTTM()
+		    )
 	</update>
 
 

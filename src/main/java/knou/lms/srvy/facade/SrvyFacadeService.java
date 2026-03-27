@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import knou.framework.context2.UserContext;
+import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.srvy.vo.SrvyPtcpVO;
 import knou.lms.srvy.vo.SrvyQstnVO;
 import knou.lms.srvy.vo.SrvyVO;
@@ -103,5 +104,11 @@ public interface SrvyFacadeService {
 	SrvyMainView getSrvyPtcpListByEzGrader(SrvyVO vo) throws Exception;
 
 	SrvyMainView getProfSrvyRspnsListByEzGrader(SrvyPtcpVO vo) throws Exception;
+
+	void srvyScrExcelUpload(SrvyPtcpVO vo) throws Exception;
+
+	SrvyMainView getSrvyQstnExcelSampleData(SrvyVO vo) throws Exception;
+
+	ProcessResultVO<SrvyVO> srvyQstnExcelUpload(SrvyVO vo) throws Exception;
 
 }

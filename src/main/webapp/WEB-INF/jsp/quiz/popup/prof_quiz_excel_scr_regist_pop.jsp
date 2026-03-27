@@ -26,7 +26,7 @@
 			]
 		};
 
-		// 등록
+		// 퀴즈성적엑셀업로드
 		function quizScrExcelUpload() {
 			UiComm.showLoading(true);
 			let dx = dx5.get("fileUploader");
@@ -41,8 +41,7 @@
                     , "uploadFiles"	: dx.getUploadFiles()
             		, "uploadPath"  : dx.getUploadPath()
                     , "excelGrid" 	: JSON.stringify(excelExampleGrid)
-                },
-                contentType: "application/json; charset=UTF-8",
+                }
             }).done(function(data) {
 		   		UiComm.showLoading(false);
 		    	if (data.result > 0) {
@@ -57,7 +56,7 @@
 		    });
 		}
 
-		// 엑셀 샘플 다운로드
+		// 엑셀샘플다운로드
 		function sampleExcelDown() {
 	        $("#excelGrid").val(JSON.stringify(excelExampleGrid));
 			$("#quizScrRegistForm").attr("target", "exampleExcelDownloadIfm");

@@ -59,46 +59,6 @@
 		}
 	}
 
-	// 파일 다운로드
-	function fileDown(fileSn, repoCd) {
-		var url  = "/common/fileInfoView.do";
-		var data = {
-			"fileSn" : fileSn,
-			"repoCd" : repoCd
-		};
-
-		ajaxCall(url, data, function(data) {
-			$("#downloadForm").remove();
-			// download용 iframe이 없으면 만든다.
-			if ( $("#downloadIfm").length == 0 ) {
-				$("body").append("<iframe id='downloadIfm' name='downloadIfm' style='visibility: hidden; display: none;' title='download'></iframe>");
-			}
-
-			var form = $("<form></form>");
-			form.attr("method", "POST");
-			form.attr("name", "downloadForm");
-			form.attr("id", "downloadForm");
-			form.attr("target", "downloadIfm");
-			form.attr("action", data);
-			form.appendTo("body");
-			form.submit();
-		}, function(xhr, status, error) {
-			alert("<spring:message code='fail.common.msg' />");/* 에러가 발생했습니다! */
-		});
-	}
-
-	// 파일 바이트 계산
-	function byteConvertor(bytes, fileNm, fileSn) {
-		bytes = parseInt(bytes);
-		var s = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
-		var e = Math.floor(Math.log(bytes)/Math.log(1024));
-		if(e == "-Infinity") {
-			$("#file_"+fileSn).append(fileNm + " 0 "+s[0]);
-		} else {
-			$("#file_"+fileSn).append(fileNm + " " + (bytes/Math.pow(1024, Math.floor(e))).toFixed(2)+" "+s[e]);
-		}
-	}
-
 	// 성적 통계 pie 차트
 	function scorePieChart(completeCnt, noTkexamCnt) {
 		var ctx = document.getElementById("pieChart");

@@ -15,10 +15,10 @@ public class BbsParam extends BaseParam {
 		this.setLimitTop(limitTop);
 	}
 	
-	public BbsParam(String orgId, String userId, String subjectId, String bbsId, int limitTop) {
+	public BbsParam(String orgId, String userId, String sbjctId, String bbsId, int limitTop) {
 		this.setOrgId(orgId);
 		this.setUserId(userId);
-		this.setSubjectId(subjectId);
+		this.setSbjctId(sbjctId);
 		this.setBbsId(bbsId);
 		this.setLimitTop(limitTop);
 	}

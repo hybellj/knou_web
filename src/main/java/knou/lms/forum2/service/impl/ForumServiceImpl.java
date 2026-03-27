@@ -355,7 +355,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
     // 내 강의에 등록된 토론 목록 조회
     @Override
-    public ProcessResultVO<Forum2VO> listMyCreCrsForum(Forum2VO vo) throws Exception {
+    public ProcessResultVO<Forum2VO> selectProfSbjctForumList(Forum2VO vo) throws Exception {
 
         /** start of paging */
         PagingInfo paginationInfo = new PagingInfo();
@@ -366,7 +366,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
         vo.setLastIndex(paginationInfo.getLastRecordIndex());
 
-        List<Forum2VO> forumList = forumDAO.listMyCreCrsForum(vo);
+        List<Forum2VO> forumList = forumDAO.selectProfSbjctForumList(vo);
 
         if(forumList.size() > 0) {
             paginationInfo.setTotalRecordCount(forumList.get(0).getTotalCnt());
@@ -523,5 +523,17 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
     public EgovMap viewScoreChart(Forum2VO vo) throws Exception {
         EgovMap scoreMap = forumDAO.selectScoreChart(vo);
         return scoreMap;
+    }
+
+    // 교수 학기기수 목록 조회 (토론 복사 팝업용)
+    @Override
+    public List<EgovMap> selectProfSmstrChrtList(Forum2VO vo) throws Exception {
+        return forumDAO.selectProfSmstrChrtList(vo);
+    }
+
+    // 학기기수별 과목 목록 조회 (토론 복사 팝업용)
+    @Override
+    public List<EgovMap> selectProfSmstrChrtSbjctList(Forum2VO vo) throws Exception {
+        return forumDAO.selectProfSmstrChrtSbjctList(vo);
     }
 }

@@ -156,9 +156,9 @@
         changeFunc: chanageModeEvent,
         columns: [
             {title:"No", 													field:"no",				headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
-            {title:"<spring:message code='forum.label.type'/>", 			field:"dscsUnitTycd",	headerHozAlign:"center", hozAlign:"left",	width:200,	minWidth:200},	// 구분
-            {title:"<spring:message code='forum.label.forum'/>", 			field:"dscsTtl", 		headerHozAlign:"center", hozAlign:"left", 	width:0, 	minWidth:200},	// 토론제목
-            {title:"<spring:message code='forum.label.forum.date'/>", 		field:"dscsSdttmEdtm", 	headerHozAlign:"center", hozAlign:"center", width:300,	minWidth:300},	// 토론기간
+            {title:"<spring:message code='forum.label.type'/>", 			field:"dscsUnitTycd",	headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 구분
+            {title:"<spring:message code='forum.label.forum'/>", 			field:"dscsTtl", 		headerHozAlign:"center", hozAlign:"left", 	width:0, 	minWidth:100},	// 토론제목
+            {title:"<spring:message code='forum.label.forum.date'/>", 		field:"dscsSdttmEdtm", 	headerHozAlign:"center", hozAlign:"center", width:200,	minWidth:200},	// 토론기간
             {title:"<spring:message code='forum.label.forum.bbsCnt'/>", 	field:"dscsAtclCnt", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 토론글수
             {title:"<spring:message code='forum.label.forum.commCnt'/>",	field:"dscsCmntCnt", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 댓글수
             {title:"<spring:message code='forum.label.score.ratio'/>", 		field:"scoreRate", 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},	// 성적 반영비율

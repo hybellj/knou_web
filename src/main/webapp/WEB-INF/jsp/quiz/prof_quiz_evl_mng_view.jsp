@@ -339,7 +339,7 @@
 		}
 
 		// 엑셀 성적 등록
-		function callScoreExcelUpload() {
+		function excelScrRegistPopup() {
 			var data = "examBscId=${vo.examBscId}&sbjctId=${vo.sbjctId}";
 
 			dialog = UiDialog("dialog1", {
@@ -726,12 +726,11 @@
 				        					<tr>
 				        						<th><label>첨부파일</label></th>
 				        						<td class="t_left" colspan="3">
-				        							<c:forEach var="list" items="${vo.fileList }">
-														<button class="ui icon small button" id="file_${list.fileSn }" title="<spring:message code="asmnt.label.attachFile.download" />" onclick="fileDown(`${list.fileSn }`, `${list.repoCd }`)"><i class="ion-android-download"></i> </button>
-														<script>
-															byteConvertor("${list.fileSize}", "${list.fileNm}", "${list.fileSn}");
-														</script>
-													</c:forEach>
+				        							<c:if test="${not empty vo.fileList}">
+														<div class="add_file_list">
+															<uiex:filedownload fileList="${vo.fileList}"/>
+														</div>
+													</c:if>
 				        						</td>
 				        					</tr>
 				        					<tr>
@@ -786,7 +785,7 @@
 						<div class="board_top margin-top-4 padding-2 bcLgrey4">
 							<h4>퀴즈평가</h4>
 							<div class="right-area">
-								<a href="javascript:callScoreExcelUpload()" class="btn basic small"><spring:message code="exam.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
+								<a href="javascript:excelScrRegistPopup()" class="btn basic small"><spring:message code="exam.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
 								<a href="javascript:sendMsg()" class="btn basic small">보내기</a>
 							</div>
 						</div>

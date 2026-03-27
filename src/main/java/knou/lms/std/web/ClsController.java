@@ -210,12 +210,8 @@ public class ClsController extends ControllerBase {
         model.addAttribute("sbjctId", vo.getSbjctId());
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
 
-        ClsVO clsVO = new ClsVO();
-        clsVO.setSbjctId(vo.getSbjctId());
-        clsVO.setOrgId(sessionOrgId);
-        ClsVO clsDetail = clsService.selectClsDetail(clsVO);
-        int wkCnt = (clsDetail != null && clsDetail.getWkCnt() > 0) ? clsDetail.getWkCnt() : 15;
-        model.addAttribute("wkCnt", wkCnt);
+        int wkCnt = resolveWkCnt(vo.getSbjctId(), sessionOrgId);
+        model.addAttribute("wkCnt", wkCnt); //주차 동적 공통
 
         return "std/cls_weekly";
     }
@@ -315,19 +311,16 @@ public class ClsController extends ControllerBase {
     @RequestMapping(value = "/selectStdntWkPopupView.do")
     public String selectStdntWkPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String sbjctId = request.getParameter("sbjctId");
+        int wkCnt = resolveWkCnt(sbjctId, SessionInfo.getOrgId(request));
 
+        model.addAttribute("wkCnt", wkCnt);
         model.addAttribute("sbjctId", sbjctId);
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
         model.addAttribute("userId", request.getParameter("userId"));
         model.addAttribute("wkNo", request.getParameter("wkNo"));
 
-        ClsVO clsVO = new ClsVO();
-        clsVO.setSbjctId(sbjctId);
-        ClsVO clsDetail = clsService.selectClsDetail(clsVO);
-        int wkCnt = (clsDetail != null && clsDetail.getWkCnt() > 0) ? clsDetail.getWkCnt() : 15;
-        model.addAttribute("wkCnt", wkCnt);
 
-        return "std/popup/cls_stdnt_weekly_popup";
+        return "std/popup/cls_stdnt_lrn_popup";
     }
 
 
@@ -341,6 +334,21 @@ public class ClsController extends ControllerBase {
         model.addAttribute("userId", request.getParameter("userId"));
         return "std/popup/cls_stdnt_element_popup";
     }
+    /*****************************************************
+     *
+     ******************************************************/
+    private int resolveWkCnt(String sbjctId, String orgId) throws Exception {
+        if (ValidationUtils.isEmpty(sbjctId)) {
+            return 15;
+        }
+
+        ClsVO clsVO = new ClsVO();
+        clsVO.setSbjctId(sbjctId);
+        clsVO.setOrgId(orgId);
+
+        ClsVO detail = clsService.selectClsDetail(clsVO);
+        return (detail != null && detail.getWkCnt() > 0) ? detail.getWkCnt() : 15;
+    }
 
     /*****************************************************
      * B0102060102 - 수강생 주차별 학습현황 엑셀 다운로드
@@ -349,10 +357,11 @@ public class ClsController extends ControllerBase {
     public String downExcelClsStdntList(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         vo.setOrgId(SessionInfo.getOrgId(request));
+        int wkCnt = resolveWkCnt(vo.getSbjctId(), SessionInfo.getOrgId(request));
 
         // wkNo 파싱 제거 (미학습자는 별도 메서드로 분리)
         if (vo.getWkList() == null || vo.getWkList().isEmpty()) {
-            vo.setWkList(IntStream.rangeClosed(1, 15)
+            vo.setWkList(IntStream.rangeClosed(1, wkCnt)
                     .boxed()
                     .collect(Collectors.toList()));
         }
@@ -364,27 +373,29 @@ public class ClsController extends ControllerBase {
         List<ListOrderedMap> newList = new ArrayList<>();
         for (ClsStdntVO item : list) {
             ListOrderedMap orderedMap = new ListOrderedMap();
-            orderedMap.put("lineNo",  item.getLineNo());
-            orderedMap.put("deptnm",  item.getDeptnm());
+            orderedMap.put("lineNo", item.getLineNo());
+            orderedMap.put("deptnm", item.getDeptnm());
             orderedMap.put("stdntNo", item.getStdntNo());
-            orderedMap.put("usernm",  item.getUsernm());
-            orderedMap.put("entyR",   item.getEntyR());
-            orderedMap.put("scyr",    item.getScyr());
-            orderedMap.put("wk1Sts",  item.getWk1Sts());
-            orderedMap.put("wk2Sts",  item.getWk2Sts());
-            orderedMap.put("wk3Sts",  item.getWk3Sts());
-            orderedMap.put("wk4Sts",  item.getWk4Sts());
-            orderedMap.put("wk5Sts",  item.getWk5Sts());
-            orderedMap.put("wk6Sts",  item.getWk6Sts());
-            orderedMap.put("wk7Sts",  item.getWk7Sts());
-            orderedMap.put("wk8Sts",  item.getWk8Sts());
-            orderedMap.put("wk9Sts",  item.getWk9Sts());
-            orderedMap.put("wk10Sts", item.getWk10Sts());
-            orderedMap.put("wk11Sts", item.getWk11Sts());
-            orderedMap.put("wk12Sts", item.getWk12Sts());
-            orderedMap.put("wk13Sts", item.getWk13Sts());
-            orderedMap.put("wk14Sts", item.getWk14Sts());
-            orderedMap.put("wk15Sts", item.getWk15Sts());
+            orderedMap.put("usernm", item.getUsernm());
+            orderedMap.put("entyR", item.getEntyR());
+            orderedMap.put("scyr", item.getScyr());
+
+            HashMap<Integer, String> wkMap = new HashMap<>();
+            if (item.getWkStsList() != null) {
+                for (ClsWkStsVO wkSts : item.getWkStsList()) {
+                    wkMap.put(wkSts.getWkNo(), wkSts.getAtndSts());
+                }
+            }
+
+            for (int w = 1; w <= wkCnt; w++) {
+                String sts = wkMap.getOrDefault(w, "-");
+                String stsText =
+                        "ATND".equals(sts) ? "○" :
+                                "LATE".equals(sts) ? "△" :
+                                        "ABSNT".equals(sts) ? "X" : "-";
+                // ATND/LATE/ABSNT -> ○/△/X 변환
+                orderedMap.put("wk" + w + "Sts", stsText);
+            }
             orderedMap.put("atndCnt", item.getAtndCnt());
             orderedMap.put("lateCnt", item.getLateCnt());
             orderedMap.put("absnCnt", item.getAbsnCnt());
@@ -700,22 +711,23 @@ public class ClsController extends ControllerBase {
     @RequestMapping(value = "/selectStdntWkDetailPopupView.do")
     public String selectStdntWkDetailPopupView(ModelMap model, HttpServletRequest request) throws Exception {
         String sbjctId = request.getParameter("sbjctId");
+        int wkCnt = resolveWkCnt(sbjctId, SessionInfo.getOrgId(request));
+
+        model.addAttribute("wkCnt", wkCnt);
         model.addAttribute("sbjctId",  sbjctId);
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
         model.addAttribute("userId",   request.getParameter("userId"));
         model.addAttribute("wkNo",     request.getParameter("wkNo"));
 
-        ClsVO clsVO = new ClsVO();
-        clsVO.setSbjctId(sbjctId);
-        ClsVO clsDetail = clsService.selectClsDetail(clsVO);
-        int wkCnt = (clsDetail != null && clsDetail.getWkCnt() > 0) ? clsDetail.getWkCnt() : 15;
-        model.addAttribute("wkCnt", wkCnt);
-
-        return "std/popup/cls_stdnt_wk_detail_popup";
+        return "std/popup/cls_stdnt_week_lrn_popup";
     }
 
     /*****************************************************
      * 주차 학습 요약 + 차시 목록 + 학습 로그 조회 (Ajax)
+     * 주차 상세/출석처리 공통 접근 권한 검증
+     * - 과목 수강생 여부
+     * - 주차 일정 접근 가능 여부
+     * - requireSchdlId=true 인 경우 일정 아이디까지 검증
      ******************************************************/
     @RequestMapping(value = "/selectStdntWkLrnSummary.do")
     @ResponseBody
@@ -728,15 +740,6 @@ public class ClsController extends ControllerBase {
 
             List<ClsChsiLrnVO> chsiList = clsService.selectStdntChsiLrnList(vo);
 
-            if (chsiList != null) {
-                for (ClsChsiLrnVO chsi : chsiList) {
-                    ClsLrnLogVO logParam = new ClsLrnLogVO();
-                    logParam.setCntntsId(chsi.getCntntsId());
-                    logParam.setUserId(vo.getUserId());
-                    List<ClsLrnLogVO> logs = clsService.selectStdntLrnLog(logParam);
-                    chsi.setLogList(logs);
-                }
-            }
             if (result != null) {
                 result.setChsiList(chsiList);
             }
@@ -877,7 +880,10 @@ public class ClsController extends ControllerBase {
 
         return resultVO;
     }
-    // 서버 접근 검증
+
+    /*****************************************************
+     * 학습 주차별 상세 조회 접근 권한 검증
+     ******************************************************/
     private void validateClsWkAccess(ClsWkLrnVO vo, boolean requireSchdlId) throws Exception {
         if (ValidationUtils.isEmpty(vo.getSbjctId())
                 || ValidationUtils.isEmpty(vo.getUserId())
@@ -896,6 +902,38 @@ public class ClsController extends ControllerBase {
         if (clsService.checkClsWkSchdlAccessCnt(vo) <= 0) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
+    }
+
+    /*****************************************************
+     * 학습 주차별 차시 학습로그 조회 (Ajax)
+     * - 로그 조회 전 주차 상세와 동일한 접근 권한 검증 수행
+     * - cntntsId 조회는 ClsLrnLogVO, 접근 검증은 ClsWkLrnVO 기준으로 처리
+     ******************************************************/
+    @RequestMapping(value = "/selectStdntLrnLog.do")
+    @ResponseBody
+    public ProcessResultVO<ClsLrnLogVO> selectStdntLrnLog(ClsLrnLogVO vo, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ClsLrnLogVO> resultVO = new ProcessResultVO<>();
+        vo.setOrgId(SessionInfo.getOrgId(request));
+
+        try {
+            ClsWkLrnVO accessVo = new ClsWkLrnVO();
+            accessVo.setOrgId(SessionInfo.getOrgId(request));
+            accessVo.setSbjctId(request.getParameter("sbjctId"));
+            accessVo.setUserId(vo.getUserId());
+
+            String wkNoStr = request.getParameter("wkNo");
+            accessVo.setWkNo(ValidationUtils.isEmpty(wkNoStr) ? 0 : Integer.parseInt(wkNoStr));
+
+            validateClsWkAccess(accessVo, false);
+
+            List<ClsLrnLogVO> list = clsService.selectStdntLrnLog(vo);
+        } catch (Exception e) {
+            LOGGER.error("[selectStdntLrnLog] fail, vo={}", vo, e);
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());
+        }
+        return resultVO;
     }
 
 }

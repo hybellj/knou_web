@@ -8,6 +8,7 @@ import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.lms.srvy.vo.SrvyQstnVO;
+import knou.lms.srvy.vo.SrvyVO;
 
 @Mapper("srvyQstnDAO")
 public interface SrvyQstnDAO {
@@ -101,5 +102,21 @@ public interface SrvyQstnDAO {
 	 * @throws Exception
 	 */
 	public void srvyQstnCopy(List<Map<String, Object>> list) throws Exception;
+
+	/**
+	 * 설문문항전체삭제
+	 *
+	 * @param SrvyVO
+	 * @throws Exception
+	 */
+	public void srvyQstnAllDelete(SrvyVO vo) throws Exception;
+
+	/**
+	 * 설문문항일괄등록
+	 *
+	 * @param List<SrvyQstnVO>
+	 * @throws Exception
+	 */
+	public void srvyQstnBulkRegist(List<SrvyQstnVO> list) throws Exception;
 
 }

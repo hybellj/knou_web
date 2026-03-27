@@ -3,8 +3,27 @@
 
 <mapper namespace="knou.lms.subject.dao.SubjectDAO">
 
+
+	<select id="lctrWknoAtndcrtSelect" parameterType="map" resultType="eGovMap">
+		/*	설명 : 주차출석율조회 */
+		/*
+		CREATE INDEX ATNDLC_IDX02 ON TB_LMS_ATNDLC (SBJCT_ID, USER_ID);
+		CREATE INDEX BYWKNO_USER_LRN_STS_IDX01 ON TB_LMS_BYWKNO_USER_LRN_STS (LCTR_WKNO_SCHDL_ID, USER_ID);
+		*/
+		WITH B AS (
+		    SELECT 	USER_ID, LRN_STSCD
+		    FROM 	TB_LMS_BYWKNO_USER_LRN_STS
+		    WHERE 	LCTR_WKNO_SCHDL_ID = #{lctrWknoSchdlId}
+		)
+		SELECT 	SUM( CASE WHEN B.LRN_STSCD IN ('CMPTN', 'LATE', 'STUDY') THEN 1 ELSE 0 END) AS ATND_CNT,
+        		ROUND ( SUM ( CASE WHEN B.LRN_STSCD IN ('CMPTN', 'LATE', 'STUDY') THEN 1 ELSE 0 END) / NULLIF(COUNT(A.USER_ID), 0) * 100 , 2) AS ATND_RATE
+		FROM 	TB_LMS_ATNDLC A
+				LEFT 	JOIN B ON B.USER_ID = A.USER_ID
+		WHERE 	A.SBJCT_ID = #{sbjctId}
+	</select>
+
 	<select id="stdntSubjectConnectList" parameterType="map" resultType="eGovMap">
-		/*	설명 : 사용자과목접속목록조회 - 현재시간보다 120분이전 접속기록조회*/		
+		/*	설명 : 사용자과목접속목록조회 - 현재시간보다 120분이전 접속기록조회*/
 		SELECT 	*
 		FROM (
 			    SELECT
@@ -64,7 +83,7 @@
 
 	<select id="currLctrWknoSchdlSelect" resultType="knou.lms.subject.vo.LectureWknoScheduleVO">
 		/*	설	명 	: 현재강의주차일정조회 	*/
-	 	SELECT	LCTR_WKNO, LCTR_WKNO_SYMD || '000000' LCTR_WKNO_SYMD , LCTR_WKNO_EYMD || '000000' LCTR_WKNO_EYMD
+	 	SELECT	LCTR_WKNO_SCHDL_ID, LCTR_WKNO, LCTR_WKNO_SYMD || '000000' LCTR_WKNO_SYMD , LCTR_WKNO_EYMD || '000000' LCTR_WKNO_EYMD
 		FROM 	TB_LMS_LCTR_WKNO_SCHDL LWS
 		WHERE 	TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN LWS.LCTR_WKNO_SYMD AND LWS.LCTR_WKNO_EYMD
 				AND	LWS.SBJCT_ID = #{sbjctId} AND	LWS.DELYN = 'N'
