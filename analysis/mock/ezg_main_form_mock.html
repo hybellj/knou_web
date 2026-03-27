@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>EZ-Grader Mock</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+  <link rel="stylesheet" type="text/css" href="/webdoc/css/reset.css?v=9">
+  <link rel="stylesheet" type="text/css" href="/webdoc/css/semantic.css?v=8">
+  <link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2">
+  <link rel="stylesheet" type="text/css" href="/webdoc/css/ionicons.css">
+  <script type="text/javascript" src="/webdoc/js/jquery.min.js"></script>
+  <script type="text/javascript" src="/webdoc/js/semantic.min.js"></script>
+
+  <style>
+    html, body { height: 100%; background: #f7f8fb; }
+    .mock-wrap { max-width: 1500px; margin: 0 auto; padding: 14px; height: 100%; }
+    .header-title { display: flex; justify-content: space-between; align-items: center; padding: 6px 0 12px; }
+    .header-title .center-text { font-size: 20px; font-weight: 700; color: #1f2b44; }
+    .EG-layout { display: grid; grid-template-columns: 300px 1fr 380px; gap: 14px; height: calc(100vh - 90px); }
+    .pane { background: #fff; border: 1px solid #e8ecf4; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+    .pane .scroll { overflow: auto; min-height: 0; }
+    .stu-list-box .scroll, .chat-viewer .scroll, .info-section .scroll { padding: 10px; }
+    #rubric_card { display: flex; flex-direction: column; gap: 8px; }
+    #rubric_card .card { width: 100%; margin: 0; cursor: pointer; border: 1px solid #d9dfeb; box-shadow: none; }
+    #rubric_card .card.select { border-color: #1d65d8; background: #edf4ff; }
+    #rubric_card .ui.label.select { background: #dce9ff !important; color: #123f90 !important; border: 1px solid #9dbbf0 !important; }
+    #forumContBlock .item { border: 1px solid #e9edf6; border-radius: 8px; margin-bottom: 8px; padding: 10px; }
+    #forumContBlock .meta { color: #637089; font-size: 12px; margin-bottom: 6px; }
+    #forumContBlock .article { display: none; margin-top: 8px; color: #3d4860; border-top: 1px dashed #ccd4e3; padding-top: 8px; }
+    #forumContBlock .article.show { display: block; }
+    #fileUpDiv { display: none; gap: 6px; margin-top: 6px; }
+    #fileUpDiv input[type=file] { display: inline-block; }
+    .top-group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 10px; border-bottom: 1px solid #eef2f8; }
+    .team-label { margin: 8px 0 2px; }
+    .feedback-item { border: 1px solid #e9edf6; border-radius: 6px; padding: 8px; margin-top: 8px; }
+    .feedback-item .head { display: flex; justify-content: space-between; color: #627088; font-size: 12px; }
+    .feedback-item .cts { margin-top: 4px; color: #222d43; }
+    .feedback-reply { margin: 6px 0 0 12px; padding-left: 8px; border-left: 2px solid #e5ebf6; color: #41506d; font-size: 13px; }
+    #toastBox { position: fixed; right: 16px; bottom: 16px; z-index: 9999; }
+    .mock-toast { background: #1f2b44; color: #fff; padding: 10px 12px; border-radius: 6px; margin-top: 6px; opacity: 0.95; }
+    @media (max-width: 1280px) {
+      .EG-layout { grid-template-columns: 1fr; height: auto; }
+      .pane { min-height: 320px; }
+    }
+  </style>
+</head>
+<body class="modal-page EG-grader">
+  <div class="mock-wrap">
+    <div class="header-title">
+      <div class="center-text" id="ezgTitle"></div>
+      <div>
+        <a href="/mock/index.html" class="ui button">목업 목록</a>
+      </div>
+    </div>
+
+    <div class="EG-layout">
+      <div class="pane stu-list-box">
+        <div class="top-group" id="joinuserOrTeamSearchBlock">
+          <select class="ui fluid dropdown" id="ezgSearchSort">
+            <option value="">정렬</option>
+            <option value="USER_ID">아이디순</option>
+            <option value="USER_NM">이름순</option>
+            <option value="SUBMIT_DT">제출순</option>
+          </select>
+          <select class="ui fluid dropdown" id="ezgSearchKey">
+            <option value="SEL_ALL">전체</option>
+            <option value="JOIN">참여</option>
+            <option value="AFTER">지각</option>
+            <option value="NOTJOIN">미참여</option>
+          </select>
+        </div>
+        <div class="scroll">
+          <div class="ui cards" id="rubric_card"></div>
+        </div>
+      </div>
+
+      <div class="pane chat-viewer">
+        <div class="scroll" id="forumContBlock"></div>
+      </div>
+
+      <div class="pane info-section">
+        <div class="scroll">
+          <div class="element" style="display:none" id="noSelectUserBlock">
+            <div class="ui small error message">
+              <i class="info circle icon"></i> 평가 대상을 먼저 선택해 주세요.
+            </div>
+          </div>
+
+          <div class="element" id="totalScoreInputBlock"></div>
+
+          <div class="ui small negative message mt0" id="teamAlert" style="display:none;">
+            <p><i class="warning icon"></i> 팀 점수는 팀원 전체에게 동일 적용됩니다.</p>
+          </div>
+
+          <div class="element" id="targetUserInfoBlock"></div>
+          <div class="element" id="forumFeedbackBlock"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastBox"></div>
+
+  <script>
+    (function() {
+      var state = {
+        title: "소프트웨어공학 포럼 EZ-Grader (Mock)",
+        mode: "TEAM",
+        selectedStdNo: "S001",
+        selectedUserNo: "2026001",
+        selectedTeamCd: "T01",
+        articleFilter: "",
+        sortType: "",
+        users: [
+          { teamCd: "T01", teamNm: "A팀", teamStdNos: "S001,S002", userId: "stu01", userNo: "2026001", userNm: "김민준", stdNo: "S001", deptNm: "컴퓨터과학과", hy: "3", joinStatus: "JOIN", submitDt: "2026-03-24 10:02", evalYn: true, score: 88, memo: "핵심 요점 정리 우수" },
+          { teamCd: "T01", teamNm: "A팀", teamStdNos: "S001,S002", userId: "stu02", userNo: "2026002", userNm: "이서연", stdNo: "S002", deptNm: "컴퓨터과학과", hy: "2", joinStatus: "AFTER", submitDt: "2026-03-24 11:44", evalYn: false, score: 76, memo: "" },
+          { teamCd: "T02", teamNm: "B팀", teamStdNos: "S003,S004", userId: "stu03", userNo: "2026003", userNm: "박도윤", stdNo: "S003", deptNm: "정보통계학과", hy: "4", joinStatus: "JOIN", submitDt: "2026-03-23 19:30", evalYn: true, score: 93, memo: "근거 제시가 좋음" },
+          { teamCd: "T02", teamNm: "B팀", teamStdNos: "S003,S004", userId: "stu04", userNo: "2026004", userNm: "최지우", stdNo: "S004", deptNm: "정보통계학과", hy: "1", joinStatus: "NOTJOIN", submitDt: "", evalYn: false, score: 0, memo: "" }
+        ],
+        articles: {
+          S001: [
+            { id: "A11", type: "P", title: "애자일 도입 효과", body: "실제 팀 운영에서 스프린트 단축이 생산성에 준 영향 분석.", dt: "2026-03-24 10:10" },
+            { id: "A12", type: "C", title: "댓글: 경험 공유", body: "저희 팀은 스크럼 회고를 통해 품질 지표가 개선되었습니다.", dt: "2026-03-24 10:32" }
+          ],
+          S002: [
+            { id: "A21", type: "P", title: "테스트 자동화 제안", body: "단위 테스트와 코드리뷰 지표를 함께 운영하자는 제안.", dt: "2026-03-24 11:45" },
+            { id: "A22", type: "C", title: "댓글: 반론 정리", body: "자동화 커버리지보다 실패율 지표를 먼저 보는 것이 맞다고 생각합니다.", dt: "2026-03-24 12:02" },
+            { id: "A23", type: "F", title: "피드백 반영", body: "지적된 부분을 수정해 재업로드했습니다.", dt: "2026-03-24 13:20" }
+          ],
+          S003: [
+            { id: "A31", type: "P", title: "요구사항 변경 대응", body: "변경 요청의 우선순위 모델을 제시합니다.", dt: "2026-03-23 19:40" },
+            { id: "A32", type: "F", title: "피드백 수신", body: "근거 강화 필요 피드백 반영 완료.", dt: "2026-03-25 09:12" }
+          ],
+          S004: [
+            { id: "A41", type: "P", title: "초안 등록", body: "기본 개요만 우선 작성했습니다. 추가 근거는 보완 예정입니다.", dt: "2026-03-22 09:15" },
+            { id: "A42", type: "C", title: "댓글: 질문", body: "팀 논의 기준을 어떤 지표로 잡았는지 궁금합니다.", dt: "2026-03-22 09:40" }
+          ]
+        },
+        feedback: {
+          S001: [{ id: "F001", user: "교수", dt: "2026-03-25 09:20", cts: "핵심 개념 정의가 명확합니다.", replies: ["예시를 하나 더 추가하면 더 좋습니다."] }],
+          S002: [
+            { id: "F201", user: "교수", dt: "2026-03-25 10:02", cts: "자동화 목적과 측정 지표를 연결해 설명해 보세요.", replies: [] },
+            { id: "F202", user: "튜터", dt: "2026-03-25 10:30", cts: "코드 예시가 있으면 이해가 더 빠릅니다.", replies: ["다음 제출에 샘플 코드 1개 포함 부탁드립니다."] }
+          ],
+          S003: [{ id: "F003", user: "교수", dt: "2026-03-25 08:00", cts: "반론 파트가 매우 좋습니다.", replies: [] }],
+          S004: [
+            { id: "F401", user: "교수", dt: "2026-03-24 16:15", cts: "초안 단계이므로 구조만 먼저 완성해도 좋습니다.", replies: [] }
+          ]
+        }
+      };
+
+      var audioRecord = { audioData: "", audioFile: "" };
+      var fdbkEditId = "";
+      var selectedUploadName = "";
+
+      function toast(msg) {
+        var $t = $("<div class='mock-toast'></div>").text(msg);
+        $("#toastBox").append($t);
+        setTimeout(function() { $t.fadeOut(200, function() { $(this).remove(); }); }, 1800);
+      }
+
+      function escapeHtml(str) {
+        return (str || "").replace(/[&<>"']/g, function(ch) {
+          return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[ch];
+        });
+      }
+
+      function getSelectedUser() {
+        return state.users.find(function(u) { return u.stdNo === state.selectedStdNo; }) || null;
+      }
+
+      function sortAndFilterJoinUser() {
+        state.sortType = $("#ezgSearchSort").val();
+        state.articleFilter = $("#ezgSearchKey").val();
+        renderUserCards();
+      }
+
+      function getEzgTitle() {
+        $("#ezgTitle").html("<span>" + escapeHtml(state.title) + "</span>");
+      }
+
+      function getJoinUserOrTeamSearchView() {
+        $("#ezgSearchSort, #ezgSearchKey").dropdown();
+      }
+
+      function getFilteredUsers() {
+        var list = state.users.slice();
+        var filter = state.articleFilter;
+        if (filter && filter !== "SEL_ALL") {
+          list = list.filter(function(u) { return u.joinStatus === filter; });
+        }
+        if (state.sortType === "USER_ID") list.sort(function(a, b) { return a.userId.localeCompare(b.userId); });
+        if (state.sortType === "USER_NM") list.sort(function(a, b) { return a.userNm.localeCompare(b.userNm); });
+        if (state.sortType === "SUBMIT_DT") list.sort(function(a, b) { return (b.submitDt || "").localeCompare(a.submitDt || ""); });
+        return list;
+      }
+
+      function renderUserCards() {
+        var list = getFilteredUsers();
+        var map = {};
+        list.forEach(function(u) {
+          if (!map[u.teamCd]) map[u.teamCd] = { teamNm: u.teamNm, items: [], teamStdNos: u.teamStdNos };
+          map[u.teamCd].items.push(u);
+        });
+        var html = "";
+        Object.keys(map).forEach(function(teamCd) {
+          var t = map[teamCd];
+          html += "<a href='javascript:;' name='ezgTargetUser' class='ui grey label m0 tr active-toggle-btn team-label " +
+            (state.selectedTeamCd === teamCd && !state.selectedStdNo ? "select" : "") + "' data-teamcd='" + teamCd +
+            "' data-teamstdnos='" + t.teamStdNos + "' data-stdno='ALL'>" + escapeHtml(t.teamNm) + "</a>";
+          t.items.forEach(function(u) {
+            var icon = u.evalYn ? "<i class='ion-android-done'></i>" : "";
+            var cls = "card active-toggle-btn " + (state.selectedStdNo === u.stdNo ? "select" : "");
+            html += "<a href='javascript:;' name='ezgTargetUser' class='" + cls + "' data-userid='" + u.userId + "' data-userno='" +
+              u.userNo + "' data-usernm='" + escapeHtml(u.userNm) + "' data-stdno='" + u.stdNo + "' data-teamcd='" + u.teamCd +
+              "' data-teamstdnos='" + u.teamStdNos + "'>";
+            html += "<div class='content stu_card'><div class='icon_box'>" + icon + "</div><div class='text_box'>";
+            html += "<div class='meta'>" + escapeHtml(u.deptNm) + "</div><div class='user'>" + escapeHtml(u.userNm) + "<span>" + escapeHtml(u.userId) + "</span></div>";
+            html += "</div></div></a>";
+          });
+        });
+        $("#rubric_card").html(html || "<div class='ui message'>조건에 맞는 대상이 없습니다.</div>");
+      }
+
+      function getJoinUserOrTeamList() {
+        renderUserCards();
+        bindUserCardEvents();
+        if (!state.selectedStdNo && !state.selectedTeamCd) {
+          displayNoselectuserBlock(true);
+          $("#forumContBlock").empty();
+          $("#totalScoreInputBlock, #targetUserInfoBlock, #forumFeedbackBlock").empty();
+        }
+      }
+
+      function bindUserCardEvents() {
+        $("#rubric_card a[name=ezgTargetUser]").off("click").on("click", function() {
+          var $el = $(this);
+          var stdNo = $el.attr("data-stdno");
+          if (stdNo === "ALL") {
+            selectTeam($el.attr("data-teamcd"));
+          } else {
+            selectUser($el.attr("data-teamcd"), stdNo);
+          }
+        });
+      }
+
+      function selectTeam(teamCd) {
+        state.selectedTeamCd = teamCd;
+        state.selectedStdNo = "";
+        state.selectedUserNo = "";
+        $("#teamAlert").show();
+        renderUserCards();
+        listForum(1, "", "ALL", state.users.filter(function(u) { return u.teamCd === teamCd; }).map(function(u) { return u.stdNo; }).join(","));
+        getTotalScoreInputView("", "", teamCd);
+        getTargetUserInfoView("", "");
+        $("#forumFeedbackBlock").empty();
+        displayNoselectuserBlock(false);
+      }
+
+      function selectUser(teamCd, stdNo) {
+        var user = state.users.find(function(u) { return u.stdNo === stdNo; });
+        if (!user) return;
+        state.selectedTeamCd = teamCd;
+        state.selectedStdNo = stdNo;
+        state.selectedUserNo = user.userNo;
+        $("#teamAlert").hide();
+        renderUserCards();
+        getForumContsView(user.userId, stdNo, teamCd, user.teamStdNos);
+        getTotalScoreInputView(user.userNo, stdNo, teamCd);
+        getTargetUserInfoView(user.userNo, stdNo);
+        getForumFeedbackView(user.userNo, stdNo, teamCd);
+        displayNoselectuserBlock(false);
+      }
+
+      function displayNoselectuserBlock(isDisplay) {
+        $("#noSelectUserBlock").toggle(!!isDisplay);
+      }
+
+      function getForumContsView(userId, stdNo, teamCd, teamStdNos) {
+        if (!stdNo && !teamCd) {
+          $("#forumContBlock").empty();
+          return;
+        }
+        listForum(1, userId, stdNo, teamStdNos);
+      }
+
+      function listForum(page, userId, stdNo, teamStdNos) {
+        var entries = [];
+        if (stdNo === "ALL") {
+          (teamStdNos || "").split(",").forEach(function(s) {
+            entries = entries.concat(state.articles[s] || []);
+          });
+        } else {
+          entries = state.articles[stdNo] || [];
+        }
+        var html = "";
+        entries.forEach(function(a, idx) {
+          html += "<div class='item'><div class='meta'>" + escapeHtml(a.dt) + " · " + escapeHtml(a.type) + "</div>";
+          html += "<div><strong>" + escapeHtml(a.title) + "</strong></div>";
+          html += "<div class='article' id='article" + idx + "'>" + escapeHtml(a.body) + "</div>";
+          html += "<div class='mt8'><a href='javascript:;' data-idx='" + idx + "' class='ui basic mini button cmnt-toggle'>본문 보기</a></div></div>";
+        });
+        $("#forumContBlock").html(html || "<div class='ui message'>작성된 포럼 글이 없습니다.</div>");
+        $(".cmnt-toggle").off("click").on("click", function() {
+          var idx = $(this).attr("data-idx");
+          $("#article" + idx).toggleClass("show");
+        });
+      }
+
+      function getTotalScoreInputView(userNo, stdNo, teamCd) {
+        var score = 0;
+        if (stdNo) {
+          var u = state.users.find(function(x) { return x.stdNo === stdNo; });
+          score = u ? (u.score || 0) : 0;
+        } else if (teamCd) {
+          var t = state.users.filter(function(x) { return x.teamCd === teamCd; });
+          score = t.length ? Math.round(t.reduce(function(p, c) { return p + (c.score || 0); }, 0) / t.length) : 0;
+        }
+        var html = "";
+        html += "<div class='mt10 flex'><div class='ui input flex1'>";
+        html += "<input type='text' maxlength='3' id='totalScore' value='" + score + "' placeholder='점수 입력(0~100)'></div>";
+        html += "<a href='javascript:;' class='ui blue button m0' id='btnSaveEvalScore'>저장</a></div>";
+        html += "<div class='mt8'><a href='javascript:;' id='partiBtn' class='ui basic small button'>참여점수 일괄 100점</a></div>";
+        $("#totalScoreInputBlock").html(html);
+        $("#totalScore").on("keyup", function() {
+          this.value = this.value.replace(/[^0-9]/g, "");
+        });
+        $("#btnSaveEvalScore").off("click").on("click", saveEvalScore);
+        $("#partiBtn").off("click").on("click", partiScore);
+      }
+
+      function saveEvalScore() {
+        var score = parseInt($("#totalScore").val(), 10);
+        if (isNaN(score) || score < 0 || score > 100) {
+          alert("점수는 0~100 숫자만 입력할 수 있습니다.");
+          return;
+        }
+        if (state.selectedStdNo) {
+          var user = state.users.find(function(u) { return u.stdNo === state.selectedStdNo; });
+          if (user) user.score = score;
+        } else if (state.selectedTeamCd) {
+          state.users.forEach(function(u) {
+            if (u.teamCd === state.selectedTeamCd) u.score = score;
+          });
+        } else {
+          alert("평가 대상을 먼저 선택해 주세요.");
+          return;
+        }
+        getJoinUserOrTeamList();
+        toast("점수가 저장되었습니다. (Mock)");
+      }
+
+      function getTargetUserInfoView(userNo, stdNo) {
+        if (!stdNo) {
+          $("#targetUserInfoBlock").empty();
+          return;
+        }
+        var u = state.users.find(function(x) { return x.stdNo === stdNo; });
+        if (!u) return;
+        var html = "";
+        html += "<div class='mt10 mb10'><div class='ui attached message'><div class='pt5 pb5'>대상자 정보</div></div>";
+        html += "<div class='ui attached message'><ul class='tbl'><li><dl><dt>이름</dt><dd>" + escapeHtml(u.userNm) + "</dd></dl></li>";
+        html += "<li><dl><dt>학과</dt><dd>" + escapeHtml(u.deptNm) + "</dd></dl></li>";
+        html += "<li><dl><dt>학년</dt><dd>" + escapeHtml(u.hy) + "</dd></dl></li>";
+        html += "<li><dl><dt>학번</dt><dd>" + escapeHtml(u.userNo) + "</dd></dl></li></ul></div></div>";
+        $("#targetUserInfoBlock").html(html);
+      }
+
+      function getForumFeedbackView(userNo, stdNo, teamCd) {
+        if (!stdNo) {
+          $("#forumFeedbackBlock").empty();
+          return;
+        }
+        var list = state.feedback[stdNo] || [];
+        var memo = getSelectedUser() ? (getSelectedUser().memo || "") : "";
+        var html = "";
+        html += "<div class='ui divider'></div>";
+        html += "<div class='ui mini header'>피드백</div>";
+        html += "<textarea id='fdbkValue' placeholder='피드백 입력'>" + "</textarea>";
+        html += "<div id='fdbkFileBox' class='flex-item mt4'>";
+        html += "<button class='ui basic icon button' id='btnOpenFile'><i class='save icon'></i></button>";
+        html += "<div class='field ui segment flex1 flex-item m0' style='height:39px;'><div class='flex align-items-center' id='fdbkFileViewPop'></div></div>";
+        html += "<button class='ui basic icon button' id='btnAudio'><i class='microphone icon'></i></button>";
+        html += "<a href='javascript:;' class='ui blue button mla' id='btnSubmitFdbk'>등록</a>";
+        html += "</div>";
+        html += "<div id='fileUpDiv'><input type='file' id='mockFileInput' class='ui input'><button class='ui grey small button' id='closeFileBtn'>&times;</button></div>";
+        html += "<div class='mt8'><textarea id='profMemo' style='height:130px;max-height:unset;min-height:unset;' placeholder='메모 입력'>" + escapeHtml(memo) + "</textarea>";
+        html += "<div class='tr mt4'><a href='javascript:;' class='ui blue button' id='btnMemo'>메모 저장</a></div></div>";
+        html += "<div id='fdbkList'>";
+        list.forEach(function(f, idx) {
+          html += "<div class='feedback-item'><div class='head'><span>" + escapeHtml(f.user) + "</span><span>" + escapeHtml(f.dt) + "</span></div>";
+          html += "<div class='cts' id='cts" + idx + "'>" + escapeHtml(f.cts) + "</div>";
+          html += "<div class='mt6'><a href='javascript:;' class='ui basic mini button btnEditF' data-id='" + f.id + "'>수정</a>";
+          html += "<a href='javascript:;' class='ui basic mini button btnDelF' data-id='" + f.id + "'>삭제</a></div>";
+          (f.replies || []).forEach(function(r) { html += "<div class='feedback-reply'>↳ " + escapeHtml(r) + "</div>"; });
+          html += "</div>";
+        });
+        html += "</div>";
+        $("#forumFeedbackBlock").html(html);
+
+        bindFeedbackEvents();
+      }
+
+      function bindFeedbackEvents() {
+        $("#btnOpenFile").off("click").on("click", function() {
+          $("#fileUpDiv").toggle();
+        });
+        $("#closeFileBtn").off("click").on("click", function() {
+          $("#fileUpDiv").hide();
+        });
+        $("#mockFileInput").off("change").on("change", function() {
+          selectedUploadName = this.files && this.files[0] ? this.files[0].name : "";
+          if (selectedUploadName) {
+            $("#fdbkFileViewPop").html("<i class='paperclip icon f080'></i>" + escapeHtml(selectedUploadName) +
+              " <button type='button' class='del ml10' style='border:1px solid #aaa;width:16px;height:16px' id='clearFileBtn'></button>");
+            $("#clearFileBtn").off("click").on("click", function() {
+              selectedUploadName = "";
+              $("#mockFileInput").val("");
+              $("#fdbkFileViewPop").empty();
+            });
+          }
+          $("#fileUpDiv").hide();
+        });
+        $("#btnAudio").off("click").on("click", function() {
+          audioRecord.audioData = "mock-audio-base64";
+          audioRecord.audioFile = "mock-audio.wav";
+          toast("오디오 첨부가 설정되었습니다. (Mock)");
+        });
+        $("#btnSubmitFdbk").off("click").on("click", function() {
+          var text = ($("#fdbkValue").val() || "").trim();
+          if (!text) {
+            alert("피드백 내용을 입력해 주세요.");
+            return;
+          }
+          var key = state.selectedStdNo;
+          if (!key) {
+            alert("평가 대상을 먼저 선택해 주세요.");
+            return;
+          }
+          var list = state.feedback[key] || (state.feedback[key] = []);
+          if (fdbkEditId) {
+            list.forEach(function(item) { if (item.id === fdbkEditId) item.cts = text; });
+            toast("피드백이 수정되었습니다. (Mock)");
+            fdbkEditId = "";
+          } else {
+            list.unshift({ id: "F" + Date.now(), user: "교수", dt: "2026-03-27 12:00", cts: text, replies: [] });
+            toast("피드백이 등록되었습니다. (Mock)");
+          }
+          $("#fdbkValue").val("");
+          selectedUploadName = "";
+          $("#mockFileInput").val("");
+          $("#fdbkFileViewPop").empty();
+          audioRecord.audioData = "";
+          audioRecord.audioFile = "";
+          getForumFeedbackView(state.selectedUserNo, state.selectedStdNo, state.selectedTeamCd);
+        });
+        $("#btnMemo").off("click").on("click", submitMemo);
+        $(".btnEditF").off("click").on("click", function() {
+          var id = $(this).attr("data-id");
+          var list = state.feedback[state.selectedStdNo] || [];
+          var item = list.find(function(x) { return x.id === id; });
+          if (!item) return;
+          $("#fdbkValue").val(item.cts).focus();
+          fdbkEditId = id;
+        });
+        $(".btnDelF").off("click").on("click", function() {
+          var id = $(this).attr("data-id");
+          if (!confirm("피드백을 삭제하시겠습니까?")) return;
+          var key = state.selectedStdNo;
+          var list = state.feedback[key] || [];
+          state.feedback[key] = list.filter(function(x) { return x.id !== id; });
+          toast("피드백이 삭제되었습니다. (Mock)");
+          getForumFeedbackView(state.selectedUserNo, state.selectedStdNo, state.selectedTeamCd);
+        });
+      }
+
+      function submitMemo() {
+        var user = getSelectedUser();
+        if (!user) {
+          alert("평가 대상을 먼저 선택해 주세요.");
+          return;
+        }
+        user.memo = $("#profMemo").val() || "";
+        toast("메모가 저장되었습니다. (Mock)");
+      }
+
+      function partiScore() {
+        if (!confirm("참여점수를 일괄 반영하시겠습니까?")) return;
+        state.users.forEach(function(u) {
+          if (u.joinStatus === "JOIN") u.score = 100;
+          if (u.joinStatus === "NOTJOIN") u.score = 0;
+        });
+        getJoinUserOrTeamList();
+        toast("참여점수가 반영되었습니다. (Mock)");
+      }
+
+      function btnPrev() {
+        var $cards = $("#rubric_card a.card");
+        if (!$cards.length || !state.selectedStdNo) return;
+        var idx = -1;
+        $cards.each(function(i) {
+          if ($(this).attr("data-stdno") === state.selectedStdNo) idx = i;
+        });
+        if (idx > 0) {
+          var stdNo = $($cards[idx - 1]).attr("data-stdno");
+          var teamCd = $($cards[idx - 1]).attr("data-teamcd");
+          selectUser(teamCd, stdNo);
+        }
+      }
+
+      function btnNext() {
+        var $cards = $("#rubric_card a.card");
+        if (!$cards.length || !state.selectedStdNo) return;
+        var idx = -1;
+        $cards.each(function(i) {
+          if ($(this).attr("data-stdno") === state.selectedStdNo) idx = i;
+        });
+        if (idx > -1 && idx < $cards.length - 1) {
+          var stdNo = $($cards[idx + 1]).attr("data-stdno");
+          var teamCd = $($cards[idx + 1]).attr("data-teamcd");
+          selectUser(teamCd, stdNo);
+        }
+      }
+
+      $(document).ready(function() {
+        getEzgTitle();
+        getJoinUserOrTeamSearchView();
+        getJoinUserOrTeamList();
+        if (state.selectedStdNo) {
+          var u = state.users.find(function(x) { return x.stdNo === state.selectedStdNo; });
+          if (u) {
+            selectUser(u.teamCd, u.stdNo);
+          } else if (state.selectedTeamCd) {
+            selectTeam(state.selectedTeamCd);
+          } else {
+            displayNoselectuserBlock(true);
+          }
+        } else if (state.selectedTeamCd) {
+          selectTeam(state.selectedTeamCd);
+        } else {
+          displayNoselectuserBlock(true);
+        }
+
+        $("#ezgSearchSort, #ezgSearchKey").on("change", sortAndFilterJoinUser);
+        $(document).on("keyup", function(e) {
+          if (!(document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")) {
+            if (e.keyCode === 68) btnNext();
+            if (e.keyCode === 69) btnPrev();
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
