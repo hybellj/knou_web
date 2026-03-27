@@ -553,11 +553,11 @@
     }
 
     /** 학습그룹 팀 목록 조회 후 subInfoDiv 에 렌더링 */
-    function loadForumTeamList(lrnGrpId, dvclasNo) {
+    function loadForumTeamList(lrnGrpId, dvclasNo, overrideUpDscsId) {
         var url  = '<c:url value="/forum2/forumLect/profForumLrnGrpTeamListAjax.do" />';
         var data = {
             lrnGrpId : lrnGrpId,
-            upDscsId : '${forum2VO.dscsId}'
+            upDscsId : (overrideUpDscsId !== undefined) ? overrideUpDscsId : '${forum2VO.dscsId}'
         };
         ajaxCall(url, data, function(resp) {
             if (resp.result > 0) {
@@ -969,8 +969,13 @@
                     var $chk = $('#lrnGrpSubForumSettingyn_' + dvclasNo);
                     if ($chk.length) {
                         var sbjctId = $chk.val().split(':')[1];                    // "Y:sbjctId" → sbjctId
-                        $('#lrnGrpView' + dvclasNo).css("display", "flex");        // 분반 행 노출
-                        selectTeam(v.lrnGrpId, v.dscsGrpnm || '', dvclasNo + ':' + sbjctId);  // 그룹명/ID 세팅 + 팀목록 로드
+                        $('#lrnGrpView'   + dvclasNo).css("display", "flex");      // 분반 행 노출
+                        $('#lrnGrpId'     + dvclasNo).val(v.lrnGrpId + ':' + sbjctId);
+                        $('#lrnGrpnm'     + dvclasNo).val(v.dscsGrpnm || '');
+                        $('#setForumDiv'  + dvclasNo).show();
+                        // selectTeam() 미사용: 내부에서 upDscsId 를 빈값으로 호출하므로
+                        // 복사 원본 dscsId(forumCd)를 직접 넘겨 팀별 부주제 제목/내용 로드
+                        loadForumTeamList(v.lrnGrpId, dvclasNo, forumCd);
                         if (v.byteamDscsUseyn === 'Y') {
                             $chk.prop('checked', true);
                             $('#subInfoDiv' + dvclasNo).show();                    // 부주제 영역 노출
