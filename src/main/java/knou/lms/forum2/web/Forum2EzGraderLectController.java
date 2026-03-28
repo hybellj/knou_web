@@ -17,7 +17,6 @@ import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
 import knou.lms.user.service.UsrUserInfoService;
 import knou.lms.user.vo.UsrUserInfoVO;
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -30,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Locale;
+
 
 @Controller
 @RequestMapping(value = "/forum2/ezgPop")
@@ -170,11 +170,11 @@ public class Forum2EzGraderLectController extends ControllerBase {
         if ("TEAM".equals(forumVO.getForumCtgrCd())) {
             List<ForumEzGraderTeamVO> resultList= forumEzGraderService.listForumJoinTeam(paramVO);
             request.setAttribute("resultList", resultList);
-            viewNm = "forum/ezgPop/ezg_join_team_list";
+            viewNm = "forum2/ezgPop/ezg_join_team_list";
         } else {
             List<ForumJoinUserVO> resultList= forumEzGraderService.listForumJoinUser(paramVO);
             request.setAttribute("resultList", resultList);
-            viewNm = "forum/ezgPop/ezg_join_user_list";
+            viewNm = "forum2/ezgPop/ezg_join_user_list";
         }
 
         request.setAttribute("forumVO", forumVO);
@@ -225,12 +225,9 @@ public class Forum2EzGraderLectController extends ControllerBase {
         return "forum2/ezgPop/ezg_score";
     }
 
-    // 평가항목별 점수 부여 화면 호출
+    // 평가항목별 점수 부여 화면 호출 (루브릭 평가 폐기 → 단순 점수 입력으로 대체)
     @RequestMapping(value = "/ezgEvalScoreView.do")
     public String getEvalScoreView(ForumEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        // 사용자 접속상태 저장
-        //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
-        
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
@@ -238,21 +235,16 @@ public class Forum2EzGraderLectController extends ControllerBase {
         vo.setMdfrId(userId);
         vo.setOrgId(orgId);
 
-        EgovMap evalMap = forumEzGraderService.selectEzgEvalInfo(vo);
+        if (vo.getStdId() != null) {
+            ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+            forumJoinUserVO.setForumCd(vo.getForumCd());
+            forumJoinUserVO.setStdId(vo.getStdId());
+            forumJoinUserVO = forumJoinUserService.selectForumJoinUser(forumJoinUserVO);
+            request.setAttribute("forumJoinUserVo", forumJoinUserVO);
+        }
 
-        ForumEzGraderRsltVO paramRsltVo = new ForumEzGraderRsltVO();
-        paramRsltVo.setForumCd(vo.getForumCd());
-        paramRsltVo.setEvalCd(evalMap.get("evalCd").toString());
-        paramRsltVo.setEvalUserId(userId);
-        paramRsltVo.setEvalTrgtUserId(vo.getStdId());
-        ForumEzGraderRsltVO evalRsltVo = forumEzGraderService.selectEzgEvalRslt(paramRsltVo);
-        List<ForumEzGraderQstnVO> evalQstnList= forumEzGraderService.listEzgEvalQstn(vo);
-
-        request.setAttribute("evalInfo", evalMap);
-        request.setAttribute("evalRsltVo", evalRsltVo);
-        request.setAttribute("evalQstnList", evalQstnList);
         request.setAttribute("vo", vo);
-        return "forum2/ezgPop/ezg_eval_score";
+        return "forum2/ezgPop/ezg_score";
     }
 
     // 사용자 상세보기

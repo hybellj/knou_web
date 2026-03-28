@@ -547,7 +547,7 @@
 			dialog = UiDialog("dialog1", {
 				// title: "엑셀 성적 등록",
 				width: 600,
-				height: 350,
+				height: 400,
 				url: "/forum2/forumLect/forumScoreExcelUploadPop.do?" + queryString,
 			});
 		}
@@ -591,17 +591,33 @@
 
 		// EZ-Grader 팝업 화면
 		function ezGraderPop(forumCd, stdId) {
-			$('#ezGraderForm input[name="forumCd"]').val(forumCd);
+			/*$('#ezGraderForm input[name="forumCd"]').val(forumCd);
 			$('#ezGraderForm input[name="stdId"]').val(stdId);
 			$("#ezGraderForm").attr("target", "ezGraderPopIfm");
 			$("#ezGraderForm").attr("action", "/forum/ezgPop/ezgMainForm.do");
 			$("#ezGraderForm").submit();
-			$('#ezGraderPop').modal('show');
+			$('#ezGraderPop').modal('show');*/
+
+			$("form[name='ezGraderForm'] input[name='forumCd']").val(forumCd);
+			$("form[name='ezGraderForm'] input[name='stdId']").val(stdId);
+
+			const width = window.innerWidth;
+			const height = window.innerHeight;
+
+			var queryString = $("#ezGraderForm").serialize();
+			dialog = UiDialog("dialog1", {
+				// title: "엑셀 성적 등록",
+				url: "/forum2/ezgPop/ezgMainForm.do?" + queryString,
+				draggable: false,
+				width: (width - 200),
+				height: (height - 100)
+			});
 		}
 
 		// EZ-Grader 팝업 닫기버튼
 		function onCloseEzGraderPop(){
 			// $('.modal').modal('hide');
+			dialog.close();
 			listForumUser(1);
 		}
 
@@ -1013,7 +1029,7 @@
 							<h4>토론평가</h4>
 							<div class="right-area">
 								<%-- <c:if test="${!fn:contains(authGrpCd, 'TUT') }"> --%>
-								<a href="javascript:ezGraderPop()" class="btn basic small">EZ-Grader</a>
+								<a href="javascript:ezGraderPop('${forumVo.forumCd}')" class="btn basic small">EZ-Grader</a>
 								<%-- </c:if> --%>
 								<%-- <a href="javascript:allFeedback()" class="ui button"><spring:message code="forum.button.all.feedback" /></a><!-- 일괄 피드백 --> --%>
 								<a href="javascript:callScoreExcelUpload()" class="btn basic small"><spring:message code="forum.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->

@@ -50,6 +50,7 @@ function selectTeam(obj) {
 
 // 팀원 선택 반전
 function selectUser(obj) {
+	debugger;
 	$('.active-toggle-btn').removeClass("select");
 	$(obj).addClass("select");
 	var teamCd = $(obj).attr("data-teamCd");

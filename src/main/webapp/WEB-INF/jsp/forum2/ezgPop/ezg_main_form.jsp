@@ -248,7 +248,8 @@ function getEvalScoreInputView(userId, stdId, teamCd) {
 
 // 제줄자 정보 화면 로드
 function getTargetUserInfoView(userId, stdId) {
-	if (!stdId) {
+	// TODO : Tobe 미포함.
+	/*if (!stdId) {
 		$("#targetUserInfoBlock").empty();
 		return;
 	}
@@ -262,7 +263,7 @@ function getTargetUserInfoView(userId, stdId) {
 			, "searchMenu" : "EZG"
 		}
 		, function () {}
-	);
+	);*/
 }
 
 // 댓글 보기
@@ -807,7 +808,6 @@ function closeFileSelect() {
 									finishFunc="finishUpload()"
 									allowedTypes="*"
 									bigSize="false"
-									useFileBox="false"
 									uiMode="simple"
 									style="single"
 								/>

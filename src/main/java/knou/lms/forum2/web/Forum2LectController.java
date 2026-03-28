@@ -1144,6 +1144,48 @@ public class Forum2LectController extends ControllerBase {
         return "excelView";
     }
 
+    // 상호평가 토론방 리스트
+        @RequestMapping(value="/evalForumBbsViewList.do")
+    public String evalForumBbsViewList(ForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+
+        // 사용자 접속상태 저장
+        logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
+
+        request.setAttribute("tab", request.getParameter("tab"));
+
+        String crsCreCd = forumVO.getCrsCreCd();
+
+        String stdList = forumVO.getStdList();
+
+        /*토론 게시글*/
+        ForumAtclVO forumAtclVO = new ForumAtclVO();
+
+        String rltnCd = request.getParameter("rltnCd");
+        if(rltnCd != null) {
+            forumAtclVO.setForumCd(rltnCd);
+            forumVO.setForumCd(rltnCd);
+        } else {
+            forumAtclVO.setForumCd(forumVO.getForumCd());
+        }
+
+        forumAtclVO.setSearchKey(forumVO.getSearchKey());
+        forumAtclVO.setSearchValue(forumVO.getSearchValue());
+        forumAtclVO.setPageIndex(forumVO.getPageIndex());
+        //int listScale = 2; //forumAtclVO.getListScale()
+        forumAtclVO.setListScale(forumVO.getListScale());
+        forumAtclVO.setStdList(stdList);
+        forumAtclVO.setCrsCreCd(crsCreCd);
+
+        ProcessResultVO<ForumAtclVO> resultList = forum2AtclService.listPageing(forumAtclVO);
+
+        request.setAttribute("forumAtclList", resultList.getReturnList());
+        request.setAttribute("pageInfo", resultList.getPageInfo());
+        request.setAttribute("forumVo", forumVO);
+        request.setAttribute("konanCopyScoreUrl", CommConst.KONAN_COPY_SCORE_URL);
+
+        return "forum2/lect/forum_bbs_view_eval";
+    }
+
     // 토론 성적평가 > 피드백
     @RequestMapping(value="/forumScoreEvalFeedBack.do")
     public String forumScoreEvalFeedBack(ForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {

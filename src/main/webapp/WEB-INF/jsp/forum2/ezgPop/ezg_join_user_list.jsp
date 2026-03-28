@@ -20,6 +20,7 @@ $(document).ready(function() {
 
 // toggle join user
 function toggleJoinUser(obj) {
+	debugger;
 	if ($(obj).hasClass("select")) {
 		$(obj).removeClass("select");
 		$("#selectedUserId").val('');
@@ -75,10 +76,10 @@ function getTargetUserInfoAndScore(obj) {
 	<!-- <div id="dot_list"> -->
 	<c:forEach items="${resultList }" var="item" varStatus="status">
 		<c:if test="${status.index eq '0'}">
-			<c:set var="stdNos" value="${item.userId}" />
+			<c:set var="stdIds" value="${item.userId}" />
 		</c:if>
 		<c:if test="${status.index ne '0'}">
-			<c:set var="stdNos" value="${stdNos},${item.userId}" />
+			<c:set var="stdIds" value="${stdIds},${item.userId}" />
 		</c:if>
 		<a href="javascript:;" name="ezgTargetUser" onClick="toggleJoinUser(this)" data-userId="${item.userId}" data-userId="${item.userId}" data-userNm="${item.userNm}" data-stdId="${item.stdId}" class="card active-toggle-btn ${item.joinStatus == 'JOIN'?'submit':''} ${vo.stdId == item.stdId?'select':''}">
 			<div class="content stu_card">
@@ -95,5 +96,5 @@ function getTargetUserInfoAndScore(obj) {
 		</a>
 	</c:forEach>
 	<!-- </div> -->
-	<input type="hidden" id="stdNos" value="${stdNos}">
+	<input type="hidden" id="stdIds" value="${stdIds}">
 </c:if>

@@ -15,7 +15,7 @@
 			, NVL(MIN(T.SCR), 0) 					 				 AS minScore
 		FROM (
 			SELECT
-				A.USER_ID 			 AS stdNo
+				A.USER_ID 			 AS stdId
 				, NVL(C.SCR, 0) AS SCR
 				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' ) AS atclCnt
 				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' ) AS cmntCnt
@@ -401,53 +401,43 @@
 
 	<select id="selectForumJoinUser" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
 		/*
-			토론 참여 정보 조회
+			토론 참여 정보 조회2
 			ForumJoinUserDAO.selectForumJoinUser
 		*/
-		SELECT
-			USER_ID 						AS stdNo
-			, DSCS_ID 						AS forumCd
-			, SCR 						AS SCR
-			, EVLYN						AS evalYn
-			, RGTR_ID 						AS rgtrId
-			, REG_DTTM 						AS regDttm
-			, MDFR_ID 						AS mdfrId
-			, MOD_DTTM 						AS modDttm
-			, DELYN 						AS delYn
-			, (
-				SELECT B.USER_ID
-				FROM TB_LMS_USER AS B
-				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC AS C WHERE C.USER_ID = A.USER_ID)
-			) AS userId
-			, (
-				SELECT B.USER_ID
-				FROM TB_LMS_USER AS B
-				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC AS C WHERE C.USER_ID = A.USER_ID)
-			) AS userId
-			, (
-				SELECT B.USERNM
-				FROM TB_LMS_USER B
-				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC AS C WHERE C.USER_ID = A.USER_ID)
-			) AS userNm
-		     <!--
-			, (
-				SELECT B.DEPTNM
-				FROM TB_LMS_USER B
-				WHERE B.USER_ID = (SELECT C.USER_ID FROM TB_LMS_ATNDLC AS C WHERE C.USER_ID = A.USER_ID)
-			) AS deptNm
-			-->
-		     <!-- 26.3.19 : Modify 부서명. -->
-			, NVL((SELECT D.DEPTNM FROM TB_LMS_DEPT D WHERE D.DEPT_ID = U.DEPT_ID), '-') AS DEPTNM
-			,(SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN ='N' AND B.USER_ID = A.DSCS_ID) AS atclCnt
-			,(SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN ='N' AND B.USER_ID = A.DSCS_ID) AS cmntCnt
-			,(SELECT MTL_EVLYN FROM TB_LMS_DSCS WHERE DSCS_ID = A.DSCS_ID AND DELYN = 'N' ) AS mutEvalYn
-		     <!--
-			,(SELECT NVL(ROUND(AVG(SCR)), 0) FROM TB_LMS_DSCS_MTL_EVL WHERE USER_ID = A.USER_ID AND DSCS_ID = A.DSCS_ID) AS mutAvg
-			-->
-			,0 AS mutAvg
-		FROM TB_LMS_DSCS_PTCP AS A
-		WHERE USER_ID = #{stdNo}
-			AND DSCS_ID = #{forumCd}
+		SELECT A.USER_ID                     AS stdId
+			 , A.DSCS_ID                     AS forumCd
+			 , A.SCR                         AS SCR
+			 , A.EVLYN                       AS evalYn
+			 , A.RGTR_ID                     AS rgtrId
+			 , A.REG_DTTM                    AS regDttm
+			 , A.MDFR_ID                     AS mdfrId
+			 , A.MOD_DTTM                    AS modDttm
+			 , A.DELYN                       AS delYn
+			 , U.USER_ID                     AS userId
+			 , U.USERNM                      AS userNm
+			/* , U.DEPTNM                  AS deptNm
+			*/
+			/* 26.3.19 : Modify 부서명. */
+			 , NVL(D.DEPTNM, '-')            AS DEPTNM
+			 , (SELECT COUNT(*)
+			    FROM TB_LMS_DSCS_ATCL B
+			    WHERE B.DSCS_ID = A.DSCS_ID
+				  AND B.DELYN = 'N'
+				  AND B.USER_ID = A.USER_ID) AS atclCnt
+			 , (SELECT COUNT(*)
+			    FROM TB_LMS_DSCS_CMNT B
+			    WHERE B.DSCS_ATCL_ID IN (SELECT DSCS_ATCL_ID FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = A.DSCS_ID)
+				  AND B.DELYN = 'N'
+				  AND B.USER_ID = A.USER_ID) AS cmntCnt
+			 , 'N'                           AS mutEvalYn
+			 , 0                             AS mutAvg
+		FROM TB_LMS_DSCS_PTCP A
+				 LEFT JOIN TB_LMS_USER U
+						   ON A.USER_ID = U.USER_ID
+			     LEFT JOIN TB_LMS_DEPT D
+						   ON U.DEPT_ID = D.DEPT_ID
+		WHERE A.USER_ID = #{stdId}
+		  AND A.DSCS_ID = #{forumCd}
 	</select>
 
 	<select id="forumJoinUserList" parameterType="forumJoinUserVO" resultType="egovMap">

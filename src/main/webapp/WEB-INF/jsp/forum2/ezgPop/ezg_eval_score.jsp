@@ -69,7 +69,7 @@ function computeSumScore() {
 }
 </script>
 
-<c:if test="${not empty vo.teamCd && empty vo.stdNo}">
+<c:if test="${not empty vo.teamCd && empty vo.stdId}">
     <div class="ui small negative message mt0">
         <p><i class="warning icon"></i><spring:message code="forum_ezg.label.all_team.apply" /></p><!-- 팀 전체에 적용 됩니다. -->
     </div>

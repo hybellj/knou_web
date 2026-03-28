@@ -7,7 +7,7 @@
 			토론 참여 대상 리스트2
 			ForumEzGraderDAO.listForumJoinUser
 		*/
-		SELECT A.STD_ID AS stdId
+		SELECT A.USER_ID AS stdId
 			, A.USER_ID AS userId
 			, NVL(A.SCR, 0) AS SCR
 			, A.EVLYN AS evalYn
@@ -16,73 +16,39 @@
 			, A.USER_ID AS userId
 			, CASE WHEN A.ATCL_CNT > 0 THEN 'JOIN' ELSE 'NOTJOIN' END AS joinStatus
 		FROM (
-			SELECT A.STD_ID
-				, A.USER_ID
+			SELECT /*A.STD_ID, */
+				A.USER_ID
 				, B.SCR
 				, B.EVLYN
-				, D.DEPTNM
+				, NVL((SELECT EE.DEPTNM FROM TB_LMS_DEPT EE WHERE EE.DEPT_ID = D.DEPT_ID), '-') AS DEPTNM
 				, D.USERNM
-				, E.USER_ID
 				, (
 					SELECT COUNT(1)
 					FROM TB_LMS_DSCS_ATCL AA
 					WHERE AA.DSCS_ID = #{forumCd}
-						AND AA.STD_ID = A.STD_ID
+						AND AA.USER_ID = A.USER_ID
 						AND AA.DELYN = 'N'
 				) ATCL_CNT
-				, (
-					SELECT COUNT(1)
-					FROM TB_LMS_DSCS_ATCL AA
-						LEFT JOIN TB_LMS_DSCS BB
-						ON AA.DSCS_ID = BB.DSCS_ID
-					WHERE AA.DSCS_ID = #{forumCd}
-						AND AA.STD_ID = A.STD_ID
-						AND AA.DELYN = 'N'
-						AND AA.FRST_INQ_DTTM >= BB.DSCS_EDTTM
-				) AFTER_ATCL_CNT
+			    , 0 AS AFTER_ATCL_CNT
 				, (
 					SELECT COUNT(1)
 					FROM TB_LMS_DSCS_CMNT AA
-					WHERE AA.DSCS_ID = #{forumCd}
-						AND AA.STD_ID = A.STD_ID
+					JOIN TB_LMS_DSCS_ATCL AB ON AA.DSCS_ATCL_ID = AB.DSCS_ATCL_ID
+					WHERE AB.DSCS_ID = #{forumCd}
+						AND AA.USER_ID = A.USER_ID
 						AND AA.DELYN = 'N'
 				) CMNT_CNT
-				, (
-					SELECT COUNT(1) 
-					FROM TB_LMS_DSCS_CMNT AA
-						LEFT JOIN TB_LMS_DSCS BB
-						ON AA.DSCS_ID = BB.DSCS_ID
-					WHERE AA.DSCS_ID = #{forumCd}
-						AND AA.STD_ID = #{userId}
-						AND AA.DELYN = 'N'
-						AND AA.FRST_INQ_DTTM >= BB.DSCS_EDTTM
-				) AFTER_CMNT_CNT
 			FROM TB_LMS_ATNDLC A
 				LEFT JOIN TB_LMS_DSCS_PTCP B
-					ON A.STD_ID = B.STD_ID
+					ON A.USER_ID = B.USER_ID
 					AND B.DELYN = 'N'
 					AND B.DSCS_ID = #{forumCd}
-				JOIN TB_LMS_USR D
+				JOIN TB_LMS_USER D
 					ON A.USER_ID = D.USER_ID
-				JOIN TB_LMS_USER_ACNT E
-					ON D.USER_ID = E.USER_ID
-					AND E.ACNT_STSCD = 'U'
 			WHERE A.SBJCT_ID = #{crsCreCd}
-				AND A.ATNDLC_STSCD = 'S'
+				AND A.ATNDLC_STSCD = 'ATNDLC'
 				AND A.AUDITYN = 'N'
-				<if test="forumCtgrCd == 'SUBS'">
-				AND A.STD_ID IN (
-					SELECT
-						D.STD_ID
-					FROM TB_LMS_EXAM_STARE D
-					LEFT JOIN TB_LMS_EXAM_BSC E
-					  ON D.EXAM_ID = E.EXAM_ID
-					 AND D.REEXAMYN = 'Y'
-					WHERE 1 = 1
-						AND E.EXAM_SBST_REF_ID = B.DSCS_ID
-				)
-				</if>
-		) A 
+		) A
 		WHERE 1 = 1
 		<if test="searchKey != null and searchKey == 'JOIN'">
 			AND A.ATCL_CNT <![CDATA[>]]> 0
@@ -90,9 +56,11 @@
 		<if test="searchKey != null and searchKey == 'NOTJOIN'">
 			AND A.ATCL_CNT = 0
 		</if>
+		<!--
 		<if test="searchKey != null and searchKey == 'AFTER'">
 			AND A.AFTER_ATCL_CNT <![CDATA[>]]> 0
 		</if>
+		-->
 		<if test="searchSort != null and searchSort == 'USER_ID'">
 			ORDER BY A.USER_ID
 		</if>
@@ -105,15 +73,14 @@
 	</select>
 
 	<resultMap id="forumJoinTeamMap" type="knou.lms.forum.vo.ForumEzGraderTeamVO">
-		<result property="teamCtgrCd" column="TEAM_TYCD" /> 
-		<result property="teamCtgrNm" column="TEAM_CTGRNM" />
+		<result property="teamCtgrCd" column="TEAM_TYCD" />
 		<result property="teamCd" column="TEAM_ID" />
 		<result property="teamNm" column="TEAMNM" />
 		<collection property="teamMembers" resultMap="teamMemberMap" />
 	</resultMap>
 
 	<resultMap id="teamMemberMap" type="forumJoinUserVO">
-		<id property="stdId" column="STD_ID" />
+		<id property="stdId" column="USER_ID" />
 		<result property="leaderYn" column="LDRYN" />
 		<result property="SCR" column="SCR" />
 		<result property="evalYn" column="EVLYN" />
@@ -130,10 +97,9 @@
 			ForumEzGraderDAO.listForumJoinTeam
 		*/
 		SELECT A.TEAM_TYCD
-			, A.TEAM_CTGRNM
 			, A.TEAM_ID
 			, A.TEAMNM
-			, A.STD_ID
+			, A.USER_ID AS STD_ID
 			, A.LDRYN
 			, A.SCR
 			, A.EVLYN
@@ -144,11 +110,10 @@
 			, CASE WHEN A.ATCL_CNT + A.CMNT_CNT > 0 THEN 'JOIN' ELSE 'NOTJOIN' END AS JOIN_STATUS
 		FROM (
 			SELECT A.TEAM_TYCD
-				, A.TEAM_CTGRNM
 				, B.TEAM_ID
 				, B.TEAMNM
 				, H.DSCS_ID
-				, C.STD_ID
+				-- , C.STD_ID
 				, C.LDRYN
 				, G.SCR
 				, G.EVLYN
@@ -161,54 +126,47 @@
 					SELECT COUNT(1)
 					FROM TB_LMS_DSCS_ATCL AA
 					WHERE AA.DSCS_ID = H.DSCS_ID
-						AND AA.STD_ID = C.STD_ID
+						AND AA.USER_ID = C.USER_ID
 						AND AA.DELYN = 'N'
 				) ATCL_CNT
 				, (
 					SELECT COUNT(1)
 					FROM TB_LMS_DSCS_CMNT AA
-					WHERE AA.DSCS_ID = H.DSCS_ID
-						AND AA.STD_ID = C.STD_ID
+					JOIN TB_LMS_DSCS_ATCL AB ON AA.DSCS_ATCL_ID = AB.DSCS_ATCL_ID
+					WHERE AB.DSCS_ID = H.DSCS_ID
+						AND AA.USER_ID = C.USER_ID
 						AND AA.DELYN = 'N'
 				) CMNT_CNT
+			     <!--
 				, (
 					SELECT
 						COUNT(1)
 					FROM TB_LMS_DSCS_ATCL AA
 					WHERE 1 = 1
-						AND AA.FRST_INQ_DTTM BETWEEN H.EXTD_SDTTM AND H.EXTD_EDTTM
+						AND AA.REG_DTTM BETWEEN H.EXTD_SDTTM AND H.EXTD_EDTTM
 						AND AA.DSCS_ID = H.DSCS_ID
 						AND AA.DELYN = 'N'
-				) AS AFTER_ATCL_CNT 
-				, (
-					SELECT
-						COUNT(1)
-					FROM TB_LMS_DSCS_CMNT AA
-					WHERE 1 = 1
-						AND AA.FRST_INQ_DTTM BETWEEN H.EXTD_SDTTM AND H.EXTD_EDTTM
-						AND AA.DSCS_ID = H.DSCS_ID
-						AND AA.DELYN = 'N'
-				) AS AFTER_CMNT_CNT 
+				) AS AFTER_ATCL_CNT
+				-->
+				, 0 AS AFTER_CMNT_CNT
 			FROM TB_LMS_TEAM A
 				JOIN TB_LMS_TEAM B
 					ON A.TEAM_TYCD = B.TEAM_TYCD
 				JOIN TB_LMS_DSCS H
-					ON A.TEAM_TYCD = H.TEAM_TYCD
+					ON A.TEAM_ID = H.TEAM_ID
 				JOIN TB_LMS_TEAM_MBR C
 					ON B.TEAM_ID = C.TEAM_ID
 				JOIN TB_LMS_ATNDLC D
-					ON C.STD_ID = D.STD_ID  
-				JOIN TB_LMS_USR E
+					ON C.USER_ID = D.USER_ID
+				JOIN TB_LMS_USER E
 					ON D.USER_ID = E.USER_ID
-				JOIN TB_LMS_USER_ACNT F
-					ON E.USER_ID = F.USER_ID
 				LEFT JOIN TB_LMS_DSCS_PTCP G
-					ON C.STD_ID = G.STD_ID
+					ON C.USER_ID = G.USER_ID
 					AND G.DELYN = 'N'
 					AND G.DSCS_ID = H.DSCS_ID
 			WHERE H.DSCS_ID = #{forumCd}
 		) A
-		WHERE 1 = 1 
+		WHERE 1 = 1
 		<if test="searchKey != null and searchKey == 'JOIN'">
 			AND A.ATCL_CNT + A.CMNT_CNT <![CDATA[>]]> 0
 		</if>
@@ -234,97 +192,39 @@
 
 	<select id="selectEzgEvalRslt" parameterType="forumEzGraderRsltVO" resultType="forumEzGraderRsltVO">
 		/*
-			ezGrader 평가 결과 조회2
+			평가 결과 조회2 (TB_LMS_DSCS_PTCP 단독 조회)
 			ForumEzGraderDAO.selectEzgEvalRslt
 		*/
-		SELECT B.MTL_EVL_CD   AS mutEvalCd
-			, B.EVL_DTTM      AS evalDttm
-			, B.QSTN_NOS       AS qstnNos
-			, B.EVL_SCRS    AS evalScores
-			, B.EVL_TOT_SCR     AS evalTotal
-			, A.SCR          AS evalScore
-			, B.EVL_CTS       AS evalCts
-			, A.EVLYN        AS evalYn
-			, B.EVL_STSCD AS evalStatusCd
+		SELECT A.SCR   AS evalScore
+			 , A.EVLYN AS evalYn
 		FROM TB_LMS_DSCS_PTCP A
-		LEFT JOIN MTL_EVL_RSLT B
-			ON A.STD_ID = B.EVLTEE_ID
-			AND B.ASMT_MTL_EVL_RSLT_ID = #{evalCd}
-			AND B.EVLTR_ID = #{evalUserId}
-		WHERE A.DSCS_ID = #{forumCd} 
-			AND A.STD_ID = #{evalTrgtUserId}
-	</select>
-
-	<select id="selectSumAllotScore" parameterType="forumEzGraderRsltVO" resultType="forumEzGraderQstnVO">
-		/*
-			ezGrader 문항별 배점 총합 조회2
-			ForumEzGraderDAO.selectSumAllotScore
-		*/
-		SELECT SUM(NVL((
-			SELECT MAX(MTL_EVL_MRK_GRDCD)
-			FROM MTL_EVL_GRD AA
-			WHERE AA.ASMT_MTL_EVL_RSLT_ID = A.ASMT_MTL_EVL_RSLT_ID
-			AND AA.QSTN_ID = B.QSTN_ID
-			), 100)) AS allotScore 
-		FROM MTL_EVL A
-		JOIN MTL_EVL_QSTN B
-			ON A.ASMT_MTL_EVL_RSLT_ID = B.ASMT_MTL_EVL_RSLT_ID
-			AND A.MTL_EVL_TYCD = B.MTL_EVL_TYCD 
-		WHERE A.ASMT_MTL_EVL_RSLT_ID = #{evalCd}
-	</select>
-
-	<select id="listTeamMeberInitScore" parameterType="forumEzGraderRsltVO" resultType="forumEzGraderRsltVO">
-		/*
-			ezGrader 팀원에 부여된 초기 점수 조회2
-			ForumEzGraderDAO.listTeamMeberInitScore
-		*/
-		SELECT A.STD_ID AS evalTrgtUserId
-			, ROUND(B.EVL_TOT_SCR / #{evalScore} * 100) AS evalScore
-		FROM TB_LMS_DSCS_PTCP A
-		LEFT JOIN MTL_EVL_RSLT B
-			ON A.TEAM_ID = B.RLTN_TEAM_CD
-			AND A.STD_ID = B.EVLTEE_ID
-			AND B.ASMT_MTL_EVL_RSLT_ID = #{evalCd}
-		WHERE A.TEAM_ID = #{rltnTeamCd}
-		<if test="evalTrgtUserId != null and evalTrgtUserId != ''">
-			AND A.STD_ID = #{evalTrgtUserId}
-		</if>
+		WHERE A.USER_ID = #{evalTrgtUserId}
+			AND A.DSCS_ID = #{forumCd}
 	</select>
 
 	<insert id="initStdScoreToAllTeamMember" parameterType="forumEzGraderRsltVO">
 		/*
-			팀원 모두에게 문항별 평가한 내용을 토대로 총 평가점수 부여2
+			팀원 모두에게 점수 초기화2
 			ForumEzGraderDAO.initStdScoreToAllTeamMember
 			-- MERGE 사용 사유(Upsert): 팀원별 기존 점수 존재 시 덮어쓰기, 없으면 신규 삽입
 		*/
 		MERGE INTO TB_LMS_DSCS_PTCP T
 		USING (
 			SELECT A.TEAM_ID
-				, A.STD_ID
-				<choose>
-					<when test="evalScore != null and evalScore != ''">
-						, ROUND(B.EVL_TOT_SCR / #{evalScore} * 100) AS SCR
-					</when>
-					<otherwise>
-						, 0 AS SCR
-					</otherwise>
-				</choose>
+				, A.USER_ID
+				, #{evalScore} AS SCR
 			FROM TB_LMS_TEAM_MBR A
-			LEFT JOIN MTL_EVL_RSLT B
-				ON A.TEAM_ID = B.RLTN_TEAM_CD
-				AND A.STD_ID = B.EVLTEE_ID
-				AND B.ASMT_MTL_EVL_RSLT_ID = #{evalCd}
 			WHERE A.TEAM_ID = #{rltnTeamCd}
 			<if test="evalTrgtUserId != null and evalTrgtUserId != ''">
-				AND A.STD_ID = #{evalTrgtUserId}
+				AND A.USER_ID = #{evalTrgtUserId}
 			</if>
 		) S
-		ON (T.DSCS_ID = #{forumCd} AND T.STD_ID = S.STD_ID)
+		ON (T.DSCS_ID = #{forumCd} AND T.USER_ID = S.USER_ID)
 		WHEN MATCHED THEN
 			UPDATE SET SCR = S.SCR, MDFR_ID = #{rgtrId}, MOD_DTTM = FN_DTTM()
 		WHEN NOT MATCHED THEN
-			INSERT (TEAM_ID, DSCS_ID, STD_ID, SCR, RGTR_ID, FRST_INQ_DTTM, MDFR_ID, MOD_DTTM)
-			VALUES (S.TEAM_ID, #{forumCd}, S.STD_ID, S.SCR, #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
+			INSERT (TEAM_ID, DSCS_ID, USER_ID, SCR, RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM)
+			VALUES (S.TEAM_ID, #{forumCd}, S.USER_ID, S.SCR, #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
 	</insert>
 
 	<update id="updateJoinUserScore" parameterType="forumEzGraderRsltVO">
@@ -334,8 +234,8 @@
 			-- MERGE 사용 사유(Upsert): 참여자 점수 존재 시 덮어쓰기, 없으면 신규 삽입
 		*/
 		MERGE INTO TB_LMS_DSCS_PTCP T
-		USING (SELECT #{evalTrgtUserId} AS STD_ID, #{forumCd} AS DSCS_ID FROM DUAL) S
-		ON (T.DSCS_ID = S.DSCS_ID AND T.STD_ID = S.STD_ID)
+		USING (SELECT #{evalTrgtUserId} AS USER_ID, #{forumCd} AS DSCS_ID FROM DUAL) S
+		ON (T.DSCS_ID = S.DSCS_ID AND T.USER_ID = S.USER_ID)
 		WHEN MATCHED THEN
 			UPDATE SET
 				SCR        = #{evalScore}
@@ -343,74 +243,9 @@
 				, MDFR_ID  = #{mdfrId}
 				, MOD_DTTM = FN_DTTM()
 		WHEN NOT MATCHED THEN
-			INSERT (STD_ID, DSCS_ID, SCR, EVLYN, DELYN, RGTR_ID, FRST_INQ_DTTM, MDFR_ID, MOD_DTTM)
+			INSERT (USER_ID, DSCS_ID, SCR, EVLYN, DELYN, RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM)
 			VALUES (#{evalTrgtUserId}, #{forumCd}, #{evalScore}, 'Y', 'N', #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
 	</update>
-
-	<select id="selectEzgEvalInfo" parameterType="forumEzGraderVO" resultType="egovMap">
-		/*
-			ezGrader 평가 정보 조회2
-			ForumEzGraderDAO.selectEzgEvalInfo
-		*/
-		SELECT A.ASMT_MTL_EVL_RSLT_ID AS evalCd
-			, B.MTL_EVL_TTL AS evalTitle
-			, B.MTL_EVL_TYCD AS evalTypeCd
-		FROM TB_LMS_MUT_EVAL_RLTN A
-		JOIN MTL_EVL B
-			ON A.ASMT_MTL_EVL_RSLT_ID = B.ASMT_MTL_EVL_RSLT_ID
-		WHERE A.SBJCT_ID = #{crsCreCd}
-			AND A.LINK_CD = #{forumCd}
-			AND A.EVAL_DIV_CD = 'PROFESSOR_EVAL'
-	</select>
-
-	<resultMap id="ezgEvalQstnMap" type="forumEzGraderQstnVO">
-		<result property="evalCd" column="ASMT_MTL_EVL_RSLT_ID" /> 
-		<result property="evalTypeCd" column="MTL_EVL_TYCD" />
-		<result property="evalTitle" column="MTL_EVL_TTL" />
-		<result property="qstnCd" column="QSTN_ID" />
-		<result property="qstnNo" column="QSTN_SEQNO" />
-		<result property="qstnCts" column="QSTN_CTS" />
-		<result property="allotScore" column="ALLOT_SCORE" />
-		<collection property="grades" resultMap="ezgGradeMap" />
-	</resultMap>
-	
-	<resultMap id="ezgGradeMap" type="forumEzGraderGradeVO"> 
-		<id property="gradeCd" column="GRDCD" /> 
-		<result property="gradeTitle" column="MTL_EVL_GRD_TTL" />
-		<result property="gradeCts" column="MTL_EVL_GRD_CTS" />
-		<result property="gradeScore" column="MTL_EVL_MRK_GRDCD" />
-	</resultMap> 
-
-	<select id="listEzgEvalQstn" parameterType="forumEzGraderVO" resultMap="ezgEvalQstnMap">
-		/*
-			ezGrader 평가 문항 목록(등급 포함) 조회2
-			ForumEzGraderDAO.listEzgEvalQstn
-		*/
-		SELECT A.ASMT_MTL_EVL_RSLT_ID
-			, B.MTL_EVL_TYCD
-			, B.MTL_EVL_TTL
-			, C.QSTN_ID
-			, C.QSTN_SEQNO
-			, C.QSTN_CTS
-			, D.GRDCD
-			, D.MTL_EVL_GRD_TTL
-			, D.MTL_EVL_GRD_CTS
-			, D.MTL_EVL_MRK_GRDCD
-			, NVL(MAX(D.MTL_EVL_MRK_GRDCD) OVER(PARTITION BY A.ASMT_MTL_EVL_RSLT_ID, C.QSTN_ID), 100) AS ALLOT_SCORE
-		FROM TB_LMS_MUT_EVAL_RLTN A
-		JOIN MTL_EVL B
-			ON A.ASMT_MTL_EVL_RSLT_ID = B.ASMT_MTL_EVL_RSLT_ID
-		JOIN MTL_EVL_QSTN C
-			ON B.ASMT_MTL_EVL_RSLT_ID = C.ASMT_MTL_EVL_RSLT_ID
-			<!-- AND B.MTL_EVL_TYCD = C.MTL_EVL_TYCD -->
-		LEFT JOIN MTL_EVL_GRD D
-			ON C.ASMT_MTL_EVL_RSLT_ID = D.ASMT_MTL_EVL_RSLT_ID
-			AND C.QSTN_ID = D.QSTN_ID 
-		WHERE A.SBJCT_ID = #{crsCreCd}
-			AND A.LINK_CD = #{forumCd}
-			AND A.EVAL_DIV_CD = 'PROFESSOR_EVAL'
-		ORDER BY C.QSTN_SEQNO, D.MTL_EVL_MRK_GRDCD DESC
-	</select>
 
 	<delete id="deleteTeamStdScore" parameterType="forumEzGraderRsltVO" >
 		/*
@@ -420,7 +255,7 @@
 		DELETE FROM TB_LMS_DSCS_PTCP
 		WHERE TEAM_ID = #{rltnTeamCd}
 		<if test="evalTrgtUserId != null and evalTrgtUserId != ''">
-			AND STD_ID = #{evalTrgtUserId}
+			AND USER_ID = #{evalTrgtUserId}
 		</if>
 	</delete>
 
@@ -432,64 +267,23 @@
 		*/
 		MERGE INTO TB_LMS_DSCS_PTCP T
 		USING (
-			SELECT A.TEAM_ID, A.STD_ID
+			SELECT A.TEAM_ID, A.USER_ID
 			FROM TB_LMS_TEAM_MBR A
 			WHERE 1 = 1
 			<if test="evalTrgtUserId != null and evalTrgtUserId != ''">
 				AND TEAM_ID = #{rltnTeamCd}
-				AND STD_ID = #{evalTrgtUserId}
+				AND USER_ID = #{evalTrgtUserId}
 			</if>
 			<if test="evalTrgtUserId == null or evalTrgtUserId == ''">
 				AND TEAM_ID = #{rltnTeamCd}
 			</if>
 		) S
-		ON (T.DSCS_ID = #{forumCd} AND T.STD_ID = S.STD_ID)
+		ON (T.DSCS_ID = #{forumCd} AND T.USER_ID = S.USER_ID)
 		WHEN MATCHED THEN
 			UPDATE SET SCR = #{evalScore}, MDFR_ID = #{rgtrId}, MOD_DTTM = FN_DTTM()
 		WHEN NOT MATCHED THEN
-			INSERT (TEAM_ID, DSCS_ID, STD_ID, SCR, RGTR_ID, FRST_INQ_DTTM, MDFR_ID, MOD_DTTM)
-			VALUES (S.TEAM_ID, #{forumCd}, S.STD_ID, #{evalScore}, #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
-	</insert>
-
-	<insert id="insertEvalRsltToAllTeamMember" parameterType="forumEzGraderRsltVO" >
-		/*
-			팀원 모두에게 평가점수 등록2
-			ForumEzGraderDAO.insertEvalRsltToAllTeamMember 
-		*/
-		INSERT INTO MTL_EVL_RSLT (
-			MTL_EVL_CD
-			, ASMT_MTL_EVL_RSLT_ID
-			, RLTN_TEAM_CD
-			, EVLTR_ID
-			, EVLTEE_ID
-			, EVL_DTTM
-			, QSTN_NOS
-			, EVL_SCRS
-			, EVL_TOT_SCR
-			, EVL_CTS
-			, EVL_STSCD
-			, RGTR_ID
-			, FRST_INQ_DTTM
-			, MDFR_ID
-			, MOD_DTTM
-		)
-		SELECT FN_NEW_ID('MUT')
-			, #{evalCd}
-			, A.TEAM_ID
-			, #{rgtrId}
-			, A.STD_ID
-			, FN_DTTM()
-			, #{qstnNos}
-			, #{evalScores}
-			, #{evalTotal}
-			, #{evalCts}
-			, #{evalStatusCd}
-			, #{rgtrId}
-			, FN_DTTM()
-			, #{rgtrId}
-			, FN_DTTM()
-		FROM TB_LMS_TEAM_STD A
-		WHERE TEAM_ID = #{rltnTeamCd}
+			INSERT (TEAM_ID, DSCS_ID, USER_ID, SCR, RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM)
+			VALUES (S.TEAM_ID, #{forumCd}, S.USER_ID, #{evalScore}, #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
 	</insert>
 
 </mapper>

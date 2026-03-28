@@ -4,7 +4,7 @@
 <link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
 <script type="text/javascript">
 $(document).ready(function() {
-	if("${vo.teamCd}" != "" && "${vo.stdNo}" =="") {
+	if("${vo.teamCd}" != "" && "${vo.stdId}" =="") {
 		$("#teamAlert").show();
 	}else{
 		$("#teamAlert").hide();
