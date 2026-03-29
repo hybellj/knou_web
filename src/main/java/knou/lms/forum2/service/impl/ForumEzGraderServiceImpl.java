@@ -4,13 +4,16 @@ import knou.framework.util.IdGenerator;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.forum2.dao.ForumEzGraderDAO;
+import knou.lms.forum2.dao.Forum2DAO;
 import knou.lms.forum2.service.ForumEzGraderService;
 import knou.lms.forum.vo.*;
+import knou.lms.forum2.vo.Forum2TeamDscsVO;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service("forum2EzGraderService")
@@ -18,6 +21,9 @@ public class ForumEzGraderServiceImpl extends EgovAbstractServiceImpl implements
 
     @Resource(name = "forum2EzGraderDAO")
     private ForumEzGraderDAO forumEzGraderDAO;
+
+    @Resource(name = "forum2DAO")
+    private Forum2DAO forum2DAO;
 
     // 토론 참여 대상 리스트 조회
     @Override
@@ -27,22 +33,42 @@ public class ForumEzGraderServiceImpl extends EgovAbstractServiceImpl implements
 
     // 토론 참여 대상 TEAM 조회
     @Override
-    public List<ForumEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo) throws Exception {
-        List<ForumEzGraderTeamVO> memberList = forumEzGraderDAO.listForumJoinTeam(vo);
+    public List<ForumEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo, String byteamDscsUseyn) throws Exception {
+        List<ForumEzGraderTeamVO> memberList;
+
+        if ("Y".equals(byteamDscsUseyn)) {
+            // 팀별부토론: 부모 forumCd로 자식 토론 목록 조회 후 자식 DSCS_ID별로 팀원 조회
+            List<Forum2TeamDscsVO> childList = forum2DAO.selectTeamDscsList(vo.getForumCd());
+            memberList = new ArrayList<>();
+            if (childList != null) {
+                for (Forum2TeamDscsVO child : childList) {
+                    ForumJoinUserVO childVo = new ForumJoinUserVO();
+                    childVo.setForumCd(child.getDscsId());
+                    childVo.setCrsCreCd(vo.getCrsCreCd());
+                    childVo.setSearchKey(vo.getSearchKey());
+                    childVo.setSearchSort(vo.getSearchSort());
+                    List<ForumEzGraderTeamVO> partial = forumEzGraderDAO.listForumJoinTeam(childVo);
+                    if (partial != null) memberList.addAll(partial);
+                }
+            }
+        } else {
+            memberList = forumEzGraderDAO.listForumJoinTeam(vo);
+        }
+
         if (memberList != null && !memberList.isEmpty()) {
             for (ForumEzGraderTeamVO teamVo : memberList) {
-                String teamStdNos = "";
+                String teamStdIds = "";
                 if (teamVo.getTeamMembers() != null && !teamVo.getTeamMembers().isEmpty()) {
                     int idx = 0;
                     for (ForumJoinUserVO joinUserVo : teamVo.getTeamMembers()) {
                         if (idx > 0) {
-                            teamStdNos += ",";
+                            teamStdIds += ",";
                         }
-                        teamStdNos += joinUserVo.getStdId();
+                        teamStdIds += joinUserVo.getStdId();
                         idx++;
                     }
                 }
-                teamVo.setTeamStdNos(teamStdNos);
+                teamVo.setTeamStdIds(teamStdIds);
             }
         }
         return memberList;

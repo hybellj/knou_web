@@ -22,6 +22,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import knou.framework.common.CommConst;
@@ -1043,11 +1044,13 @@ public class Forum2LectController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/forumJoinUserList.do")
     @ResponseBody
-    public ProcessResultVO<ForumJoinUserVO> forumJoinUserList(ForumJoinUserVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ForumJoinUserVO> forumJoinUserList(ForumJoinUserVO vo,
+            @RequestParam(value="byteamDscsUseyn", required=false, defaultValue="") String byteamDscsUseyn,
+            ModelMap map, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<ForumJoinUserVO> resultVO = new ProcessResultVO<>();
         try {
-            resultVO = forum2JoinUserService.listPaging(vo);
+            resultVO = forum2JoinUserService.listPaging(vo, byteamDscsUseyn);
             resultVO.setResult(1);
         } catch(Exception e) {
             resultVO.setResult(-1);
@@ -1120,7 +1123,9 @@ public class Forum2LectController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/forumScoreExcelDown.do")
-    public String forumScoreExcelDown(ForumJoinUserVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String forumScoreExcelDown(ForumJoinUserVO vo,
+            @RequestParam(value="byteamDscsUseyn", required=false, defaultValue="") String byteamDscsUseyn,
+            ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
@@ -1132,7 +1137,7 @@ public class Forum2LectController extends ControllerBase {
         map.put("title", "성적평가리스트");
         map.put("sheetName", "성적평가리스트");
         map.put("excelGrid", vo.getExcelGrid());
-        map.put("list", forum2JoinUserService.listPaging(vo).getReturnList());
+        map.put("list", forum2JoinUserService.listPaging(vo, byteamDscsUseyn).getReturnList());
 
         HashMap<String, Object> modelMap = new HashMap<String, Object>();
 
@@ -1674,7 +1679,7 @@ public class Forum2LectController extends ControllerBase {
         forumJoinUserVO.setPageIndex(vo.getPageIndex());
         forumJoinUserVO.setListScale(1000);
         forumJoinUserVO.setForumCtgrCd(vo.getForumCtgrCd());
-        ProcessResultVO<ForumJoinUserVO> resultList = forum2JoinUserService.listPageing(forumJoinUserVO);
+        ProcessResultVO<ForumJoinUserVO> resultList = forum2JoinUserService.listPaging(forumJoinUserVO, vo.getByteamDscsUseyn());
         request.setAttribute("forumJoinUserList", resultList.getReturnList());
         request.setAttribute("pageInfo", resultList.getPageInfo());
 
@@ -1773,7 +1778,7 @@ public class Forum2LectController extends ControllerBase {
         // forumJoinUserVO.setListScale(vo.getListScale());
         forumJoinUserVO.setListScale(1000);
 
-        ProcessResultVO<ForumJoinUserVO> resultList = forum2JoinUserService.listPageing(forumJoinUserVO);
+        ProcessResultVO<ForumJoinUserVO> resultList = forum2JoinUserService.listPaging(forumJoinUserVO, vo.getByteamDscsUseyn());
         request.setAttribute("forumJoinUserList", resultList.getReturnList());
         request.setAttribute("pageInfo", resultList.getPageInfo());
 

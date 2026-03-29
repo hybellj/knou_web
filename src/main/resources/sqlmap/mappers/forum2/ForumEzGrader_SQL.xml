@@ -76,6 +76,8 @@
 		<result property="teamCtgrCd" column="TEAM_TYCD" />
 		<result property="teamCd" column="TEAM_ID" />
 		<result property="teamNm" column="TEAMNM" />
+		<result property="formCd" column="FORUM_CD" />
+		<result property="crsCreCd" column="CRS_CRE_CD" />
 		<collection property="teamMembers" resultMap="teamMemberMap" />
 	</resultMap>
 
@@ -99,9 +101,11 @@
 		SELECT A.TEAM_TYCD
 			, A.TEAM_ID
 			, A.TEAMNM
+			, A.DSCS_ID AS FORUM_CD
+			, #{crsCreCd} AS CRS_CRE_CD
 			, A.USER_ID AS STD_ID
 			, A.LDRYN
-			, A.SCR
+			, A.SCR AS score
 			, A.EVLYN
 			, A.USER_ID
 			, A.DEPTNM
@@ -152,6 +156,7 @@
 			FROM TB_LMS_TEAM A
 				JOIN TB_LMS_TEAM B
 					ON A.TEAM_TYCD = B.TEAM_TYCD
+					AND A.TEAM_ID = B.TEAM_ID
 				JOIN TB_LMS_DSCS H
 					ON A.TEAM_ID = H.TEAM_ID
 				JOIN TB_LMS_TEAM_MBR C
@@ -164,7 +169,7 @@
 					ON C.USER_ID = G.USER_ID
 					AND G.DELYN = 'N'
 					AND G.DSCS_ID = H.DSCS_ID
-			WHERE H.DSCS_ID = #{forumCd}
+				WHERE H.DSCS_ID = #{forumCd}
 		) A
 		WHERE 1 = 1
 		<if test="searchKey != null and searchKey == 'JOIN'">

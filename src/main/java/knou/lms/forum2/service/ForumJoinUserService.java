@@ -33,7 +33,7 @@ public interface ForumJoinUserService {
      * @return ProcessResultVO<EgovMap>
      * @throws Exception
      ******************************************************/
-    public ProcessResultVO<ForumJoinUserVO> listPaging(ForumJoinUserVO vo) throws Exception;
+    public ProcessResultVO<ForumJoinUserVO> listPaging(ForumJoinUserVO vo, String byteamDscsUseyn) throws Exception;
     
     /*****************************************************
      * 토론 참여 성적 반영

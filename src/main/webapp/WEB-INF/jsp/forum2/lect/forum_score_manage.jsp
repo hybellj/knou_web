@@ -85,7 +85,8 @@
 				"forumCd" 	  : "${forumVo.forumCd}",
 				"crsCreCd"	  : "${forumVo.crsCreCd}",
 				"teamCd"	  : $("#teamCd").val(),
-				"forumCtgrCd" : "${forumVo.forumCtgrCd}",
+				"forumCtgrCd"      : "${forumVo.forumCtgrCd}",
+				"byteamDscsUseyn"  : "${forumVo.byteamDscsUseyn}",
 				"pageIndex"   : page,
 				"listScale"   : $("#listScale").val(),
 				"searchKey"   : $("#searchKey").val(),
@@ -572,6 +573,7 @@
 			excelForm.attr("action","/forum2/forumLect/listScoreExcel.do");
 			excelForm.append($('<input/>', {type: 'hidden', name: 'forumCd', value:"${forumVo.forumCd}" }));
 			excelForm.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value:"${forumVo.crsCreCd}" }));
+			excelForm.append($('<input/>', {type: 'hidden', name: 'byteamDscsUseyn', value:"${forumVo.byteamDscsUseyn}" }));
 			excelForm.append($('<input/>', {type: 'hidden', name: 'excelGrid', value:JSON.stringify(excelGrid)}));
 
 			excelForm.appendTo('body');

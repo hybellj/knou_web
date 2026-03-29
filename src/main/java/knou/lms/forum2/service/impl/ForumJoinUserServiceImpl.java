@@ -6,10 +6,12 @@ import knou.framework.util.IdGenerator;
 import knou.framework.util.StringUtil;
 import knou.lms.common.paging.PagingInfo;
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.forum2.dao.Forum2DAO;
 import knou.lms.forum2.dao.ForumFdbkDAO;
 import knou.lms.forum2.dao.ForumJoinUserDAO;
 import knou.lms.forum2.service.ForumJoinUserService;
 import knou.lms.forum.vo.*;
+import knou.lms.forum2.vo.Forum2TeamDscsVO;
 import knou.lms.std.dao.StdDAO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,9 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
     
     @Resource(name="forum2JoinUserDAO")
     private ForumJoinUserDAO forumJoinUserDAO;
+
+    @Resource(name = "forum2DAO")
+    private Forum2DAO forum2DAO;
     
     @Resource(name="forum2FdbkDAO")
     private ForumFdbkDAO forumFdbkDAO;
@@ -68,29 +73,68 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
      * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<ForumJoinUserVO> listPaging(ForumJoinUserVO vo) throws Exception {
-        
+    public ProcessResultVO<ForumJoinUserVO> listPaging(ForumJoinUserVO vo, String byteamDscsUseyn) throws Exception {
+
         /** start of paging */
         PagingInfo paginationInfo = new PagingInfo();
         paginationInfo.setCurrentPageNo(vo.getPageIndex());
         paginationInfo.setRecordCountPerPage(vo.getListScale());
         paginationInfo.setPageSize(vo.getListScale());
-        
+
         vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
         vo.setLastIndex(paginationInfo.getLastRecordIndex());
-        List<ForumJoinUserVO> forumJoinUserList = forumJoinUserDAO.listPaging(vo);
 
-        if(forumJoinUserList.size() > 0) {
-            paginationInfo.setTotalRecordCount(forumJoinUserList.get(0).getTotalCnt());
+        List<ForumJoinUserVO> forumJoinUserList;
+
+        if ("Y".equals(StringUtil.nvl(byteamDscsUseyn))) {
+            // 팀별부토론: 자식 CD 기준으로 조회
+            List<Forum2TeamDscsVO> childList = forum2DAO.selectTeamDscsList(vo.getForumCd());
+
+            if (childList == null || childList.isEmpty()) {
+                // 자식 토론 없으면 부모 CD 그대로 조회
+                forumJoinUserList = forumJoinUserDAO.listPaging(vo);
+            } else if (!"".equals(StringUtil.nvl(vo.getTeamCd()))) {
+                // Case A: 특정 팀 — 해당 팀의 자식 CD로 교체 후 단일 조회
+                for (Forum2TeamDscsVO child : childList) {
+                    if (vo.getTeamCd().equals(child.getTeamId())) {
+                        vo.setForumCd(child.getDscsId());
+                        break;
+                    }
+                }
+                forumJoinUserList = forumJoinUserDAO.listPaging(vo);
+            } else {
+                // Case B: 전체 팀 — 자식 CD별 조회 후 합산
+                forumJoinUserList = new java.util.ArrayList<>();
+                for (Forum2TeamDscsVO child : childList) {
+                    ForumJoinUserVO childVo = new ForumJoinUserVO();
+                    childVo.setForumCd(child.getDscsId());
+                    childVo.setCrsCreCd(vo.getCrsCreCd());
+                    childVo.setForumCtgrCd(vo.getForumCtgrCd());
+                    childVo.setSearchKey(vo.getSearchKey());
+                    childVo.setSearchSort(vo.getSearchSort());
+                    childVo.setSearchValue(vo.getSearchValue());
+                    childVo.setFirstIndex(vo.getFirstIndex());
+                    childVo.setLastIndex(vo.getLastIndex());
+                    List<ForumJoinUserVO> partial = forumJoinUserDAO.listPaging(childVo);
+                    if (partial != null) forumJoinUserList.addAll(partial);
+                }
+            }
+        } else {
+            // 일반 토론: 기존 로직 그대로
+            forumJoinUserList = forumJoinUserDAO.listPaging(vo);
+        }
+
+        if (!forumJoinUserList.isEmpty()) {
+            // Case B(전체팀 합산)에서는 개별 totalCnt가 자식 팀 단위라 합산 size로 override
+            paginationInfo.setTotalRecordCount(forumJoinUserList.size());
         } else {
             paginationInfo.setTotalRecordCount(0);
         }
-        
+
         ProcessResultVO<ForumJoinUserVO> resultVO = new ProcessResultVO<>();
-        
         resultVO.setReturnList(forumJoinUserList);
         resultVO.setPageInfo(paginationInfo);
-        
+
         return resultVO;
     }
     
@@ -284,7 +328,7 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
     // 토론 참여자 페이징 목록 조회
     @Override
     public ProcessResultVO<ForumJoinUserVO> listPageing(ForumJoinUserVO vo) throws Exception {
-        return this.listPaging(vo);
+        return this.listPaging(vo, "");
     }
 
     // 엑셀 성적등록 엑셀 업로드
@@ -320,18 +364,18 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
         List<ForumEzGraderTeamVO> memberList = forumJoinUserDAO.listForumJoinTeam(vo);
         if(memberList != null && !memberList.isEmpty() && memberList.size() > 0) {
             for(ForumEzGraderTeamVO teamVo : memberList) {
-                String teamStdNos = "";
+                String teamStdIds = "";
                 if (teamVo.getTeamMembers() != null && !teamVo.getTeamMembers().isEmpty() && teamVo.getTeamMembers().size() > 0) {
                     int idx = 0;
                     for(ForumJoinUserVO joinUserVo : teamVo.getTeamMembers()) {
                         if (idx > 0 ) {
-                            teamStdNos += ",";
+                            teamStdIds += ",";
                         }
-                        teamStdNos += joinUserVo.getStdId();
+                        teamStdIds += joinUserVo.getStdId();
                         idx++;
                     }
                 }
-                teamVo.setTeamStdNos(teamStdNos);
+                teamVo.setTeamStdIds(teamStdIds);
             }
         }
         return memberList;

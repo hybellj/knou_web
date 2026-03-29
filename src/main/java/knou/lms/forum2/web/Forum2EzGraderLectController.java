@@ -168,7 +168,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
         String viewNm = "";
         if ("TEAM".equals(forumVO.getForumCtgrCd())) {
-            List<ForumEzGraderTeamVO> resultList= forumEzGraderService.listForumJoinTeam(paramVO);
+            List<ForumEzGraderTeamVO> resultList= forumEzGraderService.listForumJoinTeam(paramVO, forumVO.getByteamDscsUseyn());
             request.setAttribute("resultList", resultList);
             viewNm = "forum2/ezgPop/ezg_join_team_list";
         } else {
