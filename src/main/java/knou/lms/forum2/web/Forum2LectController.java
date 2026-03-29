@@ -1145,7 +1145,7 @@ public class Forum2LectController extends ControllerBase {
     }
 
     // 상호평가 토론방 리스트
-        @RequestMapping(value="/evalForumBbsViewList.do")
+    @RequestMapping(value="/evalForumBbsViewList.do")
     public String evalForumBbsViewList(ForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장

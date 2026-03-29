@@ -46,6 +46,12 @@
              OR LOWER(U.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
           )
         </if>
+        <if test="sqlForeach != null and sqlForeach.length > 0">
+          AND A.USER_ID IN
+          <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+          </foreach>
+        </if>
     </select>
 
     <select id="listPageing" parameterType="knou.lms.forum.vo.ForumAtclVO" resultType="knou.lms.forum.vo.ForumAtclVO">
@@ -99,6 +105,12 @@
                 LOWER(A.RGTR_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
              OR LOWER(U.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
           )
+        </if>
+        <if test="sqlForeach != null and sqlForeach.length > 0">
+          AND A.USER_ID IN
+          <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+          </foreach>
         </if>
         ORDER BY A.ATCL_SEQNO ASC, A.REG_DTTM DESC
         <include refid="CommonSQL.pageSubfix" />

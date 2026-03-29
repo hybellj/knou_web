@@ -54,14 +54,13 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
             vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
             vo.setLastIndex(paginationInfo.getLastRecordIndex());
 
-	// TODO : 26.3.10(AS-IS Ref)
-/*
-            String[] stdArray = vo.getStdList().split(",");
-            if (stdArray[0].equals("")) {
-                stdArray = null;
+            if (vo.getStdList() != null) {
+                String[] stdArray = vo.getStdList().split(",");
+                if (stdArray[0].equals("")) {
+                    stdArray = null;
+                }
+                vo.setSqlForeach(stdArray);
             }
-            vo.setSqlForeach(stdArray);
-*/
             int totalCount = forumAtclDAO.count(vo);
             paginationInfo.setTotalRecordCount(totalCount);
 
