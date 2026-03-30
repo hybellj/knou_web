@@ -610,7 +610,7 @@ public class Forum2LectController extends ControllerBase {
             forumAtclVO.setUploadFiles(vo.getUploadFiles());
             forumAtclVO.setUploadPath(vo.getUploadPath());
             forumAtclVO.setRepoCd(vo.getRepoCd());
-            forum2AtclService.insertAtcl(forumAtclVO);
+            forum2AtclService.insertAtcl(forumAtclVO, vo.getTeamCd());
             resultVO.setResult(1);
         } catch (Exception e) {
             resultVO.setResult(-1);

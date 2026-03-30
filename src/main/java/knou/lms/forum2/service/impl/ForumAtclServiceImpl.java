@@ -6,6 +6,12 @@ import java.util.List;
 import javax.annotation.Resource;
 
 
+import knou.lms.forum.dao.ForumJoinUserDAO;
+import knou.lms.forum.vo.ForumJoinUserVO;
+import knou.framework.common.IdPrefixType;
+import knou.framework.util.IdGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,11 +31,19 @@ import knou.lms.forum.vo.ForumMutVO;
 @Service("forum2AtclService")
 public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ForumAtclServiceImpl.class);
+
     @Resource(name = "forum2AtclDAO")
     private ForumAtclDAO forumAtclDAO;
 
     @Resource(name = "forum2CmntDAO")
     private ForumCmntDAO forumCmntDAO;
+
+    @Resource(name="forumJoinUserDAO")
+    private ForumJoinUserDAO forumJoinUserDAO;
+
+    @Resource(name = "forum2JoinUserDAO")
+    private knou.lms.forum2.dao.ForumJoinUserDAO forum2JoinUserDAO;
 
     @Autowired
     private SysFileService sysFileService;
@@ -90,42 +104,35 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
 
     // 토론 게시글 등록
     @Override
-    public void insertAtcl(ForumAtclVO vo) throws Exception {
+    public void insertAtcl(ForumAtclVO vo, String teamCd) throws Exception {
         // 내용길이 저장
         vo.setCtsLen(StringUtil.getContentLenth(vo.getCts()));
-        
+
         forumAtclDAO.insertAtcl(vo);
 
-        addFile(vo);
-
-	// TODO : 26.3.10(AS-IS Ref)
-        /*
-        // 토론참여자 테이블 등록
-        StdVO svo = new StdVO();
-        svo.setUserId(vo.getUserId());
-        svo.setCrsCreCd(vo.getCrsCreCd());
-        svo = stdDAO.selectStd(svo);
-        if (svo != null) {
-	        ForumVO fvo = new ForumVO();
-	        fvo.setRgtrId(vo.getRgtrId());
-	        fvo.setCrsCreCd(vo.getCrsCreCd());
-	        fvo.setStdId(svo.getStdId());
-	        fvo.setForumCd(vo.getForumCd());
-	        ForumVO forumVO = new ForumVO();
-	        forumVO.setForumCd(vo.getForumCd());
-	        forumVO = forumDAO.selectForum(forumVO);
-	        if("R".equals(StringUtil.nvl(forumVO.getEvalCtgr()))) {
-	            fvo.setSearchKey("INSERT");
-	        }
-	        forumJoinUserDAO.insertJoinUser(fvo);
+        // 토론참여자 테이블 등록 (게시글 작성 시 단건)
+        // ForumJoinUserVO.stdId = TB_LMS_DSCS_PTCP.USER_ID = 로그인 userId (listStdScore SQL: A.USER_ID AS stdId)
+        ForumJoinUserVO joinVO = new ForumJoinUserVO();
+        joinVO.setForumCd(vo.getForumCd());
+        joinVO.setStdId(vo.getUserId());
+        joinVO.setTeamCd(StringUtil.nvl(teamCd));
+        joinVO.setRgtrId(vo.getRgtrId());
+        joinVO.setMdfrId(vo.getMdfrId());
+        joinVO.setDscsPtcpId(IdGenerator.getNewId(IdPrefixType.DSPTC.getCode()));
+        try {
+            forum2JoinUserDAO.ensureJoinUser(joinVO);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // UNIQUE 제약 위반 = 이미 존재 → 무시
+            LOGGER.debug("[insertAtcl] ensureJoinUser skip - already exists: forumCd=" + vo.getForumCd() + ", userId=" + vo.getUserId());
         }
-        
-        // 이전 시험 가져오기 파일 복사
-        prevCopyFileAdd(vo);
-        // 파일 등록
-        FileVO fileVO = addFile(vo);
-	*/
 
+        // TODO : 26.3.30 : 게시글 첨부파일 정보를 저장한다.
+      /*
+      // 이전 시험 가져오기 파일 복사
+      prevCopyFileAdd(vo);
+      // 파일 등록
+      FileVO fileVO = addFile(vo);
+      */
     }
 
     // 토론 게시글 조회

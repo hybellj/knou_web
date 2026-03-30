@@ -74,8 +74,6 @@
                 $('.team_selected_nm').prop('disabled', true);
                 $('#join_write_input_area').hide();
             } else {
-                // TODO : team 정보 보여주기(팀원 정보 등)
-                // teamList();
                 listForum(1);        // Team 토론시 팀토론 코드로 변경
             }
         } else {
@@ -131,7 +129,7 @@
     }
 
     // 팀토론 참여시 토론방 이름 활성화
-    function joinTeamDscsBtn(teamDscsId, teamnmId, teamnm) {
+    function joinTeamDscsBtn(teamDscsId, teamnmId, teamnm, teamId) {
         $('.team_selected_nm').prop('disabled', true);
         $('#' + teamnmId).prop('disabled', false);
         // 토론방 참여글 작성 영역 타이틀 변경
@@ -140,6 +138,7 @@
 
         // 조회할 토론 ID 를 설정 한다.
         $('#team_selected_name').attr('teamSelectedDscsId', teamDscsId);
+        $("input[name='teamCd']").val(teamId || '');
         listForum(1);
     }
 
@@ -518,77 +517,6 @@
         return roots.map(function(node) {
             return _createCmntItemHTML(node, postIdx, 1);
         }).join('');
-    }
-
-    function teamList() {
-        var url = "/forum2/forumLect/listTeamJson.do";
-
-        var data = {
-            "crsCreCd" : "${forumVo.crsCreCd}",
-            "teamCtgrCd" : "${forumVo.teamCtgrCd}",
-            "teamRltnCd" : "${forumVo.forumCd}",
-            "teamCtgrRltnDivCd" : "FORUM"
-        };
-
-        ajaxCall(url, data, function(data) {
-            if(data.result > 0) {
-                var returnList = data.returnList || [];
-
-                var teamListText = "";
-                teamListText += '<ul class="flex-tab mt0 mb20">';
-                teamListText += '<select class="ui dropdown mr5" id="selectTeam">';
-                for(var i=0; i< returnList.length; i++){
-                    teamListText += '<option value="'+returnList[i].teamCd+'">' + returnList[i].teamNm + '</option>';
-                }
-                teamListText += '</select>';
-                $("#parentDiv").prepend(teamListText);
-                // $("#selectTeam").dropdown();
-
-                if(returnList.length > 0) {
-                    $("#selectTeam").change(function() {
-                        var teamCd = $(this).val();
-                        loadTeamStdList('',teamCd);
-                    });
-
-                    loadTeamStdList('', returnList[0].teamCd);
-                }
-            } else {
-                alert("<spring:message code='forum.common.error'/>"); // 오류가 발생했습니다!
-            }
-        }, function(xhr, status, error) {
-            alert("<spring:message code='forum.alert.bring.stu.list_fail'/>"); //수강생 목록 가져오기에 실패하였습니다. 다시 시도해주시기 바랍니다.
-        }, true);
-    }
-
-    //팀별 학습자 리스트 조회
-    function loadTeamStdList(obj,teamCd){
-        $("#loadTeamStdList").load(
-            "/forum2/forumLect/listTeamStdSumm.do",
-            {"teamRltnCd" : "${forumVo.forumCd}",
-                "teamCd" : teamCd
-            },
-            function(){
-                $.getJSON("/forum2/forumLect/listTeamStdJson.do", {
-                    "teamCd" : teamCd
-                }).done(function(data) {
-                    if(data.result > 0) {
-                        var returnList = data.returnList || [];
-
-                        var obj = "";
-                        returnList.forEach(function(v, i) {
-                            if(i == 0){
-                                obj += v.stdNo;
-                            }else{
-                                obj += "," + v.stdNo;
-                            }
-                        });
-                        $("#teamStdList").val(obj);
-                    }
-
-                    listForum();
-                });
-            }
-        );
     }
 
     // 게시글(참여글) 등록 버튼
@@ -1282,6 +1210,7 @@
         <input type="hidden" id="crsCreCd" name="crsCreCd" value="${forumVo.crsCreCd}" />
         <input type="hidden" id="userId" name="userId" value="${userId}" />
         <input type="hidden" id="teamStdList" name="teamStdList" />
+        <input type="hidden" id="teamCd" name="teamCd" value="" />
         <input type="hidden" id="userName" name="userName" value="${userName}" />
         <input type="hidden" id="atclSn" name="atclSn" />
         <input type="hidden" name="prosConsTypeCd" id = "prosConsTypeCd" value="F"/>
@@ -1439,7 +1368,7 @@
                                                 <td>${item.atclCnt}</td>
                                                 <td>${item.cmntCnt}</td>
                                                 <td>
-                                                    <button class="btn basic small" onclick="joinTeamDscsBtn('${item.dscsId}', 'team_selected_nm_${status.index}', '${item.teamnm}')"><spring:message code='forum.label.join'/></button><!-- 참여 -->
+                                                    <button class="btn basic small" onclick="joinTeamDscsBtn('${item.dscsId}', 'team_selected_nm_${status.index}', '${item.teamnm}', '${item.teamId}')"><spring:message code='forum.label.join'/></button><!-- 참여 -->
                                                 </td>
                                                 <td>
                                                     <c:choose>

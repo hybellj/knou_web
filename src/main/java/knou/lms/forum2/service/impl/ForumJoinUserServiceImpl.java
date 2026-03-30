@@ -162,7 +162,8 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
                 ForumJoinUserVO joinUserVO = joinUserList.get(i);
                 String stdNo = StringUtil.nvl(joinUserVO.getStdId());
 //                String teamCd = StringUtil.nvl(joinUserVO.getTeamCd());
-                int preScore = Integer.parseInt(StringUtil.nvl(joinUserVO.getScore()));
+//                int preScore = Integer.parseInt(StringUtil.nvl(joinUserVO.getScore()));
+                int preScore = (int) Double.parseDouble(StringUtil.nvl(joinUserVO.getScore(), "0"));
                 //점수계산
                 forumJoinUserVO.setScore(preScore+vo.getScore());
                 if(forumJoinUserVO.getScore() > 100) {

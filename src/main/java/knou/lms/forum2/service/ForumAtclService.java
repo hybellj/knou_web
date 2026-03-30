@@ -11,7 +11,7 @@ public interface ForumAtclService {
 
     public int forumAtclCount(ForumAtclVO vo) throws Exception;
     public abstract ProcessResultVO<ForumAtclVO> listPageing(ForumAtclVO vo) throws Exception;
-    public void insertAtcl(ForumAtclVO vo) throws Exception;
+    public void insertAtcl(ForumAtclVO vo, String teamCd) throws Exception;
     public ForumAtclVO selectAtcl(ForumAtclVO vo) throws Exception;
     public void updateAtcl(ForumAtclVO vo) throws Exception;
     public void deleteAtcl(ForumAtclVO vo) throws Exception;
