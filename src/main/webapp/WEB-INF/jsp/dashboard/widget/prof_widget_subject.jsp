@@ -64,7 +64,7 @@
 										50명</span> <span class="info_txt">튜터 김하늘</span> <span class="info_txt">3학점</span>
 								</p>
 								<p class="tit">
-									<a href="/subject.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문
+									<a href="/subject.do?sbjctId=SBJCT20260001">AI와 빅데이터 경영입문
 										1반</a>
 								</p>
 							</div>

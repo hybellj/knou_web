@@ -30,13 +30,13 @@ public class SemesterServiceImpl extends ServiceBase implements SemesterService 
 
 	/**
 	 * 학기기수조회
-	 * @param	subjectId
+	 * @param	sbjctId
 	 * @return	SmstrChrtVO
 	 * @throws	Exception
 	 */
 	@Override
-	public SmstrChrtVO smstrChrtSelect(String subjectId) throws Exception {
-		return semesterDAO.smstrChrtSelect(subjectId);
+	public SmstrChrtVO smstrChrtSelect(String sbjctId) throws Exception {
+		return semesterDAO.smstrChrtSelect(sbjctId);
 	}
 	
 	/**

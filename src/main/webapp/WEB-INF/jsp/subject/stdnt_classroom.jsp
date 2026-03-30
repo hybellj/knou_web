@@ -6,6 +6,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:param name="module" value="chart"/>
 	<jsp:param name="style" value="classroom"/>
 </jsp:include>
 <script>
@@ -13,10 +14,10 @@
     	// 여기에 코드 작성
 		drawChartMy();
 		drawChartAverage();
-	});	
-		
-	function loadLctrPlandocPopView(sbjctId) {	
-	    fetch('/lctr/plandoc/profLctrPlandocPopView.do?subjectId=' + encodeURIComponent(sbjctId))
+	});
+
+	function loadLctrPlandocPopView(sbjctId) {
+	    fetch('/lctr/plandoc/profLctrPlandocPopView.do?sbjctId=' + encodeURIComponent(sbjctId))
 	        .then(response => response.text())
 	        .then(data => {
 	            const div = document.getElementById('lecturePlanDoc');
@@ -43,28 +44,28 @@
 <body class="class colorA "><!-- 컬러선택시 클래스변경 -->
 <div style="display:none;" id="lecturePlanDoc"></div>
     <div id="wrap" class="main">
-    
+
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
         <!-- //common header -->
-    
+
         <!-- classroom -->
         <main class="common">
 
 			<!-- gnb -->
 			<jsp:include page="/WEB-INF/jsp/common_new/class_gnb_stu.jsp"/>
 			<!-- //gnb -->
-			
+
 			<!-- content -->
 			<div id="content" class="content-wrap common">
 				<div class="class_sub_top">
-					<div class="navi_bar">                                
+					<div class="navi_bar">
 						<ul>
 							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
 							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>                                 
-						</ul>                                                                         
-					</div>  
+							<li><span class="current">내강의실</span></li>
+						</ul>
+					</div>
 					<div class="btn-wrap">
 						<div class="first">
 							<select class="form-select">
@@ -80,14 +81,14 @@
 						<div class="sec">
 							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
 							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>                        
+						</div>
 					</div>
-				</div>  
-				
+				</div>
+
 				<!-- class_sub -->
 				<div class="class_sub">
-				
-					<!-- 강의실 상단 -->	
+
+					<!-- 강의실 상단 -->
 					<div class="segment class-area stu" style="boarder:1px solid red">
 
 						<!-- info-left -->
@@ -119,26 +120,26 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>                        
+                        </div>
 						<!--//info-left -->
-						
+
 						<!-- info-right-->
 						<div class="info-right" style="boarder:1px solid red">
-							
+
 							<!-- flex -->
 							<div class="flex">
-							
+
 								<!-- item_list-->
 								<div class="item_list">
-								
+
 									<!-- item user-->
-									<div class="item user">							
+									<div class="item user">
 	                                    <div class="item_icon"><i class="icon-svg-group" aria-hidden="true"></i></div>
-	                                    
+
 	                                    <!-- item_tit -->
 	                                    <div class="item_tit">
 		                                    <a href="#0" class="btn ">접속현황<i class="xi-angle-down-min"></i></a><!-- 접속현황 -->
-		                                    
+
 		                                    <!-- 접속현황레이어팝업-->
 		                                    <div class="user-option-wrap">
 		                                        <div class="option_head">
@@ -228,19 +229,19 @@
 	                                                    </div>
 	                                                </li>
 	                                            </ul>
-	                                            
+
 	                                        </div>
 	                                        <!-- //접속현황레이어팝업-->
 	                                    </div>
 	                                    <!-- //item_tit -->
-	                                    
+
 	                                    <div class="item_info">
 	                                        <span class="big">37</span><!-- 현재접속자수 -->
 	                                        <span class="small">250</span><!-- 전체접속자수 -->
 	                                    </div>
 	                                </div>
 	                                <!-- //item user-->
-	
+
 									<div class="item attend">
 	                                    <div class="item_icon"><i class="icon-svg-pie-chart-01" aria-hidden="true"></i></div>
 	                                    <div class="item_tit">7주차 출석 40 / 50</div>
@@ -249,7 +250,7 @@
 	                                        <span class="small">%</span>
 	                                    </div>
 	                                </div>
-	
+
 									<div class="item week">
 	                                       <div class="item_icon"><i class="icon-svg-calendar-check-02" aria-hidden="true"></i></div>
 	                                       <div class="item_tit">2025.04.14 ~ 04.20</div><!-- 주차기간 -->
@@ -258,10 +259,10 @@
 	                                           <span class="small">주차</span><!-- 주차 -->
 	                                       </div>
 	                                </div>
-                                
+
                                 </div>
-                                <!-- //item_list -->                                
-							
+                                <!-- //item_list -->
+
 								<!-- chart_list -->
 								<div class="chart_list">
 									<div class="chart_my">
@@ -291,9 +292,9 @@
 		                                        var height = size;
 		                                        var outerRadius = size / 2 * 0.98; // 90% 크기
 		                                        var innerRadius = outerRadius * 0.7;
-		
+
 		                                        d3.select("#arcMy").selectAll("svg").remove();
-		
+
 		                                        function fn_getArc(ammount, total) {
 		                                            return d3.arc()
 		                                                .innerRadius(innerRadius)
@@ -302,55 +303,55 @@
 		                                                .endAngle(fn_getPercent_pie(ammount, total))
 		                                                .cornerRadius(100);
 		                                        }
-		
+
 		                                        // pie 각도 함수
 		                                        function fn_getPercent_pie(ammount, total) {
 		                                            var ratio = ammount / total;
 		                                            return Math.PI * 2 * ratio;
 		                                        }
-		
+
 		                                        // 데이터
 		                                        var data = { cnt: 70, all: 100 };
-		
+
 		                                        var svg = d3.select("#arcMy")
 		                                            .append("svg")
 		                                            .attr("width", width)
 		                                            .attr("height", height)
 		                                            .append("g")
 		                                            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-		
+
 		                                        // 그라데이션 정의
 		                                        var defs = svg.append("defs");
-		
+
 		                                        var gradient = defs.append("linearGradient")
 		                                            .attr("id", "attendanceGradientMy")
 		                                            .attr("x1", "0%").attr("y1", "0%")
 		                                            .attr("x2", "100%").attr("y2", "100%");
-		
+
 		                                        gradient.append("stop")
 		                                            .attr("offset", "0%")
 		                                            .attr("stop-color", "#E25DCA");
-		
+
 		                                        gradient.append("stop")
 		                                            .attr("offset", "100%")
 		                                            .attr("stop-color", "#F283DD");
-		
+
 		                                        // 배경
 		                                        svg.append("path")
 		                                            .attr("class", "arc")
 		                                            .attr("d", fn_getArc(100, 100))
 		                                            .attr("fill", "#EBEBEB");
-		
+
 		                                        // 실제 데이터
 		                                        svg.append("path")
 		                                            .attr("class", "arcMy")
 		                                            .attr("d", fn_getArc(data.cnt, data.all))
 		                                            .attr("fill", "url(#attendanceGradientMy)");
-		
+
 		                                        // 중앙 텍스트 업데이트
 		                                        $('.chart_value_my').text(data.cnt + '%');
 		                                    }
-									
+
 		                                 	// 평균진도율차트그리기
                                             function drawChartAverage() {
                                                 var containerWidth = $('#arcAverage').width();
@@ -419,22 +420,22 @@
                                                 $('.chart_value_average').text(data.cnt + '%');
                                             }
 		                            </script>
-		                            
-		                        </div>    
+
+		                        </div>
 		                        <!-- //chart_list -->
-		                        
+
 		                    </div>
-		                    <!--  //flex -->			
-							
+		                    <!--  //flex -->
+
 						</div>
 						<!-- //info-right-->
-					
+
 					</div>
-					<!-- //강의실 상단 -->					
-					
+					<!-- //강의실 상단 -->
+
 					<!-- segment row -->
 					<div class="segment-row">
-					
+
 						<!-- 공지사항 -->
 						<div class="segment">
                             <div class="box_title">
@@ -487,12 +488,12 @@
                                     <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.qnaBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
-                            <div class="box_content">                            
+                            <div class="box_content">
                             	<c:choose>
 								    <c:when test="${empty subjectVM.subjectTopLctrQnaList}">
 								        <li>QNA가 없습니다</li>
 								    </c:when>
-								    <c:otherwise>								    
+								    <c:otherwise>
 								        <ul class="dash_item_listA">
 		                                	<c:forEach var="item" items="${subjectVM.subjectTopLctrQnaList}">
 			                                    <li>
@@ -515,8 +516,8 @@
 										         				<label class="label check_reply">답변</label>
 										         			</c:otherwise>
 										         		</c:choose>
-										         	</div>										         
-			                                    </li>                                    
+										         	</div>
+			                                    </li>
 		                                    </c:forEach>
 	                                	</ul>
 								    </c:otherwise>
@@ -539,8 +540,8 @@
 								    <c:when test="${empty subjectVM.stdntSubjectTopDatarmList}">
 								        <li>자료가 없습니다</li>
 								    </c:when>
-								    <c:otherwise>								    
-								        <ul class="dash_item_listA">								        
+								    <c:otherwise>
+								        <ul class="dash_item_listA">
 		                                	<c:forEach var="item" items="${subjectVM.stdntSubjectTopDatarmList}">
 			                                    <li class="dot">
 				                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
@@ -558,36 +559,36 @@
 										         				<a href="#0" class="btn btn_down">다운로드</a>
 										         			</c:otherwise>
 										         		</c:choose>
-										         		
-			                                        </div>							         
-			                                    </li>                                 
-		                                    </c:forEach>		                                    
+
+			                                        </div>
+			                                    </li>
+		                                    </c:forEach>
 	                                	</ul>
 								    </c:otherwise>
 								</c:choose>
                             </div><!-- //box_content -->
                         </div>
                         <!-- //자료실 -->
-                        
+
                     </div>
-					<!-- //segment row -->			
+					<!-- //segment row -->
 
 
 					<!-- segment-->
 					<div class="segment">
-						
+
 						<div class="state-info-label">
 	                        <p class="pre"><i class="icon-svg-state"></i>학습 미진행</p>
 	                        <p class="ok"><i class="icon-svg-state"></i>학습완료</p>
 	                        <p class="ing"><i class="icon-svg-state"></i>학습 진행중</p>
 	                        <p class="no"><i class="icon-svg-state"></i>학습 미완료</p>
 	                    </div>
-	                    
+
 	                    <!-- week_area -->
 	                    <div class="week_area">
 	                        <div class="info-week"><!-- info-week -->
 	                            <div class="title">학습현황</div>
-	                            <div class="week_state_list"><!-- week_state_list -->	                                
+	                            <div class="week_state_list"><!-- week_state_list -->
 	                            	<c:choose>
 									    <c:when test="${empty subjectVM.lectureScheduleList}">
 									        <li>학습주차일정정보가 없습니다.</li>
@@ -600,11 +601,11 @@
 			                                   </div>
 			                               	</c:forEach>
 			                           	</c:otherwise>
-			                       	</c:choose>			                        
+			                       	</c:choose>
 	                            </div><!--//week_state_list -->
 	                        </div>
 	                        <!-- //info-week -->
-	                        
+
 	                        <!-- info-set -->
 	                        <div class="info-set">
 	                            <i class="icon-svg-alarm-clock" aria-hidden="true"></i>
@@ -632,8 +633,8 @@
 	                        <!-- //info-set -->
 	                    </div>
 	                    <!-- //week_area -->
-	                        
-	                    <!--  강의목록top -->				
+
+	                    <!--  강의목록top -->
 						<div class="board_top">
 		                    <i class="icon-svg-openbook"></i>
 		                    <h3 class="board-title">강의목록</h3>
@@ -651,16 +652,16 @@
 		                        <a href="#0" class="btn_list_type" aria-label="카드형 보기"><i class="icon-svg-grid" aria-hidden="true"></i></a>
 		                    </div>
 		                </div>
-	                    <!--//강의목록top -->	                    
-	                    
-                        <!-- course_list 목록형 [목록형은 교수의 목록형과 같이 사용-->                        
+	                    <!--//강의목록top -->
+
+                        <!-- course_list 목록형 [목록형은 교수의 목록형과 같이 사용-->
                         <div class="course_list" style="display:none;">
 	                        <ul class="accordion course_week">
 		                        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="" />
 								<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
 								    <!-- 주차 -->
 								    <c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 0 }"> <!-- 0이면 주차 타이틀, 1이면 학습콘텐츠, 2이면 학습자료추가-->
-								        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${item.lctrWknoSchdlId}" />								        
+								        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${item.lctrWknoSchdlId}" />
 								        <!-- active 추가 -->
 		                                <li class="active">
 		                                    <div class="title-wrap">
@@ -699,23 +700,23 @@
 		                                            </div>
 			                                     </div>
 			                                </div>
-			                                
+
 			                                <!-- divcont -->
 			                            	<div class="cont">
 									</c:if>
 								    <!--//주차-->
-										    
+
 										    <!-- 학습콘텐츠 -->
 										    <c:if test="${item.firstOrd == '1'}">
 										    <!-- n차시와 성적활동 -->
-										    
+
 										    <c:choose>
-										    
-		                                        <c:when test="${ item.seqno != 0 }">								        
+
+		                                        <c:when test="${ item.seqno != 0 }">
 									                <div class="lecture_box">
 			                                            <div class="lecture_tit">
 			                                                <p class="labels">
-			                                                   	<label class="label s_chasi">${item.seqno}차시</label>			                                                    	
+			                                                   	<label class="label s_chasi">${item.seqno}차시</label>
 			                                                    <label class="label s_basic">동영상</label>
 			                                                </p>
 			                                                <strong>${item.nm}</strong>
@@ -737,9 +738,9 @@
 			                                            </div>
 			                                        </div>
 			                                    </c:when>
-			                                    
+
 			                                    <c:when test="${ item.seqno == 0 }">
-			                                    
+
 			                                    	<c:if test="${item.srcTbl == 'TB_LMS_EXAM_BSC.EXAM'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -756,7 +757,7 @@
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                        
+
 			                                        <c:if test="${item.srcTbl == 'TB_LMS_EXAM_BSC.QUIZ'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -773,7 +774,7 @@
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                    	
+
 			                                    	<c:if test="${item.srcTbl == 'TB_LMS_ASMT'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -792,7 +793,7 @@
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                        
+
 			                                        <c:if test="${item.srcTbl == 'TB_LMS_DSCS'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -810,7 +811,7 @@
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                        
+
 			                                        <c:if test="${item.srcTbl == 'TB_LMS_SRVY'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -828,7 +829,7 @@
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                        
+
 			                                        <c:if test="${item.srcTbl == 'TB_LMS_SMNR'}">
 				                                    	<div class="lecture_box seminar">
 				                                            <div class="lecture_tit">
@@ -862,16 +863,16 @@
 				                                                    <ul class="list-bullet">
 				                                                        <li>화상강의 참가가 원할히 진행되지 않을 경우 아래 버튼을 클릭하여 시도할 수 있습니다.</li>
 				                                                        <li>참가 등록 시 아래 표시된 본인 LMS 상의 이메일 주소를 입력해야 자동 출석인정 합니다.</li>
-				                                                    </ul>				
+				                                                    </ul>
 				                                                    <div class="list-tit-bg">이메일 직접 등록하여 참가</div>
 				                                                    <ul class="list-bullet">
 				                                                        <li>참가 등록시 입력할 이메일 주소 : <strong class="fcRed">아이디@knou.ac.kr</strong></li>
-				                                                    </ul>				
-				                                                </div>				
+				                                                    </ul>
+				                                                </div>
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                        			                                        
+
 			                                        <c:if test="${item.srcTbl == 'TB_LMS_BBS'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -884,13 +885,13 @@
 				                                                <button class="btn s_basic set">학습자료</button>
 				                                            </div>
 				                                        </div>
-			                                        </c:if>			                                        
-			                                        
-			                                	</c:when>			                                	
+			                                        </c:if>
+
+			                                	</c:when>
 			                                </c:choose>
 											</c:if>
 									<!--//학습콘텐츠 -->
-									
+
 										<!--학습자료추가 -->
 							    		<c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 2}">
 										        <div class="lecture_add_box">
@@ -908,31 +909,31 @@
 		                                            <div class="box_item">
 		                                                <div class="title">학습요소 추가<i class="xi-plus-min"></i></div>
 		                                                <div class="item_btns">
-		                                                    <a href="/asmt2/profAsmtListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-edit" aria-hidden="true"></i><span>과제</span></a>
-		                                                    <a href="/quiz/profQuizListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-quiz" aria-hidden="true"></i><span>퀴즈</span></a>
-		                                                    <a href="/exam/profExamListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-alarm-clock" aria-hidden="true"></i><span>시험</span></a>
-		                                                    <a href="/forum2/forumLect/profForumListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-message-chat" aria-hidden="true"></i><span>토론</span></a>
-		                                                    <a href="/srvy/profSrvyListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-check-done" aria-hidden="true"></i><span>설문</span></a>
-		                                                    <a href="/smnr/profSmnrListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-presentation" aria-hidden="true"></i><span>세미나</span></a>		                                                    
+		                                                    <a href="/asmt2/profAsmtListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-edit" aria-hidden="true"></i><span>과제</span></a>
+		                                                    <a href="/quiz/profQuizListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-quiz" aria-hidden="true"></i><span>퀴즈</span></a>
+		                                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-alarm-clock" aria-hidden="true"></i><span>시험</span></a>
+		                                                    <a href="/forum2/forumLect/profForumListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-message-chat" aria-hidden="true"></i><span>토론</span></a>
+		                                                    <a href="/srvy/profSrvyListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-check-done" aria-hidden="true"></i><span>설문</span></a>
+		                                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-presentation" aria-hidden="true"></i><span>세미나</span></a>
 		                                                </div>
 		                                            </div>
 		                                        </div>
 		                                     </div>
 		                                     <!-- //divcont -->
-                                			</li>                       	
-										</c:if>	
-									<!--//학습자료추가 -->			    
+                                			</li>
+										</c:if>
+									<!--//학습자료추가 -->
 								</c:forEach>
 							</ul>
                         </div>
                         <!-- //course_list 목록형 -->
-                        
-                        
+
+
                         <!-- courst_list 카드형 -->
                         <div class="course_list">
                             <ul class="course_week_card">
                             	<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
-                            	
+
                             		<c:if test="${item.srcTbl == 'TB_LMS_LCTR'}">
 		                                <li>
 		                                    <div class="card_item">
@@ -961,7 +962,7 @@
 		                                    </div>
 		                                </li>
 		                        	</c:if>
-		                        	
+
 	                                <c:if test="${item.srcTbl == 'TB_LMS_ASMT'}">
 		                                <li>
 		                                    <div class="card_item">
@@ -978,7 +979,7 @@
 		                                        </div>
 		                                        <div class="extra">
 		                                            <p class="desc">
-		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/> ~ 
+		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/> ~
 		                                                <span class="date"><uiex:formatDate value="${item.edttm}" type="date"/></strong></span>
 		                                                <span>강의시간<strong>106분</strong><strong>순차학습</strong></span>
 		                                                <span>진도율<strong class="navy">52%</strong></span>
@@ -990,8 +991,8 @@
 		                                    </div>
 		                                </li>
 		                        	</c:if>
-		                        	
-		                        	
+
+
 		                        	<c:if test="${item.srcTbl == 'TB_LMS_DSCS'}">
 		                                <li>
 		                                    <div class="card_item">
@@ -1008,7 +1009,7 @@
 		                                        </div>
 		                                        <div class="extra">
 		                                            <p class="desc">
-		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/> ~ 
+		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/> ~
 		                                                <span class="date"><uiex:formatDate value="${item.edttm}" type="date"/></strong></span>
 		                                                <span>강의시간<strong>106분</strong><strong>순차학습</strong></span>
 		                                                <span>진도율<strong class="navy">52%</strong></span>
@@ -1020,7 +1021,7 @@
 		                                    </div>
 		                                </li>
 		                        	</c:if>
-		                        	
+
 		                        	<c:if test="${item.srcTbl == 'TB_LMS_SRVY'}">
 		                                <li>
 		                                    <div class="card_item">
@@ -1037,7 +1038,7 @@
 		                                        </div>
 		                                        <div class="extra">
 		                                            <p class="desc">
-		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/> ~ 
+		                                                <span>학습기간<strong><span class="date"><uiex:formatDate value="${item.sdttm}" type="date"/> ~
 		                                                <span class="date"><uiex:formatDate value="${item.edttm}" type="date"/></strong></span>
 		                                                <span>강의시간<strong>106분</strong><strong>순차학습</strong></span>
 		                                                <span>진도율<strong class="navy">52%</strong></span>
@@ -1049,7 +1050,7 @@
 		                                    </div>
 		                                </li>
 		                        	</c:if>
-		                        	
+
 		                        	<c:if test="${item.srcTbl == 'TB_LMS_SMNR'}">
 		                                <li>
 		                                    <div class="card_item">
@@ -1076,8 +1077,8 @@
 		                                        </div>
 		                                    </div>
 		                                </li>
-		                        	</c:if>		                        	
-		                        	
+		                        	</c:if>
+
 		                        	<c:if test="${item.srcTbl == 'TB_LMS_EXAM_BSC.EXAM'}">
 		                                <li>
 		                                    <div class="card_item">
@@ -1105,7 +1106,7 @@
 		                                    </div>
 		                                </li>
 		                        	</c:if>
-		                        	
+
 		                        	<c:if test="${item.srcTbl == 'TB_LMS_EXAM_BSC.QUIZ'}">
 		                                <li>
 		                                    <div class="card_item">
@@ -1132,19 +1133,19 @@
 		                                        </div>
 		                                    </div>
 		                                </li>
-		                        	</c:if>		                        	
-		                        	
+		                        	</c:if>
+
                                 </c:forEach>
                             </ul>
-                        </div>                        
+                        </div>
                         <!-- //courst_list 카드형 -->
-					
+
 					</div>
 					<!--  //segment -->
-					
+
 				</div>
 				<!-- //class_sub -->
-				
+
 			</div>
 			<!-- //content -->
         </main>

@@ -31,7 +31,7 @@
 
 		// 사용값
 		var LIST_SCALE		= '<c:out value="${bbsVO.listScale}" />';
-		var EPARAM			= '<c:out value="${eparam}" />';
+		var EPARAM			= '<c:out value="${encParams}" />';
 
 		$(document).ready(function() {
 			$("#searchValue").on("keydown", function(e) {
@@ -156,15 +156,15 @@
 
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do"
 			var param = {
-				  eparam		: EPARAM
+				  encParams		: EPARAM
 				, extParam		: UiComm.makeExtParam(extData)
 			};
 
 			UiComm.showLoading(true);
 
 			ajaxCall(url, param, function(data) {
-				if (data.eparam != null && data.eparam != '') {
-					EPARAM = data.eparam;
+				if (data.encParams != null && data.encParams != '') {
+					EPARAM = data.encParams;
 				}
 
 				if (data.result > 0) {
@@ -189,7 +189,7 @@
 
 		// 글쓰기
 		function moveWriteAtcl() {
-			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclWrite.do?eparam="+EPARAM;
+			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclWrite.do?encParams="+EPARAM;
 		}
 
 
@@ -292,7 +292,7 @@
 				atclId	: atclId
 			};
 
-			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?eparam="+EPARAM+"&extParam="+UiComm.makeExtParam(extData);
+			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams="+EPARAM+"&extParam="+UiComm.makeExtParam(extData);
 		}
 
 
@@ -303,7 +303,7 @@
 		}
 
 		function loadLctrPlandocPopView(sbjctId) {
-		    fetch('/lctr/plandoc/profLctrPlandocPopView.do?subjectId=' + encodeURIComponent(sbjctId))
+		    fetch('/lctr/plandoc/profLctrPlandocPopView.do?sbjctId=' + encodeURIComponent(sbjctId))
 		        .then(response => response.text())
 		        .then(data => {
 		            const div = document.getElementById('lecturePlanDoc');
@@ -328,7 +328,7 @@
 
 
 		function loadLessonProgressManage(sbjctId) {
-		    fetch('/lesson/lessonMgr/lessonProgressManage.do?subjectId=' + encodeURIComponent(sbjctId))
+		    fetch('/lesson/lessonMgr/lessonProgressManage.do?sbjctId=' + encodeURIComponent(sbjctId))
 		        .then(response => response.text())
 		        .then(data => {
 		            const div = document.getElementById('lessonProgressManagePopView');
@@ -419,15 +419,15 @@
                             <div class="info-cnt">
                                 <div class="info_iconSet">
                                 	<c:forEach var="item" items="${subjectVM.subjectLearingActvList}">
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
-	                                    <a href="/asmt2/profAsmtListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>과제</span><div class="num_txt">${item.asmtCnt}</div></a>
-	                                    <a href="/forum2/forumLect/profForumListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>토론</span><div class="num_txt">${item.dscsCnt}</div></a>
-	                                    <a href="/smnr/profSmnrListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>세미나</span><div class="num_txt">${item.smnrCnt}</div></a>
-	                                    <a href="/quiz/profQuizListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>퀴즈</span><div class="num_txt">${item.quizCnt}</div></a>
-	                                    <a href="/srvy/profSrvyListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>설문</span><div class="num_txt">${item.srvyCnt}</div></a>
-	                                    <a href="/exam/profExamListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>
+	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
+	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
+	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
+	                                    <a href="/asmt2/profAsmtListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>과제</span><div class="num_txt">${item.asmtCnt}</div></a>
+	                                    <a href="/forum2/forumLect/profForumListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>토론</span><div class="num_txt">${item.dscsCnt}</div></a>
+	                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>세미나</span><div class="num_txt">${item.smnrCnt}</div></a>
+	                                    <a href="/quiz/profQuizListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>퀴즈</span><div class="num_txt">${item.quizCnt}</div></a>
+	                                    <a href="/srvy/profSrvyListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>설문</span><div class="num_txt">${item.srvyCnt}</div></a>
+	                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>
                                     </c:forEach>
                                 </div>
                                 <div class="info-set">

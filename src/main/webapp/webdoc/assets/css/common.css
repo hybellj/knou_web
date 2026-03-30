@@ -406,7 +406,7 @@ aside.common .user-info .user-desc .name .prof {font-size: 1.5rem; font-weight: 
 aside.common .user-info .user-desc .major {font-size: 1.5rem; color: var(--white-70);}
 
 /* aside scroll */
-aside.common .scrollarea { flex: 1; overflow: auto; display: flex; flex-direction: column; height: 1px; min-height: calc( 100% - 118px); gap: 4px; padding: 0 22px 10px 0px; /*scollbar-color: gray darkgray;*/ scollbar-width: thin; scrollbar-width: auto; }
+aside.common .scrollarea { flex: 1; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; height: 1px; min-height: calc( 100% - 118px); gap: 4px; padding: 0 22px 10px 0px; /*scollbar-color: gray darkgray;*/ scollbar-width: thin; scrollbar-width: auto; }
 aside.common .scrollarea::-webkit-scrollbar { width: 4px; }
 aside.common .scrollarea::-webkit-scrollbar-thumb { background-color: var(--white-20); border-radius: 10px; }
 aside.common .scrollarea::-webkit-scrollbar-track { background-color: hsla(0, 0%, 0%, 0.1); border-radius: 10px; }

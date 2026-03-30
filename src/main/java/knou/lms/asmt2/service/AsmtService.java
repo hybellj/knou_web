@@ -10,5 +10,7 @@ public interface AsmtService {
 
     ProcessResultVO<AsmtVO> mrkRfltrtModify(AsmtVO vo) throws Exception;
 
-    ProcessResultVO<AsmtVO> MrkOynModify(AsmtVO vo) throws Exception;
+    ProcessResultVO<AsmtVO> mrkOynModify(AsmtVO vo) throws Exception;
+
+    ProcessResultVO<AsmtVO> asmtSelect(AsmtVO asmtVO) throws Exception;
 }

@@ -145,6 +145,76 @@
         }
     }
 
+
+    const asmtDateUtil = {
+        getDateTimeVal(dateId, timeId) {
+            let value = "";
+
+            if (dateId) {
+                const dateVal = ($("#" + dateId).val() || "").trim();
+                value = dateVal.replace(/[-.]/g, "");
+            }
+
+            if (timeId) {
+                const timeVal = ($("#" + timeId).val() || "").trim();
+                value += timeVal.replace(/:/g, "");
+            }
+
+            return value;
+        },
+
+        setDateTimeVal(dateId, timeId, ymdhm) {
+            const value = (ymdhm || "").replace(/[^0-9]/g, "");
+
+            if (dateId) {
+                if (value.length >= 8) {
+                    $("#" + dateId).val(
+                        value.substring(0, 4) +
+                        "-" +
+                        value.substring(4, 6) +
+                        "-" +
+                        value.substring(6, 8)
+                    );
+                } else {
+                    $("#" + dateId).val("");
+                }
+            }
+
+            if (timeId) {
+                if (value.length >= 12) {
+                    $("#" + timeId).val(
+                        value.substring(8, 10) +
+                        ":" +
+                        value.substring(10, 12)
+                    );
+                } else {
+                    $("#" + timeId).val("");
+                }
+            }
+        },
+
+        copyDateTimeVal(fromDateId, fromTimeId, toDateId, toTimeId) {
+            $("#" + toDateId).val($("#" + fromDateId).val() || "");
+            $("#" + toTimeId).val($("#" + fromTimeId).val() || "");
+        },
+
+        compareDateTime(startDateId, startTimeId, endDateId, endTimeId) {
+            const start = this.getDateTimeVal(startDateId, startTimeId);
+            const end = this.getDateTimeVal(endDateId, endTimeId);
+
+            if (!start || !end) {
+                return null;
+            }
+
+            if (start > end) {
+                return 1;
+            }
+
+            return 0;
+        }
+    };
+
+
     // 날짜 형식 변경(YYYY.MM.DD HH24:MI)
     function dateFormat(dt) {
         return dt.substring(0, 4) + '.' + dt.substring(4, 6) + '.' + dt.substring(6, 8) + ' ' + dt.substring(8, 10) + ':' + dt.substring(10, 12);
@@ -237,4 +307,6 @@
     function maskingNo(no) {
         return no.substring(0, 5) + "*".repeat(no.substring(5, no.length - 2).length) + no.slice(-2);
     }
+
+
 </script>

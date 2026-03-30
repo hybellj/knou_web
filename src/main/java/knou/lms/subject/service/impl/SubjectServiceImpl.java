@@ -27,8 +27,8 @@ public class SubjectServiceImpl extends ServiceBase implements SubjectService {
     private SubjectDAO subjectDAO;
     
     @Override
-    public SubjectVO subjectSelect(String	subjectId) throws Exception {
-        return subjectDAO.subjectSelect(new SubjectParam(subjectId));
+    public SubjectVO subjectSelect(String	sbjctId) throws Exception {
+        return subjectDAO.subjectSelect(new SubjectParam(sbjctId));
     }
 
     @Override
@@ -52,8 +52,8 @@ public class SubjectServiceImpl extends ServiceBase implements SubjectService {
     }
     
     @Override
-    public List<EgovMap> sbjctAdmList(String	subjectId) throws Exception {
-        return subjectDAO.sbjctAdmList(new SubjectParam(subjectId));
+    public List<EgovMap> sbjctAdmList(String	sbjctId) throws Exception {
+        return subjectDAO.sbjctAdmList(new SubjectParam(sbjctId));
     }
 
     @Override
@@ -77,8 +77,8 @@ public class SubjectServiceImpl extends ServiceBase implements SubjectService {
     }
 
 	@Override
-	public boolean hasSubjectAuthority(String subjectId, UserContext userCtx) throws Exception {
-		return subjectDAO.stdntOrProfCountSelect(new SubjectParam(subjectId, userCtx)) != 0;
+	public boolean hasSubjectAuthority(String sbjctId, UserContext userCtx) throws Exception {
+		return subjectDAO.stdntOrProfCountSelect(new SubjectParam(sbjctId, userCtx)) != 0;
     }
 
 	@Override

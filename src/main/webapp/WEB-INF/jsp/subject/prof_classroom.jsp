@@ -465,12 +465,12 @@
 		                                            <div class="box_item">
 		                                                <div class="title">학습요소 추가<i class="xi-plus-min"></i></div>
 		                                                <div class="item_btns">
-		                                                    <a href="/asmt2/profAsmtListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-edit" aria-hidden="true"></i><span>과제</span></a>
-		                                                    <a href="/quiz/profQuizListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-quiz" aria-hidden="true"></i><span>퀴즈</span></a>
-		                                                    <a href="/exam/profExamListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-alarm-clock" aria-hidden="true"></i><span>시험</span></a>
-		                                                    <a href="/forum2/forumLect/profForumListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-message-chat" aria-hidden="true"></i><span>토론</span></a>
-		                                                    <a href="/srvy/profSrvyListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-check-done" aria-hidden="true"></i><span>설문</span></a>
-		                                                    <a href="/smnr/profSmnrListView.do?subjectId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-presentation" aria-hidden="true"></i><span>세미나</span></a>		                                                    
+		                                                    <a href="/asmt2/profAsmtListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-edit" aria-hidden="true"></i><span>과제</span></a>
+		                                                    <a href="/quiz/profQuizListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-quiz" aria-hidden="true"></i><span>퀴즈</span></a>
+		                                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-alarm-clock" aria-hidden="true"></i><span>시험</span></a>
+		                                                    <a href="/forum2/forumLect/profForumListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-message-chat" aria-hidden="true"></i><span>토론</span></a>
+		                                                    <a href="/srvy/profSrvyListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-check-done" aria-hidden="true"></i><span>설문</span></a>
+		                                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-presentation" aria-hidden="true"></i><span>세미나</span></a>		                                                    
 		                                                </div>
 		                                            </div>
 		                                        </div>

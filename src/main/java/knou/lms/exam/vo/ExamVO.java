@@ -69,6 +69,26 @@ public class ExamVO extends DefaultVO {
 
     private ExamDtlVO examDtlVO;        // 시험상세정보VO
     private List<String> lrnGrpIds;		// 팀 시험 등록용 학습그룹아이디:개설과목아이디 목록
+
+    private String  examEvlSbstId;      // 시험 대체 평가 ID
+    private String  examEvlSbstnm;      // 시험 대체 평가명
+    private String  gbn;                // 구분 (ASMT: 과제, QUIZ: 퀴즈)
+    private String  asmtId;             // 과제 ID
+    private String  asmtTtl;            // 과제 제목
+    private String  asmtSbmsnSdttm;     // 과제 제출 시작일시
+    private String  asmtSbmsnEdttm;     // 과제 제출 종료일시
+    private String  evlScrTycd;         // 평가점수유형코드
+    private String  evlScrTynm;         // 평가점수유형명
+    private String  regDttm;            // 등록일시
+
+    private String  absnceCts;          // 결시 사유
+    private String  absnceRfltrt;       // 결시 반영비율
+    private String  aplyStsStts;        // 신청 승인 상태 (Y/N)
+
+    private String  aplyStscd;          // 신청상태 코드
+    private String  aplyStsnm;          // 신청상태명 (1:신청, 2:재신청, 3:승인, 4:거절)
+    private String  aprvdttm;           // 승인일시
+    private String  autzrId;            // 승인자 ID
     /*****************************************************
      * Getter / Setter
      *****************************************************/
@@ -404,6 +424,109 @@ public class ExamVO extends DefaultVO {
     public void setLrnGrpIds(List<String> lrnGrpIds) {
         this.lrnGrpIds = lrnGrpIds;
     }
+    public String getExamEvlSbstId() {
+        return examEvlSbstId;
+    }
+    public void setExamEvlSbstId(String examEvlSbstId) {
+        this.examEvlSbstId = examEvlSbstId;
+    }
+    public String getExamEvlSbstnm() {
+        return examEvlSbstnm;
+    }
+    public void setExamEvlSbstnm(String examEvlSbstnm) {
+        this.examEvlSbstnm = examEvlSbstnm;
+    }
+    public String getGbn() {
+        return gbn;
+    }
+    public void setGbn(String gbn) {
+        this.gbn = gbn;
+    }
+    public String getAsmtId() {
+        return asmtId;
+    }
+    public void setAsmtId(String asmtId) {
+        this.asmtId = asmtId;
+    }
+    public String getAsmtTtl() {
+        return asmtTtl;
+    }
+    public void setAsmtTtl(String asmtTtl) {
+        this.asmtTtl = asmtTtl;
+    }
+    public String getAsmtSbmsnSdttm() {
+        return asmtSbmsnSdttm;
+    }
+    public void setAsmtSbmsnSdttm(String asmtSbmsnSdttm) {
+        this.asmtSbmsnSdttm = asmtSbmsnSdttm;
+    }
+    public String getAsmtSbmsnEdttm() {
+        return asmtSbmsnEdttm;
+    }
+    public void setAsmtSbmsnEdttm(String asmtSbmsnEdttm) {
+        this.asmtSbmsnEdttm = asmtSbmsnEdttm;
+    }
+    public String getEvlScrTycd() {
+        return evlScrTycd;
+    }
+    public void setEvlScrTycd(String evlScrTycd) {
+        this.evlScrTycd = evlScrTycd;
+    }
+    public String getEvlScrTynm() {
+        return evlScrTynm;
+    }
+    public void setEvlScrTynm(String evlScrTynm) {
+        this.evlScrTynm = evlScrTynm;
+    }
+    public String getRegDttm() {
+        return regDttm;
+    }
+    public void setRegDttm(String regDttm) {
+        this.regDttm = regDttm;
+    }
+    public String getAbsnceCts() {
+        return absnceCts;
+    }
+    public void setAbsnceCts(String absnceCts) {
+        this.absnceCts = absnceCts;
+    }
+    public String getAbsnceRfltrt() {
+        return absnceRfltrt;
+    }
+    public void setAbsnceRfltrt(String absnceRfltrt) {
+        this.absnceRfltrt = absnceRfltrt;
+    }
+    public String getAplyStsStts() {
+        return aplyStsStts;
+    }
+    public void setAplyStsStts(String aplyStsStts) {
+        this.aplyStsStts = aplyStsStts;
+    }
+    public String getAplyStscd() {
+        return aplyStscd;
+    }
+    public void setAplyStscd(String aplyStscd) {
+        this.aplyStscd = aplyStscd;
+    }
+    public String getAplyStsnm() {
+        return aplyStsnm;
+    }
+    public void setAplyStsnm(String aplyStsnm) {
+        this.aplyStsnm = aplyStsnm;
+    }
+    public String getAprvdttm() {
+        return aprvdttm;
+    }
+    public void setAprvdttm(String aprvdttm) {
+        this.aprvdttm = aprvdttm;
+    }
+    public String getAutzrId() {
+        return autzrId;
+    }
+    public void setAutzrId(String autzrId) {
+        this.autzrId = autzrId;
+    }
+
     /*****************************************************
      * 기존에 있던 VO 영역
      *****************************************************/

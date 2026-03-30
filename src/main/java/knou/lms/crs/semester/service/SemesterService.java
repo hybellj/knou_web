@@ -16,12 +16,12 @@ public interface SemesterService {
 	
 	/**
 	 * 학기기수조회
-	 * @param	subjectId
+	 * @param	sbjctId
 	 * @return	SmstrChrtVO
 	 * @throws	Exception
 	 * @author	jinkoon
 	 */
-	public SmstrChrtVO smstrChrtSelect(String subjectId) throws Exception;
+	public SmstrChrtVO smstrChrtSelect(String sbjctId) throws Exception;
 	
 	/**
 	 * 개설된 학기기수 목록 조회(학위연도 기준)

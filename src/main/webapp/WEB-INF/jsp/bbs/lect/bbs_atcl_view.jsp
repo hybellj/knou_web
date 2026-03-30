@@ -34,18 +34,18 @@
 
 		// 게시글 수정 이동
 		function moveAtclEdit() {
-			document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?eparam=${eparam}&gubun=edit";
+			document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?encParams=${encParams}&gubun=edit";
 		}
 
         // 게시글 목록 이동
         function moveAtclList() {
-            document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
+            document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?encParams=${encParams}";
         }
 
         // 게시글 이동
         function moveActlView(atclId) {
 			let extParam = UiComm.makeExtParam({"atclId":atclId});
-        	document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?eparam=${eparam}&extParam="+extParam;
+        	document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?encParams=${encParams}&extParam="+extParam;
         }
 
      	// 게시글 삭제
@@ -53,7 +53,7 @@
     		// 게시글 삭제 시 댓글도 모두 삭제됩니다. 정말 삭제 하시겠습니까?
     		if(confirm('<spring:message code="bbs.confirm.delete_atcl" />')) {
     			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
-    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?eparam=${eparam}";
+    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams=${encParams}";
     			var data = {
     				  atclId	: atclId
     				, bbsId	    : bbsId
@@ -105,7 +105,7 @@
     	function bbsAtclRspnsRegist() {
     		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclRspnsRegist.do";
     		var data = $("#bbsAtclRspnsWriteForm").serialize();
-			var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclView.do?eparam=${eparam}";
+			var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclView.do?encParams=${encParams}";
 
 			bbsCommon.regist(url, returnUrl, data);
 		};
@@ -115,7 +115,7 @@
     		UiComm.showMessage("<spring:message code='bbs.confirm.delete_atcl' />", "confirm")
     		.then(function(result) {
     			if (result) {
-    				var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?eparam=${eparam}";
+    				var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams=${encParams}";
         			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
         			var data = {
     					orgId : ORG_ID,
@@ -159,7 +159,7 @@
 		    }
 
 		    var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclRspnsRegist.do";
-		    var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclView.do?eparam=${eparam}";
+		    var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclView.do?encParams=${encParams}";
 		    var data = {
 		        bbsId: bbsId,
 		        atclId: atclId,
@@ -294,7 +294,7 @@
 		// 게시글 > 댓글 등록
 		function bbsAtclCmntRegist() {
     		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclCmntRegist.do";
-    		var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclView.do?eparam=${eparam}";
+    		var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclView.do?encParams=${encParams}";
 			var data = $(".recmt_form").serialize();
 
 			bbsCommon.regist(url, returnUrl, data);
@@ -339,7 +339,7 @@
 		        bbsId: bbsId
 		    };
 
-		    var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?eparam=${eparam}";
+		    var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams=${encParams}";
 		    bbsCommon.regist(url, returnUrl, data);
 		}
 
@@ -354,7 +354,7 @@
         				atclId : ATCL_ID,
     					atclCmntId : atclCmntId
     				};
-        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?eparam=${eparam}";
+        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams=${encParams}";
 
         			bbsCommon.regist(url, returnUrl, data);
         		}
@@ -501,7 +501,7 @@
 
             var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclCmntRegist.do";
             var data = $form.serialize();
-            var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?eparam=${eparam}";
+            var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams=${encParams}";
 
             // 기존 공통 등록 함수 사용
             bbsCommon.regist(url, returnUrl, data);
@@ -575,15 +575,15 @@
                             <div class="info-cnt">
                                 <div class="info_iconSet">
                                 	<c:forEach var="item" items="${subjectVM.subjectLearingActvList}">
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
-	                                    <a href="/asmt2/profAsmtListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>과제</span><div class="num_txt">${item.asmtCnt}</div></a>
-	                                    <a href="/forum2/forumLect/profForumListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>토론</span><div class="num_txt">${item.dscsCnt}</div></a>
-	                                    <a href="/smnr/profSmnrListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>세미나</span><div class="num_txt">${item.smnrCnt}</div></a>
-	                                    <a href="/quiz/profQuizListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>퀴즈</span><div class="num_txt">${item.quizCnt}</div></a>
-	                                    <a href="/srvy/profSrvyListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>설문</span><div class="num_txt">${item.srvyCnt}</div></a>
-	                                    <a href="/exam/profExamListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>
+	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
+	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
+	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
+	                                    <a href="/asmt2/profAsmtListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>과제</span><div class="num_txt">${item.asmtCnt}</div></a>
+	                                    <a href="/forum2/forumLect/profForumListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>토론</span><div class="num_txt">${item.dscsCnt}</div></a>
+	                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>세미나</span><div class="num_txt">${item.smnrCnt}</div></a>
+	                                    <a href="/quiz/profQuizListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>퀴즈</span><div class="num_txt">${item.quizCnt}</div></a>
+	                                    <a href="/srvy/profSrvyListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>설문</span><div class="num_txt">${item.srvyCnt}</div></a>
+	                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>
                                     </c:forEach>
                                 </div>
                                 <div class="info-set">

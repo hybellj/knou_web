@@ -67,7 +67,7 @@
     		$("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
 
     		var url = "/bbs/${templateUrl}/bbsAtclSave.do";
-    		var returnUrl = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
+    		var returnUrl = "/bbs/${templateUrl}/bbsAtclListView.do?encParams=${encParams}";
     		var data = $("#atclWriteForm").serialize();
 
     		bbsCommon.regist(url, returnUrl, data);
@@ -75,7 +75,7 @@
 
     	// 목록화면 이동
     	function moveListPage() {
-    		document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
+    		document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?encParams=${encParams}";
     	}
 
 	</script>
@@ -109,7 +109,7 @@
                         <!--table-type-->
 						<div class="table-wrap">
 							<form id="atclWriteForm" name="atclWriteForm" onsubmit="return false;">
-								<input type="hidden" name="eparam"       id="eparam"      value="${eparam}" />
+								<input type="hidden" name="encParams"    id="encParams"   value="${encParams}" />
 								<input type="hidden" name="gubun"        id="gubun"       value="${bbsAtclVO.gubun}" />
 								<input type="hidden" name="uploadFiles"  id="uploadFiles" value="" />
 								<input type="hidden" name="uploadPath"   id="uploadPath"  value="${bbsVO.uploadPath}" />

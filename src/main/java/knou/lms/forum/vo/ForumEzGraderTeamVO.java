@@ -16,7 +16,7 @@ public class ForumEzGraderTeamVO extends DefaultVO {
     private String teamNm;
     private String asmntSubmitStatusCd;
     private int    score;
-    private String teamStdIds;      // 팀원의 stdNo(, 로 연결된 문자열)
+    private String teamStdNos;      // 팀원의 stdNo(, 로 연결된 문자열)
     private String evalYn;
     private String submitStdNo;     // 제출자의 학생번호(팀장이 아닌 팀원이 제출 할수도 있음.)
 
@@ -97,12 +97,12 @@ public class ForumEzGraderTeamVO extends DefaultVO {
         this.score = score;
     }
 
-    public String getTeamStdIds() {
-        return teamStdIds;
+    public String getTeamStdNos() {
+        return teamStdNos;
     }
 
-    public void setTeamStdIds(String teamStdIds) {
-        this.teamStdIds = teamStdIds;
+    public void setTeamStdNos(String teamStdNos) {
+        this.teamStdNos = teamStdNos;
     }
 
     public String getEvalYn() {

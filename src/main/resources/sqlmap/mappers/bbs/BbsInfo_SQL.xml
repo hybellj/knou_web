@@ -1263,7 +1263,7 @@
 		WHERE 1=1
 			AND ORG_ID = #{orgId}
 			AND BBS_ID = #{bbsId}
-			AND SBJCT_ID = #{sbjctId}
+			<!-- AND SBJCT_ID = #{sbjctId} -->
 	</select>
 
 	<insert id="bbsInfoRegist" parameterType="bbsVO">
@@ -1318,4 +1318,18 @@
 		)
 	</insert>
 
+
+	<select id="selectBbsForSbjctMenu" parameterType="bbsVO" resultType="bbsVO">
+		/*
+             SQL ID : BbsInfoDAO.selectBbsForSbjctMenu
+             설  명 : 강의실 메뉴의 게시판 목록 조회
+         */
+		SELECT
+			  A.*
+		FROM TB_LMS_BBS A
+		WHERE 1=1
+			AND A.SBJCT_ID = #{sbjctId}
+			AND A.BBS_ADDYN = 'Y'
+		ORDER BY A.BBS_ID
+	</select>
 </mapper>

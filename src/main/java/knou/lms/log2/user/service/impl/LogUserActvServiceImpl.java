@@ -15,8 +15,8 @@ public class LogUserActvServiceImpl extends ServiceBase implements LogUserActvSe
     private LogUserActvDAO logUserActvDAO;
 
 	/*
-	 * @Override public Object userSbjctOfrngActvHstryList(String subjectId, int
+	 * @Override public Object userSbjctOfrngActvHstryList(String sbjctId, int
 	 * timeRange) throws Exception { return
-	 * logUserActvDAO.userSbjctOfrngActvHstryList(subjectId, timeRange); }
+	 * logUserActvDAO.userSbjctOfrngActvHstryList(sbjctId, timeRange); }
 	 */
 }

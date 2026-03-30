@@ -39,10 +39,10 @@
             PAGE_INDEX = pageIndex;
             var extData = { pageIndex: pageIndex, listScale: LIST_SCALE, bbsId: BBS_ID, atclId: ATCL_ID };
             var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclGrpNtcList.do";
-            var data = { eparam: EPARAM, extParam: UiComm.makeExtParam(extData) };
+            var data = { encParams: EPARAM, extParam: UiComm.makeExtParam(extData) };
 
             ajaxCall(url, data, function(data) {
-                if (data.eparam != null && data.eparam != '') { EPARAM = data.eparam; }
+                if (data.encParams != null && data.encParams != '') { EPARAM = data.encParams; }
                 if (data.result > 0) {
                     var dataList = createAtclListHTML(data.returnList || [], data.pageInfo);
 

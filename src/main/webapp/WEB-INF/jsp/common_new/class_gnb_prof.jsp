@@ -3,24 +3,27 @@
 <%@page import="java.util.List"%>
 <%@page import="knou.lms.menu.vo.MenuVO"%>
 <%@page import="knou.framework.common.MenuInfo"%>
+<%@page import="knou.framework.common.ParamInfo"%>
 <%@page import="knou.framework.common.SessionInfo"%>
 <%@include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%
-String orgId = SessionInfo.getOrgId(request);
 String authrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
+String orgId = ParamInfo.getParamValue(request, "orgId");
+String sbjctId = ParamInfo.getParamValue(request, "sbjctId");
 
 // 강의실메뉴 가져 오기
 MenuVO menuVO = new MenuVO();
-menuVO.setAuthrtGrpcd("PROF");
-menuVO.setMenuGbncd("LECT");
-menuVO.setSbjctId("SBJCT20260001");
+menuVO.setAuthrtGrpcd(authrtGrpcd);
+menuVO.setMenuGbncd(CommConst.MENU_GBN_LECT);
+menuVO.setOrgId(orgId);
+menuVO.setSbjctId(sbjctId);
 List<MenuVO> menuList = MenuInfo.getLectMenuInfo(request, menuVO);
 pageContext.setAttribute("menuList", menuList);
 %>
 
 	<aside id="gnb_class" class="common class gnb-menu expanded">
 		<form id="moveForm" method="post">
-			<input name="eparam" type="hidden" value="${eparam}">
+			<input name="encParams" type="hidden" value="${encParams}">
 			<input name="extParam" type="hidden" value="">
 		</form>
 

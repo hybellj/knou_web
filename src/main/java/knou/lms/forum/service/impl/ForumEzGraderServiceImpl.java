@@ -39,18 +39,18 @@ public class ForumEzGraderServiceImpl extends EgovAbstractServiceImpl implements
         List<ForumEzGraderTeamVO> memberList = forumEzGraderDAO.listForumJoinTeam(vo);
         if( memberList != null && !memberList.isEmpty() && memberList.size() > 0) {
             for(ForumEzGraderTeamVO teamVo : memberList) {
-                String teamStdIds = "";
+                String teamStdNos = "";
                 if (teamVo.getTeamMembers() != null && !teamVo.getTeamMembers().isEmpty() && teamVo.getTeamMembers().size() > 0) {
                     int idx = 0;
                     for(ForumJoinUserVO joinUserVo : teamVo.getTeamMembers()) {
                         if (idx > 0 ) {
-                            teamStdIds += ",";
+                            teamStdNos += ",";
                         }
-                        teamStdIds += joinUserVo.getStdId();
+                        teamStdNos += joinUserVo.getStdId();
                         idx++;
                     }
                 }
-                teamVo.setTeamStdIds(teamStdIds);
+                teamVo.setTeamStdNos(teamStdNos);
             }
         }
 

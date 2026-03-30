@@ -3185,18 +3185,16 @@ public class BbsLectController extends ControllerBase {
         //atclWriteAuth = BbsAuthUtil.getAtclWriteAuth(request, bbsVO);
 
         // 파라메터 설정
-        addEparam("bbsId", bbsVO.getBbsId());
-        addEparam("bbsTycd", bbsVO.getBbsTycd());
+        addEncParam("bbsId", bbsVO.getBbsId());
+        addEncParam("bbsTycd", bbsVO.getBbsTycd());
 
         // 조회필터옵션 세팅
     	EgovMap filterOptions = bbsFacadeService.loadFilterOptions(userCtx);
     	model.addAttribute("filterOptions", filterOptions);
 
     	SubjectViewModel subjectVM = new SubjectViewModel();
-		/* String subjectId = request.getParameter("subjectId"); */
-        String subjectId = "SBJCT20260001";
 
-        BaseParam param = new SubjectParam(subjectId, userCtx, 3);
+        BaseParam param = new SubjectParam(bbsVO.getSbjctId(), userCtx, 3);
 
         if("NTC".equals(bbsId)) {
         	bbsVO.setBbsId("NTC");
@@ -3258,7 +3256,7 @@ public class BbsLectController extends ControllerBase {
 
             resultVO = bbsAtclService.selectBbsAtclList(bbsAtclVO);
             resultVO.setResult(1);
-            resultVO.setEparam(getEparam());
+            resultVO.setEncParams(getEncParams());
         } catch(Exception e) {
             LOGGER.debug("e: ", e);
             resultVO.setResult(-1);
@@ -3340,10 +3338,8 @@ public class BbsLectController extends ControllerBase {
         }
 
         SubjectViewModel subjectVM = new SubjectViewModel();
-		/* String subjectId = request.getParameter("subjectId"); */
-        String subjectId = "SBJCT20260001";
 
-        BaseParam param = new SubjectParam(subjectId, userCtx, 3);
+        BaseParam param = new SubjectParam(bbsVO.getSbjctId(), userCtx, 3);
 
         subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
         model.addAttribute("subjectVM", subjectVM);
@@ -3405,7 +3401,7 @@ public class BbsLectController extends ControllerBase {
         }
 
         // 페이지/검색 파라메터 삭제
-        delEparamPageSearch();
+        delEncParamPageSearch();
 
         // 첨부파일저장소 설정
         bbsVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_BBS, bbsId));
@@ -3414,10 +3410,8 @@ public class BbsLectController extends ControllerBase {
         //atclWriteAuth = BbsAuthUtil.getAtclWriteAuth(request, bbsVO);
 
         SubjectViewModel subjectVM = new SubjectViewModel();
-		/* String subjectId = request.getParameter("subjectId"); */
-        String subjectId = "SBJCT20260001";
 
-        BaseParam param = new SubjectParam(subjectId, userCtx, 3);
+        BaseParam param = new SubjectParam(bbsVO.getSbjctId(), userCtx, 3);
 
         subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
         model.addAttribute("subjectVM", subjectVM);
@@ -3633,7 +3627,7 @@ public class BbsLectController extends ControllerBase {
 
             resultVO = bbsAtclService.selectBbsAtclRspnsList(bbsAtclVO);
             resultVO.setResult(1);
-            resultVO.setEparam(getEparam());
+            resultVO.setEncParams(getEncParams());
         } catch(Exception e) {
             LOGGER.debug("e: ", e);
             resultVO.setResult(-1);

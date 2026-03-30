@@ -359,6 +359,15 @@ public class CommConst {
     public static final String SYSTEM_LOCALEKEY = "LOCALEKEY";                                                  // 언어셋
 
     // 메뉴 관련 변수명 정의
+    public static final String   MENU_GBN_MAIN			= "MAIN";	// 메인메뉴(대시보드)
+    public static final String   MENU_GBN_LECT			= "LECT";	// 강의실메뉴
+    public static final String   MENU_GBN_ADM			= "ADM";	// 관리자메뉴
+    public static final String   MENU_AUTH_ADM			= "ADM";	// 관리자 권한
+    public static final String   MENU_AUTH_PROF			= "PROF";	// 교수자 권한
+    public static final String   MENU_AUTH_STDNT		= "STDNT";	// 학습자 권한
+
+
+    //TODO 아래 변수명들은 사용여부 체크하여 삭제...........
     public static final String MENU_LOCATION = "LOCATION";                                                   // 현제 페이지
     public static final String CUR_MENU_NAME = "MENUNAME";                                                   // 메뉴 명
     public static final String CUR_MENU_CODE = "MENUCODE";                                                   // 메뉴 코드
@@ -691,6 +700,7 @@ public class CommConst {
     public static final String   REPO_CONTS				= "CONTS";	// 강의콘텐츠
     public static final String   REPO_MSG				= "MSG";	// 메시지
     public static final String   REPO_USER				= "USER";	// 사용자
+
 
 
     // 사용자 접속상태 체크값

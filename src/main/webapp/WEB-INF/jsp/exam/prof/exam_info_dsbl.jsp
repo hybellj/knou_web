@@ -379,20 +379,7 @@
                                                 </tr>
                                                 <tr>
                                                     <th><label>시험 내용</label></th>
-                                                    <td class="t_left" colspan="3">
-                                                            <pre>
-                                                                <div class="editor-box">
-                                                                    <uiex:htmlEditor
-                                                                            id = "dtl-exam-cts"
-                                                                            name = "dtl-exam-cts"
-                                                                            uploadPath = "${examVO.uploadPath}"
-                                                                            value = "${examVO.examCts}"
-                                                                            height = "400px"
-                                                                            required="true"
-                                                                    />
-                                                                </div>
-                                                            </pre>
-                                                    </td>
+                                                    <td class="t_left" colspan="3"><pre>${examVO.examCts}</pre></td>
                                                 </tr>
                                                 <tr>
                                                     <th><label>시험 일시</label></th>

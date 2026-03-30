@@ -32,8 +32,8 @@ public class LctrPlandocVO extends DefaultVO {
     private List<MarkItemSettingVO> mrkItmStngList; // 평가비율
     private List<LectureScheduleVO> wkList; // 주차
     
-    public LctrPlandocVO (String subjectId) {
-    	this.setSbjctId(subjectId);
+    public LctrPlandocVO (String sbjctId) {
+    	this.setSbjctId(sbjctId);
     }
 
     public String getLctrPlandocId() {

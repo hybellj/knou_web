@@ -218,16 +218,16 @@ public class SbjctController extends ControllerBase {
 
     /**
      * 과목 정보 조회
-     * @param subjectId
+     * @param sbjctId
      * @return
      * @throws Exception
      */
     @RequestMapping("/sbjctMrkProcPeriodSelectAjax.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> sbjctMrkProcPeriodSelectAjax(@RequestParam("subjectId") String subjectId) throws Exception {
+    public ProcessResultVO<EgovMap> sbjctMrkProcPeriodSelectAjax(@RequestParam("sbjctId") String sbjctId) throws Exception {
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
 
-        SubjectVO sbjctVO = subjectService.subjectSelect(subjectId);
+        SubjectVO sbjctVO = subjectService.subjectSelect(sbjctId);
 
         if (ValidationUtils.isNull(sbjctVO)) {
             resultVO.setResultFailed(getMessage("exam.error.not.exists.crs"));

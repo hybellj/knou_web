@@ -14,18 +14,38 @@
 			, NVL(MAX(T.SCR), 0) 					 				 AS maxScore
 			, NVL(MIN(T.SCR), 0) 					 				 AS minScore
 		FROM (
+			/* BYTEAM='Y' 대응: 사용자별 유효 토론 ID(자식/부모)를 먼저 계산 후 집계 */
 			SELECT
-				A.USER_ID 			 AS stdId
-				, NVL(C.SCR, 0) AS SCR
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL AS B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' ) AS atclCnt
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT AS B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' ) AS cmntCnt
-			FROM TB_LMS_ATNDLC AS A
-			LEFT JOIN TB_LMS_DSCS_PTCP AS C
-				ON A.USER_ID = C.USER_ID
-				AND C.DSCS_ID = #{forumCd}
-			WHERE A.SBJCT_ID = #{crsCreCd}
-				AND A.ATNDLC_STSCD = 'ATNDLC'
-		)T
+				BASE.USER_ID AS stdId
+				, NVL(BASE.SCR, 0) AS SCR
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = BASE.EFF_DSCS_ID AND B.USER_ID = BASE.USER_ID AND B.DELYN = 'N') AS atclCnt
+				, (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
+				   JOIN TB_LMS_DSCS_ATCL AA ON B.DSCS_ATCL_ID = AA.DSCS_ATCL_ID
+				   WHERE AA.DSCS_ID = BASE.EFF_DSCS_ID AND B.USER_ID = BASE.USER_ID AND B.DELYN = 'N') AS cmntCnt
+			FROM (
+				SELECT
+					A.USER_ID
+					, C.SCR
+					/* 자식토론이 있으면 자식 DSCS_ID, 없으면 부모 forumCd 사용 */
+					, NVL(
+						(SELECT CD2.DSCS_ID FROM TB_LMS_DSCS CD2
+						 JOIN TB_LMS_TEAM_MBR TM2 ON TM2.TEAM_ID = CD2.TEAM_ID AND TM2.USER_ID = A.USER_ID
+						 WHERE CD2.UP_DSCS_ID = #{forumCd} AND CD2.DELYN = 'N' AND ROWNUM = 1),
+						#{forumCd}
+					) AS EFF_DSCS_ID
+				FROM TB_LMS_ATNDLC A
+				LEFT JOIN TB_LMS_DSCS_PTCP C
+					ON A.USER_ID = C.USER_ID
+					AND C.DSCS_ID = NVL(
+						(SELECT CD2.DSCS_ID FROM TB_LMS_DSCS CD2
+						 JOIN TB_LMS_TEAM_MBR TM2 ON TM2.TEAM_ID = CD2.TEAM_ID AND TM2.USER_ID = A.USER_ID
+						 WHERE CD2.UP_DSCS_ID = #{forumCd} AND CD2.DELYN = 'N' AND ROWNUM = 1),
+						#{forumCd}
+					)
+				WHERE A.SBJCT_ID = #{crsCreCd}
+					AND A.ATNDLC_STSCD = 'ATNDLC'
+			) BASE
+		) T
 	</select>
 
 	<select id="listPaging" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
@@ -34,30 +54,26 @@
 			ForumJoinUserDAO.listPaging
 		*/
 		SELECT
-			<if test='forumCtgrCd != "TEAM"'>
-			ROW_NUMBER() OVER(ORDER BY userNm) AS LINE_NO
-			</if>
-			<if test='forumCtgrCd == "TEAM"'>
-			ROW_NUMBER() OVER(ORDER BY LENGTH(teamNm), teamNm, userNm) AS LINE_NO
-			</if>
+			<choose>
+				<when test='forumCtgrCd == "TEAM"'>
+					ROW_NUMBER() OVER(ORDER BY LENGTH(teamNm), teamNm, userNm) AS LINE_NO
+				</when>
+				<otherwise>
+					ROW_NUMBER() OVER(ORDER BY userNm) AS LINE_NO
+				</otherwise>
+			</choose>
 			, forumCd
 			, deptNm
 			, stdntNo
 			, userId
-		    , userRprsId
+			, userRprsId
 			, userNm
 			, score
-			, evalYn  /* 추가된 평가여부 */
+			, evalYn
 			, scoreNull
-			, (
-			   CASE
-				  WHEN actlCnt > 0 THEN '참여'
-				  ELSE '미참여'
-			   END
-			) AS joinStatus
+			, (CASE WHEN actlCnt > 0 THEN '참여' ELSE '미참여' END) AS joinStatus
 			, actlCnt
 			, cmntCnt
-			, userId
 			, teamCd
 			, COUNT(1) OVER() AS totalCnt
 			, forumFdbkCd
@@ -88,164 +104,111 @@
 		FROM (
 			SELECT
 			   CASE WHEN C.BYTEAM_DSCS_USEYN = 'Y' AND CD.DSCS_ID IS NOT NULL
-			        THEN CD.DSCS_ID
-			        ELSE C.DSCS_ID
-			   END                AS forumCd
+					THEN CD.DSCS_ID
+					ELSE C.DSCS_ID
+			   END AS forumCd
 			   , NVL((SELECT D.DEPTNM FROM TB_LMS_DEPT D WHERE D.DEPT_ID = U.DEPT_ID), '-') AS DEPTNM
-			   , U.STDNT_NO           AS stdntNo
-			   , U.USERNM             AS userNm
-			   , U.USER_RPRS_ID	      AS userRprsId
-			   /* 조인된 PTCP 테이블에서 직접 조회 */
-			   , NVL(P.SCR, 0)         AS score
-			   , NVL(P.EVLYN, 'N')     AS evalYn
+			   , U.STDNT_NO AS stdntNo
+			   , U.USERNM AS userNm
+			   , U.USER_RPRS_ID AS userRprsId
+			   , NVL(P.SCR, 0) AS score
+			   , NVL(P.EVLYN, 'N') AS evalYn
 			   , NVL(TO_CHAR(P.SCR), '-') AS scoreNull
-
-			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = C.DSCS_ID AND B.RGTR_ID = A.USER_ID AND B.DELYN = 'N' ) AS actlCnt
+			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND B.RGTR_ID = A.USER_ID AND B.DELYN = 'N' ) AS actlCnt
 			   , (SELECT COUNT(*)
-				  FROM TB_LMS_DSCS_CMNT B JOIN TB_LMS_DSCS_ATCL AA ON B.DSCS_ATCL_ID = AA.DSCS_ATCL_ID WHERE AA.DSCS_ID = C.DSCS_ID
-					 AND B.RGTR_ID = A.USER_ID
-					 AND B.DELYN = 'N') AS cmntCnt
-			   , U.USER_ID            as userId
-			   , TM.TEAM_ID           AS teamCd
-
+				  FROM TB_LMS_DSCS_CMNT B
+				  JOIN TB_LMS_DSCS_ATCL AA ON B.DSCS_ATCL_ID = AA.DSCS_ATCL_ID
+				  WHERE AA.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID)
+					AND B.RGTR_ID = A.USER_ID
+					AND B.DELYN = 'N') AS cmntCnt
+			   , U.USER_ID as userId
+			   , TM.TEAM_ID AS teamCd
 			   , (SELECT MIN(DSCS_FDBK_ID) KEEP (DENSE_RANK FIRST ORDER BY MOD_DTTM)
 				  FROM TB_LMS_DSCS_FDBK B
-				  WHERE B.DSCS_ID = C.DSCS_ID
-				  AND B.USER_ID = A.USER_ID
-				  AND B.DELYN = 'N'
-				  AND B.UP_DSCS_FDBK_ID IS NULL) AS forumFdbkCd
+				  WHERE B.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' AND B.UP_DSCS_FDBK_ID IS NULL) AS forumFdbkCd
 			   , (SELECT B.FDBK_CTS
 				  FROM TB_LMS_DSCS_FDBK B
-				  WHERE B.DSCS_ID = C.DSCS_ID
-				  AND B.USER_ID = A.USER_ID
-				  AND B.DELYN = 'N'
-				  AND B.UP_DSCS_FDBK_ID IS NULL
-				  AND B.MOD_DTTM = (SELECT MAX(MOD_DTTM)
-								 FROM TB_LMS_DSCS_FDBK
-								 WHERE DSCS_ID = C.DSCS_ID
-								 AND USER_ID = A.USER_ID
-								 AND DELYN = 'N'
-								 AND UP_DSCS_FDBK_ID IS NULL)
-								 AND ROWNUM = 1) AS fdbkCts
-			   , P.PROF_MEMO          AS profMemo
-			   , (SELECT BB.TEAMNM
-				  FROM TB_LMS_TEAM_MBR B
-				  JOIN TB_LMS_TEAM BB ON B.TEAM_ID = BB.TEAM_ID
-				  WHERE B.USER_ID = A.USER_ID
-				  AND BB.TEAM_ID = TM.TEAM_ID
-				  AND ROWNUM = 1) AS teamNm
-			   , (SELECT B.LDRYN
-				  FROM TB_LMS_TEAM_MBR B
-				  JOIN TB_LMS_TEAM BB ON B.TEAM_ID = BB.TEAM_ID
-				  WHERE B.USER_ID = A.USER_ID
-				  AND BB.TEAM_ID = TM.TEAM_ID
-				  AND ROWNUM = 1) AS memberRole
-			   , 0 AS mutCnt
-			   , 0 AS mutAvg
-			   , '' AS mutSn
+				  WHERE B.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' AND B.UP_DSCS_FDBK_ID IS NULL
+					AND B.MOD_DTTM = (SELECT MAX(MOD_DTTM) FROM TB_LMS_DSCS_FDBK WHERE DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND USER_ID = A.USER_ID AND DELYN = 'N' AND UP_DSCS_FDBK_ID IS NULL)
+					AND ROWNUM = 1) AS fdbkCts
+			   , P.PROF_MEMO AS profMemo
+			   , TM.TEAMNM AS teamNm
+			   , TM.LDRYN AS memberRole
+			   , 0 AS mutCnt, 0 AS mutAvg, '' AS mutSn
 			   , (SELECT MAX(CNTCT) FROM TB_LMS_USER_CNTCT T1 WHERE T1.USER_ID = A.USER_ID AND T1.CNTCT_TYCD = 'MBL_PHN') AS mobileNo
 			   , (SELECT MAX(CNTCT) FROM TB_LMS_USER_CNTCT T1 WHERE T1.USER_ID = A.USER_ID AND T1.CNTCT_TYCD = 'INDV_EML') AS email
-			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL
-				  WHERE DSCS_ID = C.DSCS_ID
-				  AND DELYN = 'N'
-				  AND RGTR_ID = A.USER_ID) AS forumMyAtclCnt
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B
-				  WHERE DSCS_ID = C.DSCS_ID
-				  AND DELYN = 'N') AS forumAtclCnt
-				, 0 AS afterAtclCnt
-			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT
-				  WHERE DELYN = 'N'
-				  AND RGTR_ID = A.USER_ID
-				  AND DSCS_ATCL_ID IN (
-									  SELECT CX.DSCS_ATCL_ID
-									  FROM TB_LMS_DSCS_ATCL CX
-									  WHERE CX.DSCS_ID = C.DSCS_ID
-									  AND CX.DELYN = 'N'
-									  )) AS forumMyCmntCnt
-			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT
-				  WHERE DELYN = 'N'
-				  AND DSCS_ATCL_ID IN (
-									  SELECT CX.DSCS_ATCL_ID
-									  FROM TB_LMS_DSCS_ATCL CX
-									  WHERE CX.DSCS_ID = C.DSCS_ID
-									  AND CX.DELYN = 'N'
-								  )) AS forumCmntCnt
-				, 0 AS afterCmntCnt
-				, CASE
-				    WHEN C.DSCS_UNIT_TYCD != 'TEAM' AND C.OKNOK_STNGYN = 'Y'
-				    THEN NVL(
-				        (SELECT B.OKNOK_GBNCD
-				         FROM TB_LMS_DSCS_ATCL B
-				         WHERE B.DSCS_ID = C.DSCS_ID
-				           AND B.RGTR_ID = A.USER_ID
-				           AND B.DELYN = 'N'
-				           AND ROWNUM = 1),
-				        '-')
-				    ELSE '-'
-				  END AS oknokGbnCd
-				, 'N' AS evalRsltOpenYn
-				, '' AS evalStartDttm
-				, '' AS evalEndDttm
+			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND DELYN = 'N' AND RGTR_ID = A.USER_ID) AS forumMyAtclCnt
+			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL WHERE DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND DELYN = 'N') AS forumAtclCnt
+			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DELYN = 'N' AND RGTR_ID = A.USER_ID AND DSCS_ATCL_ID IN (SELECT CX.DSCS_ATCL_ID FROM TB_LMS_DSCS_ATCL CX WHERE CX.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND CX.DELYN = 'N')) AS forumMyCmntCnt
+			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT WHERE DELYN = 'N' AND DSCS_ATCL_ID IN (SELECT CX.DSCS_ATCL_ID FROM TB_LMS_DSCS_ATCL CX WHERE CX.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND CX.DELYN = 'N')) AS forumCmntCnt
+			   , CASE
+					WHEN C.DSCS_UNIT_TYCD != 'TEAM' AND C.OKNOK_STNGYN = 'Y'
+					THEN NVL((SELECT B.OKNOK_GBNCD FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND B.RGTR_ID = A.USER_ID AND B.DELYN = 'N' AND ROWNUM = 1), '-')
+					ELSE '-'
+				 END AS oknokGbnCd
+			   , 'N' AS evalRsltOpenYn, '' AS evalStartDttm, '' AS evalEndDttm
 			   , NVL(TO_CHAR(A.SCYR), '-') AS SCYR
-			   , NVL('-','-') ENTR_YY
-			   , NVL('-','-') ENTR_HY
-			   , NVL('-','-') ENTR_GBN
-			   , NVL('-','-') ENTR_GBN_NM
+			   , '-' AS ENTR_YY, '-' AS ENTR_HY, '-' AS ENTR_GBN, '-' AS ENTR_GBN_NM
 			   , A.DGRS_CRS_GBNCD
 			   , (SELECT MAX(CDNM) FROM TB_LMS_CMMN_CD WHERE CD = A.DGRS_CRS_GBNCD AND UP_CD = 'GDSC_DGRS_CRS_GBNCD') AS GRSC_DEGR_CORS_GBN_NM
 			FROM TB_LMS_ATNDLC A
-			JOIN TB_LMS_DSCS C
-			  ON C.DSCS_ID = #{forumCd}
-			 AND C.DELYN = 'N'
-			JOIN TB_LMS_USER U
-			  ON A.USER_ID = U.USER_ID
-			/* 참여자 테이블 조인 추가: DSCS_ID와 USER_ID 조건 */
-			LEFT JOIN TB_LMS_DSCS_PTCP P
-			  ON P.DSCS_ID = C.DSCS_ID
-			 AND P.USER_ID = A.USER_ID
-			/* 수강생 팀 매핑: C.LRN_GRP_ID 범위 내 수강생 팀 (IN 서브쿼리로 중복 행 방지) */
-			LEFT JOIN TB_LMS_TEAM_MBR TM
-			  ON TM.USER_ID = A.USER_ID
-			 AND TM.TEAM_ID IN (SELECT T.TEAM_ID FROM TB_LMS_TEAM T WHERE T.LRN_GRP_ID = C.LRN_GRP_ID)
-			/* byteamDscsUseyn='Y' 일 때 팀별 자식 DSCS 조인 */
-			LEFT JOIN TB_LMS_DSCS CD
-			  ON CD.UP_DSCS_ID = C.DSCS_ID
-			 AND CD.TEAM_ID    = TM.TEAM_ID
-			 AND CD.DELYN      = 'N'
+			JOIN TB_LMS_DSCS C ON C.DSCS_ID = #{forumCd} AND C.DELYN = 'N'
+			JOIN TB_LMS_USER U ON A.USER_ID = U.USER_ID
+
+			/* ORA-01799 해결: 인라인 뷰를 사용하여 팀 정보 조인 */
+			LEFT JOIN (
+				SELECT
+					M.USER_ID,
+					M.TEAM_ID,
+					M.LDRYN,
+					T.TEAMNM,
+					T.LRN_GRP_ID
+				FROM TB_LMS_TEAM_MBR M
+				JOIN TB_LMS_TEAM T ON M.TEAM_ID = T.TEAM_ID
+				/* 현재 토론의 학습그룹(LRN_GRP_ID) 내 팀만 선택하여 타 과목 팀 오매칭 방지 */
+				WHERE (M.USER_ID, M.TEAM_ID) IN (
+					SELECT MBR.USER_ID, MAX(MBR.TEAM_ID)
+					FROM TB_LMS_TEAM_MBR MBR
+					JOIN TB_LMS_TEAM TM2 ON MBR.TEAM_ID = TM2.TEAM_ID
+					WHERE TM2.LRN_GRP_ID = (
+						SELECT LRN_GRP_ID FROM TB_LMS_DSCS WHERE DSCS_ID = #{forumCd} AND DELYN = 'N' AND ROWNUM = 1
+					)
+					GROUP BY MBR.USER_ID
+				)
+			) TM ON TM.USER_ID = A.USER_ID AND TM.LRN_GRP_ID = C.LRN_GRP_ID
+			<if test='teamCd != null and teamCd != ""'>
+			   AND TM.TEAM_ID = #{teamCd}
+			</if>
+
+			LEFT JOIN TB_LMS_DSCS CD ON CD.UP_DSCS_ID = C.DSCS_ID AND CD.TEAM_ID = TM.TEAM_ID AND CD.DELYN = 'N'
+			LEFT JOIN TB_LMS_DSCS_PTCP P ON P.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND P.USER_ID = A.USER_ID
 			WHERE A.SBJCT_ID = #{crsCreCd}
-			   AND A.ATNDLC_STSCD = 'ATNDLC'
-			   AND A.AUDITYN = 'N'
+			  AND A.ATNDLC_STSCD = 'ATNDLC'
+			  AND A.AUDITYN = 'N'
 		) T
-		WHERE 1 = 1
-		<if test='searchKey != null and searchKey != "" and searchKey != "all"'>
-			<if test='searchKey == "joinY"'>
-			   AND actlCnt > 0
+		<where>
+			<if test='searchKey != null and searchKey != "" and searchKey != "all"'>
+				<choose>
+					<when test='searchKey == "joinY"'>AND actlCnt > 0</when>
+					<when test='searchKey == "joinN"'>AND actlCnt = 0</when>
+					<when test='searchKey == "leader"'>AND memberRole = 'Y'</when>
+					<when test='searchKey == "member"'>AND memberRole != 'Y'</when>
+				</choose>
 			</if>
-			<if test='searchKey == "joinN"'>
-			   AND actlCnt = 0
+			<if test='searchSort != null and searchSort != "" and searchSort != "all"'>
+				<choose>
+					<when test='searchSort == "evalY"'>AND scoreNull != '-'</when>
+					<when test='searchSort == "evalN"'>AND scoreNull = '-'</when>
+				</choose>
 			</if>
-			<if test='searchKey == "leader"'>
-			   AND T.memberRole = 'Y'
+			<if test="searchValue != null and searchValue != ''">
+				AND (
+					 LOWER(deptNm) LIKE '%' || LOWER(#{searchValue}) || '%'
+				   OR LOWER(userId) LIKE '%' || LOWER(#{searchValue}) || '%'
+				   OR LOWER(userNm) LIKE '%' || LOWER(#{searchValue}) || '%'
+				)
 			</if>
-			<if test='searchKey == "member"'>
-			   AND T.memberRole != 'Y'
-			</if>
-		</if>
-		<if test='searchSort != null and searchSort != "" and searchSort != "all"'>
-			<if test='searchSort == "evalY"'>
-			   AND T.scoreNull != '-'
-			</if>
-			<if test='searchSort == "evalN"'>
-			   AND T.scoreNull = '-'
-			</if>
-		</if>
-		<if test="searchValue != null and searchValue != ''">
-			AND (
-				  LOWER(deptNm) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
-			   OR LOWER(userId) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
-			   OR LOWER(userNm) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
-			)
-		</if>
+		</where>
 		ORDER BY LINE_NO ASC
 	</select>
 
@@ -359,44 +322,62 @@
 			, teamCd
 		FROM (
 			SELECT
-				A.USER_ID 			AS stdId
-				, NVL(C.SCR, 0) 	AS score
-				, (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = #{forumCd} AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' ) 	as atclCnt
-                , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
-					WHERE B.DELYN = 'N'
-                    AND B.USER_ID = A.USER_ID
-					AND DSCS_ATCL_ID IN (
-										SELECT CX.DSCS_ATCL_ID
-										FROM TB_LMS_DSCS_ATCL CX
-										WHERE CX.DSCS_ID = #{forumCd}
-										AND CX.DELYN = 'N'
-									)) AS cmntCnt
-				, C.TEAM_ID				AS teamCd
+			   A.USER_ID AS stdId
+			   , NVL(C.SCR, 0) AS score
+			   , C.TEAM_ID AS teamCd
+			   /* 결정된 targetDscsId를 사용하여 게시글 수 조회 */
+			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B
+				  WHERE B.DSCS_ID = NVL(TM_CD.CD_DSCS_ID, #{forumCd})
+					AND B.RGTR_ID = A.USER_ID
+					AND B.DELYN = 'N') AS atclCnt
+			   /* 결정된 targetDscsId를 사용하여 댓글 수 조회 */
+			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
+				  JOIN TB_LMS_DSCS_ATCL AA ON B.DSCS_ATCL_ID = AA.DSCS_ATCL_ID
+				  WHERE AA.DSCS_ID = NVL(TM_CD.CD_DSCS_ID, #{forumCd})
+					AND B.RGTR_ID = A.USER_ID
+					AND B.DELYN = 'N') AS cmntCnt
+			   /* 필터링을 위한 USER_ID 유지 */
+			   , A.USER_ID
 			FROM TB_LMS_ATNDLC A
-				LEFT JOIN TB_LMS_DSCS_PTCP C
-					ON A.USER_ID = C.USER_ID
-					AND C.DSCS_ID = #{forumCd}
+
+			/* [해결책] ORA-01799 방지: 사용자별 자식 토론 ID를 미리 매칭해두는 인라인 뷰 */
+			LEFT JOIN (
+				SELECT
+					TM2.USER_ID,
+					CD2.DSCS_ID AS CD_DSCS_ID
+				FROM TB_LMS_DSCS CD2
+				JOIN TB_LMS_TEAM_MBR TM2 ON TM2.TEAM_ID = CD2.TEAM_ID
+				WHERE CD2.UP_DSCS_ID = #{forumCd}
+				  AND CD2.DELYN = 'N'
+			) TM_CD ON A.USER_ID = TM_CD.USER_ID
+
+			/* 참여 정보 조인: 위에서 매칭된 자식 ID가 있으면 그것을, 없으면 부모 ID를 사용 */
+			LEFT JOIN TB_LMS_DSCS_PTCP C
+			  ON A.USER_ID = C.USER_ID
+			  AND C.DSCS_ID = NVL(TM_CD.CD_DSCS_ID, #{forumCd})
+
 			WHERE A.SBJCT_ID = #{crsCreCd}
-				AND ATNDLC_STSCD = 'ATNDLC'
-		)T
-		WHERE 1 = 1
-		<if test='conditionType != null and conditionType != ""'>
-			<if test='conditionType == "checked"'>
-				AND USER_ID IN
-				<foreach collection="stdIdList" item="item" index="index" separator="," open="(" close=")">
-					#{item}
-				</foreach>
+			  AND A.ATNDLC_STSCD = 'ATNDLC'
+		) T
+		<where>
+			<if test='conditionType != null and conditionType != ""'>
+				<if test='conditionType == "checked"'>
+				   AND USER_ID IN
+				   <foreach collection="stdIdList" item="item" index="index" separator="," open="(" close=")">
+					  #{item}
+				   </foreach>
+				</if>
+				<if test='conditionType == "joinY"'>
+				   AND ( atclCnt > 0 OR cmntCnt > 0 )
+				</if>
+				<if test='conditionType == "joinN"'>
+				   AND ( atclCnt = 0 AND cmntCnt = 0 )
+				</if>
 			</if>
-			<if test='conditionType == "joinY"'>
-				AND ( atclCnt > 0 or  cmntCnt > 0 )
+			<if test='stdId != null and stdId != ""'>
+				AND USER_ID = #{stdId}
 			</if>
-			<if test='conditionType == "joinN"'>
-				AND ( atclCnt = 0 and  cmntCnt = 0 )
-			</if>
-		</if>
-		<if test='stdId != null and stdId != ""'>
-			AND USER_ID = #{stdId}
-		</if>
+		</where>
 	</select>
 
 	<select id="selectForumJoinUser" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">

@@ -127,7 +127,7 @@ public class AsmtController extends ControllerBase {
     @ResponseBody
     public ProcessResultVO<AsmtVO> profAsmtMrkOynModifyAjax(HttpServletRequest request, HttpServletResponse response, ModelMap model, AsmtVO vo) throws Exception {
         vo.setMdfrId(SessionInfo.getUserId(request));
-        return asmtService.MrkOynModify(vo);
+        return asmtService.mrkOynModify(vo);
     }
 
     /**
@@ -148,7 +148,36 @@ public class AsmtController extends ControllerBase {
             throw new BadRequestUrlException(getMessage("common.system.error"));
         }
 
-        return "asmt2/prof_asmt_write";
+        model.addAttribute("mode", "A");    // 수정: E, 등록: A
+        model.addAttribute("asmtVO", asmtVO);
+
+        return "asmt2/prof_asmt_write_view";
+    }
+
+    /**
+     * 교수 과제수정 화면
+     *
+     * @param request
+     * @param model
+     * @param vo
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value="/profAsmtModifyView.do")
+    public String profAsmtModifyView(HttpServletRequest request, ModelMap model, AsmtVO vo) throws Exception {
+        String sbjctId = vo.getSbjctId();
+        String asmtId = vo.getAsmtId();
+
+        if(ValidationUtils.isEmpty(sbjctId) || ValidationUtils.isEmpty(asmtId)) {
+            // 시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        EgovMap asmtVO = (EgovMap) asmtService.asmtSelect(vo).getReturnVO();
+        model.addAttribute("mode", "E");    // 수정: E, 등록: A
+        model.addAttribute("asmtVO", asmtVO);
+
+        return "asmt2/prof_asmt_write_view";
     }
 
     /**

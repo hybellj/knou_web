@@ -26,7 +26,7 @@
         var ATCL_ID         = '<c:out value="${bbsAtclVO.atclId}" />';
         var ATCL_OPTN_ID    = '<c:out value="${bbsAtclVO.atclOptnId}" />';
         var TEMPLATE_URL    = '<c:out value="${templateUrl}" />';
-        var EPARAM          = '<c:out value="${eparam}" />';
+        var EPARAM          = '<c:out value="${encParams}" />';
         var MODE            = '<c:out value="${mode}" />';
 
         var editor;         // 에디터 객체
@@ -82,10 +82,10 @@
             PAGE_INDEX = pageIndex;
             var extData = { pageIndex: pageIndex, listScale: LIST_SCALE, bbsId: BBS_ID, atclId: ATCL_ID };
             var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclGrpNtcList.do";
-            var data = { eparam: EPARAM, extParam: UiComm.makeExtParam(extData) };
+            var data = { encParams: EPARAM, extParam: UiComm.makeExtParam(extData) };
 
             ajaxCall(url, data, function(data) {
-                if (data.eparam != null && data.eparam != '') { EPARAM = data.eparam; }
+                if (data.encParams != null && data.encParams != '') { EPARAM = data.encParams; }
                 if (data.result > 0) {
                     var dataList = createAtclListHTML(data.returnList || [], data.pageInfo);
 
@@ -251,7 +251,7 @@
 
             var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclSbjctRegist.do";
             var data = $("#bbsAtclSbjctWriteForm").serialize();
-			var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsSbjctListView.do?eparam=${eparam}";
+			var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsSbjctListView.do?encParams=${encParams}";
 
 			bbsCommon.regist(url, returnUrl, data);
         }
@@ -277,7 +277,7 @@
         }
 
         function bbsAtclListMove() {
-            document.location.href = "/bbs/" + TEMPLATE_URL +"/bbsSbjctListView.do?eparam=${eparam}";
+            document.location.href = "/bbs/" + TEMPLATE_URL +"/bbsSbjctListView.do?encParams=${encParams}";
         }
     </script>
 </head>

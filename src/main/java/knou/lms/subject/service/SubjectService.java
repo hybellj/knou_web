@@ -13,7 +13,7 @@ public interface SubjectService {
 
     public SubjectVO subjectSelect(BaseParam param) throws Exception;
     
-    public SubjectVO subjectSelect(String	subjectId) throws Exception;
+    public SubjectVO subjectSelect(String	sbjctId) throws Exception;
 
     public List<EgovMap> subjectLearningActvList(BaseParam param) throws Exception;
 
@@ -21,7 +21,7 @@ public interface SubjectService {
 
     public List<EgovMap> sbjctAdmList(BaseParam param) throws Exception;
     
-    public List<EgovMap> sbjctAdmList(String subjectId) throws Exception;
+    public List<EgovMap> sbjctAdmList(String sbjctId) throws Exception;
 
     public EgovMap middleLastExamSelect(BaseParam param) throws Exception;
 
@@ -31,7 +31,7 @@ public interface SubjectService {
 	
 	public List<EgovMap> stdntSubjectSummaryList(BaseParam param) throws Exception;
 
-	public boolean hasSubjectAuthority(String subjectId, UserContext userCtx) throws Exception;
+	public boolean hasSubjectAuthority(String sbjctId, UserContext userCtx) throws Exception;
 
 	public LectureWknoScheduleVO currLctrWknoSchdlSelect(String sbjctId) throws Exception;
 

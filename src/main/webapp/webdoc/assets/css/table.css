@@ -233,6 +233,7 @@ a.link { display: inline-block; position: relative; z-index: 0; -webkit-transiti
 .board_card_list .bottom_button { display: flex; flex-direction: row; flex-grow: initial; gap: .3rem; padding: 0 !important; margin-top: 1.5rem;}
 .board_card_list .bottom_button .btn { display: flex; flex: 1; flex-basis: auto; color: var(--text-dark-0); border: 1px solid var(--text-dark-6); align-items: center; gap: .6rem; justify-content: center; transition: all .2s; }
 .board_card_list .bottom_button .go i { width: 1.8rem; height: 1.8rem; }
+
 @media(max-width:1280px) {
 	.board_card_list { grid-template-columns: repeat(3, 1fr);  }
 }

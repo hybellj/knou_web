@@ -93,7 +93,7 @@
     		$("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
 
     		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclSave.do";
-    		var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclListView.do?eparam=${eparam}";
+    		var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclListView.do?encParams=${encParams}";
     		var data = $("#atclWriteForm").serialize();
 
     		bbsCommon.regist(url, returnUrl, data);
@@ -112,7 +112,7 @@
 
     	// 목록화면 이동
     	function moveListPage() {
-    		document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
+    		document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?encParams=${encParams}";
     	}
 
     	function bbsAtclModifyForm() {
@@ -264,15 +264,15 @@
                             <div class="info-cnt">
                                 <div class="info_iconSet">
                                 	<c:forEach var="item" items="${subjectVM.subjectLearingActvList}">
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
-	                                    <a href="/asmt2/profAsmtListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>과제</span><div class="num_txt">${item.asmtCnt}</div></a>
-	                                    <a href="/forum2/forumLect/profForumListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>토론</span><div class="num_txt">${item.dscsCnt}</div></a>
-	                                    <a href="/smnr/profSmnrListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>세미나</span><div class="num_txt">${item.smnrCnt}</div></a>
-	                                    <a href="/quiz/profQuizListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>퀴즈</span><div class="num_txt">${item.quizCnt}</div></a>
-	                                    <a href="/srvy/profSrvyListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>설문</span><div class="num_txt">${item.srvyCnt}</div></a>
-	                                    <a href="/exam/profExamListView.do?subjectId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>
+	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
+	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
+	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
+	                                    <a href="/asmt2/profAsmtListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>과제</span><div class="num_txt">${item.asmtCnt}</div></a>
+	                                    <a href="/forum2/forumLect/profForumListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>토론</span><div class="num_txt">${item.dscsCnt}</div></a>
+	                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>세미나</span><div class="num_txt">${item.smnrCnt}</div></a>
+	                                    <a href="/quiz/profQuizListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>퀴즈</span><div class="num_txt">${item.quizCnt}</div></a>
+	                                    <a href="/srvy/profSrvyListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>설문</span><div class="num_txt">${item.srvyCnt}</div></a>
+	                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>
                                     </c:forEach>
                                 </div>
                                 <div class="info-set">
@@ -429,7 +429,7 @@
                         <!--table-type-->
 						<div class="table-wrap">
 							<form id="atclWriteForm" name="atclWriteForm" onsubmit="return false;">
-								<input type="hidden" name="eparam"       id="eparam"       value="${eparam}" />
+								<input type="hidden" name="encParams"    id="encParams"    value="${encParams}" />
 								<input type="hidden" name="gubun"        id="gubun"        value="${bbsAtclVO.gubun}" />
 								<input type="hidden" name="uploadFiles"  id="uploadFiles"  value="" />
 								<input type="hidden" name="uploadPath"   id="uploadPath"   value="${bbsVO.uploadPath}" />

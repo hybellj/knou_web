@@ -234,7 +234,7 @@
         $.ajax({
             url: CTX + "/cls/selectStdntElemSbmsnLog.do",
             type: "GET", dataType: "json",
-            data: { cntntsId: cntntsId, userId: userId, elemType: elemType },
+            data: { sbjctId: sbjctId, cntntsId: cntntsId, userId: userId, elemType: elemType },
             success: function (res) {
                 var $tbody = $("#sbmsnBody_" + idx).empty();
                 var list   = res && res.returnList ? res.returnList : [];

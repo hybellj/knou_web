@@ -23,7 +23,7 @@
 		var ATCL_OPTN_ID 	= '<c:out value="${bbsAtclVO.atclOptnId}" />';
 		var TAB 			= '<c:out value="${param.tab}" />';
 		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
-		var EPARAM			= '<c:out value="${eparam}" />';
+		var EPARAM			= '<c:out value="${encParams}" />';
 		var ATCL_LV 		= 2;
 
 		$(document).ready(function() {
@@ -49,9 +49,9 @@
         // 게시글 목록 이동
         function bbsAtclListMove(mode) {
             if(mode == 'U') {
-            	document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsSbjctRegistView.do?eparam=${eparam}&atclId=" + ATCL_ID + "&atclOptnId=" + ATCL_OPTN_ID +"&mode=" + mode;
+            	document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsSbjctRegistView.do?encParams=${encParams}&atclId=" + ATCL_ID + "&atclOptnId=" + ATCL_OPTN_ID +"&mode=" + mode;
             } else {
-        		document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?eparam=${eparam}";
+        		document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?encParams=${encParams}";
             }
         };
 
@@ -61,7 +61,7 @@
     		.then(function(result) {
     			if (result) {
     				var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
-        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?eparam=${eparam}";
+        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?encParams=${encParams}";
         			var data = {
     					bbsId: BBS_ID,
     					atclId	: ATCL_ID
@@ -250,7 +250,7 @@
 		// 게시글 > 댓글 등록
 		function bbsAtclCmntRegist() {
     		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclCmntRegist.do";
-    		var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsSbjctView.do?eparam=${eparam}";
+    		var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsSbjctView.do?encParams=${encParams}";
 			var data = $(".recmt_form").serialize();
 
 			bbsCommon.regist(url, returnUrl, data);
@@ -295,7 +295,7 @@
 		        bbsId: bbsId
 		    };
 
-		    var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctView.do?eparam=${eparam}";
+		    var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctView.do?encParams=${encParams}";
 		    bbsCommon.regist(url, returnUrl, data);
 		}
 
@@ -310,7 +310,7 @@
         				atclId : ATCL_ID,
     					atclCmntId : atclCmntId
     				};
-        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctView.do?eparam=${eparam}";
+        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctView.do?encParams=${encParams}";
 
         			bbsCommon.regist(url, returnUrl, data);
     			}
@@ -458,7 +458,7 @@
 
             var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclCmntRegist.do";
             var data = $form.serialize();
-            var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctView.do?eparam=${eparam}";
+            var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctView.do?encParams=${encParams}";
 
             // 기존 공통 등록 함수 사용
             bbsCommon.regist(url, returnUrl, data);

@@ -11,9 +11,12 @@ import org.apache.commons.lang.SerializationUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import knou.framework.util.CommonBeanUtils;
 import knou.framework.util.RedisUtil;
 import knou.framework.util.SessionUtil;
 import knou.framework.util.StringUtil;
+import knou.lms.bbs.service.BbsInfoService;
+import knou.lms.bbs.vo.BbsVO;
 import knou.lms.crs.home.service.CrsHomeMenuService;
 import knou.lms.crs.home.vo.CrsHomeBbsMenuVO;
 import knou.lms.crs.home.vo.CrsHomeMenuVO;
@@ -31,6 +34,7 @@ public class MenuInfo {
 
     // 새버전 메뉴 정보 맵
     private static Map<String, List<MenuVO>> MENU_INFO_MAP = null;
+    private static String BBS_SBJCT_MENU = "/bbs/bbsLect/bbsAtclListView.do";
 
     public static HashMap<String, Integer> COURSE_BBS_VERSION_MAP = null;
     public static String COURSE_BBS_SID_PREFIX = "MNBBS:";
@@ -433,9 +437,16 @@ public class MenuInfo {
     private static void loadLectMenuInfo(HttpServletRequest request, MenuVO vo) throws Exception {
         ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(request.getSession().getServletContext());
         SysMenuService sysMenuService = (SysMenuService)applicationContext.getBean("sysMenuService");
+        BbsInfoService bbsInfoService = (BbsInfoService)applicationContext.getBean("bbsInfoService");
 
         // 강의실 메뉴 목록 조회
         List<MenuVO> lectMenuList = sysMenuService.selectLectMenuList(vo);
+
+        // 강의실 게시판 목록 조회
+        BbsVO bbsVO = new BbsVO();
+        bbsVO.setSbjctId(vo.getSbjctId());
+        List<BbsVO> bbsList = bbsInfoService.selectBbsForSbjctMenu(bbsVO);
+
         Map<String, MenuVO> tmpMap = new HashMap<>();
         List<MenuVO> menuList = new ArrayList<>();
         Map<String, List<MenuVO>> menuMap = new HashMap<>();
@@ -447,7 +458,22 @@ public class MenuInfo {
 
         for(MenuVO menuVO : lectMenuList) {
         	if ("ROOT".equals(StringUtil.nvl(menuVO.getUpMenuId(),"ROOT"))) {
-        		menuList.add(menuVO);
+        		// 메뉴목록에 과목 게시판 추가
+        		if ("BBS".equals(menuVO.getMenuTycd())) {
+        			if (bbsList != null && bbsList.size() > 0) {
+	        			for (BbsVO menuBbsVO : bbsList) {
+		        			MenuVO bbsMenuVO = new MenuVO();
+		        			CommonBeanUtils.copyProperties(bbsMenuVO,  menuVO);
+		        			bbsMenuVO.setMenuId(menuBbsVO.getBbsId());
+		        			bbsMenuVO.setMenunm(menuBbsVO.getBbsNm());
+		        			bbsMenuVO.setMenuUrl(BBS_SBJCT_MENU+"?bbsId="+menuBbsVO.getBbsId());
+		        			menuList.add(bbsMenuVO);
+	        			}
+        			}
+        		}
+        		else {
+        			menuList.add(menuVO);
+        		}
         	}
         	else {
         		MenuVO parent = tmpMap.get(menuVO.getUpMenuId());

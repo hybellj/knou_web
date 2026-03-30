@@ -17,6 +17,10 @@ import java.util.stream.IntStream;
 import java.util.ArrayList;
 import java.util.Map;
 
+/**
+ * 전체수업현황 Service 구현체
+ */
+
 @Service("clsService")
 public class ClsServiceImpl extends ServiceBase implements ClsService {
 
@@ -26,17 +30,32 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     private ClsDAO clsDAO;
 
     /*****************************************************
-     * 주차 필터가 없을 때 기본 주차 목록을 설정한다.
+     * 과목 주차 수를 기준으로 주차 목록 기본값을 설정한다.
+     * - wkList 가 비어 있으면 과목 상세를 조회하여 실제 주차 수만큼 세팅한다.
+     * - 과목 조회 실패 또는 주차 수 0 이하인 경우 15주를 기본값으로 사용한다.
      * @param ClsStdntVO
      ******************************************************/
-    private void setDefaultWkList(ClsStdntVO vo) {
+    private void setDefaultWkList(ClsStdntVO vo) throws Exception {
         if (vo.getWkList() == null || vo.getWkList().isEmpty()) {
-            vo.setWkList(IntStream.rangeClosed(1, 15).boxed().collect(Collectors.toList()));
+            int wkCnt = 15;
+
+            if (vo.getSbjctId() != null && !vo.getSbjctId().isEmpty()) {
+                ClsVO clsVO = new ClsVO();
+                clsVO.setSbjctId(vo.getSbjctId());
+                clsVO.setOrgId(vo.getOrgId());
+
+                ClsVO detail = clsDAO.selectClsDetail(clsVO);
+                if (detail != null && detail.getWkCnt() > 0) {
+                    wkCnt = detail.getWkCnt();
+                }
+            }
+
+            vo.setWkList(IntStream.rangeClosed(1, wkCnt).boxed().collect(Collectors.toList()));
         }
     }
 
     /*****************************************************
-     * 과목 상세 정보를 조회한다.
+     * 과목 상세 정보를 조회한다. (과목명/분반/전체 주차 수 등)
      * @param ClsVO
      * @return ClsVO
      * @throws Exception
@@ -58,7 +77,7 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 전체 수업현황 목록 건수를 조회한다.
+     * 전체수업현황 운영과목 목록 건수를 조회한다.
      * @param ClsVO
      * @return int
      * @throws Exception
@@ -69,18 +88,7 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 전체 수업현황 목록을 조회한다.
-     * @param ClsVO
-     * @return List<ClsVO>
-     * @throws Exception
-     ******************************************************/
-    @Override
-    public List<ClsVO> selectClsList(ClsVO vo) throws Exception {
-        return clsDAO.selectClsList(vo);
-    }
-
-    /*****************************************************
-     * 전체 수업현황 목록을 페이징 조회한다.
+     * 전체수업현황 운영과목 목록을 페이징 조회한다.
      * @param ClsVO
      * @return ProcessResultVO<ClsVO>
      * @throws Exception
@@ -101,7 +109,6 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
             out.setPageInfo(pi);
             out.setResult(1);
         } catch (Exception e) {
-            // 페이징 조회 실패 로그 출력
             LOGGER.error("[selectClsListPaging] fail, vo={}", vo, e);
             out.setResult(-1);
             out.setMessage("에러가 발생하였습니다.");
@@ -110,7 +117,18 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 운영 과목 드롭다운 목록을 조회한다.
+     * 전체수업현황 운영과목 전체 목록을 조회한다. (엑셀 다운로드용)
+     * @param ClsVO
+     * @return List<ClsVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<ClsVO> selectClsList(ClsVO vo) throws Exception {
+        return clsDAO.selectClsList(vo);
+    }
+
+    /*****************************************************
+     * 운영과목 드롭다운 목록을 조회한다.
      * @param ClsVO
      * @return List<ClsVO>
      * @throws Exception
@@ -133,30 +151,8 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 수강생 주차별 학습현황 목록을 조회한다.
-     * @param ClsStdntVO
-     * @return List<ClsStdntVO>
-     * @throws Exception
-     ******************************************************/
-    @Override
-    public List<ClsStdntVO> selectClsStdntList(ClsStdntVO vo) throws Exception {
-        setDefaultWkList(vo);
-
-        List<ClsStdntVO> list = clsDAO.selectClsStdntList(vo);
-        List<ClsWkStsVO> wkStsList = clsDAO.selectClsStdntWkStsList(vo);
-
-        Map<String, List<ClsWkStsVO>> wkStsMap = wkStsList.stream()
-                .collect(Collectors.groupingBy(ClsWkStsVO::getUserId));
-
-        for (ClsStdntVO item : list) {
-            item.setWkStsList(wkStsMap.getOrDefault(item.getUserId(), new ArrayList<>()));
-        }
-
-        return list;
-    }
-
-    /*****************************************************
      * 수강생 주차별 학습현황 목록을 페이징 조회한다.
+     * - 주차별 학습상태 목록을 userId 기준으로 묶어 학생 목록에 세팅한다.
      * @param ClsStdntVO
      * @return ProcessResultVO<ClsStdntVO>
      * @throws Exception
@@ -178,18 +174,17 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
             List<ClsStdntVO> list = clsDAO.selectClsStdntListPaging(vo);
             List<ClsWkStsVO> wkStsList = clsDAO.selectClsStdntWkStsList(vo);
 
+            // 주차별 학습상태 목록을 userId 기준으로 묶어 학생 목록에 세팅
             Map<String, List<ClsWkStsVO>> wkStsMap = wkStsList.stream()
                     .collect(Collectors.groupingBy(ClsWkStsVO::getUserId));
-
             for (ClsStdntVO item : list) {
                 item.setWkStsList(wkStsMap.getOrDefault(item.getUserId(), new ArrayList<>()));
             }
-            // 주차별 학습상태 목록을 userId 기준으로 묶어 학생 목록에 세팅
+
             out.setReturnList(list);
             out.setPageInfo(pi);
             out.setResult(1);
         } catch (Exception e) {
-            // 페이징 조회 실패 로그 출력
             LOGGER.error("[selectClsStdntListPaging] fail, vo={}", vo, e);
             out.setResult(-1);
             out.setMessage("에러가 발생하였습니다.");
@@ -198,7 +193,44 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 주차별 미학습 비율을 조회한다.
+     * 수강생 주차별 학습현황 전체 목록을 조회한다. (엑셀 다운로드용)
+     * - 주차별 학습상태 목록을 userId 기준으로 묶어 학생 목록에 세팅한다.
+     * @param ClsStdntVO
+     * @return List<ClsStdntVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<ClsStdntVO> selectClsStdntList(ClsStdntVO vo) throws Exception {
+        setDefaultWkList(vo);
+
+        List<ClsStdntVO> list = clsDAO.selectClsStdntList(vo);
+        List<ClsWkStsVO> wkStsList = clsDAO.selectClsStdntWkStsList(vo);
+
+        // 주차별 학습상태 목록을 userId 기준으로 묶어 학생 목록에 세팅
+        Map<String, List<ClsWkStsVO>> wkStsMap = wkStsList.stream()
+                .collect(Collectors.groupingBy(ClsWkStsVO::getUserId));
+        for (ClsStdntVO item : list) {
+            item.setWkStsList(wkStsMap.getOrDefault(item.getUserId(), new ArrayList<>()));
+        }
+
+        return list;
+    }
+
+    /*****************************************************
+     * 수강생별 주차 학습상태 목록을 조회한다.
+     * - selectClsStdntListPaging 조회 후 userId 기준으로 그룹핑하여 세팅한다.
+     * @param ClsStdntVO
+     * @return List<ClsWkStsVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<ClsWkStsVO> selectClsStdntWkStsList(ClsStdntVO vo) throws Exception {
+        return clsDAO.selectClsStdntWkStsList(vo);
+    }
+
+    /*****************************************************
+     * 주차별 미학습자 비율을 조회한다.
+     * - 주차별 수업현황 상단의 미학습자 비율 테이블에 사용된다.
      * @param ClsVO
      * @return List<ClsWklyStatsVO>
      * @throws Exception
@@ -209,14 +241,43 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 특정 주차 미학습자 목록을 조회한다.
-     * @param ClsStdntVO
-     * @return List<ClsStdntVO>
+     * 학습요소 참여현황 목록을 페이징 조회한다.
+     * @param ClsElemStatsVO
+     * @return ProcessResultVO<ClsElemStatsVO>
      * @throws Exception
      ******************************************************/
     @Override
-    public List<ClsStdntVO> selectClsNoStudyWeek(ClsStdntVO vo) throws Exception {
-        return clsDAO.selectClsNoStudyWeek(vo);
+    public ProcessResultVO<ClsElemStatsVO> selectClsElemStatsListPaging(ClsElemStatsVO vo) throws Exception {
+        ProcessResultVO<ClsElemStatsVO> out = new ProcessResultVO<>();
+        try {
+            PagingInfo pi = new PagingInfo();
+            pi.setCurrentPageNo(vo.getPageIndex());
+            pi.setRecordCountPerPage(vo.getListScale());
+            pi.setPageSize(vo.getPageScale());
+            vo.setFirstIndex(pi.getFirstRecordIndex());
+            vo.setLastIndex(pi.getLastRecordIndex());
+            int totCnt = clsDAO.selectClsElemStatsListCnt(vo);
+            pi.setTotalRecordCount(totCnt);
+            out.setReturnList(clsDAO.selectClsElemStatsListPaging(vo));
+            out.setPageInfo(pi);
+            out.setResult(1);
+        } catch (Exception e) {
+            LOGGER.error("[selectClsElemStatsListPaging] fail, vo={}", vo, e);
+            out.setResult(-1);
+            out.setMessage("에러가 발생하였습니다.");
+        }
+        return out;
+    }
+
+    /*****************************************************
+     * 학습요소 참여현황 전체 목록을 조회한다. (엑셀 다운로드용)
+     * @param ClsElemStatsVO
+     * @return List<ClsElemStatsVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<ClsElemStatsVO> selectClsElemStatsListExcelDown(ClsElemStatsVO vo) throws Exception {
+        return clsDAO.selectClsElemStatsList(vo);
     }
 
     /*****************************************************
@@ -231,29 +292,19 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 학습요소 참여현황 전체 목록을 조회한다.
-     * @param ClsElemStatsVO
-     * @return List<ClsElemStatsVO>
-     * @throws Exception
-     ******************************************************/
-    @Override
-    public List<ClsElemStatsVO> selectClsElemStatsListExcelDown(ClsElemStatsVO vo) throws Exception {
-        return clsDAO.selectClsElemStatsList(vo);
-    }
-
-    /*****************************************************
-     * 수강생별 주차 학습상태 목록을 조회한다.
+     * 특정 주차 미학습자 목록을 조회한다.
+     * - 학습 이력이 없는 수강생(완전 미접속)도 미학습자로 포함한다.
      * @param ClsStdntVO
-     * @return List<ClsWkStsVO>
+     * @return List<ClsStdntVO>
      * @throws Exception
      ******************************************************/
     @Override
-    public List<ClsWkStsVO> selectClsStdntWkStsList(ClsStdntVO vo) throws Exception {
-        return clsDAO.selectClsStdntWkStsList(vo);
+    public List<ClsStdntVO> selectClsNoStudyWeek(ClsStdntVO vo) throws Exception {
+        return clsDAO.selectClsNoStudyWeek(vo);
     }
 
     /*****************************************************
-     * 수강생 상세 정보를 조회한다.
+     * 수강생 상세 정보를 조회한다. (기관/이름/학번/연락처/이메일)
      * @param ClsStdntInfoVO
      * @return ClsStdntInfoVO
      * @throws Exception
@@ -264,7 +315,26 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 수강생 접속현황 차트 데이터를 조회한다.
+     * 학습자 주차별 출결 단건 정보를 조회한다.
+     * @param ClsStdntVO
+     * @return ClsStdntVO
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ClsStdntVO selectClsStdntWeeklyInfo(ClsStdntVO vo) throws Exception {
+        setDefaultWkList(vo);
+
+        ClsStdntVO result = clsDAO.selectClsStdntWeeklyInfo(vo);
+        if (result != null) {
+            List<ClsWkStsVO> wkStsList = clsDAO.selectClsStdntWkStsList(vo);
+            result.setWkStsList(wkStsList);
+        }
+        return result;
+    }
+
+    /*****************************************************
+     * 수강생 일별 강의실 접속현황 차트 데이터를 조회한다.
+     * - 지난달 / 해당 학습자 / 전체 평균 세 계열을 반환한다.
      * @param ClsAccessChartVO
      * @return List<ClsAccessChartVO>
      * @throws Exception
@@ -296,7 +366,6 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
             out.setPageInfo(pi);
             out.setResult(1);
         } catch (Exception e) {
-            // 페이징 조회 실패 로그 출력
             LOGGER.error("[selectStdntActivityLogPaging] fail, vo={}", vo, e);
             out.setResult(-1);
             out.setMessage("에러가 발생하였습니다.");
@@ -305,7 +374,7 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 수강생 활동로그 전체 목록을 조회한다.
+     * 수강생 활동로그 전체 목록을 조회한다. (엑셀 다운로드용)
      * @param ClsActivityLogVO
      * @return List<ClsActivityLogVO>
      * @throws Exception
@@ -317,6 +386,7 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
 
     /*****************************************************
      * 주차별 학습 요약 정보를 조회한다.
+     * - 출결상태/학습시간/학습기간/버튼 노출 여부(atndCertUseYn, lastWkYn) 포함
      * @param ClsWkLrnVO
      * @return ClsWkLrnVO
      * @throws Exception
@@ -327,7 +397,7 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 학습 항목 목록을 조회한다.
+     * 주차별 차시 목록을 조회한다.
      * @param ClsWkLrnVO
      * @return List<ClsChsiLrnVO>
      * @throws Exception
@@ -338,7 +408,7 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 학습 로그를 조회한다.
+     * 차시별 3분 단위 학습로그를 조회한다.
      * @param ClsLrnLogVO
      * @return List<ClsLrnLogVO>
      * @throws Exception
@@ -349,7 +419,7 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 출석 처리를 수행한다.
+     * 출석 처리를 수행한다. (LRN_STSCD → ATND, 이전값 BFR_LRN_STSCD 에 백업)
      * @param ClsWkLrnVO
      * @return int
      * @throws Exception
@@ -360,7 +430,7 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 출석 처리를 취소한다.
+     * 출석 처리를 취소한다. (LRN_STSCD → BFR_LRN_STSCD 롤백)
      * @param ClsWkLrnVO
      * @return int
      * @throws Exception
@@ -371,7 +441,7 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 학습요소 제출 목록을 조회한다.
+     * 학습요소 제출 목록을 조회한다. (elemType: ASMT/QUIZ/QNA/SRVY/DSCC)
      * @param ClsWkLrnVO
      * @return List<ClsChsiLrnVO>
      * @throws Exception
@@ -382,7 +452,8 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * 학습요소 제출 로그를 조회한다.
+     * 학습요소 제출 이력을 조회한다.
+     * - 과제: 파일명/크기, 퀴즈: 점수/정오답, QNA/설문/토론: 내용 요약
      * @param ClsAsmtSbmsnLogVO
      * @return List<ClsAsmtSbmsnLogVO>
      * @throws Exception
@@ -392,51 +463,13 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
         return clsDAO.selectStdntElemSbmsnLog(vo);
     }
 
-    /*****************************************************
-     * 학습자 주차별 학습현황 단건 정보를 조회한다.
-     * @param ClsStdntVO
-     * @return ClsStdntVO
-     * @throws Exception
-     ******************************************************/
-    @Override
-    public ClsStdntVO selectClsStdntWeeklyInfo(ClsStdntVO vo) throws Exception {
-        // 주차 리스트 기본값 설정
-        setDefaultWkList(vo);
-        return clsDAO.selectClsStdntWeeklyInfo(vo);
-    }
+
+    /* ================================================================
+       공통 접근 권한 체크
+       ================================================================ */
 
     /*****************************************************
-     * 학습요소 참여현황 목록을 페이징 조회한다.
-     * @param ClsElemStatsVO
-     * @return ProcessResultVO<ClsElemStatsVO>
-     * @throws Exception
-     ******************************************************/
-    @Override
-    public ProcessResultVO<ClsElemStatsVO> selectClsElemStatsListPaging(ClsElemStatsVO vo) throws Exception {
-        ProcessResultVO<ClsElemStatsVO> out = new ProcessResultVO<>();
-        try {
-            PagingInfo pi = new PagingInfo();
-            pi.setCurrentPageNo(vo.getPageIndex());
-            pi.setRecordCountPerPage(vo.getListScale());
-            pi.setPageSize(vo.getPageScale());
-            vo.setFirstIndex(pi.getFirstRecordIndex());
-            vo.setLastIndex(pi.getLastRecordIndex());
-            int totCnt = clsDAO.selectClsElemStatsListCnt(vo);
-            pi.setTotalRecordCount(totCnt);
-            out.setReturnList(clsDAO.selectClsElemStatsListPaging(vo));
-            out.setPageInfo(pi);
-            out.setResult(1);
-        } catch (Exception e) {
-            // 페이징 조회 실패 로그 출력
-            LOGGER.error("[selectClsElemStatsListPaging] fail, vo={}", vo, e);
-            out.setResult(-1);
-            out.setMessage("에러가 발생하였습니다.");
-        }
-        return out;
-    }
-
-    /*****************************************************
-     * cls 학생 접근 가능 여부를 체크한다.
+     * 해당 학습자가 과목 수강생인지 확인한다. (0이면 접근 불가)
      * @param ClsWkLrnVO
      * @return int
      * @throws Exception
@@ -447,7 +480,7 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     }
 
     /*****************************************************
-     * cls 주차 스케줄 접근 가능 여부를 체크한다.
+     * 해당 주차 스케줄이 존재하는지 확인한다. (0이면 접근 불가)
      * @param ClsWkLrnVO
      * @return int
      * @throws Exception
@@ -456,4 +489,5 @@ public class ClsServiceImpl extends ServiceBase implements ClsService {
     public int checkClsWkSchdlAccessCnt(ClsWkLrnVO vo) throws Exception {
         return clsDAO.checkClsWkSchdlAccessCnt(vo);
     }
+
 }

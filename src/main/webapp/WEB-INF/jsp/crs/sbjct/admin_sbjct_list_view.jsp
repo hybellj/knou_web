@@ -12,7 +12,7 @@
         var SEARCH_VALUE	= '<c:out value="${param.searchValue}" />';
         var PAGE_INDEX		= '<c:out value="${sbjctListVO.pageIndex}" />';
         var LIST_SCALE		= '<c:out value="${sbjctListVO.listScale}" />';
-        var EPARAM			= '<c:out value="${eparam}" />';
+        var EPARAM			= '<c:out value="${encParams}" />';
 
         $(document).ready(function() {
             // 최초 조회

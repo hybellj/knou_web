@@ -343,12 +343,13 @@
             ctsHtml = v.cts;
         }
         var delBadge = (v.delYn == "Y")
-            ? " <span class=\"ui red label p4 f080\">[삭제됨]</span>"
+            ? " <span class=\"fcBlue mr5\">[삭제됨]</span>"
             : '';
         return [
             "<div class='cont'>",
-            "    " + ctsHtml + delBadge,
-            "</div>"
+            "    " + ctsHtml,
+            "</div>",
+            delBadge
         ].join('');
     }
 

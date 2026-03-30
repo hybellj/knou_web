@@ -99,6 +99,7 @@ aside.common.class .class-title { padding: 1rem 0 0rem 2.2rem; font-size: 2rem; 
     scollbar-width: thin;
     scrollbar-width: none;
 	} */
+aside.common.class .scrollarea {min-height: calc(100% - 180px); }
 aside.common.class .scrollarea::-webkit-scrollbar { width: 4px; }
 aside.common.class .scrollarea::-webkit-scrollbar-thumb { background-color: var(--white-40); border-radius: 10px; }
 aside.common.class .scrollarea::-webkit-scrollbar-track { background-color: hsla(0, 0%, 0%, 0.2); border-radius: 10px; }

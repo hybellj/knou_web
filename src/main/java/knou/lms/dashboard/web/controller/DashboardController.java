@@ -163,98 +163,98 @@ public class DashboardController extends ControllerBase {
     private DashboardFacadeService dashboardFacadeService;
 
 
-//    @SuppressWarnings("unchecked")
-//    @RequestMapping(value = "/main.do")
-//    public String main(HttpServletRequest request, HttpServletResponse response, ModelMap model, RedirectAttributes redirect) throws Exception {
-//        String userType = SessionInfo.getAuthrtCd(request);
-//        String userId = SessionInfo.getUserId(request);
-//        String userAcntId = SessionInfo.getUserRprsId(request);
-//        String type = StringUtil.nvl(request.getParameter("type"));
-//        String chgOrgId = StringUtil.nvl(request.getParameter("orgId"));
-//        String chgUserId = StringUtil.nvl(request.getParameter("userId"));
-//
-//        // 언어설정
-//        String language = StringUtil.nvl(request.getParameter("language"));
-//        if (!"".equals(language) && !"".equals(StringUtil.nvl(userId))) {
-//            LocaleUtil.setLocale(request, language);
-//            //SessionInfo.setSysLocalkey(request, language);
-//
-//            //개인환경설정 저장
-//            UsrUserInfoVO userInfo = new UsrUserInfoVO();
-//            userInfo.setUserRprsId(userAcntId);
-//            userInfo.setUserId(userId);
-//            UsrUserInfoVO infoVO = usrUserInfoService.viewUser(userInfo);
-//            String conf = StringUtil.nvl(infoVO.getUserConf());
-//
-//            if (StringUtil.isNull(conf)) {
-//                conf = "{}";
-//            }
-//
-//            JSONParser parser = new JSONParser();
-//            JSONObject jsonObject = (JSONObject) parser.parse(conf);
-//            jsonObject.put("lang", language);
-//            infoVO.setUserConf(jsonObject.toJSONString());
-//
-//            usrUserInfoService.updateUserConf(infoVO);
-//        }
-//
-//        String menuType = SessionInfo.getAuthrtGrpcd(request);
-//        String returnUri = "";
-//        boolean reloginChk = true;
-//
-//
-//        if (menuType.contains("ADM")) {
-//            // 관리자
-//            returnUri = "/adminDashboard.do";
-//        } else if (menuType.contains("PROF")) {
-//            //교수
-//            returnUri = "/profDashboard.do";
-//        } else {
-//            String loginGbn = SessionInfo.getLoginGbn(request);
-//            String chk = CommConst.LOGINGBN_CHECK_YN;
-//
-//            // 테스트용 예외처리(임시)_....
-//            if ("2023201349".equals(userId)) {
-//                reloginChk = false;
-//            }
-//
-//            // SSO 일반로그인인 경우 학생은 다시 로그인하도록 전달
-//            if (!SessionInfo.isVirtualLogin(request)
-//                    && reloginChk && "Y".equals(chk) && "0".equals(loginGbn)) {
-//                Locale locale = LocaleUtil.getLocale(request);
-//                request.getSession().invalidate();
-//                request.getSession().setAttribute("relogin", "true");
-//                LocaleUtil.setLocale(request, locale.toString());
-//                return "redirect:/";
-//            } else {
-//                //학생
-//                returnUri = "/stuDashboard.do";
-//            }
-//        }
-//
-//        // 기관 사용자 변경인 경우
-//        if ("change".equals(type) && !"".equals(StringUtil.nvl(userId))) {
-//            List<UsrUserInfoVO> userRltnList = SessionInfo.getUserRltnList(request);
-//
-//            if (userRltnList != null && userRltnList.size() > 0) {
-//                for (UsrUserInfoVO user : userRltnList) {
-//                    if (chgUserId.equals(user.getUserId())) {
-//                        SessionInfo.setUserId(request, chgUserId);
-//                        SessionInfo.setUserNm(request, user.getUserNm());
-//                        SessionInfo.setOrgId(request, user.getOrgId());
-//                        SessionInfo.setAuthrtGrpcd(request, user.getAuthrtGrpcd());
-//                        SessionInfo.setAuthrtCd(request, user.getWwwAuthrtCd());
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//
-//        System.out.println("returnUri>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>=" + returnUri);
-//
-//
-//        return "redirect:/dashboard" + returnUri;
-//    }
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/main.do")
+    public String main(HttpServletRequest request, HttpServletResponse response, ModelMap model, RedirectAttributes redirect) throws Exception {
+        String userType = SessionInfo.getAuthrtCd(request);
+        String userId = SessionInfo.getUserId(request);
+        String userAcntId = SessionInfo.getUserRprsId(request);
+        String type = StringUtil.nvl(request.getParameter("type"));
+        String chgOrgId = StringUtil.nvl(request.getParameter("orgId"));
+        String chgUserId = StringUtil.nvl(request.getParameter("userId"));
+
+        // 언어설정
+        String language = StringUtil.nvl(request.getParameter("language"));
+        if (!"".equals(language) && !"".equals(StringUtil.nvl(userId))) {
+            LocaleUtil.setLocale(request, language);
+            //SessionInfo.setSysLocalkey(request, language);
+
+            //개인환경설정 저장
+            UsrUserInfoVO userInfo = new UsrUserInfoVO();
+            userInfo.setUserRprsId(userAcntId);
+            userInfo.setUserId(userId);
+            UsrUserInfoVO infoVO = usrUserInfoService.viewUser(userInfo);
+            String conf = StringUtil.nvl(infoVO.getUserConf());
+
+            if (StringUtil.isNull(conf)) {
+                conf = "{}";
+            }
+
+            JSONParser parser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) parser.parse(conf);
+            jsonObject.put("lang", language);
+            infoVO.setUserConf(jsonObject.toJSONString());
+
+            usrUserInfoService.updateUserConf(infoVO);
+        }
+
+        String menuType = SessionInfo.getAuthrtGrpcd(request);
+        String returnUri = "";
+        boolean reloginChk = true;
+
+
+        if (menuType.contains("ADM")) {
+            // 관리자
+            returnUri = "/adminDashboard.do";
+        } else if (menuType.contains("PROF")) {
+            //교수
+            returnUri = "/profDashboard.do";
+        } else {
+            String loginGbn = SessionInfo.getLoginGbn(request);
+            String chk = CommConst.LOGINGBN_CHECK_YN;
+
+            // 테스트용 예외처리(임시)_....
+            if ("2023201349".equals(userId)) {
+                reloginChk = false;
+            }
+
+            // SSO 일반로그인인 경우 학생은 다시 로그인하도록 전달
+            if (!SessionInfo.isVirtualLogin(request)
+                    && reloginChk && "Y".equals(chk) && "0".equals(loginGbn)) {
+                Locale locale = LocaleUtil.getLocale(request);
+                request.getSession().invalidate();
+                request.getSession().setAttribute("relogin", "true");
+                LocaleUtil.setLocale(request, locale.toString());
+                return "redirect:/";
+            } else {
+                //학생
+                returnUri = "/stuDashboard.do";
+            }
+        }
+
+        // 기관 사용자 변경인 경우
+        if ("change".equals(type) && !"".equals(StringUtil.nvl(userId))) {
+            List<UsrUserInfoVO> userRltnList = SessionInfo.getUserRltnList(request);
+
+            if (userRltnList != null && userRltnList.size() > 0) {
+                for (UsrUserInfoVO user : userRltnList) {
+                    if (chgUserId.equals(user.getUserId())) {
+                        SessionInfo.setUserId(request, chgUserId);
+                        SessionInfo.setUserNm(request, user.getUserNm());
+                        SessionInfo.setOrgId(request, user.getOrgId());
+                        SessionInfo.setAuthrtGrpcd(request, user.getAuthrtGrpcd());
+                        SessionInfo.setAuthrtCd(request, user.getWwwAuthrtCd());
+                        break;
+                    }
+                }
+            }
+        }
+
+        System.out.println("returnUri>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>=" + returnUri);
+
+
+        return "redirect:/dashboard" + returnUri;
+    }
 
     @GetMapping("/adminDashboardMain.do")
     public String main(HttpServletRequest request, HttpServletResponse response, DashboardAdminVO vo, ModelMap model) throws Exception {

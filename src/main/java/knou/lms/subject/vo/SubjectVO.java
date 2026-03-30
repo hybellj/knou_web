@@ -13,7 +13,7 @@ public class SubjectVO extends DefaultVO {
 
     private static final long serialVersionUID = -1164386279694378535L;
 
-    private String subjectId;
+    private String sbjctId;
     private String profId;
     private String sbjctRefTycd;
     private String crsMstrId;
@@ -74,12 +74,12 @@ public class SubjectVO extends DefaultVO {
 
     private int atndlcStdntCnt = 0;
 
-    public String getSubjectId() {
-        return subjectId;
+    public String getSbjctId() {
+        return sbjctId;
     }
 
-    public void setSubjectId(String subjectId) {
-        this.subjectId = subjectId;
+    public void setSbjctId(String sbjctId) {
+        this.sbjctId = sbjctId;
     }
 
     public String getProfId() {

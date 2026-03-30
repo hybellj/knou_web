@@ -260,7 +260,7 @@
                     <!-- ASIS 주차목록 -->
                     <!-- TOBE 강의일정목록조회 강의일정주차목록조회-->
                     <c:import url="/profLectureScheduleList.do">
-                        <c:param name="subjectId" value="${subjectId}"/>
+                        <c:param name="sbjctId" value="${sbjctId}"/>
                     </c:import>
 
                 </div>

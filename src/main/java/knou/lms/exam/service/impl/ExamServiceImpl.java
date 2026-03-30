@@ -293,6 +293,106 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     }
 
     /*****************************************************
+     * 교수 시험대체 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listProfSbstPaging(ExamVO vo) throws Exception{
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countProfSbst(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listProfSbstPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 교수 시험대체 대상자 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listProfSbstUserPaging(ExamVO vo) throws Exception{
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countProfSbstUser(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listProfSbstUserPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 교수 시험 결시자 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listProfAbsnceUserPaging(ExamVO vo) throws Exception{
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countProfAbsnceUser(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listProfAbsnceUserPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 교수 시험 결시자 목록 조회
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    public List<EgovMap> listProfAbsnceUser(Map<String, Object> params) throws Exception {
+        return examDAO.listProfAbsnceUser(params);
+    }
+
+    /*****************************************************
      * 성적 공개여부 수정
      * @param vo
      * @throws Exception

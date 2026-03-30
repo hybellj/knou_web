@@ -95,7 +95,7 @@ public class AsmtServiceImpl extends EgovAbstractServiceImpl implements AsmtServ
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<AsmtVO> MrkOynModify(AsmtVO vo) throws Exception {
+    public ProcessResultVO<AsmtVO> mrkOynModify(AsmtVO vo) throws Exception {
         ProcessResultVO<AsmtVO> resultVO = new ProcessResultVO<AsmtVO>();
 
         try {
@@ -107,6 +107,22 @@ public class AsmtServiceImpl extends EgovAbstractServiceImpl implements AsmtServ
             resultVO.setResult(-1);
             resultVO.setMessage("수정하지 못하였습니다.");
         }
+        return resultVO;
+    }
+
+    /**
+     * 과제 조회
+     *
+     * @param asmtVO
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public ProcessResultVO<AsmtVO> asmtSelect(AsmtVO asmtVO) throws Exception {
+        ProcessResultVO<AsmtVO> resultVO = new ProcessResultVO<AsmtVO>();
+
+        EgovMap rvo = asmtDAO.asmtSelect(asmtVO);
+        resultVO.setReturnVO(rvo);
         return resultVO;
     }
 }

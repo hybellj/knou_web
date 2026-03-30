@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-
-
 /**
  * 전체수업현황 Controller
  * 화면ID : KNOU_MN_B0102060101, KNOU_MN_B0102060102
@@ -56,9 +54,15 @@ public class ClsController extends ControllerBase {
     @Resource(name = "orgCodeService")
     private OrgCodeService orgCodeService;
 
-    /*****************************************************
-     * B0102060101 - 전체수업현황 목록 화면
-     ******************************************************/
+    /**
+     * 전체수업현황 목록 화면
+     *
+     * @param vo
+     * @param model
+     * @param request
+     * @return std/cls_list
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectClsListView.do")
     public String selectClsListView(ClsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
@@ -111,7 +115,6 @@ public class ClsController extends ControllerBase {
         model.addAttribute("subjectList", clsService.selectClsSubjectList(vo));
         model.addAttribute("resultList", resultVO.getReturnList());
         model.addAttribute("pageInfo", resultVO.getPageInfo());
-
         model.addAttribute("yearList", DateTimeUtil.getYearList(10, "mix"));
         model.addAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
         model.addAttribute("vo", vo);
@@ -119,9 +122,14 @@ public class ClsController extends ControllerBase {
         return "std/cls_list";
     }
 
-    /*****************************************************
-     * B0102060101 - 전체수업현황 목록 조회 (Ajax, 페이징)
-     ******************************************************/
+    /**
+     * 전체수업현황 목록 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectClsListPaging.do")
     @ResponseBody
     public ProcessResultVO<ClsVO> selectClsListPaging(ClsVO vo, HttpServletRequest request) throws Exception {
@@ -158,6 +166,14 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
+    /**
+     * 운영과목 목록 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectClsSubjectList.do")
     @ResponseBody
     public ProcessResultVO<ClsVO> selectClsSubjectList(ClsVO vo, HttpServletRequest request) throws Exception {
@@ -174,9 +190,14 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
-     * B0102060101 - 과목 상세 단건 조회 (Ajax)
-     ******************************************************/
+    /**
+     * 과목 상세 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectClsDetail.do")
     @ResponseBody
     public ProcessResultVO<ClsVO> selectClsDetail(ClsVO vo, HttpServletRequest request) throws Exception {
@@ -197,9 +218,15 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
-     * B0102060102 - 수강생 주차별 학습현황 화면
-     ******************************************************/
+    /**
+     * 주차별 수업현황 화면
+     *
+     * @param vo
+     * @param model
+     * @param request
+     * @return std/cls_weekly
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectClsStdntListView.do")
     public String selectClsStdntListView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
@@ -211,14 +238,19 @@ public class ClsController extends ControllerBase {
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
 
         int wkCnt = resolveWkCnt(vo.getSbjctId(), sessionOrgId);
-        model.addAttribute("wkCnt", wkCnt); //주차 동적 공통
+        model.addAttribute("wkCnt", wkCnt);
 
         return "std/cls_weekly";
     }
 
-    /*****************************************************
-     * B0102060102 - 수강생 주차별 학습현황 목록 조회 (Ajax, 페이징)
-     ******************************************************/
+    /**
+     * 주차별 학습현황 목록 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsStdntVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectClsStdntListPaging.do")
     @ResponseBody
     public ProcessResultVO<ClsStdntVO> selectClsStdntListPaging(ClsStdntVO vo, HttpServletRequest request) throws Exception {
@@ -248,127 +280,27 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
-     * B0102060102 - 주차별 미학습자 비율 조회 (Ajax)
-     ******************************************************/
-    @RequestMapping(value = "/selectClsWklyStats.do")
-    @ResponseBody
-    public ProcessResultVO<ClsWklyStatsVO> selectClsWklyStats(ClsVO vo, HttpServletRequest request) throws Exception {
-
-        ProcessResultVO<ClsWklyStatsVO> resultVO = new ProcessResultVO<>();
-
-        vo.setOrgId(SessionInfo.getOrgId(request));
-
-        try {
-            List<ClsWklyStatsVO> list = clsService.selectClsWklyStats(vo);
-            resultVO.setReturnList(list);
-            resultVO.setResultSuccess();
-        } catch (Exception e) {
-            LOGGER.error("[selectClsWklyStats] fail, vo={}", vo, e);
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());
-        }
-        return resultVO;
-    }
-
-    /*****************************************************
-     * B0102060102 - 특정 주차 미학습자 목록 조회 (Ajax)
-     ******************************************************/
-    @RequestMapping(value = "/selectClsNoStudyWeek.do")
-    @ResponseBody
-    public ProcessResultVO<ClsStdntVO> selectClsNoStudyWeek(ClsStdntVO vo, HttpServletRequest request) throws Exception {
-
-        ProcessResultVO<ClsStdntVO> resultVO = new ProcessResultVO<>();
-
-        vo.setOrgId(SessionInfo.getOrgId(request));
-
-        try {
-            List<ClsStdntVO> list = clsService.selectClsNoStudyWeek(vo);
-            resultVO.setReturnList(list);
-            resultVO.setResultSuccess();
-        } catch (Exception e) {
-            LOGGER.error("[selectClsNoStudyWeek] fail, vo={}", vo, e);
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());
-        }
-        return resultVO;
-    }
-
-    /*****************************************************
-     * 특정 주차 미학습자 팝업 화면
-     ******************************************************/
-    @RequestMapping(value = "/selectNotLrnnPopupView.do")
-    public String selectNotLrnnPopupView(ClsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        model.addAttribute("sbjctId", request.getParameter("sbjctId"));
-        model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
-        model.addAttribute("wkNo", request.getParameter("wkNo"));
-        return "std/popup/cls_notlrnn_popup";
-    }
-
-    /*****************************************************
-     * 수강생 주차별 학습현황 팝업 화면
-     ******************************************************/
-    @RequestMapping(value = "/selectStdntWkPopupView.do")
-    public String selectStdntWkPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        String sbjctId = request.getParameter("sbjctId");
-        int wkCnt = resolveWkCnt(sbjctId, SessionInfo.getOrgId(request));
-
-        model.addAttribute("wkCnt", wkCnt);
-        model.addAttribute("sbjctId", sbjctId);
-        model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
-        model.addAttribute("userId", request.getParameter("userId"));
-        model.addAttribute("wkNo", request.getParameter("wkNo"));
-
-
-        return "std/popup/cls_stdnt_lrn_popup";
-    }
-
-
-    /*****************************************************
-     * 학습요소 제출/참여현황 팝업 화면
-     ******************************************************/
-    @RequestMapping(value = "/selectStdntElemPopupView.do")
-    public String selectStdntElemPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        model.addAttribute("sbjctId", request.getParameter("sbjctId"));
-        model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
-        model.addAttribute("userId", request.getParameter("userId"));
-        return "std/popup/cls_stdnt_element_popup";
-    }
-    /*****************************************************
+    /**
+     * 주차별 학습현황 엑셀 다운로드
      *
-     ******************************************************/
-    private int resolveWkCnt(String sbjctId, String orgId) throws Exception {
-        if (ValidationUtils.isEmpty(sbjctId)) {
-            return 15;
-        }
-
-        ClsVO clsVO = new ClsVO();
-        clsVO.setSbjctId(sbjctId);
-        clsVO.setOrgId(orgId);
-
-        ClsVO detail = clsService.selectClsDetail(clsVO);
-        return (detail != null && detail.getWkCnt() > 0) ? detail.getWkCnt() : 15;
-    }
-
-    /*****************************************************
-     * B0102060102 - 수강생 주차별 학습현황 엑셀 다운로드
-     ******************************************************/
+     * @param vo
+     * @param model
+     * @param request
+     * @return excelView
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectClsStdntListExcelDown.do")
     public String downExcelClsStdntList(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         vo.setOrgId(SessionInfo.getOrgId(request));
         int wkCnt = resolveWkCnt(vo.getSbjctId(), SessionInfo.getOrgId(request));
 
-        // wkNo 파싱 제거 (미학습자는 별도 메서드로 분리)
         if (vo.getWkList() == null || vo.getWkList().isEmpty()) {
-            vo.setWkList(IntStream.rangeClosed(1, wkCnt)
-                    .boxed()
-                    .collect(Collectors.toList()));
+            vo.setWkList(IntStream.rangeClosed(1, wkCnt).boxed().collect(Collectors.toList()));
         }
 
-        List<ClsStdntVO> list = clsService.selectClsStdntList(vo);  // 항상 주차별 목록만
-
-        String title = "주차별 학습현황";  // 항상 고정
+        List<ClsStdntVO> list = clsService.selectClsStdntList(vo);
+        String title = "주차별 학습현황";
 
         List<ListOrderedMap> newList = new ArrayList<>();
         for (ClsStdntVO item : list) {
@@ -389,11 +321,7 @@ public class ClsController extends ControllerBase {
 
             for (int w = 1; w <= wkCnt; w++) {
                 String sts = wkMap.getOrDefault(w, "-");
-                String stsText =
-                        "ATND".equals(sts) ? "○" :
-                                "LATE".equals(sts) ? "△" :
-                                        "ABSNT".equals(sts) ? "X" : "-";
-                // ATND/LATE/ABSNT -> ○/△/X 변환
+                String stsText = "ATND".equals(sts) ? "○" : "LATE".equals(sts) ? "△" : "ABSNT".equals(sts) ? "X" : "-";
                 orderedMap.put("wk" + w + "Sts", stsText);
             }
             orderedMap.put("atndCnt", item.getAtndCnt());
@@ -419,51 +347,71 @@ public class ClsController extends ControllerBase {
         model.addAllAttributes(modelMap);
         return "excelView";
     }
-    /*****************************************************
-     * 미학습자 목록 엑셀 다운로드
-     ******************************************************/
-    @RequestMapping(value = "/selectClsNoStudyWeekExcelDown.do")
-    public String downExcelClsNoStudyWeek(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+    /**
+     * 주차별 미학습자 비율 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsWklyStatsVO>
+     * @throws Exception
+     */
+    @RequestMapping(value = "/selectClsWklyStats.do")
+    @ResponseBody
+    public ProcessResultVO<ClsWklyStatsVO> selectClsWklyStats(ClsVO vo, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ClsWklyStatsVO> resultVO = new ProcessResultVO<>();
 
         vo.setOrgId(SessionInfo.getOrgId(request));
 
-        List<ClsStdntVO> list = clsService.selectClsNoStudyWeek(vo);
-
-        String title = vo.getWkNo() + "주차 미학습자";
-
-        List<ListOrderedMap> newList = new ArrayList<>();
-        for (ClsStdntVO item : list) {
-            ListOrderedMap orderedMap = new ListOrderedMap();
-            orderedMap.put("lineNo",  item.getLineNo());
-            orderedMap.put("deptnm",  item.getDeptnm());
-            orderedMap.put("stdntNo", item.getStdntNo());
-            orderedMap.put("usernm",  item.getUsernm());
-            orderedMap.put("entyR",   item.getEntyR());
-            orderedMap.put("scyr",    item.getScyr());
-            newList.add(orderedMap);
+        try {
+            List<ClsWklyStatsVO> list = clsService.selectClsWklyStats(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResultSuccess();
+        } catch (Exception e) {
+            LOGGER.error("[selectClsWklyStats] fail, vo={}", vo, e);
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());
         }
-
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("title",     title);
-        map.put("sheetName", title);
-        map.put("excelGrid", vo.getExcelGrid());
-        map.put("list",      newList);
-        map.put("ext",       ".xlsx(big)");
-
-        String currentDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        HashMap<String, Object> modelMap = new HashMap<>();
-        modelMap.put("outFileName", title + "_" + currentDate);
-
-        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
-        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
-
-        model.addAllAttributes(modelMap);
-        return "excelView";
+        return resultVO;
     }
 
-    /*****************************************************
-     * 학습요소 참여현황 목록 조회 (Ajax, 페이징)
-     ******************************************************/
+    /**
+     * 주차별 미학습자 목록 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsStdntVO>
+     * @throws Exception
+     */
+    @RequestMapping(value = "/selectClsNoStudyWeek.do")
+    @ResponseBody
+    public ProcessResultVO<ClsStdntVO> selectClsNoStudyWeek(ClsStdntVO vo, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ClsStdntVO> resultVO = new ProcessResultVO<>();
+
+        vo.setOrgId(SessionInfo.getOrgId(request));
+
+        try {
+            List<ClsStdntVO> list = clsService.selectClsNoStudyWeek(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResultSuccess();
+        } catch (Exception e) {
+            LOGGER.error("[selectClsNoStudyWeek] fail, vo={}", vo, e);
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());
+        }
+        return resultVO;
+    }
+
+    /**
+     * 학습요소 참여현황 목록 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsElemStatsVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectClsElemStats.do")
     @ResponseBody
     public ProcessResultVO<ClsElemStatsVO> selectClsElemStats(ClsElemStatsVO vo, HttpServletRequest request) throws Exception {
@@ -491,9 +439,15 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
+    /**
      * 학습요소 참여현황 엑셀 다운로드
-     ******************************************************/
+     *
+     * @param vo
+     * @param model
+     * @param request
+     * @return excelView
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectClsElemStatsExcelDown.do")
     public String selectClsElemStatsExcelDown(ClsElemStatsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
@@ -540,7 +494,6 @@ public class ClsController extends ControllerBase {
                         item.getMidLiveScore() != null ? item.getMidLiveScore()
                                 : item.getMidAltScore() != null ? item.getMidAltScore()
                                 : item.getMidEtcScore());
-
                 orderedMap.put("finalScore",
                         item.getFinalLiveScore() != null ? item.getFinalLiveScore()
                                 : item.getFinalAltScore() != null ? item.getFinalAltScore()
@@ -567,23 +520,119 @@ public class ClsController extends ControllerBase {
             return "excelView";
 
         } catch (Exception e) {
-            LOGGER.error("[ElemExcel] 엑셀 생성 실패", e);
+            LOGGER.error("[selectClsElemStatsExcelDown] 엑셀 생성 실패", e);
             throw e;
         }
     }
 
-    /*****************************************************
-     * 수강생 상세정보 단건 조회 (Ajax)
-     ******************************************************/
+    /**
+     * 미학습자 현황 팝업 화면
+     *
+     * @param vo
+     * @param model
+     * @param request
+     * @return std/popup/cls_notlrnn_popup
+     * @throws Exception
+     */
+    @RequestMapping(value = "/selectNotLrnnPopupView.do")
+    public String selectNotLrnnPopupView(ClsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        model.addAttribute("sbjctId", request.getParameter("sbjctId"));
+        model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
+        model.addAttribute("wkNo", request.getParameter("wkNo"));
+        return "std/popup/cls_notlrnn_popup";
+    }
+
+    /**
+     * 미학습자 목록 엑셀 다운로드
+     *
+     * @param vo
+     * @param model
+     * @param request
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value = "/selectClsNoStudyWeekExcelDown.do")
+    public String downExcelClsNoStudyWeek(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        vo.setOrgId(SessionInfo.getOrgId(request));
+
+        List<ClsStdntVO> list = clsService.selectClsNoStudyWeek(vo);
+
+        String title = vo.getWkNo() + "주차 미학습자";
+
+        List<ListOrderedMap> newList = new ArrayList<>();
+        for (ClsStdntVO item : list) {
+            ListOrderedMap orderedMap = new ListOrderedMap();
+            orderedMap.put("lineNo",  item.getLineNo());
+            orderedMap.put("deptnm",  item.getDeptnm());
+            orderedMap.put("stdntNo", item.getStdntNo());
+            orderedMap.put("usernm",  item.getUsernm());
+            orderedMap.put("entyR",   item.getEntyR());
+            orderedMap.put("scyr",    item.getScyr());
+            newList.add(orderedMap);
+        }
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title",     title);
+        map.put("sheetName", title);
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list",      newList);
+        map.put("ext",       ".xlsx(big)");
+
+        String currentDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", title + "_" + currentDate);
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+
+        model.addAllAttributes(modelMap);
+        return "excelView";
+    }
+
+    /**
+     * 학습자 학습현황 팝업 화면
+     *
+     * @param vo
+     * @param model
+     * @param request
+     * @return std/popup/cls_stdnt_lrn_popup
+     * @throws Exception
+     */
+    @RequestMapping(value = "/selectStdntWkPopupView.do")
+    public String selectStdntWkPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String sbjctId = request.getParameter("sbjctId");
+        int wkCnt = resolveWkCnt(sbjctId, SessionInfo.getOrgId(request));
+
+        model.addAttribute("wkCnt", wkCnt);
+        model.addAttribute("sbjctId", sbjctId);
+        model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
+        model.addAttribute("userId", request.getParameter("userId"));
+        model.addAttribute("wkNo", request.getParameter("wkNo"));
+
+        return "std/popup/cls_stdnt_lrn_popup";
+    }
+
+    /**
+     * 수강생 상세정보 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsStdntInfoVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectClsStdntInfo.do")
     @ResponseBody
-    public ProcessResultVO<ClsStdntInfoVO> selectClsStdntInfo(ClsStdntInfoVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ClsStdntInfoVO> selectClsStdntInfo(ClsStdntInfoVO vo, HttpServletRequest request) throws
+            Exception {
 
         ProcessResultVO<ClsStdntInfoVO> resultVO = new ProcessResultVO<>();
 
         vo.setOrgId(SessionInfo.getOrgId(request));
 
         try {
+            validateClsStdntAccess(vo.getSbjctId(), vo.getUserId(), vo.getOrgId());
+
             ClsStdntInfoVO result = clsService.selectClsStdntInfo(vo);
             resultVO.setReturnVO(result);
             resultVO.setResultSuccess();
@@ -595,9 +644,46 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
-     * 강의실 접속현황 일별 차트 데이터 조회 (Ajax)
-     ******************************************************/
+    /**
+     * 학습자 주차별 학습현황 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsStdntVO>
+     * @throws Exception
+     */
+    @RequestMapping(value = "/selectClsStdntWeeklyInfo.do")
+    @ResponseBody
+    public ProcessResultVO<ClsStdntVO> selectClsStdntWeeklyInfo(ClsStdntVO vo, HttpServletRequest request) throws
+            Exception {
+
+        ProcessResultVO<ClsStdntVO> resultVO = new ProcessResultVO<>();
+
+        vo.setOrgId(SessionInfo.getOrgId(request));
+
+        try {
+            validateClsStdntAccess(vo.getSbjctId(), vo.getUserId(), vo.getOrgId());
+
+            ClsStdntVO result = clsService.selectClsStdntWeeklyInfo(vo);
+            resultVO.setReturnVO(result);
+            resultVO.setResultSuccess();
+        } catch (Exception e) {
+            LOGGER.error("[selectClsStdntWeeklyInfo] fail, vo={}", vo, e);
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());
+        }
+
+        return resultVO;
+    }
+
+    /**
+     * 강의실 접속현황 차트 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsAccessChartVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectStdntAccessChart.do")
     @ResponseBody
     public ProcessResultVO<ClsAccessChartVO> selectStdntAccessChart(ClsAccessChartVO vo, HttpServletRequest request) throws Exception {
@@ -622,12 +708,18 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
-     * 강의실 활동기록 목록 조회 (Ajax, 페이징)
-     ******************************************************/
+    /**
+     * 강의실 활동기록 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsActivityLogVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectStdntActivityLog.do")
     @ResponseBody
-    public ProcessResultVO<ClsActivityLogVO> selectStdntActivityLog(ClsActivityLogVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ClsActivityLogVO> selectStdntActivityLog(ClsActivityLogVO vo, HttpServletRequest request)
+            throws Exception {
 
         ProcessResultVO<ClsActivityLogVO> resultVO = new ProcessResultVO<>();
 
@@ -638,6 +730,8 @@ public class ClsController extends ControllerBase {
         if (vo.getPageScale() <= 0)  vo.setPageScale(10);
 
         try {
+            validateClsStdntAccess(vo.getSbjctId(), vo.getUserId(), vo.getOrgId());
+
             resultVO = clsService.selectStdntActivityLogPaging(vo);
             if (resultVO.getResult() >= 0) {
                 resultVO.setResultSuccess();
@@ -653,13 +747,21 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
+    /**
      * 강의실 활동기록 엑셀 다운로드
-     ******************************************************/
+     *
+     * @param vo
+     * @param model
+     * @param request
+     * @return excelView
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectStdntActivityLogExcelDown.do")
     public String selectStdntActivityLogExcelDown(ClsActivityLogVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         vo.setOrgId(SessionInfo.getOrgId(request));
+
+        validateClsStdntAccess(vo.getSbjctId(), vo.getUserId(), vo.getOrgId());
 
         if (vo.getExcelGrid() == null || vo.getExcelGrid().trim().isEmpty()) {
             String defaultGrid =
@@ -705,9 +807,14 @@ public class ClsController extends ControllerBase {
         return "excelView";
     }
 
-    /*****************************************************
-     * 학습자 주차별 학습현황 팝업 View
-     ******************************************************/
+    /**
+     * 학습자 주차별 학습기록 팝업 화면
+     *
+     * @param model
+     * @param request
+     * @return std/popup/cls_stdnt_week_lrn_popup
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectStdntWkDetailPopupView.do")
     public String selectStdntWkDetailPopupView(ModelMap model, HttpServletRequest request) throws Exception {
         String sbjctId = request.getParameter("sbjctId");
@@ -722,13 +829,14 @@ public class ClsController extends ControllerBase {
         return "std/popup/cls_stdnt_week_lrn_popup";
     }
 
-    /*****************************************************
-     * 주차 학습 요약 + 차시 목록 + 학습 로그 조회 (Ajax)
-     * 주차 상세/출석처리 공통 접근 권한 검증
-     * - 과목 수강생 여부
-     * - 주차 일정 접근 가능 여부
-     * - requireSchdlId=true 인 경우 일정 아이디까지 검증
-     ******************************************************/
+    /**
+     * 주차별 학습요약 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsWkLrnVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectStdntWkLrnSummary.do")
     @ResponseBody
     public ProcessResultVO<ClsWkLrnVO> selectStdntWkLrnSummary(ClsWkLrnVO vo, HttpServletRequest request) throws Exception {
@@ -753,9 +861,51 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
-     * 출석 처리 (Ajax)
-     ******************************************************/
+    /**
+     * 학습로그 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsLrnLogVO>
+     * @throws Exception
+     */
+    @RequestMapping(value = "/selectStdntLrnLog.do")
+    @ResponseBody
+    public ProcessResultVO<ClsLrnLogVO> selectStdntLrnLog(ClsLrnLogVO vo, HttpServletRequest request) throws Exception {
+
+        ProcessResultVO<ClsLrnLogVO> resultVO = new ProcessResultVO<>();
+        vo.setOrgId(SessionInfo.getOrgId(request));
+
+        try {
+            ClsWkLrnVO accessVo = new ClsWkLrnVO();
+            accessVo.setOrgId(SessionInfo.getOrgId(request));
+            accessVo.setSbjctId(request.getParameter("sbjctId"));
+            accessVo.setUserId(vo.getUserId());
+
+            String wkNoStr = request.getParameter("wkNo");
+            accessVo.setWkNo(ValidationUtils.isEmpty(wkNoStr) ? 0 : Integer.parseInt(wkNoStr));
+
+            validateClsWkAccess(accessVo, false);
+
+            List<ClsLrnLogVO> list = clsService.selectStdntLrnLog(vo);
+            resultVO.setReturnList(list);
+            resultVO.setResultSuccess();
+        } catch (Exception e) {
+            LOGGER.error("[selectStdntLrnLog] fail, vo={}", vo, e);
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());
+        }
+        return resultVO;
+    }
+
+    /**
+     * 출석 처리
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<Object>
+     * @throws Exception
+     */
     @RequestMapping(value = "/updateAtndlcProcess.do")
     @ResponseBody
     public ProcessResultVO<Object> updateAtndlcProcess(ClsWkLrnVO vo, HttpServletRequest request) throws Exception {
@@ -781,9 +931,14 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
-     * 출석 처리 취소 (Ajax)
-     ******************************************************/
+    /**
+     * 출석 처리 취소
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<Object>
+     * @throws Exception
+     */
     @RequestMapping(value = "/updateAtndlcCancel.do")
     @ResponseBody
     public ProcessResultVO<Object> updateAtndlcCancel(ClsWkLrnVO vo, HttpServletRequest request) throws Exception {
@@ -808,15 +963,40 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
-     * 학습자 학습요소 참여현황 제출 목록 조회 (Ajax)
-     ******************************************************/
+    /**
+     * 학습요소 참여현황 팝업 화면
+     *
+     * @param vo
+     * @param model
+     * @param request
+     * @return std/popup/cls_stdnt_element_popup
+     * @throws Exception
+     */
+    @RequestMapping(value = "/selectStdntElemPopupView.do")
+    public String selectStdntElemPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        model.addAttribute("sbjctId", request.getParameter("sbjctId"));
+        model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
+        model.addAttribute("userId", request.getParameter("userId"));
+        return "std/popup/cls_stdnt_element_popup";
+    }
+
+    /**
+     * 학습요소 제출 목록 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsChsiLrnVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectStdntElemSbmsnList.do")
     @ResponseBody
-    public ProcessResultVO<ClsChsiLrnVO> selectStdntElemSbmsnList(ClsWkLrnVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ClsChsiLrnVO> selectStdntElemSbmsnList(ClsWkLrnVO vo, HttpServletRequest request) throws
+            Exception {
         ProcessResultVO<ClsChsiLrnVO> resultVO = new ProcessResultVO<>();
         vo.setOrgId(SessionInfo.getOrgId(request));
         try {
+            validateClsStdntAccess(vo.getSbjctId(), vo.getUserId(), vo.getOrgId());
+
             List<ClsChsiLrnVO> list = clsService.selectStdntElemSbmsnList(vo);
             resultVO.setReturnList(list);
             resultVO.setResultSuccess();
@@ -828,9 +1008,14 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
-     * 과제 제출기록 조회 (Ajax)
-     ******************************************************/
+    /**
+     * 학습요소 제출 이력 조회
+     *
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<ClsAsmtSbmsnLogVO>
+     * @throws Exception
+     */
     @RequestMapping(value = "/selectStdntElemSbmsnLog.do")
     @ResponseBody
     public ProcessResultVO<ClsAsmtSbmsnLogVO> selectStdntElemSbmsnLog(
@@ -841,6 +1026,8 @@ public class ClsController extends ControllerBase {
         vo.setOrgId(SessionInfo.getOrgId(request));
 
         try {
+            validateClsStdntAccess(vo.getSbjctId(), vo.getUserId(), vo.getOrgId());
+
             List<ClsAsmtSbmsnLogVO> list = clsService.selectStdntElemSbmsnLog(vo);
             resultVO.setReturnList(list);
             resultVO.setResultSuccess();
@@ -852,38 +1039,59 @@ public class ClsController extends ControllerBase {
         return resultVO;
     }
 
-    /*****************************************************
-     * 학습자 주차별 학습현황 단건 조회 (Ajax)
-     ******************************************************/
-    @RequestMapping(value = "/selectClsStdntWeeklyInfo.do")
-    @ResponseBody
-    public ProcessResultVO<ClsStdntVO> selectClsStdntWeeklyInfo(ClsStdntVO vo, HttpServletRequest request) throws Exception {
-
-        ProcessResultVO<ClsStdntVO> resultVO = new ProcessResultVO<>();
-
-        vo.setOrgId(SessionInfo.getOrgId(request));
-
-        try {
-            if (ValidationUtils.isEmpty(vo.getSbjctId()) || ValidationUtils.isEmpty(vo.getUserId())) {
-                throw new AccessDeniedException(getMessage("common.system.error"));
-            }
-
-            ClsStdntVO result = clsService.selectClsStdntWeeklyInfo(vo);
-
-            resultVO.setReturnVO(result);
-            resultVO.setResultSuccess();
-        } catch (Exception e) {
-            LOGGER.error("[selectClsStdntWeeklyInfo] fail, vo={}", vo, e);
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());
+    /**
+     * 과목 주차 수 조회
+     *
+     * @param sbjctId
+     * @param orgId
+     * @return int
+     * @throws Exception
+     */
+    private int resolveWkCnt(String sbjctId, String orgId) throws Exception {
+        if (ValidationUtils.isEmpty(sbjctId)) {
+            return 15;
         }
 
-        return resultVO;
+        ClsVO clsVO = new ClsVO();
+        clsVO.setSbjctId(sbjctId);
+        clsVO.setOrgId(orgId);
+
+        ClsVO detail = clsService.selectClsDetail(clsVO);
+        return (detail != null && detail.getWkCnt() > 0) ? detail.getWkCnt() : 15;
     }
 
-    /*****************************************************
-     * 학습 주차별 상세 조회 접근 권한 검증
-     ******************************************************/
+    /**
+     * 학습자 상세 조회 공통 접근 권한 검증
+     * - sbjctId, userId 필수값 검증
+     * - 해당 사용자가 해당 과목의 수강생인지 검증
+     *
+     * @param sbjctId
+     * @param userId
+     * @param orgId
+     * @throws Exception
+     */
+    private void validateClsStdntAccess(String sbjctId, String userId, String orgId) throws Exception {
+        if (ValidationUtils.isEmpty(sbjctId) || ValidationUtils.isEmpty(userId)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
+        }
+
+        ClsWkLrnVO accessVo = new ClsWkLrnVO();
+        accessVo.setSbjctId(sbjctId);
+        accessVo.setUserId(userId);
+        accessVo.setOrgId(orgId);
+
+        if (clsService.checkClsStdntAccessCnt(accessVo) <= 0) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
+        }
+    }
+
+    /**
+     * 주차 학습 접근 권한 검증
+     *
+     * @param vo
+     * @param requireSchdlId
+     * @throws Exception
+     */
     private void validateClsWkAccess(ClsWkLrnVO vo, boolean requireSchdlId) throws Exception {
         if (ValidationUtils.isEmpty(vo.getSbjctId())
                 || ValidationUtils.isEmpty(vo.getUserId())
@@ -902,38 +1110,6 @@ public class ClsController extends ControllerBase {
         if (clsService.checkClsWkSchdlAccessCnt(vo) <= 0) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
-    }
-
-    /*****************************************************
-     * 학습 주차별 차시 학습로그 조회 (Ajax)
-     * - 로그 조회 전 주차 상세와 동일한 접근 권한 검증 수행
-     * - cntntsId 조회는 ClsLrnLogVO, 접근 검증은 ClsWkLrnVO 기준으로 처리
-     ******************************************************/
-    @RequestMapping(value = "/selectStdntLrnLog.do")
-    @ResponseBody
-    public ProcessResultVO<ClsLrnLogVO> selectStdntLrnLog(ClsLrnLogVO vo, HttpServletRequest request) throws Exception {
-
-        ProcessResultVO<ClsLrnLogVO> resultVO = new ProcessResultVO<>();
-        vo.setOrgId(SessionInfo.getOrgId(request));
-
-        try {
-            ClsWkLrnVO accessVo = new ClsWkLrnVO();
-            accessVo.setOrgId(SessionInfo.getOrgId(request));
-            accessVo.setSbjctId(request.getParameter("sbjctId"));
-            accessVo.setUserId(vo.getUserId());
-
-            String wkNoStr = request.getParameter("wkNo");
-            accessVo.setWkNo(ValidationUtils.isEmpty(wkNoStr) ? 0 : Integer.parseInt(wkNoStr));
-
-            validateClsWkAccess(accessVo, false);
-
-            List<ClsLrnLogVO> list = clsService.selectStdntLrnLog(vo);
-        } catch (Exception e) {
-            LOGGER.error("[selectStdntLrnLog] fail, vo={}", vo, e);
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());
-        }
-        return resultVO;
     }
 
 }

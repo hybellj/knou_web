@@ -186,7 +186,7 @@ public class LctrPlandocController extends ControllerBase {
     @RequestMapping("/profLctrPlandocPopView.do")
     public String profLctrPlandocPopView(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {        
 
-    	String subjectId = request.getParameter("subjectId");
+    	String sbjctId = request.getParameter("sbjctId");
     	
     	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
     	if ( null == userCtx ) {
@@ -194,7 +194,7 @@ public class LctrPlandocController extends ControllerBase {
     		return "redirect:" + new URLBuilder("", "login.do",request).toString();
     	}
     	
-        LctrPlandocView lpv = lctrPlandocFacadeService.loadLctrPlandocView(userCtx, new LctrPlandocVO(subjectId));
+        LctrPlandocView lpv = lctrPlandocFacadeService.loadLctrPlandocView(userCtx, new LctrPlandocVO(sbjctId));
         
         model.addAttribute("subjectInfo", lpv.getSubjectInfo());
         model.addAttribute("profInfo", lpv.getProfInfo());

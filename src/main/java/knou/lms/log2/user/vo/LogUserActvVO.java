@@ -16,7 +16,7 @@ public class LogUserActvVO extends DefaultVO {
     private String userId;
 
     /** 교과목개설ID */
-    private String subjectId;
+    private String sbjctId;
 
     /** 요청유형코드 */
     private String reqTycd;
@@ -83,11 +83,11 @@ public class LogUserActvVO extends DefaultVO {
 	}
 
 	public String getSbjctId() {
-		return subjectId;
+		return sbjctId;
 	}
 
-	public void setSbjctId(String subjectId) {
-		this.subjectId = subjectId;
+	public void setSbjctId(String sbjctId) {
+		this.sbjctId = sbjctId;
 	}
 
 	public String getReqTycd() {

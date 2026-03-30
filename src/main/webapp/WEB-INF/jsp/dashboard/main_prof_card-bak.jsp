@@ -781,11 +781,7 @@
                                               </p>
 
                                               <p class="tit">
-<<<<<<< HEAD:knou_dev_web/src/main/webapp/WEB-INF/jsp/dashboard2/prof_dashboard_widget.jsp
-                                              <a href="/subject/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a>
-=======
-                                              <a href="/subject.do?subjectId=SBJCT20260001">자바 프로그래밍 초급</a>
->>>>>>> 55a9b3bffc1dcc2bc0d27807a6ec202c5a383ec0:knou_dev_web/src/main/webapp/WEB-INF/jsp/dashboard/main_prof_card-bak.jsp
+                                              	<a href="/subject.do?sbjctId=SBJCT20260001">자바 프로그래밍 초급</a>
                                               </p>
                                           </div>
                                       </div>
@@ -842,11 +838,7 @@
                                               <span class="info_txt">튜터 김하늘</span>
                                               <span class="info_txt">3학점</span>
                                           </p>
-<<<<<<< HEAD:knou_dev_web/src/main/webapp/WEB-INF/jsp/dashboard2/prof_dashboard_widget.jsp
-                                          <p class="tit"><a href="/subject/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
-=======
-                                          <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">AI와 빅데이터 경영입문 1반</a></p>
->>>>>>> 55a9b3bffc1dcc2bc0d27807a6ec202c5a383ec0:knou_dev_web/src/main/webapp/WEB-INF/jsp/dashboard/main_prof_card-bak.jsp
+                                          <p class="tit"><a href="/subject/subject.do?sbjctId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
                                       </div>
                                   </div>
                                   <div class="extra">
@@ -1117,11 +1109,7 @@
                                                   <span class="info_txt">튜터 김하늘</span>
                                                   <span class="info_txt">3학점</span>
                                               </p>
-<<<<<<< HEAD:knou_dev_web/src/main/webapp/WEB-INF/jsp/dashboard2/prof_dashboard_widget.jsp
-                                              <p class="tit"><a href="/subject/subject.do?subjectId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
-=======
-                                              <p class="tit"><a href="/subject.do?subjectId=SBJCT20260001">자바 프로그래밍 초급</a></p>
->>>>>>> 55a9b3bffc1dcc2bc0d27807a6ec202c5a383ec0:knou_dev_web/src/main/webapp/WEB-INF/jsp/dashboard/main_prof_card-bak.jsp
+                                              <p class="tit"><a href="/subject/subject.do?sbjctId=SBJCT20260001">데이터베이스의 이해와 활용</a></p>
                                           </div>
                                           <div class="extra">
                                               <div class="my_prog_rate">

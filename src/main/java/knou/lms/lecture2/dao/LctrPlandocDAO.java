@@ -18,7 +18,7 @@ public interface LctrPlandocDAO {
 
     public int lctrPlandocModify(LctrPlandocVO lctrPlandocVO) throws Exception;
 
-    public List<TxtbkVO> txtbkList(String subjectId) throws Exception;
+    public List<TxtbkVO> txtbkList(String sbjctId) throws Exception;
 
     public int txtbkRegist(TxtbkVO txtbkVO) throws Exception;
 

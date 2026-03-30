@@ -6,8 +6,8 @@ public class SubjectAdmVO implements Serializable  {
 	/** 과목관리 ID */
     private String sbjctAdmId;
 
-    /** 과목개설 ID */
-    private String subjectId;
+    /** 과목 ID */
+    private String sbjctId;
 
     /** 사용자 ID */
     private String userId;
@@ -21,11 +21,11 @@ public class SubjectAdmVO implements Serializable  {
 	}
 
 	public String getSbjctId() {
-		return subjectId;
+		return sbjctId;
 	}
 
-	public void setSbjctId(String subjectId) {
-		this.subjectId = subjectId;
+	public void setSbjctId(String sbjctId) {
+		this.sbjctId = sbjctId;
 	}
 
 	public String getUserId() {

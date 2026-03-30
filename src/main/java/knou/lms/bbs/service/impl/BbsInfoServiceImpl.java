@@ -620,4 +620,15 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
 
     	bbsInfoDAO.bbsInfoRegist(vo);
     }
+
+    /*****************************************************
+     * 강의실 메뉴의 게시판 목록 조회
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<BbsVO> selectBbsForSbjctMenu(BbsVO vo) throws Exception {
+    	return bbsInfoDAO.selectBbsForSbjctMenu(vo);
+    }
 }

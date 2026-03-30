@@ -436,8 +436,14 @@
                 if (!res || res.result !== 1 || !res.returnVO) return;
 
                 var d = res.returnVO;
+
+                var wkMap = {};
+                (d.wkStsList || []).forEach(function (x) {
+                    wkMap[x.wkNo] = x.atndSts;
+                });
+
                 for (var w = 1; w <= WK_CNT; w++) {
-                    var v = d['wk' + w + 'Sts'] || null;
+                    var v = wkMap[w] || null;
                     var html;
 
                     if (!v) {
@@ -453,7 +459,6 @@
                     }
                     $("#wkSts" + w).html(html);
                 }
-
                 $("#wkSummary").html(
                     '<span class="state_ok total_label" aria-label="출석">' + (d.atndCnt || 0) + '</span>'
                     + '<span class="state_late total_label" aria-label="지각">' + (d.lateCnt || 0) + '</span>'

@@ -29,8 +29,8 @@ import knou.framework.util.StringUtil;
 public class ControllerBase {
 	private static Log log = LogFactory.getLog(ControllerBase.class);
 
-	private String 					eparam; 		// 암호화 파라메터
-	private Map<String, Object>		eparamMap;		// 암호화 파라메터 Map
+	private String 					encParams; 		// 암호화 파라메터
+	private Map<String, Object>		encParamMap;	// 암호화 파라메터 Map
 	private HttpServletRequest 		request;
 	private HttpSession 			session;
 	private ModelMap 				modelMap;
@@ -68,29 +68,26 @@ public class ControllerBase {
 			this.session 		= request.getSession();
 			this.modelMap 		= modelMap;
 			this.message 		= new Message(request);
-			this.eparam 		= request.getParameter("encParam");
-			this.eparamMap 		= new HashMap<>();
-			String pageType		= request.getParameter("pageType");
+			this.encParams 		= request.getParameter("encParams");
+			this.encParamMap 	= new HashMap<>();
 			String referer 		= request.getHeader("referer");
 			String uri			= request.getRequestURI();
 			String type 		= "";
 			boolean isMain		= false;
-			String upMenuId		= StringUtil.nvl(request.getParameter("upMenuId"));
-			String menuId		= StringUtil.nvl(request.getParameter("menuId"));
 
 			// 암호화 파라메터가 있는 경우 값을 VO에 세팅
 			if (paramVO != null) {
 				// 암호화 파라메터 VO에 설정
-				if (this.eparam != null && !"".equals(this.eparam)) {
-					Map<String, Object> paramMap = JsonUtil.jsonToMap(SecureUtil.decodeStr(this.eparam));
-					setEparamMapToVO(paramMap, paramVO, true);
+				if (this.encParams != null && !"".equals(this.encParams)) {
+					Map<String, Object> paramMap = JsonUtil.jsonToMap(SecureUtil.decodeStr(this.encParams));
+					setEncParamMapToVO(paramMap, paramVO, true);
 				}
 
 				// 추가 파라메터 VO에 설정
 				String extParam = request.getParameter("extParam");
 				if (extParam != null && !"".equals(extParam)) {
 					Map<String, Object> paramMap = JsonUtil.jsonToMap(SecureUtil.decodeStr(extParam));
-					setEparamMapToVO(paramMap, paramVO, true);
+					setEncParamMapToVO(paramMap, paramVO, true);
 				}
 			}
 
@@ -107,7 +104,7 @@ public class ControllerBase {
 			if (referer.indexOf("/mainTabpage.do") > -1 && !isMain) {
 				type = "iframe";
 				SessionUtil.setSessionValue(request, "PAGE_TYPE", type);
-				addEparam("pageType", "iframe");
+				addEncParam("pageType", "iframe");
 			}
 
 			String bodyClass = "";
@@ -115,29 +112,16 @@ public class ControllerBase {
 				bodyClass = "iframeBody";
 			}
 
-			modelMap.addAttribute("eparam", this.eparam);
 			//modelMap.addAttribute("pageType", type);
 			//modelMap.addAttribute("bodyClass", bodyClass);
 
-			if (!"".equals(upMenuId)) {
-				//modelMap.addAttribute("curUpMenuId", upMenuId);
-				modelMap.addAttribute("curMenuId", menuId);
-			}
-			if (!"".equals(menuId)) {
-				//modelMap.addAttribute("curUpMenuId", upMenuId);
-				modelMap.addAttribute("curMenuId", menuId);
-			}
-
-			modelMap.addAttribute("eparamMap", this.eparamMap);
+			modelMap.addAttribute("curUpMenuId", StringUtil.nvl(encParamMap.get("upMenuId")));
+			modelMap.addAttribute("curMenuId", StringUtil.nvl(encParamMap.get("menuId")));
+			modelMap.addAttribute("encParams", this.encParams);
 
 			SessionUtil.setSessionValue(request, "PAGE_TYPE", type);
 			SessionUtil.setSessionValue(request, "BODY_CLASS", bodyClass);
 
-			// menu 파라메터가 있을 경우 처리
-			String menu = request.getParameter("menu");
-			if (menu != null && !"".equals(menu)) {
-				Map<String, Object> menuMap = JsonUtil.jsonToMap(SecureUtil.decodeStr(menu));
-			}
 		} catch (Exception e) {
 			log.error(e.getMessage());
 		}
@@ -145,7 +129,7 @@ public class ControllerBase {
 
 
 	// 암호화 파라메터맵을 VO에 할당
-	private void setEparamMapToVO(Map<String, Object> paramMap, Object paramVO, boolean isInit) {
+	private void setEncParamMapToVO(Map<String, Object> paramMap, Object paramVO, boolean isInit) {
 		try {
 			if (paramMap != null && paramMap.size() > 0) {
 				for (String key : paramMap.keySet()) {
@@ -179,7 +163,7 @@ public class ControllerBase {
 					}
 
 					if (isInit) {
-						addEparam(key, value);
+						addEncParam(key, value);
 					}
 				}
 			}
@@ -194,7 +178,7 @@ public class ControllerBase {
 	 * @param paramVO
 	 */
 	public void setEparamToVO(Object paramVO) {
-		setEparamMapToVO(this.eparamMap, paramVO, false);
+		setEncParamMapToVO(this.encParamMap, paramVO, false);
 	}
 
 
@@ -427,65 +411,62 @@ public class ControllerBase {
     }
 
     /**
-     * 파라메터 가져오기
+     * 암호화 파라메터 가져오기
      * @return
      */
-    public String getEparam() {
-		return this.eparam;
+    public String getEncParams() {
+		return this.encParams;
 	}
 
     /**
-     * 파라메터 값 추가
+     * 암호화 파라메터 값 추가
      * @param name
      * @param value
      */
-	public void addEparam(String name, Object value) {
-		if (eparamMap == null) {
-			eparamMap = new HashMap<>();
+	public void addEncParam(String name, Object value) {
+		if (encParamMap == null) {
+			encParamMap = new HashMap<>();
 		}
 
-		eparamMap.put(name, value);
-		eparam = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(eparamMap).toString());
-		modelMap.addAttribute("eparam", eparam);
-		modelMap.addAttribute("eparamMap", this.eparamMap);
+		encParamMap.put(name, value);
+		encParams = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(encParamMap).toString());
+		modelMap.addAttribute("encParams", encParams);
 	}
 
 	/**
-	 * 파라메터 값 삭제
+	 * 암호화 파라메터 값 삭제
 	 * @param name
 	 */
-	public void delEparam(String name) {
-		if (eparamMap != null && eparamMap.containsKey(name)) {
-			eparamMap.remove(name);
+	public void delEncParam(String name) {
+		if (encParamMap != null && encParamMap.containsKey(name)) {
+			encParamMap.remove(name);
 
-			if (!eparamMap.isEmpty()) {
-				eparam = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(eparamMap).toString());
+			if (!encParamMap.isEmpty()) {
+				encParams = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(encParamMap).toString());
 			}
 			else {
-				eparam = "";
+				encParams = "";
 			}
-			modelMap.addAttribute("eparam", eparam);
-			modelMap.addAttribute("eparamMap", this.eparamMap);
+			modelMap.addAttribute("encParams", encParams);
 		}
 	}
 
 	/**
-	 * 파라메터 초기화
+	 * 암호화 파라메터 초기화
 	 */
-	public void resetEparam() {
-		eparamMap = new HashMap<>();
-		eparam = "";
-		modelMap.addAttribute("eparam", eparam);
-		modelMap.addAttribute("eparamMap", this.eparamMap);
+	public void resetEncParam() {
+		encParamMap = new HashMap<>();
+		encParams = "";
+		modelMap.addAttribute("encParams", encParams);
 	}
 
 	/**
-	 * 파라메터에서 페이지정보, 검색정보 삭제
+	 * 암호화 파라메터에서 페이지정보, 검색정보 삭제
 	 */
-	public void delEparamPageSearch() {
-		delEparam("pageIndex");
-		delEparam("searchKey");
-		delEparam("searchValue");
-		delEparam("sortKey");
+	public void delEncParamPageSearch() {
+		delEncParam("pageIndex");
+		delEncParam("searchKey");
+		delEncParam("searchValue");
+		delEncParam("sortKey");
 	}
 }

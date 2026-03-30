@@ -20,25 +20,25 @@
 
 		// 게시글 수정 이동
 		function moveAtclEdit() {
-			document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?eparam=${eparam}&gubun=edit";
+			document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?encParams=${encParams}&gubun=edit";
 		}
 
         // 게시글 목록 이동
         function moveAtclList() {
-            document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?eparam=${eparam}";
+            document.location.href = "/bbs/${templateUrl}/bbsAtclListView.do?encParams=${encParams}";
         }
 
         // 게시글 이동
         function moveActlView(atclId) {
 			let extParam = UiComm.makeExtParam({"atclId":atclId});
-        	document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?eparam=${eparam}&extParam="+extParam;
+        	document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?encParams=${encParams}&extParam="+extParam;
         }
 
         function bbsAtclDelete(bbsId, atclId) {
     		// 게시글 삭제 시 댓글도 모두 삭제됩니다. 정말 삭제 하시겠습니까?
     		if(confirm('<spring:message code="bbs.confirm.delete_atcl" />')) {
     			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
-    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?eparam=${eparam}";
+    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?encParams=${encParams}";
     			var data = {
     				  atclId	: atclId
     				, bbsId	    : bbsId

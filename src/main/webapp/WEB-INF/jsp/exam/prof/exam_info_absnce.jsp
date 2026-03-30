@@ -23,70 +23,126 @@
         var curExamBscId = '${vo.examBscId}';
         var curTkexamMthdCd = '${vo.tkexamMthdCd}';
 
-        var curByteamSubrexamUseyn = '${vo.byteamSubrexamUseyn}';   // 팀 여부
         var hasSubSubject = '${examVO.lrnGrpSubsbjctUseyn}';        // 부 주제
-        var examInfoListTable = null; // 시험정보 및 평가 Tabulator - 탭 최초 활성화 시 생성
+        var absnceInfoListTable = null;
 
         /*****************************************************************************
          * tabulator 관련 기능
-         * 1. initExamInfoListTable :   컬럼 정의 (대상자 전체 | 팀)
-         * 2. loadExamInfoList :        컬럼에 들어갈 데이터 ajax 호출
-         * 3. changeInfoListScale :     페이지 row수 세팅
+         * 1. initAbsnceInfoListTable :    컬럼 정의
+         * 2. createAbsnceInfoListHtml :   각 컬럼에 들어갈 데이터 세팅 및 요소 생성
+         * 3. loadAbsnceInfoList :         컬럼에 들어갈 데이터 ajax 호출
          *****************************************************************************/
         /* 1 */
-        function initExamInfoListTable() {
-            if (examInfoListTable) return;
-            var examInfoColumns = curByteamSubrexamUseyn === 'Y' ? [
-                {title:"No",       field:"lineNo",        headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                {title:"팀명",     field:"teamnm",        headerHozAlign:"center", hozAlign:"left",   width:120, minWidth:120},
-                {title:"학과",     field:"deptnm",        headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"대표아이디",field:"userRprsId",    headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"학번",     field:"stntNo",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"이름",     field:"usernm",        headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"역할",     field:"ldryn",         headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"시험점수", field:"examScr",       headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가점수", field:"totScr",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"응시상태", field:"tkexamCmptnyn", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"응시횟수", field:"tkexamCnt",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가여부", field:"evlyn",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
-            ] : [
-                {title:"No",       field:"lineNo",        headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                {title:"학과",     field:"deptnm",        headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"대표아이디",field:"userRprsId",    headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"이름",     field:"usernm",        headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"시험점수", field:"examScr",       headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가점수", field:"totScr",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"응시상태", field:"tkexamCmptnyn", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"응시횟수", field:"tkexamCnt",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가여부", field:"evlyn",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
+        function initAbsnceInfoListTable() {
+            if (absnceInfoListTable) return;
+            var absnceInfoColumns = [
+                {title:"No",       field:"lineNo",     headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
+                {title:"학과",     field:"deptnm",      headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
+                {title:"대표아이디",field:"userRprsId",  headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
+                {title:"학번",     field:"stdntNo",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"이름",     field:"usernm",      headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
+                {title:"신청일시",  field:"regDttm",     headerHozAlign:"center", hozAlign:"center", width:140,  minWidth:140},
+                {title:"시험구분",  field:"examGbnnm",   headerHozAlign:"center", hozAlign:"center", width:100,  minWidth:100},
+                {title:"처리상태",  field:"aplyStsnm",   headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
+                {title:"처리일시",  field:"aprvdttm",    headerHozAlign:"center", hozAlign:"center", width:140,  minWidth:140},
+                {title:"담당자",  field:"autzrId",       headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
+                {title:"관리",    field:"manage",        headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:200}
             ];
-            examInfoListTable = UiTable("examInfoList", {
+            absnceInfoListTable = UiTable("absnceUserList", {
                 lang: "ko",
                 selectRow: "checkbox",
-                pageFunc: loadExamInfoList,
-                columns: examInfoColumns
+                pageFunc: loadAbsnceInfoList,
+                columns: absnceInfoColumns
             });
         }
         /* 2 */
-        function loadExamInfoList(pageIndex) {
-            initExamInfoListTable();
+        function createAbsnceInfoListHtml(list) {
+            let dataList = [];
+            if (list.length == 0) {
+                return dataList;
+            } else {
+                list.forEach(function(v, i) {
+                    // 학번
+                    var stdntNo;
+                    if (v.stdntNo == "" || v.stdntNo == null) {
+                        stdntNo = "-";
+                    } else {
+                        stdntNo = v.stdntNo;
+                    }
+                    // 처리상태
+                    var aplyStsnm;
+                    if (v.aplyStsnm == "1") {
+                        aplyStsnm = "<span class='fcBlue'>신청</span>"
+                    } else if (v.aplyStsnm == "2") {
+                        aplyStsnm = "<span class='fcOrange'>재신청</span>"
+                    } else if (v.aplyStsnm == "3") {
+                        aplyStsnm = "<span class='fcBlack'>승인</span>"
+                    } else {
+                        aplyStsnm = "<span class='fcRed'>거절</span>"
+                    }
+                    // 신청일시
+                    var regDttm = dateFormat("date", v.regDttm);
+                    // 승인일시
+                    var aprvdttm;
+                    if (v.aprvdttm == "" || v.aprvdttm == null) {
+                        aprvdttm = "-"
+                    } else {
+                        aprvdttm = dateFormat("date", v.aprvdttm);
+                    }
+                    // 승인자
+                    var autzrId;
+                    if (v.autzrId == "" || v.autzrId == null) {
+                        autzrId = "-";
+                    } else {
+                        autzrId = v.autzrId;
+                    }
+                    // 관리 버튼
+                    var manageBtns = "";
+                        manageBtns += "<a href='javascript:absnceHstr(\"" + v.examBscId + "\", \"" + v.userId + "\")' class='btn basic small'>결과보기</a>"
+                        manageBtns += "<a href='javascript:absnceRslt(\"" + v.examBscId + "\", \"" + v.userId + "\")' class='btn basic small'>신청이력</a>"
+
+                    dataList.push({
+                        lineNo:         v.lineNo
+                        , deptnm:       v.deptnm
+                        , userRprsId:   v.userRprsId
+                        , stdntNo:      stdntNo
+                        , usernm:       v.usernm
+                        , aplyStsnm:    aplyStsnm
+                        , regDttm:      regDttm
+                        , examGbnnm:    v.examGbnnm
+                        , aprvdttm:     aprvdttm
+                        , autzrId:      autzrId
+                        , manage:       manageBtns
+                        , examBscId:    v.examBscId
+                        , userId:       v.userId
+                    });
+                });
+            }
+            return dataList;
+        }
+        /* 3 */
+        function loadAbsnceInfoList(pageIndex) {
+            initAbsnceInfoListTable();
             PAGE_INDEX = pageIndex || PAGE_INDEX;
             UiComm.showLoading(true);
             $.ajax({
-                url: "/exam/tkexamUserPaging.do",
+                url: "/exam/examAbsnceUserPaging.do",
                 type: "GET",
                 data: {
-                    examBscId: curExamBscId,
-                    byteamSubrexamUseyn: curByteamSubrexamUseyn,
-                    pageIndex: PAGE_INDEX,
-                    listScale: LIST_SCALE
+                    examBscId   : curExamBscId,
+                    aplyStscd   : $("#aplyStscd").val(),
+                    searchValue : $("#searchValue").val(),
+                    pageIndex   : PAGE_INDEX,
+                    listScale   : LIST_SCALE
                 },
                 dataType: "json",
                 success: function(data) {
                     if (data.result > 0) {
-                        examInfoListTable.clearData();
-                        examInfoListTable.replaceData(data.returnList || []);
-                        examInfoListTable.setPageInfo(data.pageInfo);
+                        var returnList = data.returnList || [];
+                        var dataList   = createAbsnceInfoListHtml(returnList);
+                        absnceInfoListTable.clearData();
+                        absnceInfoListTable.replaceData(dataList);
+                        absnceInfoListTable.setPageInfo(data.pageInfo);
                     } else {
                         alert(data.message);
                     }
@@ -99,10 +155,21 @@
                 }
             });
         }
-        /* 3 */
-        function changeInfoListScale(scale) {
-            LIST_SCALE = scale;
-            loadExamInfoList(1);
+
+        /*****************************************************************************
+         * 검색 영역 기능
+         * 1. examAbsnceListSelect :    결시자 검색
+         * 2. resetListSelect :         결시자 전체 검색 및 검색영역 초기화
+         *****************************************************************************/
+        /* 1 */
+        function examAbsnceListSelect (){
+            loadAbsnceInfoList(1);
+        }
+        /* 2 */
+        function resetListSelect() {
+            $("#aplyStscd").val('').trigger('chosen:updated');
+            $("#searchValue").val("");
+            examAbsnceListSelect();
         }
 
         /*****************************************************************************
@@ -204,11 +271,73 @@
             submitForm(urlMap[tab], "", "", kvArr);
         }
 
+        /* 메세지 전송 기능 */
+        function sendMsg() {
+            var rcvUserInfoStr = "";
+            var sendCnt = 0;
+
+            $.each($('#absnceUserList').find("input:checkbox[name=evalChk]:not(:disabled):checked"), function() {
+                sendCnt++;
+                if (sendCnt > 1) rcvUserInfoStr += "|";
+                rcvUserInfoStr += $(this).attr("user_id");
+                rcvUserInfoStr += ";" + $(this).attr("user_nm");
+                rcvUserInfoStr += ";" + $(this).attr("mobile");
+                rcvUserInfoStr += ";" + $(this).attr("email");
+            });
+
+            if (absnceInfoListTable.getSelectedData("userId").length == 0) {
+                /* 메시지 발송 대상자를 선택하세요. */
+                alert("<spring:message code='common.alert.sysmsg.select_user'/>");
+                return;
+            }
+
+            window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
+
+            var form = document.alarmForm;
+            form.action = "<%=CommConst.SYSMSG_URL_SEND%>";
+            form.target = "msgWindow";
+            form[name='alarmType'].value = "S"; // 발송구분(SMS:S, PUSH:P, EMAIL:E, 쪽지:N)
+            form[name='rcvUserInfoStr'].value = rcvUserInfoStr; //보내는사람 정보
+            form.submit();
+        }
+
+        /* 엑셀 다운로드 */
+        function examAbsnceStatusExcelDown() {
+            var aplyStscdObj = {
+                1: "신청"
+                , 2: "재신청"
+                , 3: "승인"
+                , 4: "거절"
+            };
+
+            var excelGrid = { colModel: [] };
+
+            excelGrid.colModel.push({label: 'No.',      name: 'lineNo',     align: 'center',    width: '1000'});
+            excelGrid.colModel.push({label: '학과',     name: 'deptnm',     align: 'left',      width: '5000'});
+            excelGrid.colModel.push({label: '대표아이디', name: 'userRprsId', align: 'left',      width: '5000'});
+            excelGrid.colModel.push({label: '학번',     name: 'stdntNo',    align: 'center',    width: '5000'});
+            excelGrid.colModel.push({label: '이름',     name: 'usernm',     align: 'center',    width: '5000'});
+            excelGrid.colModel.push({label: '신청일시',  name: 'regDttm',    align: 'center',    width: '5000'});
+            excelGrid.colModel.push({label: '시험구분',  name: 'examGbnnm',  align: 'center',    width: '5000'});
+            excelGrid.colModel.push({label: '처리상태',  name: 'aplyStsnm',  align: 'center',    width: '3000',  codes: aplyStscdObj});
+            excelGrid.colModel.push({label: '처리일시',  name: 'aprvdttm',   align: 'center',    width: '5000'});
+            excelGrid.colModel.push({label: '담당자',   name: 'autzrId',    align: 'center',    width: '3000'});
+
+            var kvArr = [];
+            kvArr.push({'key': 'examBscId',         'val': curExamBscId});
+            kvArr.push({'key': 'aplyStscd',         'val': $("#aplyStscd").val()});
+            kvArr.push({'key': 'searchValue',       'val': $("#searchValue").val()});
+            kvArr.push({'key': 'excelGrid',         'val': JSON.stringify(excelGrid)});
+
+            submitForm("/exam/profAbsnceStatusExcelDown.do", "", "", kvArr);
+        }
+
         $(document).ready(function() {
+            loadAbsnceInfoList();
+
             setAccordion();
             eventAccordion();
 
-            // loadExamInfoList();
             if (hasSubSubject == 'Y') {
                 examSubAsmtListAppend();
             }
@@ -379,20 +508,7 @@
                                                 </tr>
                                                 <tr>
                                                     <th><label>시험 내용</label></th>
-                                                    <td class="t_left" colspan="3">
-                                                            <pre>
-                                                                <div class="editor-box">
-                                                                    <uiex:htmlEditor
-                                                                            id = "dtl-exam-cts"
-                                                                            name = "dtl-exam-cts"
-                                                                            uploadPath = "${examVO.uploadPath}"
-                                                                            value = "${examVO.examCts}"
-                                                                            height = "400px"
-                                                                            required="true"
-                                                                    />
-                                                                </div>
-                                                            </pre>
-                                                    </td>
+                                                    <td class="t_left" colspan="3"><pre>${examVO.examCts}</pre></td>
                                                 </tr>
                                                 <tr>
                                                     <th><label>시험 일시</label></th>
@@ -460,7 +576,7 @@
                                                         <div class = "item_list">
                                                             ${examVO.absnceTot} 명
                                                             <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
-                                                                <button type="button" class = "btn basic" onclick="examViewMv(3)">결시 내용 및 현황</button>
+                                                                <button type="button" class = "btn basic" onclick="examViewMv(3)" style="pointer-events: none;">결시 내용 및 현황</button>
                                                             </c:if>
                                                         </div>
                                                     </td>
@@ -492,24 +608,27 @@
                                 <!-- 결시 내용 및 현황 검색영역 -->
                                 <div class="search-typeA margin-bottom-4">
                                     <div class="text-center">
-                                        <select class="form-select" id="status1" onchange="">
+                                        <select class="form-select" id="aplyStscd">
                                             <option value="">처리상태</option>
                                             <option value="all"><spring:message code="exam.common.search.all" /><!-- 전체 --></option>
                                             <option value="1">신청</option>
-                                            <option value="2">승인</option>
-                                            <option value="3">반려</option>
+                                            <option value="3">승인</option>
+                                            <option value="4">반려</option>
                                         </select>
                                         <input class="form-control" type="text" id="searchValue" value="" placeholder="<spring:message code="message.search.input.dept.user.user.nm" />"><!-- 학과/학번/성명 입력 -->
-                                        <button type="button" class="btn type1" onclick="">검색</button>
+                                        <button type="button" class="btn type1" onclick="examAbsnceListSelect()">검색</button>
+                                        <button type="button" class="btn type1" onclick="resetListSelect()">수강생 전체</button>
                                     </div>
                                 </div>
                                 <!-- 결시 내용 및 현황 중단영역 -->
                                 <div class="board_top">
                                     <div class="right-area">
-                                        <button type="button" id="download-xlsx-btn" class="btn type2">엑셀로 다운로드</button>
+                                        <a href="javascript:examAbsnceStatusExcelDown()" class="btn type1">엑셀로 다운로드</a>
                                     </div>
                                 </div>
-                                결시 내용 및 현황 tabulator
+                                <div id = "absnceUserArea">
+                                    <div id="absnceUserList"></div>
+                                </div>
                             </div>
                         </div>
                     </div>

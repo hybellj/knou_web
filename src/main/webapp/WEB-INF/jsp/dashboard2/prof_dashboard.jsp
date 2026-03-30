@@ -358,7 +358,7 @@
                                                 </div>
                                             </div>
                                             <div class="item_box push">
-                                                <a href="/subject/subject.do?subjectId=SBJCT20260001" class="item_txt">
+                                                <a href="/subject/subject.do?sbjctId=SBJCT20260001" class="item_txt">
                                                     <p class="desc">
                                                         <span class="name">데이터베이스의 이해와 활용</span>
                                                         <span class="date">2025.05.17</span>
@@ -784,7 +784,7 @@
 				                                                            <span class="info_txt">튜터 ${item.tutUsernm}</span>
 				                                                            <span class="info_txt">${item.crdts}학점</span>
 				                                                        </p>
-				                                                        <p class="tit"><a href="/subject/subject.do?subjectId=${item.subjectId}">${item.sbjctnm}</a></p>
+				                                                        <p class="tit"><a href="/subject/subject.do?sbjctId=${item.sbjctId}">${item.sbjctnm}</a></p>
 				                                                    </div>
 				                                                </div>
 				                                                <div class="extra">
@@ -858,12 +858,12 @@
 			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">1 : 1<span>0</span></a>
 			                                                        	</c:if>			                                                        	
 				                                                       	
-				                                                        <a href="/asmt2/profAsmtListView.do?subjectId=${item.subjectId}">과제<span>${item.asmtCnt}</span></a>
-				                                                        <a href="/forum2/forumLect/profForumListView.do?subjectId=${item.subjectId}">토론<span>${item.dscsCnt}</span></a>
-				                                                        <a href="/smnr/profSmnrListView.do?subjectId=${item.subjectId}">세미나<span>${item.smnrCnt}</span></a>
-				                                                        <a href="/quiz/profQuizListView.do?subjectId=${item.subjectId}">퀴즈<span>${item.quizCnt}</span></a>
-				                                                        <a href="/srvy/profSrvyListView.do?subjectId=${item.subjectId}">설문<span>${item.srvyCnt}</span></a>
-				                                                        <a href="/exam/profExamListView.do?subjectId=${item.subjectId}">시험<span>${item.examCnt}</span></a>
+				                                                        <a href="/asmt2/profAsmtListView.do?sbjctId=${item.sbjctId}">과제<span>${item.asmtCnt}</span></a>
+				                                                        <a href="/forum2/forumLect/profForumListView.do?sbjctId=${item.sbjctId}">토론<span>${item.dscsCnt}</span></a>
+				                                                        <a href="/smnr/profSmnrListView.do?sbjctId=${item.sbjctId}">세미나<span>${item.smnrCnt}</span></a>
+				                                                        <a href="/quiz/profQuizListView.do?sbjctId=${item.sbjctId}">퀴즈<span>${item.quizCnt}</span></a>
+				                                                        <a href="/srvy/profSrvyListView.do?sbjctId=${item.sbjctId}">설문<span>${item.srvyCnt}</span></a>
+				                                                        <a href="/exam/profExamListView.do?sbjctId=${item.sbjctId}">시험<span>${item.examCnt}</span></a>
 				                                                    </div>
 				                                                </div>
 				                                            </div>
@@ -919,7 +919,7 @@
 				                                                            <span class="info_txt">튜터 ${item.tutUsernm}</span>
 				                                                            <span class="info_txt">${item.crdts}학점</span>
 				                                                        </p>
-				                                                        <p class="tit"><a href="/subject/subject.do?subjectId=${item.subjectId}">${item.sbjctnm}</a></p>
+				                                                        <p class="tit"><a href="/subject/subject.do?sbjctId=${item.sbjctId}">${item.sbjctnm}</a></p>
 				                                                    </div>
 				                                                    <div class="extra">
 				                                                        <div class="my_prog_rate">
@@ -995,12 +995,12 @@
 			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">1 : 1<span>0</span></a>
 			                                                        	</c:if>			                                                        	
 				                                                       	
-				                                                        <a href="/asmt2/profAsmtListView.do?subjectId=${item.subjectId}">과제<span>${item.asmtCnt}</span></a>
-				                                                        <a href="/forum2/forumLect/profForumListView.do?subjectId=${item.subjectId}">토론<span>${item.dscsCnt}</span></a>
-				                                                        <a href="/smnr/profSmnrListView.do?subjectId=${item.subjectId}">세미나<span>${item.smnrCnt}</span></a>
-				                                                        <a href="/quiz/profQuizListView.do?subjectId=${item.subjectId}">퀴즈<span>${item.quizCnt}</span></a>
-				                                                        <a href="/srvy/profSrvyListView.do?subjectId=${item.subjectId}">설문<span>${item.srvyCnt}</span></a>
-				                                                        <a href="/exam/profExamListView.do?subjectId=${item.subjectId}">시험<span>${item.examCnt}</span></a>
+				                                                        <a href="/asmt2/profAsmtListView.do?sbjctId=${item.sbjctId}">과제<span>${item.asmtCnt}</span></a>
+				                                                        <a href="/forum2/forumLect/profForumListView.do?sbjctId=${item.sbjctId}">토론<span>${item.dscsCnt}</span></a>
+				                                                        <a href="/smnr/profSmnrListView.do?sbjctId=${item.sbjctId}">세미나<span>${item.smnrCnt}</span></a>
+				                                                        <a href="/quiz/profQuizListView.do?sbjctId=${item.sbjctId}">퀴즈<span>${item.quizCnt}</span></a>
+				                                                        <a href="/srvy/profSrvyListView.do?sbjctId=${item.sbjctId}">설문<span>${item.srvyCnt}</span></a>
+				                                                        <a href="/exam/profExamListView.do?sbjctId=${item.sbjctId}">시험<span>${item.examCnt}</span></a>
 				                                                    </div>
 				                                                </div>
 				                                            </div>

@@ -47,6 +47,18 @@ public interface ExamService {
     // 사용자 시험 응시현황 (가로선)차트데이터 조회
     public List<EgovMap> selectUserTkexamStatusForHrChart(String examBscId, String sbjctId) throws Exception;
 
+    // 교수 시험대체 목록 페이징
+    public ProcessResultVO<ExamVO> listProfSbstPaging(ExamVO vo) throws Exception;
+
+    // 교수 시험대체 대상자 목록 페이징
+    public ProcessResultVO<ExamVO> listProfSbstUserPaging(ExamVO vo) throws Exception;
+
+    // 교수 시험 결시자 목록 페이징
+    public ProcessResultVO<ExamVO> listProfAbsnceUserPaging(ExamVO vo) throws Exception;
+
+    // 교수 시험 결시자 목록 조회
+    public List<EgovMap> listProfAbsnceUser(Map<String, Object> vo) throws Exception;
+
     // 성적 반영비율 수정
     public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
 

@@ -25,7 +25,7 @@
             , ASMT.DVCLAS_CNCRNT_REGYN
             , ASMT.INDV_ASMTYN
             , ASMT.TEAM_ASMT_STNGYN
-            , ASMT.TMBR_SBMSN_PRMYN
+            , ASMT.TMBR_INDIV_SBMSN_PRMYN
             , ASMT.MRK_RFLTYN
             , ASMT.MRK_RFLTRT
             , ASMT.MRK_OYN
@@ -157,5 +157,16 @@
             )
         </if>
         <include refid="CommonSQL.pageSubfix"/>
+    </select>
+    <select id="asmtSelect" resultType="egovMap" parameterType="asmtVO">
+        /*
+            SQL ID : AsmtDAO.asmtSelect
+            설  명 : 과제 조회
+        */
+        SELECT A.*
+        FROM (
+            <include refid="asmtQuery"/>
+        ) A
+        WHERE A.ASMT_ID = #{asmtId}
     </select>
 </mapper>

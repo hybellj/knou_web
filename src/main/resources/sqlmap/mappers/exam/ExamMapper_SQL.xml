@@ -1278,6 +1278,158 @@
         </where>
     </sql>
 
+    <sql id="listQueryForSbst">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY TO_DATE(B.REG_DTTM, 'YYYYMMDDHH24MISS') DESC) AS "LINE_NO"
+            , B.EXAM_EVL_SBST_ID    AS "EXAM_EVL_SBST_ID"
+            , B_CD.CDNM             AS "EXAM_EVL_SBSTNM"
+            , CASE
+                WHEN C.ASMT_ID IS NOT NULL THEN 'ASMT'      /* 과제 */
+                WHEN D.EXAM_BSC_ID IS NOT NULL THEN 'QUIZ'  /* 퀴즈 */
+            END AS "GBN"
+            /* 과제 */
+            , C.ASMT_ID             AS "ASMT_ID"
+            , C.ASMT_TTL            AS "ASMT_TTL"
+            , C.ASMT_SBMSN_SDTTM    AS "ASMT_SBMSN_SDTTM"
+            , C.ASMT_SBMSN_EDTTM    AS "ASMT_SBMSN_EDTTM"
+            , C.EVL_SCR_TYCD        AS "EVL_SCR_TYCD"
+            , C_CD1.CDNM            AS "EVL_SCR_TYNM"
+            /* 퀴즈 */
+            , D.EXAM_BSC_ID         AS "EXAM_BSC_ID"
+            , D.EXAM_TTL            AS "EXAM_TTL"
+            , E.EXAM_PSBL_SDTTM     AS "EXAM_PSBL_SDTTM"
+            , E.EXAM_PSBL_EDTTM     AS "EXAM_PSBL_EDTTM"
+            , B.REG_DTTM            AS "REG_DTTM"
+        FROM
+            /* 시험 기본 */
+            TB_LMS_EXAM_BSC A
+            /* 시험 대체 평가 */
+            JOIN TB_LMS_EXAM_EVL_SBST B
+                ON A.EXAM_BSC_ID = B.EXAM_BSC_ID
+            JOIN TB_LMS_CMMN_CD B_CD
+                ON B.EXAM_SBST_TYCD = B_CD.CD
+                AND B_CD.UP_CD = 'EXAM_SBST_TYCD'
+            /* 과제 */
+            LEFT JOIN TB_LMS_ASMT C
+                ON A.SBJCT_ID = C.SBJCT_ID
+                AND B.EXAM_SBST_ID = C.ASMT_ID
+            JOIN TB_LMS_CMMN_CD C_CD1
+                ON C.EVL_SCR_TYCD = C_CD1.CD
+                AND C_CD1.UP_CD = 'EVL_SCR_TYCD'
+            /* 퀴즈 */
+            LEFT JOIN TB_LMS_EXAM_BSC D
+                ON A.SBJCT_ID = D.SBJCT_ID
+                AND B.EXAM_SBST_ID = D.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_EXAM_DTL E
+                ON D.EXAM_BSC_ID = E.EXAM_BSC_ID
+        WHERE
+            A.EXAM_BSC_ID = #{examBscId}
+    </sql>
+
+    <sql id="listQueryForSbstUser">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY A.EXAM_BSC_ID DESC) AS "LINE_NO"
+            , E.DEPTNM          AS "DEPTNM"
+            , D.USER_RPRS_ID    AS "USER_RPRS_ID"
+            , D.STDNT_NO        AS "STDNT_NO"
+            , D.USER_ID         AS "USER_ID"
+            , D.USERNM          AS "USERNM"
+            , C.ABSNCE_CTS      AS "ABSNCE_CTS"
+            , C.ABSNCE_RFLTRT   AS "ABSNCE_RFLTRT"
+            , CASE
+                WHEN C.APLY_STSCD = 'APRV' THEN 'Y'
+                ELSE 'N'
+            END                 AS "APLY_STS_STTS"
+            , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = D.USER_ID) AS "MOBILE_NO"
+            , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'INDV_EML' AND USER_ID = D.USER_ID) AS "EMAIL"
+        FROM
+            /* 시험 기본 */
+            TB_LMS_EXAM_BSC A
+            /* 과목 수강 */
+            JOIN TB_LMS_ATNDLC B
+                ON A.SBJCT_ID = B.SBJCT_ID
+                AND B.ATNDLC_STSCD = 'ATNDLC'
+                AND B.AUDITYN = 'N'
+            /* 시험 결시 */
+            JOIN TB_LMS_EXAM_ABSNCE C
+                ON B.USER_ID = C.USER_ID
+                AND A.EXAM_BSC_ID = C.EXAM_BSC_ID
+            /* 사용자 */
+            JOIN TB_LMS_USER D
+                ON B.USER_ID = D.USER_ID
+            /* 학과 */
+            JOIN TB_LMS_DEPT E
+                ON D.DEPT_ID = E.DEPT_ID
+        WHERE
+            A.EXAM_BSC_ID = #{examBscId}
+    </sql>
+
+    <sql id="listQueryForAbsnceUser">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY D.USERNM DESC) AS "LINE_NO"
+            , E.DEPTNM          AS "DEPTNM"
+            , D.USER_RPRS_ID    AS "USER_RPRS_ID"
+            , D.STDNT_NO        AS "STDNT_NO"
+            , D.USERNM          AS "USERNM"
+            , C.USER_ID         AS "USER_ID"
+            , CASE
+                WHEN C.APLY_STSCD = 'APLY' THEN '1'     /* 신청 */
+                WHEN C.APLY_STSCD = 'RE_APLY' THEN '2'  /* 재신청 */
+                WHEN C.APLY_STSCD = 'APRV' THEN '3'     /* 승인 */
+                WHEN C.APLY_STSCD = 'RJCT' THEN '4'     /* 거절 */
+            END                 AS "APLY_STSNM"
+            , C.REG_DTTM        AS "REG_DTTM"
+            , F.CDNM            AS "EXAM_GBNNM"
+            , C.APRVDTTM        AS "APRVDTTM"
+            , C.AUTZR_ID        AS "AUTZR_ID"
+            , A.EXAM_BSC_ID     AS "EXAM_BSC_ID"
+        FROM
+            TB_LMS_EXAM_BSC A
+            /* 과목 수강 */
+            JOIN TB_LMS_ATNDLC B
+                ON A.SBJCT_ID = B.SBJCT_ID
+                AND B.ATNDLC_STSCD = 'ATNDLC'
+                AND B.AUDITYN = 'N'
+            /* 결시 */
+            LEFT JOIN TB_LMS_EXAM_ABSNCE C
+                ON A.EXAM_BSC_ID = C.EXAM_BSC_ID
+                AND B.USER_ID = C.USER_ID
+            /* 사용자 */
+            JOIN TB_LMS_USER D
+                ON C.USER_ID = D.USER_ID
+            /* 학과 */
+            JOIN TB_LMS_DEPT E
+                ON D.DEPT_ID = E.DEPT_ID
+            JOIN TB_LMS_CMMN_CD F
+                ON A.EXAM_GBNCD = F.CD
+                AND F.UP_CD = 'EXAM_GBNCD'
+        WHERE
+            A.EXAM_BSC_ID = #{examBscId}
+        <if test="aplyStscd != null and aplyStscd != '' and aplyStscd != 'all'">
+            <choose>
+                <when test='aplyStscd == "1"'>
+                    AND C.APLY_STSCD = 'APLY'
+                </when>
+                <when test='aplyStscd == "2"'>
+                    AND C.APLY_STSCD = 'RE_APLY'
+                </when>
+                <when test='aplyStscd == "3"'>
+                    AND C.APLY_STSCD = 'APRV'
+                </when>
+                <when test='aplyStscd == "4"'>
+                    AND C.APLY_STSCD = 'RJCT'
+                </when>
+                <otherwise>
+                </otherwise>
+            </choose>
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+            AND ( LOWER(E.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(D.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(D.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue})) )
+        </if>
+    </sql>
+
     <insert id="examBscRegist2" parameterType="examBscVO">
         /*
              SQL ID : ExamMapper.examBscRegist2
@@ -1837,7 +1989,85 @@
             T.ODR
     </select>
 
-    <!--  성적 공개여부 수정  -->
+    <!-- 교수 시험대체 목록 페이징  -->
+    <select id="listProfSbstPaging" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listProfSbstPaging
+            설명 : 교수 시험대체 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForSbst"/>
+        <include refid="CommonSQL.pageSubfix" />
+    </select>
+
+    <!-- 교수 시험대체 목록 카운트  -->
+    <select id="countProfSbst" parameterType="examVO" resultType="Integer">
+        /*
+            SQL ID : ExamDAO.countProfSbst
+            설명 : 교수 시험대체 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForSbst"/>) Z
+    </select>
+
+    <!-- 교수 시험대체 대상자 목록 페이징  -->
+    <select id="listProfSbstUserPaging" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listProfSbstUserPaging
+            설명 : 교수 시험대체 대상자 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForSbstUser"/>
+        <include refid="CommonSQL.pageSubfix" />
+    </select>
+
+    <!-- 교수 시험대체 대상자 목록 카운트  -->
+    <select id="countProfSbstUser" parameterType="examVO" resultType="Integer">
+        /*
+            SQL ID : ExamDAO.countProfSbstUser
+            설명 : 교수 시험대체 대상자 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForSbstUser"/>) Z
+    </select>
+
+    <!-- 교수 시험 결시자 목록 페이징  -->
+    <select id="listProfAbsnceUserPaging" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listProfAbsnceUserPaging
+            설명 : 교수 시험 결시자 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForAbsnceUser"/>
+        <include refid="CommonSQL.pageSubfix" />
+    </select>
+
+    <!-- 교수 시험 결시자 목록 카운트  -->
+    <select id="countProfAbsnceUser" parameterType="examVO" resultType="Integer">
+        /*
+            SQL ID : ExamDAO.countProfAbsnceUser
+            설명 : 교수 시험 결시자 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForAbsnceUser"/>) Z
+    </select>
+
+    <!-- 교수 시험 결시자 목록 조회  -->
+    <select id="listProfAbsnceUser" parameterType="map" resultType="egovMap">
+        /*
+            SQL ID : ExamDAO.listProfAbsnceUser
+            설명 : 교수 시험 결시자 목록 조회
+        */
+        <include refid="listQueryForAbsnceUser"/>
+    </select>
+
+    <!-- 성적 공개여부 수정  -->
     <update id="updateMrkOyn" parameterType="examVO">
         /*
             SQL ID : ExamDAO.updateMrkOyn

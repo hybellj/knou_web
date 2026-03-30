@@ -429,7 +429,7 @@
         $.ajax({
             url: CTX + "/cls/selectClsWklyStats.do",
             type: "GET", dataType: "json",
-            data: { sbjctId: sbjctId , dvclasNo: dvclasNo },
+            data: { sbjctId: sbjctId },
             success: function (res) {
                 var $body = $("#wklyBody").empty();
                 if (!res || res.result !== 1 || !res.returnList || res.returnList.length === 0) {

@@ -64,6 +64,27 @@ public interface ExamDAO {
     // 사용자 시험 응시현황 (가로선)차트데이터 조회
     public List<EgovMap> selectUserTkexamStatusForHrChart(@Param("examBscId") String examBscId, @Param("sbjctId") String sbjctId) throws Exception;
 
+    // 교수 시험대체 목록 페이징
+    public List<ExamVO> listProfSbstPaging(ExamVO vo) throws Exception;
+
+    // 교수 시험대체 목록 카운트
+    public int countProfSbst(ExamVO vo) throws Exception;
+
+    // 교수 시험대체 대상자 목록 페이징
+    public List<ExamVO> listProfSbstUserPaging(ExamVO vo) throws Exception;
+
+    // 교수 시험대체 대상자 목록 카운트
+    public int countProfSbstUser(ExamVO vo) throws Exception;
+
+    // 교수 시험 결시자 목록 페이징
+    public List<ExamVO> listProfAbsnceUserPaging(ExamVO vo) throws Exception;
+
+    // 교수 시험 결시자 목록 카운트
+    public int countProfAbsnceUser(ExamVO vo) throws Exception;
+
+    // 교수 시험 결시자 목록 조회
+    public List<EgovMap> listProfAbsnceUser(Map<String, Object> vo) throws Exception;
+
     // 성적 공개여부 수정
     public void updateMrkOyn(ExamVO vo) throws Exception;
 

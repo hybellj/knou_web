@@ -863,6 +863,81 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
+     * 교수 시험대체 목록 페이징
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examSbstPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listProfSbstPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String examBscId = vo.getExamBscId();
+
+        vo.setExamBscId(examBscId);
+        try {
+            resultVO = examService.listProfSbstPaging(vo);
+            resultVO.setResultSuccess();
+        } catch(Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 교수 시험대체 대상자 목록 페이징
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examSbstUserPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listProfSbstUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String examBscId = vo.getExamBscId();
+
+        vo.setExamBscId(examBscId);
+        try {
+            resultVO = examService.listProfSbstUserPaging(vo);
+            resultVO.setResultSuccess();
+        } catch(Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 교수 시험 결시자 목록 페이징
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examAbsnceUserPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listProfAbsnceUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String examBscId = vo.getExamBscId();
+
+        vo.setExamBscId(examBscId);
+        try {
+            resultVO = examService.listProfAbsnceUserPaging(vo);
+            resultVO.setResultSuccess();
+        } catch(Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
      * 성적 공개여부 수정
      * @param ExamVO
      * @return resultVO
@@ -1066,7 +1141,46 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
-     * 시험 대상자 엑셀 다운로드
+     * 시험 결시자 엑셀 다운로드
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return excelView
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profAbsnceStatusExcelDown.do")
+    public String profAbsnceStatusExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        HashMap<String, Object> map = new HashMap<>();
+        String title = "결시대상자목록";
+
+        map.put("title", title);
+        map.put("sheetName", title);
+        map.put("excelGrid", vo.getExcelGrid());
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("examBscId", vo.getExamBscId());
+        params.put("aplyStscd", request.getParameter("aplyStscd"));
+        params.put("searchValue", vo.getSearchValue());
+        map.put("list", examService.listProfAbsnceUser(params));
+        map.put("ext", ".xlsx(big)");
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String currentDate = sdf.format(new Date());
+
+
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", title + "_" + currentDate);
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+
+        model.addAllAttributes(modelMap);
+
+        return "excelView";
+    }
+
+    /*****************************************************
+     * 시험 점수 업로드 샘플 엑셀 다운로드
      * @param ExamBscVO
      * @param model
      * @param request
@@ -1101,7 +1215,6 @@ public class ExamHomeController extends ControllerBase {
 
         return "excelView";
     }
-
 
     /*****************************************************
      * 기존에 있던 Controller 영역

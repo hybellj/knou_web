@@ -19,7 +19,7 @@ public class ProcessResultVO<T> extends AbstractResult {
     private Object returnSubVO;						// 처리결과 반환 서브VO
     private PaginationInfo pageInfo;				// 페이지정보
     private boolean success;						// 성공여부
-    private String eparam;							// 결과처리후 반환할 암호화 파라메터
+    private String encParams;						// 결과처리후 반환할 암호화 파라메터
 
     public ProcessResultVO() {
         super();
@@ -112,11 +112,11 @@ public class ProcessResultVO<T> extends AbstractResult {
 		this.success = success;
 	}
 
-	public String getEparam() {
-		return eparam;
+	public String getEncParams() {
+		return encParams;
 	}
 
-	public void setEparam(String eparam) {
-		this.eparam = eparam;
+	public void setEncParams(String encParams) {
+		this.encParams = encParams;
 	}
 }

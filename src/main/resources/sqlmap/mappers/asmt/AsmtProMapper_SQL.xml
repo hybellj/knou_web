@@ -312,7 +312,7 @@
 		    , DVCLAS_CNCRNT_REGYN
 		    , INDV_ASMTYN
 		    , TEAM_ASMT_STNGYN
-		    , TMBR_SBMSN_PRMYN
+		    , TEAM_INDIV_SBMSN_PRMYN
 		    , MRK_RFLTYN
 		    , MRK_RFLTRT
 		    , MRK_OYN
@@ -352,7 +352,7 @@
 		    , #{dvclasCncrntRegyn}
 		    , #{indvAsmtyn}
 		    , #{teamAsmtStngyn}
-		    , NVL(#{tmbrSbmsnPrmyn}, 'Y')
+		    , NVL(#{teamIndivSbmsnPrmyn}, 'Y')
 		    , #{mrkRfltyn}
 		    , 0
 		    , #{mrkOyn}

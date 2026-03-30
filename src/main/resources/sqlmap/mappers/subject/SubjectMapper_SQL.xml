@@ -102,7 +102,7 @@
 											AND ( EB.EXAM_GBNCD = 'EXAM_MID' OR EB.EXAM_GBNCD = 'EXAM_LST')
 				JOIN	TB_LMS_EXAM_DTL	ED ON EB.EXAM_BSC_ID = ED.EXAM_BSC_ID AND ED.DELYN = 'N' AND ED.USEYN = 'Y'
 		WHERE 	1 = 1
-				AND SO.SBJCT_ID = #{subjectId}
+				AND SO.SBJCT_ID = #{sbjctId}
 		GROUP 	BY SO.SBJCT_ID
 	</select>
 
@@ -112,7 +112,7 @@
 				, DEPT.DEPTNM
 		FROM 	TB_LMS_SBJCT SBJCT
 				JOIN TB_LMS_DEPT DEPT ON DEPT.DEPT_ID = SBJCT.DEPT_ID
-		WHERE 	SBJCT.SBJCT_ID = #{subjectId}
+		WHERE 	SBJCT.SBJCT_ID = #{sbjctId}
 	</select>
 	
 	<select id="subjectBbsIdsSelect" resultType="egovMap">
@@ -123,7 +123,7 @@
 				MAX(CASE WHEN BBS.BBS_TYCD = 'DATARM'	THEN BBS.BBS_ID END) AS DATARM_BBS_ID
 		FROM 	TB_LMS_SBJCT SBJCT
 				JOIN TB_LMS_BBS BBS ON SBJCT.SBJCT_ID = BBS.SBJCT_ID AND BBS.DELYN = 'N'
-		WHERE 	SBJCT.SBJCT_ID = #{subjectId}
+		WHERE 	SBJCT.SBJCT_ID = #{sbjctId}
 	</select>
 
 	<select id="sbjctAdmSelect" resultType="egovMap">
@@ -135,7 +135,7 @@
 		    	MAX(CASE WHEN A.SBJCT_ADM_TYCD = 'ASSI'	THEN U.USERNM END) AS ASSINM		    	
 		FROM 	DEV_LMS.TB_LMS_SBJCT_ADM A
 		JOIN 	DEV_LMS.TB_LMS_USER U ON A.USER_ID = U.USER_ID
-		WHERE 	A.SBJCT_ID = #{subjectId}
+		WHERE 	A.SBJCT_ID = #{sbjctId}
 				AND A.SBJCT_ADM_SEQNO = 1
 		GROUP 	BY A.SBJCT_ID
 		ORDER 	BY A.SBJCT_ID
@@ -176,7 +176,7 @@
 		    FROM TB_LMS_USER_CNTCT CNTCT
 		    GROUP BY USER_ID
 		) CNTCT ON CNTCT.USER_ID = USR.USER_ID
-		WHERE ADM.SBJCT_ID = #{subjectId}
+		WHERE ADM.SBJCT_ID = #{sbjctId}
 		ORDER BY
 		      	CASE ADM.SBJCT_ADM_TYCD
 			        WHEN 'PROF' THEN 1
@@ -254,7 +254,7 @@
 			        	AND USEYN='Y'AND EXAM_TYCD='EXAM' AND EXAM_GBNCD IN ('EXAM_MID','EXAM_LST')
 		        ) AS EXAM_CNT
 		FROM 	TB_LMS_SBJCT_ADM SA
-		WHERE 	SA.USER_ID = #{userId} AND SA.SBJCT_ID = #{subjectId}		
+		WHERE 	SA.USER_ID = #{userId} AND SA.SBJCT_ID = #{sbjctId}		
 	</select>
 	
 	<select id="profSubjectSummaryList" parameterType="map" resultType="egovMap">
@@ -529,9 +529,9 @@
 		/* 설  명 : 학생혹은교수수조회*/
 	 	SELECT COUNT(*) 
 		FROM (
-		    SELECT 1 FROM TB_LMS_ATNDLC WHERE USER_ID = #{userId} AND SBJCT_ID = #{subjectId}
+		    SELECT 1 FROM TB_LMS_ATNDLC WHERE USER_ID = #{userId} AND SBJCT_ID = #{sbjctId}
 		    UNION ALL
-		    SELECT 1 FROM TB_LMS_SBJCT_ADM WHERE USER_ID = #{userId} AND SBJCT_ID = #{subjectId}
+		    SELECT 1 FROM TB_LMS_SBJCT_ADM WHERE USER_ID = #{userId} AND SBJCT_ID = #{sbjctId}
 		)
 	</select>	
 

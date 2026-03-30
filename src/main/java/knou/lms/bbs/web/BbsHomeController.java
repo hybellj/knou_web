@@ -173,8 +173,8 @@ public class BbsHomeController extends ControllerBase {
         atclWriteAuth = BbsAuthUtil.getAtclWriteAuth(request, bbsInfoVO);
 
         ////////////////////////////
-        addEparam("bbsId", bbsInfoVO.getBbsId());
-        addEparam("bbsTycd", bbsInfoVO.getBbsTycd());
+        addEncParam("bbsId", bbsInfoVO.getBbsId());
+        addEncParam("bbsTycd", bbsInfoVO.getBbsTycd());
 
         SmstrChrtVO smstrChrtVO = new SmstrChrtVO();
         smstrChrtVO.setOrgId(SessionInfo.getOrgId(request));
@@ -1700,8 +1700,8 @@ public class BbsHomeController extends ControllerBase {
         //atclWriteAuth = BbsAuthUtil.getAtclWriteAuth(request, bbsVO);
 
         // 파라메터 설정
-        addEparam("bbsId", bbsVO.getBbsId());
-        addEparam("bbsTycd", bbsVO.getBbsTycd());
+        addEncParam("bbsId", bbsVO.getBbsId());
+        addEncParam("bbsTycd", bbsVO.getBbsTycd());
 
         // 조회필터옵션 세팅
     	EgovMap filterOptions = bbsFacadeService.loadFilterOptions(userCtx);
@@ -1751,7 +1751,7 @@ public class BbsHomeController extends ControllerBase {
 
             resultVO = bbsAtclService.selectBbsAtclList(bbsAtclVO);
             resultVO.setResult(1);
-            resultVO.setEparam(getEparam());
+            resultVO.setEncParams(getEncParams());
         } catch(Exception e) {
             LOGGER.debug("e: ", e);
             resultVO.setResult(-1);
@@ -1880,7 +1880,7 @@ public class BbsHomeController extends ControllerBase {
         }
 
         // 페이지/검색 파라메터 삭제
-        delEparamPageSearch();
+        delEncParamPageSearch();
 
         // 첨부파일저장소 설정
         bbsVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_BBS, bbsId));
@@ -2100,7 +2100,7 @@ public class BbsHomeController extends ControllerBase {
 
             resultVO = bbsAtclService.selectBbsAtclRspnsList(bbsAtclVO);
             resultVO.setResult(1);
-            resultVO.setEparam(getEparam());
+            resultVO.setEncParams(getEncParams());
         } catch(Exception e) {
             LOGGER.debug("e: ", e);
             resultVO.setResult(-1);
@@ -2188,8 +2188,8 @@ public class BbsHomeController extends ControllerBase {
         atclWriteAuth = BbsAuthUtil.getAtclWriteAuth(request, bbsAtclVO);
 
         // 파라메터 설정
-        addEparam("bbsId", bbsAtclVO.getBbsId());
-        addEparam("bbsTycd", bbsAtclVO.getBbsTycd());
+        addEncParam("bbsId", bbsAtclVO.getBbsId());
+        addEncParam("bbsTycd", bbsAtclVO.getBbsTycd());
 
         // 조회필터옵션 세팅
     	EgovMap filterOptions = bbsFacadeService.loadFilterOptions(userCtx);
@@ -2435,8 +2435,8 @@ public class BbsHomeController extends ControllerBase {
         }
 
         // 파라메터 설정
-        addEparam("bbsId", bbsVO.getBbsId());
-        addEparam("bbsTycd", bbsVO.getBbsTycd());
+        addEncParam("bbsId", bbsVO.getBbsId());
+        addEncParam("bbsTycd", bbsVO.getBbsTycd());
 
         // 조회필터옵션 세팅
     	EgovMap filterOptions = bbsFacadeService.loadFilterOptions(userCtx);
@@ -2572,8 +2572,8 @@ public class BbsHomeController extends ControllerBase {
         }
 
         // 파라메터 설정
-        addEparam("bbsId", bbsVO.getBbsId());
-        addEparam("bbsTycd", bbsVO.getBbsTycd());
+        addEncParam("bbsId", bbsVO.getBbsId());
+        addEncParam("bbsTycd", bbsVO.getBbsTycd());
 
         // 조회필터옵션 세팅
     	EgovMap filterOptions = bbsFacadeService.loadFilterOptions(userCtx);

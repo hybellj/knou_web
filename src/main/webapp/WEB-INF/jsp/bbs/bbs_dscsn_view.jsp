@@ -22,7 +22,7 @@
 		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
 		var BBS_IDS;
 		var BBS_HOME_UNIV_GBNS = ""; // bbsHome 의 전체공지 조회용 대학구분 코드
-		var EPARAM			= '<c:out value="${eparam}" />';
+		var EPARAM			= '<c:out value="${encParams}" />';
 		var ATCL_LV         = 2;
 
 		$(document).ready(function() {
@@ -34,7 +34,7 @@
 
         // 게시글 목록 이동
         function bbsAtclListMove() {
-            document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsDscsnListView.do?eparam=${eparam}";
+            document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsDscsnListView.do?encParams=${encParams}";
         };
 
      	// 게시글 삭제
@@ -43,7 +43,7 @@
     		.then(function(result) {
     			if (result) {
     				var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
-    				var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsLctrQnaListView.do?eparam=${eparam}";
+    				var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsLctrQnaListView.do?encParams=${encParams}";
         			var data = {
         				  atclId	: atclId
         				, bbsId	    : bbsId
@@ -98,7 +98,7 @@
     	function bbsAtclRspnsRegist() {
     		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclRspnsRegist.do";
     		var data = $("#bbsAtclRspnsWriteForm").serialize();
-			var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsDscsnView.do?eparam=${eparam}";
+			var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsDscsnView.do?encParams=${encParams}";
 
 			bbsCommon.regist(url, returnUrl, data);
 		};
@@ -108,7 +108,7 @@
     		UiComm.showMessage("<spring:message code='bbs.confirm.delete_atcl' />", "confirm")
     		.then(function(result) {
     			if (result) {
-    				var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsDscsnView.do?eparam=${eparam}";
+    				var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsDscsnView.do?encParams=${encParams}";
         			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
         			var data = {
     					orgId : ORG_ID,
@@ -158,7 +158,7 @@
 		        atclTtl: newTitle,
 		        atclCts: newCts
 		    };
-		    var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsDscsnView.do?eparam=${eparam}";
+		    var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsDscsnView.do?encParams=${encParams}";
 
 		    bbsCommon.regist(url, returnUrl, data);
 		}
@@ -287,7 +287,7 @@
 		// 게시글 > 댓글 등록
 		function bbsAtclCmntRegist() {
     		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclCmntRegist.do";
-    		var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsDscsnView.do?eparam=${eparam}";
+    		var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsDscsnView.do?encParams=${encParams}";
 			var data = $(".recmt_form").serialize();
 
 			bbsCommon.regist(url, returnUrl, data);
@@ -332,7 +332,7 @@
 		        bbsId: bbsId
 		    };
 
-		    var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsDscsnView.do?eparam=${eparam}";
+		    var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsDscsnView.do?encParams=${encParams}";
 		    bbsCommon.regist(url, returnUrl, data);
 		}
 
@@ -347,7 +347,7 @@
         				atclId : ATCL_ID,
     					atclCmntId : atclCmntId
     				};
-        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsDscsnView.do?eparam=${eparam}";
+        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsDscsnView.do?encParams=${encParams}";
 
         			bbsCommon.regist(url, returnUrl, data);
     			}
@@ -494,7 +494,7 @@
 
             var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclCmntRegist.do";
             var data = $form.serialize();
-            var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsDscsnView.do?eparam=${eparam}";
+            var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsDscsnView.do?encParams=${encParams}";
 
             // 기존 공통 등록 함수 사용
             bbsCommon.regist(url, returnUrl, data);

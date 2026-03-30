@@ -1071,7 +1071,7 @@
             let deferred = $.Deferred();
 
             let url = "/crs/sbjct/sbjctMrkProcPeriodSelectAjax.do";
-            let data = {"subjectId" : $("#sSbjctid").val()};
+            let data = {"sbjctId" : $("#sSbjctid").val()};
 
             ajaxCall(url, data, function (data) {
 

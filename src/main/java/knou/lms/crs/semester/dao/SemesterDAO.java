@@ -28,10 +28,10 @@ public interface SemesterDAO {
 	
 	/**
 	 * 학기기수조회
-	 * @param	subjectId
+	 * @param	sbjctId
 	 * @return	SmstrChrtVO
 	 * @throws 	Exception
 	 * @author 	jinkoon
 	 */
-	public SmstrChrtVO smstrChrtSelect(String subjectId) throws Exception;
+	public SmstrChrtVO smstrChrtSelect(String sbjctId) throws Exception;
 }

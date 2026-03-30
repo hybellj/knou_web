@@ -167,7 +167,8 @@
 					// 팀관련:항목
 					teamnm:				v.teamNm,
 					ldryn:				v.memberRole,
-					userId:				v.userId
+					userId:				v.userId,
+					forumCd:			v.forumCd		// BYTEAM='Y'이면 자식 DSCS_ID
 				});
 
 			});
@@ -219,6 +220,20 @@
 			}
 		}
 
+		// BYTEAM='Y' 전용: 선택 학생을 자식토론 forumCd 기준으로 그룹핑
+		var _pendingFdbkGroups = null;
+		function getForumCdGroups() {
+			var groups = {};
+			var uids = userListTable.getSelectedData("userId");
+			var fcds = userListTable.getSelectedData("forumCd");
+			for (var i = 0; i < uids.length; i++) {
+				var fcd = fcds[i] || "${forumVo.forumCd}";
+				if (!groups[fcd]) groups[fcd] = [];
+				groups[fcd].push(uids[i]);
+			}
+			return groups;
+		}
+
 		// 성적 저장
 		function submitScore() {
 			// 성적처리방식
@@ -262,6 +277,35 @@
 			var url = "/forum2/forumLect/updateForumJoinUserScore.do";
 			// var url = "/forum2/forumLect/addStdScore.do";
 
+			// BYTEAM='Y': 팀(자식토론)별 그룹핑 후 각각 호출
+			if ("${forumVo.byteamDscsUseyn}" === "Y") {
+				var groups = getForumCdGroups();
+				var keys = Object.keys(groups);
+				keys.forEach(function(fcd, idx) {
+					var data = {
+						"forumCd"    : fcd,
+						"crsCreCd"   : "${forumVo.crsCreCd}",
+						"teamCtgrCd" : "${forumVo.teamCtgrCd}",
+						"stdIds"     : groups[fcd].join(","),
+						"score"      : score,
+						"scoreType"  : $("input[name='scoreType']:checked").val()
+					};
+					ajaxCall(url, data, function(data) {
+						if (idx === keys.length - 1) { // 마지막 그룹에서만 UI 갱신
+							if (data.result > 0) {
+								alert("<spring:message code='forum.alert.batch.score' />"); // 일괄 점수 등록이 완료되었습니다.
+								$("#stdIds").val(""); $("#scoreValue").val("");
+								listForumUser(1);
+							} else { alert(data.message); }
+						}
+					}, function(xhr, status, error) {
+						alert("<spring:message code='forum.common.error' />");
+					}, true);
+				});
+				return;
+			}
+
+			// BYTEAM='N': 기존 로직
 			var data = {
 				"forumCd" : "${forumVo.forumCd}",
 				"crsCreCd" : "${forumVo.crsCreCd}",
@@ -641,6 +685,9 @@
 			}
 
 			// 피드백을 저장하시겠습니까?
+			if ("${forumVo.byteamDscsUseyn}" === "Y") {
+				_pendingFdbkGroups = getForumCdGroups(); // BYTEAM='Y': confirm 전에 그룹 저장
+			}
 			if(confirm("<spring:message code='forum.alert.feedback.confirm'/>")) {
 				if (fileUploader.getFileCount() > 0) {
 					$('#fdbkFileUp').css("visibility", "visible");
@@ -648,6 +695,8 @@
 				}else{
 					submitFdbk();
 				}
+			} else {
+				_pendingFdbkGroups = null; // confirm 취소 시 초기화
 			}
 		}
 
@@ -760,6 +809,38 @@
 			}
 
 			var url = "/forum2/forumLect/Form/regFdbk.do";
+
+			// BYTEAM='Y': 팀(자식토론)별 그룹핑 후 각각 호출
+			if ("${forumVo.byteamDscsUseyn}" === "Y" && _pendingFdbkGroups) {
+				var groups = _pendingFdbkGroups;
+				_pendingFdbkGroups = null;
+				var keys = Object.keys(groups);
+				keys.forEach(function(fcd, idx) {
+					var data = {
+						"crsCreCd"    : "${forumVo.crsCreCd}",
+						"forumCd"     : fcd,
+						"stdId"       : groups[fcd].join(","),
+						"fdbkCts"     : $("#fdbkValue").val(),
+						"uploadFiles" : fileUploader.getUploadFiles(),
+						"uploadPath"  : fileUploader.getUploadPath()
+					};
+					ajaxCall(url, data, function(data) {
+						if (idx === keys.length - 1) {
+							if (data.result > 0) {
+								$("#fdbkFileUp").css("visibility", "hidden");
+								fileUploader.removeAll(); $("#fdbkFileView").empty(); $("#fdbkValue").val("");
+								alert("<spring:message code='forum.alert.reg_success.feedback'/>");
+								listForumUser(1);
+							} else { alert("<spring:message code='forum.alert.reg_fail.feedback'/>"); }
+						}
+					}, function(xhr, status, error) {
+						alert("<spring:message code='forum.common.error' />");
+					}, true);
+				});
+				return;
+			}
+
+			// BYTEAM='N': 기존 로직
 			var data = {
 				"crsCreCd"	  : "${forumVo.crsCreCd}",
 				"forumCd"     : "${forumVo.forumCd}",
@@ -1148,6 +1229,36 @@
 												}
 
 												var url = "/forum2/forumLect/updateForumJoinUserLenScore.do";
+												// BYTEAM='Y': 팀(자식토론)별 그룹핑 후 각각 호출
+												if ("${forumVo.byteamDscsUseyn}" === "Y") {
+													var groups = getForumCdGroups();
+													var keys = Object.keys(groups);
+													keys.forEach(function(fcd, idx) {
+														var data = {
+															"forumCd"    : fcd,
+															"crsCreCd"   : "${forumVo.crsCreCd}",
+															"teamCtgrCd" : "${forumVo.teamCtgrCd}",
+															"stdIds"     : groups[fcd].join(","),
+															"score"      : $("#lenScore").val(),
+															"ctsLen"     : $("#ctsLen").val(),
+															"chkCmnt"    : chkCmnt
+														};
+														ajaxCall(url, data, function(data) {
+															if (idx === keys.length - 1) {
+																if (data.result > 0) {
+																	alert("<spring:message code='forum.alert.length.score.success' />");
+																	$("#stdIds").val(""); listForumUser(1);
+																	$("#ctsLen").val(""); $("input:checkbox[id='chkCmnt']").prop("checked", false); $("#lenScore").val("");
+																} else { alert("<spring:message code='forum.alert.length.score.fail' />"); }
+															}
+														}, function(xhr, status, error) {
+															alert("<spring:message code='forum.common.error' />");
+														}, true);
+													});
+													return;
+												}
+
+												// BYTEAM='N': 기존 로직
 												var data = {
 													"forumCd" : "${forumVo.forumCd}",
 													"crsCreCd" : "${forumVo.crsCreCd}",

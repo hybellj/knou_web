@@ -20,7 +20,7 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
 
     /*****************************************************
      * 강의일정목록조회, 강의주차일정목록조회
-     * @param    subjectId
+     * @param    sbjctId
      * @return    List<EgovMap>
      * @throws Exception
      ******************************************************/
@@ -31,7 +31,7 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
 
     /*****************************************************
      * 금주강의조회, 이번주강의조회
-     * @param    subjectId
+     * @param    sbjctId
      * @return    EgovMap
      * @throws Exception
      ******************************************************/
@@ -42,7 +42,7 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
 
     /*****************************************************
      * 교수강의일정목록조회, 교수강의주차일정목록조회
-     * @param    subjectId
+     * @param    sbjctId
      * @return    List<EgovMap>
      * @throws Exception
      ******************************************************/
@@ -53,7 +53,7 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
 
     /*****************************************************
      * 주차별강의일정목록조회, 교수강의주차일정목록조회
-     * @param    subjectId
+     * @param    sbjctId
      * @return    List<EgovMap>
      * @throws Exception
      ******************************************************/

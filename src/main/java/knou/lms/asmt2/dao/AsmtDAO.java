@@ -14,4 +14,6 @@ public interface AsmtDAO {
     void mrkRfltrtModify(AsmtVO vo) throws Exception;
 
     void mrkOynModify(AsmtVO vo) throws Exception;
+
+    EgovMap asmtSelect(AsmtVO asmtVO) throws Exception;
 }

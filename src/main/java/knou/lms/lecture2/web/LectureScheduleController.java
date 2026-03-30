@@ -175,7 +175,7 @@ public class LectureScheduleController extends ControllerBase {
         //logUserConnService.saveUserConnState(request, CommConst.CONN_COR_HOME);
 
     	UserContext userCtx = (UserContext) request.getSession().getAttribute("USER_CONTEXT");
-        String subjectId = request.getParameter("subjectId");
+        String sbjctId = request.getParameter("sbjctId");
         
         
         String	userId = userCtx.getUserId();        
@@ -185,7 +185,7 @@ public class LectureScheduleController extends ControllerBase {
         String	lcdmsLinkYn = "Y"; // TODO 임의처리 
 
         //	강의일정목록조회
-        List<EgovMap> lectureScheduleList = lectureScheduleService.profLectureScheduleList(new SubjectParam(subjectId));
+        List<EgovMap> lectureScheduleList = lectureScheduleService.profLectureScheduleList(new SubjectParam(sbjctId));
         
         // 수업지원팀(20042), 교육플랫폼혁신팀(20134)
         if("20042".equals(deptId) || "20134".equals(deptId)) {
@@ -205,7 +205,7 @@ public class LectureScheduleController extends ControllerBase {
             }
         }
 
-        model.addAttribute("subjectId", subjectId);
+        model.addAttribute("sbjctId", sbjctId);
         model.addAttribute("lctrSchdlList", lectureScheduleList);
         model.addAttribute("deptId", SessionInfo.getUserDeptId(request));
         model.addAttribute("userId", SessionInfo.getUserId(request));

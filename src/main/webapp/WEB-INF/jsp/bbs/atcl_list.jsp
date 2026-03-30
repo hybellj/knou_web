@@ -30,7 +30,7 @@
 		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
 		var BBS_IDS;
 		var BBS_HOME_UNIV_GBNS = ""; // bbsHome 의 전체공지 조회용 대학구분 코드
-		var EPARAM			= '<c:out value="${eparam}" />';
+		var EPARAM			= '<c:out value="${encParams}" />';
 
 
 		$(document).ready(function() {
@@ -153,13 +153,13 @@
 
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclList.do"
 			var param = {
-				  eparam		: EPARAM
+				  encParams		: EPARAM
 				, extParam		: makeExtParam(extData)
 			};
 
 			ajaxCall(url, param, function(data) {
-				if (data.eparam != null && data.eparam != '') {
-					EPARAM = data.eparam;
+				if (data.encParams != null && data.encParams != '') {
+					EPARAM = data.encParams;
 				}
 
 				if (data.result > 0) {
@@ -293,7 +293,7 @@
 					if(bbsCommon.isStudent() && v.bbsCd == "SECRET" && v.rgtrId != USER_ID) {
 						var linkUrl = 'javascript:alert(' + '<spring:message code="bbs.alert.no_auth_secret" />' + ')'; // 1:1상담 게시글 입니다.
 					} else {
-						var linkUrl = "/bbs/" + TEMPLATE_URL + "/Form/atclView.do?eparam="+EPARAM+"&extParam="+extParam;
+						var linkUrl = "/bbs/" + TEMPLATE_URL + "/Form/atclView.do?encParams="+EPARAM+"&extParam="+extParam;
 					}
 
 					var isSingleTab = BBS_IDS && BBS_IDS.split(",").length == 1;

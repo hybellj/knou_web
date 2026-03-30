@@ -29,7 +29,7 @@
 
 		// 사용값
 		var LIST_SCALE		= '<c:out value="${bbsVO.listScale}" />';
-		var EPARAM			= '<c:out value="${eparam}" />';
+		var EPARAM			= '<c:out value="${encParams}" />';
 
 
 		$(document).ready(function() {
@@ -156,15 +156,15 @@
 
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do"
 			var param = {
-				  eparam		: EPARAM
+				  encParams		: EPARAM
 				, extParam		: UiComm.makeExtParam(extData)
 			};
 
 			UiComm.showLoading(true);
 
 			ajaxCall(url, param, function(data) {
-				if (data.eparam != null && data.eparam != '') {
-					EPARAM = data.eparam;
+				if (data.encParams != null && data.encParams != '') {
+					EPARAM = data.encParams;
 				}
 
 				if (data.result > 0) {
@@ -189,7 +189,7 @@
 
 		// 글쓰기
 		function moveWriteAtcl() {
-			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclWrite.do?eparam="+EPARAM;
+			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclWrite.do?encParams="+EPARAM;
 		}
 
 
@@ -287,7 +287,7 @@
 				atclId	: atclId
 			};
 
-			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?eparam="+EPARAM+"&extParam="+UiComm.makeExtParam(extData);
+			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams="+EPARAM+"&extParam="+UiComm.makeExtParam(extData);
 		}
 
 

@@ -72,7 +72,7 @@
 		</if>
 	</select>
 
-	<resultMap id="forumJoinTeamMap" type="knou.lms.forum.vo.ForumEzGraderTeamVO">
+	<resultMap id="forumJoinTeamMap" type="knou.lms.forum2.vo.DscsEzGraderTeamVO">
 		<result property="teamCtgrCd" column="TEAM_TYCD" />
 		<result property="teamCd" column="TEAM_ID" />
 		<result property="teamNm" column="TEAMNM" />

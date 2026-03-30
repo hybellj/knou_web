@@ -188,4 +188,13 @@ public interface BbsInfoDAO {
      * @throws Exception
      ******************************************************/
     public void bbsInfoRegist(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 강의실 메뉴의 게시판 목록 조회
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    public List<BbsVO> selectBbsForSbjctMenu(BbsVO vo) throws Exception;
+
 }
