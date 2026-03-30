@@ -1,6 +1,7 @@
 package knou.lms.forum2.dao;
 
 import knou.lms.forum.vo.*;
+import knou.lms.forum2.vo.DscsEzGraderTeamVO;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
 import java.util.List;
@@ -12,7 +13,7 @@ public interface ForumEzGraderDAO {
     public List<ForumJoinUserVO> listForumJoinUser(ForumJoinUserVO vo) throws Exception;
 
     // 토론 참여 team 리스트 조회
-    public List<ForumEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo) throws Exception;
+    public List<DscsEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo) throws Exception;
 
     // 토론 참여 유저(미제출자 포함)에 평가점수 부여
     public void updateJoinUserScore(ForumEzGraderRsltVO vo) throws Exception;

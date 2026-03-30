@@ -11,6 +11,7 @@ import knou.lms.forum2.dao.ForumFdbkDAO;
 import knou.lms.forum2.dao.ForumJoinUserDAO;
 import knou.lms.forum2.service.ForumJoinUserService;
 import knou.lms.forum.vo.*;
+import knou.lms.forum2.vo.DscsEzGraderTeamVO;
 import knou.lms.forum2.vo.Forum2TeamDscsVO;
 import knou.lms.std.dao.StdDAO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
@@ -84,53 +85,17 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
         vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
         vo.setLastIndex(paginationInfo.getLastRecordIndex());
 
-        List<ForumJoinUserVO> forumJoinUserList;
-
-        if ("Y".equals(StringUtil.nvl(byteamDscsUseyn))) {
-            // 팀별부토론: 자식 CD 기준으로 조회
-            List<Forum2TeamDscsVO> childList = forum2DAO.selectTeamDscsList(vo.getForumCd());
-
-            if (childList == null || childList.isEmpty()) {
-                // 자식 토론 없으면 부모 CD 그대로 조회
-                forumJoinUserList = forumJoinUserDAO.listPaging(vo);
-            } else if (!"".equals(StringUtil.nvl(vo.getTeamCd()))) {
-                // Case A: 특정 팀 — 해당 팀의 자식 CD로 교체 후 단일 조회
-                for (Forum2TeamDscsVO child : childList) {
-                    if (vo.getTeamCd().equals(child.getTeamId())) {
-                        vo.setForumCd(child.getDscsId());
-                        break;
-                    }
-                }
-                forumJoinUserList = forumJoinUserDAO.listPaging(vo);
-            } else {
-                // Case B: 전체 팀 — 자식 CD별 조회 후 합산
-                forumJoinUserList = new java.util.ArrayList<>();
-                for (Forum2TeamDscsVO child : childList) {
-                    ForumJoinUserVO childVo = new ForumJoinUserVO();
-                    childVo.setForumCd(child.getDscsId());
-                    childVo.setCrsCreCd(vo.getCrsCreCd());
-                    childVo.setForumCtgrCd(vo.getForumCtgrCd());
-                    childVo.setSearchKey(vo.getSearchKey());
-                    childVo.setSearchSort(vo.getSearchSort());
-                    childVo.setSearchValue(vo.getSearchValue());
-                    childVo.setFirstIndex(vo.getFirstIndex());
-                    childVo.setLastIndex(vo.getLastIndex());
-                    List<ForumJoinUserVO> partial = forumJoinUserDAO.listPaging(childVo);
-                    if (partial != null) forumJoinUserList.addAll(partial);
-                }
-            }
-        } else {
-            // 일반 토론: 기존 로직 그대로
-            forumJoinUserList = forumJoinUserDAO.listPaging(vo);
+        if ("all".equalsIgnoreCase(StringUtil.nvl(vo.getTeamCd()))) {
+            vo.setTeamCd("");
         }
 
+        List<ForumJoinUserVO> forumJoinUserList = forumJoinUserDAO.listPaging(vo);
+
         if (!forumJoinUserList.isEmpty()) {
-            // Case B(전체팀 합산)에서는 개별 totalCnt가 자식 팀 단위라 합산 size로 override
-            paginationInfo.setTotalRecordCount(forumJoinUserList.size());
+            paginationInfo.setTotalRecordCount(forumJoinUserList.get(0).getTotalCnt());
         } else {
             paginationInfo.setTotalRecordCount(0);
         }
-
         ProcessResultVO<ForumJoinUserVO> resultVO = new ProcessResultVO<>();
         resultVO.setReturnList(forumJoinUserList);
         resultVO.setPageInfo(paginationInfo);
@@ -360,10 +325,10 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
     }
 
     @Override
-    public List<ForumEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo) throws Exception {
-        List<ForumEzGraderTeamVO> memberList = forumJoinUserDAO.listForumJoinTeam(vo);
+    public List<DscsEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo) throws Exception {
+        List<DscsEzGraderTeamVO> memberList = forumJoinUserDAO.listForumJoinTeam(vo);
         if(memberList != null && !memberList.isEmpty() && memberList.size() > 0) {
-            for(ForumEzGraderTeamVO teamVo : memberList) {
+            for(DscsEzGraderTeamVO teamVo : memberList) {
                 String teamStdIds = "";
                 if (teamVo.getTeamMembers() != null && !teamVo.getTeamMembers().isEmpty() && teamVo.getTeamMembers().size() > 0) {
                     int idx = 0;

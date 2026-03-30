@@ -1,9 +1,9 @@
 package knou.lms.forum2.dao;
 
-import knou.lms.forum.vo.ForumEzGraderTeamVO;
 import knou.lms.forum.vo.ForumJoinUserVO;
 import knou.lms.forum.vo.ForumMutVO;
 import knou.lms.forum.vo.ForumVO;
+import knou.lms.forum2.vo.DscsEzGraderTeamVO;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
@@ -63,7 +63,7 @@ public interface ForumJoinUserDAO {
 
     public List<ForumJoinUserVO> listForumJoinUser(ForumJoinUserVO vo) throws Exception;
 
-    public List<ForumEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo) throws Exception;
+    public List<DscsEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo) throws Exception;
 
     public int getForumJoinUser(ForumJoinUserVO vo) throws Exception;
 

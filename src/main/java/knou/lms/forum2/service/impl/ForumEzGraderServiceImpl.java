@@ -7,6 +7,7 @@ import knou.lms.forum2.dao.ForumEzGraderDAO;
 import knou.lms.forum2.dao.Forum2DAO;
 import knou.lms.forum2.service.ForumEzGraderService;
 import knou.lms.forum.vo.*;
+import knou.lms.forum2.vo.DscsEzGraderTeamVO;
 import knou.lms.forum2.vo.Forum2TeamDscsVO;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.stereotype.Service;
@@ -33,8 +34,8 @@ public class ForumEzGraderServiceImpl extends EgovAbstractServiceImpl implements
 
     // 토론 참여 대상 TEAM 조회
     @Override
-    public List<ForumEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo, String byteamDscsUseyn) throws Exception {
-        List<ForumEzGraderTeamVO> memberList;
+    public List<DscsEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo, String byteamDscsUseyn) throws Exception {
+        List<DscsEzGraderTeamVO> memberList;
 
         if ("Y".equals(byteamDscsUseyn)) {
             // 팀별부토론: 부모 forumCd로 자식 토론 목록 조회 후 자식 DSCS_ID별로 팀원 조회
@@ -47,7 +48,7 @@ public class ForumEzGraderServiceImpl extends EgovAbstractServiceImpl implements
                     childVo.setCrsCreCd(vo.getCrsCreCd());
                     childVo.setSearchKey(vo.getSearchKey());
                     childVo.setSearchSort(vo.getSearchSort());
-                    List<ForumEzGraderTeamVO> partial = forumEzGraderDAO.listForumJoinTeam(childVo);
+                    List<DscsEzGraderTeamVO> partial = forumEzGraderDAO.listForumJoinTeam(childVo);
                     if (partial != null) memberList.addAll(partial);
                 }
             }
@@ -56,7 +57,7 @@ public class ForumEzGraderServiceImpl extends EgovAbstractServiceImpl implements
         }
 
         if (memberList != null && !memberList.isEmpty()) {
-            for (ForumEzGraderTeamVO teamVo : memberList) {
+            for (DscsEzGraderTeamVO teamVo : memberList) {
                 String teamStdIds = "";
                 if (teamVo.getTeamMembers() != null && !teamVo.getTeamMembers().isEmpty()) {
                     int idx = 0;

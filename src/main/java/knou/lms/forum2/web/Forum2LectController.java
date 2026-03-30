@@ -2023,6 +2023,7 @@ public class Forum2LectController extends ControllerBase {
         dest.setByteamDscsUseyn(src.getByteamDscsUseyn()); // 팀별부토론사용여부
         dest.setDscsGrpnm(src.getDscsGrpnm());          // 학습그룹이름.
         dest.setEvalCtgr(src.getEvlScrTycd());          // 평가점수유형코드
+        dest.setTeamCd(src.getTeamId());                // 팀아이디.
 
         // DB 외 변수들
         dest.setForumAtclCnt(src.getForumAtclCnt());

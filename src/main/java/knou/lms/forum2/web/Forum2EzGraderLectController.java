@@ -11,6 +11,7 @@ import knou.lms.forum2.service.ForumFdbkService;
 import knou.lms.forum2.service.ForumJoinUserService;
 import knou.lms.forum2.service.ForumService;
 import knou.lms.forum.vo.*;
+import knou.lms.forum2.vo.DscsEzGraderTeamVO;
 import knou.lms.forum2.vo.Forum2VO;
 import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.std.service.StdService;
@@ -168,7 +169,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
         String viewNm = "";
         if ("TEAM".equals(forumVO.getForumCtgrCd())) {
-            List<ForumEzGraderTeamVO> resultList= forumEzGraderService.listForumJoinTeam(paramVO, forumVO.getByteamDscsUseyn());
+            List<DscsEzGraderTeamVO> resultList= forumEzGraderService.listForumJoinTeam(paramVO, forumVO.getByteamDscsUseyn());
             request.setAttribute("resultList", resultList);
             viewNm = "forum2/ezgPop/ezg_join_team_list";
         } else {

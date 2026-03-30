@@ -1,10 +1,10 @@
 package knou.lms.forum2.service;
 
 import knou.lms.common.vo.ProcessResultVO;
-import knou.lms.forum.vo.ForumEzGraderTeamVO;
 import knou.lms.forum.vo.ForumJoinUserVO;
 import knou.lms.forum.vo.ForumMutVO;
 import knou.lms.forum.vo.ForumVO;
+import knou.lms.forum2.vo.DscsEzGraderTeamVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import java.util.List;
@@ -71,7 +71,7 @@ public interface ForumJoinUserService {
 
     public List<ForumJoinUserVO> listForumJoinUser(ForumJoinUserVO vo) throws Exception;
 
-    public List<ForumEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo) throws Exception;
+    public List<DscsEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo) throws Exception;
 
     // 메모
     public ForumJoinUserVO getMemo(ForumVO vo) throws Exception;
