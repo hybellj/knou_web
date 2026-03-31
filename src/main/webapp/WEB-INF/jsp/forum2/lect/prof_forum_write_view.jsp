@@ -93,6 +93,9 @@
                                         <input type="hidden" id="dscsId" name="dscsId" value="" />
                                     </c:otherwise>
                                 </c:choose>
+                                <input type="hidden" name="uploadFiles"  id="uploadFiles"  value="" />
+                                <input type="hidden" name="uploadPath"   id="uploadPath"   value="${forum2VO.uploadPath}" />
+                                <input type="hidden" name="delFileIdStr" id="delFileIdStr" value="" />
                             </div>
                             <table class="table-type5" style="margin-top:12px;">
                                 <colgroup>
@@ -217,12 +220,12 @@
                                         <td>
                                             <uiex:dextuploader
                                                     id="fileUploader"
-                                                    path="/bbs"
+                                                    path="${forum2VO.uploadPath}"
                                                     limitCount="5"
                                                     limitSize="100"
                                                     oneLimitSize="100"
                                                     listSize="3"
-                                                    fileList=""
+                                                    fileList="${forum2VO.fileList}"
                                                     finishFunc="finishUpload()"
                                                     allowedTypes="*"
                                             />
@@ -852,6 +855,26 @@
         });
     }
 
+    // 파일 업로드 완료 콜백
+    function finishUpload() {
+        let url = "/common/uploadFileCheck.do";
+        let dx = dx5.get("fileUploader");
+        let data = {
+            "uploadFiles" : dx.getUploadFiles(),
+            "uploadPath"  : dx.getUploadPath()
+        };
+        ajaxCall(url, data, function(data) {
+            if (data.result > 0) {
+                $("#uploadFiles").val(dx5.get("fileUploader").getUploadFiles());
+                doSaveForum();
+            } else {
+                UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+            }
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+        });
+    }
+
     // 토론등록/저장
     function saveForum() {
         let validator = UiValidator("forumWriteForm");
@@ -861,37 +884,46 @@
             appendDvclasSelParams();
             appendLrnGrpInfoParams();
             appendTeamForumDetailParams();
-            var registUrl = '<c:url value="/forum2/forumLect/profForumRegist.do" />';
-            var modifyUrl = '<c:url value="/forum2/forumLect/profForumModify.do" />';
-            var isModifyMode = '${mode}' === 'E';
-            var url = isModifyMode ? modifyUrl : registUrl;
-            var param = $('#forumWriteForm').serialize();
 
-            $.ajax({
-                url 	 : url,
-                async	 : false,
-                type 	 : "POST",
-                /*dataType : "json",
-                contentType: 'application/json',*/
-                data 	 : param,
-                beforeSend: function () {
-                    UiComm.showLoading(true);
-                }
-            }).done(function(data) {
-                UiComm.showLoading(false);
-                if (data.result > 0) {
-                    UiComm.showMessage("<spring:message code='success.common.save' />", "success")/* 정상 저장 되었습니다. */
-                    .then(function(result) {
-                        console.log('2:' + result);
-                        location.href = '<c:url value="/forum2/forumLect/profForumListView.do" />';
-                    });
-                } else {
-                    UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
-                }
-            }).fail(function() {
-                UiComm.showLoading(false);
-                UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
-            });
+            let dx = dx5.get("fileUploader");
+            if (dx.availUpload()) {
+                dx.startUpload(); // 업로드 완료 후 finishUpload() → doSaveForum() 호출
+            } else {
+                $("#delFileIdStr").val(dx.getDelFileIdStr());
+                doSaveForum();
+            }
+        });
+    }
+
+    // 실제 저장 AJAX 호출
+    function doSaveForum() {
+        var registUrl = '<c:url value="/forum2/forumLect/profForumRegist.do" />';
+        var modifyUrl = '<c:url value="/forum2/forumLect/profForumModify.do" />';
+        var isModifyMode = '${mode}' === 'E';
+        var url = isModifyMode ? modifyUrl : registUrl;
+        var param = $('#forumWriteForm').serialize();
+
+        $.ajax({
+            url 	 : url,
+            async	 : false,
+            type 	 : "POST",
+            data 	 : param,
+            beforeSend: function () {
+                UiComm.showLoading(true);
+            }
+        }).done(function(data) {
+            UiComm.showLoading(false);
+            if (data.result > 0) {
+                UiComm.showMessage("<spring:message code='success.common.save' />", "success")
+                .then(function(result) {
+                    location.href = '<c:url value="/forum2/forumLect/profForumListView.do" />';
+                });
+            } else {
+                UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error");
+            }
+        }).fail(function() {
+            UiComm.showLoading(false);
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
         });
     }
 

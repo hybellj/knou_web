@@ -6,9 +6,14 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import knou.framework.common.CommConst;
 import knou.framework.common.IdPrefixType;
+import knou.framework.util.FileUtil;
+import knou.framework.util.IdGenUtil;
 import knou.framework.vo.FileVO;
 import knou.lms.common.paging.PagingInfo;
+import knou.lms.file.service.AttachFileService;
+import knou.lms.file.vo.AtflVO;
 import knou.lms.forum.vo.ForumVO;
 import knou.lms.forum2.vo.*;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
@@ -27,6 +32,9 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
     @Resource(name = "forum2DAO")
     private Forum2DAO forumDAO;
+
+    @Resource(name = "attachFileService")
+    private AttachFileService attachFileService;
 
     @Override
     public List<Forum2VO> selectForumDvclasList(Forum2VO vo) throws Exception {
@@ -62,11 +70,16 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      */
     @Override
     public Forum2VO selectForum(Forum2VO vo) throws Exception {
-        Forum2VO  resultVo = forumDAO.selectForum(vo);
+        Forum2VO resultVo = forumDAO.selectForum(vo);
         // 부토론 존재여부 체크
         if (resultVo.getByteamDscsUseyn().equalsIgnoreCase("Y")) {
             resultVo.setTeamDscsList(forumDAO.selectTeamDscsList(vo.getDscsId()));
         }
+        // 첨부파일 목록 조회
+        AtflVO atflParam = new AtflVO();
+        atflParam.setAtflRepoId(CommConst.REPO_DSCS);
+        atflParam.setRefId(resultVo.getDscsId());
+        resultVo.setFileList(attachFileService.selectAtflListByRefId(atflParam));
         return resultVo;
     }
 
@@ -244,6 +257,20 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
             return resultVO;
         }
         vo.setDscsId(firstDscsId);
+
+        // 첨부파일 저장 (대표 dscsId 기준)
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+        for (AtflVO atflVO : uploadFileList) {
+            atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+            atflVO.setRefId(firstDscsId);
+            atflVO.setRgtrId(vo.getRgtrId());
+            atflVO.setMdfrId(vo.getMdfrId());
+            atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+        }
+        if (!uploadFileList.isEmpty()) {
+            attachFileService.insertAtflList(uploadFileList);
+        }
+
         resultVO.setResultSuccess();
         return resultVO;
     }
@@ -349,6 +376,25 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         }
 
         forumDAO.updateForum(vo);
+
+        // 첨부파일 저장
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+        for (AtflVO atflVO : uploadFileList) {
+            atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+            atflVO.setRefId(vo.getDscsId());
+            atflVO.setRgtrId(vo.getRgtrId());
+            atflVO.setMdfrId(vo.getMdfrId());
+            atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+        }
+        if (!uploadFileList.isEmpty()) {
+            attachFileService.insertAtflList(uploadFileList);
+        }
+        // 첨부파일 삭제
+        String[] delFileIds = vo.getDelFileIds();
+        if (delFileIds != null && delFileIds.length > 0 && !StringUtil.isNull(delFileIds[0])) {
+            attachFileService.deleteAtflByAtflIds(delFileIds);
+        }
+
         resultVO.setResultSuccess();
         return resultVO;
     }
