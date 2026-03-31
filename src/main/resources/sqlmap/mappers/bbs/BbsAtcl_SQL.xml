@@ -944,10 +944,10 @@
 		   JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
 		   JOIN TB_LMS_SBJCT C ON C.SBJCT_ID = B.SBJCT_ID
 		WHERE 1=1
+			AND B.ORG_ID = #{orgId}
 			AND A.BBS_ID = #{bbsId}
 			AND A.DELYN = 'N'
 			AND A.ATCL_LV = #{atclLv}
-			AND B.ORG_ID = #{orgId}
 			<if test="sbjctYr != null and sbjctYr != ''">
 				AND	C.SBJCT_YR = #{sbjctYr}
 			</if>
@@ -1022,10 +1022,10 @@
 		   JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
 		   JOIN TB_LMS_SBJCT C ON C.SBJCT_ID = B.SBJCT_ID
 		WHERE 1=1
+			AND B.ORG_ID = #{orgId}
 			AND A.BBS_ID = #{bbsId}
 			AND A.DELYN = 'N'
 			AND A.ATCL_LV = #{atclLv}
-			AND B.ORG_ID = #{orgId}
 			<if test="sbjctYr != null and sbjctYr != ''">
 				AND	C.SBJCT_YR = #{sbjctYr}
 			</if>

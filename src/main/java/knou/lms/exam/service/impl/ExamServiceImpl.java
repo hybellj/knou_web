@@ -393,6 +393,43 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     }
 
     /*****************************************************
+     * 결시자 결시신청 결과 조회
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public ExamVO selectAbsnceRslt(ExamVO vo) throws Exception {
+        return examDAO.selectAbsnceRslt(vo);
+    }
+
+    /*****************************************************
+     * 결시자 결시신청 이력 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    public ProcessResultVO<ExamVO> listAbsnceUserHstrPaging(ExamVO vo) throws Exception{
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countAbsnceUserHstr(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listAbsnceUserHstrPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+    /*****************************************************
      * 성적 공개여부 수정
      * @param vo
      * @throws Exception

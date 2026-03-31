@@ -4,7 +4,6 @@ import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.RepoInfo;
 import knou.framework.common.SessionInfo;
-import knou.framework.context2.UserContext;
 import knou.framework.exception.BadRequestUrlException;
 import knou.framework.util.ExcelUtilPoi;
 import knou.framework.util.FileUtil;
@@ -13,9 +12,11 @@ import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.facade.MsgShrtntFacadeService;
 import knou.lms.msg.vo.MsgShrtntVO;
 import knou.lms.org.vo.OrgInfoVO;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,24 +42,16 @@ public class MsgShrtntController extends ControllerBase {
     private static final String AUTH_PROF = "PROF";
     private static final String LIST_TYPE_RCVN = "RCVN";
 
-    private UserContext getUserContext(HttpServletRequest request) {
-        return new UserContext(
-                SessionInfo.getOrgId(request),
-                SessionInfo.getUserId(request),
-                SessionInfo.getAuthrtCd(request),
-                SessionInfo.getAuthrtGrpcd(request),
-                SessionInfo.getUserRprsId(request),
-                SessionInfo.getLastLogin(request));
+    private boolean isAdmin(HttpServletRequest request) {
+        return StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request)).contains(AUTH_ADM);
     }
 
-    private boolean isAdmin(UserContext userCtx) {
-        if (userCtx == null) return false;
-        String authrtGrpcd = userCtx.getAuthrtGrpcd();
-        return authrtGrpcd != null && authrtGrpcd.contains(AUTH_ADM);
+    private boolean isProfessor(HttpServletRequest request) {
+        return StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request)).contains(AUTH_PROF);
     }
 
-    private boolean checkLoginAuth(ProcessResultVO<?> resultVO, UserContext userCtx) {
-        if (userCtx == null || StringUtil.isNull(userCtx.getUserId())) {
+    private boolean checkLoginAuth(ProcessResultVO<?> resultVO, HttpServletRequest request) {
+        if (StringUtil.isNull(SessionInfo.getUserId(request))) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getCommonNoAuthMessage());
             return false;
@@ -66,13 +59,8 @@ public class MsgShrtntController extends ControllerBase {
         return true;
     }
 
-    private boolean checkAdmProfAuth(ProcessResultVO<?> resultVO, UserContext userCtx) {
-        if (userCtx == null) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getCommonNoAuthMessage());
-            return false;
-        }
-        String authrtGrpcd = StringUtil.nvl(userCtx.getAuthrtGrpcd());
+    private boolean checkAdmProfAuth(ProcessResultVO<?> resultVO, HttpServletRequest request) {
+        String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         if (!authrtGrpcd.contains(AUTH_ADM) && !authrtGrpcd.contains(AUTH_PROF)) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getCommonNoAuthMessage());
@@ -81,20 +69,22 @@ public class MsgShrtntController extends ControllerBase {
         return true;
     }
 
-    private void applySearchConstraints(MsgShrtntVO vo, UserContext userCtx) {
-        if ("".equals(StringUtil.nvl(vo.getOrgId()))) {
-            vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
-        }
-        String authrtGrpcd = StringUtil.nvl(userCtx.getAuthrtGrpcd());
+    private void applySearchConstraints(MsgShrtntVO vo, HttpServletRequest request) {
+        String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         if (authrtGrpcd.contains(AUTH_PROF) && !authrtGrpcd.contains(AUTH_ADM)) {
-            vo.setUserId(StringUtil.nvl(userCtx.getUserId()));
+            vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
+            vo.setUserId(StringUtil.nvl(SessionInfo.getUserId(request)));
+        } else if ("".equals(StringUtil.nvl(vo.getOrgId()))) {
+            vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
         }
     }
 
     private String handleSndngRegistView(ModelMap model, HttpServletRequest request, boolean requireAdmin, String jspPath) throws Exception {
-        UserContext userCtx = getUserContext(request);
-
-        if (requireAdmin && !isAdmin(userCtx)) {
+        if (requireAdmin && !isAdmin(request)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+        if (!requireAdmin && !isProfessor(request)) {
             model.addAttribute("message", getCommonNoAuthMessage());
             return "common/error";
         }
@@ -104,12 +94,21 @@ public class MsgShrtntController extends ControllerBase {
         String refId = StringUtil.nvl(msgId, "new");
         model.addAttribute("msgId", msgId);
         model.addAttribute("replyMsgShrtntSndngId", replyMsgShrtntSndngId);
-        model.addAttribute("orgId", StringUtil.nvl(userCtx.getOrgId()));
-        model.addAttribute("userCtx", userCtx);
+        model.addAttribute("orgId", StringUtil.nvl(SessionInfo.getOrgId(request)));
         model.addAttribute("usernm", StringUtil.nvl(SessionInfo.getUserNm(request)));
         model.addAttribute("uploadPath", RepoInfo.getAtflRepo(request, CommConst.REPO_MSG, refId));
 
         if (StringUtil.isNotNull(msgId)) {
+            if (!requireAdmin) {
+                MsgShrtntVO checkVO = new MsgShrtntVO();
+                checkVO.setMsgId(msgId);
+                checkVO.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+                MsgShrtntVO detail = msgShrtntFacadeService.selectShrtntSndngDetailWithFiles(checkVO);
+                if (detail == null) {
+                    model.addAttribute("message", getCommonNoAuthMessage());
+                    return "common/error";
+                }
+            }
             model.addAttribute("fileList", msgShrtntFacadeService.selectAtflListByRefId(msgId));
         }
 
@@ -127,9 +126,12 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/profMsgShrtntListView.do")
     public String profMsgShrtntListView(ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
+        if (!isProfessor(request)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
 
-        model.addAttribute("orgId", StringUtil.nvl(userCtx.getOrgId()));
+        model.addAttribute("orgId", StringUtil.nvl(SessionInfo.getOrgId(request)));
         model.addAttribute("usernm", StringUtil.nvl(SessionInfo.getUserNm(request)));
         model.addAttribute("pageSize", PAGE_SIZE);
 
@@ -145,14 +147,12 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/mngrMsgShrtntListView.do")
     public String mngrMsgShrtntListView(ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
-
-        if (!isAdmin(userCtx)) {
+        if (!isAdmin(request)) {
             model.addAttribute("message", getCommonNoAuthMessage());
             return "common/error";
         }
 
-        model.addAttribute("orgId", StringUtil.nvl(userCtx.getOrgId()));
+        model.addAttribute("orgId", StringUtil.nvl(SessionInfo.getOrgId(request)));
         model.addAttribute("usernm", StringUtil.nvl(SessionInfo.getUserNm(request)));
         model.addAttribute("pageSize", PAGE_SIZE);
 
@@ -168,6 +168,11 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/profMsgShrtntRcvnDetail.do")
     public String profMsgShrtntRcvnDetail(ModelMap model, HttpServletRequest request) throws Exception {
+        if (!isProfessor(request)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
         String msgShrtntSndngId = request.getParameter("msgShrtntSndngId");
         model.addAttribute("msgShrtntSndngId", msgShrtntSndngId);
 
@@ -183,9 +188,7 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/mngrMsgShrtntRcvnDetail.do")
     public String mngrMsgShrtntRcvnDetail(ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
-
-        if (!isAdmin(userCtx)) {
+        if (!isAdmin(request)) {
             model.addAttribute("message", getCommonNoAuthMessage());
             return "common/error";
         }
@@ -205,6 +208,11 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/profMsgShrtntSndngDetail.do")
     public String profMsgShrtntSndngDetail(ModelMap model, HttpServletRequest request) throws Exception {
+        if (!isProfessor(request)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
         String msgId = request.getParameter("msgId");
         model.addAttribute("msgId", msgId);
 
@@ -220,9 +228,7 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/mngrMsgShrtntSndngDetail.do")
     public String mngrMsgShrtntSndngDetail(ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
-
-        if (!isAdmin(userCtx)) {
+        if (!isAdmin(request)) {
             model.addAttribute("message", getCommonNoAuthMessage());
             return "common/error";
         }
@@ -266,8 +272,12 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRcvrPopupView.do")
     public String msgShrtntRcvrPopupView(ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
-        model.addAttribute("orgId", userCtx != null ? StringUtil.nvl(userCtx.getOrgId()) : "");
+        if (!isAdmin(request) && !isProfessor(request)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
+        model.addAttribute("orgId", StringUtil.nvl(SessionInfo.getOrgId(request)));
 
         return "msg2/msg_shrtnt_rcvr_popup";
     }
@@ -281,6 +291,11 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/msgShrtntTmpltPopupView.do")
     public String msgShrtntTmpltPopupView(ModelMap model, HttpServletRequest request) throws Exception {
+        if (!isAdmin(request) && !isProfessor(request)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
         return "msg2/msg_shrtnt_tmplt_popup";
     }
 
@@ -293,6 +308,11 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/msgShrtntTmpltSavePopupView.do")
     public String msgShrtntTmpltSavePopupView(ModelMap model, HttpServletRequest request) throws Exception {
+        if (!isAdmin(request) && !isProfessor(request)) {
+            model.addAttribute("message", getCommonNoAuthMessage());
+            return "common/error";
+        }
+
         return "msg2/msg_shrtnt_tmplt_save_popup";
     }
 
@@ -310,12 +330,20 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<OrgInfoVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
             List<OrgInfoVO> list = msgShrtntFacadeService.selectActiveOrgList();
+
+            if (!isAdmin(request)) {
+                String sessionOrgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+                list = list.stream()
+                        .filter(o -> sessionOrgId.equals(o.getOrgId()))
+                        .collect(Collectors.toList());
+            }
+
             resultVO.setReturnList(list);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
         } catch (Exception e) {
@@ -339,14 +367,14 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkLoginAuth(resultVO, userCtx)) {
+    
+            if (!checkLoginAuth(resultVO, request)) {
                 return resultVO;
             }
 
             vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
-            vo.setRcvrId(StringUtil.nvl(userCtx.getUserId()));
-            applySearchConstraints(vo, userCtx);
+            vo.setRcvrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            applySearchConstraints(vo, request);
 
             resultVO = msgShrtntFacadeService.selectShrtntRcvnListPage(vo);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
@@ -371,14 +399,14 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
             vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
-            applySearchConstraints(vo, userCtx);
-            vo.setSndngrId(StringUtil.nvl(userCtx.getUserId()));
+            applySearchConstraints(vo, request);
+            vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
 
             resultVO = msgShrtntFacadeService.selectShrtntSndngListPage(vo);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
@@ -403,12 +431,12 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkLoginAuth(resultVO, userCtx)) {
+    
+            if (!checkLoginAuth(resultVO, request)) {
                 return resultVO;
             }
 
-            vo.setRcvrId(StringUtil.nvl(userCtx.getUserId()));
+            vo.setRcvrId(StringUtil.nvl(SessionInfo.getUserId(request)));
 
             MsgShrtntVO detail = msgShrtntFacadeService.selectShrtntRcvnDetailWithFiles(vo);
             resultVO.setReturnVO(detail);
@@ -434,9 +462,13 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
+            }
+
+            if (!isAdmin(request)) {
+                vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
             }
 
             MsgShrtntVO detail = msgShrtntFacadeService.selectShrtntSndngDetailWithFiles(vo);
@@ -463,9 +495,13 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
+            }
+
+            if (!isAdmin(request)) {
+                vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
             }
 
             vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
@@ -493,12 +529,12 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkLoginAuth(resultVO, userCtx)) {
+    
+            if (!checkLoginAuth(resultVO, request)) {
                 return resultVO;
             }
 
-            vo.setRcvrId(StringUtil.nvl(userCtx.getUserId()));
+            vo.setRcvrId(StringUtil.nvl(SessionInfo.getUserId(request)));
             msgShrtntFacadeService.updateShrtntReadDttm(vo);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
         } catch (Exception e) {
@@ -522,12 +558,12 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkLoginAuth(resultVO, userCtx)) {
+    
+            if (!checkLoginAuth(resultVO, request)) {
                 return resultVO;
             }
 
-            String userId = StringUtil.nvl(userCtx.getUserId());
+            String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
             if (LIST_TYPE_RCVN.equals(vo.getListType())) {
                 vo.setRcvrId(userId);
@@ -558,12 +594,12 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
-            applySearchConstraints(vo, userCtx);
+            applySearchConstraints(vo, request);
 
             List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntYrList(vo);
             resultVO.setReturnList(list);
@@ -589,12 +625,12 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
-            applySearchConstraints(vo, userCtx);
+            applySearchConstraints(vo, request);
 
             List<EgovMap> list = msgShrtntFacadeService.selectShrtntSmstrList(vo);
             resultVO.setReturnList(list);
@@ -620,15 +656,17 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
             if ("POPUP".equals(vo.getGubun())) {
-                vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
+                if (!isAdmin(request) || StringUtil.isNull(vo.getOrgId())) {
+                    vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
+                }
             } else {
-                applySearchConstraints(vo, userCtx);
+                applySearchConstraints(vo, request);
             }
 
             List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntDeptList(vo);
@@ -655,15 +693,17 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
             if ("POPUP".equals(vo.getGubun())) {
-                vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
+                if (!isAdmin(request) || StringUtil.isNull(vo.getOrgId())) {
+                    vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
+                }
             } else {
-                applySearchConstraints(vo, userCtx);
+                applySearchConstraints(vo, request);
             }
 
             List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntSbjctList(vo);
@@ -687,10 +727,14 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/downExcelMsgShrtntRcvr.do")
     public String downExcelMsgShrtntRcvr(MsgShrtntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
-        String authrtGrpcd = StringUtil.nvl(userCtx.getAuthrtGrpcd());
+
+        String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         if (!authrtGrpcd.contains(AUTH_ADM) && !authrtGrpcd.contains(AUTH_PROF)) {
             throw new BadRequestUrlException(getCommonNoAuthMessage());
+        }
+
+        if (!isAdmin(request)) {
+            vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
         }
 
         List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntSndngRcvrExcelList(vo);
@@ -731,12 +775,12 @@ public class MsgShrtntController extends ControllerBase {
         String uploadPath = vo.getUploadPath();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
-            String userId = StringUtil.nvl(userCtx.getUserId());
+            String userId = StringUtil.nvl(SessionInfo.getUserId(request));
             String userNm = StringUtil.nvl(SessionInfo.getUserNm(request));
 
             vo.setRgtrId(userId);
@@ -744,7 +788,7 @@ public class MsgShrtntController extends ControllerBase {
             if ("".equals(StringUtil.nvl(vo.getSndngnm()))) {
                 vo.setSndngnm(userNm);
             }
-            vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
+            vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
             vo.setDgrsYr(vo.getSbjctYr());
             vo.setSmstr(vo.getSbjctSmstr());
 
@@ -776,12 +820,12 @@ public class MsgShrtntController extends ControllerBase {
         String uploadPath = vo.getUploadPath();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
-            String userId = StringUtil.nvl(userCtx.getUserId());
+            String userId = StringUtil.nvl(SessionInfo.getUserId(request));
             String userNm = StringUtil.nvl(SessionInfo.getUserNm(request));
 
             vo.setMdfrId(userId);
@@ -818,12 +862,16 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
-            vo.setMdfrId(StringUtil.nvl(userCtx.getUserId()));
+            String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+            vo.setMdfrId(userId);
+            if (!isAdmin(request)) {
+                vo.setSndngrId(userId);
+            }
             msgShrtntFacadeService.updateMsgRsrvCncl(vo);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
         } catch (Exception e) {
@@ -847,22 +895,22 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
             if ("POPUP".equals(vo.getGubun())) {
-                if (!isAdmin(userCtx) && StringUtil.isNull(vo.getOrgId())) {
-                    vo.setOrgId(StringUtil.nvl(userCtx.getOrgId()));
+                if (!isAdmin(request) || StringUtil.isNull(vo.getOrgId())) {
+                    vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
                 }
             } else {
-                applySearchConstraints(vo, userCtx);
+                applySearchConstraints(vo, request);
             }
-            if (isAdmin(userCtx)) {
+            if (isAdmin(request)) {
                 vo.setAdminYn("Y");
             }
-            vo.setSndngrId(StringUtil.nvl(userCtx.getUserId()));
+            vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
             vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
 
             resultVO = msgShrtntFacadeService.selectShrtntRcvrSearchListPage(vo);
@@ -888,9 +936,13 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
+            }
+
+            if (!isAdmin(request)) {
+                vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
             }
 
             List<MsgShrtntVO> list = msgShrtntFacadeService.selectMsgRcvTrgtrList(vo);
@@ -913,8 +965,8 @@ public class MsgShrtntController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/downExcelMsgShrtntRcvrTmplt.do")
     public String downExcelMsgShrtntRcvrTmplt(ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
-        String authrtGrpcd = StringUtil.nvl(userCtx.getAuthrtGrpcd());
+
+        String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         if (!authrtGrpcd.contains(AUTH_ADM) && !authrtGrpcd.contains(AUTH_PROF)) {
             throw new BadRequestUrlException(getCommonNoAuthMessage());
         }
@@ -950,12 +1002,13 @@ public class MsgShrtntController extends ControllerBase {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-            UserContext userCtx = getUserContext(request);
-            if (!checkAdmProfAuth(resultVO, userCtx)) {
+    
+            if (!checkAdmProfAuth(resultVO, request)) {
                 return resultVO;
             }
 
-            List<MsgShrtntVO> list = msgShrtntFacadeService.parseExcelAndSearchRcvr(excelFile.getInputStream());
+            String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+            List<MsgShrtntVO> list = msgShrtntFacadeService.parseExcelAndSearchRcvr(excelFile.getInputStream(), orgId);
             if (list.isEmpty()) {
                 resultVO.setResult(ProcessResultVO.RESULT_FAIL);
                 resultVO.setMessage(getMessage("common.content.not_found"));

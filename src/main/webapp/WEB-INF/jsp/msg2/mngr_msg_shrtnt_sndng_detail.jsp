@@ -10,7 +10,7 @@
 </head>
 
 <script type="text/javascript">
-    let msgId = '${msgId}';
+    let msgId = '${fn:escapeXml(msgId)}';
     let rcvrCurrentPage = 1;
     let rcvrListScale = 10;
     let rcvrTable;
@@ -30,7 +30,7 @@
             } else {
                 alert(res.message || '<spring:message code="fail.common.select"/>');
             }
-        });
+        }, function() {});
     }
 
     /* 상세 렌더링 */
@@ -211,7 +211,7 @@
             } else {
                 alert(res.message || '<spring:message code="fail.common.update"/>');
             }
-        });
+        }, function() { UiComm.showLoading(false); });
     }
 
     /* 목록으로 */

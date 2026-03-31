@@ -79,19 +79,18 @@
 
                     <div class="table-wrap">
                         <form id="forumWriteForm" onsubmit="return false;" autocomplete="off">
-                            <!-- TODO : Hidden field -->
                             <div id="teamArea">
                                 <c:choose>
                                     <c:when test="${mode eq 'E'}">
                                         <c:set var="path" value="/forum/${forum2VO.dscsId }" />
-                                        <input type="text" id="dscsId" name="dscsId" value="${forum2VO.dscsId}" />
-                                        <input type="text" id="dscsGrpId" name="dscsGrpId" value="${forum2VO.dscsGrpId}"/>
-                                        <input type="text" id="lrnGrpId" name="lrnGrpId" value="${forum2VO.lrnGrpId}"/>
-                                        <input type="text" id="dvclsNo" name="dvclsNo" value="${forum2VO.dvclsNo}"/>
+                                        <input type="hidden" id="dscsId" name="dscsId" value="${forum2VO.dscsId}" />
+                                        <input type="hidden" id="dscsGrpId" name="dscsGrpId" value="${forum2VO.dscsGrpId}"/>
+                                        <input type="hidden" id="lrnGrpId" name="lrnGrpId" value="${forum2VO.lrnGrpId}"/>
+                                        <input type="hidden" id="dvclsNo" name="dvclsNo" value="${forum2VO.dvclsNo}"/>
                                     </c:when>
                                     <c:otherwise>
                                         <c:set var="path" value="/forum" />
-                                        <input type="text" id="dscsId" name="dscsId" value="" />
+                                        <input type="hidden" id="dscsId" name="dscsId" value="" />
                                     </c:otherwise>
                                 </c:choose>
                             </div>
@@ -160,7 +159,7 @@
 
                                     <tr>
                                         <th><label for="dscsSdttm" class="req">참여기간</label></th>
-                                        <!-- TODO : 참여기간 일정 날짜 + 시간 조합할 것 -->
+                                        <!-- 저장시 : 참여기간 일정 날짜 + 시간 조합 -->
                                         <input type="hidden" id="dscsSdttm" name="dscsSdttm" placeholder="yyyyMMddHHmmss" class="width-40per" value="<c:out value='${forum2VO.dscsSdttm}'/>"/>
                                         <input type="hidden" id="dscsEdttm" name="dscsEdttm" placeholder="yyyyMMddHHmmss" class="width-40per" value="<c:out value='${forum2VO.dscsEdttm}'/>"/>
 
@@ -317,11 +316,11 @@
                                                         <th><label><spring:message code="forum.label.prosCons"/></label></th>
                                                         <td>
                                                             <span class="custom-input">
-                                                                <input type="radio" name="oknokStngyn" id="oknokStngynN" value="N" ${forum2VO.oknokStngyn eq 'N' || empty forum2VO.oknokStngyn ? 'checked' : '' }>
+                                                                <input type="radio" name="oknokStngyn" id="oknokStngynN" value="N" onchange="oknokStngynChange(this.value)" ${forum2VO.oknokStngyn eq 'N' || empty forum2VO.oknokStngyn ? 'checked' : '' }>
                                                                 <label for="oknokStngynN">아니오</label>
                                                                 </span>
                                                             <span class="custom-input ml10">
-                                                                <input type="radio" name="oknokStngyn" id="oknokStngynY" value="Y" ${forum2VO.oknokStngyn eq 'Y'  ? 'checked' : '' }>
+                                                                <input type="radio" name="oknokStngyn" id="oknokStngynY" value="Y" onchange="oknokStngynChange(this.value)" ${forum2VO.oknokStngyn eq 'Y'  ? 'checked' : '' }>
                                                                 <label for="oknokStngynY">예</label>
                                                             </span>
 
@@ -516,8 +515,16 @@
     function teamynChange(value) {
         if(value == "Y") {
             $("#teamForumDiv").show();
+            $("input[name='oknokStngyn'][value='N']").prop('checked', true);
         } else {
             $("#teamForumDiv").hide();
+        }
+    }
+
+    function oknokStngynChange(value) {
+        if(value == "Y") {
+            $("input[name='dscsUnitTycd'][value='N']").prop('checked', true);
+            teamynChange('N');
         }
     }
 

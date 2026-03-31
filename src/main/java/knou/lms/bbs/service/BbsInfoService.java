@@ -192,11 +192,26 @@ public interface BbsInfoService {
    public BbsVO isValidBbsInfo(BbsVO vo, boolean isAdmin) throws Exception;
 
    /*****************************************************
+    * 게시판 정보 확인_강의실
+    * @param vo
+    * @return BbsVO
+    * @throws Exception
+    ******************************************************/
+   public BbsVO isValidBbsLectInfo(BbsVO vo, boolean isAdmin) throws Exception;
+
+   /*****************************************************
     * 게시판 정보 저장
     * @param vo
     * @throws Exception
     ******************************************************/
    public void bbsInfoRegist(BbsVO vo) throws Exception;
+
+   /*****************************************************
+    * 게시판 정보 저장
+    * @param vo
+    * @throws Exception
+    ******************************************************/
+   public void bbsInfoOptnRegist(BbsVO vo) throws Exception;
 
    /*****************************************************
      * 강의실 메뉴의 게시판 목록 조회
@@ -205,4 +220,12 @@ public interface BbsInfoService {
      * @throws Exception
      ******************************************************/
     public List<BbsVO> selectBbsForSbjctMenu(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    public ProcessResultVO<BbsVO> bbsMngList(BbsVO vo) throws Exception;
 }

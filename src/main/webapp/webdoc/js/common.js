@@ -146,7 +146,7 @@ $(function () {
 
     /********** selectbox CSS 적용 **********/
     $('.ui.dropdown')
-        .dropdown();
+    .dropdown();
 
     $(window).trigger("resize");
 
@@ -263,9 +263,9 @@ $(function () {
         dimPage: false,
         exclusive: true
     })
-        .sidebar('attach events', '.inquiry-button', 'toggle')
-        .sidebar('setting', 'transition', 'overlay')
-        .sidebar('setting', 'mobileTransition', 'overlay');
+    .sidebar('attach events', '.inquiry-button', 'toggle')
+    .sidebar('setting', 'transition', 'overlay')
+    .sidebar('setting', 'mobileTransition', 'overlay');
 
     //$('.close').click(function() {
     //    $('.inquiry-inbox').sidebar('hide');
@@ -275,17 +275,17 @@ $(function () {
     $('.wide-inbox').sidebar({
         exclusive: true
     })
-        .sidebar('attach events', '.sidebar-button', 'toggle')
-        .sidebar('setting', 'transition', 'overlay')
-        .sidebar('setting', 'mobileTransition', 'overlay');
+    .sidebar('attach events', '.sidebar-button', 'toggle')
+    .sidebar('setting', 'transition', 'overlay')
+    .sidebar('setting', 'mobileTransition', 'overlay');
 
     /********** wide-inbox2 sidebar **********/
     $('.wide-inbox2').sidebar({
         exclusive: true
     })
-        .sidebar('attach events', '.sidebar-button2', 'toggle')
-        .sidebar('setting', 'transition', 'overlay')
-        .sidebar('setting', 'mobileTransition', 'overlay');
+    .sidebar('attach events', '.sidebar-button2', 'toggle')
+    .sidebar('setting', 'transition', 'overlay')
+    .sidebar('setting', 'mobileTransition', 'overlay');
 
     $('.close, .close_btn').unbind('click').bind('click', function (e) {
         $('.wide-inbox, .wide-inbox2, .inquiry-inbox').sidebar('hide');
@@ -580,44 +580,44 @@ $(function () {
     });
 
     $('.toggle-use')
-        .checkbox({
-            onChecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('사용');
-            },
-            onUnchecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('미사용');
-            }
-        });
+    .checkbox({
+        onChecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('사용');
+        },
+        onUnchecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('미사용');
+        }
+    });
 
     $('.toggle-allow')
-        .checkbox({
-            onChecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('허용');
-            },
-            onUnchecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('미허용');
-            }
-        });
+    .checkbox({
+        onChecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('허용');
+        },
+        onUnchecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('미허용');
+        }
+    });
 
     $('.toggle-board')
-        .checkbox({
-            onChecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('블로그형');
-            },
-            onUnchecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('리스트형');
-            }
-        });
+    .checkbox({
+        onChecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('블로그형');
+        },
+        onUnchecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('리스트형');
+        }
+    });
 
     $('.toggle-gallery')
-        .checkbox({
-            onChecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('뉴스형');
-            },
-            onUnchecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('그리드형');
-            }
-        });
+    .checkbox({
+        onChecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('뉴스형');
+        },
+        onUnchecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('그리드형');
+        }
+    });
 
     /********** semantic simple-uploader **********/
     $('input:text, .ui.button', '.simple-uploader').on('click', function (e) {
@@ -877,11 +877,11 @@ function controller() {
 
     //message_box 닫기 버튼
     $('.dash_btn_box .btn_close')
-        .on('click', function () {
-            $(this)
-                .closest('.message')
-                .transition('fade');
-        });
+    .on('click', function () {
+        $(this)
+        .closest('.message')
+        .transition('fade');
+    });
 
     //gnb 설정 수정_230718
     if (!document.querySelector(".gnb")) return; // 추가_230627
@@ -1035,13 +1035,13 @@ function clickUiDataSetHandler(e) {
             }
 
             fromList.querySelector(swapArrival)
-                .querySelectorAll("input[type='checkbox']")
-                .forEach((elem, key, par) => {
-                    if (elem.checked) {
-                        elem.checked = false;
-                        toList.querySelector(swapArrival).append(elem.closest(swapTarget));
-                    }
-                });
+            .querySelectorAll("input[type='checkbox']")
+            .forEach((elem, key, par) => {
+                if (elem.checked) {
+                    elem.checked = false;
+                    toList.querySelector(swapArrival).append(elem.closest(swapTarget));
+                }
+            });
 
             // footable로 변경했을때, swap 후 테이블을 다시 그려줘야, 옮긴 tr을 각각 인식해서 임시 추가함_230705
             // 다시 안그리면, sorting 클릭 시 옮겨둔 tr이 원래 위치로 돌아감
@@ -1355,7 +1355,7 @@ function ajaxCall(url, param, succCallback, errCallback, disploading, options) {
         // dataType : "json",
         // contentType: 'application/json',
         beforeSend: function () {
-            if (disploading != undefined && disploading == true) {
+            if (disploading === true) {
                 UiComm.showLoading(true);
             }
             AJAX_CALL_NO++;
@@ -1368,25 +1368,21 @@ function ajaxCall(url, param, succCallback, errCallback, disploading, options) {
             }
         },
         error: function (xhr, status, error) {
-            if (typeof succCallback == "function") {
+            if (typeof errCallback == "function") {
                 errCallback(xhr, status, error);
-            }
-
-            AJAX_CALL_NO--;
-            if (AJAX_CALL_NO == 0) {
-                UiComm.showLoading(false);
             }
         },
         complete: function () {
             AJAX_CALL_NO--;
-            if (AJAX_CALL_NO == 0) {
+            if (AJAX_CALL_NO <= 0) {
+                AJAX_CALL_NO = 0;
                 UiComm.showLoading(false);
             }
         }
     }, options);
 
     $.ajax(ajaxOption);
-};
+}
 
 // date객체를 문자로 리턴
 function replaceDateToDttm(date) {

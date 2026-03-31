@@ -14,6 +14,7 @@ import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.ServiceBase;
+import knou.framework.util.StringUtil;
 import knou.lms.exam.dao.ExampprDAO;
 import knou.lms.exam.service.ExampprService;
 import knou.lms.exam.vo.ExamBscVO;
@@ -111,9 +112,9 @@ public class ExampprServiceImpl extends ServiceBase implements ExampprService {
 
 			// OX선택형
 			} else if("OX_CHC".equals(qstnRspnsTycd)) {
-				String answShtCts = String.valueOf(map.get("answShtCts"));					// 제출답안
-				String qstnVwitmDsplySeq = String.valueOf(map.get("qstnVwitmDsplySeq"));	// 문항보기항목화면표시순번
-				String cransNo = String.valueOf(map.get("cransNo"));						// 정답번호
+				String answShtCts = String.valueOf(StringUtil.nvl(map.get("answShtCts"),"1"));	// 제출답안
+				String qstnVwitmDsplySeq = String.valueOf(map.get("qstnVwitmDsplySeq"));		// 문항보기항목화면표시순번
+				String cransNo = String.valueOf(map.get("cransNo"));							// 정답번호
 
 				// 문항보기항목화면표시순번 목록화
 				String[] displayList = qstnVwitmDsplySeq.split("@#");

@@ -9,7 +9,7 @@
 </head>
 
 <script type="text/javascript">
-    let msgShrtntSndngId = '${msgShrtntSndngId}';
+    let msgShrtntSndngId = '${fn:escapeXml(msgShrtntSndngId)}';
 
     $(document).ready(function() {
         fn_loadDetail();
@@ -24,7 +24,7 @@
             } else {
                 alert(res.message || '<spring:message code="fail.common.select"/>');
             }
-        });
+        }, function() {});
     }
 
     /* 상세 렌더링 */
@@ -72,7 +72,7 @@
             if (res.result > 0) {
                 fn_refreshUnreadCnt();
             }
-        });
+        }, function() {});
     }
 
     /* 알림 미읽음 카운트 갱신 */

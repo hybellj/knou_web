@@ -609,6 +609,45 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
+     * 결시자 결시신청 결과 조회(팝업)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examAbsnceUserRsltPopup.do")
+    public String selectAbsnceRslt(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String examBscId = vo.getExamBscId();
+        String userId = vo.getUserId();
+
+        vo.setExamBscId(examBscId);
+        vo.setUserId(userId);
+        ExamVO examVO = examService.selectAbsnceRslt(vo);
+        model.addAttribute("absnceRslt", examVO);
+        return "exam/prof/popup/prof_exam_absnce_rslt_pop";
+    }
+
+    /*****************************************************
+     * 결시자 결시신청 이력 목록 페이징(팝업)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examAbsnceUserHstrPagingPopup.do")
+    public String listAbsnceUserHstrPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String examBscId = vo.getExamBscId();
+        String userId = vo.getUserId();
+
+        resultVO = examService.listAbsnceUserHstrPaging(vo);
+        model.addAttribute("absnceHstr", resultVO);
+        return "exam/prof/popup/prof_exam_absnce_hstr_pop";
+    }
+
+    /*****************************************************
      * 시험 등록
      * @param ExamBscVO
      * @param RequestParam

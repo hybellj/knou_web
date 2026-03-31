@@ -85,6 +85,15 @@ public interface ExamDAO {
     // 교수 시험 결시자 목록 조회
     public List<EgovMap> listProfAbsnceUser(Map<String, Object> vo) throws Exception;
 
+    // 결시자 결시신청 결과 조회
+    public ExamVO selectAbsnceRslt (ExamVO vo) throws Exception;
+
+    // 결시자 결시신청 이력 목록 페이징
+    public List<ExamVO> listAbsnceUserHstrPaging(ExamVO vo) throws Exception;
+
+    // 결시자 결시신청 이력 목록 카운트
+    public int countAbsnceUserHstr(ExamVO vo) throws Exception;
+
     // 성적 공개여부 수정
     public void updateMrkOyn(ExamVO vo) throws Exception;
 

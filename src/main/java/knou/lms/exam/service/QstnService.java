@@ -1,11 +1,13 @@
 package knou.lms.exam.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.exam.vo.ExamDtlVO;
 import knou.lms.exam.vo.QstnVO;
 
 public interface QstnService {
@@ -148,5 +150,33 @@ public interface QstnService {
      * @throws Exception
      */
 	public ProcessResultVO<EgovMap> quizQstnCransStatusPieChart(Map<String, Object> params) throws Exception;
+
+	/**
+	* 퀴즈문항엑셀샘플데이터
+	*
+	* @param examDtlId	시험상세아이디
+	* @param excelGrid 	엑셀그리드
+	* @throws Exception
+	*/
+	public HashMap<String, Object> quizQstnExcelSampleData(ExamDtlVO vo) throws Exception;
+
+	/**
+	* 퀴즈문항엑셀업로드
+	*
+	* @param examDtlId 		시험상세아이디
+    * @param uploadFiles 	파일목록
+    * @param uploadPath 	파일경로
+    * @param excelGrid 		엑셀그리드
+	* @throws Exception
+	*/
+	public ProcessResultVO<ExamDtlVO> quizQstnExcelUpload(ExamDtlVO vo) throws Exception;
+
+	/**
+	 * 퀴즈문항옵션수정
+	 *
+	 * @param QstnVO
+	 * @throws Exception
+	 */
+	public void quizQstnOptionModify(QstnVO vo) throws Exception;
 
 }

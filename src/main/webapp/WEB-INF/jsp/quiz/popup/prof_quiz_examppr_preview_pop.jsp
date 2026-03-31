@@ -1,12 +1,11 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 <head>
-   	<%@ include file="/WEB-INF/jsp/common/modal_common.jsp" %>
-   	<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
-	<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-	<%@ include file="/WEB-INF/jsp/quiz/common/quiz_common_inc.jsp" %>
-   	<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
+   	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+		<jsp:param name="style" value="classroom"/>
+	</jsp:include>
 
 	<script type="text/javascript">
 		$(document).ready(function() {
@@ -85,44 +84,43 @@
 	 	}
 	</script>
 </head>
-<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
+<body class="modal-page">
 	<div id="loading_page">
 	    <p><i class="notched circle loading icon"></i></p>
 	</div>
 	<div id="wrap">
 		<c:if test="${vo.examGbncd eq 'QUIZ_TEAM' }">
-			<div class="top-content btn_area">
+			<div class="top-content btn_area margin-bottom-3">
 				<c:forEach var="item" items="${quizTeamList }">
-					<button class="ui button basic ${item.examDtlId eq vo.examDtlVO.examDtlId ? 'active' : '' }" name="teamButton" value="${item.examDtlId }" onclick="quizTeamSelect('${item.examDtlId }')">${item.teamnm }</button>
+					<button class="btn ${item.examDtlId eq vo.examDtlVO.examDtlId ? 'type1' : 'type2' }" name="teamButton" value="${item.examDtlId }" onclick="quizTeamSelect('${item.examDtlId }')">${item.teamnm }</button>
 				</c:forEach>
 			</div>
 		</c:if>
 
-		<div class="option-content qstnInfo">
-	        <p class="sec_head">${vo.examTtl }</p>
-	        <c:if test="${vo.examQstnsCmptnyn ne 'Y' && vo.examQstnsCmptnyn ne 'M' }">
-            	<div class="ui small error message">
-                    <i class="info circle icon"></i>
-                    <spring:message code="exam.alert.already.qstn.submit.n" /><!-- 문제 출제가 완료되지 않았습니다. -->
-                </div>
-            </c:if>
-	        <ul class="num-chk" aria-label="<spring:message code="resh.label.qstn" /><spring:message code="main.sysMenu.auth.menu.link" />">
-	        	<c:forEach var="item" items="${qstnList }" varStatus="status">
-	        		<c:if test="${item.qstnCnddtSeqno eq '1'}">
-	        			<li><a href="javascript:focusMove('qstnDiv_${item.qstnId }')">${item.qstnSeqno }</a></li>
-	        		</c:if>
-            	</c:forEach>
-	        </ul>
+		<div class="qstnInfo flex-item gap-3 margin-bottom-5">
+		    <c:if test="${vo.examQstnsCmptnyn ne 'Y' && vo.examQstnsCmptnyn ne 'M' }">
+	    		<div class="msg-box">
+	                <p class="txt">
+	                	<i class="icon-svg-warning" aria-hidden="true"></i>
+	                	<spring:message code="exam.alert.already.qstn.submit.n" /><!-- 문제 출제가 완료되지 않았습니다. -->
+	                </p>
+	            </div>
+		    </c:if>
+		    <c:forEach var="item" items="${qstnList }" varStatus="varStatus">
+		    	<div class="custom-input padding-3">
+		       	<p class="checkmark padding-left-3">${varStatus.count }</p>
+		    	</div>
+			</c:forEach>
 		</div>
 
 		<%@ include file="/WEB-INF/jsp/quiz/common/quiz_preview_inc.jsp" %>
 
-		<div class="bottom-content">
+		<div class="btns">
            	<c:if test="${vo.qstnDsplyGbncd eq 'EACH'}">
-            	<a href="javascript:goPrevQstn();" class="ui button blue" id="btnPrevQstn"><spring:message code="exam.label.prev" /></a><!-- 이전 -->
-            	<a href="javascript:goNextQstn();" class="ui button blue" id="btnNextQstn"><spring:message code="exam.label.next" /></a><!-- 다음 -->
+            	<a href="javascript:goPrevQstn();" class="btn type1" id="btnPrevQstn"><spring:message code="exam.label.prev" /></a><!-- 이전 -->
+            	<a href="javascript:goNextQstn();" class="btn type1" id="btnNextQstn"><spring:message code="exam.label.next" /></a><!-- 다음 -->
             </c:if>
-			<button class="ui black cancel button" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
+			<button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
 		</div>
 	</div>
 	<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>

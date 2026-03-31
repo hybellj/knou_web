@@ -135,60 +135,21 @@ function mutEvalViewPop() {
 }
 </script>
 <div class="mt10 flex">
-	<div class="ui input flex1">
-		<input type="text" maxlength="3" placeholder="<spring:message code="forum.alert.input.score" />" id="totalScore" value="${forumJoinUserVo.score}" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');saveEvalScore();"><!-- 점수를 입력하세요. -->
+	<div class="ui input flex1 ml05">
+		<input type="text" maxlength="3" placeholder="<spring:message code="forum.alert.input.score" />" id="totalScore" value="${forumJoinUserVo.score}" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');/*saveEvalScore();*/"><!-- 점수를 입력하세요. -->
 	</div>
 	<input type="hidden" id="totalScoreBlockCrsCreCd" value="${vo.crsCreCd}">
 	<input type="hidden" id="totalScoreBlockForumCd" value="${vo.forumCd}">
 	<input type="hidden" id="totalScoreBlockStdId" value="${vo.stdId}">
 	<input type="hidden" id="totalScoreBlockTeamCd" value="${vo.teamCd}">
-	<a href="javascript:void(0);" class="ui blue button m0" id="btnSaveEvalScore" onClick="saveEvalScore()"><spring:message code='forum.button.save'/><!-- 저장 --></a>
-	<%-- <a href="javascript:void(0);" class="ui Lgrey button m0" onClick="deleteEvalScore()"><spring:message code='forum.button.reset'/><!-- 초기화 --></a> --%>
+	<a href="javascript:void(0);" class="ui blue button ml05" id="btnSaveEvalScore" onClick="saveEvalScore()"><spring:message code='forum.button.save'/><!-- 저장 --></a>
+	<a href="javascript:void(0);" class="ui blue button ml05" onClick="deleteEvalScore()"><spring:message code='forum.button.reset'/><!-- 초기화 --></a>
 	<c:if test="${vo.evalCtgr eq 'R'}">
 		<a href="javascript:void(0);" class="ui Lgrey button m0" onClick="partiScore()"><spring:message code='forum.label.evalctgr.participate.all'/><!-- 참여형 일괄평가 --></a>
 	</c:if>
 </div>
 
 <!-- 상호평가 -->
-<c:if test="${forumJoinUserVo.mutEvalYn eq 'Y'}">
-	<div class="mt10">
-		<div class="mt10 mb10">
-			<div class="ui attached message flex align-items-center">
-				<div class="flex align-items-center">
-					<a class="ui button small basic" href="javascript:mutEvalViewPop()">
-					<small class="opacity7" style="font-size: 1em;"><spring:message code='forum.label.mut.eval.result'/></small><!-- 상호평가결과 -->
-					</a>
-					<div class="ui tiny star rating gap4" data-rating="0" data-max-rating="5">
-						<c:set var="mutAvg" value="${forumJoinUserVo.mutAvg}" />
-						<c:forEach var="i" begin="1" end="5">
-							<c:choose>
-								<c:when test="${ mutAvg ge i }">
-									<i class="star icon fcYellow"></i>
-								</c:when>
-								<c:otherwise>
-									<i class="star outline icon"></i>
-								</c:otherwise>
-							</c:choose>
-						</c:forEach>
-					</div>
-				</div>
-				<!-- 
-				<div class="ui tiny star rating gap4" data-rating="0" data-max-rating="5">
-					<i class="icon"></i>
-					<i class="icon"></i>
-					<i class="icon"></i>
-					<i class="icon"></i>
-					<i class="icon"></i>
-				</div>
-				<script>
-				$('.ui.rating').rating("set rating", "${forumJoinUserVo.mutAvg eq '' || emptyforumJoinUserVo.mutAvg ? '0' : forumJoinUserVo.mutAvg}");
-				</script> 
-				-->
-				<!-- <button type="button" class="ui small btn mla" onclick="mutEvalViewPop()">평가의견</button> -->
-			</div>
-		</div>
-	</div>
-</c:if>
 <!-- 상호평가 -->
 
 <!-- 평가의견  모달 -->

@@ -105,10 +105,10 @@
 			    		$("#sbjctId").empty().append(html);
 			    		$("#sbjctId").val('').trigger("chosen:updated");
 			        } else {
-			         	alert(data.message);
+			        	UiComm.showMessage(data.message, "error");
 			        }
 		   	}, function(xhr, status, error) {
-		   		alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
+		   		UiComm.showMessage("<spring:message code='exam.error.list' />", "error");	/* 리스트 조회 중 에러가 발생하였습니다. */
 		   	});
 		}
 	</script>

@@ -965,6 +965,8 @@ public class Forum2LectController extends ControllerBase {
             fvo.setForumCd(forumVO.getForumCd());
             forum2JoinUserService.insertJoinUser(fvo);
 
+            // TODO : 26.3.20(기획 요청에 따라 먼저 평가를 하지 않고 목록에서 일괄 평가식으로 처리함.)
+            /*
             ForumJoinUserVO joinUserVO = new ForumJoinUserVO();
             joinUserVO.setSearchMenu("ONCE");
             joinUserVO.setRgtrId(userId);
@@ -973,6 +975,7 @@ public class Forum2LectController extends ControllerBase {
             forum2JoinUserService.participateScore(joinUserVO);
             //joinUserVO.setSearchKey("NOTJOIN");
             //forumJoinUserService.participateScore(joinUserVO);
+            */
         }
         ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
         forumJoinUserVO.setForumCd(forumVO.getForumCd());

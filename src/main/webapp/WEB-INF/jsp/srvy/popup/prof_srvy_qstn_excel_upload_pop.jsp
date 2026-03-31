@@ -4,9 +4,9 @@
 <html lang="ko" style="position: fixed; width: 100%;">
 	<head>
     	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
-		<jsp:param name="style" value="classroom"/>
-		<jsp:param name="module" value="fileuploader"/>
-	</jsp:include>
+			<jsp:param name="style" value="classroom"/>
+			<jsp:param name="module" value="fileuploader"/>
+		</jsp:include>
     </head>
 
     <div id="loading_page">

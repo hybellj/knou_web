@@ -39,7 +39,7 @@
                 tmpltList = res.returnList || [];
                 fn_renderCards();
             }
-        });
+        }, function() {});
     }
 
     /* 카드 렌더링 */
@@ -88,7 +88,7 @@
             } else {
                 alert(res.message || '<spring:message code="fail.common.insert"/>');
             }
-        });
+        }, function() { UiComm.showLoading(false); });
     }
 </script>
 

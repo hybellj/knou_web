@@ -29,6 +29,10 @@ public class ExamVO extends DefaultVO {
     private String  examQstnsCmptnyn;   // 출제상태
     private String  mrkOyn;             // 성적공개
     private String  sbjctId;            // 과목 ID
+    private String  sbjctnm;            // 과목명
+    private String  dvclasNcknm;        // 분반명
+    private String  smstrChrtId;        // 학수번호
+
     private String  crsCreCd;           // 과목 코드 (파라미터)
     private String  tabType;            // 메뉴 탭 지정 (파라미터)
     private String  mrkRfltyn;          // 성적반영여부
@@ -81,14 +85,20 @@ public class ExamVO extends DefaultVO {
     private String  evlScrTynm;         // 평가점수유형명
     private String  regDttm;            // 등록일시
 
+    private String  absnceTtl;          // 결시 사유
     private String  absnceCts;          // 결시 사유
     private String  absnceRfltrt;       // 결시 반영비율
     private String  aplyStsStts;        // 신청 승인 상태 (Y/N)
 
     private String  aplyStscd;          // 신청상태 코드
     private String  aplyStsnm;          // 신청상태명 (1:신청, 2:재신청, 3:승인, 4:거절)
+    private String  aprvCts;            // 승인내용
     private String  aprvdttm;           // 승인일시
     private String  autzrId;            // 승인자 ID
+
+    private String  profnm;             // 교수 이름
+    private String  tutnm;              // 튜터 이름
+
     /*****************************************************
      * Getter / Setter
      *****************************************************/
@@ -188,6 +198,24 @@ public class ExamVO extends DefaultVO {
     }
     public void setSbjctId(String sbjctId) {
         this.sbjctId = sbjctId;
+    }
+    public String getSbjctnm() {
+        return sbjctnm;
+    }
+    public void setSbjctnm(String sbjctnm) {
+        this.sbjctnm = sbjctnm;
+    }
+    public String getDvclasNcknm() {
+        return dvclasNcknm;
+    }
+    public void setDvclasNcknm(String dvclasNcknm) {
+        this.dvclasNcknm = dvclasNcknm;
+    }
+    public String getSmstrChrtId() {
+        return smstrChrtId;
+    }
+    public void setSmstrChrtId(String smstrChrtId) {
+        this.smstrChrtId = smstrChrtId;
     }
     public String getCrsCreCd() {
         return crsCreCd;
@@ -484,6 +512,13 @@ public class ExamVO extends DefaultVO {
     public void setRegDttm(String regDttm) {
         this.regDttm = regDttm;
     }
+
+    public String getAbsnceTtl() {
+        return absnceTtl;
+    }
+    public void setAbsnceTtl(String absnceTtl) {
+        this.absnceTtl = absnceTtl;
+    }
     public String getAbsnceCts() {
         return absnceCts;
     }
@@ -514,6 +549,12 @@ public class ExamVO extends DefaultVO {
     public void setAplyStsnm(String aplyStsnm) {
         this.aplyStsnm = aplyStsnm;
     }
+    public String getAprvCts() {
+        return aprvCts;
+    }
+    public void setAprvCts(String aprvCts) {
+        this.aprvCts = aprvCts;
+    }
     public String getAprvdttm() {
         return aprvdttm;
     }
@@ -525,6 +566,18 @@ public class ExamVO extends DefaultVO {
     }
     public void setAutzrId(String autzrId) {
         this.autzrId = autzrId;
+    }
+    public String getProfnm() {
+        return profnm;
+    }
+    public void setProfnm(String profnm) {
+        this.profnm = profnm;
+    }
+    public String getTutnm() {
+        return tutnm;
+    }
+    public void setTutnm(String tutnm) {
+        this.tutnm = tutnm;
     }
 
     /*****************************************************

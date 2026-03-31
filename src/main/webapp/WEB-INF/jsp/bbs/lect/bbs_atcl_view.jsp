@@ -44,8 +44,8 @@
 
         // 게시글 이동
         function moveActlView(atclId) {
-			let extParam = UiComm.makeExtParam({"atclId":atclId});
-        	document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?encParams=${encParams}&extParam="+extParam;
+			let addParams = UiComm.makeEncParams({"atclId":atclId});
+        	document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?encParams=${encParams}&addParams="+addParams;
         }
 
      	// 게시글 삭제

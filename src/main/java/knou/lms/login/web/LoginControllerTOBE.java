@@ -75,6 +75,65 @@ public class LoginControllerTOBE extends ControllerBase {
     private OrgConnIpService orgConnIpService;
 
     
+    
+    public class UserVO {
+    	public UserVO(UsrLoginVO vo) {
+			this.userId = vo.getUserId();
+			this.rprsId = vo.getUserRprsId();
+			this.userEncPswd = vo.getUserIdEncpswd();
+		}
+		String	userId ;
+    	String	rprsId ;
+    	String	userNm ;
+    	String	userEncPswd;
+    	String	orgId ;
+    	String	authrtGrpcd;
+    	String	authrtCd;
+    	
+		public String getUserId() {
+			return userId;
+		}
+		public void setUserId(String userId) {
+			this.userId = userId;
+		}
+		public String getRprsId() {
+			return rprsId;
+		}
+		public void setRprsId(String rprsId) {
+			this.rprsId = rprsId;
+		}
+		public String getUserNm() {
+			return userNm;
+		}
+		public void setUserNm(String userNm) {
+			this.userNm = userNm;
+		}
+		public String getUserEncPswd() {
+			return userEncPswd;
+		}
+		public void setUserEncPswd(String userEncPswd) {
+			this.userEncPswd = userEncPswd;
+		}
+		public String getOrgId() {
+			return orgId;
+		}
+		public void setOrgId(String orgId) {
+			this.orgId = orgId;
+		}
+		public String getAuthrtGrpcd() {
+			return authrtGrpcd;
+		}
+		public void setAuthrtGrpcd(String authrtGrpcd) {
+			this.authrtGrpcd = authrtGrpcd;
+		}
+		public String getAuthrtCd() {
+			return authrtCd;
+		}
+		public void setAuthrtCd(String authrtCd) {
+			this.authrtCd = authrtCd;
+		}
+    }
+    
 	/**
 	 * 로그인 처리
 	 * @param vo
@@ -95,32 +154,33 @@ public class LoginControllerTOBE extends ControllerBase {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return null;
         }
+        
+        UserVO user = new UserVO(vo);
 
-        UsrUserInfoVO user = new UsrUserInfoVO();
-        user.setUserId(vo.getUserId());
-        user.setUserRprsId(vo.getUserRprsId());
-        user.setUserIdEncpswd(vo.getUserIdEncpswd());
+        boolean	existUserId = true; // TODO: userService.existUserId(user);
+        
+        boolean isCorrectPswd = true; // TODO: userService.isCorrectPswd(user);
+        
+        boolean isValidUser = true; // TODO: userService.isVaildUser(user);
 
-        LogUserLoginTryLogVO logVO = createLoginLog(request, user);
-
-        try {
-            user = usrUserInfoService.viewForLogin(user);
-
-            //	비밀번호 체크 (현재는 통과 상태)
-            if (!checkPassword(user, vo)) {
+        try {        	
+        	//	아이디존재확인
+            if (! existUserId ) 
                 return reloginUrl;
-            }
-
-            //	상태 체크
-            if (!isValidUser(user)) {
+            
+            //	비밀번호일치확인
+            if (! isCorrectPswd ) 
                 return reloginUrl;
-            }
+
+            //	유효사용자확인
+            if (!isValidUser)
+                return reloginUrl;
 
         } catch (Exception e) {
-            handleLoginFail(vo, user);
+            handleLoginFail(user);
             return reloginUrl;
         } finally {
-            logUserLoginTryLogService.add(logVO);
+            //TODO: userService.loginModify(user);
         }
 
         //	세션 세팅
@@ -166,22 +226,20 @@ public class LoginControllerTOBE extends ControllerBase {
     }
 	
  	private boolean isHackInput(String str) {
-        if (str == null) return false;
+        if (str == null) 
+        	return false;
         return str.contains(" OR ") || str.contains(" AND ") || str.contains("'") || str.contains("\"");
     }
 
-    private boolean checkPassword(UsrUserInfoVO user, UsrLoginVO vo) {
-        return true; // TODO: 실제 비밀번호 체크 적용
+    private boolean isValidUser(UserVO user) {
+        //TODO: if ("N".equals(user.getStatus())) return false;
+        //TODO: if ("UNPAID".equals(user.getLoginAcptDivCd())) return false;
+        //TODO: return !StringUtil.isNull(user.getAuthrtCd());
+    	return true;
     }
 
-    private boolean isValidUser(UsrUserInfoVO user) {
-        if ("N".equals(user.getStatus())) return false;
-        if ("UNPAID".equals(user.getLoginAcptDivCd())) return false;
-        return !StringUtil.isNull(user.getAuthrtCd());
-    }
-
-    private void handleLoginFail(UsrLoginVO vo, UsrUserInfoVO user) {
-        System.out.println("LOGIN FAIL : " + vo.getUserId());
+    private void handleLoginFail(UserVO user) {
+        System.out.println("LOGIN FAIL : " + user.getUserId());
     }
 
     private LogUserLoginTryLogVO createLoginLog(HttpServletRequest request, UsrUserInfoVO user) {
@@ -192,8 +250,8 @@ public class LoginControllerTOBE extends ControllerBase {
         return log;
     }
 
-    private void setSession(HttpServletRequest request, UsrUserInfoVO user) throws Exception {
-        usrLoginService.editLastLogin(user);
+    private void setSession(HttpServletRequest request, UserVO user) throws Exception {
+        //TODO: usrLoginService.editLastLogin(user);
         SessionInfo.setUserId(request, user.getUserId());
         SessionInfo.setUserNm(request, user.getUserNm());
         SessionInfo.setOrgId(request, user.getOrgId());
@@ -208,10 +266,9 @@ public class LoginControllerTOBE extends ControllerBase {
         UserContext userCtx = new UserContext(
                 user.getOrgId(),
                 user.getUserId(),
-                role,
                 user.getAuthrtCd(),
+                user.getRprsId(),
                 role,
-                user.getUserRprsId(),
                 SessionInfo.getLastLogin(request)
         );
 

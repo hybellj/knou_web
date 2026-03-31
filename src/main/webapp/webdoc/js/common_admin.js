@@ -83,7 +83,7 @@ $(function () {
 
     /********** selectbox CSS 적용 **********/
     $('.ui.dropdown')
-        .dropdown();
+    .dropdown();
 
     /********** SCROLL TOP 함수 스크립트 **********/
     $(window).scroll(function () {
@@ -281,9 +281,9 @@ $(function () {
         dimPage: false,
         exclusive: true
     })
-        .sidebar('attach events', '.inquiry-button', 'toggle')
-        .sidebar('setting', 'transition', 'overlay')
-        .sidebar('setting', 'mobileTransition', 'overlay');
+    .sidebar('attach events', '.inquiry-button', 'toggle')
+    .sidebar('setting', 'transition', 'overlay')
+    .sidebar('setting', 'mobileTransition', 'overlay');
 
     // $('.close').stop('click').on('click', function(e){
     //     $('.inquiry-inbox').sidebar('hide');
@@ -293,16 +293,16 @@ $(function () {
     $('.wide-inbox').sidebar({
         exclusive: true
     })
-        .sidebar('attach events', '.sidebar-button', 'toggle')
-        .sidebar('setting', 'transition', 'overlay')
-        .sidebar('setting', 'mobileTransition', 'overlay');
+    .sidebar('attach events', '.sidebar-button', 'toggle')
+    .sidebar('setting', 'transition', 'overlay')
+    .sidebar('setting', 'mobileTransition', 'overlay');
 
     $('.wide-inbox2').sidebar({
         exclusive: true
     })
-        .sidebar('attach events', '.sidebar-button2', 'toggle')
-        .sidebar('setting', 'transition', 'overlay')
-        .sidebar('setting', 'mobileTransition', 'overlay');
+    .sidebar('attach events', '.sidebar-button2', 'toggle')
+    .sidebar('setting', 'transition', 'overlay')
+    .sidebar('setting', 'mobileTransition', 'overlay');
 
     $('.close').unbind('click').bind('click', function (e) {
 
@@ -584,44 +584,44 @@ $(function () {
     });
 
     $('.toggle-use')
-        .checkbox({
-            onChecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('사용');
-            },
-            onUnchecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('미사용');
-            }
-        });
+    .checkbox({
+        onChecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('사용');
+        },
+        onUnchecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('미사용');
+        }
+    });
 
     $('.toggle-allow')
-        .checkbox({
-            onChecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('허용');
-            },
-            onUnchecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('미허용');
-            }
-        });
+    .checkbox({
+        onChecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('허용');
+        },
+        onUnchecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('미허용');
+        }
+    });
 
     $('.toggle-board')
-        .checkbox({
-            onChecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('블로그형');
-            },
-            onUnchecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('리스트형');
-            }
-        });
+    .checkbox({
+        onChecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('블로그형');
+        },
+        onUnchecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('리스트형');
+        }
+    });
 
     $('.toggle-gallery')
-        .checkbox({
-            onChecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('뉴스형');
-            },
-            onUnchecked: function () {
-                $("label[for='" + $(this).attr("id") + "']").text('그리드형');
-            }
-        });
+    .checkbox({
+        onChecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('뉴스형');
+        },
+        onUnchecked: function () {
+            $("label[for='" + $(this).attr("id") + "']").text('그리드형');
+        }
+    });
 
     /********** semantic simple-uploader **********/
     $('input:text, .ui.button', '.simple-uploader').on('click', function (e) {
@@ -1034,11 +1034,11 @@ function controller() {
 
     //message_box 닫기 버튼
     $('.dash_btn_box .btn_close')
-        .on('click', function () {
-            $(this)
-                .closest('.message')
-                .transition('fade');
-        });
+    .on('click', function () {
+        $(this)
+        .closest('.message')
+        .transition('fade');
+    });
 
     //ocu_content_info_list 메인노출 선택버튼
     $('.lic_toggle_btn .pop_btn').click(function () {
@@ -1158,7 +1158,7 @@ function ajaxCall(url, param, succCallback, errCallback, disploading) {
         // dataType : "json",
         // contentType: 'application/json',
         beforeSend: function () {
-            if (disploading != undefined && disploading == true) {
+            if (disploading === true) {
                 UiComm.showLoading(true);
             }
             AJAX_CALL_NO++;
@@ -1171,23 +1171,19 @@ function ajaxCall(url, param, succCallback, errCallback, disploading) {
             }
         },
         error: function (xhr, status, error) {
-            if (typeof succCallback == "function") {
+            if (typeof errCallback == "function") {
                 errCallback(xhr, status, error);
-            }
-
-            AJAX_CALL_NO--;
-            if (AJAX_CALL_NO == 0) {
-                UiComm.showLoading(false);
             }
         },
         complete: function () {
             AJAX_CALL_NO--;
-            if (AJAX_CALL_NO == 0) {
+            if (AJAX_CALL_NO <= 0) {
+                AJAX_CALL_NO = 0;
                 UiComm.showLoading(false);
             }
         }
-    })
-};
+    });
+}
 
 function isEmpty(str) {
     for (var i = 0; i < str.length; i++) {

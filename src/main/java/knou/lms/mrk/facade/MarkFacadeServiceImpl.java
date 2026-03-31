@@ -153,18 +153,18 @@ public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeServ
 
         // 성적 반영 비율 0 이상인 항목만 남기기
         for (EgovMap mrkItmStng : mrkItmStngList) {
-            if ((int)mrkItmStng.get("mrkRfltrt") <= 0) {
+            if (((Number) mrkItmStng.get("mrkRfltrt")).intValue() <= 0) {
                 mrkItmStng.clear();
                 break;
             }
 
             // 각 성적항목별 성적반영비율 합 100 맞는지 체크
-            String mrkItmTycd = (String)mrkItmStng.get("MRK_ITM_TYCD");
+            String mrkItmTycd = (String)mrkItmStng.get("mrkItmTycd");
 
             switch (mrkItmTycd) {
                 case "ASMT":
                     if (markSubjectService.invalidMrkRfltrtSumAsmtSelect(sbjctId) > 0) {
-                        throw processException("score.alert.invalid.ratio.quiz"); // 퀴즈의 성적반영비율의 합을 100으로 설정한 후 성적처리 가능합니다.
+                        throw processException("score.alert.invalid.ratio.asmt"); // 퀴즈의 성적반영비율의 합을 100으로 설정한 후 성적처리 가능합니다.
                     }
                     break;
                 case "QUIZ":
@@ -174,7 +174,7 @@ public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeServ
                     break;
                 case "DSCS":
                     if (markSubjectService.invalidMrkRfltrtSumDscsSelect(sbjctId) > 0) {
-                        throw processException("score.alert.invalid.ratio.discussion"); // 토론의 성적반영비율의 합을 100으로 설정한 후 성적처리 가능합니다.
+                        throw processException("score.alert.invalid.ratio.dscs"); // 토론의 성적반영비율의 합을 100으로 설정한 후 성적처리 가능합니다.
                     }
                     break;
                 case "SRVY":
@@ -194,24 +194,19 @@ public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeServ
         markSubjectService.allStdMrkSbjctDelete(sbjctId);
         markSubjectService.allStdMrkSbjctDtlDelete(sbjctId);
 
-        // 학생목록 가져오기
-        List<EgovMap> stdList = markSubjectService.stdMrkSbjctList(sbjctId);
 
-        List<MarkSubjectVO> mrkSbjctList = new ArrayList<>(); // TB_LMS_MAK_SBJCT insert용
-        Map<String, String> stdToMrkSbjctIdMap = new HashMap<>();  // MRK_SBJCT_ID FK 매핑용 (USER_ID, MRK_SBJCT_ID)
+        List<MarkSubjectVO> mrkSbjctList = markSubjectService.stdMrkSbjctList(sbjctId);  // TB_LMS_MAK_SBJCT insert용 학생목록 조회
+        Map<String, String> stdToMrkSbjctIdMap = new HashMap<>();  // MRK_SBJCT_ID FK 매핑용 (key: USER_ID, value: MRK_SBJCT_ID)
 
-        for (EgovMap stdInfo : stdList) {
-            String stdId = (String) stdInfo.get("userId");
+        for (MarkSubjectVO mrkSbjctVO : mrkSbjctList) {
+            String stdId = mrkSbjctVO.getUserId();
             String mrkSbjctid = IdGenUtil.genNewId(IdPrefixType.MRSBJ);
 
-            MarkSubjectVO mrkSbjctVO = new MarkSubjectVO();
             mrkSbjctVO.setMrkSbjctId(mrkSbjctid);
-            mrkSbjctVO.setSbjctId(sbjctId);
             mrkSbjctVO.setScrCnvsStscd("MRK_CNVS_ING"); // 성적환산중
             mrkSbjctVO.setUserId(stdId);
             mrkSbjctVO.setRgtrId(userId);
 
-            mrkSbjctList.add(mrkSbjctVO);
             stdToMrkSbjctIdMap.put(stdId, mrkSbjctid);
         }
 
@@ -231,39 +226,97 @@ public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeServ
         lstExamMrkDtlList = setMrkSbjctDtlList("LSTMEXAM", stdToMrkSbjctIdMap, markSubjectService.examEvlScoreList(sbjctId, "LST"), userId);
 
 
+        // 성적항목별 평가점수 목록
         for (EgovMap mrkItmStng : mrkItmStngList) {
-            String mrkItmTycd = (String)mrkItmStng.get("MRK_ITM_TYCD");
+            String mrkItmTycd = (String)mrkItmStng.get("mrkItmTycd");
             switch (mrkItmTycd){
-                case ("SMNR"):   // 세미나 (작업 전으로 점수 하드코딩 해놓음)
+                case ("SMNR"):  // 세미나 (작업 전으로 점수 하드코딩 해놓음)
                     smnrMrkDtlList = setMrkSbjctDtlList(mrkItmTycd, stdToMrkSbjctIdMap, markSubjectService.smnrScoreEvlList(sbjctId), userId);
                     break;
 
-                case ("ATNDC"):  // 출결
+                case ("ATNDC"): // 출결
                     atndcMrkDtlList = setMrkSbjctDtlList(mrkItmTycd, stdToMrkSbjctIdMap, markSubjectService.attdSummaryList(sbjctId), userId);
                     break;
 
-                case ("ASMT"):
+                case ("ASMT"): // 과제
                     asmtMrkDtlList = setMrkSbjctDtlList(mrkItmTycd, stdToMrkSbjctIdMap, markSubjectService.asmtScoreEvlList(sbjctId), userId);
                     break;
 
-                case ("DSCS"):
+                case ("DSCS"):  // 토론
                     dscsMrkDtlList = setMrkSbjctDtlList(mrkItmTycd, stdToMrkSbjctIdMap, markSubjectService.dscsScoreEvlList(sbjctId), userId);
                     break;
 
-                case ("QUIZ"):
+                case ("QUIZ"):  // 퀴즈
                     quizMrkDtlList = setMrkSbjctDtlList(mrkItmTycd, stdToMrkSbjctIdMap, markSubjectService.quizScoreEvlList(sbjctId), userId);
                     break;
 
-                case ("SRVY"):
+                case ("SRVY"):  // 설문
                     srvyMrkDtlList = setMrkSbjctDtlList(mrkItmTycd, stdToMrkSbjctIdMap, markSubjectService.srvyScoreEvlList(sbjctId), userId);
                     break;
            }
         }
 
-        // 성적과목 데이터 insert
+        // 가산점수 조회
+        Map<String, Double> adtnScrMap = markSubjectService.adtnScoreList(sbjctId);
+
+        /*
+            학생별 성적상세VO 세팅
+            - Outer Map Key: userId
+            - Inner Map Key: mrkItmTycd
+            => {"user12": {
+                    "ASMT": { "rawScore": 80, "finalScore": 8.0, "mrkItmTycd": "ASMT", ... },
+                    "DSCS": { "rawScore": 90, "finalScore": 4.5, "mrkItmTycd": "DSCS", ... }, ...
+                }
+         */
+        Map<String, Map<String, MarkSubjectDetailVO>> stdScoreDataMap = new HashMap<>();
+        
+        List<MarkSubjectDetailVO> allDetails = new ArrayList<>();
+        if (!midExamMrkDtlList.isEmpty())  allDetails.addAll(midExamMrkDtlList);
+        if (!lstExamMrkDtlList.isEmpty())  allDetails.addAll(lstExamMrkDtlList);
+        if (!smnrMrkDtlList.isEmpty())     allDetails.addAll(smnrMrkDtlList);
+        if (!atndcMrkDtlList.isEmpty())    allDetails.addAll(atndcMrkDtlList);
+        if (!asmtMrkDtlList.isEmpty())     allDetails.addAll(asmtMrkDtlList);
+        if (!dscsMrkDtlList.isEmpty())     allDetails.addAll(dscsMrkDtlList);
+        if (!quizMrkDtlList.isEmpty())     allDetails.addAll(quizMrkDtlList);
+        if (!srvyMrkDtlList.isEmpty())     allDetails.addAll(srvyMrkDtlList);
+
+        for (MarkSubjectDetailVO dtlVO : allDetails) {
+            String stdId = dtlVO.getUserId();
+            String mrkItmTycd = dtlVO.getMrkItmTycd();
+
+            // stdId에 대한 데이터가 없으면 새로 만듦
+            stdScoreDataMap.computeIfAbsent(stdId, k -> new HashMap<>());
+
+            // stdId에 대해 성적항목별로 vo를 넣음
+            stdScoreDataMap.get(stdId).put(mrkItmTycd, dtlVO);
+        }
 
 
+        for (MarkSubjectVO mrkSbjctVO : mrkSbjctList) {
+            String key = mrkSbjctVO.getUserId();
+            double totScore = 0.0;
 
+            // 총점 계산
+            for (EgovMap mrkItmVO : mrkItmStngList) {
+                double score = stdScoreDataMap.get(key).get((String) mrkItmVO.get("mrkItmTycd")) == null ? 0 : stdScoreDataMap.get(key).get((String) mrkItmVO.get("mrkItmTycd")).getScr();
+
+                if (score == -1) score = 0; // 미평가는 총점 합산 제외
+
+                totScore += score * ((Number)mrkItmVO.get("mrkRfltrt")).intValue() / 100;
+            }
+            mrkSbjctVO.setTotScr(totScore);
+
+            // 가산점 계산
+            double adtnScore = adtnScrMap.get(key) == null ? (double) 0.0 : adtnScrMap.get(key);
+            mrkSbjctVO.setAdtnScr(adtnScore);
+
+            // 최종점수 계산
+            mrkSbjctVO.setLstScr(totScore + adtnScore);
+        }
+
+        // 성적과목(상세) Insert
+        markSubjectService.mrkSbjctBatchInsert(mrkSbjctList);
+        markSubjectService.mrkSbjctDtlBatchInsert(allDetails);
 
     }
 
@@ -285,10 +338,11 @@ public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeServ
 
         for (EgovMap scoreInfo : scoreList) {
             MarkSubjectDetailVO mrkDtlVO = new MarkSubjectDetailVO();
-            mrkDtlVO.setMrkSjbctId(stdToMrkSbjctIdMap.get((String) scoreInfo.get("userId")));
+            mrkDtlVO.setMrkSbjctId(stdToMrkSbjctIdMap.get((String) scoreInfo.get("userId")));
             mrkDtlVO.setMrkSbjctDtlId(IdGenUtil.genNewId(IdPrefixType.MRSBD));
+            mrkDtlVO.setUserId((String) scoreInfo.get("userId"));
             mrkDtlVO.setMrkItmTycd(mrkItmTycd);
-            mrkDtlVO.setScr((double) scoreInfo.get("finalScore"));
+            mrkDtlVO.setScr(((Number) scoreInfo.get("finalScore")).doubleValue());
             mrkDtlVO.setRgtrId(rgtrId);
 
             mrkDtlList.add(mrkDtlVO);

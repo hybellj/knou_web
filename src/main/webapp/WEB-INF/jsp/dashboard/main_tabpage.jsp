@@ -13,13 +13,15 @@
 
 		$(function(){
 			let menuUrl = "${menuUrl}";
-			let menuNm = "${menuNm}";
+			let menunm = "${menunm}";
 			let upMenuId = "${upMenuId}";
 			let menuId = "${menuId}";
 
 			if (menuUrl != "") {
+				menuUrl += (menuUrl.indexOf("?") === -1 ? "?" : "&") + "encParams=${encParams}";
+
 				TAB_MENU = UiTabMenu("pageTabs", "pageFrames");
-				TAB_MENU.addTabMenu(menuNm, menuUrl, upMenuId, menuId);
+				TAB_MENU.addTabMenu(menunm, menuUrl, upMenuId, menuId);
 			}
 
 			// 탭메뉴 왼쪽 이동
@@ -72,6 +74,8 @@
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <div class="dashboard_sub">
+
+
 
 					<div class="page-menu">
 						<button id="moveLeftBtn" class="btn_arrow"><i class="xi-angle-left"></i></button>

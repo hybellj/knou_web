@@ -11,7 +11,7 @@ $(function () {
 			$gnb.addClass("expanded");
 		else
 			$gnb.removeClass("expanded");
-	
+
 		// JS 준비 완료 후 표시 (깜빡임 방지)
 		$gnb.css("visibility", "visible");
 
@@ -319,41 +319,6 @@ $(function () {
 	});
 
 
-
-
-
-
-
-	/********** summernote 임시 **********/
-	/*
-	let ss = document.createElement("script");
-	ss.src ="../assets/summernote/lang/summernote-ko-KR.js";
-	ss.type= "text/javascript";
-	document.body.appendChild(ss);
-
-	setTimeout(function(){
-		$('#summernote').summernote({
-			lang: 'ko-KR',
-			placeholder: '입력하세요',
-			height: 300,
-			fontNames: ['맑은 고딕','궁서','굴림체','굴림','돋움체','바탕체','Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Verdana','Tahoma','Times New Roamn'],
-			toolbar: [
-				['fontname', ['fontname']],
-				['fontsize', ['fontsize']],
-				['style', ['bold', 'italic', 'underline','strikethrough', 'clear']],
-				['color', ['forecolor','backcolor']],
-				['table', ['table']],
-				['para', ['ul', 'ol', 'paragraph']],
-				['height', ['height']],
-				['insert',['picture','link','video']],
-				['view', ['codeview','fullscreen']]
-			]
-
-		});
-	}, 400);
-	*/
-
-
 	if( document.querySelector('.tab-type1') ){
 		document.querySelectorAll(".tab-type1").forEach( tab => {
 
@@ -407,22 +372,6 @@ $(function () {
 	}
 
 });
-
-
-
-
-/********** toggleCheckbox **********/
-/*
-const toggleCheckbox = document.getElementById('myToggle');
-const statusText = document.getElementById('status-text');
-updateStatus(toggleCheckbox.checked);
-toggleCheckbox.addEventListener('change', function() {
-    const isChecked = this.checked;
-
-    updateStatus(isChecked);
-
-});
-*/
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -550,4 +499,64 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+// 메뉴 이동
+function moveMenu(obj, menuUrl, upMenuId, menuId, menunm, linkTargetTycd){
+	if (menuUrl === '') {
+		return;
+	}
 
+	let $moveForm = $("#moveForm");
+	if ($moveForm.length === 0) {
+		let form = `<form id="moveForm" method="post">
+				<input name="encParams" type="hidden" value="">
+				<input name="addParams" type="hidden" value="">
+				<input name="menunm"    type="hidden" value="">
+				<input name="menuUrl"   type="hidden" value="">
+				<input name="upMenuId"  type="hidden" value="">
+				<input name="menuId"    type="hidden" value="">
+			</form>`;
+		$("body").append(form);
+	}
+
+	if (obj !== null && menunm === "") {
+		if (!menunm) {
+			menunm = $(obj).children("span").html();
+		}
+	}
+
+	$("#moveForm input[name=addParams]").val(UiComm.makeEncParams({upMenuId:upMenuId,menuId:menuId}));
+	$("#moveForm input[name=menunm]").val(menunm);
+	$("#moveForm input[name=menuUrl]").val(menuUrl);
+	$("#moveForm input[name=upMenuId]").val(upMenuId);
+	$("#moveForm input[name=menuId]").val(menuId);
+
+	// Tab에 표시
+	if (linkTargetTycd == "tab") {
+		if (typeof TAB_MENU == 'undefined') {
+			let url = "/dashboard/mainTabpage.do"
+			$("#moveForm").attr("action", url);
+			$("#moveForm").submit();
+		}
+		else {
+			menuUrl += (menuUrl.indexOf("?") === -1 ? "?" : "&") + "encParams=" + $("#moveForm input[name=encParams]").val();
+			menuUrl += "&addParams=" + $("#moveForm input[name=addParams]").val();
+			TAB_MENU.addTabMenu(menunm, menuUrl, upMenuId, menuId);
+		}
+	}
+	// 새창에 호출
+	else if (linkTargetTycd == "window") {
+		window.open("about:blank", "win_"+menuId);
+		$("#moveForm").attr("action", menuUrl);
+		$("#moveForm").attr("target", "win_"+menuId);
+		$("#moveForm").submit();
+	}
+	// 타 사이트 호출
+	else if (linkTargetTycd == "other") {
+		window.open(menuUrl, '_blank');
+	}
+	// self 표시
+	else {
+		$("#moveForm").attr("action", menuUrl);
+		$("#moveForm").submit();
+	}
+}

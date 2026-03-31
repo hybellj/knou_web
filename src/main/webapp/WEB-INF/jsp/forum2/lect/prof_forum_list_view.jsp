@@ -161,14 +161,8 @@
 
                                 <div class="card-body">
                                     <div class="desc">
-                                        <%-- TODO : 참여현황 그래프로 표시 --%>
                                         <p><label class="label-title"><spring:message code='forum.label.status.join'/></label><strong>#[forumJoinUserCnt]/#[forumUserTotalCnt]</strong></p>
-
                                         <p><label class="label-title"><spring:message code='forum.label.forum.date'/></label><strong>#[dscsSdttmEdtm]</strong></p>
-                                        <%--
-                                        <p><label class="label-title"><spring:message code='forum.label.forum.bbsCnt'/></label><strong>#[dscsAtclCnt]</strong></p>
-                                        <p><label class="label-title"><spring:message code='forum.label.forum.commCnt'/></label><strong>#[dscsCmntCnt]</strong></p>
-                                        --%>
                                         <p><label class="label-title"><spring:message code='forum.label.score.ratio'/></label>#[scoreRate]</p>
                                         <p><label class="label-title"><spring:message code='forum.label.eval.status'/></label><strong>#[mrkStatus]</strong></p>
                                         <p><label class="label-title"><spring:message code='forum.label.score.open'/></label><strong>#[mrkOyn]</strong></p>
@@ -219,14 +213,6 @@
     <%-- 리스트 테이블 --%>
     let forumListTable = UiTable("forumList", {
         lang: "ko",
-        tableMode: "list",
-        //rowHeight: 30,
-        //height: 400,
-        //selectRow: "checkbox",
-        //selectRow: "1",
-        //selectRowFunc: checkRowSelect,
-        // sortFunc: atclListTableSort,
-        //initialSort: [{column:"regDttm", dir:"desc"}],
         pageFunc: listPaging,
         changeFunc: chanageModeEvent,
         columns: [

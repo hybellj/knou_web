@@ -60,7 +60,6 @@ $(function () {
     }
 
 
-
     /********** slick slider knou **********/
     $('.slider_list').slick({
         infinite: false,
@@ -931,11 +930,11 @@ function controller() {
 
     //message_box 닫기 버튼
     $('.dash_btn_box .btn_close')
-        .on('click', function () {
-            $(this)
-                .closest('.message')
-                .transition('fade');
-        });
+    .on('click', function () {
+        $(this)
+        .closest('.message')
+        .transition('fade');
+    });
 
     //console.log("exe controller")
     //gnb 설정 수정_230718
@@ -1091,13 +1090,13 @@ function clickUiDataSetHandler(e) {
             }
 
             fromList.querySelector(swapArrival)
-                .querySelectorAll("input[type='checkbox']")
-                .forEach((elem, key, par) => {
-                    if (elem.checked) {
-                        elem.checked = false;
-                        toList.querySelector(swapArrival).append(elem.closest(swapTarget));
-                    }
-                });
+            .querySelectorAll("input[type='checkbox']")
+            .forEach((elem, key, par) => {
+                if (elem.checked) {
+                    elem.checked = false;
+                    toList.querySelector(swapArrival).append(elem.closest(swapTarget));
+                }
+            });
 
             // footable로 변경했을때, swap 후 테이블을 다시 그려줘야, 옮긴 tr을 각각 인식해서 임시 추가함_230705
             // 다시 안그리면, sorting 클릭 시 옮겨둔 tr이 원래 위치로 돌아감
@@ -1373,9 +1372,10 @@ function ajaxCall(url, param, succCallback, errCallback, disploading) {
         // dataType : "json",
         // contentType: 'application/json',
         beforeSend: function () {
-            if (disploading != undefined && disploading == true) {
+            if (disploading === true) {
                 UiComm.showLoading(true);
             }
+
             AJAX_CALL_NO++;
         },
         success: function (data, status, xr) {
@@ -1386,23 +1386,20 @@ function ajaxCall(url, param, succCallback, errCallback, disploading) {
             }
         },
         error: function (xhr, status, error) {
-            if (typeof succCallback == "function") {
+            if (typeof errCallback == "function") {
                 errCallback(xhr, status, error);
-            }
-
-            AJAX_CALL_NO--;
-            if (AJAX_CALL_NO == 0) {
-                UiComm.showLoading(false);
             }
         },
         complete: function () {
             AJAX_CALL_NO--;
-            if (AJAX_CALL_NO == 0) {
+            if (AJAX_CALL_NO <= 0) {
+                AJAX_CALL_NO = 0;
                 UiComm.showLoading(false);
             }
+
         }
-    })
-};
+    });
+}
 
 // date객체를 문자로 리턴
 function replaceDateToDttm(date) {

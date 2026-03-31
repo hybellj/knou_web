@@ -37,7 +37,7 @@ public interface MsgShrtntFacadeService {
 
     void modifyShrtntSndngWithFiles(MsgShrtntVO vo, String uploadFiles, String uploadPath, String[] delFileIds) throws Exception;
 
-    List<MsgShrtntVO> parseExcelAndSearchRcvr(InputStream excelInputStream) throws Exception;
+    List<MsgShrtntVO> parseExcelAndSearchRcvr(InputStream excelInputStream, String orgId) throws Exception;
 
     int updateMsgRsrvCncl(MsgShrtntVO vo);
 

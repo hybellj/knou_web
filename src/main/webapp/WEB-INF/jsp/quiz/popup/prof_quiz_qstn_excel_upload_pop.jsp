@@ -4,9 +4,9 @@
 <html lang="ko" style="position: fixed; width: 100%;">
 	<head>
     	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
-		<jsp:param name="style" value="classroom"/>
-		<jsp:param name="module" value="fileuploader"/>
-	</jsp:include>
+			<jsp:param name="style" value="classroom"/>
+			<jsp:param name="module" value="fileuploader"/>
+		</jsp:include>
     </head>
 
     <div id="loading_page">
@@ -19,99 +19,88 @@
 
 		var excelExampleGrid = {
 			colModel:[
-				    {label:"<spring:message code='exam.label.qstn.no' />",				name:'qstnNo',					align:'left',	width:'5000',	colums:'A'},/* 문제번호 */
-				    {label:"<spring:message code='exam.label.sub.qstn.no' />",			name:'subNo',					align:'left',	width:'5000',	colums:'B'},/* 후보문제 번호 */
-				    {label:"<spring:message code='exam.label.qstn.cts' />",				name:'qstnCts',					align:'left',	width:'5000',	colums:'C'},/* 문제 내용 */
-				    {label:"<spring:message code='exam.label.qstn.gbn' />",				name:'qstnTypeCd',				align:'left',	width:'5000',	colums:'D'},/* 문제 구분 */
-				    {label:"<spring:message code='exam.label.qstn.item' />1",			name:'empl1',					align:'left',	width:'5000',	colums:'E'},/* 보기 */
-				    {label:"<spring:message code='exam.label.qstn.item' />2",			name:'empl2',					align:'left',	width:'5000',	colums:'F'},/* 보기 */
-				    {label:"<spring:message code='exam.label.qstn.item' />3",			name:'empl3',					align:'left',	width:'5000',	colums:'G'},/* 보기 */
-				    {label:"<spring:message code='exam.label.qstn.item' />4",			name:'empl4',					align:'left',	width:'5000',	colums:'H'},/* 보기 */
-				    {label:"<spring:message code='exam.label.qstn.item' />5",			name:'empl5',					align:'left',	width:'5000',	colums:'I'},/* 보기 */
-				    {label:"<spring:message code='exam.label.qstn.item' />6",			name:'empl6',					align:'left',	width:'5000',	colums:'J'},/* 보기 */
-				    {label:"<spring:message code='exam.label.qstn.item' />7",			name:'empl7',					align:'left',	width:'5000',	colums:'K'},/* 보기 */
-				    {label:"<spring:message code='exam.label.qstn.item' />8",			name:'empl8',					align:'left',	width:'5000',	colums:'L'},/* 보기 */
-				    {label:"<spring:message code='exam.label.qstn.item' />9",			name:'empl9',					align:'left',	width:'5000',	colums:'M'},/* 보기 */
-				    {label:"<spring:message code='exam.label.qstn.item' />10",			name:'empl10',					align:'left',	width:'5000',	colums:'N'},/* 보기 */
-				    {label:"<spring:message code='exam.label.answer' />1",				name:'rgtAnsr1',				align:'left',	width:'5000',	colums:'O'},/* 정답1 */
-				    {label:"<spring:message code='exam.label.answer' />2",				name:'rgtAnsr2',				align:'left',	width:'5000',	colums:'P'},/* 정답2 */
-				    {label:"<spring:message code='exam.label.answer' />3",				name:'rgtAnsr3',				align:'left',	width:'5000',	colums:'Q'},/* 정답3 */
-				    {label:"<spring:message code='exam.label.answer' />4",				name:'rgtAnsr4',				align:'left',	width:'5000',	colums:'R'},/* 정답4 */
-				    {label:"<spring:message code='exam.label.answer' />5",				name:'rgtAnsr5',				align:'left',	width:'5000',	colums:'S'},/* 정답5 */
-				    {label:"<spring:message code='exam.label.answer.comment' />",		name:'qstnExpl',				align:'left',	width:'5000',	colums:'T'},/* 정답해설 */
-				    {label:"<spring:message code='exam.label.score' />",				name:'qstnScore',				align:'left',	width:'5000',	colums:'U'},/* 점수 */
-					{label:"<spring:message code='exam.label.multi.answer.yn' />",		name:'multiRgtChoiceYn',		align:'left',	width:'5000',	colums:'V'},/* 복수정답여부 */
-					{label:"<spring:message code='exam.label.multi.answer.type' />",	name:'multiRgtChoiceTypeCd',	align:'right',	width:'5000',	colums:'W'}/* 복수정답타입 */
-				]
+			    {label:"문항순번",				name:'qstnSeqno',			align:'left',	width:'5000',	colums:'A'},
+			    {label:"문항후보순번",			name:'qstnCnddtSeqno',		align:'left',	width:'5000',	colums:'B'},
+			    {label:"문항명",				name:'qstnTtl',				align:'left',	width:'5000',	colums:'C'},
+			    {label:"문항내용",				name:'qstnCts',				align:'left',	width:'5000',	colums:'D'},
+			    {label:"문항답변유형코드",		name:'qstnRspnsTycd',		align:'left',	width:'5000',	colums:'E'},
+			    {label:"문항보기항목순번",		name:'qstnVwitmSeqno',		align:'left',	width:'5000',	colums:'F'},
+			    {label:"문항보기항목내용",		name:'qstnVwitmCts',		align:'left',	width:'5000',	colums:'G'},
+			    {label:"문항보기항목정답내용",	name:'qstnVwitmCransCts',	align:'left',	width:'5000',	colums:'H'},
+			    {label:"정답여부",				name:'cransYn',				align:'left',	width:'5000',	colums:'I'},
+			    {label:"문항난이도",			name:'qstnDfctlvTycd',		align:'left',	width:'5000',	colums:'J'},
+			    {label:"문항점수",				name:'qstnScr',				align:'left',	width:'5000',	colums:'K'},
+				{label:"정답유형코드",			name:'cransTycd',			align:'left',	width:'5000',	colums:'L'}
+			]
 		};
 
 		// 등록
-		function uploadExcelQuizQstn(fileObj, copyFile) {
-			showLoading();
-            $.ajax({
-                  type: 'post',
-                  url: '/quiz/uploadQuizQstnExcel.do',
-                  async: false,
-                  dataType: "json",
-                  data: {
-                          "examDtlId"     : "${vo.examDtlId}"
-                        , "uploadFiles"   : fileObj
-                        , "copyFiles"	  : copyFile
-                        , "uploadPath"	  : "/quiz/${vo.examDtlId}"
-                        , "repoCd"		  : "EXCEL_UPLOAD"
-                        , "excelGrid" 	  : JSON.stringify(excelExampleGrid)
-                  },
-                  success : function(data) {
-                	  hideLoading();
-                      if(data.result > 0) {
-                          window.parent.listQuizQstn();
-                          window.parent.closeModal();
-                      } else {
-                          alert(data.message);
-                      }
-                  }
-            });
+		function quizQstnExcelUpload() {
+			UiComm.showLoading(true);
+			let dx = dx5.get("fileUploader");
+
+			$.ajax({
+            	url: '/quiz/profQuizQstnExcelUpload.do',
+                async: false,
+                type: 'POST',
+                dataType: "json",
+                data: {
+                	  "examDtlId"   : "${vo.examDtlId}"
+                    , "uploadFiles"	: dx.getUploadFiles()
+            		, "uploadPath"  : dx.getUploadPath()
+                    , "excelGrid" 	: JSON.stringify(excelExampleGrid)
+                }
+            }).done(function(data) {
+		   		UiComm.showLoading(false);
+		    	if (data.result > 0) {
+		    		window.parent.qstnListSelect();
+                    window.parent.closeDialog();
+		        } else {
+		       		UiComm.showMessage(data.message, "error");
+		        }
+		    }).fail(function() {
+			   	UiComm.showLoading(false);
+			   	UiComm.showMessage("에러가 발생하였습니다.", "error");
+		    });
 		}
 
 		// 엑셀 샘플 다운로드
 		function sampleExcelDown() {
 	        $("#excelGrid").val(JSON.stringify(excelExampleGrid));
 			$("#quizQstnUploadForm").attr("target", "exampleExcelDownloadIfm");
-	        $("#quizQstnUploadForm").attr("action", "/quiz/quizExcelUploadSampleDownload.do");
+	        $("#quizQstnUploadForm").attr("action", "/quiz/profQuizQstnRegistSampleExcelDown.do");
 	        $("#quizQstnUploadForm").submit();
 		}
 
 		// 저장 확인
 	    function saveConfirm() {
-	    	var fileUploader = dx5.get("fileUploader");
-	    	// 파일이 있으면 업로드 시작
-	 		if (fileUploader.getFileCount() > 0) {
-				fileUploader.startUpload();
-			}
+	    	let dx = dx5.get("fileUploader");
+			// 첨부파일 있으면 업로드
+    		if (dx.availUpload()) {
+    			dx.startUpload();
+    		}
 	    }
 
 	 	// 파일 업로드 완료
 	    function finishUpload() {
-	    	var fileUploader = dx5.get("fileUploader");
-	    	var url = "/file/fileHome/saveFileInfo.do";
-	    	var data = {
-	    		"uploadFiles" : fileUploader.getUploadFiles(),
-	    		"copyFiles"   : fileUploader.getCopyFiles(),
-	    		"uploadPath"  : fileUploader.getUploadPath()
-	    	};
+	    	let url = "/common/uploadFileCheck.do";	// 업로드된 파일 검증 URL
+			let dx = dx5.get("fileUploader");
+			let data = {
+				"uploadFiles" : dx.getUploadFiles(),
+				"uploadPath"  : dx.getUploadPath()
+			};
 
-	    	ajaxCall(url, data, function(data) {
-	    		if(data.result > 0) {
-	    			var fileObj = fileUploader.getUploadFiles();
-	    	    	var copyFile = fileUploader.getCopyFiles();
-
-	    	 		uploadExcelQuizQstn(fileObj, copyFile);
-	    		} else {
-	    			alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
-	    		}
-	    	}, function(xhr, status, error) {
-	    		alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
-	    	});
+			// 업로드된 파일 체크
+			ajaxCall(url, data, function(data) {
+				if(data.result > 0) {
+					quizQstnExcelUpload();
+				} else {
+					UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");	// 업로드를 실패하였습니다.
+				}
+			},
+				function(xhr, status, error) {
+				UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");	// 업로드를 실패하였습니다.
+			});
 	    }
 	</script>
 
@@ -139,7 +128,7 @@
             	<!-- 파일업로더 -->
             	<uiex:dextuploader
 					id="fileUploader"
-					path="/exam/${vo.examDtlId }"
+					path="${vo.uploadPath}"
 					limitCount="1"
 					limitSize="100"
 					oneLimitSize="100"

@@ -98,8 +98,8 @@
                     }
                     // 관리 버튼
                     var manageBtns = "";
-                        manageBtns += "<a href='javascript:absnceHstr(\"" + v.examBscId + "\", \"" + v.userId + "\")' class='btn basic small'>결과보기</a>"
-                        manageBtns += "<a href='javascript:absnceRslt(\"" + v.examBscId + "\", \"" + v.userId + "\")' class='btn basic small'>신청이력</a>"
+                        manageBtns += "<a href='javascript:examAbsnceRsltPopup(\"" + v.examBscId + "\", \"" + v.userId + "\")' class='btn basic small'>결과보기</a>"
+                        manageBtns += "<a href='javascript:examAbsnceHstrPopup(\"" + v.examBscId + "\", \"" + v.userId + "\")' class='btn basic small'>신청이력</a>"
 
                     dataList.push({
                         lineNo:         v.lineNo
@@ -241,6 +241,37 @@
                 });
             }
             $("#examSubsbjctbody").append(html);
+        }
+
+
+        /*****************************************************************************
+         * 팝업 관련 기능
+         * 1. examAbsnceRsltPopup:      결시자 결시신청 결과 팝업
+         * 2. examAbsnceHstrPopup:      결시자 결시신청 이력 팝업
+         *****************************************************************************/
+        /* 1 */
+        function examAbsnceRsltPopup(examBscId, userId) {
+            var data = "examBscId="+examBscId+"&userId="+userId;
+
+            dialog = UiDialog("dialog1", {
+                title: "결시신청 결과 보기",
+                width: 800,
+                height: 300,
+                url: "/exam/examAbsnceUserRsltPopup.do?"+data,
+                autoresize: true
+            });
+        }
+        /* 2 */
+        function examAbsnceHstrPopup(examBscId, userId) {
+            var data = "examBscId="+examBscId+"&userId="+userId+"&pageIndex="+PAGE_INDEX+"&listScale="+LIST_SCALE;
+
+            dialog = UiDialog("dialog1", {
+                title: "결시신청 이력 보기",
+                width: 800,
+                height: 300,
+                url: "/exam/examAbsnceUserHstrPagingPopup.do?"+data,
+                autoresize: true
+            });
         }
 
         /**

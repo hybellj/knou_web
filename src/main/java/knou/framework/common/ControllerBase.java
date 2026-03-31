@@ -30,7 +30,7 @@ public class ControllerBase {
 	private static Log log = LogFactory.getLog(ControllerBase.class);
 
 	private String 					encParams; 		// 암호화 파라메터
-	private Map<String, Object>		encParamMap;	// 암호화 파라메터 Map
+	private Map<String, Object>		encParamsMap;	// 암호화 파라메터 Map
 	private HttpServletRequest 		request;
 	private HttpSession 			session;
 	private ModelMap 				modelMap;
@@ -69,7 +69,7 @@ public class ControllerBase {
 			this.modelMap 		= modelMap;
 			this.message 		= new Message(request);
 			this.encParams 		= request.getParameter("encParams");
-			this.encParamMap 	= new HashMap<>();
+			this.encParamsMap 	= new HashMap<>();
 			String referer 		= request.getHeader("referer");
 			String uri			= request.getRequestURI();
 			String type 		= "";
@@ -83,10 +83,17 @@ public class ControllerBase {
 					setEncParamMapToVO(paramMap, paramVO, true);
 				}
 
-				// 추가 파라메터 VO에 설정
+				// 추가 파라메터 VO에 설정 ---- 삭제예정
 				String extParam = request.getParameter("extParam");
 				if (extParam != null && !"".equals(extParam)) {
 					Map<String, Object> paramMap = JsonUtil.jsonToMap(SecureUtil.decodeStr(extParam));
+					setEncParamMapToVO(paramMap, paramVO, true);
+				}
+
+				// 추가 파라메터 VO에 설정
+				String addParams = request.getParameter("addParams");
+				if (addParams != null && !"".equals(addParams)) {
+					Map<String, Object> paramMap = JsonUtil.jsonToMap(SecureUtil.decodeStr(addParams));
 					setEncParamMapToVO(paramMap, paramVO, true);
 				}
 			}
@@ -115,8 +122,8 @@ public class ControllerBase {
 			//modelMap.addAttribute("pageType", type);
 			//modelMap.addAttribute("bodyClass", bodyClass);
 
-			modelMap.addAttribute("curUpMenuId", StringUtil.nvl(encParamMap.get("upMenuId")));
-			modelMap.addAttribute("curMenuId", StringUtil.nvl(encParamMap.get("menuId")));
+			modelMap.addAttribute("curUpMenuId", StringUtil.nvl(encParamsMap.get("upMenuId")));
+			modelMap.addAttribute("curMenuId", StringUtil.nvl(encParamsMap.get("menuId")));
 			modelMap.addAttribute("encParams", this.encParams);
 
 			SessionUtil.setSessionValue(request, "PAGE_TYPE", type);
@@ -177,8 +184,8 @@ public class ControllerBase {
 	 * 암호화 파라메터 값을 VO에 할당
 	 * @param paramVO
 	 */
-	public void setEparamToVO(Object paramVO) {
-		setEncParamMapToVO(this.encParamMap, paramVO, false);
+	public void setEncParamsToVO(Object paramVO) {
+		setEncParamMapToVO(this.encParamsMap, paramVO, false);
 	}
 
 
@@ -424,12 +431,12 @@ public class ControllerBase {
      * @param value
      */
 	public void addEncParam(String name, Object value) {
-		if (encParamMap == null) {
-			encParamMap = new HashMap<>();
+		if (encParamsMap == null) {
+			encParamsMap = new HashMap<>();
 		}
 
-		encParamMap.put(name, value);
-		encParams = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(encParamMap).toString());
+		encParamsMap.put(name, value);
+		encParams = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(encParamsMap).toString());
 		modelMap.addAttribute("encParams", encParams);
 	}
 
@@ -438,11 +445,11 @@ public class ControllerBase {
 	 * @param name
 	 */
 	public void delEncParam(String name) {
-		if (encParamMap != null && encParamMap.containsKey(name)) {
-			encParamMap.remove(name);
+		if (encParamsMap != null && encParamsMap.containsKey(name)) {
+			encParamsMap.remove(name);
 
-			if (!encParamMap.isEmpty()) {
-				encParams = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(encParamMap).toString());
+			if (!encParamsMap.isEmpty()) {
+				encParams = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(encParamsMap).toString());
 			}
 			else {
 				encParams = "";
@@ -455,7 +462,7 @@ public class ControllerBase {
 	 * 암호화 파라메터 초기화
 	 */
 	public void resetEncParam() {
-		encParamMap = new HashMap<>();
+		encParamsMap = new HashMap<>();
 		encParams = "";
 		modelMap.addAttribute("encParams", encParams);
 	}

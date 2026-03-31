@@ -1693,7 +1693,7 @@ public class BbsHomeController extends ControllerBase {
         }
 
         // 게시판정보에 파라메터값 재설정 (게시판정보 조회에서 초기화돼서 재설정)
-        setEparamToVO(bbsVO);
+        setEncParamsToVO(bbsVO);
 
         String atclWriteAuth = "N"; // 글쓰기 권한
 

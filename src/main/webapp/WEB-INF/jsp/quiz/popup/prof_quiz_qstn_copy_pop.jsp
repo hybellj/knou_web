@@ -82,10 +82,10 @@
 	        			$("#qbnkCtgrId").val('').trigger("chosen:updated");
 	        		}
 	            } else {
-	             	alert(data.message);
+	            	UiComm.showMessage(data.message, "error");
 	            }
     		}, function(xhr, status, error) {
-    			alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
+    			UiComm.showMessage("<spring:message code='exam.error.list' />", "error");	/* 리스트 조회 중 에러가 발생하였습니다. */
     		});
 		}
 
@@ -118,10 +118,10 @@
 	    			qbnkQstnListTable.clearData();
 					qbnkQstnListTable.replaceData(dataList);
 	            } else {
-	             	alert(data.message);
+	            	UiComm.showMessage(data.message, "error");
 	            }
     		}, function(xhr, status, error) {
-    			alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
+    			UiComm.showMessage("<spring:message code='exam.error.list' />", "error");	/* 리스트 조회 중 에러가 발생하였습니다. */
     		});
 		}
 
@@ -153,10 +153,10 @@
 	        		$("#copySbjctId").val('').trigger("chosen:updated");
 	    			quizQstnListTable.clearData();
 	            } else {
-	             	alert(data.message);
+	            	UiComm.showMessage(data.message, "error");
 	            }
     		}, function(xhr, status, error) {
-    			alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
+    			UiComm.showMessage("<spring:message code='exam.error.list' />", "error");	/* 리스트 조회 중 에러가 발생하였습니다. */
     		});
 		}
 
@@ -185,10 +185,10 @@
 	        		$("#quizQstnPage").val('').trigger("chosen:updated");
 	    			quizQstnListTable.clearData();
 	            } else {
-	             	alert(data.message);
+	            	UiComm.showMessage(data.message, "error");
 	            }
     		}, function(xhr, status, error) {
-    			alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
+    			UiComm.showMessage("<spring:message code='exam.error.list' />", "error");	/* 리스트 조회 중 에러가 발생하였습니다. */
     		});
 		}
 
@@ -209,10 +209,10 @@
 	        		quizQstnListTable.clearData();
 					quizQstnListTable.replaceData(dataList);
 	            } else {
-	             	alert(data.message);
+	            	UiComm.showMessage(data.message, "error");
 	            }
     		}, function(xhr, status, error) {
-    			alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
+    			UiComm.showMessage("<spring:message code='exam.error.list' />", "error");	/* 리스트 조회 중 에러가 발생하였습니다. */
     		});
 		}
 
@@ -284,7 +284,7 @@
 	       		window.parent.qstnScrAutoGrnt("${vo.examDtlId}");
 	       		window.parent.closeDialog();
 		    }).fail(function() {
-		    	alert("<spring:message code='exam.error.copy' />");/* 가져오기 중 에러가 발생하였습니다. */
+		    	UiComm.showMessage("<spring:message code='exam.error.copy' />", "error");	/* 가져오기 중 에러가 발생하였습니다. */
 		    });
 		}
 
@@ -296,25 +296,25 @@
 			// 문제 은행
 			if(copyType == "qbnk") {
 				if($("#upQbnkCtgrId").val() == "") {
-					alert("<spring:message code='exam.alert.select.upper.categori' />");/* 상위 분류를 선택하세요. */
+					UiComm.showMessage("<spring:message code='exam.alert.select.upper.categori' />", "info");	/* 상위 분류를 선택하세요. */
 					return false;
 				}
 				if(qbnkQstnListTable.getSelectedData("qstnId").length == 0) {
-					UiComm.showMessage("<spring:message code='exam.alert.select.copy.qstn' />", "info");/* 복사할 문항을 선택하세요. */
+					UiComm.showMessage("<spring:message code='exam.alert.select.copy.qstn' />", "info");	/* 복사할 문항을 선택하세요. */
 					return;
 				}
 			// 다른 시험
 			} else if(copyType == "examppr") {
 				if($("#copySmstrChrtId").val() == "") {
-					alert("<spring:message code='exam.alert.select.year.term' />");/* 학년도 학기를 선택하세요. */
+					UiComm.showMessage("<spring:message code='exam.alert.select.year.term' />", "info");	/* 학년도 학기를 선택하세요. */
 					return false;
 				}
 				if($("#copySbjctId").val() == "") {
-					alert("<spring:message code='exam.alert.select.crs' />");/* 과목을 선택하세요. */
+					UiComm.showMessage("<spring:message code='exam.alert.select.crs' />", "info");	/* 과목을 선택하세요. */
 					return false;
 				}
 				if($("#quizQstnPage").val() == "") {
-					alert("<spring:message code='exam.alert.select.paper' />");/* 시험지를 선택하세요. */
+					UiComm.showMessage("<spring:message code='exam.alert.select.paper' />", "info");	/* 시험지를 선택하세요. */
 					return false;
 				}
 				if(quizQstnListTable.getSelectedData("qstnId").length == 0) {

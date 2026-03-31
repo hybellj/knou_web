@@ -1,8 +1,11 @@
 package knou.lms.mrk.service;
 
+import knou.lms.mrk.vo.MarkSubjectDetailVO;
+import knou.lms.mrk.vo.MarkSubjectVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MarkSubjectService {
 
@@ -24,7 +27,7 @@ public interface MarkSubjectService {
 
     void allStdMrkSbjctDtlDelete(String sbjctId) throws Exception;
 
-    List<EgovMap> stdMrkSbjctList(String sbjctId) throws Exception;
+    List<MarkSubjectVO> stdMrkSbjctList(String sbjctId) throws Exception;
 
     List<EgovMap> attdSummaryList(String sbjctId) throws Exception;
 
@@ -39,6 +42,12 @@ public interface MarkSubjectService {
     List<EgovMap> quizScoreEvlList(String sbjctId) throws Exception;
 
     List<EgovMap> srvyScoreEvlList(String sbjctId) throws Exception;
+
+    Map<String, Double> adtnScoreList(String sbjctId) throws Exception;
+
+    int mrkSbjctBatchInsert(List<MarkSubjectVO> mrksbjctList)throws Exception;
+
+    int mrkSbjctDtlBatchInsert(List<MarkSubjectDetailVO> vo)throws Exception;
 
 
 }

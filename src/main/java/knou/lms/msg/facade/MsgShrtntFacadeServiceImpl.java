@@ -212,7 +212,7 @@ public class MsgShrtntFacadeServiceImpl extends ServiceBase implements MsgShrtnt
      * @throws Exception
      ******************************************************/
     @Override
-    public List<MsgShrtntVO> parseExcelAndSearchRcvr(InputStream excelInputStream) throws Exception {
+    public List<MsgShrtntVO> parseExcelAndSearchRcvr(InputStream excelInputStream, String orgId) throws Exception {
         Workbook workbook = WorkbookFactory.create(excelInputStream);
         Sheet sheet = workbook.getSheetAt(0);
 
@@ -235,6 +235,7 @@ public class MsgShrtntFacadeServiceImpl extends ServiceBase implements MsgShrtnt
 
         MsgShrtntVO vo = new MsgShrtntVO();
         vo.setUserIdList(userIdList);
+        vo.setOrgId(orgId);
         return msgShrtntService.selectShrtntRcvrByUserIds(vo);
     }
 

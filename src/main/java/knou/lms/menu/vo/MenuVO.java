@@ -10,8 +10,8 @@ import knou.lms.common.vo.DefaultVO;
  */
 public class MenuVO extends DefaultVO {
 	private static final long serialVersionUID = 4170716267411986828L;
-	private String		menuId;			// 메뉴아이디
-	private String 		upMenuId;		// 상위메뉴아이디
+	//private String		menuId;			// 메뉴아이디 --> DefaultVO에 정의
+	//private String 		upMenuId;		// 상위메뉴아이디 --> DefaultVO에 정의
 	private String 		menunm;			// 메뉴명
 	private String 		menuEnnm;		// 메뉴영문명
 	private String 		menuExpln;		// 메뉴설명
@@ -33,23 +33,6 @@ public class MenuVO extends DefaultVO {
 
 	private List<MenuVO> subMenuList;	// 서브메뉴 목록
 	private List<BbsVO>  subBbsList;	// 서브 게시판 목록
-
-
-	public String getMenuId() {
-		return menuId;
-	}
-
-	public void setMenuId(String menuId) {
-		this.menuId = menuId;
-	}
-
-	public String getUpMenuId() {
-		return upMenuId;
-	}
-
-	public void setUpMenuId(String upMenuId) {
-		this.upMenuId = upMenuId;
-	}
 
 	public String getMenunm() {
 		return menunm;

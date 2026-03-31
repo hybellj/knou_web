@@ -1,11 +1,11 @@
 package knou.lms.msg.dao;
 
-import java.util.List;
-
+import knou.lms.msg.vo.MsgSndrDsctnVO;
+import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
-import knou.lms.msg.vo.MsgSndrDsctnVO;
+import java.util.List;
 
 @Mapper("msgSndrDsctnDAO")
 public interface MsgSndrDsctnDAO {
@@ -25,4 +25,6 @@ public interface MsgSndrDsctnDAO {
     List<MsgSndrDsctnVO> selectSndrDsctnDeptList(MsgSndrDsctnVO vo);
 
     List<MsgSndrDsctnVO> selectSndrDsctnSbjctList(MsgSndrDsctnVO vo);
+
+    String selectOrgNm(@Param("orgId") String orgId);
 }

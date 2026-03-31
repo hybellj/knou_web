@@ -84,6 +84,10 @@
             , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT C
                WHERE C.DSCS_ATCL_ID = A.DSCS_ATCL_ID
                  AND C.DELYN = 'N') AS cmntCount
+            , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT C
+               WHERE C.DSCS_ATCL_ID = A.DSCS_ATCL_ID
+                 AND C.DELYN = 'N'
+                 AND C.USER_ID = A.USER_ID) AS myCmntCount
             , (SELECT MAX(B.ATCL_SEQNO)
                FROM TB_LMS_DSCS_ATCL B
                WHERE B.DSCS_ID = A.DSCS_ID

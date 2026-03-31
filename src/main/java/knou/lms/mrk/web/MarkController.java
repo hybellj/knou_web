@@ -10,8 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
@@ -21,8 +20,6 @@ import knou.framework.exception.AccessDeniedException;
 import knou.lms.mrk.facade.MarkFacadeService;
 import knou.lms.score.vo.ScoreOverallVO;
 import knou.lms.score.web.ScoreOverallController;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/mrk")
@@ -69,16 +66,16 @@ public class MarkController extends ControllerBase {
     }
 
     /**
-     * 과목의 학생 성적 목록 조회
+     * [교수] 과목의 학생 성적 목록 조회
      * @param sbjctId
      * @param searchType
      * @param request
      * @return
      */
-    @RequestMapping("/profMrkRfltrtSelectAjax.do")
+    @GetMapping("/profMrkRfltrtSelectAjax.do")
     @ResponseBody
     public ProcessResultVO<EgovMap> profMrkListBySbjctAjax (@RequestParam("sbjctId") String sbjctId,
-                                                                   @RequestParam("searchType") String searchType, HttpServletRequest request){
+                                                            @RequestParam("searchType") String searchType, HttpServletRequest request){
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
 
         String orgId = SessionInfo.getOrgId(request);
@@ -91,6 +88,31 @@ public class MarkController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
 
+        }
+
+        return resultVO;
+    }
+
+    /**
+     * 해당 과목 학생들의 평가점수 가져오기 (초기화)
+     * @param sbjctId
+     * @param request
+     */
+    @PostMapping("/profStdMrkInitAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> profStdMrkInitAjax(@RequestParam("sbjctId") String sbjctId, HttpServletRequest request) {
+
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+
+        String orgId = SessionInfo.getOrgId(request);
+        String userId = SessionInfo.getUserId(request);
+
+        try{
+            markFacadeService.profStdMrkInitAjax(sbjctId, orgId, userId);
+            resultVO.setResultSuccess();
+
+        }catch (Exception e) {
+            resultVO.setResultFailed(e.getMessage());
         }
 
         return resultVO;

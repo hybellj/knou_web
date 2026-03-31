@@ -13,8 +13,8 @@ function UiTabMenu(pageTabId, pageFrameId) {
 		scrollAmount: 160,
 
 		// 탭메뉴 추가
-		addTabMenu: function(menuNm, menuUrl, upMenuId, menuId) {
-			menuUrl += (menuUrl.indexOf("?") == 0 ? "?" : "&") + "pageType=iframe";
+		addTabMenu: function(menunm, menuUrl, upMenuId, menuId) {
+			menuUrl += (menuUrl.indexOf("?") === -1 ? "?" : "&") + "pageType=iframe";
 			let thisObj = this;
 
         	if (this.menuTabs.length > 0 && this.menuTabs.includes(menuId)) {
@@ -37,7 +37,7 @@ function UiTabMenu(pageTabId, pageFrameId) {
 
         	let tab = $(`<li id="TAB_${menuId}" class="select">`
         		+ `<div class="tabmenu">`
-        		+ `<a href="#0" class="tabname" menuId="${menuId}" title="${menuNm}">${menuNm}</a>`
+        		+ `<a href="#0" class="tabname" menuId="${menuId}" title="${menunm}">${menunm}</a>`
         		+ `<button type="button" class="close" menuId="${menuId}"><i class="xi-close"></i></button>`
         		+ `</div>`
         		+ `</li>`);

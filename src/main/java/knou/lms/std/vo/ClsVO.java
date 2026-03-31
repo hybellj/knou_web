@@ -18,12 +18,11 @@ public class ClsVO extends DefaultVO {
     private String coProfNm; // 공동교수
     private String deptId;
     private String deptnm;
-    private String smstrChrtId;
+    private String smstrChrtId; // 학기차수 ID
     private String useyn;
     private String delyn;
     private String searchYr;
-    private String searchSmstr;
-    private String univGbn;
+    private String searchOrgId;
     private String searchKeyword;
 
     private String tutor;   // TB_LMS_SBJCT_ADM SBJCT_ADM_TYCD = 'TUTOR'
@@ -82,11 +81,8 @@ public class ClsVO extends DefaultVO {
     public String getSearchYr() { return searchYr; }
     public void setSearchYr(String searchYr) { this.searchYr = searchYr; }
 
-    public String getSearchSmstr() { return searchSmstr; }
-    public void setSearchSmstr(String searchSmstr) { this.searchSmstr = searchSmstr; }
-
-    public String getUnivGbn() { return univGbn; }
-    public void setUnivGbn(String univGbn) { this.univGbn = univGbn; }
+    public String getSearchOrgId() { return searchOrgId; }
+    public void setSearchOrgId(String searchOrgId) { this.searchOrgId = searchOrgId; }
 
     public String getSearchKeyword() { return searchKeyword; }
     public void setSearchKeyword(String searchKeyword) { this.searchKeyword = searchKeyword; }

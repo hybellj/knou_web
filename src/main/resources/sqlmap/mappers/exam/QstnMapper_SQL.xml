@@ -389,4 +389,53 @@
 		) A
 	</insert>
 
+	<delete id="qstnAllDelete" parameterType="examDtlVO">
+		/*
+             SQL ID : QstnDAO.qstnAllDelete
+             설  명  : 문항전체삭제
+         */
+        DELETE FROM TB_LMS_QSTN
+	     WHERE EXAM_DTL_ID = #{examDtlId}
+	</delete>
+
+	<insert id="qstnBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : QstnDAO.qstnBulkRegist
+             설  명 : 문항일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_QSTN (
+	         	  QSTN_ID
+				, EXAM_DTL_ID
+				, QSTN_TTL
+				, QSTN_CTS
+				, QSTN_SEQNO
+				, QSTN_CNDDT_SEQNO
+				, QSTN_GBNCD
+				, QSTN_RSPNS_TYCD
+				, QSTN_SCR
+				, QSTN_DFCTLV_TYCD
+				, CRANS_TYCD
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.qstnId}
+	         	, #{item.examDtlId}
+				, #{item.qstnTtl}
+				, #{item.qstnCts}
+				, #{item.qstnSeqno}
+				, #{item.qstnCnddtSeqno}
+				, #{item.qstnGbncd}
+				, #{item.qstnRspnsTycd}
+				, #{item.qstnScr}
+				, #{item.qstnDfctlvTycd}
+				, #{item.cransTycd}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
 </mapper>

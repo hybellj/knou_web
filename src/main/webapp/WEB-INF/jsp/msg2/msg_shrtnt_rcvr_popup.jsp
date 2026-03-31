@@ -47,12 +47,12 @@
                 fn_refreshChosen('#popOrgId');
                 fn_loadPopDeptList();
             }
-        });
+        }, function() {});
     }
 
     /* 학과/부서 목록 */
     function fn_loadPopDeptList() {
-        ajaxCall('/msgShrtntDeptListAjax.do', { gubun: 'POPUP' }, function(res) {
+        ajaxCall('/msgShrtntDeptListAjax.do', { gubun: 'POPUP', orgId: $('#popOrgId').val() }, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과/부서선택"/></option>';
                 res.returnList.forEach(function(v) {
@@ -62,13 +62,13 @@
                 fn_refreshChosen('#popDeptId');
                 fn_loadPopSbjctList();
             }
-        });
+        }, function() {});
     }
 
     /* 과목 목록 */
     function fn_loadPopSbjctList() {
         let deptId = $('#popDeptId').val();
-        ajaxCall('/msgShrtntSbjctListAjax.do', { deptId: deptId, gubun: 'POPUP' }, function(res) {
+        ajaxCall('/msgShrtntSbjctListAjax.do', { deptId: deptId, orgId: $('#popOrgId').val(), gubun: 'POPUP' }, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="과목선택"/></option>';
                 res.returnList.forEach(function(v) {
@@ -77,7 +77,7 @@
                 $('#popSbjctId').html(html);
                 fn_refreshChosen('#popSbjctId');
             }
-        });
+        }, function() {});
     }
 
     /* 검색 */

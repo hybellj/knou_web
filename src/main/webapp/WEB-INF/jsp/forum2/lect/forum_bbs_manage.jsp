@@ -36,6 +36,10 @@
         /* 대댓글 recmt_form 배경색 - 최상위 댓글 작성폼과 통일 (common.css:1162 오버라이드) */
         .Comment .comment_list ul li .recmt_form { background-color: #F0F2F6; padding: 1.5rem 2.5rem; }
 
+        /* 게시글 인라인 수정 폼 */
+        .atcl_edit_form textarea { width: 100%; box-sizing: border-box; }
+        .atcl_edit_form .bottom_btn { display: flex; justify-content: flex-end; }
+
         /* dropdown - tmpl_atclBody (.right-area) */
         .right-area .dropdown { position: relative; display: inline-block; }
         .right-area .dropdown .option-wrap { position: absolute; top: calc(100% + 2px); right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); overflow: hidden; max-height: 0; opacity: 0; transition: all 0.25s ease; pointer-events: none; z-index: 10; }
@@ -296,17 +300,25 @@
             var sep = fIdx > 0 ? " | " : "";
             fileLinks.push(sep + "<a href=\"javascript:fileDown('"+ item.fileSn +"', '"+ item.repoCd +"');\" class=\"link\">"+ item.fileNm +"</a>");
         });
+        var fileTitle = " | <spring:message code='forum.label.attachFile'/> : ";
+        if(fileLinks.length > 0) {
+            fileTitle += fileLinks.join('');
+        } else {
+
+            fileTitle += '-';
+        }
+
         var titleText = _userImgHtml(v.phtFile) + v.regNm + "(" + v.userId + ")" + _tmpl_prosConsBadge(v);
-        if(fileLinks.length > 0) titleText += " | " + fileLinks.join('');
+
         var dropdownHtml;
         if(v.rgtrId == "${userId}" && v.delYn == "N") {
             dropdownHtml = [
                 "<div class='dropdown'>",
                 "    <button type='button' class='btn basic icon set settingBtn' aria-label='게시글 관리'><i class='xi-ellipsis-v'></i></button>",
                 "    <div class='option-wrap'>",
-                "        <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'>참여글 숨김</a></div>",
-                "        <div class='item'><a href='javascript:void(0)' data-action='editPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>수정</a></div>",
-                "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>삭제</a></div>",
+                "        <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'><spring:message code='forum.label.forum.joinCnt'/><spring:message code='forum.button.hide.apply'/></a></div>",/*참여글 숨김*/
+                "        <div class='item'><a href='javascript:void(0)' data-action='editPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"' data-post-idx='"+ i +"'><spring:message code='forum.button.mod'/></a></div>",/*수정*/
+                "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'></a><spring:message code='forum.button.del'/></div>",/*삭제*/
                 "    </div>",
                 "</div>"
             ].join('');
@@ -315,8 +327,8 @@
                 "<div class='dropdown'>",
                 "    <button type='button' class='btn basic icon set settingBtn' aria-label='게시글 관리'><i class='xi-ellipsis-v'></i></button>",
                 "    <div class='option-wrap'>",
-                "        <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'>참여글 숨김</a></div>",
-                "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'>삭제</a></div>",
+                "        <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'><spring:message code='forum.label.forum.joinCnt'/><spring:message code='forum.button.hide.apply'/></a></div>",/*참여글 숨김*/
+                "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'></a><spring:message code='forum.button.del'/></div>",/*삭제*/
                 "    </div>",
                 "</div>"
             ].join('');
@@ -324,8 +336,9 @@
         return [
             "<div class='title_area'>",
             "    <strong class='title'>" + titleText + "</strong>",
+            "    <span class='date'> | <b>" + v.ctsLen + "</b><spring:message code='forum.label.word'/> | <spring:message code='forum.label.reg.dttm'/> : " + regDttm + fileTitle + "</span>",/*자, 작성일시, 첨부파일*/
             "    <div class='right-area'>",
-            "        <span class='date'><b>" + v.ctsLen + "</b><em>" + regDttm + "</em></span>",
+            "        <button type='button' class='btn basic small my-cmnt-badge'>" + v.myCmntCount + "</button>",
             dropdownHtml,
             "    </div>",
             "</div>"
@@ -333,7 +346,7 @@
     }
 
     // 게시글 본문 -> .answer > .cont
-    function tmpl_atclBody(v) {
+    function tmpl_atclBody(v, i) {
         var ctsHtml;
         console.log("${forumVo.prosConsForumCfg}");
         if("${forumVo.prosConsForumCfg}" == "Y") {
@@ -345,10 +358,35 @@
             ? " <span class=\"fcBlue mr5\">[삭제됨]</span>"
             : '';
         return [
-            "<div class='cont'>",
+            "<div class='cont' id='atclBody"+ i +"'>",
             "    " + ctsHtml,
             "</div>",
             delBadge
+        ].join('');
+    }
+
+    // 게시글 인라인 수정 폼 (기본 숨김)
+    function tmpl_atclEditForm(v, i) {
+        return [
+            "<div class='recmt_form atcl_edit_form' id='atclEditForm"+ i +"' style='display:none;'>",
+            "    <fieldset>",
+            "        <legend class='sr_only'>게시글 수정</legend>",
+            "        <div class='memo'>",
+            "            <textarea class='resize-none' rows='3' id='atclEditCts"+ i +"'></textarea>",
+            "            <div class='bottom_btn'>",
+            "                <div class='right-area'>",
+            "                    <button type='button' class='btn type2 atcl_edit_save'",
+            "                        data-atcl-sn='"+ v.atclSn +"'",
+            "                        data-forum-cd='"+ v.forumCd +"'",
+            "                        data-pros-cons-type-cd='"+ (v.prosConsTypeCd||'') +"'",
+            "                        data-post-idx='"+ i +"'><spring:message code='forum.button.mod'/></button>",
+            "                    <button type='button' class='btn basic atcl_edit_cancel'",
+            "                        data-post-idx='"+ i +"'><spring:message code='forum.button.cancel'/></button>",
+            "                </div>",
+            "            </div>",
+            "        </div>",
+            "    </fieldset>",
+            "</div>"
         ].join('');
     }
 
@@ -360,7 +398,7 @@
             "        <button class='toggle_commentlist' id='cmntOpen"+ i +"'>",
             "            <i class='icon-svg-message'></i>" + cmntCount + "개의 댓글이 있습니다. <i class='icon-svg-arrow-down'></i>",
             "        </button>",
-            "        <button class='toggle_commentwrite btn basic'><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.writer'/></button>", /*댓글 작성*/
+            "        <button class='toggle_commentwrite btn basic small'><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.writer'/></button>", /*댓글 작성*/
             "    </div>",
             "    <div class='comment_list'>",
             "        <div class='recmt_form' id='toggleBox"+ i +"' style='display:none;'>",
@@ -375,14 +413,14 @@
             "                            <a href='#0' onclick=\"setCts(2, "+ i +");\"><spring:message code='forum.button.cts2' /></a>",
             "                        </div>",
             "                    </div>",
-            "                    <textarea title='<spring:message code="forum.label.input.cmnt"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.label.input.cmnt"/>' id='cmntText"+ i +"'></textarea>",
+            "                    <textarea class='resize-none' title='<spring:message code="forum.label.input.cmnt"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.label.input.cmnt"/>' id='cmntText"+ i +"'></textarea>",
             "                    <div class='bottom_btn'>",
             "                        <span class='custom-input'>",
             "                            <input type='checkbox' id='ansReqYn"+ i +"' name='ansReqYn' disabled>",
             "                            <label for='ansReqYn"+ i +"'><span class='small'><spring:message code='forum.checkbox.label.request' /></span></label>",/*답변을 요청합니다.*/
             "                        </span>",
             "                        <div class='right-area'>",
-            "                            <button type='button' class='btn type2' data-action='addCmnt' data-atcl-sn='"+ atclSn +"' data-post-idx='"+ i +"'><spring:message code='forum.button.reg'/></button>",
+            "                            <button type='button' class='btn basic small type2' data-action='addCmnt' data-atcl-sn='"+ atclSn +"' data-post-idx='"+ i +"'><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.reg'/></button>", /*댓글 등록*/
             "                        </div>",
             "                    </div>",
             "                </div>",
@@ -418,14 +456,14 @@
                 "                    <a href='#0' onclick=\"setCts(2, '"+ fi +"');\"><spring:message code='forum.button.cts2' /></a>",
                 "                </div>",
                 "            </div>",
-                "            <textarea title='<spring:message code="forum.label.input.cmnt"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.label.input.cmnt"/>' id='cmntText"+ fi +"'></textarea>",
+                "            <textarea class='resize-none' title='<spring:message code="forum.label.input.cmnt"/>' class='comment' name='c_comment' rows='3' cols='76' placeholder='<spring:message code="forum.label.input.cmnt"/>' id='cmntText"+ fi +"'></textarea>",
                 "            <div class='bottom_btn'>",
                 "                <span class='custom-input'>",
                 "                    <input type='checkbox' id='ansReqYn"+ fi +"' name='ansReqYn' disabled>",
                 "                    <label for='ansReqYn"+ fi +"'><span class='small'><spring:message code='forum.checkbox.label.request' /></span></label>",
                 "                </span>",
                 "                <div class='right-area'>",
-                "                    <button type='button' class='btn type2 cmt_create' data-atcl-sn='"+ rs.atclSn +"' data-cmnt-sn='"+ rs.cmntSn +"' data-post-idx='"+ postIdx +"' data-flat-idx='"+ flatIdx +"'><spring:message code='forum.button.reg'/></button>",
+                "                    <button type='button' class='btn type2 cmt_create' data-atcl-sn='"+ rs.atclSn +"' data-cmnt-sn='"+ rs.cmntSn +"' data-post-idx='"+ postIdx +"' data-flat-idx='"+ flatIdx +"'><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.reg'/></button>",/*댓글 등록*/
                 "                </div>",
                 "            </div>",
                 "        </div>",
@@ -489,7 +527,8 @@
             "<div class='tstyle_view'>",
             "    <div class='answer'>",
             tmpl_atclHeader(v, i),
-            tmpl_atclBody(v),
+            tmpl_atclBody(v, i),
+            tmpl_atclEditForm(v, i),
             "    </div>",
             tmpl_cmntWriteForm(v.atclSn, i, cmntCount),
             "<ul>",
@@ -530,14 +569,19 @@
         UiValidator("atclWriteForm")
         .then(function(result) {
             if (result) {
-                let dx = dx5.get("fileUploader");
-                // 첨부파일 있으면 업로드
-                if (dx.availUpload()) {
-                    dx.startUpload();
-                }
-                // 첨부파일 없으면 저장 호출
-                else {
+                // 찬반토론일 경우
+                if (${forumVo.prosConsForumCfg eq 'Y'}) {
                     addActl();
+                } else {
+                    let dx = dx5.get("fileUploader");
+                    // 첨부파일 있으면 업로드
+                    if (dx.availUpload()) {
+                        dx.startUpload();
+                    }
+                    // 첨부파일 없으면 저장 호출
+                    else {
+                        addActl();
+                    }
                 }
             }
         });
@@ -570,8 +614,11 @@
 
     // 게시글 등록/수정
     function addActl(atclStatus) {
-        let dx = dx5.get("fileUploader");
-        $("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
+        // 찬반토론일 경우:파일첨부하지 않음.
+        if (${forumVo.prosConsForumCfg ne 'Y'}) {
+            let dx = dx5.get("fileUploader");
+            $("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
+        }
 
         // Team 토론시 팀토론 코드로 변경
         if (${forumVo.byteamDscsUseyn eq 'Y'}) {
@@ -901,29 +948,35 @@
     }
 
     //게시글 수정 버튼
-    function editAtclBtn(atclSn,rgtrId){
-        // Team 토론시 팀토론 코드로 변경
-        if (${forumVo.byteamDscsUseyn eq 'Y'}) {
-            var teamDscsId = $('#team_selected_name').attr('teamSelectedDscsId');
-            $("input[name='forumCd']").val(teamDscsId);
-        }
 
-        $("#atclSn").val(atclSn);
-        $("#forumListForm").attr("target", "forumAtclIfm");
-        $("#forumListForm").attr("action", "/forum2/forumLect/Form/editForumBbs.do");
-        $("#forumListForm").submit();
-        $('#forumAtclPop').modal('show');
+    function editAtclBtn(atclSn, rgtrId, postIdx) {
+        if(editingPostId !== null && editingPostId !== postIdx) {
+            var prevForm = document.getElementById('atclEditForm' + editingPostId);
+            var prevBody = document.getElementById('atclBody' + editingPostId);
+            if(prevForm) prevForm.style.display = 'none';
+            if(prevBody) prevBody.style.display = '';
+            editingPostId = null;
+        }
+        var form = document.getElementById('atclEditForm' + postIdx);
+        var body = document.getElementById('atclBody' + postIdx);
+        if(!form || !body) return;
+        var textarea = document.getElementById('atclEditCts' + postIdx);
+        if(textarea) textarea.value = body.innerText;
+        body.style.display = 'none';
+        form.style.display = 'block';
+        if(textarea) textarea.focus();
+        editingPostId = postIdx;
     }
 
+
     // 간편답글 세팅
+    var ctsMsgs = [
+        '<spring:message code="forum.button.cts0"/>',
+        '<spring:message code="forum.button.cts1"/>',
+        '<spring:message code="forum.button.cts2"/>'
+    ];
     function setCts(index, i) {
-        if(index == 0) {
-            $("#cmntText"+ i).val($("#cts0").text());
-        } else if(index == 1) {
-            $("#cmntText"+ i).val($("#cts1").text());
-        } else {
-            $("#cmntText"+ i).val($("#cts2").text());
-        }
+        $("#cmntText"+ i).val(ctsMsgs[index] || "");
     }
 
     //팀 구성원 보기
@@ -1073,7 +1126,38 @@
         if(editPostBtn) {
             var atclSn = editPostBtn.getAttribute('data-atcl-sn');
             var rgtrId = editPostBtn.getAttribute('data-rgtr-id');
-            editAtclBtn(atclSn, rgtrId);
+            var postIdx = editPostBtn.getAttribute('data-post-idx');
+            editAtclBtn(atclSn, rgtrId, postIdx);
+            return;
+        }
+
+        // 4-1. atcl_edit_save
+        var atclSaveBtn = e.target.closest('.atcl_edit_save');
+        if(atclSaveBtn) {
+            var atclSn         = atclSaveBtn.getAttribute('data-atcl-sn');
+            var forumCd        = atclSaveBtn.getAttribute('data-forum-cd');
+            var prosConsTypeCd = atclSaveBtn.getAttribute('data-pros-cons-type-cd');
+            var postIdx        = atclSaveBtn.getAttribute('data-post-idx');
+            var cts            = (document.getElementById('atclEditCts' + postIdx) || {}).value || '';
+            if(!cts.trim()) { alert('<spring:message code="forum.alert.input.forum_reply"/>'); return; }
+            ajaxCall('/forum2/forumLect/Form/editAtcl.do',
+                { atclSn: atclSn, forumCd: forumCd, prosConsTypeCd: prosConsTypeCd, cts: cts },
+                function(data) {
+                    if(data.result > 0) { editingPostId = null; listForum(); }
+                    else { alert("<spring:message code='forum.common.error'/>"); /* 오류가 발생했습니다! */ }
+                }, null, true);
+            return;
+        }
+
+        // 4-2. atcl_edit_cancel
+        var atclCancelBtn = e.target.closest('.atcl_edit_cancel');
+        if(atclCancelBtn) {
+            var postIdx = atclCancelBtn.getAttribute('data-post-idx');
+            var form = document.getElementById('atclEditForm' + postIdx);
+            var body = document.getElementById('atclBody' + postIdx);
+            if(form) form.style.display = 'none';
+            if(body) body.style.display = '';
+            editingPostId = null;
             return;
         }
 
@@ -1396,34 +1480,55 @@
                         <div id="join_write_input_area">
                             <!-- 토론방 <참여글 저장> -->
                             <div class="board_top margin-top-4 padding-2 bcLgrey4">
-                                <h4>
-                                    <spring:message code='forum.label.forum.bbs'/><span id="team_selected_name" teamSelectedDscsId=""></span>
-                                </h4><!-- 토론방 -->
-                                <div class="right-area">
-                                    <a href="javascript:addAtclBtn('A')" class="btn basic small">
-                                        <spring:message code='forum.label.forum.joinCnt'/><spring:message code='forum.button.save'/><!-- 참여글 저장 -->
-                                    </a>
-                                </div>
+                            <c:choose>
+                                <c:when test="${forumVo.prosConsForumCfg eq 'Y'}">
+                                    <h4>
+                                        <spring:message code='common.professor'/> <spring:message code='forum.label.feedback'/><span id="team_selected_name" teamSelectedDscsId=""></span>
+                                    </h4><!-- 교수 피드백 -->
+                                    <div class="right-area">
+                                        <a href="javascript:addAtclBtn('A')" class="btn basic small">
+                                            <spring:message code='forum.button.save'/><!-- 저장 -->
+                                        </a>
+                                    </div>
+                                    <h4>
+                                </c:when>
+                                <c:otherwise>
+                                    <h4>
+                                        <spring:message code='forum.label.forum.bbs'/><span id="team_selected_name" teamSelectedDscsId=""></span>
+                                    </h4><!-- 토론방 -->
+                                    <div class="right-area">
+                                        <a href="javascript:addAtclBtn('A')" class="btn basic small">
+                                            <spring:message code='forum.label.forum.joinCnt'/> <spring:message code='forum.button.save'/><!-- 참여글 저장 -->
+                                        </a>
+                                    </div>
+                                    <h4>
+                                </c:otherwise>
+                            </c:choose>
                             </div>
 
                             <form id="forumAtclForm" name="forumAtclForm" onsubmit="return false;">
+                                <%--찬성반대토론시 파일업로드 없음 --%>
+                                <c:if test="${forumVo.prosConsForumCfg eq 'N'}">
                                 <input type="hidden" name="uploadFiles"  id="uploadFiles" value="" />
                                 <input type="hidden" name="uploadPath"   id="uploadPath"  value="${forumVo.uploadPath}" />
                                 <input type="hidden" name="delFileIdStr" id="delFileIdStr"  value="" />
+                                </c:if>
                                 <div class="ui segment">
                                     <div class="editor-box">
                                         <%-- TODO : 참여글 Editor Box --%>
                                         <label for="atclCts" class="hide">Content</label>
-                                        <textarea id="atclCts" name="atclCts" required="true"></textarea>
+                                        <textarea class='resize-none' id="atclCts" name="atclCts" required="true"></textarea>
                                         <script>
                                             // HTML 에디터
                                             let editor = UiEditor({
                                                 targetId: "atclCts",
                                                 uploadPath: "${forum2VO.uploadPath}",
-                                                height: "200px"
+                                                height: "200px",
                                             });
                                         </script>
                                     </div>
+                                    <%--찬성반대토론시 파일업로드 없음 --%>
+                                    <c:if test="${forumVo.prosConsForumCfg eq 'N'}">
                                     <div id="uploaderBox" class="mt10">
                                         <!-- TODO : 참여글 File Uplaod -->
                                         <uiex:dextuploader
@@ -1438,6 +1543,7 @@
                                                 allowedTypes="*"
                                         />
                                     </div>
+                                    </c:if>
                                 </div>
                             </form>
                             <!-- 토론 참여글 끝 -->

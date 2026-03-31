@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+﻿<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 
 <!DOCTYPE html>
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
@@ -52,7 +52,7 @@ $(document).ready(function() {
 			<div class="ui attached message">
 				<div class="header small card-item-center">
 					<ul class="viewInfo">
-						<li><span><spring:message code="forum.label.reg.user"/></span>${forumAtclVO.rgtrnm}(${forumAtclVO.userId})</li>  <!-- 작성자 -->
+						<li><span><spring:message code="forum.label.reg.user"/></span>${forumAtclVO.regNm}(${forumAtclVO.userId})</li>  <!-- 작성자 -->
 						<c:choose>
 							<c:when test="${forumAtclVO.atclTypeCd eq 'NORMAL_N' || forumAtclVO.atclTypeCd eq 'TEAM_N'}">
 							<c:if test="${forumAtclVO.prosConsTypeCd eq 'F'}">
@@ -97,6 +97,7 @@ $(document).ready(function() {
 						</c:choose>
 					</div>
 					 --%>
+				<button type='button' class='btn basic small mla'>${forumAtclVO.myCmntCount}</button>
 				</div>
 				<div class="ui segment ml10 mr10 mt10 mb10">
 				<c:choose>

@@ -274,11 +274,11 @@
 			} else {
 				quizList.forEach(function(v,i) {
 					// 제목
-					var examTtl = "<a href='javascript:quizViewMv(\""+v.examBscId+"\", 3)' class='header header-icon link'>" + escapeHtml(v.examTtl) + "</a>";
+					var examTtl = "<a href='javascript:quizViewMv(\""+v.examBscId+"\", 3)' class='header header-icon link'>" + v.examTtl + "</a>";
 					// 시간
 					var examMnts = v.examMnts + "<spring:message code='exam.label.stare.min' />";/* 분 */
 					// 기간
-					var examDttm = dateFormat("date", v.examPsblSdttm) + " ~ " + dateFormat("date", v.examPsblEdttm);
+					var examDttm = UiComm.formatDate(v.examPsblSdttm, "datetime2") + " ~ " + UiComm.formatDate(v.examPsblEdttm, "datetime2");
 					// 성적반영비율
 					var mrkRfltrt  = "<div class='mrkInputDiv ui input'>";
 						mrkRfltrt += "	<input type='text' class='mrkRfltrt w80' data-examGbncd=\"" + v.examGbncd + "\" data-examBscId=\"" + v.examBscId + "\" value=\"" + v.mrkRfltrt + "\" inputmask='numeric' inputmode='decimal' maxVal='100' />";
@@ -318,7 +318,7 @@
 					var reexamDttm = "-";
 					var reexamBtn = "";
 					if(v.reexamyn == "Y") {
-						reexamDttm = dateFormat("date", v.reexamPsblSdttm) + " ~ " + dateFormat("date", v.reexamPsblEdttm);
+						reexamDttm = UiComm.formatDate(v.reexamPsblSdttm, "datetime2") + " ~ " + UiComm.formatDate(v.reexamPsblEdttm, "datetime2");
 						reexamBtn = "<div class='item'><a href='javascript:quizViewMv(\"" + v.examBscId + "\", 2)'>미응시 관리</a></div>";
 					}
 					dataList.push({

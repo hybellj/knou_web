@@ -582,7 +582,10 @@ public class CommConst {
     public static final String CONN_SCORE_OVERALL = "SCORE_OVERALL";
 
     // 사용자 접속체크 시간
-    public static final int CONN_USER_CHECK_TIME = framework.getInt("framework.connuser.check.time");
+    public static final int 		CONN_USER_CHECK_TIME = framework.getInt("framework.connuser.check.time");
+
+	// 개인정보 Mask 사용 여부
+	public static final String	USERINFO_MASK_YN = "Y";
 
     // 강의실 활동로그 코드 (TB_ORG_CODE 테이블의 ACTN_HSTY_CD)
     public static final String ACTN_HSTY_LECTURE_HOME = "LECTURE_HOME";
@@ -706,6 +709,7 @@ public class CommConst {
     // 사용자 접속상태 체크값
     public static final String[][] CONN_CHECK_LIST = {
     		{"/dashboard.do", CONN_HOME},
+    		{"/dashboard/main.do", CONN_HOME},
     		{"/dashboard/profDashboard.do", CONN_HOME},
     		{"/dashboard/stuDashboard.do", CONN_HOME},
             {"/dashboard/widgetStngChange.do", CONN_HOME},

@@ -101,4 +101,34 @@
 		) A
 	</insert>
 
+	<delete id="qstnVwitmAllDelete" parameterType="examDtlVO">
+		/*
+             SQL ID : QstnVwitmDAO.qstnVwitmAllDelete
+             설  명  : 문항보기항목전체삭제
+         */
+        DELETE FROM TB_LMS_QSTN_VWITM
+	     WHERE QSTN_ID IN (
+	    		SELECT
+					QSTN_ID
+				  FROM TB_LMS_QSTN QSTN
+				 WHERE QSTN.EXAM_DTL_ID = #{examDtlId}
+	    	)
+	</delete>
+
+	<update id="qstnVwitmBulkModify" parameterType="java.util.List">
+		/*
+             SQL ID : QstnVwitmDAO.qstnVwitmBulkModify
+             설  명 : 문항보기항목일괄수정
+         */
+        <foreach item="item" collection="list" separator=";" open="BEGIN" close="; END;">
+         UPDATE TB_LMS_QSTN_VWITM SET
+         	  MDFR_ID = #{item.mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, QSTN_VWITM_CTS = #{item.qstnVwitmCts}
+         	, CRANS_YN = #{item.cransYn}
+          WHERE QSTN_VWITM_ID = #{item.qstnVwitmId}
+            AND QSTN_ID = #{item.qstnId}
+         </foreach>
+	</update>
+
 </mapper>

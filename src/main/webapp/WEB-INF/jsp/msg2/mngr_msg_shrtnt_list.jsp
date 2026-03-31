@@ -74,7 +74,7 @@
                 });
             }
             $sel.trigger('chosen:updated');
-        });
+        }, function() {});
     }
 
     /* 학기 목록 조회 */
@@ -93,7 +93,7 @@
                 });
             }
             $sel.trigger('chosen:updated');
-        });
+        }, function() {});
     }
 
     /* 기관 목록 조회 */
@@ -107,7 +107,7 @@
                 });
             }
             $sel.trigger('chosen:updated');
-        });
+        }, function() {});
     }
 
     /* 학과 목록 조회 */
@@ -127,7 +127,7 @@
                 });
             }
             $sel.trigger('chosen:updated');
-        });
+        }, function() {});
     }
 
     /* 운영과목 목록 조회 */
@@ -150,7 +150,7 @@
                 });
             }
             $sel.trigger('chosen:updated');
-        });
+        }, function() {});
     }
 
     /* 테이블 초기화 (탭별 컬럼 구성) */
@@ -368,13 +368,18 @@
         let deletePromises = selectedIds.map(function(id) {
             let param = { listType: activeTab };
             param[idField] = id;
-            return new Promise(function(resolve) {
-                ajaxCall('/msgShrtntDeleteAjax.do', param, function(res) { resolve(res); });
+            return new Promise(function(resolve, reject) {
+                ajaxCall('/msgShrtntDeleteAjax.do', param, function(res) { resolve(res); }, function() { resolve({ result: -1 }); });
             });
         });
 
-        Promise.all(deletePromises).then(function() {
-            alert('<spring:message code="msg.shrtnt.msg.deleteSuccess"/>');
+        Promise.all(deletePromises).then(function(results) {
+            let failCnt = results.filter(function(r) { return r.result !== 1; }).length;
+            if (failCnt > 0) {
+                alert('<spring:message code="fail.common.delete"/>');
+            } else {
+                alert('<spring:message code="msg.shrtnt.msg.deleteSuccess"/>');
+            }
             fn_loadList(currentPage);
         });
     }
@@ -408,7 +413,7 @@
             } else {
                 alert(res.message || '<spring:message code="fail.common.update"/>');
             }
-        });
+        }, function() { UiComm.showLoading(false); });
     }
 </script>
 

@@ -120,7 +120,7 @@
 
 			var param = {
 				  encParams		: EPARAM
-				, extParam		: UiComm.makeExtParam(extData)
+				, addParams		: UiComm.makeEncParams(extData)
 			};
 
 			ajaxCall(url, param, function(data) {
@@ -192,7 +192,7 @@
 						atclTtl = '<span class="fcGrey" style="text-decoration: line-through">' + atclTtl + '</span>';
 					}
 
-					var extParam = UiComm.makeExtParam({
+					var addParams = UiComm.makeEncParams({
 						atclId: v.atclId,
 						pageIndex: PAGE_INDEX,
 						listScale: LIST_SCALE
@@ -201,7 +201,7 @@
 					if(bbsCommon.isStudent() && v.bbsCd == "SECRET" && v.regNo != USER_NO) {
 						var linkUrl = 'javascript:alert(' + '<spring:message code="bbs.alert.no_auth_secret" />' + ')'; // 1:1상담 게시글 입니다.
 					} else {
-						var linkUrl = "/bbs/" + TEMPLATE_URL + "/bbsLctrQnaView.do?encParams="+EPARAM+"&extParam="+extParam;
+						var linkUrl = "/bbs/" + TEMPLATE_URL + "/bbsLctrQnaView.do?encParams="+EPARAM+"&addParams="+addParams;
 					}
 					var isSingleTab = BBS_IDS && BBS_IDS.split(",").length == 1;
 
@@ -318,328 +318,160 @@
 
 				<!-- class_sub -->
 				<div class="class_sub">
+	                <div class="dashboard_sub">
 
-					<!-- 강의실 상단 -->
-					<div class="segment class-area">
-
-						<!-- info-left -->
-						<div class="info-left">
-							<div class="class_info">
-                                <h2>${subjectVM.subjectVO.sbjctnm}</h2>
-                                <div class="classSection">
-                                    <div class="cls_btn">
-                                        <a href="javascript:void(0); onclick=loadLctrPlandocPopView('${subjectVM.subjectVO.sbjctId}');" class="btn">강의 계획서</a>
-                                        <a href="javascript:void(0); onclick=loadLessonProgressManage('${subjectVM.subjectVO.sbjctId}');" class="btn" class="btn">학습진도관리</a>
-                                        <a href="#0" class="btn">평가 기준</a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="info-cnt">
-                                <div class="info_iconSet">
-                                	<c:forEach var="item" items="${subjectVM.subjectLearingActvList}">
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
-	                                    <a href="/asmt2/profAsmtListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>과제</span><div class="num_txt">${item.asmtCnt}</div></a>
-	                                    <a href="/forum2/forumLect/profForumListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>토론</span><div class="num_txt">${item.dscsCnt}</div></a>
-	                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>세미나</span><div class="num_txt">${item.smnrCnt}</div></a>
-	                                    <a href="/quiz/profQuizListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>퀴즈</span><div class="num_txt">${item.quizCnt}</div></a>
-	                                    <a href="/srvy/profSrvyListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>설문</span><div class="num_txt">${item.srvyCnt}</div></a>
-	                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>
-                                    </c:forEach>
-                                </div>
-                                <div class="info-set">
-                                    <div class="info">
-                                        <p class="point">
-                                            <span class="tit">중간고사:</span>
-                                            <span><uiex:formatDate value="${subjectVM.middleLastExam.midExamSdttm}" type="date"/></span>
-                                        </p>
-                                        <p class="desc">
-                                            <span class="tit">시간:</span>
-                                            <span>${subjectVM.middleLastExam.midExamMnts}분</span>
-                                        </p>
-                                    </div>
-                                    <div class="info">
-                                        <p class="point">
-                                            <span class="tit">기말고사:</span>
-                                            <span><uiex:formatDate value="${subjectVM.middleLastExam.lstExamSdttm}" type="date"/></span>
-                                        </p>
-                                        <p class="desc">
-                                            <span class="tit">시간:</span>
-                                            <span>${subjectVM.middleLastExam.lstExamMnts}분</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-						</div>
-						<!--//info-left -->
-
-						<!-- info-right-->
-						<div class="info-right">
-
-							<!-- flex -->
-							<div class="flex">
-
-								<!-- item user-->
-								<div class="item user">
-                                    <div class="item_icon"><i class="icon-svg-group" aria-hidden="true"></i></div>
-
-                                    <!-- item_tit -->
-                                    <div class="item_tit">
-	                                    <a href="#0" class="btn ">접속현황<i class="xi-angle-down-min"></i></a><!-- 접속현황 -->
-
-	                                    <!-- 접속현황레이어팝업-->
-	                                    <div class="user-option-wrap">
-	                                        <div class="option_head">
-	                                            <div class="sort_btn">
-	                                                <button type="button">이름<i class="sort xi-long-arrow-up" aria-hidden="true"></i></button><!-- 이름(학생명) -->
-	                                                <button type="button">이름<i class="sort xi-long-arrow-down" aria-hidden="true"></i></button><!-- 이름(학생명) -->
-	                                            </div>
-	                                            <p class="user_num">접속: 37</p><!-- 접속 -->
-	                                            <button type="button" class="btn-close" aria-label="접속현황 닫기"><!-- 접속현황닫기 -->
-	                                                <i class="icon-svg-close"></i>
-	                                            </button>
-	                                        </div>
-                                            <ul class="user_area"><!-- 현재접속자목록 li loop-->
-                                                <li>
-                                                    <div class="user-info">
-                                                        <div class="user-photo">
-                                                            <img src="/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진"> <!-- 사진 -->
-                                                        </div>
-                                                        <div class="user-desc">
-                                                            <p class="name">나방송</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>정보와기술</p> <!-- 대학원 --> <!-- 과목명 -->
-                                                        </div>
-                                                        <div class="btn_wrap">
-                                                            <button type="button"><i class="xi-info-o"></i></button><!-- 정보 -->
-                                                            <button type="button"><i class="xi-bell-o"></i></button><!-- 알림 -->
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="user-info">
-                                                        <div class="user-photo">
-                                                            <img src="/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진">
-                                                        </div>
-                                                        <div class="user-desc">
-                                                            <p class="name">최남단</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>데이터베이스의 이해와 활용</p>
-                                                        </div>
-                                                        <div class="btn_wrap">
-                                                            <button type="button"><i class="xi-info-o"></i></button>
-                                                            <button type="button"><i class="xi-bell-o"></i></button>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="user-info">
-                                                        <div class="user-photo">
-                                                            <img src="/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진">
-                                                        </div>
-                                                        <div class="user-desc">
-                                                            <p class="name">최남단</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>데이터베이스의 이해와 활용</p>
-                                                        </div>
-                                                        <div class="btn_wrap">
-                                                            <button type="button"><i class="xi-info-o"></i></button>
-                                                            <button type="button"><i class="xi-bell-o"></i></button>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-
-                                        </div>
-                                        <!-- //접속현황레이어팝업-->
-                                    </div>
-                                    <!-- //item_tit -->
-
-                                    <div class="item_info">
-                                        <span class="big">37</span><!-- 현재접속자수 -->
-                                        <span class="small">250</span><!-- 전체접속자수 -->
-                                    </div>
-                                </div>
-                                <!-- //item user-->
-
-								<div class="item attend">
-                                    <div class="item_icon"><i class="icon-svg-pie-chart-01" aria-hidden="true"></i></div>
-                                    <div class="item_tit">7주차 출석 40 / 50</div>
-                                    <div class="item_info">
-                                        <span class="big">80</span>
-                                        <span class="small">%</span>
-                                    </div>
-                                </div>
-
-								<div class="item week">
-                                       <div class="item_icon"><i class="icon-svg-calendar-check-02" aria-hidden="true"></i></div>
-                                       <div class="item_tit">2025.04.14 ~ 04.20</div><!-- 주차기간 -->
-                                       <div class="item_info">
-                                           <span class="big">7</span><!-- 현재주차 -->
-                                           <span class="small">주차</span><!-- 주차 -->
-                                       </div>
-                                </div>
-							</div>
-							<!-- //flex -->
-
-						</div>
-						<!-- info-right-->
-
-					</div>
-					<!-- //강의실 상단 -->
-
-                <div class="dashboard_sub">
-
-                    <div class="sub-content">
-                        <div class="page-info">
-                            <h4 class="sub-title">강의Q&A</h4>
-                            <div class="navi_bar">
-                                <ul>
-                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li>강의Q&A</li>
-                                    <li><span class="current">강의Q&A</span></li>
-                                </ul>
-                            </div>
-                        </div>
-
-						<!-- search typeA -->
-                        <div class="search-typeA">
-                            <div class="item">
-                                <span class="item_tit"><label for="selectDate">학사년도/학기</label></span>
-                                <select class="ui dropdown" id="sbjctYr" onchange="changeSmstrChrt()">
-									<option value=""><spring:message code="crs.label.open.year" /></option><!-- 개설년도 -->
-									<c:forEach var="item" items="${filterOptions.yearList}">
-										<option value="${item }" ${item eq curSmstrChrtVO.dgrsYr ? 'selected' : '' }>${item }</option>
-									</c:forEach>
-								</select>
-								<select class="ui dropdown" id="sbjctSmstr"><!-- 개설학기 -->
-									<option value=""><spring:message code="crs.label.open.term" /></option>
-									<c:forEach var="list" items="${filterOptions.smstrChrtList}">
-										<option value="${list.smstrChrtId }">${list.smstrChrtnm }</option>
-									</c:forEach>
-								</select>
-                            </div>
-                            <div class="item">
-                                <span class="item_tit"><label for="selectCourse">운영과목</label></span>
-                                <select class="ui dropdown" id="orgId">
-							        <option value=""><spring:message code="bbs.label.org" /></option>
-							        <c:forEach var="list" items="${filterOptions.orgList}">
-							            <option value="${list.orgId}">${list.orgnm}</option>
-							        </c:forEach>
-							    </select>
-
-								<select class="ui dropdown" id="deptId">
-							        <option value=""><spring:message code="bbs.label.dept" /></option>
-							        <c:forEach var="list" items="${filterOptions.deptList}">
-							            <option value="${list.deptId}">${list.deptnm}</option>
-							        </c:forEach>
-							    </select>
-
-							    <select class="ui dropdown" id="sbjctId">
-							        <option value=""><spring:message code="bbs.label.sbjct" /></option>
-							        <c:forEach var="list" items="${filterOptions.sbjctList}">
-							            <option value="${list.sbjctId}">${list.sbjctnm}</option>
-							        </c:forEach>
-							    </select>
-                            </div>
-                            <div class="item">
-                                <span class="item_tit"><label for="searchValue"><spring:message code='common.search.keyword'/></label></span><%-- 검색어 --%>
-                                <div class="itemList">
-                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${param.searchValue}" placeholder="<spring:message code='bbs.common.placeholder'/>"><%-- 작성자/제목/키워드 --%>
-                                </div>
-                            </div>
-                            <div class="button-area">
-                                <button type="button" class="btn search" onclick="listPaging(1)"><spring:message code='button.search'/></button><%-- 검색 --%>
-                            </div>
-                        </div>
-
-						<div id="atclListArea">
-							<div class="board_top">
-	                            <h3 class="board-title">강의Q&A</h3>
-	                            <div class="right-area">
-
-	                            	<%-- 리스트/카드 선택 버튼 --%>
-									<span class="list-card-button"></span>
-
-									<%-- 목록 스케일 선택 --%>
-									<uiex:listScale func="changeListScale" value="${bbsVO.listScale}" />
+	                    <div class="sub-content">
+	                        <div class="page-info">
+	                            <h4 class="sub-title">강의Q&A</h4>
+	                            <div class="navi_bar">
+	                                <ul>
+	                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
+	                                    <li>강의Q&A</li>
+	                                    <li><span class="current">강의Q&A</span></li>
+	                                </ul>
 	                            </div>
 	                        </div>
 
-							<%-- 게시글 리스트 --%>
-							<div id="bbsAtclLctrQnaList"></div>
+							<!-- search typeA -->
+	                        <div class="search-typeA">
+	                            <div class="item">
+	                                <span class="item_tit"><label for="selectDate">학사년도/학기</label></span>
+	                                <select class="ui dropdown" id="sbjctYr" onchange="changeSmstrChrt()">
+										<option value=""><spring:message code="crs.label.open.year" /></option><!-- 개설년도 -->
+										<c:forEach var="item" items="${filterOptions.yearList}">
+											<option value="${item }" ${item eq curSmstrChrtVO.dgrsYr ? 'selected' : '' }>${item }</option>
+										</c:forEach>
+									</select>
+									<select class="ui dropdown" id="sbjctSmstr"><!-- 개설학기 -->
+										<option value=""><spring:message code="crs.label.open.term" /></option>
+										<c:forEach var="list" items="${filterOptions.smstrChrtList}">
+											<option value="${list.smstrChrtId }">${list.smstrChrtnm }</option>
+										</c:forEach>
+									</select>
+	                            </div>
+	                            <div class="item">
+	                                <span class="item_tit"><label for="selectCourse">운영과목</label></span>
+	                                <select class="ui dropdown" id="orgId">
+								        <option value=""><spring:message code="bbs.label.org" /></option>
+								        <c:forEach var="list" items="${filterOptions.orgList}">
+								            <option value="${list.orgId}">${list.orgnm}</option>
+								        </c:forEach>
+								    </select>
 
-							<%-- 게시글 리스트 카드 폼 --%>
-							<div id="bbsAtclLctrQnaList_cardForm" style="display:none">
-								<div class="card-header">
-									#[label]
-									<div class="card-title">
-										#[title]
+									<select class="ui dropdown" id="deptId">
+								        <option value=""><spring:message code="bbs.label.dept" /></option>
+								        <c:forEach var="list" items="${filterOptions.deptList}">
+								            <option value="${list.deptId}">${list.deptnm}</option>
+								        </c:forEach>
+								    </select>
+
+								    <select class="ui dropdown" id="sbjctId">
+								        <option value=""><spring:message code="bbs.label.sbjct" /></option>
+								        <c:forEach var="list" items="${filterOptions.sbjctList}">
+								            <option value="${list.sbjctId}">${list.sbjctnm}</option>
+								        </c:forEach>
+								    </select>
+	                            </div>
+	                            <div class="item">
+	                                <span class="item_tit"><label for="searchValue"><spring:message code='common.search.keyword'/></label></span><%-- 검색어 --%>
+	                                <div class="itemList">
+	                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${param.searchValue}" placeholder="<spring:message code='bbs.common.placeholder'/>"><%-- 작성자/제목/키워드 --%>
+	                                </div>
+	                            </div>
+	                            <div class="button-area">
+	                                <button type="button" class="btn search" onclick="listPaging(1)"><spring:message code='button.search'/></button><%-- 검색 --%>
+	                            </div>
+	                        </div>
+
+							<div id="atclListArea">
+								<div class="board_top">
+		                            <h3 class="board-title">강의Q&A</h3>
+		                            <div class="right-area">
+
+		                            	<%-- 리스트/카드 선택 버튼 --%>
+										<span class="list-card-button"></span>
+
+										<%-- 목록 스케일 선택 --%>
+										<uiex:listScale func="changeListScale" value="${bbsVO.listScale}" />
+		                            </div>
+		                        </div>
+
+								<%-- 게시글 리스트 --%>
+								<div id="bbsAtclLctrQnaList"></div>
+
+								<%-- 게시글 리스트 카드 폼 --%>
+								<div id="bbsAtclLctrQnaList_cardForm" style="display:none">
+									<div class="card-header">
+										#[label]
+										<div class="card-title">
+											#[title]
+										</div>
+									</div>
+
+									<div class="card-body">
+										<div class="desc">
+											<p><label class="label-title"><spring:message code='bbs.label.reg_date'/></label><strong>#[regDate]</strong></p>
+											<p><label class="label-title"><spring:message code='bbs.label.reg_user'/></label><strong>#[regNm]</strong></p>
+										</div>
+										<div class="etc">
+											<p><label class="label-title"><spring:message code='bbs.label.attach'/></label><strong>#[attach]</strong></p>
+											<p><label class="label-title"><spring:message code='bbs.label.view'/></label><strong>#[hits]</strong></p>
+											<p><label class="label-title"><spring:message code='bbs.label.comment'/></label><strong>#[comment]</strong></p>
+										</div>
 									</div>
 								</div>
 
-								<div class="card-body">
-									<div class="desc">
-										<p><label class="label-title"><spring:message code='bbs.label.reg_date'/></label><strong>#[regDate]</strong></p>
-										<p><label class="label-title"><spring:message code='bbs.label.reg_user'/></label><strong>#[regNm]</strong></p>
-									</div>
-									<div class="etc">
-										<p><label class="label-title"><spring:message code='bbs.label.attach'/></label><strong>#[attach]</strong></p>
-										<p><label class="label-title"><spring:message code='bbs.label.view'/></label><strong>#[hits]</strong></p>
-										<p><label class="label-title"><spring:message code='bbs.label.comment'/></label><strong>#[comment]</strong></p>
-									</div>
-								</div>
+								<script>
+								// 게시글 리스트 테이블
+								let atclListTable = UiTable("bbsAtclLctrQnaList", {
+									lang: "ko",
+									pageFunc: listPaging,
+									columns: [
+										{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
+										{title:"<spring:message code='bbs.label.org'/>", 		field:"orgnm",		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 기관
+										{title:"<spring:message code='bbs.label.dept'/>", 		field:"deptnm",		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 학과
+										{title:"<spring:message code='bbs.label.sbjct'/>", 		field:"sbjctnm",	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 과목
+										{title:"<spring:message code='bbs.label.class'/>", 		field:"dvclasNo",	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:40},	// 분반
+										{title:"<spring:message code='bbs.label.form_title'/>", field:"title",		headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200, 	headerSort:true},	// 제목
+										{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDate", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	headerSort:true,	formatter:"date"},	// 등록일자
+										{title:"<spring:message code='bbs.label.reg_user'/>", 	field:"regNm", 		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 작성자
+										{title:"<spring:message code='bbs.label.attach'/>", 	field:"attach", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 첨부
+										{title:"<spring:message code='bbs.label.view'/>", 		field:"hits", 		headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 조회
+										{title:"<spring:message code='bbs.label.comment'/>", 	field:"comment", 	headerHozAlign:"center", hozAlign:"center",	width:60,	minWidth:60},	// 댓글
+									]
+								});
+
+								function atclListTableSort(sortInfo) {
+									console.log("field="+sortInfo.field+", dir="+sortInfo.dir);
+
+									listPaging(1);
+								}
+
+								function checkSelect() {
+									// 선택된값 array로 가져온다.
+									let data = atclListTable.getSelectedData("valAtclId"); // "valAtclId" 키로 설정된 값
+									alert(data);
+								}
+
+								function checkRowSelect(data) {
+									let value = data["valAtclId"]; // "valAtclId" 키로 설정된 값
+									alert(value);
+								}
+
+								function changePage(page) {
+									alert("페이지 "+page);
+								}
+
+								</script>
 							</div>
-
-							<script>
-							// 게시글 리스트 테이블
-							let atclListTable = UiTable("bbsAtclLctrQnaList", {
-								lang: "ko",
-								pageFunc: listPaging,
-								columns: [
-									{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},	// No
-									{title:"<spring:message code='bbs.label.org'/>", 		field:"orgnm",		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 기관
-									{title:"<spring:message code='bbs.label.dept'/>", 		field:"deptnm",		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 학과
-									{title:"<spring:message code='bbs.label.sbjct'/>", 		field:"sbjctnm",	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:40},	// 과목
-									{title:"<spring:message code='bbs.label.class'/>", 		field:"dvclasNo",	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:40},	// 분반
-									{title:"<spring:message code='bbs.label.form_title'/>", field:"title",		headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200, 	headerSort:true},	// 제목
-									{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDate", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	headerSort:true,	formatter:"date"},	// 등록일자
-									{title:"<spring:message code='bbs.label.reg_user'/>", 	field:"regNm", 		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 작성자
-									{title:"<spring:message code='bbs.label.attach'/>", 	field:"attach", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 첨부
-									{title:"<spring:message code='bbs.label.view'/>", 		field:"hits", 		headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 조회
-									{title:"<spring:message code='bbs.label.comment'/>", 	field:"comment", 	headerHozAlign:"center", hozAlign:"center",	width:60,	minWidth:60},	// 댓글
-								]
-							});
-
-							function atclListTableSort(sortInfo) {
-								console.log("field="+sortInfo.field+", dir="+sortInfo.dir);
-
-								listPaging(1);
-							}
-
-							function checkSelect() {
-								// 선택된값 array로 가져온다.
-								let data = atclListTable.getSelectedData("valAtclId"); // "valAtclId" 키로 설정된 값
-								alert(data);
-							}
-
-							function checkRowSelect(data) {
-								let value = data["valAtclId"]; // "valAtclId" 키로 설정된 값
-								alert(value);
-							}
-
-							function changePage(page) {
-								alert("페이지 "+page);
-							}
-
-							</script>
-						</div>
-                    </div>
+	                    </div>
 					</div>
                 </div>
             </div>
             <!-- //content -->
 
             <!-- common footer -->
-            <%@ include file="/WEB-INF/jsp/common_new/home_footer.jsp" %>
+            <%-- <%@ include file="/WEB-INF/jsp/common_new/home_footer.jsp" %> --%>
             <!-- //common footer -->
 
         </main>

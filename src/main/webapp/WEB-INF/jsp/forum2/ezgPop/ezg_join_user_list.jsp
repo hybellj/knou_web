@@ -20,7 +20,6 @@ $(document).ready(function() {
 
 // toggle join user
 function toggleJoinUser(obj) {
-	debugger;
 	if ($(obj).hasClass("select")) {
 		$(obj).removeClass("select");
 		$("#selectedUserId").val('');

@@ -14,6 +14,8 @@ import knou.lms.crs.term.vo.TermVO;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.vo.UsrDeptCdVO;
+import knou.lms.org.service.OrgInfoService;
+import knou.lms.org.vo.OrgInfoVO;
 import org.apache.commons.collections.map.ListOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +56,9 @@ public class ClsController extends ControllerBase {
     @Resource(name = "orgCodeService")
     private OrgCodeService orgCodeService;
 
+    @Resource(name = "orgInfoService")
+    private OrgInfoService orgInfoService;
+
     /**
      * 전체수업현황 목록 화면
      *
@@ -74,32 +79,18 @@ public class ClsController extends ControllerBase {
 
         vo.setOrgId(sessionOrgId);
 
-        if ((vo.getSearchYr() == null || vo.getSearchYr().isEmpty())
-                || (vo.getSearchSmstr() == null || vo.getSearchSmstr().isEmpty())) {
+        if (vo.getSearchYr() == null || vo.getSearchYr().isEmpty()) {
             TermVO termVO = new TermVO();
             termVO.setOrgId(sessionOrgId);
             termVO = termService.selectCurrentTerm(termVO);
 
-            if (termVO != null) {
-                if (vo.getSearchYr() == null || vo.getSearchYr().isEmpty()) {
-                    vo.setSearchYr(termVO.getHaksaYear());
-                }
-                if (vo.getSearchSmstr() == null || vo.getSearchSmstr().isEmpty()) {
-                    String haksaTerm = termVO.getHaksaTerm();
-                    if ("20".equals(haksaTerm) || "21".equals(haksaTerm) || "2".equals(haksaTerm)) {
-                        vo.setSearchSmstr("2");
-                    } else {
-                        vo.setSearchSmstr("1");
-                    }
-                }
+            if (termVO != null && termVO.getHaksaYear() != null && !termVO.getHaksaYear().isEmpty()) {
+                vo.setSearchYr(termVO.getHaksaYear());
             }
         }
 
         if (vo.getSearchYr() == null || vo.getSearchYr().isEmpty()) {
             vo.setSearchYr(String.valueOf(java.time.Year.now().getValue()));
-        }
-        if (vo.getSearchSmstr() == null || vo.getSearchSmstr().isEmpty()) {
-            vo.setSearchSmstr("1");
         }
 
         if (vo.getPageIndex() < 1) vo.setPageIndex(1);
@@ -116,7 +107,11 @@ public class ClsController extends ControllerBase {
         model.addAttribute("resultList", resultVO.getReturnList());
         model.addAttribute("pageInfo", resultVO.getPageInfo());
         model.addAttribute("yearList", DateTimeUtil.getYearList(10, "mix"));
-        model.addAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
+
+        // 운영과목 기관 검색 드롭다운
+        List<OrgInfoVO> orgList = orgInfoService.listActiveOrg();
+        model.addAttribute("orgList", orgList);
+
         model.addAttribute("vo", vo);
 
         return "std/cls_list";
@@ -140,9 +135,6 @@ public class ClsController extends ControllerBase {
 
         if (vo.getSearchYr() == null || vo.getSearchYr().isEmpty()) {
             vo.setSearchYr(String.valueOf(java.time.Year.now().getValue()));
-        }
-        if (vo.getSearchSmstr() == null || vo.getSearchSmstr().isEmpty()) {
-            vo.setSearchSmstr("1");
         }
 
         if (vo.getPageIndex() < 1) vo.setPageIndex(1);

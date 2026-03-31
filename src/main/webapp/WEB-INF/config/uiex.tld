@@ -417,4 +417,61 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
+
+
+
+	<!--
+	JSTL 공통 함수 정의
+	-->
+
+	<!-- 암호화 파라메터값 가져오기 -->
+	<function>
+		<name>getParamValue</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String getParamValue(java.lang.String)</function-signature>
+	</function>
+
+	<!-- 사용자 이름 마스킹 -->
+	<function>
+		<name>maskUserNm</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String maskUserNm(java.lang.String)</function-signature>
+	</function>
+
+	<!-- 전화번호 마스킹 -->
+	<function>
+		<name>maskPhoneNo</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String maskPhoneNo(java.lang.String)</function-signature>
+	</function>
+
+	<!-- 이메일 마스킹 -->
+	<function>
+		<name>maskEmail</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String maskEmail(java.lang.String)</function-signature>
+	</function>
+
+	<!-- 주소 마스킹 -->
+	<function>
+		<name>maskAddress</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String maskAddress(java.lang.String)</function-signature>
+	</function>
+
+	<!-- 주민번호 마스킹 -->
+	<function>
+		<name>maskJuminNo</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String maskJuminNo(java.lang.String)</function-signature>
+	</function>
+
+	<!-- IP Address 마스킹 -->
+	<function>
+		<name>maskIpAddress</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String maskIpAddress(java.lang.String)</function-signature>
+	</function>
+
+
 </taglib>

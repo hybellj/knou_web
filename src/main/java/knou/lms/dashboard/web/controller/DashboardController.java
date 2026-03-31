@@ -85,6 +85,7 @@ import knou.lms.log.logintry.service.LogUserLoginTryLogService;
 import knou.lms.log.logintry.vo.LogUserLoginTryLogVO;
 import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.log.userconn.vo.LogUserConnStateVO;
+import knou.lms.menu.vo.MenuVO;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.resh.vo.ReshVO;
 import knou.lms.sch.service.PopupNoticeService;
@@ -922,12 +923,17 @@ public class DashboardController extends ControllerBase {
         	userCtx.setAuthrtGrpcd(userCtx.getAuthrtGrpcd().substring(1));
         }
 
+        String orgId = userCtx.getOrgId(); // ORG_ID, 파라메터로 처리 검토...
+
         LocalDate today = LocalDate.now();
         model.addAttribute("today", 	today.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         model.addAttribute("isKnou", 	SessionInfo.isKnou(request));
-        model.addAttribute("orgId", 	userCtx.getOrgId());
+        model.addAttribute("orgId", 	orgId);
         model.addAttribute("authrtGrpcd", 	userCtx.getAuthrtGrpcd());
         model.addAttribute("userId", 	SessionInfo.getUserId(request));
+
+        // 암호화파라메터에 설정
+        addEncParam("orgId", orgId);
 
         return "dashboard/main_prof_card";
     }
@@ -2445,19 +2451,20 @@ public class DashboardController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value = "/mainTabpage.do")
-    public String mainTabpage(HttpServletRequest request, ModelMap model) throws Exception {
-    	String menuUrl = StringUtil.nvl(request.getParameter("menuUrl"));
-    	String menuNm = StringUtil.nvl(request.getParameter("menuNm"));
-    	String upMenuId = StringUtil.nvl(request.getParameter("upMenuId"));
-    	String menuId = StringUtil.nvl(request.getParameter("menuId"));
+    public String mainTabpage(MenuVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+    	String menuUrl = StringUtil.nvl(vo.getMenuUrl());
+    	String menunm = StringUtil.nvl(vo.getMenunm());
+    	String upMenuId = StringUtil.nvl(vo.getUpMenuId());
+    	String menuId = StringUtil.nvl(vo.getMenuId());
 
     	model.addAttribute("authrtGrpcd", SessionInfo.getAuthrtGrpcd(request));
     	model.addAttribute("menuUrl", menuUrl);
-    	model.addAttribute("menuNm", menuNm);
+    	model.addAttribute("menunm", menunm);
     	model.addAttribute("upMenuId", upMenuId);
     	model.addAttribute("menuId", menuId);
-    	model.addAttribute("curUpMenuId", upMenuId);
-    	model.addAttribute("curMenuId", menuId);
+
+    	addEncParam("upMenuId", upMenuId);
+    	addEncParam("menuId", menuId);
 
     	return "dashboard/main_tabpage";
     }

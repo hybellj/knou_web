@@ -477,7 +477,7 @@
                 AND AA.DELYN ='N'
                 AND AA.MRK_RFLTYN = 'Y'
         )
-        WHERE SUM_MRK_RFLTRT IS NULL OR SUM_MRK_RFLTRT != 100;
+        WHERE SUM_MRK_RFLTRT IS NULL OR SUM_MRK_RFLTRT != 100
     </select>
 
     <select id="invalidMrkRfltrtSumSmnrSelect" parameterType="String" resultType="int">
@@ -643,7 +643,6 @@
         SELECT
               A.SBJCT_ID
             , A.USER_ID
-            , A.EXAM_BSC_ID
             /*-- 최종 원점수(일반/재시험 점수 OR 결시 대체 점수)*/
             , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 OR MIN(NVL(C.SUB_SCORE, 0)) = -1
                 THEN -1
@@ -667,7 +666,7 @@
         ORDER BY A.SBJCT_ID, A.USER_ID
     </select>
 
-    <select id="stdMrkSbjctList" parameterType="String" resultType="egovMap">
+    <select id="stdMrkSbjctList" parameterType="String" resultType="markSubjectVO">
         /*
              SQL ID : markSubjectDAO.stdMrkSbjctList
              설  명 : 해당 과목에 수강하는 사용자 아이디를 가져온다.
@@ -675,10 +674,10 @@
         SELECT
               USER_ID
             , SBJCT_ID
-        FROM TB_LMS_ATNDLC_SBJCT
+        FROM TB_LMS_ATNDLC
         WHERE SBJCT_ID = #{sbjctId}
             AND ATNDLC_CNCL_DTTM IS NULL
-        AND AUDITYN = 'N'
+            AND AUDITYN = 'N'
     </select>
 
     <select id="stdAttdSummaryByWeekSelect" parameterType="String" resultType= "egovMap">
@@ -687,7 +686,7 @@
              설  명 :  해당 과목 강의 컨텐츠가 있는 주차 수,
                       학생이 수강완료한 주차 수, 자각한 주차 수를 조회한다..
         */
-        WITH STD_INFO AS ( -- 학생
+        WITH STD_INFO AS ( /*학생*/
             SELECT
                   A.USER_ID
                 , A.SBJCT_ID
@@ -696,7 +695,7 @@
                 ON A.USER_ID = B.USER_ID
             WHERE A.SBJCT_ID = #{sbjctId}
                 AND A.ATNDLC_STSCD = 'ATNDLC'
-        ), LESSON_CONTS AS ( -- 강의컨텐츠가 있는 주차 정보
+        ), LESSON_CONTS AS ( /*강의컨텐츠가 있는 주차 정보*/
             SELECT
                   WK.SBJCT_ID
                 , WK.LCTR_WKNO_SCHDL_ID
@@ -705,9 +704,9 @@
             WHERE WK.SBJCT_ID = #{sbjctId}
                 AND WK.DELYN = 'N'
                 AND (
-                    WK.LCTR_TYCD = 'LCTR' -- 강의 컨텐츠
+                    WK.LCTR_TYCD = 'LCTR' /*강의 컨텐츠*/
                     OR
-                    EXISTS ( -- 비디오컨텐츠..
+                    EXISTS ( /*비디오컨텐츠*/
                         SELECT 1
                         FROM TB_LMS_LCTR LC
                         JOIN TB_LMS_LCTR_CONTS CON
@@ -718,14 +717,14 @@
                 )
             ORDER BY LCTR_WKNO_SEQNO ASC
         )
-        -- 강의컨텐츠가 있는 주차 수, 완료한 주차 수, 지각한 주차 수
+        /*강의컨텐츠가 있는 주차 수, 완료한 주차 수, 지각한 주차 수*/
         SELECT
               A.USER_ID
             , COUNT(A.LCTR_WKNO_SCHDL_ID) AS LCTR_SCHDL_CNT
             , NVL( SUM(CASE WHEN A.LRN_STSCD = 'CMPTN' THEN 1 ELSE 0 END) , 0)AS COMPLETE_CNT
             , NVL( SUM(CASE WHEN A.LRN_STSCD = 'LATE' THEN 1 ELSE 0 END) , 0)AS LATE_CNT
         FROM (
-            -- 주별 학습자 학습상태
+            /*주별 학습자 학습상태*/
             SELECT
                   STD.USER_ID
                 , CON.LCTR_WKNO_SCHDL_ID
@@ -733,7 +732,7 @@
                 , STS.LRN_STSCD
             FROM STD_INFO STD
             CROSS JOIN LESSON_CONTS CON
-            LEFT JOIN TB_LMS_BYWK_USER_LRN_STS STS
+            LEFT JOIN TB_LMS_BYWKNO_USER_LRN_STS STS
                 ON STD.USER_ID = STS.USER_ID
                 AND CON.LCTR_WKNO_SCHDL_ID = STS.LCTR_WKNO_SCHDL_ID
         ) A
@@ -749,6 +748,7 @@
               SBJ.SBJCT_ID
             , STD.USER_ID
             , 100 AS RAW_SCORE /* 세미나 작업 전이라 임시로 100점 넣어둠 */
+            , 100 AS FINAL_SCORE
         FROM TB_LMS_SMNR SMNR
         JOIN TB_LMS_SBJCT SBJ
             ON SMNR.SBJCT_ID = SBJ.SBJCT_ID
@@ -912,7 +912,7 @@
             ),
         QUIZ_SCORE AS (
             SELECT
-                  K.USER_ID
+                  TK.USER_ID
                 , DTL.EXAM_BSC_ID
                 /*미채점인 경우 -1*/
                 , CASE WHEN RS.EVLYN = 'Y' THEN RS.TOT_SCR ELSE -1 END AS SCORE
@@ -989,54 +989,73 @@
         ORDER BY A.SBJCT_ID, A.USER_ID
     </select>
 
+    <select id="adtnScoreList" parameterType="String" resultType="egovMap">
+        /*
+             SQL ID : markSubjectDAO.adtnScoreList
+             설  명 : 학생들의 가산점을 조회한다. (이의신청 승인 후 얻은 점수)
+        */
+        SELECT
+              USER_ID
+            , OBJCT_APLY_SCR
+        FROM TB_LMS_MRK_OBJCT_APLY
+        WHERE SBJCT_ID = #{sbjctId}
+            AND OBJCT_APLY_STSCD = 'APRV'
+    </select>
+
 
 
     <insert id="mrkSbjctBatchInsert" parameterType="java.util.List">
-        INSERT INTO TB_LMS_MRK_SBJCT (
-              MRK_SBJCT_ID
-            , USER_ID
-            , SBJCT_ID
-            , SCR_CNVS_STSCD
-            , RGTR_ID
-            , REG_DTTM
-            , TOT_SCR
-            , LST_SCR
-            , ADTN_SCR
-        )
-        <foreach collection="list" item="item" separator="UNION ALL">
-            SELECT
+        /*
+            SQL ID : markSubjectDAO.mrkSbjctBatchInsert
+            설  명 : 학생들의 성적과목 데이터를 등록한다.
+        */
+        <foreach collection="list" item="item" separator=";" open="BEGIN" close="; END;">
+            INSERT INTO TB_LMS_MRK_SBJCT (
+                  MRK_SBJCT_ID
+                , USER_ID
+                , SBJCT_ID
+                , SCR_CNVS_STSCD
+                , RGTR_ID
+                , REG_DTTM
+                , TOT_SCR
+                , LST_SCR
+                , ADTN_SCR
+            )VALUES (
                   #{item.mrkSbjctId}
                 , #{item.userId}
                 , #{item.sbjctId}
-                , #{item.scrCnvsStsCd}
-                , #{item.rgtrId},
+                , #{item.scrCnvsStscd}
+                , #{item.rgtrId}
                 , FN_DTTM()
                 , #{item.totScr}
                 , #{item.lstScr}
                 , #{item.adtnScr}
-            FROM DUAL
+            )
         </foreach>
     </insert>
 
 
     <insert id="mrkSbjctDtlBatchInsert" parameterType="markSubjectDetailVO">
-        INSERT INTO TB_LMS_MRK_SBJCT_DTL (
-              MRK_SBJCT_DTL_ID
-            , MRK_SBJCT_ID
-            , MRK_ITM_TYCD
-            , SCR
-            , RGTR_ID
-            , REG_DTTM
-        )
-        <foreach collection="list" item="item" separator="UNION ALL">
-            SELECT
-                  #{item.mrkSbjctDtlIdId}
-                , #{item.mrkSjbctId}
+        /*
+            SQL ID : markSubjectDAO.mrkSbjctDtlBatchInsert
+            설  명 : 학생들의 성적과목 상세 데이터를 등록한다.
+        */
+        <foreach collection="list" item="item" separator=";" open="BEGIN" close="; END;">
+            INSERT INTO TB_LMS_MRK_SBJCT_DTL (
+                  MRK_SBJCT_DTL_ID
+                , MRK_SBJCT_ID
+                , MRK_ITM_TYCD
+                , SCR
+                , RGTR_ID
+                , REG_DTTM
+            )VALUES (
+                  #{item.mrkSbjctDtlId}
+                , #{item.mrkSbjctId}
                 , #{item.mrkItmTycd}
                 , #{item.scr}
                 , #{item.rgtrId}
                 , FN_DTTM()
-            FROM DUAL
+            )
         </foreach>
     </insert>
 

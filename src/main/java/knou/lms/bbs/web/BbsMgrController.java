@@ -32,6 +32,7 @@ import knou.lms.bbs.service.BbsViewService;
 import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.bbs.vo.BbsCmntVO;
 import knou.lms.bbs.vo.BbsInfoVO;
+import knou.lms.bbs.vo.BbsVO;
 import knou.lms.bbs.vo.BbsViewVO;
 import knou.lms.bbs.web.util.BbsAuthUtil;
 import knou.lms.common.service.SysFileService;
@@ -48,6 +49,7 @@ import knou.lms.org.vo.OrgCodeVO;
 public class BbsMgrController extends ControllerBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BbsMgrController.class);
+    private static final String TEMPLATE_URL = "bbsMgr";
 
     @Resource(name = "bbsInfoService")
     private BbsInfoService bbsInfoService;
@@ -1672,4 +1674,5 @@ public class BbsMgrController extends ControllerBase {
     }
 
     /** 게시판 관리 END **/
+
 }

@@ -152,68 +152,46 @@
 		)
 		</if> -->
 		SELECT
-			  ROW_NUMBER() OVER(ORDER BY A.REG_DTTM ) AS LINE_NO
-			, A.BBS_ID
-			, A.ORG_ID
-			, A.SBJCT_ID
-			, A.BBSNM
-			, A.BBS_EXPLN
-			, A.BBS_TYCD
-			, A.BBS_BSC_LANG_CD
-			, A.MENU_CD
-			, A.MN_IMG_FILE_ID
-			<!-- , A.SYS_USEYN
-			, A.SYS_BSC_PVSNYN
-			, A.WRT_USEYN
-			, A.CMNT_USEYN
-			, A.CMNT_USEYN
-			, A.NTC_USEYN
-			, A.FVRT_USEYN -->
-			, A.ATFL_USEYN
-			, A.ATFL_MAX_CNT
-			, A.ATFL_MAXSZ
-			<!-- , A.ATCH_DOC_TRSF_USEYN
-			, A.EDTR_USEYN
-			, A.MBL_USEYN
-			, A.SECRET_ATCL_USEYN
-			, A.VWR_USEYN
-			, A.NMBR_INQYN
-			, A.NMBR_REGYN
-			, A.HDR_USEYN -->
-			, A.LIST_CNT
-			<!-- , A.USEYN -->
-			, A.DELYN
-			<!-- , A.LOCK_USEYN
-			, A.UNIV_ID
-			, A.STDNT_INQYN -->
-			, A.RGTR_ID
-			, A.REG_DTTM
-			<!-- , A.FRST_INQ_DTTM -->
-			, A.MDFR_ID
-			, A.MOD_DTTM
-			, (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL WHERE BBS_ID = A.BBS_ID AND UP_ATCL_ID IS NULL) AS ATCL_CNT
-			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE ORG_ID = A.ORG_ID AND UP_CD = 'BBS_TYCD' AND CD = A.BBS_TYCD) AS BBS_TYPE_NM
-			<!-- , CASE WHEN A.BBS_ID = 'TEAM' THEN (SELECT TEAM_TYCD FROM TB_LMS_TEAM WHERE TEAM_ID = C.RLTN_REF_CD) ELSE NULL END AS TEAM_TYCD -->
-			, CASE WHEN A.BBS_REF_TYCD = 'TEAM' THEN B.TEAM_CTGRCD ELSE NULL END AS TEAM_TYCD
-			, CASE WHEN A.BBS_REF_TYCD = 'TEAM' THEN A.BBS_REF_TYPE_ID ELSE NULL END AS TEAM_ID
-			, CASE WHEN A.BBS_REF_TYCD = 'TEAM' THEN B.SBJCT_ID ELSE A.BBS_REF_TYPE_ID	END AS SBJCT_ID
+		      ROW_NUMBER() OVER(ORDER BY A.REG_DTTM) AS LINE_NO
+		    , A.BBS_ID
+		    , A.ORG_ID
+		    , A.SBJCT_ID
+		    , A.BBSNM
+		    , A.BBS_TYCD
+		    , A.ATFL_USEYN
+		    , A.ATFL_MAX_CNT
+		    , A.ATFL_MAXSZ
+		    , A.LIST_CNT
+		    , A.RGTR_ID
+		    , A.REG_DTTM
+		    , (SELECT COUNT(1) FROM TB_LMS_BBS_ATCL WHERE BBS_ID = A.BBS_ID AND UP_ATCL_ID IS NULL) AS ATCL_CNT
+		    , (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE ORG_ID = A.ORG_ID AND UP_CD = 'BBS_TYCD' AND CD = A.BBS_TYCD) AS BBS_TYPE_NM
+		    , A.BBS_ADDYN
+		    , B.BBS_OPTNNM
 		FROM TB_LMS_BBS A
 		LEFT JOIN (
-			SELECT TEAM_ID, SBJCT_ID, TEAM_CTGRCD
-			FROM TB_LMS_TEAM) B
-			ON B.TEAM_ID = A.BBS_REF_TYPE_ID AND A.BBS_REF_TYCD = 'TEAM'
+		    SELECT
+		          BBS_ID
+		        , LISTAGG(OPTNNM, ', ') WITHIN GROUP (ORDER BY OPTNNM) AS BBS_OPTNNM
+		    FROM TB_LMS_BBS_OPTN
+		    GROUP BY BBS_ID
+		) B ON A.BBS_ID = B.BBS_ID
 		WHERE 1=1
-			AND A.ORG_ID = #{orgId}
+		<if test="sbjctId != null and sbjctId != ''">
+			AND A.SBJCT_ID = #{sbjctId}
+		</if>
+		AND A.BBS_ID NOT IN ('NOTICE', 'NTC', 'QNA', '1ON1')
+			<!-- AND A.ORG_ID = #{orgId}
 			AND A.BBS_BSC_LANG_CD = #{langCd}
 			AND A.DELYN = 'N'
 		<if test="bbsId != null and bbsId != ''">
 			AND A.BBS_ID = #{bbsId}
 		</if>
 		<if test="sbjctId != null and sbjctId != ''">
-			<!-- AND (
+			AND (
 				   (A.BBS_REF_TYCD = 'COURSE' AND A.BBS_REF_TYPE_ID = #{sbjctId})
 				OR (A.BBS_REF_TYCD = 'TEAM' AND EXISTS (SELECT 1 FROM TB_LMS_TEAM WHERE TEAM_ID = A.BBS_REF_TYPE_ID AND SBJCT_ID = #{sbjctId}))
-				) -->
+				)
 			A.SBJCT_ID = #{sbjctId}
 		</if>
 		<if test="searchValue != null and searchValue != ''">
@@ -226,7 +204,7 @@
 					WHERE USER_ACNT_ID = A.RGTR_ID
 				)) LIKE LOWER('%' || #{searchValue} || '%')
 			)
-		</if>
+		</if> -->
 	</sql>
 
 	<select id="countBbsInfo" parameterType="bbsInfoVO" resultType="Integer">
@@ -1263,7 +1241,45 @@
 		WHERE 1=1
 			AND ORG_ID = #{orgId}
 			AND BBS_ID = #{bbsId}
-			<!-- AND SBJCT_ID = #{sbjctId} -->
+			<!-- <if test="sbjctId != null and sbjctId != ''">
+	          	AND SBJCT_ID = #{sbjctId}
+	        </if> -->
+	</select>
+
+	<select id="selectBbsLect" parameterType="bbsVO" resultType="bbsVO">
+		/*
+			SQL ID : BbsDAO.selectBbs
+			설 명 : 게시판 정보 조회
+		*/
+		SELECT
+			  BBS_ID
+			, ORG_ID
+			, SBJCT_ID
+			, BBS_REF_TYPE_ID
+			, BBS_REF_TYCD
+			, BBSNM
+			, BBS_ENNM
+			, BBS_EXPLN
+			, BBS_TYCD
+			, BBS_LANG_CD
+			, MENU_ID
+			, MN_IMG_FILE_ID
+			, LIST_CNT
+			, ATFL_MAX_CNT
+			, ATFL_MAXSZ
+			, ATFL_USEYN
+			, DELYN
+			, RGTR_ID
+			, REG_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+			, USEYN
+		FROM TB_LMS_BBS
+		WHERE 1=1
+			AND ORG_ID = #{orgId}
+			AND BBS_ID = #{bbsId}
+	        AND SBJCT_ID = #{sbjctId}
+	        AND BBS_ID NOT IN ('NTC', 'NOTICE', 'QNA', '1ON1')
 	</select>
 
 	<insert id="bbsInfoRegist" parameterType="bbsVO">
@@ -1304,7 +1320,7 @@
 			, #{bbsExpln}
 			, #{bbsTycd}
 			, #{langCd}
-			, 'MENU_BBS_01'
+			, NULL
 			, NULL
 			, 20
 			, 10
@@ -1318,6 +1334,29 @@
 		)
 	</insert>
 
+	<insert id="bbsInfoOptnRegist" parameterType="bbsVO">
+		/*
+             SQL ID : BbsInfoDAO.bbsInfoOptnRegist
+             설  명 : 게시판 정보 옵션 저장
+         */
+		INSERT INTO TB_LMS_BBS_OPTN (
+			BBS_OPTN_ID
+			, BBS_ID
+			, OPTN_CD
+			, OPTNNM
+			, OPTN_USEYN
+			, RGTR_ID
+			, REG_DTTM
+		) VALUES(
+			#{bbsOptnId}
+			, #{bbsId}
+			, #{optnCd}
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'BBS_NTC_OPTN_TYCD' AND CD_VL = #{optnCd})
+			, 'Y'
+			, #{userId}
+			, FN_DTTM()
+		)
+	</insert>
 
 	<select id="selectBbsForSbjctMenu" parameterType="bbsVO" resultType="bbsVO">
 		/*
@@ -1331,5 +1370,15 @@
 			AND A.SBJCT_ID = #{sbjctId}
 			AND A.BBS_ADDYN = 'Y'
 		ORDER BY A.BBS_ID
+	</select>
+
+	<select id="listBbsMngInfoPaging" parameterType="bbsVO" resultType="bbsVO">
+		/*
+             SQL ID : BbsInfoDAO.listBbsMngInfoPaging
+             설  명 : 게시판 목록 페이징
+         */
+		<include refid="CommonSQL.pagePrefix" />
+		<include refid="listQuery" />
+		<include refid="CommonSQL.pageSubfix" />
 	</select>
 </mapper>

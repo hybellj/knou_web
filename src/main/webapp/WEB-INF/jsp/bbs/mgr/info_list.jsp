@@ -16,30 +16,30 @@
 				listPaging(1);
 			}
 		});
-		
+
 		listPaging(1);
 	});
-	
+
 	// 게시글 조회
 	function listPaging(pageIndex) {
-		var url = "/bbs/bbsMgr/listInfo.do";
+		var url = "/bbs/bbsMgr/bbsMngListView2.do";
 		var data = {
 			  pageIndex		: pageIndex
 			, listScale		: $("#listScale").val()
 			, searchValue 	: $("#searchValue").val()
 		};
-		
+
 		ajaxCall(url, data, function(data) {
 			if(data.result > 0) {
         		var returnList = data.returnList || [];
         		var pageInfo = data.pageInfo;
-        		
+
         		var html = createInfoListHTML(returnList, pageInfo);
-        		
+
         		$("#infoListArea").empty().html(html);
     			$("#infoList").footable();
     			$("#infoList").find(".ui.checkbox").checkbox();
-    			
+
     			var params = {
    					totalCount : data.pageInfo.totalRecordCount,
    					listScale : data.pageInfo.recordCountPerPage,
@@ -55,29 +55,29 @@
 			alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
 		});
 	}
-	
+
 	function createInfoListHTML(infoList, pageInfo) {
 		var html = '';
 		var infoListHtml = '';
-		
+
 		infoList.forEach(function(v, i) {
 			var lineNo = pageInfo.totalRecordCount - v.lineNo + 1;
 			var regDttmFmt = (v.regDttm || "").length == 14 ? v.regDttm.substring(0, 4) + '.' + v.regDttm.substring(4, 6) + '.' + v.regDttm.substring(6, 8) : v.regDttm;
 			var useYnChecked = v.useYn == "Y" ? "checked" : "";
 			var useYnDisabled = v.sysDefaultYn == "Y" ? "disabled" : "";
 			var bbsOption = [];
-			
+
 			if(v.notiUseYn == 'Y') bbsOption.push('<spring:message code="bbs.label.notice" />'); 	// 공지
 			if(v.ansrUseYn == 'Y') bbsOption.push('<spring:message code="bbs.label.answer_atcl" />'); 	// 답글
 			if(v.atchUseYn == 'Y') bbsOption.push('<spring:message code="bbs.label.atch_file" />'); // 첨부파일
-			
+
 			var queryInfo = {};
-			
+
 			queryInfo.bbsId = v.bbsId;
-			
+
 			var queryStr = new URLSearchParams(queryInfo).toString();
 			var linkUrl = "/bbs/bbsMgr/atclList.do";
-			
+
 			infoListHtml += '<tr>';
 			infoListHtml += '	<td class="tc">' + lineNo + '</td>';
 			infoListHtml += '	<td><a href="javascript:void(0)" class="fcBlue" onclick="moveEditInfo(\'' + v.bbsId + '\')">' + v.bbsNm + '</a></td>';
@@ -104,7 +104,7 @@
 			infoListHtml += '	</td>';
 			infoListHtml += '</tr>';
 		});
-		
+
 		html += '<table class="table type2" id="infoList">';
 		html += '   <caption>Content table</caption>';
 		html += '	<thead>';
@@ -126,10 +126,10 @@
 		html += '	</tbody>';
 		html += '</table>';
 		html += '<div id="paging" class="paging"></div>';
-		
+
 		return html;
 	}
-	
+
 	// 사용여부 변경
 	function changeUseYn(bbsId, el) {
 		var url = "/bbs/bbsMgr/editUseYn.do";
@@ -137,7 +137,7 @@
 			  bbsId: bbsId
 			, useYn: el.checked ? "Y" : "N"
 		};
-		
+
 		ajaxCall(url, data, function(data) {
 			if(data.result > 0) {
         	} else {
@@ -149,7 +149,7 @@
         	el.checked = el.checked ? false : true;
 		});
 	}
-	
+
 	// 쓰기 페이지 이동
 	function moveWriteInfo() {
 		var url = "/bbs/bbsMgr/Form/infoWrite.do";
@@ -160,7 +160,7 @@
 		form.appendTo("body");
 		form.submit();
 	}
-	
+
 	// 수정 페이지 이동
 	function moveEditInfo(bbsId) {
 		var url = "/bbs/bbsMgr/Form/infoEdit.do";
@@ -172,7 +172,7 @@
 		form.appendTo("body");
 		form.submit();
 	}
-	
+
 	// 게시판 보기
 	function viewBbs(url, queryStr) {
 		var params = new URLSearchParams(queryStr);
@@ -181,11 +181,11 @@
 		form.attr("name", "bbsForm");
 		form.attr("target", "_blank");
 		form.attr("action", url);
-		
+
 		params.forEach(function(value, key) {
 			form.append($('<input/>', {type: 'hidden', name: key, value: value}));
 		})
-	
+
 		form.appendTo("body");
 		form.submit();
 	}
@@ -194,19 +194,19 @@
 	<div id="wrap" class="pusher">
 		<!-- class_top 인클루드  -->
 		<%@ include file="/WEB-INF/jsp/common/admin/admin_header.jsp"%>
-	
+
 		<div id="container">
 			<%@ include file="/WEB-INF/jsp/common/admin/admin_lnb.jsp"%>
-			
+
 			<div class="content stu_section">
-			
+
 				<!-- admin_location -->
                 <%-- <%@ include file="/WEB-INF/jsp/common/admin/admin_location.jsp" %> --%>
                 <!-- //admin_location -->
-		        
+
 		        <div class="ui form">
                 	<div class="layout2">
-                	
+
                 	    <div id="info-item-box">
                             <h2 class="page-title flex-item flex-wrap gap4 columngap16">
                                 <spring:message code="bbs.label.bbs_manage" /><!-- 게시판 관리 -->
@@ -219,7 +219,7 @@
                             </div>
                         </div>
 
-		                
+
 		                <!-- 영역1 -->
                         <div class="row">
                             <div class="col">
@@ -232,7 +232,7 @@
 											<i class="search icon"></i>
 										</button>
 									</div>
-									
+
 									<div class="select_area">
 										<select class="ui dropdown list-num" id="listScale" onchange="listPaging(1)">
 								            <option value="10">10</option>
@@ -242,22 +242,22 @@
 								        </select>
 									</div>
 								</div>
-								
+
 								<!-- 게시글 리스트 -->
 								<div id="infoListArea">
 								</div>
-								
+
                             </div><!-- //col -->
                    		</div><!-- //row -->
-						
+
                 	</div><!-- //layout2 -->
 	        	</div><!-- //ui form -->
 			</div><!-- //content stu_section -->
 		</div><!-- //container -->
-		
+
 		<%@ include file="/WEB-INF/jsp/common/frontFooter.jsp"%>
-		
+
 	</div><!-- //wrap -->
-	
+
 </body>
 </html>

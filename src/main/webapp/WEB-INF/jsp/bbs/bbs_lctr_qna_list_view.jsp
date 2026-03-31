@@ -120,7 +120,7 @@
 
 			var param = {
 				  encParams		: EPARAM
-				, extParam		: UiComm.makeExtParam(extData)
+				, addParams		: UiComm.makeEncParams(extData)
 			};
 
 			ajaxCall(url, param, function(data) {
@@ -192,7 +192,7 @@
 						atclTtl = '<span class="fcGrey" style="text-decoration: line-through">' + atclTtl + '</span>';
 					}
 
-					var extParam = UiComm.makeExtParam({
+					var addParams = UiComm.makeEncParams({
 						atclId: v.atclId,
 						pageIndex: PAGE_INDEX,
 						listScale: LIST_SCALE
@@ -201,7 +201,7 @@
 					if(bbsCommon.isStudent() && v.bbsCd == "SECRET" && v.regNo != USER_NO) {
 						var linkUrl = 'javascript:alert(' + '<spring:message code="bbs.alert.no_auth_secret" />' + ')'; // 1:1상담 게시글 입니다.
 					} else {
-						var linkUrl = "/bbs/" + TEMPLATE_URL + "/bbsLctrQnaView.do?encParams="+EPARAM+"&extParam="+extParam;
+						var linkUrl = "/bbs/" + TEMPLATE_URL + "/bbsLctrQnaView.do?encParams="+EPARAM+"&addParams="+addParams;
 					}
 					var isSingleTab = BBS_IDS && BBS_IDS.split(",").length == 1;
 

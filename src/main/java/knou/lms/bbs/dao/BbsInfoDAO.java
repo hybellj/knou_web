@@ -182,12 +182,28 @@ public interface BbsInfoDAO {
     public BbsVO selectBbs(BbsVO vo) throws Exception;
 
     /*****************************************************
+     * 게시판 정보_강의실
+     * @param vo
+     * @return BbsInfoVO
+     * @throws Exception
+     ******************************************************/
+    public BbsVO selectBbsLect(BbsVO vo) throws Exception;
+
+    /*****************************************************
      * 게시판 정보 저장
      * @param vo
      * @return BbsVO
      * @throws Exception
      ******************************************************/
     public void bbsInfoRegist(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 정보 옵션 저장
+     * @param vo
+     * @return BbsVO
+     * @throws Exception
+     ******************************************************/
+    public void bbsInfoOptnRegist(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 강의실 메뉴의 게시판 목록 조회
@@ -197,4 +213,19 @@ public interface BbsInfoDAO {
      ******************************************************/
     public List<BbsVO> selectBbsForSbjctMenu(BbsVO vo) throws Exception;
 
+    /*****************************************************
+     * 게시판 목록 페이징
+     * @param vo
+     * @return List<BbsInfoVO>
+     * @throws Exception
+     ******************************************************/
+    public List<BbsVO> countBbsInfo(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 목록 페이징
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    public List<BbsVO> listBbsMngInfoPaging(BbsVO vo) throws Exception;
 }

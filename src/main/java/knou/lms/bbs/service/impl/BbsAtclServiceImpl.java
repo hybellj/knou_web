@@ -606,15 +606,15 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         // 목록 조회
         List<BbsAtclVO> atclList;
         switch (vo.getBbsId()) {
-	        case "LMSBASIC_QNA":
+	        case "QNA":
 	            atclList = bbsAtclDAO.selectBbsLctrQnaList(vo);
 	            break;
 
-	        case "LMSBASIC_1ON1":
+	        case "1ON1":
 	            atclList = bbsAtclDAO.selectBbsDscsnList(vo);
 	            break;
 
-	        case "LMSBASIC_NTC":
+	        case "NTC":
 	            atclList = bbsAtclDAO.selectBbsSbjctList(vo);
 	            break;
 

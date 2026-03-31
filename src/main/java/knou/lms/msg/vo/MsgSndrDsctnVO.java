@@ -18,7 +18,6 @@ public class MsgSndrDsctnVO extends DefaultVO {
     // 목록 결과
     private String msgId;
     private int rnum;
-    private String sndngGbnnm;
     private String orgnm;
     private String deptnm;
     private String dvclasNo;
@@ -47,6 +46,9 @@ public class MsgSndrDsctnVO extends DefaultVO {
     private int lmsTotalCnt;
     private int lmsSuccCnt;
     private int lmsFailCnt;
+    private int mmsTotalCnt;
+    private int mmsSuccCnt;
+    private int mmsFailCnt;
 
     public String getSbjctYr() {
         return sbjctYr;
@@ -126,14 +128,6 @@ public class MsgSndrDsctnVO extends DefaultVO {
 
     public void setMsgId(String msgId) {
         this.msgId = msgId;
-    }
-
-    public String getSndngGbnnm() {
-        return sndngGbnnm;
-    }
-
-    public void setSndngGbnnm(String sndngGbnnm) {
-        this.sndngGbnnm = sndngGbnnm;
     }
 
     public String getOrgnm() {
@@ -342,5 +336,29 @@ public class MsgSndrDsctnVO extends DefaultVO {
 
     public void setLmsFailCnt(int lmsFailCnt) {
         this.lmsFailCnt = lmsFailCnt;
+    }
+
+    public int getMmsTotalCnt() {
+        return mmsTotalCnt;
+    }
+
+    public void setMmsTotalCnt(int mmsTotalCnt) {
+        this.mmsTotalCnt = mmsTotalCnt;
+    }
+
+    public int getMmsSuccCnt() {
+        return mmsSuccCnt;
+    }
+
+    public void setMmsSuccCnt(int mmsSuccCnt) {
+        this.mmsSuccCnt = mmsSuccCnt;
+    }
+
+    public int getMmsFailCnt() {
+        return mmsFailCnt;
+    }
+
+    public void setMmsFailCnt(int mmsFailCnt) {
+        this.mmsFailCnt = mmsFailCnt;
     }
 }

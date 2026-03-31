@@ -348,10 +348,6 @@
         FROM (
                  SELECT
                      T.DGRS_YR AS searchYr
-                      , CASE
-                            WHEN T.DGRS_SMSTR_COHORT IN ('20','21','2') THEN '2'
-                            ELSE '1'
-                     END AS searchSmstr
                  FROM TB_LMS_ORG_SMSTR_COHORT T
                  WHERE T.ORG_ID = #{orgId}
                    AND NVL(T.NOW_SMSTRYN,'N') = 'Y'
@@ -408,9 +404,14 @@
         ON A.DEPT_ID = D.DEPT_ID
         WHERE NVL(A.DELYN,'N') = 'N'
         AND A.SBJCT_YR = #{searchYr}
-        AND TRIM(A.SBJCT_SMSTR) IN (#{searchSmstr}, LPAD(#{searchSmstr}, 2, '0'))
+        <if test="smstrChrtId != null and smstrChrtId != ''">
+            AND A.SMSTR_CHRT_ID = #{smstrChrtId}
+        </if>
         AND (B.ORG_ID = #{orgId} OR B.ORG_ID IS NULL)
         <!-- TB_LMS_SBJCT 에 UNIV_GBNCD 컬럼이 없어 대학구분(univGbn) 조건은 적용하지 않음 -->
+        <if test="searchOrgId != null and searchOrgId != ''">
+            AND B.ORG_ID = #{searchOrgId}
+        </if>
         <if test="deptId != null and deptId != ''">
             AND A.DEPT_ID = #{deptId}
         </if>
@@ -441,9 +442,14 @@
         ON A.PROF_ID = B.USER_ID
         WHERE NVL(A.DELYN,'N') = 'N'
         AND A.SBJCT_YR = #{searchYr}
-        AND TRIM(A.SBJCT_SMSTR) IN (#{searchSmstr}, LPAD(#{searchSmstr}, 2, '0'))
+        <if test="smstrChrtId != null and smstrChrtId != ''">
+            AND A.SMSTR_CHRT_ID = #{smstrChrtId}
+        </if>
         AND (B.ORG_ID = #{orgId} OR B.ORG_ID IS NULL)
         <!-- TB_LMS_SBJCT 에 UNIV_GBNCD 컬럼이 없어 대학구분(univGbn) 조건은 적용하지 않음 -->
+        <if test="searchOrgId != null and searchOrgId != ''">
+            AND B.ORG_ID = #{searchOrgId}
+        </if>
         <if test="deptId != null and deptId != ''">
             AND A.DEPT_ID = #{deptId}
         </if>
@@ -509,9 +515,15 @@
         ON O.ORG_ID = B.ORG_ID
         WHERE NVL(A.DELYN,'N') = 'N'
         AND A.SBJCT_YR = #{searchYr}
-        AND TRIM(A.SBJCT_SMSTR) IN (#{searchSmstr}, LPAD(#{searchSmstr}, 2, '0'))
+        <if test="smstrChrtId != null and smstrChrtId != ''">
+            AND A.SMSTR_CHRT_ID = #{smstrChrtId}
+        </if>
         AND (B.ORG_ID = #{orgId} OR B.ORG_ID IS NULL)
         <!-- TB_LMS_SBJCT 에 UNIV_GBNCD 컬럼이 없어 대학구분(univGbn) 조건은 적용하지 않음 -->
+        <!-- 운영과목 기관 검색조건 -->
+        <if test="searchOrgId != null and searchOrgId != ''">
+            AND B.ORG_ID = #{searchOrgId}
+        </if>
         <if test="deptId != null and deptId != ''">
             AND A.DEPT_ID = #{deptId}
         </if>
@@ -1136,7 +1148,7 @@
         )
         END AS "email"
         , NVL(O.ORGNM, '-') AS "orgNm"
-        , NULL AS "photoUrl"
+        , NULL AS "photoUrl" <!--TB_LMS_USER.PHOTO_FILE_ID 구조는 있으나 현재 등록 데이터가 없어 기본값 유지-->
         FROM TB_LMS_USER U
         LEFT JOIN TB_LMS_ORG O
         ON O.ORG_ID = U.ORG_ID

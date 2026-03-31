@@ -138,7 +138,7 @@
         , DEPT.DEPTNM
         , ORG.ORGNM
         , USR.STDNT_NO
-        , USR.USER_RPRS_ID AS USER_RPRS_ID2
+        , USR.USER_ID AS USER_RPRS_ID2
         FROM TB_LMS_MSG_SHRTNT_SNDNG S
         INNER JOIN TB_LMS_MSG MSG ON S.MSG_ID = MSG.MSG_ID
         LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON S.MSG_ID = T.MSG_ID AND S.RCVR_ID = T.USER_ID
@@ -183,7 +183,7 @@
              , DEPT.ORG_ID
              , ORG.ORGNM
              , USR.STDNT_NO
-             , USR.USER_RPRS_ID AS USER_RPRS_ID2
+             , USR.USER_ID AS USER_RPRS_ID2
              , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = S.SNDNGR_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS SNDNGR_PHNNO
              , (SELECT COUNT(*) FROM TB_LMS_ATFL A WHERE A.REF_ID = S.MSG_ID AND A.DELYN = 'N') AS FILE_CNT
         FROM TB_LMS_MSG_SHRTNT_SNDNG S
@@ -232,15 +232,20 @@
         */
         SELECT COUNT(*)
         FROM TB_LMS_MSG MSG
+        LEFT JOIN (
+            SELECT MSG_ID
+                 , MIN(CASE WHEN SNDNGYN = 'Y' THEN SNDNG_DTTM END) AS SNDNG_DTTM
+                 , MAX(SNDNGYN) AS SNDNG_YN
+            FROM TB_LMS_MSG_SHRTNT_SNDNG
+            WHERE SNDNGR_DELYN = 'N'
+            GROUP BY MSG_ID
+        ) SS ON MSG.MSG_ID = SS.MSG_ID
         LEFT JOIN TB_LMS_SBJCT SBJCT ON MSG.SBJCT_ID = SBJCT.SBJCT_ID
         LEFT JOIN TB_LMS_DEPT DEPT ON SBJCT.DEPT_ID = DEPT.DEPT_ID
         LEFT JOIN TB_LMS_ORG ORG ON DEPT.ORG_ID = ORG.ORG_ID
         WHERE MSG.RGTR_ID = #{sndngrId}
         AND (MSG.MSG_TYCD = 'SHRTNT' OR MSG.MSG_CTS_GBNCD = 'SHRTNT')
-        AND (
-            EXISTS (SELECT 1 FROM TB_LMS_MSG_SHRTNT_SNDNG S WHERE S.MSG_ID = MSG.MSG_ID AND S.SNDNGR_DELYN = 'N')
-            OR MSG.RSRV_SNDNG_SDTTM IS NOT NULL
-        )
+        AND (SS.MSG_ID IS NOT NULL OR MSG.RSRV_SNDNG_SDTTM IS NOT NULL)
         <include refid="sndngSearchCondition"/>
     </select>
 
@@ -322,6 +327,9 @@
                  LEFT JOIN TB_LMS_DEPT DEPT ON SBJCT.DEPT_ID = DEPT.DEPT_ID
                  LEFT JOIN TB_LMS_ORG ORG ON DEPT.ORG_ID = ORG.ORG_ID
         WHERE MSG.MSG_ID = #{msgId}
+        <if test="sndngrId != null and sndngrId != ''">
+            AND MSG.RGTR_ID = #{sndngrId}
+        </if>
     </select>
 
     <select id="selectShrtntSndngRcvrCnt" parameterType="MsgShrtntVO" resultType="int">
@@ -332,6 +340,9 @@
         SELECT COUNT(*)
         FROM TB_LMS_MSG_SHRTNT_SNDNG S
         WHERE S.MSG_ID = #{msgId}
+        <if test="sndngrId != null and sndngrId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = S.MSG_ID AND M.RGTR_ID = #{sndngrId})
+        </if>
     </select>
 
     <select id="selectShrtntSndngRcvrList" parameterType="MsgShrtntVO" resultType="MsgShrtntVO">
@@ -349,7 +360,7 @@
                                , T.READ_DTTM
                                , T.READ_YN
                                , U.STDNT_NO
-                               , U.USER_RPRS_ID AS USER_RPRS_ID2
+                               , U.USER_ID AS USER_RPRS_ID2
                                , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = S.RCVR_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
                                , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = S.RCVR_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
                                , S.SNDNGYN AS SNDNG_YN
@@ -357,6 +368,9 @@
                                    LEFT JOIN TB_LMS_USER U ON S.RCVR_ID = U.USER_ID
                                    LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON S.MSG_ID = T.MSG_ID AND S.RCVR_ID = T.USER_ID
                           WHERE S.MSG_ID = #{msgId}
+                          <if test="sndngrId != null and sndngrId != ''">
+                              AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = S.MSG_ID AND M.RGTR_ID = #{sndngrId})
+                          </if>
                           ORDER BY U.USERNM ASC
                       ) A
                  WHERE ROWNUM <![CDATA[<=]]> #{lastIndex}
@@ -384,7 +398,7 @@
              , S.RCVR_ID
              , U.USERNM AS RCVRNM
              , U.STDNT_NO
-             , U.USER_RPRS_ID AS USER_RPRS_ID2
+             , U.USER_ID AS USER_RPRS_ID2
              , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = S.RCVR_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
              , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = S.RCVR_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
              , S.SNDNGYN AS SNDNG_YN
@@ -394,6 +408,9 @@
                  LEFT JOIN TB_LMS_USER U ON S.RCVR_ID = U.USER_ID
                  LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON S.MSG_ID = T.MSG_ID AND S.RCVR_ID = T.USER_ID
         WHERE S.MSG_ID = #{msgId}
+        <if test="sndngrId != null and sndngrId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = S.MSG_ID AND M.RGTR_ID = #{sndngrId})
+        </if>
         ORDER BY U.USERNM ASC
     </select>
 
@@ -509,6 +526,9 @@
           , MDFR_ID = #{mdfrId}
           , MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
         WHERE MSG_ID = #{msgId}
+        <if test="sndngrId != null and sndngrId != ''">
+            AND RGTR_ID = #{sndngrId}
+        </if>
     </update>
 
     <delete id="deleteRcvTrgtr" parameterType="MsgShrtntVO">
@@ -518,6 +538,9 @@
          */
         DELETE FROM TB_LMS_MSG_RCV_TRGTR
         WHERE MSG_ID = #{msgId}
+        <if test="sndngrId != null and sndngrId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = #{msgId} AND M.RGTR_ID = #{sndngrId})
+        </if>
     </delete>
 
     <delete id="deleteShrtntSndng" parameterType="MsgShrtntVO">
@@ -528,6 +551,9 @@
         DELETE FROM TB_LMS_MSG_SHRTNT_SNDNG
         WHERE MSG_ID = #{msgId}
           AND SNDNGYN = 'N'
+        <if test="sndngrId != null and sndngrId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = #{msgId} AND M.RGTR_ID = #{sndngrId})
+        </if>
     </delete>
 
     <update id="updateMsgRsrvCncl" parameterType="MsgShrtntVO">
@@ -542,6 +568,9 @@
         WHERE MSG_ID = #{msgId}
           AND RSRV_SNDNG_SDTTM IS NOT NULL
           AND RSRV_SNDNG_CNCL_DTTM IS NULL
+        <if test="sndngrId != null and sndngrId != ''">
+            AND RGTR_ID = #{sndngrId}
+        </if>
     </update>
 
     <select id="selectMsgRcvTrgtrList" parameterType="MsgShrtntVO" resultType="MsgShrtntVO">
@@ -554,6 +583,9 @@
         FROM TB_LMS_MSG_RCV_TRGTR T
                  INNER JOIN TB_LMS_USER U ON T.USER_ID = U.USER_ID
         WHERE T.MSG_ID = #{msgId}
+        <if test="sndngrId != null and sndngrId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = T.MSG_ID AND M.RGTR_ID = #{sndngrId})
+        </if>
         ORDER BY U.USERNM ASC
     </select>
 
@@ -704,7 +736,7 @@
         , U.USERNM
         , U.STDNT_NO
         , U.USER_TYCD
-        , U.USER_RPRS_ID AS USER_RPRS_ID2
+        , U.USER_ID AS USER_RPRS_ID2
         , D.DEPTNM
         , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
         , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
@@ -734,7 +766,7 @@
         WHERE S.DELYN = 'N'
         AND D.ORG_ID = #{orgId}
         <include refid="rcvrSearchCondition"/>
-        GROUP BY U.USER_ID, U.USERNM, U.STDNT_NO, U.USER_TYCD, U.USER_RPRS_ID, D.DEPTNM, S.SBJCTNM
+        GROUP BY U.USER_ID, U.USERNM, U.STDNT_NO, U.USER_TYCD, D.DEPTNM, S.SBJCTNM
         )
     </select>
 
@@ -751,7 +783,7 @@
         , U.USERNM
         , U.STDNT_NO
         , U.USER_TYCD
-        , U.USER_RPRS_ID AS USER_RPRS_ID2
+        , U.USER_ID AS USER_RPRS_ID2
         , D.DEPTNM
         , S.SBJCTNM
         , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
@@ -763,7 +795,7 @@
         WHERE S.DELYN = 'N'
         AND D.ORG_ID = #{orgId}
         <include refid="rcvrSearchCondition"/>
-        GROUP BY U.USER_ID, U.USERNM, U.STDNT_NO, U.USER_TYCD, U.USER_RPRS_ID, D.DEPTNM, S.SBJCTNM
+        GROUP BY U.USER_ID, U.USERNM, U.STDNT_NO, U.USER_TYCD, D.DEPTNM, S.SBJCTNM
         ORDER BY U.USERNM ASC
         ) A
         WHERE ROWNUM <![CDATA[<=]]> #{lastIndex}
@@ -779,7 +811,7 @@
         SELECT U.USER_ID
         , U.USERNM
         , U.STDNT_NO
-        , U.USER_RPRS_ID AS USER_RPRS_ID2
+        , U.USER_ID AS USER_RPRS_ID2
         , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
         , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
         FROM TB_LMS_USER U
@@ -787,6 +819,9 @@
         <foreach collection="userIdList" item="uid" open="(" separator="," close=")">
             #{uid}
         </foreach>
+        <if test="orgId != null and orgId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_USER_ORG UO WHERE UO.USER_ID = U.USER_ID AND UO.ORG_ID = #{orgId})
+        </if>
         ORDER BY U.USERNM ASC
     </select>
 

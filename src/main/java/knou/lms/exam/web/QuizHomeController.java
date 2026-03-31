@@ -926,11 +926,11 @@ public class QuizHomeController extends ControllerBase {
     /**
      * 퀴즈문제출제완료수정
      *
-     * @param examBscId   시험기본아이디
-     * @param examDtlId   시험상세아이디
-     * @param examGbncd   시험구분코드
-     * @param searchGubun 수정상태 ( save, edit )
-     * @param searchGubun searchKey ( bsc, dtl )
+     * @param examBscId   	시험기본아이디
+     * @param examDtlId   	시험상세아이디
+     * @param examGbncd   	시험구분코드
+     * @param searchGubun 	수정상태 ( save, edit )
+     * @param searchKey 	( bsc, dtl )
      * @return ProcessResultVO<QstnVO>
      * @throws Exception
      */
@@ -974,6 +974,48 @@ public class QuizHomeController extends ControllerBase {
             resultVO.setMessage("정보 조회 중 에러가 발생하였습니다.");
         }
 
+        return resultVO;
+    }
+
+    /**
+     * 교수퀴즈문제수정옵션팝업
+     *
+     * @param sbjctId	과목아이디
+     * @param examBscId 시험기본아이디
+     * @return prof_quiz_qstn_modify_option_pop.jsp
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizQstnModifyOptionPopup.do")
+    public String profQuizQstnModifyOptionPopup(QstnVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        request.setAttribute("vo", vo);
+
+        return "quiz/popup/prof_quiz_qstn_modify_option_pop";
+    }
+
+    /**
+     * 퀴즈문항옵션수정
+     *
+     * @param QstnVO 문항 정보
+     * @return ProcessResultVO<QstnVO>
+     * @throws Exception
+     */
+    @RequestMapping(value="/quizQstnOptionModifyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> quizQstnOptionModifyAjax(QstnVO vo, @RequestParam(value="qstns", defaultValue="[]") String qstnsStr, ModelMap model, HttpServletRequest request) throws Exception {
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            vo.setMdfrId(userId);
+            vo.setQstns(mapper.readValue(qstnsStr, new TypeReference<List<Map<String, Object>>>() {
+            }));
+            qstnService.quizQstnOptionModify(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            resultVO.setResult(-1);
+            resultVO.setMessage("문항 수정 중 에러가 발생하였습니다.");
+        }
         return resultVO;
     }
 
@@ -1079,9 +1121,68 @@ public class QuizHomeController extends ControllerBase {
     public String profQuizQstnExcelUploadPopup(ExamDtlVO vo, ModelMap model, HttpServletRequest request) throws Exception {
     	String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         vo.setUserId(userId);
+        vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, vo.getExamDtlId()));
         model.addAttribute("vo", vo);
 
         return "quiz/popup/prof_quiz_qstn_excel_upload_pop";
+    }
+
+    /**
+     * 교수퀴즈문항등록샘플엑셀다운로드
+     *
+     * @param examDtlId		시험상세아이디
+     * @param excelGrid 	엑셀그리드
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizQstnRegistSampleExcelDown.do")
+    public String profQuizQstnRegistSampleExcelDown(ExamDtlVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        HashMap<String, Object> map = qstnService.quizQstnExcelSampleData(vo);
+        List<EgovMap> list = new ArrayList<>();
+        if(map != null) {
+        	list = (List<EgovMap>) map.get("list");
+        }
+
+        // 엑셀화를 위한 정보값 세팅
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("outFileName", "퀴즈문항");
+        params.put("sheetName", "sample");
+        params.put("list", list);
+
+        //엑셀화
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        params.put("workbook", excelUtilPoi.simpleGrid(map));
+        model.addAllAttributes(params);
+
+        return "excelView";
+    }
+
+    /**
+     * 교수퀴즈문항엑셀업로드
+     *
+     * @param examDtlId 	시험상세아이디
+     * @param uploadFiles 	파일목록
+     * @param uploadPath 	파일경로
+     * @param excelGrid 	엑셀그리드
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value="/profQuizQstnExcelUpload.do")
+    @ResponseBody
+    public ProcessResultVO<ExamDtlVO> profQuizQstnExcelUpload(ExamDtlVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    	ProcessResultVO<ExamDtlVO> resultVO = new ProcessResultVO<ExamDtlVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String orgId  = StringUtil.nvl(SessionInfo.getOrgId(request));
+        vo.setOrgId(orgId);
+        vo.setRgtrId(userId);
+
+        try {
+        	resultVO = qstnService.quizQstnExcelUpload(vo);
+        } catch(Exception e) {
+            e.printStackTrace();
+            resultVO.setResult(-1);
+        }
+        return resultVO;
     }
 
     /**

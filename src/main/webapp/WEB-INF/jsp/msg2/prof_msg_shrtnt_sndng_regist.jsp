@@ -100,7 +100,7 @@
                     fn_waitAndApplyReplySubject();
                 }
             }
-        });
+        }, function() {});
     }
 
     /* 답장 모드: cascade 완료 대기 후 운영과목 일괄 세팅 */
@@ -178,7 +178,7 @@
                 fn_refreshChosen('#sbjctYr');
                 fn_loadSmstrList();
             }
-        });
+        }, function() {});
 
         $('#sbjctYr').on('change', function() { fn_loadSmstrList(); });
         $('#sbjctSmstr').on('change', function() { fn_loadDeptList(); });
@@ -191,7 +191,7 @@
         let yr = $('#sbjctYr').val();
         if (!yr) return;
 
-        ajaxCall('/msgShrtntSmstrListAjax.do', { dgrsYr: yr }, function(res) {
+        ajaxCall('/msgShrtntSmstrListAjax.do', { sbjctYr: yr }, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
@@ -201,7 +201,7 @@
                 fn_refreshChosen('#sbjctSmstr');
                 fn_loadDeptList();
             }
-        });
+        }, function() {});
     }
 
     /* 기관 목록 */
@@ -215,7 +215,7 @@
                 $('#orgId').html(html);
                 fn_refreshChosen('#orgId');
             }
-        });
+        }, function() {});
     }
 
     /* 학과 목록 */
@@ -224,7 +224,7 @@
         let smstr = $('#sbjctSmstr').val();
         if (!yr || !smstr) return;
 
-        ajaxCall('/msgShrtntDeptListAjax.do', { orgId: $('#orgId').val(), dgrsYr: yr, smstr: smstr }, function(res) {
+        ajaxCall('/msgShrtntDeptListAjax.do', { orgId: $('#orgId').val(), sbjctYr: yr, sbjctSmstr: smstr }, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
@@ -235,7 +235,7 @@
                 fn_refreshChosen('#deptId');
                 fn_loadSbjctList();
             }
-        });
+        }, function() {});
     }
 
     /* 과목 목록 */
@@ -244,7 +244,7 @@
         let smstr = $('#sbjctSmstr').val();
         let deptId = $('#deptId').val();
 
-        ajaxCall('/msgShrtntSbjctListAjax.do', { orgId: $('#orgId').val(), dgrsYr: yr, smstr: smstr, deptId: deptId }, function(res) {
+        ajaxCall('/msgShrtntSbjctListAjax.do', { orgId: $('#orgId').val(), sbjctYr: yr, sbjctSmstr: smstr, deptId: deptId }, function(res) {
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>';
                 res.returnList.forEach(function(v) {
@@ -304,7 +304,7 @@
                     }
                 }
             }
-        });
+        }, function() {});
     }
 
     /* 수정 시 수신대상자 목록 조회 */
@@ -318,7 +318,7 @@
                     });
                 });
             }
-        });
+        }, function() {});
     }
 
     /* 받는 사람 추가 팝업 */
@@ -466,7 +466,7 @@
             } else {
                 alert(res.message || '<spring:message code="fail.common.delete"/>');
             }
-        });
+        }, function() { UiComm.showLoading(false); });
     }
 
     /* 수신자 목록에 추가 */

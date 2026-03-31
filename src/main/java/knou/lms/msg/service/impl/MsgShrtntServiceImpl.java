@@ -171,7 +171,10 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
      ******************************************************/
     @Override
     public int modifyShrtntSndng(MsgShrtntVO vo) throws Exception {
-        msgShrtntDAO.updateMsg(vo);
+        int updated = msgShrtntDAO.updateMsg(vo);
+        if (updated == 0) {
+            throw new Exception("msg.error.noauth");
+        }
         msgShrtntDAO.deleteShrtntSndng(vo);
         msgShrtntDAO.deleteRcvTrgtr(vo);
 

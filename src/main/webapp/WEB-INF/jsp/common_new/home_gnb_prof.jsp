@@ -24,10 +24,12 @@ pageContext.setAttribute("menuList", menuList);
 
 	<aside id="gnb" class="common gnb-menu expanded">
 		<form id="moveForm" method="post">
-			<input name="menuNm" type="hidden" value="">
-			<input name="menuUrl" type="hidden" value="">
-			<input name="upMenuId" type="hidden" value="">
-			<input name="menuId" type="hidden" value="">
+			<input name="encParams" type="hidden" value="${encParams}">
+			<input name="addParams" type="hidden" value="">
+			<input name="menunm"    type="hidden" value="">
+			<input name="menuUrl"   type="hidden" value="">
+			<input name="upMenuId"  type="hidden" value="">
+			<input name="menuId"    type="hidden" value="">
 		</form>
 
 		<div class="option-control-wrap">
@@ -59,10 +61,9 @@ pageContext.setAttribute("menuList", menuList);
 			    <c:forEach items="${menuList}" var="menu" varStatus="status">
 			        <div class="gnb-item">
 			            <%-- 상위 메뉴 --%>
-			            <a id="MENU_${menu.menuId}" href="#class_lnb" index="${status.index}"
-			                class="<c:if test='${menu.menuId == curMenuId}'>current</c:if>"
-			                menuUrl="${menu.menuUrl}" upMenuId="${menu.upMenuId}" menuId="${menu.menuId}" linkTargetTycd="${menu.linkTargetTycd}"
-			                onclick="moveMenu(this, '${menu.menuUrl}','${menu.upMenuId}', '${menu.menuId}', '${menu.menunm}', '${menu.linkTargetTycd}');return false;"
+			            <a id="MENU_${menu.menuId}" href="#0"
+			                class="<c:if test='${menu.menuId == curMenuId or (empty curMenuId and status.index == 0)}'>current</c:if>"
+			                onclick='moveMenu(this, "${menu.menuUrl}", "${menu.upMenuId}", "${menu.menuId}", "${menu.menunm}", "${menu.linkTargetTycd}");return false;'
 			                title="${menu.menunm}">
 			                <i class="${menu.menuImgFileId}" aria-hidden="true"></i>
 			                <span>${menu.menunm}</span>
@@ -73,9 +74,9 @@ pageContext.setAttribute("menuList", menuList);
 			                <ul id="SUB_${menu.menuId}">
 			                    <c:forEach items="${menu.subMenuList}" var="sub">
 			                        <li id="${sub.menuId}">
-			                            <a id="SUBMENU_${sub.menuId}" href="#class_lnb"
+			                            <a id="SUBMENU_${sub.menuId}" href="#0"
 			                                class="<c:if test='${sub.menuId == curMenuId}'>current</c:if>"
-			                                onclick="moveMenu(this, '${sub.menuUrl}', '${sub.upMenuId}', '${sub.menuId}', '${menu.menunm}', '${menu.linkTargetTycd}'); return false;"
+			                                onclick='moveMenu(this, "${sub.menuUrl}", "${sub.upMenuId}", "${sub.menuId}", "${sub.menunm}", "${sub.linkTargetTycd}");return false;'
 			                                title="${sub.menunm}">
 			                                <span>${sub.menunm}</span>
 			                            </a>
@@ -89,73 +90,5 @@ pageContext.setAttribute("menuList", menuList);
 			<!-- //gnb menu -->
 		</div>
 	</aside>
-	<script>
-
-	// 메뉴 이벤트 설정
-	function initClassLnbMenu() {
-    	/*
-        $('#class_lnb ul > li').click(function() {
-            if ($(this).hasClass("open") != true) {
-                $('#class_lnb ul > li').removeClass("open");
-                $(this).addClass("open");
-            } else {
-                $('#class_lnb ul > li').removeClass("open");
-            }
-        });
-    	*/
-    }
-
-	// 메뉴 이동
-	function moveMenu(obj, menuUrl, upMenuId, menuId, menuNm, linkTargetTycd){
-		if (menuUrl === '') {
-			return;
-		}
-
-		let index = "";
-
-		if (obj != null) {
-			index = obj != null ? $(obj).attr("index") : "";
-			if (!menuNm) {
-				menuNm = $(obj).children("span").html();
-			}
-		}
-
-		if (menuUrl.indexOf("?") > -1) {
-			menuUrl += "&param="+btoa("MENU,"+upMenuId+","+menuId);
-		}
-		else {
-			menuUrl += "?param="+btoa("MENU,"+upMenuId+","+menuId);
-		}
-
-		$("#moveForm input[name=menuNm]").val(menuNm);
-		$("#moveForm input[name=menuUrl]").val(menuUrl);
-		$("#moveForm input[name=upMenuId]").val(upMenuId);
-		$("#moveForm input[name=menuId]").val(menuId);
-
-		// Tab에 표시
-		if (linkTargetTycd == "tab") {
-			if (typeof TAB_MENU == 'undefined') {
-				let url = "/dashboard/mainTabpage.do"
-				$("#moveForm").attr("action", url);
-				$("#moveForm").submit();
-			}
-			else {
-				TAB_MENU.addTabMenu(menuNm, menuUrl, upMenuId, menuId)
-			}
-		}
-		// 타 사이트 호출
-		else if (linkTargetTycd == "other") {
-			window.open(menuUrl, '_blank');
-		}
-		// self 표시
-		else {
-			$("#moveForm").attr("action", menuUrl);
-			$("#moveForm").submit();
-		}
-	}
-
-	initClassLnbMenu();
-
-	</script>
 
 </c:if>

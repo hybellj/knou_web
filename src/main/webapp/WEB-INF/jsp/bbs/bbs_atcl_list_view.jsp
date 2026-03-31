@@ -157,7 +157,7 @@
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do"
 			var param = {
 				  encParams		: EPARAM
-				, extParam		: UiComm.makeExtParam(extData)
+				, addParams		: UiComm.makeEncParams(extData)
 			};
 
 			UiComm.showLoading(true);
@@ -287,7 +287,7 @@
 				atclId	: atclId
 			};
 
-			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams="+EPARAM+"&extParam="+UiComm.makeExtParam(extData);
+			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);
 		}
 
 

@@ -15,7 +15,7 @@ public class BbsVO extends DefaultVO {
     private String crsCd;			// 과정 아이디
 
     private String bbsRefTypeId;	// 게시판 참조 유형 아이디
-    private String bbsRefTyCd;		// 게시판 참조 유형 코드
+    private String bbsRefTycd;		// 게시판 참조 유형 코드
 
     private String bbsnm;			// 게시판 명
     private String bbsEnnm;			// 게시판 영문명
@@ -72,6 +72,12 @@ public class BbsVO extends DefaultVO {
     private String teamNm;
     private String useyn;
     private String bbsNm;
+    private String bbsOptnId;
+    private String optnCd;
+    private List<String> optnCdList;
+    private String optnUseyn;
+    private String bbsAddyn;
+    private String bbsOptnNm;
 
 	public String getBbsId() {
 		return bbsId;
@@ -97,11 +103,11 @@ public class BbsVO extends DefaultVO {
 	public void setBbsRefTypeId(String bbsRefTypeId) {
 		this.bbsRefTypeId = bbsRefTypeId;
 	}
-	public String getBbsRefTyCd() {
-		return bbsRefTyCd;
+	public String getBbsRefTycd() {
+		return bbsRefTycd;
 	}
-	public void setBbsRefTyCd(String bbsRefTyCd) {
-		this.bbsRefTyCd = bbsRefTyCd;
+	public void setBbsRefTycd(String bbsRefTycd) {
+		this.bbsRefTycd = bbsRefTycd;
 	}
 	public String getBbsnm() {
 		return bbsnm;
@@ -361,5 +367,40 @@ public class BbsVO extends DefaultVO {
 	public void setBbsNm(String bbsNm) {
 		this.bbsNm = bbsNm;
 	}
-
+	public String getBbsOptnId() {
+		return bbsOptnId;
+	}
+	public void setBbsOptnId(String bbsOptnId) {
+		this.bbsOptnId = bbsOptnId;
+	}
+	public String getOptnUseyn() {
+		return optnUseyn;
+	}
+	public void setOptnUseyn(String optnUseyn) {
+		this.optnUseyn = optnUseyn;
+	}
+	public List<String> getOptnCdList() {
+		return optnCdList;
+	}
+	public void setOptnCdList(List<String> optnCdList) {
+		this.optnCdList = optnCdList;
+	}
+	public String getOptnCd() {
+		return optnCd;
+	}
+	public void setOptnCd(String optnCd) {
+		this.optnCd = optnCd;
+	}
+	public String getBbsAddyn() {
+		return bbsAddyn;
+	}
+	public void setBbsAddyn(String bbsAddyn) {
+		this.bbsAddyn = bbsAddyn;
+	}
+	public String getBbsOptnNm() {
+		return bbsOptnNm;
+	}
+	public void setBbsOptnNm(String bbsOptnNm) {
+		this.bbsOptnNm = bbsOptnNm;
+	}
 }

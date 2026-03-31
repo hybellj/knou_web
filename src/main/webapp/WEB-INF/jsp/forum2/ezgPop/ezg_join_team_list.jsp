@@ -52,7 +52,6 @@ function selectTeam(obj) {
 
 // 팀원 선택 반전
 function selectUser(obj) {
-	debugger;
 	var childForumCd = $(obj).attr("data-forumCd");
 	if (childForumCd) { $("#ezgForumCd").val(childForumCd); }
 	$('.active-toggle-btn').removeClass("select");

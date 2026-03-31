@@ -136,7 +136,7 @@
             } else {
                 alert(res.message || '<spring:message code="fail.common.delete"/>');
             }
-        });
+        }, function() { UiComm.showLoading(false); });
     }
 
     /* 엔터키 검색 */

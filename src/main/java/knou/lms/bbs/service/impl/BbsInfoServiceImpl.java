@@ -19,6 +19,7 @@ import knou.framework.common.ServiceBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
 import knou.framework.common.ControllerBase;
+import knou.framework.common.PageInfo;
 import knou.framework.exception.BadRequestUrlException;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.LocaleUtil;
@@ -611,6 +612,25 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
     }
 
     /*****************************************************
+     * 게시판 정보 조회_강의실
+     * @param vo
+     * @return BbsVO
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public BbsVO isValidBbsLectInfo(BbsVO vo, boolean isAdmin) throws Exception {
+    	vo.setSysUseYn("Y"); // 시스템 게시판 여부
+
+        if (!isAdmin) {
+        	vo.setUseYn("Y");
+        }
+
+        BbsVO resultVO = bbsInfoDAO.selectBbsLect(vo);
+
+        return resultVO;
+    }
+
+    /*****************************************************
      * 게시판 정보 저장
      * @param vo
      * @throws Exception
@@ -618,8 +638,32 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
     @Override
     public void bbsInfoRegist(BbsVO vo) throws Exception {
 
+    	String bbsId = IdGenerator.getNewId("BBS");
+        vo.setBbsId(bbsId);
+
     	bbsInfoDAO.bbsInfoRegist(vo);
     }
+
+    /*****************************************************
+     * 게시판 정보 옵션 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void bbsInfoOptnRegist(BbsVO vo) throws Exception {
+        List<String> optnList = vo.getOptnCdList();
+
+        if (optnList != null) {
+            for (String optnCd : optnList) {
+                String bbsOptnId = IdGenerator.getNewId("BBOPT");
+                vo.setBbsOptnId(bbsOptnId);
+                vo.setOptnCd(optnCd);
+
+                bbsInfoDAO.bbsInfoOptnRegist(vo);
+            }
+        }
+    }
+
 
     /*****************************************************
      * 강의실 메뉴의 게시판 목록 조회
@@ -630,5 +674,26 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
     @Override
     public List<BbsVO> selectBbsForSbjctMenu(BbsVO vo) throws Exception {
     	return bbsInfoDAO.selectBbsForSbjctMenu(vo);
+    }
+
+    /*****************************************************
+     * 게시판 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<BbsInfoVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<BbsVO> bbsMngList(BbsVO vo) throws Exception {
+        ProcessResultVO<BbsVO> processResultVO = new ProcessResultVO<>();
+
+        // 페이지 정보 설정
+        PageInfo pageInfo = new PageInfo(vo);
+
+        List<BbsVO> resultList = bbsInfoDAO.listBbsMngInfoPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(pageInfo);
+
+        return processResultVO;
     }
 }

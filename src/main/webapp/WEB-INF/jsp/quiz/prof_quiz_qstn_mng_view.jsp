@@ -114,7 +114,7 @@
 	    			html += "	<input type='hidden' name='qstnCnddtSeqno' />";
 	    			html += "	<input type='hidden' name='qstnScr'  	value='0' />";
 	    			html += "	<input type='hidden' name='qstnGbncd'	value='TXT' />";
-	    			html += "	<div class='flex gap-1 margin-bottom-3'>";
+	    			html += "	<div class='flex gap-1 margin-bottom-3 titleDiv'>";
 	    			html += "		<div class='flex-1'>";
 	    			html += "			<input type='text' class='width-100per' inputmask='byte' maxLen='200' name='qstnTtl' required='true'>";
 	    			html += "		</div>";
@@ -158,7 +158,7 @@
 			 * @param {String}  type 		- 문항답변유형코드
 			 */
 			createVwitmCntHTML: function(formId, type) {
-				var html  = "<tr>";
+				var html  = "<tr class='notOption'>";
 		    		html += "	<th>보기 개수</th>";
 		    		html += "	<td class='t_left'>";
 		    		html += "		<select class='form-select' name='vwitmCnt' onchange='createVwitmCntChgHTML(\"" + formId + "\", \"" + type + "\")' required='true'>";
@@ -189,7 +189,7 @@
 		    		html += "		</table>";
 		    		html += "	</td>";
 		    		html += "</tr>";
-		    		html += "<tr>";
+		    		html += "<tr class='notOption'>";
 		    		html += "	<th>전체 정답처리</th>";
 		    		html += "	<td class='t_left'>";
 			    	html += "		<input type='checkbox' value='Y' name='wholCrans' class='switch'>";
@@ -210,7 +210,7 @@
 		    		for(var i = 0; i < 5; i++) {
 		    		html += "			<input type='text' name='qstnVwitmCts' class='w100' " + (i == 0 ? "required='true'" : "") + ">";
 		    		}
-		    		html += "			<button class='btn basic icon' onclick='formOption.createTextQstnAddHTML(\""+formId+"\")'><i class='xi-plus'></i></button>";
+		    		html += "			<button class='btn basic icon notOption' onclick='formOption.createTextQstnAddHTML(\""+formId+"\")'><i class='xi-plus'></i></button>";
 		    		html += "		</div>";
 		    		html += "	</td>";
 		    		html += "</tr>";
@@ -282,8 +282,8 @@
 					for(var i = 0; i < 5; i ++) {
 					html += "	<input type='text' name='qstnVwitmCts' class='w100' " + (i == 0 ? "required='true'" : "") + " />";
 					}
-					html += "	<button class='btn basic icon' onclick='formOption.textQstnDelHTML(\""+formId+"\", "+shortInputCnt+")'><i class='xi-minus'></i></button>";
-					html += "	<button class='btn basic icon' onclick='formOption.createTextQstnAddHTML(\""+formId+"\")'><i class='xi-plus'></i></button>";
+					html += "	<button class='btn basic icon notOption' onclick='formOption.textQstnDelHTML(\""+formId+"\", "+shortInputCnt+")'><i class='xi-minus'></i></button>";
+					html += "	<button class='btn basic icon notOption' onclick='formOption.createTextQstnAddHTML(\""+formId+"\")'><i class='xi-plus'></i></button>";
 					html += "</div>";
 				$("#"+formId+"QstnDiv").append(html);
 			},
@@ -300,7 +300,7 @@
 			 * @param {String}  formId 		- 문제 추가용 form 아이디
 			 */
 		    createQstnDfctlvHTML: function(formId) {
-		    	var html  = "<tr>";
+		    	var html  = "<tr class='notOption'>";
 		    		html += "	<th>난이도</th>";
 		    		html += "	<td class='t_left'>";
 		    		html += "		<select class='form-select' id='"+formId+"QstnDfctlvTycd' name='qstnDfctlvTycd' required='true'>";
@@ -622,7 +622,7 @@
 	    	var btnId   = "qstnAddDiv"+qstnSeqno;
 	    	var qstnCnt = qstnSeqno != "" ? qstnSeqno : $(".quizQstnList").length + 1;
 	    	var qstnCnddtSeqno = qstnSeqno != "" ? $(".quizQstnList[data-qstnSeqno="+qstnSeqno+"]").find("div.quizQstnSubList").length + 1 : 1;
-	    	var score   = qstnSeqno != "" ? $(".quizQstnList[data-qstnSeqno="+qstnSeqno+"]").find("input[name=qstnScr]").val() : 0;
+	    	var score   = qstnSeqno != "" ? $(".quizQstnList[data-qstnSeqno="+qstnSeqno+"]").attr("data-qstnscr") : 0;
 	    	$("#"+formId+" input[name=examBscId]").val("${vo.examBscId}");
 	    	$("#"+formId+" input[name=examDtlId]").val($("#examDtlId").val());
 	    	$("#"+formId+" input[name=qstnId]").val("");
@@ -658,11 +658,14 @@
 		 */
 	    function qstnModFrmView(examDtlId, qstnId) {
 	    	$(".qstnFormDiv").remove();
-	    	var qstnSeqno    	= $(".quizQstnSubList[data-qstnId='"+qstnId+"']").attr("data-qstnSeqno");					// 문항순번
-	    	var qstnCnddtSeqno  = $(".quizQstnSubList[data-qstnId='"+qstnId+"']").attr("data-qstnCnddtSeqno");				// 문항후보순번
-	    	var qstnScr 		= $(".quizQstnList[data-qstnSeqno='"+qstnSeqno+"']").find("input[name=qstnScr]").val();		// 문항기본점수
+	    	var qstnSeqno    	= $(".quizQstnSubList[data-qstnId='"+qstnId+"']").attr("data-qstnSeqno");			// 문항순번
+	    	var qstnCnddtSeqno  = $(".quizQstnSubList[data-qstnId='"+qstnId+"']").attr("data-qstnCnddtSeqno");		// 문항후보순번
+	    	var qstnScr 		= $(".quizQstnList[data-qstnSeqno='"+qstnSeqno+"']").attr("data-qstnscr");			// 문항기본점수
 	    	qstnAddFrmInit(qstnSeqno);	// 문제 추가 폼 초기화
 
+	    	if("${vo.tkexamStrtUserCnt}" > 0) {
+				$("#qstnWriteForm"+qstnSeqno+" .titleDiv").addClass("cpn");
+	    	}
 	    	$("#qstnWriteForm"+qstnSeqno+" input[name=qstnSeqno]").val(qstnSeqno);
 	    	$("#qstnWriteForm"+qstnSeqno+" input[name=qstnCnddtSeqno]").val(qstnCnddtSeqno);
 	    	$("#qstnWriteForm"+qstnSeqno+" input[name=qstnScr]").val(qstnScr);
@@ -695,6 +698,7 @@
 	        		editorMap["editor"+qstnSeqno].insertHTML($.trim(qstn.qstnCts) == "" ? " " : qstn.qstnCts);
 	        		// 단일, 다중선택형
 	        		if(qstn.qstnRspnsTycd == "ONE_CHC" || qstn.qstnRspnsTycd == "MLT_CHC") {
+	        			$("#qstnAddDiv"+qstnSeqno+" select[name=vwitmCnt]").val(qstn.vwitmList.length).trigger("chosen:updated");
 	        			$("#qstnAddDiv"+qstnSeqno+" select[name=vwitmCnt]").val(qstn.vwitmList.length).trigger("change");
 	        			qstn.vwitmList.forEach(function(v, i) {
 	        				$("#qstnWriteForm"+qstnSeqno+"Vwitm_"+v.qstnVwitmSeqno).val(v.qstnVwitmCts);
@@ -713,6 +717,7 @@
 						});
 	        		// 연결형
 	        		} else if(qstn.qstnRspnsTycd == "LINK") {
+	        			$("#qstnAddDiv"+qstnSeqno+" select[name=vwitmCnt]").val(qstn.vwitmList.length).trigger("chosen:updated");
 	        			$("#qstnAddDiv"+qstnSeqno+" select[name=vwitmCnt]").val(qstn.vwitmList.length).trigger("change");
 	        			qstn.vwitmList.forEach(function(v, i) {
 	        				$("#qstnWriteForm"+qstnSeqno+"VwitmTtl_"+v.qstnVwitmSeqno).val(v.qstnVwitmCts.split("|")[0]);
@@ -730,9 +735,10 @@
 		        			});
 	        			});
 	        		}
+	        		$("#qstnWriteForm"+qstnSeqno+"QstnDfctlvTycd").val(qstn.qstnDfctlvTycd).trigger("chosen:updated");
 	        		$("#qstnWriteForm"+qstnSeqno+"QstnDfctlvTycd").val(qstn.qstnDfctlvTycd).trigger("change");
 	        		if($("#examQstnsCmptnyn").val() == "M" && ("${today}" > "${vo.examDtlVO.examPsblSdttm}" || "${vo.tkexamStrtUserCnt}" > 0)) {
-	        			$("#qstnWriteForm"+qstnSeqno+" select[name=qstnRspnsTycd]").closest("div.dropdown").css("pointer-events", "none");
+	        			$("#qstnWriteForm"+qstnSeqno+" .notOption").addClass("cpn");
 	        		}
 	            } else {
 	            	UiComm.showMessage(data.message, "error");
@@ -998,10 +1004,13 @@
 
 	    	tkexamUserCntSelect().done(function(returnVO) {
 		    	if($("#examQstnsCmptnyn").val() == "M" && ("${today}" > "${vo.examDtlVO.examPsblSdttm}" || returnVO.result > 0)) {
-		    		var kvArr = [];
-		    		kvArr.push({'key' : 'qstnSeqno', 'val' : qstnSeqno});
-
-		    		submitForm("/quiz/quizQstnEditOptionPop.do", "quizPopIfm", "qstnOption", kvArr);
+		    		dialog = UiDialog("dialog1", {
+						title: "문제 수정 옵션",
+						width: 600,
+						height: 270,
+						url: "/quiz/profQuizQstnModifyOptionPopup.do?qstnSeqno="+qstnSeqno,
+						autoresize: true
+					});
 		    	} else {
 		    		UiComm.showLoading(true);
 					var url = "/quiz/quizQstnModifyAjax.do";
@@ -1028,30 +1037,39 @@
 	    	});
 	    }
 
-	    // 문항 수정 옵션 포함 ( 미완료 )
-	    function editQuizQstnOption(qstnSeqno, type) {
-	    	$("#qstnWriteForm"+qstnSeqno).append("<input type='hidden' name='searchKey' value='"+type+"' />");
-	    	UiComm.showLoading(true);
-			var url = "/quiz/editQuizQstnOption.do";
+	    // 퀴즈문항옵션수정
+	    function quizQstnOptionModify(qstnSeqno, type) {
+			let formId = "qstnWriteForm"+qstnSeqno;
+	    	UiValidator(formId).then(function(result) {
+				if (result) {
+					if(!isValidQuizQstn(qstnSeqno || "")) {
+					 	return false;
+					}
+					$("#qstnWriteForm"+qstnSeqno).append("<input type='hidden' name='searchKey' value='"+type+"' />");
 
-			$.ajax({
-	            url 	 : url,
-	            async	 : false,
-	            type 	 : "POST",
-	            dataType : "json",
-	            data 	 : $("#qstnWriteForm"+qstnSeqno).serialize(),
-	        }).done(function(data) {
-	        	UiComm.showLoading(false);
-	        	if (data.result > 0) {
-	        		qstnListSelect();
-	        		$("#qstnAddDiv"+qstnSeqno).remove();
-	            } else {
-	            	UiComm.showMessage(data.message, "error");
-	            }
-	        }).fail(function() {
-	        	UiComm.showLoading(false);
-	        	UiComm.showMessage("<spring:message code='exam.error.qstn.update' />", "error");/* 문항 수정 중 에러가 발생하였습니다. */
-	        });
+					UiComm.showLoading(true);
+					var url = "/quiz/quizQstnOptionModifyAjax.do";
+
+					$.ajax({
+						url 	 : url,
+					    async	 : false,
+					    type 	 : "POST",
+					    dataType : "json",
+					    data 	 : $("#qstnWriteForm"+qstnSeqno).serialize(),
+					}).done(function(data) {
+						UiComm.showLoading(false);
+					 	if (data.result > 0) {
+					 		qstnListSelect();
+					 		$("#qstnAddDiv"+qstnSeqno).remove();
+					     } else {
+					    	 UiComm.showMessage(data.message, "error");
+					     }
+					}).fail(function() {
+						 UiComm.showLoading(false);
+						 UiComm.showMessage("<spring:message code='exam.error.qstn.update' />", "error");/* 문항 수정 중 에러가 발생하였습니다. */
+					});
+				}
+			});
 	    }
 
 	    /**
@@ -1229,12 +1247,12 @@
 					});
 
 					const map = {
-			       	qstnVwitmSeqno: (i + 1),
-			       	cransYn: "Y",
-			       	qstnVwitmCts: qstnVwitmCts
-			    };
+				       	qstnVwitmSeqno: (i + 1),
+				       	cransYn: "Y",
+				       	qstnVwitmCts: qstnVwitmCts
+				    };
 
-			    qstns.push(map);
+			    	qstns.push(map);
 				});
 
 			// OX선택형
@@ -1363,16 +1381,14 @@
 			}
 
 			if(canQuizEdit("submit")) {
-				// 미완료
 				if(type == "edit" && "${vo.tkexamStrtUserCnt}" > 0) {
-					var kvArr = [];
-					kvArr.push({'key' : 'examBscId',  			'val' : "${vo.examBscId}"});
-					kvArr.push({'key' : 'examDtlVO.examDtlId',  'val' : $("#examDtlId").val()});
-					kvArr.push({'key' : 'examGbncd',   			'val' : "${vo.examGbncd}"});
-					kvArr.push({'key' : 'searchGubun', 			'val' : type});
-					kvArr.push({'key' : 'searchKey',   			'val' : gbn});
-
-					submitForm("/quiz/profQuizQstnsCmptnModifyPopup.do", "quizPopIfm", "qstnEdit", kvArr);
+					let data = "examBscId=${vo.examBscId}&examDtlVO.examDtlId="+$("#examDtlId").val()+"&examGbncd=${vo.examGbncd}&searchGubun="+type+"&searchKey="+gbn;
+					dialog = UiDialog("dialog1", {
+						title: "문제 수정",
+						width: 600,
+						height: 270,
+						url: "/quiz/profQuizQstnsCmptnModifyPopup.do?" + data
+					});
 				} else {
 					var confirmMsg = "<spring:message code='exam.confirm.exam.qstn.submit' />"; // 문제를 출제하시겠습니까?
 					if(type == "edit") {
@@ -1421,7 +1437,7 @@
 			}
 	    }
 
-		// 문항엑셀업로드팝업 ( 미완료 )
+		// 문항엑셀업로드팝업
 	 	function qstnExcelUploadPopup() {
 	 		if(!canQuizEdit("unsubmit")) {
 	 			return false;

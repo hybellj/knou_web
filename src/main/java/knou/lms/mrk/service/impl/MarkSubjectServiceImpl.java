@@ -4,13 +4,17 @@ import knou.framework.util.StringUtil;
 import knou.lms.exam.dao.ExamDAO;
 import knou.lms.mrk.dao.MarkSubjectDAO;
 import knou.lms.mrk.service.MarkSubjectService;
+import knou.lms.mrk.vo.MarkSubjectDetailVO;
+import knou.lms.mrk.vo.MarkSubjectVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service("markSubjectService")
 public class MarkSubjectServiceImpl implements MarkSubjectService {
@@ -163,7 +167,8 @@ public class MarkSubjectServiceImpl implements MarkSubjectService {
      * @throws Exception
      */
     @Override
-    public List<EgovMap> stdMrkSbjctList(String sbjctId) throws Exception {
+//    public List<EgovMap> stdMrkSbjctList(String sbjctId) throws Exception {
+    public List<MarkSubjectVO> stdMrkSbjctList(String sbjctId) throws Exception {
         return markSubjectDAO.stdMrkSbjctList(sbjctId);
     }
 
@@ -194,6 +199,29 @@ public class MarkSubjectServiceImpl implements MarkSubjectService {
     }
 
     /**
+     * 성적이의 신청으로 승인된 학생들의 가산점 조회
+     * @param sbjctId
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public Map<String, Double> adtnScoreList(String sbjctId) throws Exception {
+        Map<String, Double> resultMap = new HashMap<>();
+
+        List<EgovMap> adtnScoreList = markSubjectDAO.adtnScoreList(sbjctId);
+
+        if (adtnScoreList.isEmpty()) return resultMap;
+
+        for (EgovMap stdAdtnScr : adtnScoreList) {
+            String userId = (String) stdAdtnScr.get("userId");
+            double adtnScr = ((Number) stdAdtnScr.get("objctAplyScr")).doubleValue();
+            resultMap.put(userId, adtnScr);
+        }
+
+        return resultMap;
+    }
+
+    /**
      * 학생들의 출석 평가점수 조회
      * @param sbjctId
      * @return
@@ -212,14 +240,14 @@ public class MarkSubjectServiceImpl implements MarkSubjectService {
 
             double score = 0; // 출석점수
 
-            int lctrSchdlCnt = (int)attdSummaryMap.get("lctrSchdlCnt"); // 강의컨텐츠가 있는 주차 수
-            int completeCnt = (int)attdSummaryMap.get("completeCnt"); // 수강 완료한 주차 수
-            int lateCnt = (int)attdSummaryMap.get("lateCnt"); // 지각한 주차 수
+            int lctrSchdlCnt = ((Number)attdSummaryMap.get("lctrSchdlCnt")).intValue(); // 강의컨텐츠가 있는 주차 수
+            int completeCnt = ((Number)attdSummaryMap.get("completeCnt")).intValue(); // 수강 완료한 주차 수
+            int lateCnt = ((Number)attdSummaryMap.get("lateCnt")).intValue(); // 지각한 주차 수
 
             if (lctrSchdlCnt <= 0 || completeCnt <= 0) {
                 stdAttdScrMap.put("finalScore", 0);
                 resultMap.add(stdAttdScrMap);
-                break;
+                continue;
             };
 
             /**
@@ -281,6 +309,28 @@ public class MarkSubjectServiceImpl implements MarkSubjectService {
     @Override
     public List<EgovMap> srvyScoreEvlList(String sbjctId) throws Exception {
         return markSubjectDAO.srvyEvlScoreList(sbjctId);
+    }
+
+    /**
+     * 학생 성적과목 리스트 INSERT
+     * @param mrksbjctList
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public int mrkSbjctBatchInsert(List<MarkSubjectVO> mrksbjctList) throws Exception {
+        return markSubjectDAO.mrkSbjctBatchInsert(mrksbjctList);
+    }
+
+    /**
+     * 학생 성적과목상세 리스트 INSERT
+     * @param mrksbjctDtlList
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public int mrkSbjctDtlBatchInsert(List<MarkSubjectDetailVO> mrksbjctDtlList) throws Exception {
+        return markSubjectDAO.mrkSbjctDtlBatchInsert(mrksbjctDtlList);
     }
 
     /**

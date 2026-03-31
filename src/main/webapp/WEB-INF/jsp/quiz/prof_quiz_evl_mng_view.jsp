@@ -428,8 +428,7 @@
 			});
 
 			if (userListTable.getSelectedData("userId").length == 0) {
-				/* 메시지 발송 대상자를 선택하세요. */
-				alert("<spring:message code='common.alert.sysmsg.select_user'/>");
+				UiComm.showMessage("<spring:message code='common.alert.sysmsg.select_user'/>", "info");	/* 메시지 발송 대상자를 선택하세요. */
 				return;
 			}
 
@@ -468,13 +467,13 @@
 
 					ajaxCall(url, data, function(data) {
 						if (data.result > 0) {
-			        		alert("<spring:message code='exam.alert.delete' />");/* 정상 삭제 되었습니다. */
+							UiComm.showMessage("<spring:message code='exam.alert.delete' />", "success");	/* 정상 삭제 되었습니다. */
 			        		quizViewMv(9);
 			            } else {
-			             	alert(data.message);
+			             	UiComm.showMessage(data.message, "error");
 			            }
 		    		}, function(xhr, status, error) {
-		    			alert("<spring:message code='exam.error.delete' />");/* 삭제 중 에러가 발생하였습니다. */
+		    			UiComm.showMessage("<spring:message code='exam.error.delete' />", "error");	/* 삭제 중 에러가 발생하였습니다. */
 		    		}, true);
 				}
 			});

@@ -54,7 +54,6 @@
                                 </span>
                                 <div class="itemList">
                                     <c:set var="selectedYr" value="${vo.searchYr}"/>
-                                    <c:set var="selectedSm" value="${vo.searchSmstr}"/>
 
                                     <select class="form-select" id="srchYear" name="searchYr">
                                         <c:forEach var="item" items="${yearList}">
@@ -64,16 +63,8 @@
                                         </c:forEach>
                                     </select>
 
-                                    <select class="form-select" id="srchTerm" name="searchSmstr">
-                                        <option value="">학기 선택</option> 
-                                        <c:forEach var="item" items="${termList}">
-                                            <c:if test="${item.codeCd eq '10' or item.codeCd eq '20'}">
-                                                <c:set var="termValue" value="${item.codeCd eq '20' ? '2' : '1'}"/>
-                                                <option value="${termValue}" ${termValue eq selectedSm ? 'selected' : ''}>
-                                                    <c:out value="${item.codeNm}"/>
-                                                </option>
-                                            </c:if>
-                                        </c:forEach>
+                                    <select class="form-select" id="srchTerm" name="smstrChrtId">
+                                        <option value=""><spring:message code="crs.label.open.term" /></option> <%--개설학기--%>
                                     </select>
                                 </div>
                             </div>
@@ -82,10 +73,13 @@
                             <div class="item">
                                 <span class="item_tit"><label for="srchSbjt">운영과목</label></span> 
                                 <div class="itemList">
-                                    <select class="form-select" id="srchUniv" name="univGbn">
-                                        <option value="">학위원</option> 
-                                        <option value="C" <c:if test="${vo.univGbn == 'C'}">selected</c:if>>학부</option> 
-                                        <option value="G" <c:if test="${vo.univGbn == 'G'}">selected</c:if>>대학원</option> 
+                                    <select class="form-select" id="srchOrg" name="searchOrgId">
+                                        <option value="">기관</option>
+                                        <c:forEach var="item" items="${orgList}">
+                                            <option value="${item.orgId}" <c:if test="${vo.searchOrgId == item.orgId}">selected</c:if>>
+                                                    ${item.orgnm}
+                                            </option>
+                                        </c:forEach>
                                     </select>
 
                                     <select class="form-select" id="srchDept" name="deptId">
@@ -178,7 +172,7 @@
         if (ls) LIST_SCALE = parseInt(ls, 10);
 
         initClsListTable();
-        loadSubjectOptions(true); // 드롭다운 갱신 + 목록 최초 조회
+        changeSmstrChrt(); // 드롭다운 갱신 + 목록 최초 조회
 
         // 검색 버튼
         $("#btnSearch").on("click", function () {
@@ -186,7 +180,11 @@
         });
 
         // 학년도/학기/학위원/학과 변경 → 과목 드롭다운 갱신 + 목록 재조회
-        $("#srchYear, #srchTerm, #srchUniv, #srchDept").on("change", function () {
+        $("#srchYear").on("change", function () {
+            changeSmstrChrt();
+        });
+
+        $("#srchTerm, #srchOrg, #srchDept").on("change", function () {
             loadSubjectOptions(true);
         });
 
@@ -252,8 +250,8 @@
             dataType: "json",
             data: {
                 searchYr:      $("#srchYear").val()    || "",
-                searchSmstr:   $("#srchTerm").val()    || "",
-                univGbn:       $("#srchUniv").val()    || "",
+                smstrChrtId:   $("#srchTerm").val()    || "",
+                searchOrgId:   $("#srchOrg").val()     || "",
                 deptId:        $("#srchDept").val()    || "",
                 sbjctId:       $("#srchSbjt").val()    || "",
                 searchKeyword: $("#srchKeyword").val() || "",
@@ -343,6 +341,49 @@
        과목 드롭다운 갱신
        triggerSearch: true 이면 드롭다운 갱신 후 목록도 재조회
        ===================================================== */
+    function changeSmstrChrt() {
+        var $term = $("#srchTerm");
+        var currentValue = "${vo.smstrChrtId}";
+
+        $term.empty();
+        $term.append('<option value="">개설학기</option>');
+
+        $.ajax({
+            url: CTX + "/crs/termMgr/smstrListByDgrsYr.do",
+            type: "GET",
+            dataType: "json",
+            data: {
+                dgrsYr: $("#srchYear").val() || ""
+            },
+            success: function (data) {
+                if (data && data.result > 0) {
+                    var list = data.returnList || [];
+
+                    list.forEach(function (item) {
+                        var value = item.smstrChrtId || "";
+                        var label = item.smstrChrtnm || "";
+
+                        $term.append('<option value="' + escapeHtml(value) + '">' + escapeHtml(label) + '</option>');
+                    });
+
+                    if (currentValue && $term.find("option[value='" + currentValue + "']").length > 0) {
+                        $term.val(currentValue);
+                    } else {
+                        $term.val("");
+                    }
+                } else {
+                    $term.val("");
+                }
+
+                loadSubjectOptions(true);
+            },
+            error: function () {
+                $term.val("");
+                loadSubjectOptions(true);
+            }
+        });
+    }
+
     function loadSubjectOptions(triggerSearch) {
         var currentValue = $("#srchSbjt").val() || "";
 
@@ -351,14 +392,17 @@
             type:     "GET",
             dataType: "json",
             data: {
-                searchYr:    $("#srchYear").val() || "",
-                searchSmstr: $("#srchTerm").val() || "",
-                univGbn:     $("#srchUniv").val() || "",
-                deptId:      $("#srchDept").val() || ""
+                searchYr: $("#srchYear").val() || "",
+                smstrChrtId: $("#srchTerm").val() || "",
+                searchOrgId: $("#srchOrg").val() || "",
+                deptId: $("#srchDept").val() || ""
             },
             success: function (data) {
                 var list = (data && data.returnList) ? data.returnList : [];
-                var html = ['<option value="">운영과목</option>'];
+                var $sbj = $("#srchSbjt");
+
+                $sbj.empty();
+                $sbj.append('<option value="">운영과목</option>');
 
                 list.forEach(function (item) {
                     var value = item.sbjctId || "";
@@ -366,19 +410,16 @@
                     if (item.dvclasNo) label += " (" + item.dvclasNo + "반)";
                     if (item.crclmnNo) label += " [" + item.crclmnNo + "]";
 
-                    html.push(
-                        '<option value="' + escapeHtml(value) + '"'
-                        + (currentValue === value ? " selected" : "")
-                        + ">" + escapeHtml(label) + "</option>"
-                    );
+                    $sbj.append('<option value="' + escapeHtml(value) + '">' + escapeHtml(label) + '</option>');
                 });
 
-                $("#srchSbjt").html(html.join(""));
-
-                // 기존 선택값이 새 목록에 없으면 초기화
-                if ($("#srchSbjt").val() !== currentValue) {
-                    $("#srchSbjt").val("");
+                if (currentValue && $sbj.find("option[value='" + currentValue + "']").length > 0) {
+                    $sbj.val(currentValue);
+                } else {
+                    $sbj.val("");
                 }
+
+                $sbj.trigger("chosen:updated");
 
                 // 목록 재조회 요청이 있을 때만 호출
                 if (triggerSearch) {

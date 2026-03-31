@@ -1,22 +1,11 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 	<head>
-    	<%@ include file="/WEB-INF/jsp/common/modal_common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
-		<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-    	<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
-    	<style type="text/css">
-    		.ui.checkbox label.question.multi:before {
-    			border-radius: 0;
-    		}
-    		.ui.checkbox label.question.multi:after {
-    			border-radius: 0;
-    		}
-    		.ui.checkbox input:checked ~ label.question.multi:after {
-    			border-radius: 0;
-    		}
-    	</style>
+    	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+			<jsp:param name="style" value="classroom"/>
+		</jsp:include>
     </head>
 
     <div id="loading_page">
@@ -37,87 +26,82 @@
 	        		var returnList = data.returnList || [];
 	        		var html = "";
 	        		if(returnList.length > 0) {
-						html += "<ul class='num-chk'>";
+						html += "<div class='qstnInfo flex-item gap-3 margin-bottom-5'>";
 						returnList.forEach(function(v, i) {
-							var qstnAnswerClass = v.answShtCts != null && v.answShtCts != "" ? "correct" : "";
-							html += "<li class='" + qstnAnswerClass + "'><a href='#0'>" + v.qstnDsplySeqno + "</a></li>";
+							var answClass = v.answShtCts != null && v.answShtCts != "" ? "bcLblue" : "";
+							html += "<div class='custom-input padding-3'>";
+							html += "	<p class='checkmark padding-left-3 " + answClass + "'>" + v.qstnDsplySeqno + "</p>";
+							html += "</div>";
 						});
+						html += "</div>";
+						html += "<div class='qstnList'>";
 	        			returnList.forEach(function(v, i) {
-	        				var answerSrc = v.ansrYn == "Y" ? "/webdoc/img/quiz_true.gif" : "/webdoc/img/answer.png";
-	        				html += "<div class='ui card wmax qstnDiv'>";
-	        				html += "	<div class='fields content header2'>";
-	        				html += "		<div class='field wf100 flex-item'>";
-	        				html += "			<span>문제" + v.qstnDsplySeqno + ".</span> " + v.qstnTtl;
-	        				html += "			<div class='alt_icon overflow-hidden mla'>";
-	        				html += "				<img class='list ul icon w30 color' src='" + answerSrc + "' />";
-	        				html += "			</div>";
-	        				html += "		</div>";
+	        				var answSrc = v.ansrYn == "Y" ? "/webdoc/img/quiz_true.gif" : "/webdoc/img/answer.png";
+	        				html += "<div class='board_top border-1 padding-3 margin-bottom-0'>";
+	        				html += "	<span>문제 " + v.qstnDsplySeqno + ". " + v.qstnTtl + "</span>";
+	        				html += "	<div class='overflow-hidden right-area w30 d-inline-block position-relative' style='height:30px;'>";
+	        				html += "		<img class='width-100-per show margin-left-auto' style='position:absolute;bottom:0;' src='" + answSrc + "' />";
 	        				html += "	</div>";
-							html += "	<div class='content'>";
-							if(v.qstnCts != undefined) {
-								html += "	<p>" + v.qstnCts + "</p>";
-							}
-							// 단일, 다중선택형
+	        				html += "</div>";
+	        				html += "<div class='padding-3 margin-top-0 border-1 cpn'>";
+	        				html += "	<div class='margin-bottom-5'>" + v.qstnCts + "</div>";
+	        				// 단일, 다중선택형
 	        				if(v.qstnRspnsTycd == 'ONE_CHC' || v.qstnRspnsTycd == 'MLT_CHC') {
-								var emplClass = v.qstnRspnsTycd == "MLT_CHC" ? "multi" : "";
-								v.qstnVwitmDsplySeq.split("@#").forEach(function(el, index) {
-									html += "<div class='field' id='emplLi_" + v.qstnDsplySeqno +"'>";
-									html += "	<div class='ui read-only checkbox'>";
+	        					v.qstnVwitmDsplySeq.split("@#").forEach(function(el, index) {
+									html += "<div class='margin-bottom-3'>";
+									html += "	<span class='custom-input'>";
+									var rspnsType = v.qstnRspnsTycd == "MLT_CHC" ? "checkbox" : "radio";
 									var checkCrans = "";
 									v.answShtCts.split("@#").forEach(function(sel, sindex) {
 										if(sel == (index+1)) checkCrans = "checked";
 									});
-									html += "		<input type='checkbox' name='rgtAnsr_CHOICE_" + v.qstnDsplySeqno + "' id='rgtAnsr_" + v.qstnDsplySeqno + "' " + checkCrans + " />";
-			        				html += "		<label class='question empl " + emplClass + "'>" + v.qstnVwitmCts.split('@#')[index] + "</label>";
-		        					html += "	</div>";
-		        					html += "</div>";
-			        			});
-
-							// 단답형
-	        				} else if(v.qstnRspnsTycd == 'SHORT_TEXT') {
-								html += "	<div class='equal width fields'>";
-								v.answShtCts.split("@#").forEach(function(el, index) {
-									html += "	<div class='field'>";
-									html += "		<input type='text' value='" + el + "' readonly='readonly' />";
-									html += "	</div>";
-								});
-	        					html += "	</div>";
-
-	        				// 서술형
-	        				} else if(v.qstnRspnsTycd == 'LONG_TEXT') {
-								html += "	<input type='text' value='" + v.answShtCts + "' readonly='readonly' />";
-
-							// OX선택형
+									html += "		<input type='" + rspnsType + "' name='qstn_" + v.qstnId + "' id='qstn_" + v.exampprId + "_" + index + "' " + checkCrans + " />";
+									html += "		<label for='qstn_" + v.exampprId + "_" + index + "'>" + v.qstnVwitmCts.split('@#')[index] + "</label>";
+									html += "	</span>";
+									html += "</div>";
+	        					});
+	        				// OX선택형
 	        				} else if(v.qstnRspnsTycd == 'OX_CHC') {
-								html += "	<div class='checkImg'>";
-								v.qstnVwitmCts.split("@#").forEach(function(el, index) {
-									var oxClass = el == "O" ? "true" : "false";
-									html += "	<input id='oxChk" + v.qstnId + "_" + oxClass + "' type='radio' name='oxChk" + v.qstnId + "' disabled='disabled' value='" + v.qstnVwitmDsplySeq.split('@#')[index] + "' " + (v.answShtCts == (index+1) ? "checked" : "") + " />";
-									html += "	<label class='imgChk " + oxClass + "' for='oxChk" + v.qstnId + "_" + oxClass + "'></label>";
+	        					v.qstnVwitmDsplySeq.split("@#").forEach(function(el, index) {
+									html += "<span class='custom-input'>";
+									html += "	<input type='radio' name='qstn_" + v.qstnId + "' id='qstn_" + v.exampprId + "_" + index + "' " + (v.answShtCts == (index+1) ? "checked" : "") + " />";
+									html += "	<label for='qstn_" + v.exampprId + "_" + index + "'>" + v.qstnVwitmCts.split('@#')[index] + "</label>";
+									html += "</span>";
+	        					});
+	        				// 단답형
+	        				} else if(v.qstnRspnsTycd == 'SHORT_TEXT') {
+								html += "<div class='flex gap-2 margin-bottom-2'>";
+								v.answShtCts.split("@#").forEach(function(el, index) {
+									html += "<input type='text' class='width-15per' value='" + el + "' />";
 								});
-								html += "	</div>";
-
+								html += "</div>";
+							// 서술형
+	        				} else if(v.qstnRspnsTycd == 'LONG_TEXT') {
+								html += "<textarea style='width:100%;height:100px;'>" + v.answShtCts + "</textarea>";
 							// 연결형
 	        				} else if(v.qstnRspnsTycd == 'LINK') {
-								html += "	<div class='line-sortable-box'>";
-								html += "		<div class='account-list'>";
+								html += "<div class='line-sortable-box flex'>";
+								html += "	<div class='account-list width-50per'>";
 								v.qstnVwitmCts.split("@#").forEach(function(el, index) {
-									html += "		<div class='line-box num" + (index < 10 ? '0':'') + (index+1) + " id='emplLi_" + v.qstnDsplySeqno + "_" + index + "'>";
-									html += "			<div class='question' id='emplMatch_" + v.qstnDsplySeqno + "_" + index +"' name='emplMatch_" + v.qstnDsplySeqno + "_" + index +"'><span>" + el.split("|")[0] + "</span></div>";
-									html += "			<div class='slot' id='rqtAnsrMatch_" + v.qstnDsplySeqno + "_" + index +"' name='rqtAnsrMatch_" + v.qstnDsplySeqno + "_" + index +"'>" + v.answShtCts.split("@#")[index] + "</div>";
-									html += "		</div>";
+									var cts = v.answShtCts == null ? "" : v.answShtCts.split("@#")[index];
+									html += "	<div class='line-box border-1 margin-bottom-3 padding-3 flex'>";
+									html += "		<div class='question width-30per'><span>" + el.split("|")[0] + "</span></div>";
+									html += "		<div class='slot margin-left-auto border-1 text-center width-100per' style='height:30px;'>" + cts + "</div>";
+									html += "	</div>";
 								});
-	        					html += "		</div>";
-	        					html += "	</div>";
+								html += "	</div>";
+								html += "	<div class='inventory-list w200 margin-left-auto'>";
+								html += "	</div>";
+								html += "</div>";
 	        				}
-	        				html += "	</div>";
-	        				html += "	<div class='content'>";
-	        				html += "		<div class='flex gap16 align-items-center mb20'>";
-	        				html += "			<div class='flex flex1'>";
-	        				html += "				<label class='ui label flex-none m0'>정답</label>";
+	        				html += "</div>";
+	        				html += "<div class='border-1 margin-bottom-3 padding-3 qstnDiv'>";
+	        				html += "	<div class='flex-item'>";
+	        				html += "		<p class='margin-right-3'>정답</p>";
+	        				html += "		<div class='margin-right-3'>";
 	        				// 단일, 다중선택형
 	        				if(v.qstnRspnsTycd == 'ONE_CHC' || v.qstnRspnsTycd == 'MLT_CHC') {
-								var cransNo = "";
+	        					var cransNo = "";
 								v.cransNo.split("@#").forEach(function(el, index) {
 									v.qstnVwitmDsplySeq.split("@#").forEach(function(sel, sindex) {
 										if(sel == el) {
@@ -129,41 +113,46 @@
 										}
 									});
 								});
-								html += "			<input type='text' class='flex1' value='" + cransNo + "' readonly='readonly' />";
-
+								html += "		<p>" + cransNo + "</p>";
 							// 단답형
 	        				} else if(v.qstnRspnsTycd == 'SHORT_TEXT') {
-	        					v.qstnVwitmCts.split("@#").forEach(function(el, index) {
-									html += "		<input type='text' class='flex1' value='" + el + "' readonly='readonly' />";
-	        					});
-
-	        				// 서술형
+								html += "		<p>" + v.qstnVwitmCts.replaceAll("@#", ",") + "</p>";
+							// 서술형
 	        				} else if(v.qstnRspnsTycd == 'LONG_TEXT') {
-								html += "			<input type='text' class='flex1' value='' readonly='readonly' />";
-
+								html += "		<p></p>";
 							// OX선택형
 	        				} else if(v.qstnRspnsTycd == 'OX_CHC') {
-								html += "			<input type='text' class='flex' value='" + v.cransCts + "' readonly='readonly' />";
-
-	        				// 연결형
+								html += "		<p>" + v.cransCts + "</p>";
+							// 연결형
 	        				} else if(v.qstnRspnsTycd == 'LINK') {
-	        					v.qstnVwitmCts.split("@#").forEach(function(el, index) {
-									html += "		<input type='text' class='flex1' value='" + el.split("|")[0] + " - " + el.split("|")[1] + "' readonly='readonly' />";
-	        					});
+								var emplMatchNumStr = "A@#B@#C@#D@#E@#F@#G@#H@#I@#J";
+								var emplMatchNumArray = emplMatchNumStr.split("@#");
+								var cransCts = "";
+								v.qstnVwitmCts.split("@#").forEach(function(el, index) {
+									if(cransCts == "") {
+										cransCts = emplMatchNumArray[index] + "-" + el.split("|")[1];
+									} else {
+										cransCts += "," + emplMatchNumArray[index] + "-" + el.split("|")[1];
+									}
+								});
+								html += "		<p>" + cransCts + "</p>";
 	        				}
-	        				html += "			</div>";
-	        				html += "			<div class='flex'>";
-	        				html += "				<label class='ui label flex-none m0'>배점</label>";
-	        				html += "				<input type='text' class='w80' value='" + v.qstnScr + "' readonly='readonly' />";
-	        				html += "			</div>";
-	        				html += "			<div class='flex align-items-center gap4'>점수 <input class='w50 score' value='" + v.scr + "' /> 점</div>";
+	        				html += "		</div>";
+	        				html += "		<p class='margin-right-3'>배점</p>";
+	        				html += "		<div class='margin-right-3'><p>" + v.qstnScr + "</p></div>";
+	        				html += "		<p class='margin-right-3'>난이도</p>";
+	        				html += "		<div class='margin-right-3'><p>" + v.qstnDfctlvTynm + "</p></div>";
+	        				html += "		<div class='margin-left-auto flex-item'>";
+	        				html += "			<p class='margin-right-3'>점수</p>";
+	        				html += "			<p>" + v.scr + "</p>";
 	        				html += "		</div>";
 	        				html += "	</div>";
 	        				html += "</div>";
 	        			});
+	        			html += "</div>";
 	        		}
 	        		$("#examPreviewQstnList_"+num).append(html);
-	        		watermarkedDataURL("${examBscVO.rgtrId}"+"_"+"${examBscVO.rgtrnm}",$("div.ui.card"));
+	        		watermarkedDataURL("${examBscVO.rgtrId}"+"_"+"${examBscVO.rgtrnm}",$("div.qstnList"));
 					if('Y' == lastYn){
 						quizStarePaperPrint();
 					}
@@ -178,21 +167,19 @@
 
 		// 인쇄
 		function quizStarePaperPrint() {
-			$("#exampprModal").print({
+			window.print();
+			/* $("#exampprModal").print({
 				globalStyles : true,
 				stylesheet : null,
 				rejectWindow : true,
 				noPrintSelector : ".no-print",
 				append : null,
 				prepend : null
-			});
-
-			//window.parent.closeDialog();
+			}); */
 		}
 
 		// 워터마크
 		function watermarkedDataURL (text,watermarkDiv) {
-			//var watermarkDiv = $("#exampprModal");		//워터마크 적용될 영역
 			var tempCanvas=document.createElement('canvas');	//워터마크 사용될 임의의 캔버스
 			var tempCtx=tempCanvas.getContext('2d');			//캔버스 2d 컨텐츠
 			var cw,ch;
@@ -227,18 +214,14 @@
 		}
 	</script>
 
-	<body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
+	<body class="modal-page">
         <form id="exampprPrintForm" name="exampprPrintForm" method="POST">
 			<div id="wrap">
 				<div id="exampprModal">
-				<c:forEach var="items" items="${quizTkexamList}" varStatus="status">
-					<div class="ui form">
-						<div class="field">
-							<div class="ui info message">
-								<div class="header">'${items.usernm}'<spring:message code="exam.label.std.paper" /></div><!-- 의 시험지 -->
-							</div>
-						</div>
-						<div class="ui divider"></div>
+					<c:forEach var="items" items="${quizTkexamList}" varStatus="status">
+						<div class="msg-box info">
+                            <p class="txt">'${items.usernm}'<spring:message code="exam.label.std.paper" /></p><!-- 의 시험지 -->
+                        </div>
 						<div id="examPreviewQstnList_${status.count}" class="qstnList"></div>
 						<c:choose>
 							<c:when test="${status.last}">
@@ -248,9 +231,7 @@
 								<script type="text/javascript">quizStarePaperList('${status.count}', '${items.tkexamId}', '${items.userId}');</script>
 							</c:otherwise>
 						</c:choose>
-					</div>
-
-				</c:forEach>
+					</c:forEach>
 				</div>
 			</div>
 		</form>

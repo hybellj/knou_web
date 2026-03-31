@@ -5,59 +5,10 @@
 <script type="text/javascript" src="/webdoc/js/Chart.PieceLabel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
 <script type="text/javascript">
-	window.closeModal = function() {
-	    $('.modal').modal('hide');
-	};
-
+	// dialog 닫기
 	window.closeDialog = function() {
 		dialog.close();
 	};
-
-	var quizCommon = {
-		// 모달 생성
-		initModal: function(type) {
-			$("#quizPop").remove();
-			var typeMap = {
-				"join"        : "<spring:message code='exam.label.quiz' /> <spring:message code='exam.label.paper' />",/* 퀴즈 *//* 시험지 */
-				"answer"      : "<spring:message code='exam.label.submit.answer' />",/* 제출 답안 */
-				"qstnEval"    : "<spring:message code='exam.label.paper.eval' />",/* 시험지 및 평가 */
-				"recordView"  : "<spring:message code='exam.button.stare.hsty' /> <spring:message code='exam.label.qstn.item' />",/* 응시기록 *//* 보기 */
-				"paperPrint"  : "<spring:message code='exam.button.batch.print.paper' />",/* 시험지 일괄 인쇄 */
-				"profMemo"    : "<spring:message code='exam.label.memo' />",/* 메모 */
-				"scoreExcel"  : "<spring:message code='exam.button.reg.excel.score' />",/* 엑셀 성적등록 */
-				"quizPreview" : "<spring:message code='exam.label.quiz' /> <spring:message code='exam.label.paper' /> <spring:message code='exam.label.preview' />",/* 퀴즈 *//* 시험지 *//* 미리보기 */
-				"qbankCtgr"   : "<spring:message code='exam.label.categori' /> <spring:message code='exam.button.reg' />",/* 분류 *//* 등록 */
-				"qbankView"   : "<spring:message code='exam.label.qstn' /> <spring:message code='exam.label.qstn.item' />",/* 문제 *//* 보기 */
-				"copy"		  : "<spring:message code='exam.label.prev' /> <spring:message code='exam.label.quiz' /> <spring:message code='exam.label.copy' />",/* 이전 *//* 퀴즈 *//* 가져오기 */
-				"copyQstn" 	  : "<spring:message code='exam.label.qstn' /> <spring:message code='exam.label.copy' />",/* 문제 *//* 가져오기 */
-				"excelUpload" : "<spring:message code='exam.button.req.excel.qstn' />",/* 엑셀 문항등록 */
-				"qstnPrint"	  : "<spring:message code='exam.button.qstn.print.paper' />",/* 문항 인쇄 */
-				"starePop"    : "<spring:message code='exam.label.stare.status' />",/* 응시현황 */
-				"qstnOption"  : "<spring:message code='exam.label.qstn.edit.option' />",/* 재채점 옵션 선택 */
-				"joinInfo"    : "<spring:message code='exam.label.quiz.stare.info' />",/* 퀴즈 응시 주의사항 */
-				"qstnEdit"	  : "<spring:message code='exam.label.qstn' /> <spring:message code='exam.button.mod' />",/* 문제 *//* 수정 */
-				"examInsTarget"	  : "<spring:message code='exam.label.ins.target.set.ifm' />",/* 대체평가 대상자 설정 */
-				"teamGrpChoice"  : "학습그룹지정",
-			};
-			var html  = "<div class='modal fade' id='quizPop' tabindex='-1' role='dialog' aria-labelledby='"+typeMap[type]+" 모달' aria-hidden='false'>";
-				html += "	<div class='modal-dialog modal-lg' role='document'>";
-				html += "		<div class='modal-content'>";
-				html += "			<div class='modal-header'>";
-				html += "				<button type='button' class='close' data-dismiss='modal' aria-label='닫기'>";
-				html += "					<span aria-hidden='true'>&times;</span>";
-				html += "				</button>";
-				html += "				<h4 class='modal-title'>"+typeMap[type]+"</h4>";
-				html += "			</div>";
-				html += "			<div class='modal-body'>";
-				html += "				<iframe src='' id='quizPopIfm' name='quizPopIfm' width='100%' scrolling='no' title='quiz pop'></iframe>";
-				html += "			</div>";
-				html += "		</div>";
-				html += "	</div>";
-				html += "</div>";
-			$("#wrap").append(html);
-			$('iframe').iFrameResize();
-		}
-	}
 
 	// 성적 통계 pie 차트
 	function scorePieChart(completeCnt, noTkexamCnt) {
@@ -192,14 +143,6 @@
         });
 	}
 
-	// 날짜 포맷
-	function dateFormat(formatter, date) {
-		// yyyy.MM.dd HH:mm:ss
-		if(formatter == "date") {
-			return date.substring(0, 4) + "." + date.substring(4, 6) + "." + date.substring(6, 8) + " " + date.substring(8, 10) + ":" + date.substring(10, 12);
-		}
-	}
-
 	// 페이지 이동
 	function submitForm(action, target, modal, kvArr){
 		if(modal != "") quizCommon.initModal(modal);
@@ -219,16 +162,4 @@
 		form.submit();
 		if(modal != "") $('#quizPop').modal('show');
 	};
-
-	// html 태그 제거
-	function escapeHtml(str) {
-		var map = {
-			'&': '&amp;',
-			'<': '&lt;',
-			'>': '&gt;',
-			'"': '&quot;',
-			"'": '&#039;'
-		};
-		return str.replace(/[&<>"']/g, function(m) { return map[m]; });
-	}
 </script>

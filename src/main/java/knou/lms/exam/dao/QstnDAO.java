@@ -6,6 +6,7 @@ import java.util.Map;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
+import knou.lms.exam.vo.ExamDtlVO;
 import knou.lms.exam.vo.QstnVO;
 
 @Mapper("qstnDAO")
@@ -143,5 +144,21 @@ public interface QstnDAO {
 	 * @throws Exception
 	 */
 	public void quizQstnCopy(List<Map<String, Object>> list) throws Exception;
+
+	/**
+	 * 문항전체삭제
+	 *
+	 * @param ExamDtlVO
+	 * @throws Exception
+	 */
+	public void qstnAllDelete(ExamDtlVO vo) throws Exception;
+
+	/**
+	 * 문항일괄등록
+	 *
+	 * @param List<QstnVO>
+	 * @throws Exception
+	 */
+	public void qstnBulkRegist(List<QstnVO> list) throws Exception;
 
 }

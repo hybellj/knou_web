@@ -7,13 +7,15 @@
         <jsp:param name="style" value="dashboard"/>
         <jsp:param name="module" value="table"/>
     </jsp:include>
-</head>
-
 <script type="text/javascript">
     let currentPage = 1;
     let listScale = ${pageSize};
     let totalCnt = 0;
     let sndrDsctnTable;
+    let MSG_SUFFIX_YEAR = '<spring:message code="msg.sndrDsctn.label.year" text="년"/>';
+    let MSG_SUFFIX_SMSTR = '<spring:message code="msg.sndrDsctn.label.smstr" text="학기"/>';
+    let MSG_SUFFIX_WON = '<spring:message code="msg.sndrDsctn.label.unitWon" text="원"/>';
+    let costMap = {};
 
     let SNDNG_GBN_MAP = {
         'PUSH': 'PUSH',
@@ -95,11 +97,11 @@
             $sel.find('option:gt(0)').remove();
             if (res.result > 0 && res.returnList) {
                 res.returnList.forEach(function(v) {
-                    $sel.append('<option value="' + v.sbjctYr + '">' + v.sbjctYr + '년</option>');
+                    $sel.append('<option value="' + UiComm.escapeHtml(v.sbjctYr) + '">' + UiComm.escapeHtml(v.sbjctYr) + MSG_SUFFIX_YEAR + '</option>');
                 });
             }
             $sel.trigger('chosen:updated');
-        });
+        }, function() {});
     }
 
     /* 학기 목록 조회 */
@@ -114,11 +116,11 @@
         ajaxCall('/msgSndrDsctnSmstrListAjax.do', { sbjctYr: sbjctYr }, function(res) {
             if (res.result > 0 && res.returnList) {
                 res.returnList.forEach(function(v) {
-                    $sel.append('<option value="' + v.sbjctSmstr + '">' + v.sbjctSmstr + '학기</option>');
+                    $sel.append('<option value="' + UiComm.escapeHtml(v.sbjctSmstr) + '">' + UiComm.escapeHtml(v.sbjctSmstr) + MSG_SUFFIX_SMSTR + '</option>');
                 });
             }
             $sel.trigger('chosen:updated');
-        });
+        }, function() {});
     }
 
     /* 학과 목록 조회 */
@@ -130,9 +132,12 @@
                 res.returnList.forEach(function(v) {
                     $sel.append('<option value="' + v.deptId + '">' + UiComm.escapeHtml(v.deptnm) + '</option>');
                 });
+                if (res.returnList.length > 0 && res.returnList[0].orgnm) {
+                    $('#selectOrg option:first').text(UiComm.escapeHtml(res.returnList[0].orgnm));
+                }
             }
             $sel.trigger('chosen:updated');
-        });
+        }, function() {});
     }
 
     /* 운영과목 목록 조회 */
@@ -154,7 +159,7 @@
                 });
             }
             $sel.trigger('chosen:updated');
-        });
+        }, function() {});
     }
 
     /* 검색 */
@@ -211,10 +216,10 @@
                 dvclasNo: UiComm.escapeHtml(v.dvclasNo || ''),
                 rcvrnm: UiComm.escapeHtml(v.rcvrnm || ''),
                 rcvrTelno: UiComm.escapeHtml(v.rcvrTelno || ''),
-                sndngDttm: UiComm.formatDate(v.sndngDttm, 'datetime'),
+                sndngDttm: UiComm.formatDate(v.sndngDttm, 'datetime2'),
                 sndngYn: UiComm.escapeHtml(v.sndngYn || ''),
                 rslt: rsltHtml,
-                cost: '',
+                cost: (v.sndngYn === 'Y') ? (costMap[v.sndngGbncd] || 0) : 0,
                 msgId: UiComm.escapeHtml(v.msgId || '')
             });
         });
@@ -227,9 +232,12 @@
 
         ajaxCall('/msgSndrDsctnSmryAjax.do', param, function(res) {
             if (res.result > 0 && res.returnVO) {
+                if (res.returnSubVO) {
+                    costMap = res.returnSubVO;
+                }
                 fn_renderSmry(res.returnVO);
             }
-        });
+        }, function() {});
     }
 
     /* 검색 파라미터 수집 */
@@ -284,6 +292,29 @@
         $('#lmsTotalCnt').text(s.lmsTotalCnt || 0);
         $('#lmsSuccCnt').text(s.lmsSuccCnt || 0);
         $('#lmsFailCnt').text(s.lmsFailCnt || 0);
+        $('#mmsTotalCnt').text(s.mmsTotalCnt || 0);
+        $('#mmsSuccCnt').text(s.mmsSuccCnt || 0);
+        $('#mmsFailCnt').text(s.mmsFailCnt || 0);
+
+        /* 발신 비용 계산 (성공 건수 × 단가) */
+        let pushCost     = (s.pushSuccCnt || 0)     * (costMap['PUSH'] || 0);
+        let shrtntCost   = (s.shrtntSuccCnt || 0)   * (costMap['SHRTNT'] || 0);
+        let emlCost      = (s.emlSuccCnt || 0)       * (costMap['EML'] || 0);
+        let alimtalkCost = (s.alimtalkSuccCnt || 0)  * (costMap['ALIM_TALK'] || 0);
+        let smsCost      = (s.smsSuccCnt || 0)       * (costMap['SMS'] || 0);
+        let lmsCost      = (s.lmsSuccCnt || 0)       * (costMap['LMS'] || 0);
+        let mmsCost      = (s.mmsSuccCnt || 0)       * (costMap['MMS'] || 0);
+
+        $('#pushCost').text(pushCost.toLocaleString() + MSG_SUFFIX_WON);
+        $('#shrtntCost').text(shrtntCost.toLocaleString() + MSG_SUFFIX_WON);
+        $('#emlCost').text(emlCost.toLocaleString() + MSG_SUFFIX_WON);
+        $('#alimtalkCost').text(alimtalkCost.toLocaleString() + MSG_SUFFIX_WON);
+        $('#smsCost').text(smsCost.toLocaleString() + MSG_SUFFIX_WON);
+        $('#lmsCost').text(lmsCost.toLocaleString() + MSG_SUFFIX_WON);
+        $('#mmsCost').text(mmsCost.toLocaleString() + MSG_SUFFIX_WON);
+
+        let totalCostVal = pushCost + shrtntCost + emlCost + alimtalkCost + smsCost + lmsCost + mmsCost;
+        $('#totalCost').text(totalCostVal.toLocaleString() + MSG_SUFFIX_WON);
     }
     /* 발송내역 엑셀 다운로드 */
     function fn_excelDown() {
@@ -329,14 +360,21 @@
 
     /* 발송비용금액 엑셀 다운로드 */
     function fn_smryExcelDown() {
-        let excelGrid = { colModel: [] };
-        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.label.sndngType" text="발신구분"/>', name: 'sndngGbn', align: 'center', width: '5000'});
+        let totalCostText = $('#totalCost').text();
+
+        let excelGrid = {
+            footerRow: 'true',
+            footerRowColspan: [{firstCol: 0, lastCol: 7}],
+            colModel: []
+        };
+        excelGrid.colModel.push({label: '<spring:message code="msg.sndrDsctn.label.sndngType" text="발신구분"/>', name: 'sndngGbn', align: 'center', width: '5000', footer: {prefix: '<spring:message code="msg.sndrDsctn.label.totalSndCost" text="총 발신 비용"/> : ' + totalCostText, suffix: '', type: '', align: 'center'}});
         excelGrid.colModel.push({label: 'PUSH', name: 'push', align: 'center', width: '3000'});
         excelGrid.colModel.push({label: '<spring:message code="msg.title.msg.shrtnt"/>', name: 'shrtnt', align: 'center', width: '3000'});
         excelGrid.colModel.push({label: '<spring:message code="msg.title.msg.eml"/>', name: 'eml', align: 'center', width: '3000'});
         excelGrid.colModel.push({label: '<spring:message code="msg.title.msg.alimTalk"/>', name: 'alimTalk', align: 'center', width: '3000'});
         excelGrid.colModel.push({label: 'SMS', name: 'sms', align: 'center', width: '3000'});
         excelGrid.colModel.push({label: 'LMS', name: 'lms', align: 'center', width: '3000'});
+        excelGrid.colModel.push({label: 'MMS', name: 'mms', align: 'center', width: '3000'});
 
         let param = fn_getSearchParam();
         let form = $("<form></form>");
@@ -363,6 +401,7 @@
         $("form[name=excelForm]").remove();
     }
 </script>
+</head>
 
 <body class="home colorA ${bodyClass}">
     <div id="wrap" class="main">
@@ -410,7 +449,7 @@
                                 <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.course" text="운영과목"/></label></span>
                                 <div class="itemList">
                                     <select class="form-select" id="selectOrg">
-                                        <option value="${orgId}"><c:out value="${orgId}"/></option>
+                                        <option value="${orgId}"><c:out value="${not empty orgnm ? orgnm : orgId}"/></option>
                                     </select>
                                     <select class="form-select" id="selectDept">
                                         <option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과 전체"/></option>
@@ -453,6 +492,7 @@
                                     <span class="custom-input"><input type="checkbox" name="sndngGbncds" value="ALIM_TALK" id="chkAlimtalk" checked><label for="chkAlimtalk"><spring:message code="msg.title.msg.alimTalk"/></label></span>
                                     <span class="custom-input"><input type="checkbox" name="sndngGbncds" value="SMS" id="chkSms" checked><label for="chkSms"><spring:message code="msg.title.msg.sms"/></label></span>
                                     <span class="custom-input"><input type="checkbox" name="sndngGbncds" value="LMS" id="chkLms" checked><label for="chkLms">LMS</label></span>
+                                    <span class="custom-input"><input type="checkbox" name="sndngGbncds" value="MMS" id="chkMms" checked><label for="chkMms">MMS</label></span>
                                 </div>
                             </div>
                             <div class="item">
@@ -541,23 +581,21 @@
                                     <col style="width:12%">
                                     <col style="width:12%">
                                     <col style="width:12%">
+                                    <col style="width:12%">
                                 </colgroup>
                                 <thead>
                                     <tr>
                                         <th rowspan="2"><spring:message code="msg.sndrDsctn.label.sndngType" text="발신구분"/></th>
-                                        <th>PUSH</th>
-                                        <th><spring:message code="msg.title.msg.shrtnt"/></th>
-                                        <th><spring:message code="msg.title.msg.eml"/></th>
-                                        <th><spring:message code="msg.title.msg.alimTalk"/></th>
-                                        <th colspan="2"><spring:message code="msg.sndrDsctn.label.sms" text="문자"/></th>
+                                        <th rowspan="2">PUSH</th>
+                                        <th rowspan="2"><spring:message code="msg.title.msg.shrtnt"/></th>
+                                        <th rowspan="2"><spring:message code="msg.title.msg.eml"/></th>
+                                        <th rowspan="2"><spring:message code="msg.title.msg.alimTalk"/></th>
+                                        <th colspan="3"><spring:message code="msg.sndrDsctn.label.sms" text="문자"/></th>
                                     </tr>
                                     <tr>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
                                         <th>SMS</th>
                                         <th>LMS</th>
+                                        <th>MMS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -569,6 +607,7 @@
                                         <td id="alimtalkTotalCnt">0</td>
                                         <td id="smsTotalCnt">0</td>
                                         <td id="lmsTotalCnt">0</td>
+                                        <td id="mmsTotalCnt">0</td>
                                     </tr>
                                     <tr>
                                         <td><spring:message code="msg.sndrDsctn.label.totalSuccCnt" text="총 성공 건수"/></td>
@@ -578,6 +617,7 @@
                                         <td id="alimtalkSuccCnt">0</td>
                                         <td id="smsSuccCnt">0</td>
                                         <td id="lmsSuccCnt">0</td>
+                                        <td id="mmsSuccCnt">0</td>
                                     </tr>
                                     <tr>
                                         <td><spring:message code="msg.sndrDsctn.label.totalFailCnt" text="총 실패 건수"/></td>
@@ -587,19 +627,21 @@
                                         <td id="alimtalkFailCnt" class="txt-red">0</td>
                                         <td id="smsFailCnt" class="txt-red">0</td>
                                         <td id="lmsFailCnt" class="txt-red">0</td>
+                                        <td id="mmsFailCnt" class="txt-red">0</td>
                                     </tr>
                                     <tr>
                                         <td><spring:message code="msg.sndrDsctn.label.sndCost" text="발신 비용"/></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
+                                        <td id="pushCost">0</td>
+                                        <td id="shrtntCost">0</td>
+                                        <td id="emlCost">0</td>
+                                        <td id="alimtalkCost">0</td>
+                                        <td id="smsCost">0</td>
+                                        <td id="lmsCost">0</td>
+                                        <td id="mmsCost">0</td>
                                     </tr>
                                     <tr>
                                         <td><spring:message code="msg.sndrDsctn.label.totalSndCost" text="총 발신 비용"/></td>
-                                        <td colspan="6"></td>
+                                        <td colspan="7" id="totalCost">0</td>
                                     </tr>
                                 </tbody>
                             </table>

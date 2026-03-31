@@ -8,6 +8,7 @@ import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper("markSubjectDAO")
 public interface MarkSubjectDAO {
@@ -30,24 +31,26 @@ public interface MarkSubjectDAO {
 
     public void allStdMrkSbjctDtlDelete(@Param("sbjctId")String sbjctId)throws Exception;
 
-    public List<EgovMap> stdMrkSbjctList(@Param("sbjctId")String sbjctId)throws Exception;
+    public List<MarkSubjectVO> stdMrkSbjctList(@Param("sbjctId")String sbjctId)throws Exception;
 
     public List<EgovMap> stdAttdSummaryByWeekSelect(@Param("sbjctId")String sbjctId)throws Exception;
 
     public List<EgovMap> examEvlScoreList(@Param("sbjctId")String sbjctId, @Param("searchKey")String searchKey)throws Exception;
 
-    public List<EgovMap> smnrEvlScoreList(@Param("sbjctId")String sbjctId) throws Exception;
+    public List<EgovMap> smnrEvlScoreList(@Param("sbjctId")String sbjctId)throws Exception;
 
-    public List<EgovMap> asmtEvlScoreList(String sbjctId) throws Exception;
+    public List<EgovMap> asmtEvlScoreList(@Param("sbjctId")String sbjctId)throws Exception;
 
-    public List<EgovMap> dscsEvlScoreList(String sbjctId) throws Exception;
+    public List<EgovMap> dscsEvlScoreList(@Param("sbjctId")String sbjctId)throws Exception;
 
-    public List<EgovMap> quizEvlScoreList(String sbjctId) throws Exception;
+    public List<EgovMap> quizEvlScoreList(@Param("sbjctId")String sbjctId)throws Exception;
 
-    public List<EgovMap> srvyEvlScoreList(String sbjctId) throws Exception;
+    public List<EgovMap> srvyEvlScoreList(@Param("sbjctId")String sbjctId)throws Exception;
 
-    public int mrkSbjctBatchInsert(MarkSubjectVO vo)throws Exception;
+    public List<EgovMap> adtnScoreList(@Param("sbjctId")String sbjctId)throws Exception;
 
-    public int mrkSbjctDtlBatchInsert(MarkSubjectDetailVO vo)throws Exception;
+    public int mrkSbjctBatchInsert(List<MarkSubjectVO> mrksbjctList)throws Exception;
+
+    public int mrkSbjctDtlBatchInsert(List<MarkSubjectDetailVO> mrksbjctDtlList)throws Exception;
 
 }

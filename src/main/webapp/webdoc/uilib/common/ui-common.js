@@ -40,7 +40,7 @@ let UiComm = {
 	 *
 	 * @data	파라메터 데이터(Object)
 	 */
-	makeExtParam: function(data) {
+	makeEncParams: function(data) {
 		const bytes = new TextEncoder().encode(JSON.stringify(data));
 		let param = "";
 		for (const b of bytes) param += String.fromCharCode(b);

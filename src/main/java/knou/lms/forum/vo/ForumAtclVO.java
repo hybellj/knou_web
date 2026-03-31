@@ -36,6 +36,7 @@ public class ForumAtclVO extends DefaultVO {
     private int forumAtclPorsCnt;   //  찬성 게시글 갯수
     private int forumAtclConsCnt;   //  반대 게시글 갯수
     private int cmntCount;
+    private int myCmntCount;    // 로그인 사용자의 댓글 수
     private int maxOdr;
     private int afterAtclCnt;
     private String userId;
@@ -229,6 +230,12 @@ public class ForumAtclVO extends DefaultVO {
     }
     public void setCmntCount(int cmntCount) {
         this.cmntCount = cmntCount;
+    }
+    public int getMyCmntCount() {
+        return myCmntCount;
+    }
+    public void setMyCmntCount(int myCmntCount) {
+        this.myCmntCount = myCmntCount;
     }
 
     public int getMaxOdr() {
