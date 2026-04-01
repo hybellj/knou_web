@@ -312,7 +312,7 @@
 							html += "			<tbody>";
 							html += "				<tr>";
 							html += "					<th>주제</th>";
-							html += "					<td class='t_left'>" + v.srvyTtl + "</td>";
+							html += "					<td class='t_left'>" + UiComm.escapeHtml(v.srvyTtl) + "</td>";
 							html += "				</tr>";
 							html += "				<tr>";
 							html += "					<th>내용</th>";
@@ -360,7 +360,7 @@
 							html += "<div class='border-1 margin-bottom-3 srvypprDiv' data-id='" + v.srvypprId + "' data-seqno='" + v.srvySeqno + "'>";
 							html += "	<div class='board_top border-1 padding-3'>";
 							html += "		<i class='xi-arrows icon-sort ui-sortable-handle'></i>";
-							html += "		<span>" + v.srvySeqno + "</span>. " + escapeHtml(v.srvyTtl);
+							html += "		<span>" + v.srvySeqno + "</span>. " + UiComm.escapeHtml(v.srvyTtl);
 							html += "		<div class='right-area'>";
 							html += "			<a href='javascript:qstnAddFrmView(\"" + v.srvypprId + "\")' class='btn type7'>문항 추가</a>";
 		        			html += "			<a href='javascript:srvypprModifyPopup(\"" + v.srvypprId + "\")' class='btn type7'>페이지수정</a>";
@@ -372,7 +372,7 @@
 								html += "	<div class='sub-content-box board_top sortQstnDiv' data-id='" + vv.srvyQstnId + "' data-seqno='" + vv.qstnSeqno + "' data-pprid='" + vv.srvypprId + "' data-mvmnyn='" + vv.srvyMvmnUseyn + "'>";
 	        					html += "		<i class='xi-arrows-v icon-chg'></i>";
 	        					html += "		<span>" + v.srvySeqno + ". " + vv.qstnSeqno + "</span>";
-	        					html += "		<a href='javascript:qstnModFrmView(\"" + v.srvypprId + "\", \"" + vv.srvyQstnId + "\")'>" + escapeHtml(vv.qstnTtl) + "</a>";
+	        					html += "		<a href='javascript:qstnModFrmView(\"" + v.srvypprId + "\", \"" + vv.srvyQstnId + "\")'>" + UiComm.escapeHtml(vv.qstnTtl) + "</a>";
 	        					html += "		<div class='right-area'>";
 	        					html += "			<p>" + vv.qstnRspnsTynm + "</p>";
 	        					html += "			<a href='javascript:qstnDelete(\"" + v.srvypprId + "\", \"" + vv.srvyQstnId + "\", \"" + vv.qstnSeqno + "\")' class='btn basic small'>삭제</a>";
@@ -1279,7 +1279,7 @@
 			kvArr.push({'key' : 'srvyId',   	'val' : "${vo.srvyId}"});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
 
-			submitForm(urlMap[tab], "", "", kvArr);
+			submitForm(urlMap[tab], kvArr);
 		}
 	</script>
 </head>

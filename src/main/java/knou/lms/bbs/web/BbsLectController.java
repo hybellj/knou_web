@@ -3128,6 +3128,7 @@ public class BbsLectController extends ControllerBase {
 
 		bbsVO.setOrgId(userCtx.getOrgId());
 		bbsVO.setBbsId(bbsId);
+		bbsVO.setBbsTycd(bbsTycd);
 		bbsVO.setSbjctId(sbjctId);
 		bbsVO = bbsInfoService.isValidBbsLectInfo(bbsVO, isAdmin);
 
@@ -3241,10 +3242,14 @@ public class BbsLectController extends ControllerBase {
 
         String bbsIds = request.getParameter("bbsIds"); // 게시판 id ',' 구분자
         String upAtclId = request.getParameter("upAtclId");
+        String bbsTycd = request.getParameter("bbsTycd");
+        String bbsId = request.getParameter("bbsId");
 
         try {
             bbsAtclVO.setOrgId(orgId);
             bbsAtclVO.setLangCd(langCd);
+            bbsAtclVO.setBbsId(bbsId);
+            bbsAtclVO.setBbsTycd(bbsTycd);
 
             // 게시판 id ',' 구분자로 들어온 경우
             if(ValidationUtils.isNotEmpty(bbsIds)) {

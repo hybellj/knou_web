@@ -1674,14 +1674,22 @@ public class BbsHomeController extends ControllerBase {
     public String bbsAtclListView(BbsVO bbsVO, ModelMap model, HttpServletRequest request) throws Exception {
     	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
 
+		String orgId = userCtx.getOrgId();
+        String langCd = userCtx.getLangCd();
+        String bbsTycd = bbsVO.getBbsTycd();
+		String bbsId = "";
+
     	boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
-		if(ValidationUtils.isEmpty(bbsVO.getBbsId())) {
+		if(ValidationUtils.isEmpty(bbsVO.getBbsTycd())) {
 			throw new BadRequestUrlException(getMessage("common.system.error"));
 		}
 
-		bbsVO.setOrgId(userCtx.getOrgId());
-		bbsVO.setLangCd(userCtx.getLangCd());
+        if(bbsVO.getBbsId() == null) {
+        	bbsVO.setBbsId(orgId + "_" + bbsTycd);
+        }
+
+        bbsVO.setOrgId(orgId);
 		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
 		if(bbsVO == null) { // 게시판 정보를 찾을 수 없습니다.
@@ -1782,6 +1790,7 @@ public class BbsHomeController extends ControllerBase {
         String bbsId = bbsAtclVO.getBbsId();
         String gubun = bbsAtclVO.getGubun();
         String atclId = bbsAtclVO.getAtclId();
+        String bbsTycd = bbsAtclVO.getBbsTycd();
 
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
@@ -1795,6 +1804,7 @@ public class BbsHomeController extends ControllerBase {
         bbsVO.setBbsId(bbsId);
         bbsVO.setOrgId(orgId);
 		bbsVO.setLangCd(langCd);
+		bbsVO.setBbsTycd(bbsTycd);
 		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
         if(bbsVO == null) {
@@ -1862,9 +1872,10 @@ public class BbsHomeController extends ControllerBase {
 
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
-
         String bbsId = bbsAtclVO.getBbsId();
+        String bbsTycd = bbsAtclVO.getBbsTycd();
 
+        System.out.println("bbsTycd===>"+bbsTycd);
         String atclWriteAuth = "Y"; // 글쓰기 권한
 
         // 게시판 정보 조회
@@ -1872,6 +1883,7 @@ public class BbsHomeController extends ControllerBase {
         bbsVO.setBbsId(bbsId);
         bbsVO.setOrgId(orgId);
 		bbsVO.setLangCd(langCd);
+		bbsVO.setBbsTycd(bbsTycd);
 		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
         if(bbsVO == null) {
@@ -1919,12 +1931,14 @@ public class BbsHomeController extends ControllerBase {
 
         String atclId = bbsAtclVO.getAtclId();
         String bbsId = bbsAtclVO.getBbsId();
+        String bbsTycd = bbsAtclVO.getBbsTycd();
 
         String uploadFiles = bbsAtclVO.getUploadFiles();
         String uploadPath = bbsAtclVO.getUploadPath();
 
         bbsAtclVO.setOrgId(orgId);
         bbsAtclVO.setAtclId(atclId);
+        bbsAtclVO.setUserId(userId);
         bbsAtclVO.setRgtrId(userId);
         bbsAtclVO.setMdfrId(userId);
         bbsAtclVO.setRgtrnm(SessionInfo.getUserNm(request));
@@ -1944,6 +1958,7 @@ public class BbsHomeController extends ControllerBase {
             BbsVO bbsVO = new BbsVO();
             bbsVO.setOrgId(orgId);
             bbsVO.setBbsId(bbsId);
+            bbsVO.setBbsTycd(bbsTycd);
             bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
             if(bbsVO == null) {
@@ -2154,15 +2169,26 @@ public class BbsHomeController extends ControllerBase {
     @RequestMapping(value = "/bbsSbjctListView.do")
     public String bbsSbjctListView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
     	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
-
+    	// bbsTycd=NTC&bbsRefTycd=SBJCT
     	boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
-        String bbsId = bbsAtclVO.getBbsId();
+        String bbsTycd = bbsAtclVO.getBbsTycd();
+        String bbsRefTycd = bbsAtclVO.getBbsRefTycd();
+        String bbsId = "";
+
+        if(bbsAtclVO.getBbsId() == null) {
+        	bbsId = orgId + "_" + bbsTycd;
+        } else {
+        	bbsId = bbsAtclVO.getBbsId();
+        }
+
+        System.out.println("bbsId=====>"+bbsId);
+
         String atclWriteAuth = "N"; // 글쓰기 권한
 
-        if(ValidationUtils.isEmpty(bbsAtclVO.getBbsId())) {
+        if(ValidationUtils.isEmpty(bbsId)) {
             // 시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.
             throw new BadRequestUrlException(getMessage("common.system.error"));
         }
@@ -2172,6 +2198,8 @@ public class BbsHomeController extends ControllerBase {
         bbsVO.setOrgId(orgId);
         bbsVO.setBbsId(bbsId);
         bbsVO.setLangCd(langCd);
+        bbsVO.setBbsTycd(bbsTycd);
+        bbsVO.setBbsRefTycd(bbsRefTycd);
         bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
         if(bbsVO == null) {

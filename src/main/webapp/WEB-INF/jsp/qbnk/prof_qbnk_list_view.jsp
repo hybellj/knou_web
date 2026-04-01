@@ -35,7 +35,7 @@
 			var kvArr = [];
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
 
-			submitForm(urlMap[tab], "", "", kvArr);
+			submitForm(urlMap[tab], kvArr);
 		}
 
 		/**
@@ -53,7 +53,7 @@
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
 			kvArr.push({'key' : 'qbnkQstnId', 	'val' : qbnkQstnId});
 
-			submitForm(urlMap[tab], "", "", kvArr);
+			submitForm(urlMap[tab], kvArr);
 		}
 
 		// list scale 변경
@@ -121,7 +121,7 @@
 					// 과목
 					var sbjctnm = v.sbjctnm + " " + v.dvclasNo + "반";
 					// 제목
-					var qstnTtl = "<a href='javascript:qbnkQstnViewMv(\""+v.qbnkQstnId+"\", 2)' class='header header-icon link'>" + escapeHtml(v.qstnTtl) + "</a>";
+					var qstnTtl = "<a href='javascript:qbnkQstnViewMv(\""+v.qbnkQstnId+"\", 2)' class='header header-icon link'>" + UiComm.escapeHtml(v.qstnTtl) + "</a>";
 					var mng = "<a href='javascript:qbankQstnView(\"" + v.qbnkQstnId + "\")' class='btn basic small'>문제보기</a>";
 
 					dataList.push({

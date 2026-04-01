@@ -1,5 +1,13 @@
 package knou.lms.file.vo;
 
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import knou.framework.util.DateTimeUtil;
+import knou.framework.util.JsonUtil;
+import knou.framework.util.SecureUtil;
 import knou.lms.common.vo.DefaultVO;
 
 /**
@@ -31,6 +39,7 @@ public class AtflVO extends DefaultVO {
 	private String		downDttm;			// 다운로드 유효시간
 	private int		atchFileCnt = 0;	// 첨부파일수
 	private int		refAtflCnt = 0;		// 참조첨부파일수
+	private String		encDownParam;		// 암호화 다운로드 파라메터
 
 	public String getAtflId() {
 		return atflId;
@@ -218,6 +227,26 @@ public class AtflVO extends DefaultVO {
 
 	public void setRefAtflCnt(int refAtflCnt) {
 		this.refAtflCnt = refAtflCnt;
+	}
+
+	public String getEncDownParam() {
+		if (encDownParam == null && this.filenm != null && this.fileSavnm != null && this.filePath != null) {
+			Date expireDate = Date.from(new Date().toInstant().plus(1, ChronoUnit.HOURS));
+	        String downDttm = DateTimeUtil.dateToString(expireDate, "yyyyMMddHHmmss");
+
+	    	Map<String, Object> paramMap = new HashMap<>();
+			paramMap.put("filenm", this.filenm);
+			paramMap.put("fileSavnm", this.fileSavnm);
+			paramMap.put("filePath", this.filePath);
+			paramMap.put("downDttm", downDttm);
+			this.encDownParam = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(paramMap).toString());
+		}
+
+		return encDownParam;
+	}
+
+	public void setEncDownParam(String encDownParam) {
+		this.encDownParam = encDownParam;
 	}
 
 }

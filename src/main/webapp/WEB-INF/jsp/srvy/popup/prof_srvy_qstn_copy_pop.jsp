@@ -68,7 +68,7 @@
 
 	        		if(returnList.length > 0) {
 	        			returnList.forEach(function(v, i) {
-							html += "<option value='" + v.srvyId + "'>" + v.srvyTtl + "</option>";
+							html += "<option value='" + v.srvyId + "'>" + UiComm.escapeHtml(v.srvyTtl) + "</option>";
 	        			});
 	        		}
 
@@ -100,7 +100,7 @@
 
 	        		if(returnList.length > 0) {
 	        			returnList.forEach(function(v, i) {
-							html += "<option value='" + v.srvypprId + "'>" + v.srvyTtl + "</option>";
+							html += "<option value='" + v.srvypprId + "'>" + UiComm.escapeHtml(v.srvyTtl) + "</option>";
 	        			});
 	        		}
 

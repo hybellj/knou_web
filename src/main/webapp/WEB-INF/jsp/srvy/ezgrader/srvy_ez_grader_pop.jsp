@@ -124,7 +124,7 @@
 									if(ppr.srvypprId == qstn.srvypprId) {
 										html += "<div class='border-1 margin-top-3 cpn'>";
 										html += "	<div class='board_top border-1 padding-3'>";
-										html += "		<span>" + ppr.srvySeqno + "." + qstn.qstnSeqno + " " + qstn.qstnTtl + "</span>";
+										html += "		<span>" + ppr.srvySeqno + "." + qstn.qstnSeqno + " " + UiComm.escapeHtml(qstn.qstnTtl) + "</span>";
 										html += "	</div>";
 										html += "	<div class='padding-3 margin-top-0'>";
 										html += "		<div class='margin-bottom-5'>" + qstn.qstnCts + "</div>";

@@ -35,11 +35,6 @@ public class FileDownloadTag extends TagSupport {
 		try {
 			StringBuffer tag = new StringBuffer();
             Message message = new Message((HttpServletRequest)(this.pageContext).getRequest());
-            Map<String, Object> paramMap = null;
-            String eparam = null;
-
-            Date expireDate = Date.from(new Date().toInstant().plus(1, ChronoUnit.HOURS));
-            String downDttm = DateTimeUtil.dateToString(expireDate, "yyyyMMddHHmmss");
 
 			if (atflVO != null) {
 				if (fileList == null) {
@@ -53,21 +48,14 @@ public class FileDownloadTag extends TagSupport {
 				tag.append("<ul class='add_file'>");
 
 				for (AtflVO vo : fileList) {
-					paramMap = new HashMap<>();
-					paramMap.put("filenm", vo.getFilenm());
-					paramMap.put("fileSavnm", vo.getFileSavnm());
-					paramMap.put("filePath", vo.getFilePath());
-					paramMap.put("downDttm", downDttm);
-					eparam = SecureUtil.encodeStr(JsonUtil.getJsonStringFromMap(paramMap).toString());
-
 					tag.append("<li>");
-					tag.append("<a href='#_' class='file_down' onclick='UiFileDownloader(\""+eparam+"\");return false;' title='File download'>");
+					tag.append("<a href='#_' class='file_down' onclick='UiFileDownloader(\""+vo.getEncDownParam()+"\");return false;' title='File download'>");
 					tag.append("<i class='icon-svg-paperclip' aria-hidden='true'></i>");
 					tag.append("<span class='text'>"+vo.getFilenm()+"</span>");
 					tag.append("<span class='fileSize'>("+FileUtil.getFileSizeConvertKByte(vo.getFileSize())+")</span>");
 					tag.append("</a>");
 					tag.append("<span class='link'>");
-					tag.append("<button class='btn s_basic down' onclick='UiFileDownloader(\""+eparam+"\");return false;'>"+message.getMessage("button.download")+"</button>");
+					tag.append("<button class='btn s_basic down' onclick='UiFileDownloader(\""+vo.getEncDownParam()+"\");return false;'>"+message.getMessage("button.download")+"</button>");
 					tag.append("</span>");
 					tag.append("</a>");
 					tag.append("</li>");

@@ -38,7 +38,7 @@
 	        			returnList.forEach(function(v, i) {
 	        				var answSrc = v.ansrYn == "Y" ? "/webdoc/img/quiz_true.gif" : "/webdoc/img/answer.png";
 	        				html += "<div class='board_top border-1 padding-3 margin-bottom-0'>";
-	        				html += "	<span>문제 " + v.qstnDsplySeqno + ". " + v.qstnTtl + "</span>";
+	        				html += "	<span>문제 " + v.qstnDsplySeqno + ". " + UiComm.escapeHtml(v.qstnTtl) + "</span>";
 	        				html += "	<div class='overflow-hidden right-area w30 d-inline-block position-relative' style='height:30px;'>";
 	        				html += "		<img class='width-100-per show margin-left-auto' style='position:absolute;bottom:0;' src='" + answSrc + "' />";
 	        				html += "	</div>";

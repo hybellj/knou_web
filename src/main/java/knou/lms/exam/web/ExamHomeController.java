@@ -152,13 +152,11 @@ public class ExamHomeController extends ControllerBase {
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
-//        String crsCreCd = vo.getCrsCreCd();
 
         if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
             throw new AccessDeniedException(getCommonNoAuthMessage()); // 페이지 접근 권한이 없습니다.
         }
 
-//        vo.setCrsCreCd(crsCreCd);
         model.addAttribute("vo", vo);
 
         LocalDateTime today = LocalDateTime.now();
@@ -166,12 +164,11 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("crsCreCd", "SBJCT_OFRNG_ID2");  // 임시 하드코딩
+        model.addAttribute("sbjctId", "SBJCT_OFRNG_ID2");  // 임시 하드코딩
         model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
 
         // 임시로 prof 경로 추가
         return "exam/prof/exam_list_view";
-//        return "exam/exam_list";
     }
 
     /*****************************************************
@@ -194,7 +191,7 @@ public class ExamHomeController extends ControllerBase {
         String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
         String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
         String sbjctId = "SBJCT_OFRNG_ID2";    // 임시 하드코딩
-//        String sbjctId = StringUtil.nvl(vo.getCrsCreCd());
+//        String sbjctId = StringUtil.nvl(vo.getSbjctId());
         String isModify = null;
 
         ExamVO examVO = null;
@@ -234,7 +231,7 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("crsCreCd", sbjctId);
+        model.addAttribute("sbjctId", sbjctId);
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
 
         // 임시로 prof 경로 추가
@@ -289,7 +286,7 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
         // 임시로 prof 경로 추가
@@ -344,7 +341,7 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
         // 임시로 prof 경로 추가
@@ -399,7 +396,7 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
         // 임시로 prof 경로 추가
@@ -454,7 +451,7 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
         // 임시로 prof 경로 추가
@@ -509,7 +506,7 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getCrsCreCd()));
+        model.addAttribute("crsCreCd", StringUtil.nvl(vo.getSbjctId()));
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
         // 임시로 prof 경로 추가
@@ -648,6 +645,26 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
+     * 장애인/고령자 시험 지원 상세 조회(팝업)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/examDsblUserDtlPopup.do")
+    public String selectDsblDtl(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String sbjctId = vo.getSbjctId();
+        String userId = vo.getUserId();
+
+        vo.setSbjctId(sbjctId);
+        vo.setUserId(userId);
+        ExamVO examVO = examService.selectDsblDtl(vo);
+        model.addAttribute("dsblDtl", examVO);
+        return "exam/prof/popup/prof_exam_dsbl_dtl_pop";
+    }
+
+    /*****************************************************
      * 시험 등록
      * @param ExamBscVO
      * @param RequestParam
@@ -765,11 +782,11 @@ public class ExamHomeController extends ControllerBase {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String orgId = SessionInfo.getOrgId(request);
         String examTtl = vo.getExamTtl();
-        String crsCreCd = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
+        String sbjctId = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
 
         vo.setOrgId(orgId);
         vo.setExamTtl(examTtl);
-        vo.setCrsCreCd(crsCreCd);
+        vo.setSbjctId(sbjctId);
         try {
             resultVO = examService.listProfExamPaging(vo);
             resultVO.setResultSuccess();
@@ -834,10 +851,10 @@ public class ExamHomeController extends ControllerBase {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
         String byteamSubrexamUseyn = vo.getByteamSubrexamUseyn();
-        String crsCreCd = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
+        String sbjctId = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
 
         vo.setExamBscId(examBscId);
-        vo.setCrsCreCd(crsCreCd);
+        vo.setSbjctId(sbjctId);
         try {
             // 시험 평가대상자
             resultVO = examService.listTkexamUserPaging(vo);
@@ -863,10 +880,10 @@ public class ExamHomeController extends ControllerBase {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
         String byteamSubrexamUseyn = vo.getByteamSubrexamUseyn();
-        String crsCreCd = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
+        String sbjctId = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
 
         vo.setExamBscId(examBscId);
-        vo.setCrsCreCd(crsCreCd);
+        vo.setSbjctId(sbjctId);
         try {
             resultVO = examService.listTkexamUserPaging(vo);
             resultVO.setResultSuccess();
@@ -968,6 +985,31 @@ public class ExamHomeController extends ControllerBase {
         vo.setExamBscId(examBscId);
         try {
             resultVO = examService.listProfAbsnceUserPaging(vo);
+            resultVO.setResultSuccess();
+        } catch(Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 장애인/고령자 시험 지원 목록 페이징
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/dsblUserPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listDsblUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String sbjctId = vo.getSbjctId();
+
+        vo.setSbjctId(sbjctId);
+        try {
+            resultVO = examService.listDsblUserPaging(vo);
             resultVO.setResultSuccess();
         } catch(Exception e) {
             resultVO.setResultFailed();
@@ -1251,6 +1293,45 @@ public class ExamHomeController extends ControllerBase {
         ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
         params.put("workbook", excelUtilPoi.simpleGrid(map));
         model.addAllAttributes(params);
+
+        return "excelView";
+    }
+
+    /*****************************************************
+     * 장애인/고령자 시험지원 엑셀 다운로드
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return excelView
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profExamDsblStatusExcelDown.do")
+    public String profExamDsblStatusExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        HashMap<String, Object> map = new HashMap<>();
+        String title = "지원대상자목록";
+
+        map.put("title", title);
+        map.put("sheetName", title);
+        map.put("excelGrid", vo.getExcelGrid());
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("sbjctId", vo.getSbjctId());
+        params.put("aplyStscd", request.getParameter("aplyStscd"));
+        params.put("searchValue", vo.getSearchValue());
+        map.put("list", examService.dsblUserList(params));
+        map.put("ext", ".xlsx(big)");
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String currentDate = sdf.format(new Date());
+
+
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", title + "_" + currentDate);
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+
+        model.addAllAttributes(modelMap);
 
         return "excelView";
     }

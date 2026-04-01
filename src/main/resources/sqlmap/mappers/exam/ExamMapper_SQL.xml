@@ -1109,7 +1109,7 @@
                             BSC.EXAM_BSC_ID ) TOTAL_USR
                 ON TOTAL_USR.EXAM_BSC_ID = A.EXAM_BSC_ID
         WHERE
-            A.SBJCT_ID = #{crsCreCd}
+            A.SBJCT_ID = #{sbjctId}
             /* 시험 구분이 퀴즈인 것은 제외 */
             AND A.EXAM_TYCD NOT LIKE '%QUIZ%'
         <if test = "examTtl != null and examTtl != ''">
@@ -1446,6 +1446,7 @@
             , USR.USERNM                                        AS "USERNM"
             , DEPT.DEPTNM                                       AS "DEPTNM"
             , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = ABSNCE.USER_ID) AS "MOBILE_NO"
+            , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'INDV_EML' AND USER_ID = ABSNCE.USER_ID) AS "EMAIL"
             , CMMNCD.CDNM                                       AS "EXAM_GBNNM"
             , ABSNCE.APLY_STSCD                                 AS "APLY_STSCD"
             , ABSNCE.APRVDTTM                                   AS "APRVDTTM"
@@ -1466,7 +1467,95 @@
         WHERE
             BSC.EXAM_BSC_ID = #{examBscId}
             AND ABSNCE.USER_ID = #{userId}
+    </sql>
 
+    <sql id="listQueryForDsblUser">
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY USR.USERNM DESC)   AS "LINE_NO"
+            , ATN.SBJCT_ID              AS "SBJCT_ID"
+            , DEPT.DEPTNM               AS "DEPTNM"
+            , ATN.USER_ID               AS "USER_ID"
+            , USR.USER_RPRS_ID          AS "USER_RPRS_ID"
+            , USR.STDNT_NO              AS "STDNT_NO"
+            , USR.USERNM                AS "USERNM"
+            , CASE
+                WHEN USR.SNRYN = 'Y' THEN 'Seniors'
+                ELSE 'Disabled'
+            END                         AS "USER_STATUS"
+            , CMMN1.CDNM                AS "DSBL_TYNM"
+            , CMMN2.CDNM                AS "DSBL_GRDNM"
+            , CASE
+                WHEN SPRT_MID.EXAM_SPRT_APLY_ID IS NOT NULL THEN 'Y'
+                ELSE 'N'
+            END                         AS "MID_EXAM"
+            , CASE
+                WHEN SPRT_LST.EXAM_SPRT_APLY_ID IS NOT NULL THEN 'Y'
+                ELSE 'N'
+            END                         AS "FLN_EXAM"
+            , CMMN3.CDNM                AS "EXAM_SPRT_APLY_TYNM"
+            , CASE
+                WHEN SPRT_MID.APRVDTTM IS NOT NULL THEN TO_CHAR(SPRT_MID.ADD_MNTS)
+                ELSE ''
+            END                         AS "SPRT_MID_ADD_MNTS"
+            , CASE
+                WHEN SPRT_LST.APRVDTTM IS NOT NULL THEN TO_CHAR(SPRT_LST.ADD_MNTS)
+                ELSE ''
+            END                         AS "SPRT_LST_ADD_MNTS"
+            , SPRT_MID.CNCL_APLY_STSCD  AS "MID_CNCL_APLY_STSCD"
+            , SPRT_LST.CNCL_APLY_STSCD  AS "LST_CNCL_APLY_STSCD"
+            , BSC_MID.EXAM_BSC_ID       AS "MID_EXAM_BSC_ID"
+            , BSC_LST.EXAM_BSC_ID       AS "LST_EXAM_BSC_ID"
+            , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = USR.USER_ID) AS "MOBILE_NO"
+            , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'INDV_EML' AND USER_ID = USR.USER_ID) AS "EMAIL"
+        FROM
+            TB_LMS_ATNDLC ATN
+            JOIN TB_LMS_USER USR
+                ON ATN.USER_ID = USR.USER_ID
+                AND (USR.DSBLYN = 'Y' OR USR.SNRYN = 'Y')
+            JOIN TB_LMS_DEPT DEPT
+                ON USR.DEPT_ID = DEPT.DEPT_ID
+            LEFT JOIN TB_LMS_EXAM_BSC BSC_MID
+                ON ATN.SBJCT_ID = BSC_MID.SBJCT_ID
+                AND BSC_MID.EXAM_GBNCD LIKE '%EXAM_MID%'
+            LEFT JOIN TB_LMS_EXAM_BSC BSC_LST
+                ON ATN.SBJCT_ID = BSC_LST.SBJCT_ID
+                AND BSC_LST.EXAM_GBNCD LIKE '%EXAM_LST%'
+            LEFT JOIN TB_LMS_EXAM_SPRT_APLY SPRT_MID
+                ON BSC_MID.EXAM_BSC_ID = SPRT_MID.EXAM_BSC_ID
+                AND ATN.USER_ID = SPRT_MID.USER_ID
+            LEFT JOIN TB_LMS_EXAM_SPRT_APLY SPRT_LST
+                ON BSC_LST.EXAM_BSC_ID = SPRT_LST.EXAM_BSC_ID
+                AND ATN.USER_ID = SPRT_LST.USER_ID
+            LEFT JOIN TB_LMS_CMMN_CD CMMN1
+                ON USR.MN_DSBL_CD = CMMN1.CD
+                AND CMMN1.UP_CD = 'DSBL_TYCD'
+            LEFT JOIN TB_LMS_CMMN_CD CMMN2
+                ON USR.MN_DSBL_GRDCD = CMMN2.CD
+                AND CMMN2.UP_CD = 'DSBL_GRDCD'
+            LEFT JOIN TB_LMS_CMMN_CD CMMN3
+                ON USR.EXAM_SPRT_APLY_TYCD = CMMN3.CD
+                AND CMMN3.UP_CD = 'EXAM_SPRT_APLY_TYCD'
+        WHERE
+            ATN.SBJCT_ID = #{sbjctId}
+        <if test="aplyStscd != null and aplyStscd != '' and aplyStscd != 'all'">
+            <choose>
+                <when test='aplyStscd == "1"'>
+                    AND SPRT_MID.APLY_STSCD IN ('APLY', 'RE_APLY')
+                    AND SPRT_LST.APLY_STSCD IN ('APLY', 'RE_APLY')
+                </when>
+                <when test='aplyStscd == "2"'>
+                    AND SPRT_MID.APLY_STSCD IN ('APRV', 'RJCT')
+                    AND SPRT_LST.APLY_STSCD IN ('APRV', 'RJCT')
+                </when>
+                <otherwise>
+                </otherwise>
+            </choose>
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+            AND (LOWER(DEPT.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(USR.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(USR.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue})) )
+        </if>
     </sql>
 
     <insert id="examBscRegist2" parameterType="examBscVO">
@@ -1666,13 +1755,11 @@
             , (SELECT
                     COUNT(1)
                 FROM
-                    TB_LMS_TKEXAM T
+                    TB_LMS_ATNDLC T /* TB_LMS_TKEXAM T */
                     JOIN TB_LMS_USER U
                         ON T.USER_ID = U.USER_ID
-                    JOIN TB_LMS_EXAM_DTL ED
-                        ON T.EXAM_DTL_ID = ED.EXAM_DTL_ID
                 WHERE
-                    ED.EXAM_BSC_ID = A.EXAM_BSC_ID
+                    T.SBJCT_ID = A.SBJCT_ID
                     AND (U.DSBLYN = 'Y' OR U.SNRYN = 'Y'))     AS "DSBL_TOT"       /* 장애인/고령자 COUNT */
         FROM
             TB_LMS_EXAM_BSC A
@@ -1783,7 +1870,7 @@
         FROM
             TB_LMS_EXAM_BSC
         WHERE
-            SBJCT_ID = #{crsCreCd}
+            SBJCT_ID = #{sbjctId}
             /* 시험 구분이 퀴즈인 것은 제외 */
             AND EXAM_TYCD NOT LIKE '%QUIZ%'
             /* 성적 반영을 하는 시험만 */
@@ -2187,6 +2274,121 @@
             COUNT(1)
         FROM
             (<include refid="listQueryForAbsnceUserHstr"/>) Z
+    </select>
+
+    <!-- 장애인/고령자 시험 지원 목록 페이징  -->
+    <select id="listDsblUserPaging" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listDsblUserHstrPaging
+            설명 : 장애인/고령자 시험 지원 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForDsblUser"/>
+        <include refid="CommonSQL.pageSubfix" />
+    </select>
+
+    <!-- 장애인/고령자 시험 지원 목록 카운트  -->
+    <select id="countDsblUser" parameterType="examVO" resultType="Integer">
+        /*
+            SQL ID : ExamDAO.countAbsnceUserHstr
+            설명 : 장애인/고령자 시험 지원 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForDsblUser"/>) Z
+    </select>
+
+    <!-- 장애인/고령자 시험 지원 목록 조회 -->
+    <select id="dsblUserList" parameterType="map" resultType="egovMap">
+        /*
+            SQL ID : ExamDAO.tkexamUserList
+            설명 : 장애인/고령자 시험 지원 목록 조회
+        */
+        <include refid="listQueryForDsblUser"/>
+    </select>
+
+    <!-- 장애인/고령자 시험 지원 상세 조회 -->
+    <select id="selectDsblDtl" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectDsblDtl
+            설명 : 장애인/고령자 시험 지원 상세 조회
+        */
+        SELECT
+            USR.STDNT_NO                AS "STDNT_NO"
+            , USR.USERNM                AS "USERNM"
+            , DEPT.DEPTNM               AS "DEPTNM"
+            , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = USR.USER_ID) AS "MOBILE_NO"
+            , CASE
+                WHEN USR.SNRYN = 'Y' THEN 'Seniors'
+                ELSE 'Disabled'
+            END                         AS "USER_STATUS"
+            , CMMN1.CDNM                AS "DSBL_TYNM"
+            , CMMN2.CDNM                AS "DSBL_GRDNM"
+            , CMMN4.CDNM                AS "SCND_DSBL_TYNM"
+            , CMMN5.CDNM                AS "SCND_DSBL_GRDNM"
+            , ATN.SBJCT_ID              AS "SBJCT_ID"
+            , SBJCT.DVCLAS_NCKNM        AS "DVCLAS_NCKNM"
+            , SBJCT.SBJCTNM             AS "SBJCTNM"
+            , SPRT_MID.REG_DTTM         AS "REG_DTTM"
+            , CMMN3.CDNM                AS "EXAM_SPRT_APLY_TYNM"
+            , DTL_MID.EXAM_MNTS         AS "MID_EXAM_MNTS"
+            , SPRT_MID.ADD_MNTS         AS "SPRT_MID_ADD_MNTS"
+            , DTL_LST.EXAM_MNTS         AS "LST_EXAM_MNTS"
+            , SPRT_LST.ADD_MNTS         AS "SPRT_LST_ADD_MNTS"
+        FROM
+            TB_LMS_ATNDLC ATN
+            JOIN TB_LMS_USER USR
+                ON ATN.USER_ID = USR.USER_ID
+                AND (USR.DSBLYN = 'Y' OR USR.SNRYN = 'Y')
+            JOIN TB_LMS_DEPT DEPT
+                ON USR.DEPT_ID = DEPT.DEPT_ID
+            /* 중간 고사 */
+            LEFT JOIN TB_LMS_EXAM_BSC BSC_MID
+                ON ATN.SBJCT_ID = BSC_MID.SBJCT_ID
+                AND BSC_MID.EXAM_GBNCD LIKE '%EXAM_MID%'
+            LEFT JOIN TB_LMS_EXAM_SPRT_APLY SPRT_MID
+                ON BSC_MID.EXAM_BSC_ID = SPRT_MID.EXAM_BSC_ID
+                AND ATN.USER_ID = SPRT_MID.USER_ID
+            JOIN (SELECT DISTINCT
+                    EXAM_MNTS
+                    , EXAM_BSC_ID
+                  FROM
+                    TB_LMS_EXAM_DTL A) DTL_MID
+                ON BSC_MID.EXAM_BSC_ID = DTL_MID.EXAM_BSC_ID
+            /* 기말 고사 */
+            LEFT JOIN TB_LMS_EXAM_BSC BSC_LST
+                ON ATN.SBJCT_ID = BSC_LST.SBJCT_ID
+                AND BSC_LST.EXAM_GBNCD LIKE '%EXAM_LST%'
+            LEFT JOIN TB_LMS_EXAM_SPRT_APLY SPRT_LST
+                ON BSC_LST.EXAM_BSC_ID = SPRT_LST.EXAM_BSC_ID
+                AND ATN.USER_ID = SPRT_LST.USER_ID
+            JOIN (SELECT DISTINCT
+                    EXAM_MNTS
+                    , EXAM_BSC_ID
+                  FROM
+                    TB_LMS_EXAM_DTL A) DTL_LST
+                ON BSC_LST.EXAM_BSC_ID = DTL_LST.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_CMMN_CD CMMN1
+                ON USR.MN_DSBL_CD = CMMN1.CD
+                AND CMMN1.UP_CD = 'DSBL_TYCD'
+            LEFT JOIN TB_LMS_CMMN_CD CMMN2
+                ON USR.MN_DSBL_GRDCD = CMMN2.CD
+                AND CMMN2.UP_CD = 'DSBL_GRDCD'
+            LEFT JOIN TB_LMS_CMMN_CD CMMN3
+                ON USR.EXAM_SPRT_APLY_TYCD = CMMN3.CD
+                AND CMMN3.UP_CD = 'EXAM_SPRT_APLY_TYCD'
+            LEFT JOIN TB_LMS_CMMN_CD CMMN4
+                ON USR.SCND_DSBL_CD = CMMN4.CD
+                AND CMMN4.UP_CD = 'DSBL_TYCD'
+            LEFT JOIN TB_LMS_CMMN_CD CMMN5
+                ON USR.SCND_DSBL_GRDCD = CMMN5.CD
+                AND CMMN5.UP_CD = 'DSBL_GRDCD'
+            JOIN TB_LMS_SBJCT SBJCT
+                ON ATN.SBJCT_ID = SBJCT.SBJCT_ID
+        WHERE
+            ATN.SBJCT_ID = #{sbjctId}
+            AND ATN.USER_ID = #{userId}
     </select>
 
     <!-- 성적 공개여부 수정  -->

@@ -17,6 +17,9 @@ public class ControllerInitInterceptor implements HandlerInterceptor {
 	
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+		
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1. ControllerInitInterceptor preHandle");
+		
 		if (handler instanceof HandlerMethod) {
 			HandlerMethod hm = (HandlerMethod) handler;
 	        Object controller = hm.getBean();
@@ -26,6 +29,8 @@ public class ControllerInitInterceptor implements HandlerInterceptor {
 	            controller = ctx.getBean((String) controller);
 	        }
 			
+	        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1. ControllerInitInterceptor preHandle");
+	        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1. ControllerInitInterceptor preHandle toString()" + controller.toString());
 			request.setAttribute("CURRENT_CONTROLLER", controller);
 		}
 

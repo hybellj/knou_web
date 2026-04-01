@@ -144,15 +144,13 @@
 	}
 
 	// 페이지 이동
-	function submitForm(action, target, modal, kvArr){
-		if(modal != "") quizCommon.initModal(modal);
+	function submitForm(action, kvArr){
 		$("form[name='tempForm']").remove();
 
 		var form = $("<form></form>");
 		form.attr("method", "POST");
 		form.attr("name", "tempForm");
 		form.attr("action", action);
-		form.attr("target", target);
 
 		for(var i=0; i<kvArr.length; i++){
 			form.append($('<input/>', {type: 'hidden', name: kvArr[i].key, value: kvArr[i].val}));
@@ -160,6 +158,5 @@
 
 		form.appendTo("body");
 		form.submit();
-		if(modal != "") $('#quizPop').modal('show');
 	};
 </script>

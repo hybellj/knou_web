@@ -316,7 +316,7 @@
 			kvArr.push({'key' : 'examBscId',   	'val' : examBscId});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${sbjctId}"});
 
-			submitForm(urlMap[type], "", "", kvArr);
+			submitForm(urlMap[type], kvArr);
 		}
 
 		/**

@@ -177,7 +177,7 @@
 
 	        		if(returnList.length > 0) {
 	        			returnList.forEach(function(v, i) {
-							html += "<option value='" + v.examDtlId + "'>" + v.examTtl + "</option>";
+							html += "<option value='" + v.examDtlId + "'>" + UiComm.escapeHtml(v.examTtl) + "</option>";
 	        			});
 	        		}
 

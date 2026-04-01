@@ -94,6 +94,18 @@ public interface ExamDAO {
     // 결시자 결시신청 이력 목록 카운트
     public int countAbsnceUserHstr(ExamVO vo) throws Exception;
 
+    // 장애인/고령자 시험 지원 목록 페이징
+    public List<ExamVO> listDsblUserPaging(ExamVO vo) throws Exception;
+
+    // 장애인/고령자 시험 지원 목록 카운트
+    public int countDsblUser(ExamVO vo) throws Exception;
+
+    // 장애인/고령자 시험 지원 목록 조회
+    public List<EgovMap> dsblUserList(Map<String, Object> vo) throws Exception;
+
+    // 장애인/고령자 시험 지원 상세 조회
+    public ExamVO selectDsblDtl (ExamVO vo) throws Exception;
+
     // 성적 공개여부 수정
     public void updateMrkOyn(ExamVO vo) throws Exception;
 

@@ -418,6 +418,17 @@
 		</attribute>
 	</tag>
 
+	<!-- 네비게이션바 표시 태그 -->
+	<tag>
+		<name>navibar</name>
+		<tag-class>knou.framework.taglib.NavibarTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>type</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
 
 
 	<!--

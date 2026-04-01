@@ -211,7 +211,7 @@
 			kvArr.push({'key' : 'examBscId',   	'val' : examBscId});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${sbjctId}"});
 
-			submitForm(urlMap[tab], "", "", kvArr);
+			submitForm(urlMap[tab], kvArr);
 		}
 
 		/**
@@ -274,7 +274,7 @@
 			} else {
 				quizList.forEach(function(v,i) {
 					// 제목
-					var examTtl = "<a href='javascript:quizViewMv(\""+v.examBscId+"\", 3)' class='header header-icon link'>" + v.examTtl + "</a>";
+					var examTtl = "<a href='javascript:quizViewMv(\""+v.examBscId+"\", 3)' class='header header-icon link'>" + UiComm.escapeHtml(v.examTtl) + "</a>";
 					// 시간
 					var examMnts = v.examMnts + "<spring:message code='exam.label.stare.min' />";/* 분 */
 					// 기간

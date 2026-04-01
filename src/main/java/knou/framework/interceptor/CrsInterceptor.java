@@ -25,6 +25,8 @@ public class CrsInterceptor extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
+    	
+    	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1. CrsInterceptor preHandle");
 
         String crsCreCd = StringUtil.nvl(request.getParameter("crsCreCd"));
 

@@ -88,11 +88,12 @@ function fdbkList(stdId) {
 <div id="projSendInfoBlock" class="mt10">
 	<textarea id="fdbkValue" placeholder="<spring:message code='forum.label.input.feedback'/>"></textarea><!-- 피드백을 입력하세요 -->
 	<div id="fdbkFileBox" class="flex-item mt4">
-		<button class="ui basic icon button" title="<spring:message code='forum.label.fdbk.file.attach'/>" onclick="fdbkFilePopOpen();"><!-- 파일첨부 --><i class="save icon"></i></button>
+		<%-- 26.3.31 : 기획에서 제외됨(영역이 협소함) --%>
+		<%--<button class="ui basic icon button" title="<spring:message code='forum.label.fdbk.file.attach'/>" onclick="fdbkFilePopOpen();"><!-- 파일첨부 --><i class="save icon"></i></button>
 
 		<div class="field ui segment flex1 flex-item m0" style="height:39px;">
 			<div class="flex align-items-center" id="fdbkFileViewPop"></div>
-		</div>
+		</div>--%>
 
 		<%-- <button class="ui basic icon button" title="<spring:message code='forum.label.fdbk.audio.attach'/>" onclick="fdbkAudioPopOpen();"><!-- 음성녹음 --><i class="microphone icon"></i></button> --%>
 		<a href="javascript:valFdbk();" class="ui blue button mla"><span><spring:message code='forum.button.reg'/><!-- 등록 --></span></a>

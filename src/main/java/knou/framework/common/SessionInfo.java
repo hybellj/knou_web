@@ -10,6 +10,7 @@ import java.util.Stack;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import knou.framework.context2.UserContext;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.SessionUtil;
 import knou.framework.util.StringUtil;
@@ -21,6 +22,35 @@ import knou.lms.user.vo.UsrUserInfoVO;
  * 세션 정보
  */
 public class SessionInfo {
+	
+	/**
+     * UserContext 삭제
+     * @param request
+     * @param value
+     */
+    public static final void removeUserContext(HttpServletRequest request) {
+        SessionUtil.removeSessionValue(request, CommConst.USER_CONTEXT);
+    }
+    
+    /**
+     * UserContext Set
+     * @param request
+     * @param value
+     */
+    public static final void setUserContext(HttpServletRequest request, UserContext userCtx) {
+        SessionUtil.setSessionValue(request, CommConst.USER_CONTEXT, userCtx);
+    }
+    
+    /**
+     * UserContext Get
+     *
+     * @param request
+     * @return
+     */
+    public static final UserContext getUserContext(HttpServletRequest request) {
+        return (UserContext) SessionUtil.getSessionValue(request, CommConst.USER_CONTEXT);
+    }
+    
 
     private SessionInfo() {
         throw new IllegalStateException(getClass().getName());

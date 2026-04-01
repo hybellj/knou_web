@@ -65,6 +65,15 @@ public interface ExamService {
     // 결시자 결시신청 이력 목록 페이징
     public ProcessResultVO<ExamVO> listAbsnceUserHstrPaging(ExamVO vo) throws Exception;
 
+    // 장애인/고령자 시험 지원 목록 페이징
+    public ProcessResultVO<ExamVO> listDsblUserPaging(ExamVO vo) throws Exception;
+
+    // 장애인/고령자 시험 지원 목록 조회
+    public List<EgovMap> dsblUserList(Map<String, Object> vo) throws Exception;
+
+    // 장애인/고령자 시험 지원 상세 조회
+    public ExamVO selectDsblDtl(ExamVO vo) throws Exception;
+
     // 성적 반영비율 수정
     public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
 

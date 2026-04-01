@@ -737,8 +737,8 @@
 
 	<select id="selectBbsAtclList" parameterType="bbsAtclVO" resultType="bbsAtclVO">
 		/*
-			SQL ID : BbsAtclDAO.selectBbsAtclList
 			설  명 : 게시판게시글 목록 조회 (페이징)
+			SQL ID : BbsAtclDAO.selectBbsAtclList
 		*/
 		<include refid="CommonSQL.pagePrefix" />
 		<include refid="bbsAtclListQuery" />

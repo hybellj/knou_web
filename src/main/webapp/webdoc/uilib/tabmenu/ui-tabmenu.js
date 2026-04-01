@@ -17,7 +17,9 @@ function UiTabMenu(pageTabId, pageFrameId) {
 			menuUrl += (menuUrl.indexOf("?") === -1 ? "?" : "&") + "pageType=iframe";
 			let thisObj = this;
 
-        	if (this.menuTabs.length > 0 && this.menuTabs.includes(menuId)) {
+			//this.menuTabs.some(item => item.menuId === menuId)
+
+        	if (this.menuTabs.length > 0 && this.menuTabs.some(item => item.menuId === menuId)) {
 				if (this.currentMenuId !== "" && this.currentMenuId !== menuId) {
 					$("#TAB_"+this.currentMenuId).removeClass("select");
 					$("#FRAME_"+this.currentMenuId).hide();
@@ -91,7 +93,7 @@ function UiTabMenu(pageTabId, pageFrameId) {
 				*/
 			}
 
-			this.menuTabs.push(menuId);
+			this.menuTabs.push({menuId:menuId, upMenuId:upMenuId});
 			this.currentMenuId = menuId;
 
         	tab.find("button.close").on('click', function () {
@@ -112,7 +114,7 @@ function UiTabMenu(pageTabId, pageFrameId) {
 
 		// 탭메뉴 닫기
 		closeTabMenu: function(menuId) {
-			this.menuTabs = this.menuTabs.filter(item => item !== menuId);
+			this.menuTabs = this.menuTabs.filter(item => item.menuId !== menuId);
 
 			if (this.menuTabs.length == 0) {
 				this.closeAllMenu();
@@ -122,12 +124,17 @@ function UiTabMenu(pageTabId, pageFrameId) {
 				$("#FRAME_"+menuId).remove();
 
 				if (this.currentMenuId === menuId) {
-					let lastId = this.menuTabs.at(-1);
-					$("#TAB_"+lastId).addClass("select");
-					$("#FRAME_"+lastId).show();
+					let tabData = this.menuTabs.at(-1);
+					let lastMenuId = tabData ? tabData.menuId : "";
+					let lastUpMenuId = tabData ? tabData.upMenuId : "";
 
-					this.currentMenuId = lastId;
+					$("#TAB_"+lastMenuId).addClass("select");
+					$("#FRAME_"+lastMenuId).show();
+
+					this.currentMenuId = lastMenuId;
 					this.scrollLast();
+
+					this.resetMenuStatus(lastMenuId);
 				}
 			}
 		},
@@ -142,6 +149,8 @@ function UiTabMenu(pageTabId, pageFrameId) {
 			$("#TAB_"+menuId).addClass("select");
 			$("#FRAME_"+menuId).show();
 			this.currentMenuId = menuId;
+
+			this.resetMenuStatus(menuId);
 		},
 
 		// 모든메뉴 닫기
@@ -170,6 +179,26 @@ function UiTabMenu(pageTabId, pageFrameId) {
 			this.pageTabs.animate({
 	            scrollLeft: fullWidth
 	        }, 200);
+		},
+
+		// 메뉴상태 재설정
+		resetMenuStatus: function(menuId) {
+			$("nav.gnb .gnb-item").removeClass("open");
+			$("nav.gnb .gnb-item a").removeClass("current");
+			$("nav.gnb .gnb-item ul").hide();
+
+			let tabData = this.menuTabs.find(item => item.menuId === menuId);
+			if (tabData) {
+				let upMenuId = tabData.upMenuId;
+
+				if (upMenuId === "ROOT") {
+					$("#MENU_"+menuId).addClass("current");
+				}
+				else {
+					$("#SUB_"+upMenuId).show();
+					$("#SUBMENU_"+menuId).addClass("current");
+				}
+			}
 		}
 	};
 

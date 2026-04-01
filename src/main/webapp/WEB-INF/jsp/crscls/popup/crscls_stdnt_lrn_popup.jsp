@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
         <jsp:param name="module" value="chart"/>
-        <jsp:param name="style" value="classroom"/>
+        <jsp:param name="style" value="dashboard"/>
     </jsp:include>
 </head>
 <body>

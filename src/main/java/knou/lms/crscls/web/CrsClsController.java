@@ -26,6 +26,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import knou.framework.context2.UserContext;
+import knou.lms.common.dto.BaseParam;
+import knou.lms.subject.dto.SubjectParam;
+import knou.lms.subject.service.SubjectFacadeService;
+import knou.lms.subject.service.SubjectService;
+import knou.lms.subject.vo.LectureWknoScheduleVO;
+import knou.lms.subject.web.view.SubjectViewModel;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+
 /**
  * 강의실 수업현황 Controller
  * 화면ID : KNOU_MN_B02200000_01 ~ 07
@@ -38,6 +47,12 @@ public class CrsClsController extends ControllerBase {
 
     @Resource(name = "clsService")
     private ClsService clsService;
+
+    @Resource(name="subjectFacadeService")
+    private SubjectFacadeService subjectFacadeService;
+
+    @Resource(name="subjectService")
+    private SubjectService subjectService;
 
     /* ================================================================
        화면 반환
@@ -54,8 +69,31 @@ public class CrsClsController extends ControllerBase {
      */
     @RequestMapping(value = "/selectCrsClsStdntListView.do")
     public String selectCrsClsStdntListView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-
         String sessionOrgId = SessionInfo.getOrgId(request);
+        UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+
+        BaseParam param = new SubjectParam(vo.getSbjctId(), userCtx, 3);
+        SubjectViewModel subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
+        model.addAttribute("subjectVM", subjectVM);
+
+        LectureWknoScheduleVO lctrWknoSchdlVO = subjectService.currLctrWknoSchdlSelect(vo.getSbjctId());
+        model.addAttribute("lctrWknoSchdlVO", lctrWknoSchdlVO);
+
+        EgovMap lctrWknoAtndcrt = null;
+        if (lctrWknoSchdlVO != null && !ValidationUtils.isEmpty(lctrWknoSchdlVO.getLctrWknoSchdlId())) {
+            lctrWknoAtndcrt = subjectService.lctrWknoAtndcrtSelect(vo.getSbjctId(), lctrWknoSchdlVO.getLctrWknoSchdlId());
+        }
+        model.addAttribute("lctrWknoAtndcrt", lctrWknoAtndcrt);
+        // 출석현황 카드값
+
+        int sbjctConnectStdCnt = subjectService.subjectConnectStdCntSelect(vo.getSbjctId());
+        model.addAttribute("sbjctConnectStdCnt", sbjctConnectStdCnt);
+
+        int sbjctTotalStdCnt = subjectService.subjectTotalStdCntSelect(vo.getSbjctId());
+        model.addAttribute("sbjctTotalStdCnt", sbjctTotalStdCnt);
+
+        List<EgovMap> stdntSubjectConnectList = subjectService.stdntSubjectConnectList(vo.getSbjctId());
+        model.addAttribute("stdntSubjectConnectList", stdntSubjectConnectList);
         ClsVO clsVO = new ClsVO();
         clsVO.setOrgId(sessionOrgId);
         clsVO.setSbjctId(vo.getSbjctId());
@@ -604,6 +642,7 @@ public class CrsClsController extends ControllerBase {
             ListOrderedMap orderedMap = new ListOrderedMap();
             orderedMap.put("lineNo",  item.getLineNo());
             orderedMap.put("deptnm",  item.getDeptnm());
+            orderedMap.put("userId",  item.getUserId());
             orderedMap.put("stdntNo", item.getStdntNo());
             orderedMap.put("usernm",  item.getUsernm());
             orderedMap.put("entyR",   item.getEntyR());
@@ -739,6 +778,7 @@ public class CrsClsController extends ControllerBase {
             ListOrderedMap orderedMap = new ListOrderedMap();
             orderedMap.put("lineNo",  item.getLineNo());
             orderedMap.put("deptnm",  item.getDeptnm());
+            orderedMap.put("userId",  item.getUserId());
             orderedMap.put("stdntNo", item.getStdntNo());
             orderedMap.put("usernm",  item.getUsernm());
             orderedMap.put("entyR",   item.getEntyR());
@@ -800,6 +840,7 @@ public class CrsClsController extends ControllerBase {
                         "{\"colModel\":["
                                 + "{\"label\":\"No\",\"name\":\"lineNo\",\"align\":\"center\",\"width\":\"3000\"},"
                                 + "{\"label\":\"학과\",\"name\":\"deptnm\",\"align\":\"center\",\"width\":\"7000\"},"
+                                + "{\"label\":\"대표아이디\",\"name\":\"userId\",\"align\":\"center\",\"width\":\"7000\"},"
                                 + "{\"label\":\"학번\",\"name\":\"stdntNo\",\"align\":\"center\",\"width\":\"7000\"},"
                                 + "{\"label\":\"이름\",\"name\":\"usernm\",\"align\":\"center\",\"width\":\"6000\"},"
                                 + "{\"label\":\"Q&A(답변/등록)\",\"name\":\"qaText\",\"align\":\"center\",\"width\":\"6000\"},"
@@ -823,6 +864,7 @@ public class CrsClsController extends ControllerBase {
                 ListOrderedMap orderedMap = new ListOrderedMap();
                 orderedMap.put("lineNo",       item.getLineNo());
                 orderedMap.put("deptnm",       item.getDeptnm());
+                orderedMap.put("userId",       item.getUserId());
                 orderedMap.put("stdntNo",      item.getStdntNo());
                 orderedMap.put("usernm",       item.getUsernm());
                 orderedMap.put("qaText",       item.getQaAnsCnt()     + "/" + item.getQaRegCnt());

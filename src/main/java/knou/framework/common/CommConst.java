@@ -11,6 +11,8 @@ import java.lang.reflect.Field;
  * @author shil
  */
 public class CommConst {
+	
+	public static final String USER_CONTEXT = "USER_CONTEXT";
 
     // framework.properties 로드
     public static final Configuration framework = ConfigurationFactory.getConfiguration(CommConst.FRAMEWORK);
@@ -708,7 +710,8 @@ public class CommConst {
 
     // 사용자 접속상태 체크값
     public static final String[][] CONN_CHECK_LIST = {
-    		{"/dashboard.do", CONN_HOME},
+    		{"/userIndex.do", CONN_HOME},
+    		{"/dashboard/dashboard.do", CONN_HOME},
     		{"/dashboard/main.do", CONN_HOME},
     		{"/dashboard/profDashboard.do", CONN_HOME},
     		{"/dashboard/stuDashboard.do", CONN_HOME},
@@ -994,6 +997,8 @@ public class CommConst {
             {"/teamMgr", CONN_ETC},
             {"/teamMgr", CONN_ETC}
     };
+    
+	
 
 
     private CommConst() {

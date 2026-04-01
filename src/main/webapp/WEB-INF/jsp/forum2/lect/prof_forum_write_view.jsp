@@ -985,6 +985,20 @@
                 // 평가방법
                 $("input[name='evlScrTycd'][value='" + (v.evlScrTycd || 'SCR') + "']").prop('checked', true);
 
+                // TODO : 첨부파일 설정(복사하기는 추후 공통 기능에서 가이드 필요)
+                /*if (v.fileList.length > 0) {
+                    var fileUploader = dx5.get("fileUploader");
+                    fileUploader.clearItems();
+
+                    var oldFiles = [];
+
+                    v.fileList.forEach(function(v, i) {
+                        oldFiles.push({vindex:v.fileId, name:v.fileNm, size:v.fileSize, saveNm:v.fileSaveNm});
+                    });
+
+                    fileUploader.addOldFileList(oldFiles);
+                }*/
+
                 // 팀 영역 초기화 (selectTeam 이전 상태로 리셋)
                 $("div[id^='lrnGrpView']").each(function() {
                     var dvclasNo = this.id.replace('lrnGrpView', '');

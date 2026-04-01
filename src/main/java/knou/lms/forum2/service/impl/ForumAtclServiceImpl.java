@@ -1,26 +1,26 @@
 package knou.lms.forum2.service.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
 
-
 import knou.lms.forum.dao.ForumJoinUserDAO;
 import knou.lms.forum.vo.ForumJoinUserVO;
+import knou.framework.common.CommConst;
 import knou.framework.common.IdPrefixType;
+import knou.framework.util.FileUtil;
+import knou.framework.util.IdGenUtil;
 import knou.framework.util.IdGenerator;
+import knou.framework.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.ServiceBase;
-import knou.framework.util.StringUtil;
-import knou.framework.vo.FileVO;
 import knou.lms.common.paging.PagingInfo;
-import knou.lms.common.service.SysFileService;
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.file.service.AttachFileService;
+import knou.lms.file.vo.AtflVO;
 import knou.lms.forum2.dao.ForumAtclDAO;
 import knou.lms.forum2.dao.ForumCmntDAO;
 import knou.lms.forum2.service.ForumAtclService;
@@ -45,8 +45,8 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
     @Resource(name = "forum2JoinUserDAO")
     private knou.lms.forum2.dao.ForumJoinUserDAO forum2JoinUserDAO;
 
-    @Autowired
-    private SysFileService sysFileService;
+    @Resource(name = "attachFileService")
+    private AttachFileService attachFileService;
 
     // 토론 게시글 수 카운팅
     @Override
@@ -81,12 +81,10 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
             List<ForumAtclVO> forumAtclList = forumAtclDAO.listPageing(vo);
             if (forumAtclList != null) {
                 for (ForumAtclVO row : forumAtclList) {
-                    FileVO fileVO = new FileVO();
-                    fileVO.setRepoCd("FORUM");
-                    fileVO.setFileBindDataSn(row.getAtclSn());
-                    // TODO : 26.3.11 : 게시글 첨부파일 참조 구조 변경됨.
-//                    row.setFileList(sysFileService.list(fileVO).getReturnList());
-                    row.setFileList(new ArrayList<>());
+                    AtflVO atflParam = new AtflVO();
+                    atflParam.setAtflRepoId(CommConst.REPO_DSCS);
+                    atflParam.setRefId(row.getAtclSn());
+                    row.setFileList(attachFileService.selectAtflListByRefId(atflParam));
                     List<ForumCmntVO> cmntList = forumCmntDAO.cmntList(row);
                     row.setCmntList(cmntList);
                 }
@@ -126,13 +124,18 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
             LOGGER.debug("[insertAtcl] ensureJoinUser skip - already exists: forumCd=" + vo.getForumCd() + ", userId=" + vo.getUserId());
         }
 
-        // TODO : 26.3.30 : 게시글 첨부파일 정보를 저장한다.
-      /*
-      // 이전 시험 가져오기 파일 복사
-      prevCopyFileAdd(vo);
-      // 파일 등록
-      FileVO fileVO = addFile(vo);
-      */
+        // 파일 등록 (attachFileService)
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+        for (AtflVO atflVO : uploadFileList) {
+            atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+            atflVO.setRefId(vo.getAtclSn());
+            atflVO.setRgtrId(vo.getRgtrId());
+            atflVO.setMdfrId(vo.getMdfrId());
+            atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+        }
+        if (!uploadFileList.isEmpty()) {
+            attachFileService.insertAtflList(uploadFileList);
+        }
     }
 
     // 토론 게시글 조회
@@ -148,7 +151,6 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
         vo.setCtsLen(StringUtil.getContentLenth(vo.getCts()));
 
         forumAtclDAO.updateAtcl(vo);
-        addFile(vo);
 
 	// TODO : 26.3.10(AS-IS Ref)
 	/*
@@ -247,19 +249,6 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
         return forumAtclDAO.forumAtclExcalList(vo);
     }
 
-    // 첨부파일 등록
-    private void addFile(ForumAtclVO vo) throws Exception {
-        if ("".equals(StringUtil.nvl(vo.getUploadFiles()))) {
-            return;
-        }
-        FileVO fileVO = new FileVO();
-        fileVO.setUploadFiles(StringUtil.nvl(vo.getUploadFiles()));
-        fileVO.setFilePath(vo.getUploadPath());
-        fileVO.setRepoCd(vo.getRepoCd());
-        fileVO.setRgtrId(vo.getRgtrId());
-        fileVO.setFileBindDataSn(vo.getAtclSn());
-        sysFileService.addFile(fileVO);
-    }
 	// TODO : 26.3.10(AS-IS Ref)
 	/*
     // // 이전 토론 가져오기 첨부파일 복사

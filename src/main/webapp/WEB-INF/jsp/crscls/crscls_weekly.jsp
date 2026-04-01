@@ -1,7 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
-<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <c:set var="initTab" value="${empty param.tab ? 'weekly' : param.tab}" />
 
 <!DOCTYPE html>
@@ -58,57 +56,91 @@
 
             <div class="class_sub">
 
-                <%-- 기준 파일의 class-area 블록 적용 --%>
-                <div class="segment class-area">
+                <div class="segment class-area prof">
 
                     <%-- info-left --%>
                     <div class="info-left">
                         <div class="class_info">
-                            <h2>
-                                <span id="hdrSbjctNmTop">과목명</span>
-                                <b id="hdrDvclasNoTop"></b>
-                            </h2>
+                            <div class="class_tit">
+                                <p class="labels">
+                                    <label class="label uniA">대학원</label>
+                                </p>
+                                <h2>
+                                    <span id="hdrSbjctNmTop"><c:out value="${subjectVM.subjectVO.sbjctnm}"/></span>
+                                    <b id="hdrDvclasNoTop"><c:out value="${dvclasNo}"/></b>
+                                </h2>
+                            </div>
+
                             <div class="classSection">
                                 <div class="cls_btn">
-                                    <div class="tab_btn" id="crsclsTab">
-                                        <a href="#tabWeekly" class="current" data-tab="weekly">주차별 수업현황</a>
-                                        <a href="#tabElement" data-tab="element">학습요소 참여현황</a>
-                                    </div>
+                                    <a href="javascript:void(0);" onclick="loadLctrPlandocPopView('${subjectVM.subjectVO.sbjctId}');" class="btn">강의계획서</a>
+                                    <a href="javascript:void(0);" onclick="loadLessonProgressManage('${subjectVM.subjectVO.sbjctId}');" class="btn">학습진도관리</a>
+                                    <a href="#0" class="btn">평가기준</a>
                                 </div>
                             </div>
                         </div>
 
                         <div class="info-cnt">
                             <div class="info_iconSet">
-                                <a href="#0" class="info"><span>공지</span><div class="num_txt">-</div></a>
-                                <a href="#0" class="info"><span>Q&amp;A</span><div class="num_txt point">-</div></a>
-                                <a href="#0" class="info"><span>1:1</span><div class="num_txt point">-</div></a>
-                                <a href="#0" class="info"><span>과제</span><div class="num_txt">-</div></a>
-                                <a href="#0" class="info"><span>토론</span><div class="num_txt">-</div></a>
-                                <a href="#0" class="info"><span>세미나</span><div class="num_txt">-</div></a>
-                                <a href="#0" class="info"><span>퀴즈</span><div class="num_txt">-</div></a>
-                                <a href="#0" class="info"><span>설문</span><div class="num_txt">-</div></a>
-                                <a href="#0" class="info"><span>시험</span><div class="num_txt">-</div></a>
+                                <c:forEach var="item" items="${subjectVM.subjectLearingActvList}">
+                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.ntcBbsId}" class="info">
+                                        <span>공지</span>
+                                        <div class="num_txt"><c:out value="${item.ntcCnt}"/></div>
+                                    </a>
+                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.qnaBbsId}" class="info">
+                                        <span>Q&amp;A</span>
+                                        <div class="num_txt point"><c:out value="${item.qnaCnt}"/></div>
+                                    </a>
+                                    <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.oneOnOneBbsId}" class="info">
+                                        <span>1:1</span>
+                                        <div class="num_txt point"><c:out value="${item.oneononeCnt}"/></div>
+                                    </a>
+                                    <a href="/asmt2/profAsmtListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info">
+                                        <span>과제</span>
+                                        <div class="num_txt"><c:out value="${item.asmtCnt}"/></div>
+                                    </a>
+                                    <a href="/forum2/forumLect/profForumListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info">
+                                        <span>토론</span>
+                                        <div class="num_txt"><c:out value="${item.dscsCnt}"/></div>
+                                    </a>
+                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info">
+                                        <span>세미나</span>
+                                        <div class="num_txt"><c:out value="${item.smnrCnt}"/></div>
+                                    </a>
+                                    <a href="/quiz/profQuizListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info">
+                                        <span>퀴즈</span>
+                                        <div class="num_txt"><c:out value="${item.quizCnt}"/></div>
+                                    </a>
+                                    <a href="/srvy/profSrvyListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info">
+                                        <span>설문</span>
+                                        <div class="num_txt"><c:out value="${item.srvyCnt}"/></div>
+                                    </a>
+                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info">
+                                        <span>시험</span>
+                                        <div class="num_txt"><c:out value="${item.examCnt}"/></div>
+                                    </a>
+                                </c:forEach>
                             </div>
+
                             <div class="info-set">
                                 <div class="info">
                                     <p class="point">
                                         <span class="tit">중간고사:</span>
-                                        <span id="midExamInfo">-</span>
+                                        <span><uiex:formatDate value="${subjectVM.middleLastExam.midExamSdttm}" type="date"/></span>
                                     </p>
                                     <p class="desc">
                                         <span class="tit">시간:</span>
-                                        <span id="midExamTime">-</span>
+                                        <span><c:out value="${subjectVM.middleLastExam.midExamMnts}"/>분</span>
                                     </p>
                                 </div>
                                 <div class="info">
                                     <p class="point">
                                         <span class="tit">기말고사:</span>
-                                        <span id="finalExamInfo">-</span>
+                                        <span><uiex:formatDate value="${subjectVM.middleLastExam.lstExamSdttm}" type="date"/></span>
                                     </p>
                                     <p class="desc">
                                         <span class="tit">시간:</span>
-                                        <span id="finalExamTime">-</span>
+                                        <span><c:out value="${subjectVM.middleLastExam.lstExamMnts}"/>분</span>
                                     </p>
                                 </div>
                             </div>
@@ -118,10 +150,8 @@
 
                     <%-- info-right --%>
                     <div class="info-right">
-
                         <div class="flex">
 
-                            <%-- item user --%>
                             <div class="item user">
                                 <div class="item_icon"><i class="icon-svg-group" aria-hidden="true"></i></div>
 
@@ -134,62 +164,90 @@
                                                 <button type="button">이름<i class="sort xi-long-arrow-up" aria-hidden="true"></i></button>
                                                 <button type="button">이름<i class="sort xi-long-arrow-down" aria-hidden="true"></i></button>
                                             </div>
-                                            <p class="user_num">접속: -</p>
+                                            <p class="user_num">접속: <c:out value="${sbjctConnectStdCnt}"/></p>
                                             <button type="button" class="btn-close" aria-label="접속현황 닫기">
                                                 <i class="icon-svg-close"></i>
                                             </button>
                                         </div>
+
                                         <ul class="user_area">
-                                            <li>
-                                                <div class="user-info">
-                                                    <div class="user-photo">
-                                                        <img src="/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진">
-                                                    </div>
-                                                    <div class="user-desc">
-                                                        <p class="name">-</p>
-                                                        <p class="subject"><span class="major">[-]</span>-</p>
-                                                    </div>
-                                                    <div class="btn_wrap">
-                                                        <button type="button"><i class="xi-info-o"></i></button>
-                                                        <button type="button"><i class="xi-bell-o"></i></button>
-                                                    </div>
-                                                </div>
-                                            </li>
+                                            <c:if test="${not empty stdntSubjectConnectList}">
+                                                <c:forEach var="item" items="${stdntSubjectConnectList}">
+                                                    <li>
+                                                        <div class="user-info">
+                                                            <div class="user-photo">
+                                                                <img src="/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진">
+                                                            </div>
+                                                            <div class="user-desc">
+                                                                <p class="name"><c:out value="${item.usernm}"/></p>
+                                                                <p class="subject"><span class="major">[<c:out value="${item.orgnm}"/>]</span><c:out value="${item.sbjctnm}"/></p>
+                                                            </div>
+                                                            <div class="btn_wrap">
+                                                                <button type="button"><i class="xi-info-o"></i></button>
+                                                                <button type="button"><i class="xi-bell-o"></i></button>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </c:forEach>
+                                            </c:if>
                                         </ul>
                                     </div>
                                 </div>
 
                                 <div class="item_info">
-                                    <span class="big" id="stdntTotalCntTop">0</span>
-                                    <span class="small">명</span>
-                                </div>
-                            </div>
-                            <%-- //item user --%>
-
-                            <div class="item attend">
-                                <div class="item_icon"><i class="icon-svg-pie-chart-01" aria-hidden="true"></i></div>
-                                <div class="item_tit">출석 현황</div>
-                                <div class="item_info">
-                                    <span class="big">-</span>
-                                    <span class="small">%</span>
+                                    <span class="big"><c:out value="${sbjctConnectStdCnt}"/></span>
+                                    <span class="small"><c:out value="${sbjctTotalStdCnt}"/></span>
                                 </div>
                             </div>
 
                             <div class="item week">
                                 <div class="item_icon"><i class="icon-svg-calendar-check-02" aria-hidden="true"></i></div>
-                                <div class="item_tit">전체 주차</div>
+                                <div class="item_tit">
+                                    <uiex:formatDate value="${lctrWknoSchdlVO.lctrWknoSymd}" type="date"/>
+                                    ~
+                                    <uiex:formatDate value="${lctrWknoSchdlVO.lctrWknoEymd}" type="monthday"/>
+                                </div>
                                 <div class="item_info">
-                                    <span class="big">${wkCnt}</span>
+                                    <span class="big"><c:out value="${lctrWknoSchdlVO.lctrWkno}"/></span>
                                     <span class="small">주차</span>
                                 </div>
                             </div>
-                        </div>
+                            <%-- 주차출석 fallback --%>
+                            <div class="item attend">
+                                <div class="item_icon"><i class="icon-svg-pie-chart-01" aria-hidden="true"></i></div>
+                                <div class="item_tit">
+                                    <c:out value="${lctrWknoSchdlVO.lctrWkno}"/>주차 출석
+                                    <c:choose>
+                                        <c:when test="${not empty lctrWknoAtndcrt}">
+                                            <c:out value="${lctrWknoAtndcrt.atndCnt}"/> / <c:out value="${sbjctTotalStdCnt}"/>
+                                        </c:when>
+                                        <c:otherwise>- / <c:out value="${sbjctTotalStdCnt}"/></c:otherwise>
+                                    </c:choose>
+                                </div>
+                                <div class="item_info">
+        <span class="big">
+            <c:choose>
+                <c:when test="${not empty lctrWknoAtndcrt}"><c:out value="${lctrWknoAtndcrt.atndRate}"/></c:when>
+                <c:otherwise>-</c:otherwise>
+            </c:choose>
+        </span>
+                                    <span class="small">%</span>
+                                </div>
+                            </div>
 
+                        </div>
                     </div>
                     <%-- //info-right --%>
 
                 </div>
-                <%-- //기준 파일의 class-area 블록 적용 --%>
+                <%-- segment class-area prof 닫는 태그 추가 --%>
+
+                <div class="class_tab_wrap">
+                    <div class="tab_btn" id="crsclsTab">
+                        <a href="#tabWeekly" class="current" data-tab="weekly">주차별 학습현황</a>
+                        <a href="#tabElement" data-tab="element">학습요소 참여현황</a>
+                    </div>
+                </div>
 
                 <div class="dashboard_sub">
                     <div class="sub-content">
@@ -230,10 +288,7 @@
 
                             <%-- 학습자 학습현황 헤더 --%>
                             <div class="board_top" style="margin-top:16px;">
-                                <h4 class="sub-title">
-                                    학습자 학습현황
-                                    <span class="total_num">총 <strong id="stdntTotalCnt">0</strong>명</span>
-                                </h4>
+                                <h4 class="sub-title">학습자 학습현황 <span class="total_num">총 <strong id="stdntTotalCnt">0</strong>명</span></h4>
 
                                 <%-- 범례 --%>
                                 <div class="state-txt-label">
@@ -285,14 +340,13 @@
                                 <table class="table-type2">
                                     <colgroup>
                                         <col style="width:3%">
-                                        <col style="width:3%">
-                                        <col style="width:8%">
+                                        <col style="width:4%">
                                         <col style="width:9%">
-                                        <col style="width:8%">
-                                        <col style="width:5%">
-                                        <col style="width:5%">
+                                        <col style="width:10%">
+                                        <col style="width:9%">
+                                        <col style="width:9%">
                                         <c:forEach begin="1" end="${wkCnt}"><col></c:forEach>
-                                        <col style="width:9%">
+                                        <col style="width:10%">
                                     </colgroup>
                                     <thead>
                                     <tr>
@@ -304,17 +358,16 @@
                                         </th>
                                         <th>No</th>
                                         <th>학과</th>
+                                        <th>대표아이디</th>
                                         <th>학번</th>
                                         <th>이름</th>
-                                        <th>입학년도</th>
-                                        <th>학년</th>
                                         <c:forEach begin="1" end="${wkCnt}" var="w"><th>${w}</th></c:forEach>
                                         <th>출석/지각/결석</th>
                                     </tr>
                                     </thead>
                                     <tbody id="stdntBody">
                                     <tr>
-                                        <td colspan="${wkCnt + 8}" class="t_center">
+                                        <td colspan="${wkCnt + 7}" class="t_center">
                                             <spring:message code="common.no.data.result"/>
                                         </td>
                                     </tr>
@@ -349,10 +402,7 @@
                         <div id="tabElement" class="tab-content" style="display:none;">
 
                             <div class="board_top" style="margin-top:16px;">
-                                <h4 class="sub-title">
-                                    학습요소 참여현황
-                                    <span class="total_num">총 <strong id="elemStdntTotalCnt">0</strong>명</span>
-                                </h4>
+                                <h4 class="sub-title">학습요소 참여현황 <span class="total_num">총 <strong id="elemStdntTotalCnt">0</strong>명</span></h4>
                                 <div class="right-area">
                                     <div class="search-typeC">
                                         <input class="form-control" type="text" id="elemStdntKeyword"
@@ -376,15 +426,16 @@
                                     <colgroup>
                                         <col style="width:3%">
                                         <col style="width:4%">
-                                        <col style="width:10%">
-                                        <col style="width:10%">
-                                        <col style="width:10%">
+                                        <col style="width:9%">
+                                        <col style="width:9%">
+                                        <col style="width:9%">
                                         <col style="width:9%">
                                         <col style="width:7%">
                                         <col style="width:8%">
                                         <col style="width:8%">
                                         <col style="width:8%">
                                         <col style="width:8%">
+                                        <col style="width:7%">
                                         <col style="width:7%">
                                         <col style="width:7%">
                                     </colgroup>
@@ -398,6 +449,7 @@
                                         </th>
                                         <th>No</th>
                                         <th>학과</th>
+                                        <th>대표아이디</th>
                                         <th>학번</th>
                                         <th>이름</th>
                                         <th>Q&amp;A<br/><span class="fs-sm">(답변/등록)</span></th>
@@ -412,7 +464,7 @@
                                     </thead>
                                     <tbody id="elemStdntBody">
                                     <tr>
-                                        <td colspan="13" class="t_center">
+                                        <td colspan="14" class="t_center">
                                             <spring:message code="common.no.data.result"/>
                                         </td>
                                     </tr>
@@ -540,10 +592,8 @@
        과목명 헤더 로드
        =========================== */
     function loadHeader() {
-        var params   = new URLSearchParams(location.search);
-        var sbjctnm  = "<c:out value='${sbjctnm}'/>" || params.get("sbjctnm") || "";
-        var dvclsNo  = params.get("dvclasNo") || "";
-        $("#hdrSbjctNmTop").text(sbjctnm || "과목명");
+        var params  = new URLSearchParams(location.search);
+        var dvclsNo = params.get("dvclasNo") || "";
         if (dvclsNo) $("#hdrDvclasNoTop").text(dvclsNo);
     }
 
@@ -633,7 +683,7 @@
                 if (!res || res.result !== 1 || !res.returnList || res.returnList.length === 0) {
                     lastStdntUsers = [];
                     window._lastStdntUserIds = [];
-                    $body.append('<tr><td colspan="' + (MAX_WK + 8) + '" class="t_center"><spring:message code="common.no.data.result"/></td></tr>');
+                    $body.append('<tr><td colspan="' + (MAX_WK + 7) + '" class="t_center"><spring:message code="common.no.data.result"/></td></tr>');
                     return;
                 }
 
@@ -675,13 +725,11 @@
                         + ' data-mobile="'   + (item.mobileNo || '') + '"'
                         + ' data-email="'    + (item.email    || '') + '"'
                         + '><label for="' + chkId + '"></label></span></td>'
-                        + '<td class="t_center" data-th="번호">'    + no + '</td>'
-                        + '<td class="t_center" data-th="학과">'    + (item.deptnm  || '-') + '</td>'
-                        + '<td class="t_center" data-th="학번">'    + (item.stdntNo || '-') + '</td>'
-                        + '<td class="t_center" data-th="이름"><a href="#_" class="link stdntName" data-user-id="' + uid + '">' + (item.usernm || '-') + '</a></td>'
-                        + '<td class="t_center" data-th="입학년도">' + (item.entyR  || '-') + '</td>'
-                        + '<td class="t_center" data-th="학년">'    + (item.scyr   || '-') + '</td>';
-
+                        + '<td class="t_center" data-th="No">' + no + '</td>'
+                        + '<td class="t_center" data-th="학과">' + (item.deptnm || '-') + '</td>'
+                        + '<td class="t_center" data-th="대표아이디">' + (item.userId || '-') + '</td>'
+                        + '<td class="t_center" data-th="학번">' + (item.stdntNo || '-') + '</td>'
+                        + '<td class="t_center" data-th="이름"><a href="#_" class="link stdntName" data-user-id="' + uid + '">' + (item.usernm || '-') + '</a></td>';
                     for (var w = 1; w <= MAX_WK; w++) { row += wkCell(uid, w, wkMap[w]); }
 
                     row += '<td class="t_center" data-th="출석/지각/결석">'
@@ -780,12 +828,11 @@
        =========================== */
     function downloadExcel() {
         var colModel = [
-            {label:'No',       name:'lineNo',  align:'center', width:'3000'},
-            {label:'학과',     name:'deptnm',  align:'center', width:'7000'},
-            {label:'학번',     name:'stdntNo', align:'center', width:'7000'},
-            {label:'이름',     name:'usernm',  align:'center', width:'6000'},
-            {label:'입학년도', name:'entyR',   align:'center', width:'5000'},
-            {label:'학년',     name:'scyr',    align:'center', width:'3000'}
+            {label:'No',         name:'lineNo',  align:'center', width:'3000'},
+            {label:'학과',       name:'deptnm',  align:'center', width:'7000'},
+            {label:'대표아이디', name:'userId',  align:'center', width:'7000'},
+            {label:'학번',       name:'stdntNo', align:'center', width:'7000'},
+            {label:'이름',       name:'usernm',  align:'center', width:'6000'}
         ];
         for (var w = 1; w <= MAX_WK; w++) {
             colModel.push({label: String(w), name: 'wk' + w + 'Sts', align:'center', width:'2500'});
@@ -841,7 +888,7 @@
                 window._lastElemUserIds = lastElemUsers.map(function (x) { return x.userId; });
 
                 if (!res || res.result !== 1 || list.length === 0) {
-                    $body.append('<tr><td colspan="13" class="t_center"><spring:message code="common.no.data.result"/></td></tr>');
+                    $body.append('<tr><td colspan="14" class="t_center"><spring:message code="common.no.data.result"/></td></tr>');
                     return;
                 }
 
@@ -863,14 +910,15 @@
                         + '<td class="t_center"><span class="custom-input onlychk">'
                         + '<input type="checkbox" id="' + chkId + '"'
                         + ' data-user-id="'  + uid + '"'
-                        + ' data-user-nm="'  + (r.usernm   || '') + '"'
-                        + ' data-mobile="'   + (r.mobileNo || '') + '"'
-                        + ' data-email="'    + (r.email    || '') + '"'
+                        + ' data-user-nm="'  + (r.usernm   || '-') + '"'
+                        + ' data-mobile="'   + (r.mobileNo || '-') + '"'
+                        + ' data-email="'    + (r.email    || '-') + '"'
                         + '><label for="' + chkId + '"></label></span></td>'
                         + '<td class="t_center">' + (r.lineNo || idx + 1) + '</td>'
-                        + '<td class="t_center">' + (r.deptnm  || '') + '</td>'
-                        + '<td class="t_center">' + (r.stdntNo || '') + '</td>'
-                        + '<td class="t_center"><a href="#_" class="link elemStdntName" data-user-id="' + uid + '">' + (r.usernm || '') + '</a></td>'
+                        + '<td class="t_center">' + (r.deptnm  || '-') + '</td>'
+                        + '<td class="t_center">' + (r.userId  || '-') + '</td>'
+                        + '<td class="t_center">' + (r.stdntNo || '-') + '</td>'
+                        + '<td class="t_center"><a href="#_" class="link elemStdntName" data-user-id="' + uid + '">' + (r.usernm || '-') + '</a></td>'
                         + '<td class="t_center">' + linkCount(uid, qa,   'QNA')  + '</td>'
                         + '<td class="t_center">' + (r.talkReplyCnt == null ? '0' : r.talkReplyCnt) + '</td>'
                         + '<td class="t_center">' + linkCount(uid, asmt, 'ASMT') + '</td>'
@@ -884,7 +932,7 @@
                 });
             },
             error: function () {
-                $("#elemStdntBody").html('<tr><td colspan="13" class="t_center"><spring:message code="fail.common.msg"/></td></tr>');
+                $("#elemStdntBody").html('<tr><td colspan="14" class="t_center"><spring:message code="fail.common.msg"/></td></tr>');
             }
         });
     }
@@ -970,8 +1018,9 @@
     function downloadElemStdntExcel() {
         var excelGrid = {
             colModel: [
-                {label:'No',              name:'lineNo',       align:'center', width:'3000'},
+                {label:'No',             name:'lineNo',       align:'center', width:'3000'},
                 {label:'학과',            name:'deptnm',       align:'center', width:'7000'},
+                {label:'대표아이디',       name:'userId',       align:'center', width:'7000'},
                 {label:'학번',            name:'stdntNo',      align:'center', width:'7000'},
                 {label:'이름',            name:'usernm',       align:'center', width:'6000'},
                 {label:'Q&A(답변/등록)',  name:'qaText',       align:'center', width:'6000'},

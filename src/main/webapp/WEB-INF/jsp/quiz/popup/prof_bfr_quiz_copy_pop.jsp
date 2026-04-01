@@ -62,7 +62,7 @@
 	    						sbjctnm: 	v.sbjctnm,
 	    						dvclasNo: 	v.dvclasNo + "반",
 	    						examGbnnm: 	v.examGbnnm,
-	    						examTtl: 	v.examTtl,
+	    						examTtl: 	UiComm.escapeHtml(v.examTtl),
 	    						selectBtn: 	selectBtn
 	    					});
 	        			});

@@ -99,6 +99,23 @@ public class ExamVO extends DefaultVO {
     private String  profnm;             // 교수 이름
     private String  tutnm;              // 튜터 이름
 
+    private String  userStatus;         // 사용자 구분 (Seniors / Disabled)
+    private String  dsblTynm;           // 장애 유형명
+    private String  dsblGrdnm;          // 장애 등급명
+    private String  scndDsblTynm;       // 2차 장애 유형명
+    private String  scndDsblGrdnm;      // 2차 장애 등급명
+    private Integer midExamMnts;        // 중간시험 시험시간(분)
+    private Integer lstExamMnts;        // 기말시험 시험시간(분)
+    private String  midExam;            // 중간시험 응시 여부 (Y/N)
+    private String  flnExam;            // 기말시험 응시 여부 (Y/N)
+    private String  examSprtAplyTynm;   // 시험지원신청 유형명
+    private String  sprtMidAddMnts;     // 중간시험 추가시간(분)
+    private String  sprtLstAddMnts;     // 기말시험 추가시간(분)
+    private String  midCnclAplyStscd;   // 중간시험 취소신청 상태코드
+    private String  lstCnclAplyStscd;   // 기말시험 취소신청 상태코드
+    private String  midExamBscId;       // 중간시험 기본 ID
+    private String  lstExamBscId;       // 기말시험 기본 ID
+
     /*****************************************************
      * Getter / Setter
      *****************************************************/
@@ -578,6 +595,102 @@ public class ExamVO extends DefaultVO {
     }
     public void setTutnm(String tutnm) {
         this.tutnm = tutnm;
+    }
+    public String getUserStatus() {
+        return userStatus;
+    }
+    public void setUserStatus(String userStatus) {
+        this.userStatus = userStatus;
+    }
+    public String getDsblTynm() {
+        return dsblTynm;
+    }
+    public void setDsblTynm(String dsblTynm) {
+        this.dsblTynm = dsblTynm;
+    }
+    public String getDsblGrdnm() {
+        return dsblGrdnm;
+    }
+    public void setDsblGrdnm(String dsblGrdnm) {
+        this.dsblGrdnm = dsblGrdnm;
+    }
+    public String getScndDsblTynm() {
+        return scndDsblTynm;
+    }
+    public void setScndDsblTynm(String scndDsblTynm) {
+        this.scndDsblTynm = scndDsblTynm;
+    }
+    public String getScndDsblGrdnm() {
+        return scndDsblGrdnm;
+    }
+    public void setScndDsblGrdnm(String scndDsblGrdnm) {
+        this.scndDsblGrdnm = scndDsblGrdnm;
+    }
+    public Integer getMidExamMnts() {
+        return midExamMnts;
+    }
+    public void setMidExamMnts(Integer midExamMnts) {
+        this.midExamMnts = midExamMnts;
+    }
+    public Integer getLstExamMnts() {
+        return lstExamMnts;
+    }
+    public void setLstExamMnts(Integer lstExamMnts) {
+        this.lstExamMnts = lstExamMnts;
+    }
+    public String getMidExam() {
+        return midExam;
+    }
+    public void setMidExam(String midExam) {
+        this.midExam = midExam;
+    }
+    public String getFlnExam() {
+        return flnExam;
+    }
+    public void setFlnExam(String flnExam) {
+        this.flnExam = flnExam;
+    }
+    public String getExamSprtAplyTynm() {
+        return examSprtAplyTynm;
+    }
+    public void setExamSprtAplyTynm(String examSprtAplyTynm) {
+        this.examSprtAplyTynm = examSprtAplyTynm;
+    }
+    public String getSprtMidAddMnts() {
+        return sprtMidAddMnts;
+    }
+    public void setSprtMidAddMnts(String sprtMidAddMnts) {
+        this.sprtMidAddMnts = sprtMidAddMnts;
+    }
+    public String getSprtLstAddMnts() {
+        return sprtLstAddMnts;
+    }
+    public void setSprtLstAddMnts(String sprtLstAddMnts) {
+        this.sprtLstAddMnts = sprtLstAddMnts;
+    }
+    public String getMidCnclAplyStscd() {
+        return midCnclAplyStscd;
+    }
+    public void setMidCnclAplyStscd(String midCnclAplyStscd) {
+        this.midCnclAplyStscd = midCnclAplyStscd;
+    }
+    public String getLstCnclAplyStscd() {
+        return lstCnclAplyStscd;
+    }
+    public void setLstCnclAplyStscd(String lstCnclAplyStscd) {
+        this.lstCnclAplyStscd = lstCnclAplyStscd;
+    }
+    public String getMidExamBscId() {
+        return midExamBscId;
+    }
+    public void setMidExamBscId(String midExamBscId) {
+        this.midExamBscId = midExamBscId;
+    }
+    public String getLstExamBscId() {
+        return lstExamBscId;
+    }
+    public void setLstExamBscId(String lstExamBscId) {
+        this.lstExamBscId = lstExamBscId;
     }
 
     /*****************************************************

@@ -44,11 +44,11 @@ function saveProfMemo() {
 		<div class="msg-box basic board_top">
 			<span>${creCrsVO.crsCreNm } (${creCrsVO.declsNo }<spring:message code="forum.label.decls.name" />)</span><!-- 반 -->
 			<div class="right-area fcBlue">
-				<b>${vo.deptNm } ${vo.userId } ${vo.userNm } <span class="f150">${vo.score}<spring:message code="forum.label.point" /></span></b><!-- 점 -->
+				<b>${forumJoinUserVO.deptNm } ${forumJoinUserVO.userId } ${forumJoinUserVO.userNm } <span class="f150">${forumJoinUserVO.score}<spring:message code="forum.label.point" /></span></b><!-- 점 -->
 			</div>
 		</div>
 		<div class="field ui fluid input">
-			<textarea id="profMemo" style="width:100%;height:100px;resize: none;" maxLenCheck="byte,4000,true,true">${vo.profMemo}</textarea>
+			<textarea id="profMemo" style="width:100%;height:100px;resize: none;" maxLenCheck="byte,4000,true,true">${forumJoinUserVO.profMemo}</textarea>
 		</div>
 
 		<div class="btns">

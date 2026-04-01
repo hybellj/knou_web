@@ -221,7 +221,7 @@
 			kvArr.push({'key' : 'srvyId',   	'val' : srvyId});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${sbjctId}"});
 
-			submitForm(urlMap[type], "", "", kvArr);
+			submitForm(urlMap[type], kvArr);
 		}
 
 		/**

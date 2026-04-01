@@ -35,7 +35,7 @@
 			var kvArr = [];
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
 
-			submitForm(urlMap[tab], "", "", kvArr);
+			submitForm(urlMap[tab], kvArr);
 		}
 
 		// list scale 변경

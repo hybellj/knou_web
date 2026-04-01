@@ -155,11 +155,10 @@
                                     <col style="width:8%">
                                     <col style="width:9%">
                                     <col style="width:8%">
+                                    <col style="width:8%">
                                     <col style="width:5%">
                                     <col style="width:5%">
-                                    <c:forEach begin="1" end="${wkCnt}">
-                                        <col>
-                                    </c:forEach>
+                                    <c:forEach begin="1" end="${wkCnt}"><col></c:forEach>
                                     <col style="width:9%">
                                 </colgroup>
                                 <thead>
@@ -172,6 +171,7 @@
                                     </th>
                                     <th>No</th>
                                     <th>학과</th>
+                                    <th>대표아이디</th>
                                     <th>학번</th>
                                     <th>이름</th>
                                     <th>입학년도</th>
@@ -184,7 +184,7 @@
                                 </thead>
                                 <tbody id="stdntBody">
                                 <tr>
-                                    <td colspan="${wkCnt + 8}" class="t_center">
+                                    <td colspan="${wkCnt + 9}" class="t_center">
                                         <spring:message code="common.no.data.result"/>
                                     </td>
                                 </tr>
@@ -264,6 +264,7 @@
                                     <col style="width:8%">
                                     <col style="width:7%">
                                     <col style="width:7%">
+                                    <col style="width:7%">
                                 </colgroup>
                                 <thead>
                                 <tr>
@@ -275,6 +276,7 @@
                                     </th>
                                     <th>No</th>
                                     <th>학과</th>
+                                    <th>대표아이디</th>
                                     <th>학번</th>
                                     <th>이름</th>
                                     <th>Q&amp;A<br/><span class="fs-sm">(답변/등록)</span></th>
@@ -289,7 +291,7 @@
                                 </thead>
                                 <tbody id="elemStdntBody">
                                 <tr>
-                                    <td colspan="13" class="t_center">
+                                    <td colspan="14" class="t_center">
                                         <spring:message code="common.no.data.result"/>
                                     </td>
                                 </tr>
@@ -333,7 +335,7 @@
     </main>
 </div>
 
-<%-- ★ 메시지 보내기 공통 폼 (팝업에서 window.parent.alarmForm 으로 접근) --%>
+<%--  메시지 보내기 공통 폼 (팝업에서 window.parent.alarmForm 으로 접근) --%>
 <form name="alarmForm" method="POST" target="msgWindow">
     <input type="hidden" name="alarmType"      value="S"/>
     <input type="hidden" name="sysCd"          value="LMS"/>
@@ -510,7 +512,7 @@
                 if (!res || res.result !== 1 || !res.returnList || res.returnList.length === 0) {
                     lastStdntUsers = [];
                     window._lastStdntUserIds = [];
-                    $body.append('<tr><td colspan="' + (MAX_WK + 8) + '" class="t_center"><spring:message code="common.no.data.result"/></td></tr>');
+                    $body.append('<tr><td colspan="' + (MAX_WK + 9) + '" class="t_center"><spring:message code="common.no.data.result"/></td></tr>');
                     return;
                 }
 
@@ -555,13 +557,13 @@
                         + ' data-mobile="'   + (item.mobileNo || '') + '"'
                         + ' data-email="'    + (item.email    || '') + '"'
                         + '><label for="' + chkId + '"></label></span></td>'
-                        + '<td class="t_center" data-th="번호">'    + no + '</td>'
-                        + '<td class="t_center" data-th="학과">'    + (item.deptnm  || '-') + '</td>'
-                        + '<td class="t_center" data-th="학번">'    + (item.stdntNo || '-') + '</td>'
+                        + '<td class="t_center" data-th="번호">' + no + '</td>'
+                        + '<td class="t_center" data-th="학과">' + (item.deptnm || '-') + '</td>'
+                        + '<td class="t_center" data-th="대표아이디">' + (item.userId || '-') + '</td>'
+                        + '<td class="t_center" data-th="학번">' + (item.stdntNo || '-') + '</td>'
                         + '<td class="t_center" data-th="이름"><a href="#_" class="link stdntName" data-user-id="' + uid + '">' + (item.usernm || '-') + '</a></td>'
-                        + '<td class="t_center" data-th="입학년도">' + (item.entyR  || '-') + '</td>'
-                        + '<td class="t_center" data-th="학년">'    + (item.scyr   || '-') + '</td>';
-
+                        + '<td class="t_center" data-th="입학년도">' + (item.entyR || '-') + '</td>'
+                        + '<td class="t_center" data-th="학년">' + (item.scyr || '-') + '</td>';
                     for (var w = 1; w <= MAX_WK; w++) {
                         row += wkCell(uid, w, wkMap[w]);
                     }
@@ -677,12 +679,13 @@
        =========================== */
     function downloadExcel() {
         var colModel = [
-            {label:'No',       name:'lineNo',  align:'center', width:'3000'},
-            {label:'학과',     name:'deptnm',  align:'center', width:'7000'},
-            {label:'학번',     name:'stdntNo', align:'center', width:'7000'},
-            {label:'이름',     name:'usernm',  align:'center', width:'6000'},
-            {label:'입학년도', name:'entyR',   align:'center', width:'5000'},
-            {label:'학년',     name:'scyr',    align:'center', width:'3000'}
+            {label:'No',         name:'lineNo',  align:'center', width:'3000'},
+            {label:'학과',       name:'deptnm',  align:'center', width:'7000'},
+            {label:'대표아이디', name:'userId',  align:'center', width:'7000'},
+            {label:'학번',       name:'stdntNo', align:'center', width:'7000'},
+            {label:'이름',       name:'usernm',  align:'center', width:'6000'},
+            {label:'입학년도',   name:'entyR',   align:'center', width:'5000'},
+            {label:'학년',       name:'scyr',    align:'center', width:'3000'}
         ];
         for (var w = 1; w <= MAX_WK; w++) {
             colModel.push({label: String(w), name: 'wk' + w + 'Sts', align:'center', width:'2500'});
@@ -739,7 +742,7 @@
                 window._lastElemUserIds = lastElemUsers.map(function (x) { return x.userId; });
 
                 if (!res || res.result !== 1 || list.length === 0) {
-                    $body.append('<tr><td colspan="13" class="t_center"><spring:message code="common.no.data.result"/></td></tr>');
+                    $body.append('<tr><td colspan="14" class="t_center"><spring:message code="common.no.data.result"/></td></tr>');
                     return;
                 }
 
@@ -767,6 +770,7 @@
                         + '><label for="' + chkId + '"></label></span></td>'
                         + '<td class="t_center">' + (r.lineNo || idx + 1) + '</td>'
                         + '<td class="t_center">' + (r.deptnm  || '-') + '</td>'
+                        + '<td class="t_center">' + (r.userId  || '-') + '</td>'
                         + '<td class="t_center">' + (r.stdntNo || '-') + '</td>'
                         + '<td class="t_center"><a href="#_" class="link elemStdntName" data-user-id="' + uid + '">' + (r.usernm || '-') + '</a></td>'
                         + '<td class="t_center">' + linkCount(uid, qa,   'QNA')  + '</td>'
@@ -782,7 +786,7 @@
                 });
             },
             error: function () {
-                $("#elemStdntBody").html('<tr><td colspan="13" class="t_center"><spring:message code="fail.common.msg"/></td></tr>');
+                $("#elemStdntBody").html('<tr><td colspan="14" class="t_center"><spring:message code="fail.common.msg"/></td></tr>');
             }
         });
     }
@@ -886,10 +890,12 @@
     function downloadElemStdntExcel() {
         var excelGrid = {
             colModel: [
-                {label:'No',              name:'lineNo',       align:'center', width:'3000'},
-                {label:'학과',            name:'deptnm',       align:'center', width:'7000'},
-                {label:'학번',            name:'stdntNo',      align:'center', width:'7000'},
-                {label:'이름',            name:'usernm',       align:'center', width:'6000'},
+
+                {label:'No',         name:'lineNo',  align:'center', width:'3000'},
+                {label:'학과',       name:'deptnm',  align:'center', width:'7000'},
+                {label:'대표아이디', name:'userId',  align:'center', width:'7000'},
+                {label:'학번',       name:'stdntNo', align:'center', width:'7000'},
+                {label:'이름',       name:'usernm',  align:'center', width:'6000'},
                 {label:'Q&A(답변/등록)',  name:'qaText',       align:'center', width:'6000'},
                 {label:'토론방(댓글수)',  name:'talkReplyCnt', align:'center', width:'4000'},
                 {label:'과제(제출/전체)', name:'asmtText',     align:'center', width:'6000'},

@@ -2,8 +2,8 @@ package knou.lms.login.web;
 
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,24 +30,26 @@ import knou.framework.util.DateTimeUtil;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.SessionUtil;
 import knou.framework.util.StringUtil;
-import knou.framework.util.URLBuilder;
 import knou.lms.common.service.OrgCfgService;
 import knou.lms.common.vo.OrgCfgVO;
 import knou.lms.connip.service.OrgConnIpService;
 import knou.lms.log.adminconnlog.service.LogAdminConnLogService;
 import knou.lms.log.logintry.service.LogUserLoginTryLogService;
 import knou.lms.log.logintry.vo.LogUserLoginTryLogVO;
+import knou.lms.login.param.LoginParam;
 import knou.lms.login.service.LoginService;
-import knou.lms.login.vo.LoginVO;
 import knou.lms.menu.service.SysMenuMemService;
+import knou.lms.user.service.UserService;
 import knou.lms.user.service.UsrLoginService;
 import knou.lms.user.service.UsrUserInfoService;
 import knou.lms.user.vo.TmpLoginVO;
+import knou.lms.user.vo.UserVO;
 import knou.lms.user.vo.UsrLoginVO;
 import knou.lms.user.vo.UsrUserInfoVO;
 
 @Controller
-public class LoginControllerTOBE extends ControllerBase {
+public class LoginControllerTOBE {
+	
     private static Logger log = Logger.getLogger(LoginControllerTOBE.class);
     
     @Autowired
@@ -74,65 +76,8 @@ public class LoginControllerTOBE extends ControllerBase {
     @Autowired @Qualifier("orgConnIpService")
     private OrgConnIpService orgConnIpService;
 
-    
-    
-    public class UserVO {
-    	public UserVO(UsrLoginVO vo) {
-			this.userId = vo.getUserId();
-			this.rprsId = vo.getUserRprsId();
-			this.userEncPswd = vo.getUserIdEncpswd();
-		}
-		String	userId ;
-    	String	rprsId ;
-    	String	userNm ;
-    	String	userEncPswd;
-    	String	orgId ;
-    	String	authrtGrpcd;
-    	String	authrtCd;
-    	
-		public String getUserId() {
-			return userId;
-		}
-		public void setUserId(String userId) {
-			this.userId = userId;
-		}
-		public String getRprsId() {
-			return rprsId;
-		}
-		public void setRprsId(String rprsId) {
-			this.rprsId = rprsId;
-		}
-		public String getUserNm() {
-			return userNm;
-		}
-		public void setUserNm(String userNm) {
-			this.userNm = userNm;
-		}
-		public String getUserEncPswd() {
-			return userEncPswd;
-		}
-		public void setUserEncPswd(String userEncPswd) {
-			this.userEncPswd = userEncPswd;
-		}
-		public String getOrgId() {
-			return orgId;
-		}
-		public void setOrgId(String orgId) {
-			this.orgId = orgId;
-		}
-		public String getAuthrtGrpcd() {
-			return authrtGrpcd;
-		}
-		public void setAuthrtGrpcd(String authrtGrpcd) {
-			this.authrtGrpcd = authrtGrpcd;
-		}
-		public String getAuthrtCd() {
-			return authrtCd;
-		}
-		public void setAuthrtCd(String authrtCd) {
-			this.authrtCd = authrtCd;
-		}
-    }
+    @Autowired @Qualifier("userService")
+    private UserService userService;
     
 	/**
 	 * 로그인 처리
@@ -145,90 +90,105 @@ public class LoginControllerTOBE extends ControllerBase {
 	 * @throws Exception
 	 */
 	@RequestMapping(value="/loginProcTOBE.do")
-    public String loginProc(UsrLoginVO vo, Map commandMap, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public String loginProcTOBE(LoginParam param, HttpServletRequest request, HttpServletResponse response) throws Exception {
 	    
-		String reloginUrl = "redirect:/";
+		log.info("loginProcTOBE.do 시작");
+		
+		String	initUrl = "redirect:/";
+		String	loginUrl = "/indexTOBE";
 
-        //	SQL Injection 방어 (간단 필터)
-        if ( isHackInput(vo.getGoMcd()) || isHackInput(vo.getGoUrl())) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return null;
-        }
-        
-        UserVO user = new UserVO(vo);
+        //	SQLInjection방어(간단필터)
+        //if ( isHackInput( param.getGoMcd()) || isHackInput(param.getGoUrl())) { // 로그인 후 페이지 이동으로 추정
+        //    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        //    return null;
+        //}
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. 인터셉터에 추가해서 로그인 후 이동한다.
+		//if (userCtx == null) {
+		//    SessionInfo.setPreviousUrl(request, request.getRequestURI());
+		//    response.sendRedirect("/login.do");
+		//    return false;
+		//}
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. 로그인 성공 후 처리
+		//String prevUrl = (String) SessionInfo.getPreviousUrl(request);
+		//if (prevUrl != null) {
+		//    SessionInfo.getPreviousUrl(request);
+		//    return "redirect:" + prevUrl;
+		//}
+		//return "redirect:/dashboard/dashboard.do";
 
-        boolean	existUserId = true; // TODO: userService.existUserId(user);
-        
-        boolean isCorrectPswd = true; // TODO: userService.isCorrectPswd(user);
-        
-        boolean isValidUser = true; // TODO: userService.isVaildUser(user);
-
-        try {        	
+		try { 
+			
+	        boolean	existUserId = true; // TODO: userService.existUserId(param);
+	        //	userService.existUserId(param);
+	        
+	        boolean isCorrectPswd = true; // TODO: userService.isCorrectPswd(param);
+	        //	userService.loing(param);
+	        
+	        boolean isValidUser = true; // TODO: userService.isVaildUser(param);
+	        // 	userService.isValidUser(param);
+               	
         	//	아이디존재확인
             if (! existUserId ) 
-                return reloginUrl;
+                return loginUrl;
             
             //	비밀번호일치확인
             if (! isCorrectPswd ) 
-                return reloginUrl;
+                return loginUrl;
 
             //	유효사용자확인
             if (!isValidUser)
-                return reloginUrl;
+                return loginUrl;            
+            
+            UserVO loginUser = userService.userSelect(param.getUserId());
+            
+            UserContext userCtx = new UserContext();
+            userCtx.setLoginUser(loginUser);
+            userCtx.setSelectedUser(loginUser);
+
+    		List<UserVO> registeredUsersList = userService.registeredUsersSelect(userCtx.getSelectedUser().getUserRprsId());
+    		
+    		// TODO: 바꾸자 start 	Authenticate SessionInfo 변수들과 호환을 위해 
+    		SessionInfo.setUserId(request, userCtx.getSelectedUser().getUserId());
+    		SessionInfo.setAuthrtCd(request, userCtx.getSelectedUser().getUserTycd());
+    		SessionInfo.setAuthrtGrpcd(request, userCtx.getSelectedUser().getUserTycd());
+    		// end 		Authenticate SessionInfo 변수들과 호환을 위해 
+    		
+    		Map<String, UserVO> registeredUsers = new HashMap<>();
+    		/* 프로그램의 가독성을 위해 람다식을 사용하지 않습니다 */
+    		if ( null != registeredUsersList ) {    			
+				for (UserVO regiUser : registeredUsersList) {
+					if ( null != regiUser ) {
+						registeredUsers.put(regiUser.getUserId(), regiUser);
+					}
+				}				
+    		}    		
+    		userCtx.setRegisteredUsers(registeredUsers);    		
+    		
+    		// 3 orgCtx		생성 -- 로그인한 사용자의 대표아이디로 소속기관 전부와 해당 기관에서의 권한을 로딩 - 필요한가?
+    		// 4 menuCtx 	생성 -- 사용자가 소유한 모든 아이디의 메뉴들을 로딩 - 필요한가?
+    		// 5 subjectCtx 생성 -- 사용자가 소유한 과목의 정보를 로딩 - 필요한가?
+    		
+            // 6 권한별 분기 PROF, STDNT, ADM
+    		initUrl = resolveDashboard(userCtx.getSelectedUser().getUserTycd()); 
+    		
+    		// UserContext 세션저장
+    		SessionInfo.setUserContext(request, userCtx);
 
         } catch (Exception e) {
-            handleLoginFail(user);
-            return reloginUrl;
+        	handleLoginFail(param.getUserId());
+            //return "redirect:/indexTOBE";
         } finally {
-            //TODO: userService.loginModify(user);
+            //TODO: userService.loginModify(param.getUserId());
         }
-
-        //	세션 세팅
-        setSession(request, user);
-
-        return "redirect:/userIndex.do";
+        
+        return "redirect:/dashboard" + initUrl;
     }
 	
-	 @RequestMapping("/userIndex.do")
-	 public String main(HttpServletRequest request) throws Exception {
-
-        String userId = SessionInfo.getUserId(request);
-        String userAcntId = SessionInfo.getUserRprsId(request);
-        String authGrp = SessionInfo.getAuthrtGrpcd(request);
-
-        String type = StringUtil.nvl(request.getParameter("type"));
-        String chgUserId = StringUtil.nvl(request.getParameter("userId"));
-        String language = StringUtil.nvl(request.getParameter("language"));
-
-        // 1️ 언어 설정
-        if (!StringUtil.isNull(language) && !StringUtil.isNull(userId)) {
-            updateUserLanguage(request, userAcntId, userId, language);
-        }
-
-        // 2 사용자 전환
-        if ("change".equals(type)) {
-            changeUserSession(request, chgUserId);
-        }
-
-        // 3️ 리로그인 체크
-        if (isNeedRelogin(request, userId)) {
-            Locale locale = LocaleUtil.getLocale(request);
-            request.getSession().invalidate();
-            request.getSession().setAttribute("relogin", "true");
-            LocaleUtil.setLocale(request, locale.toString());
-            return "redirect:/";
-        }
-
-        // 4️ 권한별 분기
-        String returnUri = resolveDashboard(authGrp);
-
-        return "redirect:/dashboard" + returnUri;
-    }
-	
- 	private boolean isHackInput(String str) {
-        if (str == null) 
+ 	private boolean isHackInput(String uri) {
+        if (uri == null) 
         	return false;
-        return str.contains(" OR ") || str.contains(" AND ") || str.contains("'") || str.contains("\"");
+        return uri.toUpperCase().contains(" OR ") || uri.toUpperCase().contains(" AND ") 
+        		|| uri.contains("'") || uri.contains("\"");
     }
 
     private boolean isValidUser(UserVO user) {
@@ -238,8 +198,8 @@ public class LoginControllerTOBE extends ControllerBase {
     	return true;
     }
 
-    private void handleLoginFail(UserVO user) {
-        System.out.println("LOGIN FAIL : " + user.getUserId());
+    private void handleLoginFail(String userId) {
+        System.out.println("LOGIN FAIL : " + userId);
     }
 
     private LogUserLoginTryLogVO createLoginLog(HttpServletRequest request, UsrUserInfoVO user) {
@@ -253,26 +213,23 @@ public class LoginControllerTOBE extends ControllerBase {
     private void setSession(HttpServletRequest request, UserVO user) throws Exception {
         //TODO: usrLoginService.editLastLogin(user);
         SessionInfo.setUserId(request, user.getUserId());
-        SessionInfo.setUserNm(request, user.getUserNm());
+        SessionInfo.setUserNm(request, user.getUsernm());
         SessionInfo.setOrgId(request, user.getOrgId());
 
         //	권한 정규화
-        String role = normalizeRole(user.getAuthrtGrpcd());
+        //String role = normalizeRole(user.getAuthrtGrpcd());
 
-        SessionInfo.setAuthrtGrpcd(request, role);
-        SessionInfo.setAuthrtCd(request, user.getAuthrtCd());
+        //SessionInfo.setAuthrtGrpcd(request, role);
+        //SessionInfo.setAuthrtCd(request, user.getAuthrtCd());
 
         //	userCtx 생성
-        UserContext userCtx = new UserContext(
-                user.getOrgId(),
-                user.getUserId(),
-                user.getAuthrtCd(),
-                user.getRprsId(),
-                role,
-                SessionInfo.getLastLogin(request)
-        );
+		/*
+		 * UserContext userCtx = new UserContext( user.getOrgId(), user.getUserId(),
+		 * user.getAuthrtCd(), user.getRprsId(), role, SessionInfo.getLastLogin(request)
+		 * );
+		 */
 
-        request.getSession().setAttribute("userCtx", userCtx);
+        //srequest.getSession().setAttribute("userCtx", userCtx);
     }
 
     private String normalizeRole(String role) {
@@ -284,9 +241,10 @@ public class LoginControllerTOBE extends ControllerBase {
 
     private String resolveDashboard(String role) {
         switch (role) {
-            case "ADM": return "/adminDashboard.do";
-            case "PROF": return "/profDashboard.do";
-            default: return "/stuDashboard.do";
+            case "ADM":   return "/adminDashboard.do";
+            case "PROF":  return "/dashboard.do";
+            case "STDNT": return "/dashboard.do";
+            default: return "/index";
         }
     }
 

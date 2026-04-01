@@ -249,15 +249,16 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         		vo.setAtclId(atclId);
         	}
 
-        	if (atclOptnId == null || atclOptnId.trim().isEmpty()) {
-        		vo.setAtclOptnId(IdGenUtil.genNewId(IdPrefixType.BBOPT));
-        	}
+			/*
+			 * if (atclOptnId == null || atclOptnId.trim().isEmpty()) {
+			 * vo.setAtclOptnId(IdGenUtil.genNewId(IdPrefixType.BBOPT)); }
+			 */
 
             // TB_LMS_BBS_ATCL
         	bbsAtclDAO.bbsAtclSbjctRegist(vo);
 
         	// TB_LMS_BBS_ATCL_OPTN
-        	bbsAtclDAO.bbsAtclOptnRegist(vo);
+			/* bbsAtclDAO.bbsAtclOptnRegist(vo); */
 
             // 첨부파일
             if (uploadFileList.size() > 0) {
@@ -602,10 +603,9 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
 
         // 페이지 정보 설정
         PageInfo pageInfo = new PageInfo(vo);
-
         // 목록 조회
         List<BbsAtclVO> atclList;
-        switch (vo.getBbsId()) {
+        switch (vo.getBbsTycd()) {
 	        case "QNA":
 	            atclList = bbsAtclDAO.selectBbsLctrQnaList(vo);
 	            break;

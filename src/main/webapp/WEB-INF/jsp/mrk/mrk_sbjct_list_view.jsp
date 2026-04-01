@@ -5,43 +5,15 @@
 <head>
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
         <jsp:param name="style" value="dashboard"/>
+        <jsp:param name="module" value="table"/>
     </jsp:include>
 </head>
 <style>
-    .inScore {
-        padding-left: 0 !important;
-        padding-right: 3px !important;
-        text-align: right !important;
-    }
-/*    .table.type2 {
-        min-width: 1000px !important;
-    }*/
-    i.right {
-        margin-right: 0;
-        width: 1em;
-    }
-    .step[class*="bc"] .table tbody tr:nth-child(10n-9), .step[class*="bc"] .table tbody tr:nth-child(10n-8), .step[class*="bc"] .table tbody tr:nth-child(10n-7), .step[class*="bc"] .table tbody tr:nth-child(10n-6), .step[class*="bc"] .table tbody tr:nth-child(10n-5) {
-        background-color: #e4ecff;
-    }
-    .ui.ordered.steps .step:before {
-        font-size: 2em;
-    }
-    .ui.steps .step {
-        padding: 1.14285714em 1.1em;
-        line-height: 1.3em;
-    }
-    .ui.selection.dropdown.visible, .ui.selection.dropdown.active {
-        z-index: 2000;
-    }
-
-    .scoreTable {
-        max-height: 470px;
-    }
-
-    @media all and (max-height: 800px) {
-        .scoreTable {
-            max-height: 310px;
-        }
+    .inputScore {
+        width: 60px !important;
+        min-width: auto !important;
+        max-width: none !important;
+        text-align: center !important;
     }
 </style>
 <body class="home colorA "  style=""><!-- 컬러선택시 클래스변경 -->
@@ -59,7 +31,68 @@
                     onScoreCalInit();
                 });
             });
+
+            // 평가점수 입력 및 최종점수 계산
+            $(document).on("blur", "input[name*=rowScr]", function () {
+                let inputScore = this.value;
+                let mrkItmTycd = this.dataset.mrkitmtycd;
+
+                console.log(inputScore);
+                console.log(mrkItmTycd);
+
+                let $row = $(this).closest(".tabulator-row");
+
+                console.log($row);
+
+                // 평가점수 반영률 계산 (finalScore)
+                $(this).val(inputScore);
+                let calScore = calcScr(inputScore, mrkItmTycd);
+
+                // 계산된 점수 반영
+                $row.find("input[name*=finalScr][data-mrkitmtycd='" + mrkItmTycd + "']").val(calScore); // 성적항목 최종점수 input
+                $row.find("input[name*=finalScrTxt][data-mrkitmtycd='" + mrkItmTycd + "']").text(calScore); // 성적항목 최종점수 input
+
+                // 총점 계산 (totScr)
+                let totScr = 0;
+
+                $row.find("input[name*=Scr]").each(function () {
+
+                    if ($(this).attr("name") == "totScr") return;
+
+                    let finalScore = $(this).val() == "-" ? 0 : parseFloat($(this).val());
+                    totScr += finalScore;
+                });
+
+                totScr = totScr.toFixed(2);
+
+                // 총점 반영
+                $row.find("input[name=totScr]").val(totScr);
+
+            });
         });
+
+        function setRow($row, inputScore, mrkItmTycd) {
+            // 평가점수 반영률 계산 (finalScore)
+            $(this).val(inputScore);
+            let calScore = calcScr(inputScore, mrkItmTycd);
+
+            // 계산된 점수 반영
+            $row.find("input[name*=finalScr][data-mrkitmtycd='" + mrkItmTycd + "']").val(calScore); // 성적항목 최종점수 input
+            $row.find("input[name*=finalScrTxt][data-mrkitmtycd='" + mrkItmTycd + "']").text(calScore); // 성적항목 최종점수 input
+
+            // 총점 계산 (totScr)
+            let totScr = 0;
+
+            $row.find("input[name*=Scr]").each(function () {
+                let finalScore = $(this).val() == "-" ? 0 : parseFloat($(this).val());
+                totScr += finalScore;
+            });
+
+            totScr = totScr.toFixed(2);
+
+            // 총점 반영
+            $row.find("input[name=totScr]").val(totScr);
+        }
 
         // 학기기수 세팅 변경
         function changeSmstrChrt() {
@@ -88,11 +121,11 @@
 
                         $dgrsSmstr.trigger("chosen:updated");
                     }else {
-                        alert(data.message);
+                        UiComm.showMessage(data.message, "error");
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
+                    UiComm.showMessage('<spring:message code="fail.common.msg" />', "error"); // 에러가 발생했습니다!
                 }
             });
         }
@@ -130,7 +163,7 @@
 
                         $sbjctId.trigger("chosen:updated");
                     }else {
-                        alert(data.message);
+                        UiComm.showMessage(data.message, "error");
                     }
                 }
             });
@@ -151,568 +184,154 @@
                 data: data,
                 type: "GET",
                 success	: function(data) {
-                    $("#sbjctTbody").empty()
                     if (data.result > 0) {
                         let returnList = data.returnList || [];
-                        let html = "";
+                        let dataList = createSubjectListHTML(returnList);
+                        sbjctListTable.clearData();
+                        sbjctListTable.replaceData(dataList);
 
-                        if (returnList.length > 0) {
-                            $.each(returnList, function(i, vo) {
-                                let deptnm = vo.deptnm != null ? vo.deptnm : '-';
-                                let crdts = vo.crdts != null ? vo.crdts * 1 : '-';
+                        $("#ttlSbjctCnt").text(returnList.length);
 
-                                html += `
-                                        <tr class="sbjctList" data-sbjctId="\${vo.sbjctId}" >
-                                            <td>\${(i + 1)}</td>
-                                            <td>\${vo.sbjctYr}</td>
-                                            <td>\${vo.sbjctSmstr}</td>
-                                            <td>\${vo.orgnm}</td>
-                                            <td>\${deptnm}</td>
-                                            <td>\${vo.sbjctId}</td>
-                                            <td class="">\${vo.sbjctnm}</td>
-                                            <td>\${vo.dvclasNo}</td>
-                                            <td>\${crdts}</td>
-                                            <td>-</td>
-                                            <td>-</td>
-                                            <td>-</td>
-                                        </tr>`;
-                            });
+                        $("#scoreAllListDiv").css("display", "none");
 
-                            $("#ttlSbjctCnt").text(returnList.length);
-                            $("#sbjctTbody").html(html);
-                            $("#scoreAllListDiv").css("display", "none");
-
-                            $("#sbjctTbody > tr").on("click", function () {
-                                listStdMrk("",$(this).attr("data-sbjctId"));
-                            });
-
-                            $("#sbjctTable").parent().removeClass("scoreTable").addClass("scoreTable");
-                            $("#sbjctTbody > tr").css("cursor", "pointer");
-
-                        }
-                    }else {
-                        alert(data.message);
+                    } else {
+                        UiComm.showMessage(data.message, "warning");
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
+                    UiComm.showMessage('<spring:message code="fail.common.msg" />', "error"); // 에러가 발생했습니다!
+                }
+            });
+        }
+
+        // 평가점수 가져오기
+        function onScoreCalInit() {
+            let scoreStatus = $("#scoreStatus").val();
+
+            if (scoreStatus == "MRK_CNVS_ING" || scoreStatus == "MRK_CNVS_CMPTN") {
+                // 기존 저장된 성적이 초기화됩니다. 평가점수를 가져오시겠습니까?
+                if (!confirm('<spring:message code="score.confirm.select.msg1" />\r\n<spring:message code="score.confirm.select.msg2" />')) return false;
+            }
+
+            let sbjctId = $("#sSbjctId").val();
+            let param = {"sbjctId": sbjctId};
+
+            $.ajax({
+                url : "/mrk/profStdMrkInitAjax.do",
+                data: param,
+                type: "POST",
+                success: function (data) {
+                    if (data.result > 0) {
+                        listStdMrk({"sbjctId": param});
+                    }else {
+                        UiComm.showMessage(data.message, "error");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    UiComm.showMessage('<spring:message code="fail.common.msg" />', "error"); // 에러가 발생했습니다!
                 }
             });
         }
 
         // 학생 성적 목록 조회
-        function listStdMrk(searchType, sbjctId) {
+        function listStdMrk(rowData, searchType = '') {
+            let sbjctId = rowData.sbjctId;
 
             $.ajax({
                 url : "/mrk/profMrkRfltrtSelectAjax.do",
                 data: { sbjctId : sbjctId, searchType: searchType },
                 type: "GET",
                 success: function (data) {
-                    $("#sSbjctid").val(sbjctId);
+                    $("#sSbjctId").val(sbjctId);
 
                     let returnList  = data.returnList || [];
                     let returnVO    = data.returnVO || {};
-                    let returnSubVO = data.returnSubVO || [];
-                    ratioArr = [];
+                    let mrkRfltrtInfoMapList = data.returnSubVO || [];
 
-                    let html = "";
-                    let colCnt = 10;
-
-                    if (returnSubVO == null) {
-                        alert("<spring:message code='score.label.process.msg19' />");/*해당과목의 평가기준을 먼저 입력해주세요.*/
+                    if (mrkRfltrtInfoMapList.length <= 0 ) {
                         $("#scoreAllListDiv").css("display", "none");
+                        UiComm.showMessage("<spring:message code='score.label.process.msg19' />", "warning");/*해당과목의 평가기준을 먼저 입력해주세요.*/
                         return;
                     }
 
-                    $(".sbjctList").removeClass("on");
-                    $(".sbjctList").filter("[data-sbjctId=" + sbjctId + "]").addClass("on");
-                    $("#scoreAllListDiv").css("display", "block");
+                    if (mrkTable) {
+                        mrkTable.destroy();
+                    }
+
+                    initStdMrkTable(mrkRfltrtInfoMapList);
 
                     // 전체인원 최초1번 세팅
                     if ( !searchType && !$("#searchValue").val() ) {
                         if (!$("#totCnt").hasClass("init")) {
-                            $("#totCnt").text(returnVO.totalCnt);
+                            $("#totCnt").text(returnVO.totCnt);
                             $("#totCnt").addClass("init")
                         }
                     }
 
-                    // 해당 과목의 성적 반영비율 세팅
-                    for (let i = 0; i < returnSubVO.length; i++) {
-                        let subVO = returnSubVO[i];
-                        let mrkRfltrt = Number(subVO.mrkRfltrt || 0);
-
-                        switch (subVO.mrkItmTycd) {
-                            case "MIDEXAM" :
-                                midexamHead = mrkRfltrt;
-                                if (mrkRfltrt != 0)  {ratioArr.push("midexamScore"); colCnt += 1;}
-                                break;
-                            case "LSTEXAM" :
-                                lstexamHead = mrkRfltrt;
-                                if (mrkRfltrt != 0)  {ratioArr.push("lstexamScore"); colCnt += 1;}
-                                break;
-                            case "ATNDC" :
-                                atndcHead = mrkRfltrt;
-                                if (mrkRfltrt != 0)  {ratioArr.push("atndcScore"); colCnt += 1;}
-                                break;
-                            case "ASMT" :
-                                asmtHead = mrkRfltrt;
-                                if (mrkRfltrt != 0)  {ratioArr.push("asmtScore"); colCnt += 1;}
-                                break;
-                            case "DSCS" :
-                                dscsHead = mrkRfltrt;
-                                if (mrkRfltrt != 0)  {ratioArr.push("dscsScore"); colCnt += 1;}
-                                break;
-                            case "QUIZ" :
-                                quizHead = mrkRfltrt;
-                                if (mrkRfltrt != 0)  {ratioArr.push("quizScore"); colCnt += 1;}
-                                break;
-                            case "SRVY" :
-                                srvyHead = mrkRfltrt;
-                                if (mrkRfltrt != 0)  {ratioArr.push("srvyScore"); colCnt += 1;}
-                                break;
-                            case "SMNR" :
-                                smnrHead = mrkRfltrt;
-                                if (mrkRfltrt != 0)  {ratioArr.push("smnrScore"); colCnt += 1;}
-                                break;
-                        }
-                    }
-
-                    // row 세팅
-                    html += `
-                        <div class="table-wrap">
-                            <table class="table-type2" id="sTable">
-                                <colgroup>
-                                    <col style="width:50px">
-                                    <col style="width:50px">
-                                </colgroup>
-                                <thead>
-                                    <tr>
-                                        <th data-sortable="false">
-                                            <span class="custom-input onlychk"><input type="checkbox" id="chkall"><label for="chkall"></label></span>
-                                        </th>
-                                        <th data-sortable="false">No</th>
-                                        <th data-breakpoints="xs sm md" style="min-width:150px"><spring:message code="common.dept_name" /></th>
-                                        <th data-breakpoints=""><spring:message code="common.label.student.number" /></th>
-                                        <th data-breakpoints=""><spring:message code="common.name" /></th>
-                    `;
-
-                    for(const val of ratioArr) {
-                        switch (val) {
-                            case "midexamScore": // 중간고사
-                                html += setScoreHeader("<spring:message code='forum.label.type.exam.M' />", midexamHead);
-                                break;
-                            case "lstexamScore":   // 기말고사
-                                html += setScoreHeader("<spring:message code='forum.label.type.exam.L' />", lstexamHead);
-                                break;
-                            case "atndcScore": // 출석/강의
-                                html += setScoreHeader("<spring:message code='crs.label.attend' /> / <spring:message code='dashboard.lesson' />", atndcHead);
-                                break;
-                            case "asmtScore": // 과제
-                                html += setScoreHeader("<spring:message code='dashboard.cor.asmnt' />", asmtHead);
-                                break;
-                            case "dscsScore":  // 토론
-                                html += setScoreHeader("<spring:message code='dashboard.cor.forum' />", dscsHead);
-                                break;
-                            case "quizScore":   // 퀴즈
-                                html += setScoreHeader("<spring:message code='dashboard.cor.quiz' />", quizHead);
-                                break;
-                            case "srvyScore":   // 설문
-                                html += setScoreHeader("<spring:message code='dashboard.cor.resch' />", srvyHead);
-                                break;
-                            case "smnrScore":
-                                html += setScoreHeader("<spring:message code='dashboard.seminar' />", smnrHead);
-                                break;
-                        }
-                    }
-
-                    html += `
-                                <th> 산출<br class="desktop-elem"><spring:message code="common.label.total.point" /> </th>
-                                <th> 환산<br class="desktop-elem"><spring:message code="common.label.total.point" /></th>
-                                <th name="etcDataTd" data-type="number"><spring:message code="common.label.total.include.point" /></th>
-                                <th data-type="number"><spring:message code="common.label.final" /><br class="desktop-elem">점수 </th>
-                                <th><spring:message code="score.manage.label" /></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                    `;
-
-                    if (returnList.length <= 0) {
-                        html += `<tr><td colspan="\${colCnt}"><spring:message code="common.nodata.msg"/></td></tr>`;
-                    }
-
-                    // 학생 성적 목록 프린트
-                    $.each(returnList, function (i, vo) {
-                        let atndcScore  = Number(vo.atndcScore) == "-1" ? "-" : Number(vo.atndcScore);
-                        let midexamScore= Number(vo.midexamScore) == "-1" ? "-" : Number(vo.midexamScore);
-                        let lstexamScore= Number(vo.lstexamScore) == "-1" ? "-" : Number(vo.lstexamScore);
-                        let asmtScore   = Number(vo.asmtScore) == "-1" ? "-" : Number(vo.asmtScore);
-                        let dscsScore   = Number(vo.dscsScore) == "-1" ? "-" : Number(vo.dscsScore);
-                        let quizScore   = Number(vo.quizScore) == "-1" ? "-" : Number(vo.quizScore);
-                        let srvyScore   = Number(vo.srvyScore) == "-1" ? "-" : Number(vo.srvyScore);
-                        let etcScore    = Number(vo.etcScore);
-
-                        let atndcScoreAvg   = Number(vo.atndcScoreAvg);
-                        let midexamScoreAvg = Number(vo.midexamScoreAvg);
-                        let lstexamScoreAvg = Number(vo.lstexamScoreAvg);
-                        let testScoreAvg    = Number(vo.testScoreAvg);
-                        let asmtScoreAvg    = Number(vo.asmtScoreAvg);
-                        let dscsScoreAvg    = Number(vo.dscsScoreAvg);
-                        let quizScoreAvg    = Number(vo.quizScoreAvg);
-                        let srvyScoreAvg    = Number(vo.srvyScoreAvg);
-
-                        let gradeSort = "0";
-
-                        //todo: ???
-                        if (vo.scoreStatus == "2") {
-                            gradeSort = "z";
-
-                        }else if (vo.scoreStatus == "3"){
-                            gradeSort = vo.scoreGrade;
-
-                            if (vo.scoreGrade.indexOf("+") > -1) {
-                                gradeSort = vo.scoreGrade.replace("+", "0");
-                            }else {
-                                gradeSort = o.scoreGrade + "1";
-                            }
-                        }
-
-                        let calTotScr = parseFloat((atndcScoreAvg + midexamScoreAvg + lstexamScoreAvg + asmtScoreAvg
-                                                    + dscsScoreAvg + quizScoreAvg + srvyScoreAvg + smnrScoreAvg).toFixed(2));
-
-                        calTotScr = calTotScr < 0 ? "-" : calTotScr;
-
-                        let midTdColor = "";
-                        let lastTdColor = "";
-
-                        let green   = "bcGreenAlpha30";
-                        let blue    = "bcBlueAlpha30";
-                        let yellow  = "bcYellowAlpha30";
-                        let greenYellow = "bcGreenYellowAlpha30";
-                        let blueYellow = "bcBlueYellowAlpha30";
-
-                        if (o.apprStatM) {
-                            if (o.apprStatM == "APPLICATE" || o.apprStatM == "RAPPLICATE") {
-                                midTdColor = green;
-                            } else if (o.apprStatM == "APPROVE") {
-                                midTdColor = blue;
-                            }
-                        }
-
-                        if (o.apprStatL) {
-                            if (o.apprStatL == "APPLICATE" || o.apprStatL == "RAPPLICATE") {
-                                lastTdColor = green;
-                            } else if (o.apprStatL == "APPROVE") {
-                                lastTdColor = blue;
-                            }
-                        }
-
-                        if (o.reExamYnM && o.reExamYnM == "Y") {
-                            if (midTdColor == green) {
-                                midTdColor = greenYellow;
-                            } else if (midTdColor == blue) {
-                                midTdColor = blueYellow;
-                            } else {
-                                midTdColor = yellow;
-                            }
-                        }
-
-                        if (o.reExamYnL && o.reExamYnL == "Y") {
-                            if (lastTdColor == green) {
-                                lastTdColor = greenYellow;
-                            } else if (lastTdColor == blue) {
-                                lastTdColor = blueYellow;
-                            } else {
-                                lastTdColor = yellow;
-                            }
-                        }
-
-                        html += `
-                            <tr data-sort-user-no="\${o.userId}">
-                                <td>
-                                    <div class="ui checkbox">
-                                        <input type="checkbox" readonly="readonly" name="list[\${i}].dataChk" tabindex="0" user_id="\${vo.userId}" user_nm="\${vo.userNm}" mobile="\${vo.userMobileNo}" email="\${vo.userEmail}">
-                                        <label></label>
-                                    </div>
-                                </td>
-                                <td name="lineNo">\${vo.lineNo}</td>
-                                <td data-sort-value="\${vo.deptNm}"><span>\${vo.deptNm}</span></td>
-                                <td data-sort-value="\${vo.stdntNo}"><span>\${vo.stdntNo}</span></td>
-                                <td class="word_break_none tc" data-sort-value="A\${o.userId.padEnd(12, '0')}">
-                                    <span>\${vo.usernm}</span>
-                                    <input type="hidden" name="list[\${i}].stdntNo" value="\${vo.stdntNo}">
-                                    <input type="hidden" name="list[\${i}].userId" value="\${vo.userId}">
-                                    <!--<input type="hidden" name="list[\${i}].userMobileNo" value="\${vo.userMobileNo}">-->
-                                    <!--<input type="hidden" name="list[\${i}].userEmail" value="\${vo.userEmail}">-->
-                                    <input type="hidden" name="list[\${i}].lessonItemId" value="\${vo.lessonItemId}">
-                                    <input type="hidden" name="list[\${i}].middleTestItemId" value="\${vo.middleTestItemId}">
-                                    <input type="hidden" name="list[\${i}].lastTestItemId" value="\${vo.lastTestItemId}">
-                                    <input type="hidden" name="list[\${i}].assignmentItemId" value="\${vo.assignmentItemId}">
-                                    <input type="hidden" name="list[\${i}].forumItemId" value="\${vo.forumItemId}">
-                                    <input type="hidden" name="list[\${i}].quizItemId" value="\${vo.quizItemId}">
-                                    <input type="hidden" name="list[\${i}].reshItemId" value="\${vo.reshItemId}">
-                                    <input type="hidden" name="list[\${i}].smnrItemId" value="\${vo.smnrItemId}">
-                                    <input type="hidden" name="list[\${i}].rowStatus" value="N">
-                                    <i class="xi-pen-o f120" onclick="setMemo('\${vo.userId}')" style="cursor:pointer" title="메모"></i>
-                                </td>
-                                <td class="word_break_none tc">\${vo.usernm}</td>
-                        `;
-
-                        let isTestNoJoinUser = false;
-
-                        if (vo.midexamScore <= 0 && vo.lstexamScore <= 0) {
-                            if (vo.middleTestUseYn == "Y" && vo.lastTestUseYn == "Y" && vo.middleTestNoYn == "Y" && vo.lastTestNoYn == "Y") {
-                                isTestNoJoinUser = true;
-                            } else if (vo.middleTestUseYn == "Y" && vo.lastTestUseYn == "N" && vo.middleTestNoYn == "Y") {
-                                isTestNoJoinUser = true;
-                            } else if (vo.middleTestUseYn == "N" && vo.lastTestUseYn == "Y" && vo.lastTestNoYn == "Y") {
-                                isTestNoJoinUser = true;
-                            }
-                        }
-
-                        for (const val of ratioArr) {
-                            if (val == "midexamScore") {
-                                let midNoEvalClass = vo.midNoEvalCnt > 0 ? 'bcRedAlpha30' : '';
-                                let scoreInputColor = "";
-                                let scoreTextColor = "fcBlue";
-
-                                if (isTestNoJoinUser) {
-                                    scoreInputColor = "fcRed";
-                                    scoreTextColor = "fcRed";
-                                }
-
-                                html += `
-                                    <td class='word_break_none \${midTdColor}' data-sort-value='getSortScore(\${midexamScore})'>
-                                        <span name='chgSpanText'>\${midexamScore}</span>
-                                        <div class='ui input w50' name='chgInputText'>
-                                            <input type='text' name='list[\${i}].middleTestInput' class='inScore \${midNoEvalClass} \${scoreInputColor}'
-                                                   value='\${midexamScore}' placeholder='0' inputmask="numeric" mask="999.99" maxVal="100">
-                                        </div>
-                                        <i class='right chevron icon f075 opacity5'></i>
-                                `;
-
-                                if (midexamScore > -1) {
-                                    html += `<span class="\${scoreTextColor}">\${midexamScoreAvg}</span>`;
-                                } else {
-                                    html += `<a onclick="goCrsCreCtgr('minTest')"><span class="\${scoreTextColor}">-</span></a>`;
-                                }
-
-                                html += `
-                                        <input type="hidden" name="list[\${i}].midexamScoreAvg" value="\${midexamScoreAvg}" placeholder="0">
-                                    </td>
-                                `;
-
-                            } else if (val == "lstexamScore") {
-                                let lastNoEvalClass = vo.lastNoEvalCnt > 0 ? 'bcRedAlpha30' : '';
-                                let scoreInputColor = "";
-                                let scoreTextColor = "fcBlue";
-
-                                if (isTestNoJoinUser) {
-                                    scoreInputColor = "fcRed";
-                                    scoreTextColor = "fcRed";
-                                }
-
-                                html += `
-                                    <td class='word_break_none \${lastTdColor}' data-sort-value='getSortScore(\${lstexamScore})'>
-                                       <span name='chgSpanText'>\${lstexamScore} </span>
-                                       <div class='ui input w50' name='chgInputText'>
-                                            <input type='text' name='list[\${i}].lastTestInput' class='inScore \${lastNoEvalClass} \${scoreInputColor}'
-                                                   value='\${lstexamScore}' placeholder='0' inputmask="numeric" mask="999.99" maxVal="100">
-                                        </div>
-                                       <i class='right chevron icon f075 opacity5'></i>
-                                `;
-
-                                if (lstexamScore > -1) {
-                                    html += `       <span class='\${scoreTextColor}'>\${lstexamScoreAvg}</span>`;
-                                } else {
-                                    html += `       <a href='javascript:;' onclick='goCrsCreCtgr("lastTest")'><span class='\${scoreTextColor}'>-</span></a>`;
-                                }
-
-                                html += `
-                                        <input type='hidden' name='list[\${i}].lstexamScoreAvg' value='\${lstexamScoreAvg}' placeholder='0'>
-                                    </td>
-                                `;
-
-                            } else if (val == "atndcScore") {
-                                isNoAttendUser = atndcScore === 0 ? true : false;
-                                html += `
-                                    <td class='word_break_none' data-sort-value='getSortScore(\${atndcScore})'>
-                                       <span name='chgSpanText'>\${atndcScore}</span>
-                                       <div class='ui input w50 tr' name='chgInputText'>
-                                          \${atndcScore}
-                                          <input type='hidden' name='list[\${i}].lessonInput' class='inScore' value='\${atndcScore}' placeholder='0' inputmask="numeric" mask="999.99" maxVal="100" readonly='readonly' />
-                                       </div>
-                                       <i class='right chevron icon f075 opacity5'></i>
-                                       <span class='fcBlue'>\${atndcScoreAvg}</span>
-                                       <input type='hidden' name='list[\${i}].atndcScoreAvg' value='\${atndcScoreAvg}' placeholder='0'>
-                                    </td>
-                                `;
-                            } else if (val == "asmtScore") {
-                                var asmntNoEvalClass = vo.asmntNoEvalCnt > 0 ? 'bcRedAlpha30' : '';
-
-                                html += `
-                                    <td class='word_break_none' data-sort-value='getSortScore(\${asmtScore})'>
-                                       <span name='chgSpanText'>\${asmtScore}</span>
-                                       <div class='ui input w50' name='chgInputText'>
-                                            <input type='text' name='list[\${i}].assignmentInput' class='inScore \${asmntNoEvalClass}' value='\${asmtScore}' placeholder='0' inputmask="numeric" mask="999.99" maxVal="100">
-                                       </div>
-                                       <i class='right chevron icon f075 opacity5'></i>
-                                `;
-                                if (asmtScore > -1) {
-                                    html += `       <span class='fcBlue'>\${asmtScoreAvg}</span>`;
-                                } else {
-                                    html += `       <a href='javascript:;' onclick='goCrsCreCtgr("asmt")'><span class='fcBlue'>-</span></a>`;
-                                }
-                                html += `
-                                       <input type='hidden' name='list[\${i}].asmtScoreAvg' value='\${asmtScoreAvg}' placeholder='0'>
-                                    </td>
-                                `;
-                            } else if (val == "dscsScore") {
-                                let forumNoEvalClass = vo.forumNoEvalCnt > 0 ? 'bcRedAlpha30' : '';
-
-                                html += `
-                                    <td class='word_break_none' data-sort-value='getSortScore(\${dscsScore})'>
-                                       <span name='chgSpanText'>\${dscsScore}</span>
-                                       <div class='ui input w50' name='chgInputText'>
-                                            <input type='text' name='list[\${i}].forumInput' class='inScore \${forumNoEvalClass}' value='\${dscsScore}' placeholder='0' inputmask="numeric" mask="999.99" maxVal="100">
-                                       </div>
-                                       <i class='right chevron icon f075 opacity5'></i>
-                                `;
-                                if (dscsScore > -1) {
-                                    html += `       <span class='fcBlue'>\${dscsScoreAvg}</span>`;
-                                } else {
-                                    html += `       <a href='javascript:;' onclick='goCrsCreCtgr("forum")'><span class='fcBlue'>-</span></a>`;
-                                }
-                                html += `
-                                       <input type='hidden' name='list[\${i}].dscsScoreAvg' value='\${dscsScoreAvg}' placeholder='0'>
-                                    </td>
-                                `;
-                            } else if (val == "quizScore") {
-                                let quizNoEvalClass = o.quizNoEvalCnt > 0 ? 'bcRedAlpha30' : '';
-
-                                html += `
-                                    <td class='word_break_none' data-sort-value='getSortScore(\${quizScore})'>
-                                       <span name='chgSpanText'>\${quizScore}</span>
-                                       <div class='ui input w50' name='chgInputText'>
-                                            <input type='text' name='list[\${i}].quizInput' class='inScore \${quizNoEvalClass}' value='\${quizScore}' placeholder='0' inputmask="numeric" mask="999.99" maxVal="100">
-                                       </div>
-                                       <i class='right chevron icon f075 opacity5'></i>
-                                `;
-                                if (quizScore > -1) {
-                                    html += `       <span class='fcBlue'>\${quizScoreAvg}</span>`;
-                                } else {
-                                    html += `       <a href='javascript:;' onclick='goCrsCreCtgr("quiz")'><span class='fcBlue'>-</span></a>`;
-                                }
-                                html += `
-                                       <input type='hidden' name='list[\${i}].quizScoreAvg' value='\${quizScoreAvg}' placeholder='0' >
-                                    </td>
-                                `;
-                            } else if (val == "srvyScore") {
-                                let reschNoEvalClass = vo.reschNoEvalCnt > 0 ? 'bcRedAlpha30' : '';
-
-                                html += `
-                                    <td class='word_break_none' data-sort-value='getSortScore(\${srvyScore})'>
-                                       <span name='chgSpanText'>\${srvyScore}</span>
-                                       <div class='ui input w50' name='chgInputText'>
-                                            <input type='text' name='list[\${i}].reshInput' class='inScore \${reschNoEvalClass}' value='\${srvyScore}' placeholder='0' maxlength='5' onKeyup="scoreValidation(this)">
-                                       </div>
-                                       <i class='right chevron icon f075 opacity5'></i>
-                                `;
-                                if (srvyScore > -1) {
-                                    html += `       <span class='fcBlue'>\${srvyScoreAvg}</span>`;
-                                } else {
-                                    html += `       <a href='javascript:;' onclick='goCrsCreCtgr("resh")'><span class='fcBlue'>-</span></a>`;
-                                }
-                                html += `
-                                       <input type='hidden' name='list[\${i}].srvyScoreAvg' value='\${srvyScoreAvg}' placeholder='0' >
-                                    </td>
-                                `;
-                            }
-                        }
-
-                        html += `
-                            <td class='tc' data-sort-value='getSortScore(\${calTotScr})'>
-                               <span class='fcBlue'>\${calTotScr}</span>
-                               <input type='hidden' name='list[\${i}].finalScore' value='\${calTotScr}' placeholder='0'>
-                            </td>
-                        `;
-
-                        html += `<td data-sort-value='getSortScore(o.prvScore)'>`;
-
-                        if (o.scoreStatus == "2") {
-                            html += "-";
-                        } else if (o.scoreStatus == "3") {
-                            html += `   <span name='totScoreSpan'>\${o.prvScore}</span>`;
-                            if (isNoAttendUser) {
-                                html += `
-                                    <div class='ui input w50 tr' name='totScoreDiv'>
-                                        \${Number(o.prvScore)}
-                                        <input type='hidden' name='list[\${i}].totScoreData' class='inScore' value='\${o.prvScore}' placeholder='0' inputmask="numeric" mask="999.99" maxVal="100" readonly='readonly' />
-                                    </div>
-                                `;
-                            } else {
-                                html += `
-                                    <div class='ui input w50' name='totScoreDiv'>
-                                        <input type='text' name='list[\${i}].totScoreData' class='inScore' value='\${o.prvScore}' placeholder='0' inputmask="numeric" mask="999.99" maxVal="100" data-tot-score-idx='\${i}' />
-                                    </div>
-                                `;
-                            }
-                        }
-                        html += "</td>";
-
-                        html += `
-                            <td name='etcDataTd' data-sort-value='getSortScore(\${etcScore})'>
-                                <span>\${etcScore}</span>
-                            </td>
-                        `;
-
-                        html += `
-                            <td name='etcDataTd' data-sort-value='getSortScore(\${vo.totScore})'>
-                                <span>\${vo.totScore}</span>
-                            </td>
-                        `;
-
-                        html += `<td data-sort-value='\${gradeSort}' data-grade-idx='\${i}'>`;
-                        if (o.scoreStatus == "2") {
-                            html += "-";
-                        } else if (o.scoreStatus == "3") {
-                            if (o.scoreGrade == "F") {
-                                html += `<span class="fcRed fweb">\${vo.scoreGrade}</span>`;
-                            } else {
-                                html += vo.scoreGrade;
-                            }
-                        }
-                        html += `</td>`;
-
-                        $("#scoreStatus").val(vo.scoreStatus);
-
-                        html += `
-                                        <td>
-                                            <a href="javascript:onScoreOverallDtlPop('\${vo.sbjctId}', '\${vo.userId}', '\${vo.stdntNo}');\">상세</a>
-                                        </td>
-                                    </tr>
-
-                        `;
+                    let dataList = createStdMrkListHTML(returnList, mrkRfltrtInfoMapList);
+                    mrkTable.on("tableBuilt", function() {
+                        mrkTable.replaceData(dataList).then(function () {
+                            // 데이터가 화면에 그려진 후 실행
+                            mrkTable.getRows().forEach(row => {
+                                const data = row.getData();
+                                const rowEl = row.getElement();
+                                $(rowEl).attr("data-user-id", data.userId);
+                            })
+                        })
                     });
 
-                    html += `
-                            </tbody>
-                        </table>
-                    `;
-
-                    let wh = $(window).height() - 250;
-                    if (wh < 400) wh = 400;
-
-                    $("#tableDiv").css("max-height", (wh) + "px");
-                    $("#tableDiv").empty().html(html);
-                },
-                error: function(xhr, status, error) {
-                    alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
+                    $("#scoreAllListDiv").css("display", "block");
                 }
             });
+
         }
 
-        function setScoreHeader(label, score) {
-            return `<th class="">\${label}<br class="desktop-elem"><small>(\${score}%)</small></th>`;
+        function calcScr(input, mrkItmTycd) {
+            let mrkRfltrt = 0;
+            let calScore = 0;
+            if ( mrkItmTycd == "MIDEXAM") {
+                mrkRfltrt = midexamHead;
+            } else if (mrkItmTycd == "LSTEXAM") {
+                mrkRfltrt = lstexamHead;
+            }  else if (mrkItmTycd == "ATNDC") {
+                mrkRfltrt = atndcHead;
+            }  else if (mrkItmTycd == "ASMT") {
+                mrkRfltrt = asmtHead;
+            }  else if (mrkItmTycd == "DSCS") {
+                mrkRfltrt = dscsHead;
+            }  else if (mrkItmTycd == "QUIZ") {
+                mrkRfltrt = quizHead;
+            }  else if (mrkItmTycd == "SRVY") {
+                mrkRfltrt = srvyHead;
+            }  else if (mrkItmTycd == "SMNR") {
+                mrkRfltrt = smnrHead;
+            }
+            calScore = (input * mrkRfltrt / 100).toFixed(2);
+
+            return calScore;
+        }
+
+        function calcRowData(row, mrkItmTycd, inputScore) {
+            let data = row.getData();
+
+            // 항목점수 계산
+            let calScore = calcScr(inputScore, mrkItmTycd);
+            data[mrkItmTycd] = calScore;
+
+            // 총점계산
+            let totScore = 0;
+
+            Object.keys(data).forEach(key => {
+                if (key == "MIDEXAM" || key == "LSTEXAM" || key == "ATNDC" || key == "ASMT" ||
+                    key == "DSCS" || key == "QUIZ" || key == "SRVY" || key == "SMNR") {
+                    totScore += parseFloat(data[key]);
+                }
+
+                data.lstScr = totScore.toFixed(2);
+
+                // 테이블 반영
+                row.update(data);
+            })
         }
     </script>
 
@@ -799,43 +418,33 @@
                             </div>
                         </div>
 
-                        <div class="table-wrap">
-                            <table class="table-type2" id="sbjctTable">
-                                <colgroup>
-                                    <col style="width: 50px">
-                                    <col style="width: 50px">
-                                    <col style="width: 50px">
-                                    <col>
-                                    <col>
-                                    <col style="width: 15%">
-                                    <col style="width: 20%">
-                                    <col style="width: 50px">
-                                    <col style="width: 50px">
-                                </colgroup>
-                                <thead>
-                                    <tr>
-                                        <th><spring:message code="common.no"/></th><!-- 번호 -->
-                                        <th><spring:message code="common.year"/></th><!-- 년도 -->
-                                        <th><spring:message code="common.term"/></th><!-- 학기 -->
-                                        <th><spring:message code="common.label.org" /></th><!-- 기관 -->
-                                        <th><spring:message code="common.dept_name"/></th><!-- 학과 -->
-                                        <th><spring:message code="crs.open.course.code"/></th><!-- 개설과목코드 -->
-                                        <th><spring:message code="crs.label.crecrs.nm"/></th><!-- 과목명 -->
-                                        <th><spring:message code="common.label.decls.no"/></th><!-- 분반 -->
-                                        <th><spring:message code="common.label.credit"/></th><!-- 학점 -->
-                                        <th><spring:message code="crs.label.associate"/></th><!-- 공동교수 -->
-                                        <th><spring:message code="common.label.tutor"/></th><!-- 튜터 -->
-                                        <th><spring:message code="common.teaching.assistant"/></th><!-- 조교 -->
-                                    </tr>
-                                </thead>
-                                <tbody id="sbjctTbody">
-                                    <tr><td colspan="12">조회된 데이터가 없습니다.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <div class="table-wrap" id="sbjctList"> </div>
+                        <script>
+                            // 과목 리스트 테이블
+                            let sbjctListTable = UiTable("sbjctList", {
+                                lang: "ko",
+                                height: 300,
+                                selectRow: "1",
+                                selectRowFunc: listStdMrk,
+                                columns: [
+                                    {title: "번호",       field: "no",        headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
+                                    {title: "연도",       field: "sbjctYr",   headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
+                                    {title: "학기",       field: "sbjctSmstr",headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
+                                    {title: "소속",       field: "orgnm",     headerHozAlign: "center", hozAlign: "center", width: 100, minWidth: 100},
+                                    {title: "학과",       field: "deptnm",    headerHozAlign: "center", hozAlign: "center", width: 160, minWidth: 150},
+                                    {title: "개설과목코드",field: "sbjctId",    headerHozAlign: "center", hozAlign: "center", width: 160, minWidth: 150},
+                                    {title: "과목명",     field: "sbjctnm",    headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 200},
+                                    {title: "분반",       field: "dvclasNo",  headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
+                                    {title: "학점",       field: "crdts",     headerHozAlign: "center", hozAlign: "center", width: 40, minWidth: 40},
+                                    {title: "공동교수",   field: "coProf",     headerHozAlign: "center", hozAlign: "center", width: 80, minWidth: 80},
+                                    {title: "튜터",      field: "tutor",      headerHozAlign: "center", hozAlign: "center", width: 80, minWidth: 80},
+                                    {title: "조교",      field: "subProf",    headerHozAlign: "center", hozAlign: "center", width: 80, minWidth: 80}
+                                ]
+                            });
+                        </script>
 
                         <!-- 성적처리 테이블 -->
-                        <div id="scoreAllListDiv" style="display:none; margin-top: 50px">
+                        <div id="scoreAllListDiv" style="display: none; margin-top: 50px">
                             <div class="ui small info message">
                                 <p><i class="info circle icon"></i></p>
                             </div>
@@ -852,7 +461,7 @@
                                         <button type="button" class="btn sm type1" name="chgButton2" id="btnScoreCal">
                                             <spring:message code="button.calculate.score"/><!-- 성적산출 -->
                                         </button>
-                                        <button type="button" class="btn sm type4" name="chgButton2" id="btnSave">
+                                        <button type="button" class="btn sm type4" name="chgButton2" id="btnSave" onclick="onSave()">
                                             <spring:message code="sys.button.save"/><!-- 저장 -->
                                         </button>
                                     </c:if>
@@ -880,7 +489,7 @@
                                     </button>
 
                                     <small class="right-area">
-                                        [ <spring:message code="exam.label.stare.user.cnt" /><!-- 대상인원 --><span id="listTotCnt">0</span> <spring:message code="forum.label.person" /><!-- 명 -->]
+                                        [ <spring:message code="exam.label.stare.user.cnt" /><!-- 대상인원 --><span id="totCnt">0</span> <spring:message code="forum.label.person" /><!-- 명 -->]
                                     </small>
                                 </div>
 
@@ -903,9 +512,68 @@
                             </div>
 
                             <form id="tableForm">
-                                <input type="hidden" id="scoreStatus" name="scoreStatus"/>
-                                <input type="hidden" id="sSbjctid" name="sSbjctid"  />
-                                <div id="tableDiv" style="padding:0;margin:0 0 3px 0;border:1px solid var(--darkB);"></div>
+                                <input type="hidden" id="scrCnvsStscd" name="scrCnvsStscd"/>
+                                <input type="hidden" id="sSbjctId" name="sSbjctId"  />
+                                <div id="stdMrkList"></div>
+                                <script>
+
+                                    let mrkTable;
+
+                                    // 학생 성적 목록 테이블 초기화
+                                    function initStdMrkTable(rateData) {
+                                        // 기본 고정 헤더 (앞부분)
+                                        let dynamicHeader = [
+                                            {title: "No",   field: "no",     headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
+                                            {title: "학과",  field: "deptnm", headerHozAlign: "center", hozAlign: "center", width: 150, minWidth: 150},
+                                            {title: "대표아이디",field: "userId",headerHozAlign: "center", hozAlign: "center", width: 130, minWidth: 130},
+                                            {title: "학번",  field: "stdntNo", headerHozAlign: "center", hozAlign: "center", width: 150, minWidth: 150},
+                                            {title: "이름",  field: "usernm", headerHozAlign: "center", hozAlign: "center", width: 80, minWidth: 80}
+                                        ];
+
+                                        // 성적반영비율에 따른 동적 헤더 추가
+                                        rateData.forEach(item => {
+                                            const mrkItmTycd = item.mrkItmTycd;
+                                            const mrkRfltrt = item.mrkRfltrt;
+
+                                            if ( mrkItmTycd == "MIDEXAM") {
+                                                midexamHead = mrkRfltrt;
+                                            } else if (mrkItmTycd == "LSTEXAM") {
+                                                lstexamHead = mrkRfltrt;
+                                            }  else if (mrkItmTycd == "ATNDC") {
+                                                atndcHead = mrkRfltrt;
+                                            }  else if (mrkItmTycd == "ASMT") {
+                                                asmtHead = mrkRfltrt;
+                                            }  else if (mrkItmTycd == "DSCS") {
+                                                dscsHead = mrkRfltrt;
+                                            }  else if (mrkItmTycd == "QUIZ") {
+                                                quizHead = mrkRfltrt;
+                                            }  else if (mrkItmTycd == "SRVY") {
+                                                srvyHead = mrkRfltrt;
+                                            }  else if (mrkItmTycd == "SMNR") {
+                                                smnrHead = mrkRfltrt;
+                                            }
+                                            if (item.mrkRfltrt > 0)  {
+                                                dynamicHeader.push(
+                                                    {title: `\${item.mrkItmTynm}</br>(\${item.mrkRfltrt}%)`, field: `\${item.mrkItmTycd}`, headerHozAlign: "center", hozAlign: "center", width: 130, minWidth: 100}
+                                                );
+                                            }
+                                        });
+
+                                        dynamicHeader.push(
+                                            {title: "산출</br>총점",    field: "lstScr",    headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
+                                            {title: "가산</br>점수",    field: "adtnScr",   headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
+                                            {title: "기타</br>점수",    field: "etcScr",     headerHozAlign: "center", hozAlign: "center", width: 70, minWidth: 70},
+                                            {title: "최종</br>점수",    field: "totScr",   headerHozAlign: "center", hozAlign: "center", width: 70, minWidth: 70},
+                                            {title: "상세정보",         field: "details",   headerHozAlign: "center", hozAlign: "center", width: 80, minWidth: 80, headerSort: false}
+                                        );
+
+                                        return mrkTable = UiTable("stdMrkList", {
+                                            lang: "ko",
+                                            selectRow: "checkbox",
+                                            columns: dynamicHeader
+                                        })
+                                    }
+                                </script>
                             </form>
 
                             <div class="row">
@@ -913,6 +581,7 @@
                                     <div class="option-content gap4 header2">
                                         <div class="sec_head mra">
                                             <spring:message code="common.label.grade.chart"/>: <spring:message code="dashboard.all"/><!-- 성적 등급 분포도 : 전체 -->
+                                            <input type="text" class="rawScore" value="\${std[rawScore]}" inputmask="numeric" mask="999.99" maxVal="100" style="width: 100px;">
                                         </div>
                                         <select class="ui dropdown" id="graphSelect">
                                         </select>
@@ -1071,7 +740,7 @@
             let deferred = $.Deferred();
 
             let url = "/crs/sbjct/sbjctMrkProcPeriodSelectAjax.do";
-            let data = {"sbjctId" : $("#sSbjctid").val()};
+            let data = {"sbjctId" : $("#sSbjctId").val()};
 
             ajaxCall(url, data, function (data) {
 
@@ -1079,7 +748,7 @@
                     let returnVO = data.returnVO;
 
                     if (returnVO ==  null) {
-                        alert('<spring:message code="sys.alert.already.job.sch" />'); // 등록된 일정이 없습니다.
+                        UiComm.showMessage('<spring:message code="sys.alert.already.job.sch" />', "warning"); // 등록된 일정이 없습니다.
                         deferred.reject();
                         return;
                     }
@@ -1094,20 +763,158 @@
                         let argu = '<spring:message code="score.label.score.proc" />'; // 성적처리
                         let msg = `<spring:message code="score.alert.no.job.sch.period" arguments="\${argu}}" />`; // 성적처리 기간이 아닙니다.
 
-                        alert(msg);
+                        UiComm.showMessage(msg, "warning");
                         deferred.reject();
                     }
                 } else {
-                    alert(data.message);
+                    UiComm.showMessage(data.message, "error");
                     deferred.reject();
                 }
             }, function (xhr, status, error) {
-                alert("<spring:message code='exam.error.info' />"); // 정보 조회 중 에러가 발생하였습니다.
+                UiComm.showMessage("<spring:message code='exam.error.info' />", "error"); // 정보 조회 중 에러가 발생하였습니다.
                 deferred.reject();
             });
 
             return deferred.promise();
         }
+
+
+        function createSubjectListHTML(list) {
+            let dataList = [];
+
+            if (list.length <= 0) return dataList;
+
+            for (let i = 0; i < list.length; i++) {
+                dataList.push({
+                    no: (i + 1),
+                    sbjctYr: list[i].sbjctYr,
+                    sbjctSmstr: list[i].sbjctSmstr,
+                    orgnm: list[i].orgnm,
+                    deptnm: list[i].deptnm || '-',
+                    sbjctId: list[i].sbjctId,
+                    sbjctnm: list[i].sbjctnm,
+                    dvclasNo: list[i].dvclasNo,
+                    crdts: (list[i].crdts * 1) || '-',
+                    coProf: '-',
+                    tutor: '-',
+                    subProf: '-'
+                });
+            }
+            return dataList;
+        }
+
+        function createStdMrkListHTML(list, rateData) {
+            let scrCnvsSts = false;
+            let dataList = [];
+            if (list.length <= 0) return dataList;
+
+            // 성적항목타입코드와 점수필드명 매핑
+            const rawScoreMapping = {
+                "MIDEXAM": "midexamScore",
+                "LSTEXAM": "lstexamScore",
+                "ATNDC":   "atndcScore",
+                "ASMT":    "asmtScore",
+                "DSCS":    "dscsScore",
+                "QUIZ":    "quizScore",
+                "SRVY":    "srvyScore",
+                "SMNR":    "smnrScore"
+            };
+            const finalScoreMapping = {
+                "MIDEXAM": "midexamScoreAvg",
+                "LSTEXAM": "lstexamScoreAvg",
+                "ATNDC":   "atndcScoreAvg",
+                "ASMT":    "asmtScoreAvg",
+                "DSCS":    "dscsScoreAvg",
+                "QUIZ":    "quizScoreAvg",
+                "SRVY":    "srvyScoreAvg",
+                "SMNR":    "smnrScoreAvg"
+            };
+
+            for (let i = 0; i < list.length; i++) {
+                let std = list[i];
+                let scrCnvsStscd = std.scrCnvsStscd || "MRK_CNVS_BFR";
+                if (scrCnvsStscd == "MRK_CNVS_CMPTN") {
+                    scrCnvsSts = true;
+                }
+                $("#scoreStatus").val(scrCnvsStscd);
+
+                let row = {
+                    no: (i+1),
+                    deptnm: std.deptnm,
+                    userId: std.userId,
+                    stdntNo: std.stdntNo,
+                    usernm: std.usernm,
+                    lstScr: `<input type="hidden" name="lstScr" value="\${std.lstScr}" inputmask="numeric" mask="999.99" maxVal="100"><span>\${std.lstScr || 0}</span>`,
+                    adtnScr: `<input type="hidden" name="adtnScr" value="\${std.adtnScr}" inputmask="numeric" mask="999.99" maxVal="100"><span>\${std.adtnScr || 0}</span>`,
+                    etcScr: `<input type="text" class="inputScore" name="etcScr" value="\${std.etcScr || 0}" inputmask="numeric" mask="999.99" maxVal="100">`,
+                    totScr: `<input type="text" class="inputScore" name="totScr" value="\${std.totScr || 0}" inputmask="numeric" mask="999.99" maxVal="100">`,
+                //     ------------ 상세정보 버튼 클릭 시 넘길 데이터
+                    details: `<button type="button" class="btn basic small" onclick='goDetailStd("\${std.userId}", "\${std.sbjctId}")'>상세보기</button>`
+                };
+
+
+                rateData.forEach(item => {
+                   if (item.mrkRfltrt > 0) {
+                       const tycd = item.mrkItmTycd;
+                       const rawScore = rawScoreMapping[tycd];
+                       const finalScore = finalScoreMapping[tycd];
+                       row[tycd] = `
+                        <div class="score-row">
+                            <input type="text" class="inputScore" name="rowScr" data-mrkitmtycd="\${tycd}" value="\${std[rawScore]}" inputmask="numeric" mask="999.99" maxVal="100">
+                            <span>&nbsp;>&nbsp;</span>
+                            <span name="finalScrTxt">\${std[finalScore]}</span>
+                            <input type="hidden" class="finalScore" name="finalScr" data-mrkitmtycd="\${tycd}" value="\${std[finalScore]}" inputmask="numeric" mask="999.99" maxVal="100">
+                        </div>
+                        `;
+                   }
+                });
+
+                dataList.push(row);
+            }
+
+            // 환산상태가 안맞는 경우
+            if (scrCnvsSts && $("#scoreStatus").val() == "MRK_CNVS_BFR") {
+                $("#scoreStatus").val("MRK_CNVS_BFR"); // 환산 전 상태로 초기화
+            }
+
+            // inputMask 작동되도록 재호출
+            setTimeout(() => {
+                UiInputmask();
+            }, 100);
+
+            return dataList;
+        }
+
+        function onSave() {
+
+            if (!confirm("저장하시겠습니까?")) return false;
+
+            // 학생 성적을 담을 배열
+            const stdMrkList = [];
+
+            // 모든 성적행 찾아 루프돌기
+            $(".tabulator-row").each(function () {
+               let $row = $(this); // row
+
+               // 행에 심어둔 userId 추출
+               let userId = $row.attr("data-user-id");
+
+               // 학생 성적 정보 객체 생성
+                let rowData = {
+                    "userId"    : userId,
+                    "midExam"   : parseFloat($row.find(".rawScore[tabulator-field='MIDEXAM']").val()) || 0,
+                    "lstExam"   : parseFloat($row.find(".rawScore[tabulator-field='LSTEXAM']").val()) || 0,
+                    "atndc"     : parseFloat($row.find(".rawScore[tabulator-field='ATNDC']").val()) || 0,
+                    "asmt"      : parseFloat($row.find(".rawScore[tabulator-field='ASMT']").val()) || 0,
+                    "dscs"      : parseFloat($row.find(".rawScore[tabulator-field='DSCS']").val()) || 0,
+                    "quiz"      : parseFloat($row.find(".rawScore[tabulator-field='QUIZ']").val()) || 0,
+                    "srvy"      : parseFloat($row.find(".rawScore[tabulator-field='SRVY']").val()) || 0,
+                    "smnr"      : parseFloat($row.find(".rawScore[tabulator-field='SMNR']").val()) || 0
+                }
+                console.log(rowData);
+            });
+        }
+
     </script>
 
 </body>

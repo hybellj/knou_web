@@ -66,13 +66,7 @@
                     <div class="sub-content">
                         <div class="page-info">
                             <h2 class="page-title"><span>공지사항</span>전체공지</h2>
-                            <div class="navi_bar">
-                                <ul>
-                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li>공지사항</li>
-                                    <li><span class="current">전체공지</span></li>
-                                </ul>
-                            </div>
+                            <uiex:navibar type="main"/> <%-- 네비게이션바 --%>
                         </div>
 
                         <div class="tstyle_view">

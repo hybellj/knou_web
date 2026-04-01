@@ -1,6 +1,12 @@
 package knou.framework.context2;
 
+import java.util.Map;
+
+import knou.lms.user.vo.UserVO;
+
 public class UserContext {
+	
+	// 삭제 예정입니다. 2023.03.31 by jinkoon
 	public UserContext(String orgId, String userId, String authrtCd
 			, String authrtGrpcd, String userRprsId, String userLastLogin) {
 		this.orgId = orgId;
@@ -10,6 +16,7 @@ public class UserContext {
 		this.userRprsId = userRprsId;
 		this.userLastLogin = userLastLogin;
 	}
+	// 삭제 예정입니다. 2023.03.31 by jinkoon
 	public UserContext(String orgId, String userId, String userTycd, String authrtCd
 			, String authrtGrpcd, String userRprsId, String userLastLogin) {
 		this.orgId = orgId;
@@ -23,8 +30,29 @@ public class UserContext {
 	
 	public UserContext() {}
 
-	// 	UserContext 	- 기관아이디, 대표아이디, 사용자아이디, 사용자유형코드, 사용자접속장치, IP, 마지마로그인 일시, 접속위치?, 날짜, 언어코드;
-    //					- 이전접속위치, 이전접속일시, 이전접속체크번호	
+	public UserContext(UserVO user) {
+		this.loginUser = user;
+	}	
+	
+	public UserVO getLoginUser() {
+		return loginUser;
+	}
+	public void setLoginUser(UserVO loginUser) {
+		this.loginUser = loginUser;
+	}
+
+	public UserVO getSelectedUser() {
+		return selectedUser;
+	}
+	public void setSelectedUser(UserVO selectedUser) {
+		this.selectedUser = selectedUser;
+	}
+
+	UserVO 	loginUser;
+	UserVO	selectedUser;
+	
+	Map<String, UserVO> registeredUsers;
+	
 	String 	orgId;
 	String	userRprsId;
 	String 	userId;
@@ -198,12 +226,18 @@ public class UserContext {
 	}
 	public String getUserTycd() {
 		return this.userTycd;
-	}
-	
+	}	
 	public void setDeptId(String deptId) {
 		this.deptId = deptId;
 	}
 	public String getDeptId() {		
 		return this.deptId;
 	}	
+	public Map<String, UserVO> getRegisteredUsers() {
+		return registeredUsers;
+	}	
+	
+	public void setRegisteredUsers(Map<String, UserVO> users) {
+		this.registeredUsers = users;
+	}
 }

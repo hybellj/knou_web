@@ -12,8 +12,8 @@
 
     <script type="text/javascript">
     	$(document).ready(function() {
-    		reshCommon.statusChartSet('status');
-    		reshCommon.statusChartSet('device');
+    		srvyCommon.statusChartSet('status');
+    		srvyCommon.statusChartSet('device');
     	});
 
     	/**

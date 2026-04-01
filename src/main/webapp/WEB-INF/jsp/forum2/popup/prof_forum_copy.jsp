@@ -31,7 +31,7 @@
     			"smstrChrtId" : $("#smstrChrtId").val(),
     			"sbjctId"     : ($("#sbjctId").val() || "").replace("ALL", ""),
     			"searchValue" : $("#searchValue").val(),
-				"userId"		: "${vo.userId}",
+				"userId"		: "${forum2VO.userId}",
     			"pageIndex"   : 1,
     			"listScale"   : 100
     		};
@@ -83,7 +83,7 @@
 			var url  = "/forum2/forumLect/Form/smstrChrtSbjctListAjax.do";
 			var data = {
 				"smstrChrtId" : smstrChrtId,
-				"sbjctId"     : "${vo.sbjctId}"
+				"sbjctId"     : "${forum2VO.sbjctId}"
 			};
 
 			ajaxCall(url, data, function(data) {

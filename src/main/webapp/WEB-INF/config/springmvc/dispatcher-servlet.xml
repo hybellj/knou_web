@@ -52,6 +52,7 @@
             <mvc:mapping path="/**" />
             <mvc:exclude-mapping path="/login.do" />
             <mvc:exclude-mapping path="/loginProc.do" />
+            <mvc:exclude-mapping path="/loginProcTOBE.do" />
             <mvc:exclude-mapping path="/sso/*" />
             <bean class="knou.framework.interceptor.AuthenticInterceptor"/>
         </mvc:interceptor>

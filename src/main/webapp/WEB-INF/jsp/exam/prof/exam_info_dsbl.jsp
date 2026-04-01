@@ -20,73 +20,145 @@
          * 시험 방식에 따라 보여지는 레이아웃이 다르게 됨.
          */
         var curTabType   = '${vo.tabType}';
-        var curExamBscId = '${vo.examBscId}';
+        var curSbjctId = '${examVO.sbjctId}';
         var curTkexamMthdCd = '${vo.tkexamMthdCd}';
 
         var curByteamSubrexamUseyn = '${vo.byteamSubrexamUseyn}';   // 팀 여부
         var hasSubSubject = '${examVO.lrnGrpSubsbjctUseyn}';        // 부 주제
-        var examInfoListTable = null; // 시험정보 및 평가 Tabulator - 탭 최초 활성화 시 생성
+        var dsblInfoListTable = null;
 
         /*****************************************************************************
          * tabulator 관련 기능
-         * 1. initExamInfoListTable :   컬럼 정의 (대상자 전체 | 팀)
-         * 2. loadExamInfoList :        컬럼에 들어갈 데이터 ajax 호출
-         * 3. changeInfoListScale :     페이지 row수 세팅
+         * 1. initDsblInfoListTable :   컬럼 정의 (대상자 전체 | 팀)
+         * 2. createDsblInfoListHtml:   각 컬럼에 들어갈 데이터 세팅 및 요소 생성
+         * 3. loadDsblInfoList :        컬럼에 들어갈 데이터 ajax 호출
+         * 4. changeInfoListScale :     페이지 row수 세팅
          *****************************************************************************/
         /* 1 */
-        function initExamInfoListTable() {
-            if (examInfoListTable) return;
-            var examInfoColumns = curByteamSubrexamUseyn === 'Y' ? [
-                {title:"No",       field:"lineNo",        headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                {title:"팀명",     field:"teamnm",        headerHozAlign:"center", hozAlign:"left",   width:120, minWidth:120},
-                {title:"학과",     field:"deptnm",        headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"대표아이디",field:"userRprsId",    headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"학번",     field:"stntNo",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"이름",     field:"usernm",        headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"역할",     field:"ldryn",         headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"시험점수", field:"examScr",       headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가점수", field:"totScr",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"응시상태", field:"tkexamCmptnyn", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"응시횟수", field:"tkexamCnt",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가여부", field:"evlyn",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
-            ] : [
-                {title:"No",       field:"lineNo",        headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                {title:"학과",     field:"deptnm",        headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"대표아이디",field:"userRprsId",    headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"이름",     field:"usernm",        headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"시험점수", field:"examScr",       headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가점수", field:"totScr",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"응시상태", field:"tkexamCmptnyn", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"응시횟수", field:"tkexamCnt",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가여부", field:"evlyn",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
+        function initDsblInfoListTable() {
+            if (dsblInfoListTable) return;
+            var dsblInfoColumns = [
+                {title:"No",         field:"lineNo",          headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
+                {title:"학과",        field:"deptnm",          headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
+                {title:"대표아이디",   field:"userRprsId",      headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
+                {title:"학번",        field:"stntNo",          headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"이름",        field:"usernm",          headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
+                {title:"장애인/고령자",field:"userStatus",       headerHozAlign:"center", hozAlign:"center", width:100,  minWidth:100},
+                {title:"장애정도",    field:"dsblGrdnm",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"신청학기",    field:"examGbn",          headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"요청사항",    field:"examSprtAplyTynm", headerHozAlign:"center", hozAlign:"center", width:0, minWidth:200},
+                {title:"처리결과",    field:"addMnts",          headerHozAlign:"center", hozAlign:"center", width:0, minWidth:200},
+                {title:"취소요청",    field:"cancleReq",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"관리",       field:"manage",           headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
             ];
-            examInfoListTable = UiTable("examInfoList", {
+            dsblInfoListTable = UiTable("examDsblList", {
                 lang: "ko",
                 selectRow: "checkbox",
-                pageFunc: loadExamInfoList,
-                columns: examInfoColumns
+                pageFunc: loadDsblInfoList,
+                columns: dsblInfoColumns
             });
         }
         /* 2 */
-        function loadExamInfoList(pageIndex) {
-            initExamInfoListTable();
+        function createDsblInfoListHtml(list) {
+            let dataList = [];
+            if (list.length == 0) {
+                return dataList;
+            } else {
+                list.forEach(function(v, i) {
+                    // 학번
+                    var stdntNo;
+                    if (v.stdntNo == null || v.stdntNo == '') {
+                        stdntNo = '-';
+                    } else {
+                        stdntNo = v.stdntNo;
+                    }
+                    // 장애인/고령자
+                    var userStatus;
+                    if (v.userStatus == 'Seniors') {
+                        userStatus = '고령자';
+                    } else {
+                        userStatus = v.dsblTynm;
+                    }
+                    // 장애 정도
+                    var dsblGrdnm;
+                    if (v.userStatus == 'Seniors') {
+                        dsblGrdnm = '-'
+                    } else {
+                        dsblGrdnm = v.dsblGrdnm
+                    }
+                    // 신청 학기
+                    var examGbn = '중간/기말';
+                    // 요청사항
+                    var examSprtAplyTynm = v.examSprtAplyTynm + "/" + v.examSprtAplyTynm;
+                    // 처리결과
+                    var addMnts;
+                    if ((v.sprtMidAddMnts == null || v.sprtMidAddMnts == '') && (v.sprtLstAddMnts == null || v.sprtLstAddMnts == '')) {
+                        addMnts = '-'
+                    } else {
+                        addMnts = '연장(' + v.sprtMidAddMnts + ')분/' + '연장(' + v.sprtLstAddMnts + ')분'
+                    }
+                    // 취소요청
+                    var cancleReq;
+                    if ((v.midCnclAplyStscd != null && v.midCnclAplyStscd != '') && (v.lstCnclAplyStscd != null && v.lstCnclAplyStscd != '')) {
+                        if (v.midCnclAplyStscd == 'CNCL_APLY') {
+                            cancleReq = '신청';
+                        } else if (v.midCnclAplyStscd == 'CNCL_APRV') {
+                            cancleReq = '승인';
+                        }
+                    } else {
+                        cancleReq = '-';
+                    }
+
+                    // 관리 버튼
+                    var manageBtns = "";
+                        manageBtns += "<a href='javascript:examDsblUserDtlPopup(\"" + v.sbjctId + "\", \"" + v.userId + "\")' class='btn basic small'>상세내용</a>"
+
+                    dataList.push({
+                        lineNo:             v.lineNo
+                        , deptnm:           v.deptnm
+                        , userRprsId:       v.userRprsId
+                        , stdntNo:          stdntNo
+                        , usernm:           v.usernm
+                        , userStatus:       userStatus
+                        , dsblGrdnm:        dsblGrdnm
+                        , examGbn:          examGbn
+                        , examSprtAplyTynm: examSprtAplyTynm
+                        , addMnts:          addMnts
+                        , cancleReq:        cancleReq
+                        , manage:           manageBtns
+                        , userId:           v.userId
+                        , sbjctId:          v.sbjctId
+                        , mobileNo:         v.mobileNo
+                        , email:            v.email
+                    });
+                });
+            }
+            return dataList;
+        }
+        /* 3 */
+        function loadDsblInfoList(pageIndex) {
+            initDsblInfoListTable();
             PAGE_INDEX = pageIndex || PAGE_INDEX;
             UiComm.showLoading(true);
             $.ajax({
-                url: "/exam/tkexamUserPaging.do",
+                url: "/exam/dsblUserPaging.do",
                 type: "GET",
                 data: {
-                    examBscId: curExamBscId,
-                    byteamSubrexamUseyn: curByteamSubrexamUseyn,
-                    pageIndex: PAGE_INDEX,
-                    listScale: LIST_SCALE
+                    sbjctId             : curSbjctId,
+                    aplyStscd           : $("#aplyStscd").val(),
+                    evlyn    		    : $("#evlyn").val(),
+                    searchValue 	    : $("#searchValue").val(),
+                    pageIndex           : PAGE_INDEX,
+                    listScale           : LIST_SCALE
                 },
                 dataType: "json",
                 success: function(data) {
                     if (data.result > 0) {
-                        examInfoListTable.clearData();
-                        examInfoListTable.replaceData(data.returnList || []);
-                        examInfoListTable.setPageInfo(data.pageInfo);
+                        var returnList = data.returnList || [];
+                        var dataList   = createDsblInfoListHtml(returnList);
+                        dsblInfoListTable.clearData();
+                        dsblInfoListTable.replaceData(dataList);
+                        dsblInfoListTable.setPageInfo(data.pageInfo);
                     } else {
                         alert(data.message);
                     }
@@ -99,10 +171,10 @@
                 }
             });
         }
-        /* 3 */
+        /* 4 */
         function changeInfoListScale(scale) {
             LIST_SCALE = scale;
-            loadExamInfoList(1);
+            loadDsblInfoList(1);
         }
 
         /*****************************************************************************
@@ -176,6 +248,99 @@
             $("#examSubsbjctbody").append(html);
         }
 
+        /*****************************************************************************
+         * 검색 영역 기능
+         * 1. examDsblListSelect :      수강생 검색
+         * 2. resetListSelect :         수강생 전체 검색 및 검색영역 초기화
+         *****************************************************************************/
+        /* 1 */
+        function examDsblListSelect (){
+            loadDsblInfoList(1);
+        }
+        /* 2 */
+        function resetListSelect() {
+            $("#aplyStscd").val('').trigger('chosen:updated');
+            $("#evlyn").val('').trigger("chosen:updated");
+            $("#searchValue").val("");
+            examDsblListSelect();
+        }
+
+        /*****************************************************************************
+         * 엑셀 관련 기능
+         * 1. examDsblStatusExcelDown:    장애인/고령자 지원현황 엑셀 다운로드
+         * 2.
+         *****************************************************************************/
+        /* 1 */
+        function examDsblStatusExcelDown() {
+            var excelGrid = { colModel: [] };
+
+            excelGrid.colModel.push({label: 'No.',          name: 'lineNo',                 align: 'center',    width: '1000'});
+            excelGrid.colModel.push({label: '학과',          name: 'deptnm',                align: 'left',      width: '5000'});
+            excelGrid.colModel.push({label: '대표아이디',     name: 'userRprsId',            align: 'left',      width: '5000'});
+            excelGrid.colModel.push({label: '학번',          name: 'stdntNo',               align: 'center',    width: '5000'});
+            excelGrid.colModel.push({label: '이름',          name: 'usernm',                align: 'center',    width: '5000'});
+            excelGrid.colModel.push({label: '장애인/고령자',  name: 'usrStatusNm',           align: 'center',    width: '3000'});
+            excelGrid.colModel.push({label: '장애정도',      name: 'dsblGrdnmNm',           align: 'center',    width: '3000'});
+            excelGrid.colModel.push({label: '신청학기',      name: 'examGbn',               align: 'center',    width: '3000'});
+            excelGrid.colModel.push({label: '요청사항',      name: 'examSprtAplyTynmRpt',   align: 'center',    width: '8000'});
+            excelGrid.colModel.push({label: '처리결과',      name: 'addMnts',               align: 'center',      width: '5000'});
+            excelGrid.colModel.push({label: '취소요청',      name: 'cancleReq',             align: 'center',    width: '3000'});
+
+            var kvArr = [];
+            kvArr.push({'key': 'sbjctId',       'val': curSbjctId});
+            kvArr.push({'key': 'aplyStscd',     'val': $("#aplyStscd").val()});
+            kvArr.push({'key': 'searchValue',   'val': $("#searchValue").val()});
+            kvArr.push({'key': 'excelGrid',     'val': JSON.stringify(excelGrid)});
+
+            submitForm("/exam/profExamDsblStatusExcelDown.do", "", "", kvArr);
+        }
+
+        /*****************************************************************************
+         * 팝업 관련 기능
+         * 1. examDsblUserDtlPopup:     지원사항 상세보기
+         * 2. sendMsg :                 메세지 보내기
+         *****************************************************************************/
+        /* 1 */
+        function examDsblUserDtlPopup(sbjctId, userId) {
+            var data = "sbjctId="+curSbjctId+"&userId="+userId;
+
+            dialog = UiDialog("dialog1", {
+                title: "장애인/고령자 상세보기",
+                width: 1000,
+                height: 900,
+                url: "/exam/examDsblUserDtlPopup.do?"+data
+            });
+        }
+        /* 2 */
+        function sendMsg() {
+            var rcvUserInfoStr = "";
+            var sendCnt = 0;
+
+            $.each($('#examInfoList').find("input:checkbox[name=evalChk]:not(:disabled):checked"), function() {
+                sendCnt++;
+                if (sendCnt > 1) rcvUserInfoStr += "|";
+                rcvUserInfoStr += $(this).attr("user_id");
+                rcvUserInfoStr += ";" + $(this).attr("user_nm");
+                rcvUserInfoStr += ";" + $(this).attr("mobile");
+                rcvUserInfoStr += ";" + $(this).attr("email");
+            });
+
+            if (dsblInfoListTable.getSelectedData("userId").length == 0) {
+                /* 메시지 발송 대상자를 선택하세요. */
+                alert("<spring:message code='common.alert.sysmsg.select_user'/>");
+                return;
+            }
+
+            window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
+
+            var form = document.alarmForm;
+            form.action = "<%=CommConst.SYSMSG_URL_SEND%>";
+            form.target = "msgWindow";
+            form[name='alarmType'].value = "S"; // 발송구분(SMS:S, PUSH:P, EMAIL:E, 쪽지:N)
+            form[name='rcvUserInfoStr'].value = rcvUserInfoStr; //보내는사람 정보
+            form.submit();
+        }
+
         /**
          * 시험 화면 이동
          * @param {String}  examBscId           - 시험 기본 ID
@@ -205,10 +370,11 @@
         }
 
         $(document).ready(function() {
+            loadDsblInfoList();
+
             setAccordion();
             eventAccordion();
 
-            // loadExamInfoList();
             if (hasSubSubject == 'Y') {
                 examSubAsmtListAppend();
             }
@@ -478,23 +644,27 @@
                                 <!-- 장애인/고령자 지원현황 검색영역 -->
                                 <div class="search-typeA margin-bottom-4">
                                     <div class="text-center">
-                                        <select class="form-select" id="status1" onchange="quizTkexamListSelect()">
+                                        <select class="form-select" id="aplyStscd">
                                             <option value="">처리상태</option>
                                             <option value="all"><spring:message code="exam.common.search.all" /><!-- 전체 --></option>
                                             <option value="1">처리대기</option>
                                             <option value="2">처리완료</option>
                                         </select>
                                         <input class="form-control" type="text" id="searchValue" value="" placeholder="<spring:message code="message.search.input.dept.user.user.nm" />"><!-- 학과/학번/성명 입력 -->
-                                        <button type="button" class="btn type1" onclick="">검색</button>
+                                        <button type="button" class="btn type1" onclick="examDsblListSelect()">검색</button>
+                                        <button type="button" class="btn type1" onclick="resetListSelect()">수강생 전체</button>
                                     </div>
                                 </div>
                                 <!-- 장애인/고령자 지원현황 중단영역 -->
                                 <div class="board_top">
                                     <div class="right-area">
-                                        <button type="button" id="download-xlsx-btn" class="btn type2">엑셀로 다운로드</button>
+                                        <a href="javascript:examDsblStatusExcelDown()" class="btn type1">엑셀로 다운로드</a>
+                                        <uiex:listScale func="changeInfoListScale" value="10" />
                                     </div>
                                 </div>
-                                장애인/고령자 지원현황 tabulator
+                                <div id = "dsblListArea">
+                                    <div id="examDsblList"></div>
+                                </div>
                             </div>
                         </div>
                     </div>

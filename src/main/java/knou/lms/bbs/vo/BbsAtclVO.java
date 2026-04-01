@@ -136,6 +136,9 @@ public class BbsAtclVO extends BbsInfoVO {
     private String searchSdttm;
     private String searchEdttm;
 
+    private String bbsTycd;
+    private String bbsRefTycd;
+
     private int		rspnsCnt;             // 답변 수
 
     /* 불필요 시 삭제 가능 */
@@ -976,5 +979,29 @@ public class BbsAtclVO extends BbsInfoVO {
 
 	public void setNtcGbncd(String ntcGbncd) {
 		this.ntcGbncd = ntcGbncd;
+	}
+
+	public String getBbsRefTycd() {
+		return bbsRefTycd;
+	}
+
+	public int getRspnsCnt() {
+		return rspnsCnt;
+	}
+
+	public void setBbsRefTycd(String bbsRefTycd) {
+		this.bbsRefTycd = bbsRefTycd;
+	}
+
+	public void setRspnsCnt(int rspnsCnt) {
+		this.rspnsCnt = rspnsCnt;
+	}
+
+	public String getBbsTycd() {
+		return bbsTycd;
+	}
+
+	public void setBbsTycd(String bbsTycd) {
+		this.bbsTycd = bbsTycd;
 	}
 }

@@ -70,7 +70,7 @@
 							html += "			<tbody>";
 							html += "				<tr>";
 							html += "					<th>주제</th>";
-							html += "					<td class='t_left'>" + v.examTtl + "</td>";
+							html += "					<td class='t_left'>" + UiComm.escapeHtml(v.examTtl) + "</td>";
 							html += "				</tr>";
 							html += "				<tr>";
 							html += "					<th>내용</th>";
@@ -323,7 +323,7 @@
 			 createQstnPreviewHTML: function(item) {
 				var html  = "<div class='border-1 qstnList'>";
 					html += "	<div class='board_top border-1 padding-3 qstnDiv'>";
-					html += "		<span>" + item.qstnTtl + "</span>";
+					html += "		<span>" + UiComm.escapeHtml(item.qstnTtl) + "</span>";
 					// 연결형
 					if(item.qstnRspnsTycd == "LINK") {
 						html += "	<div class='right-area'>";
@@ -486,7 +486,7 @@
 			kvArr.push({'key' : 'examBscId',   	'val' : "${vo.examBscId}"});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
 
-			submitForm(urlMap[tab], "", "", kvArr);
+			submitForm(urlMap[tab], kvArr);
 		}
 
 	    /**
@@ -1423,7 +1423,7 @@
 						        	kvArr.push({'key' : 'examBscId',   			'val' : "${vo.examBscId}"});
 						        	kvArr.push({'key' : 'examDtlVO.examDtlId', 	'val' : $("#examDtlId").val()});
 
-						        	submitForm("/quiz/profQuizQstnMngView.do", "", "", kvArr);
+						        	submitForm("/quiz/profQuizQstnMngView.do", kvArr);
 					            } else {
 					            	UiComm.showMessage(data.message, "error");
 					            }

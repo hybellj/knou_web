@@ -60,7 +60,7 @@
 			kvArr.push({'key' : 'examBscId',   	'val' : "${vo.examBscId}"});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
 
-			submitForm(urlMap[tab], "", "", kvArr);
+			submitForm(urlMap[tab], kvArr);
 		}
 
 		/**
@@ -397,7 +397,7 @@
 			kvArr.push({'key' : 'searchValue', 		'val' : $("#searchValue").val()});
 			kvArr.push({'key' : 'excelGrid',   		'val' : JSON.stringify(excelGrid)});
 
-			submitForm("/quiz/profQuizTkexamStatusExcelDown.do", "", "", kvArr);
+			submitForm("/quiz/profQuizTkexamStatusExcelDown.do", kvArr);
 		}
 
 		/**
@@ -410,7 +410,7 @@
 			kvArr.push({'key' : 'examBscId', 	'val' : "${vo.examBscId}"});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
 
-			submitForm("/quiz/profQuizExampprBulkExcelDown.do", "", "", kvArr);
+			submitForm("/quiz/profQuizExampprBulkExcelDown.do", kvArr);
 		}
 
 		// 메세지 보내기
@@ -532,7 +532,7 @@
 							html += "			<tbody>";
 							html += "				<tr>";
 							html += "					<th>주제</th>";
-							html += "					<td class='t_left'>" + v.examTtl + "</td>";
+							html += "					<td class='t_left'>" + UiComm.escapeHtml(v.examTtl) + "</td>";
 							html += "				</tr>";
 							html += "				<tr>";
 							html += "					<th>내용</th>";

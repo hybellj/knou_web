@@ -299,6 +299,7 @@ public class ClsController extends ControllerBase {
             ListOrderedMap orderedMap = new ListOrderedMap();
             orderedMap.put("lineNo", item.getLineNo());
             orderedMap.put("deptnm", item.getDeptnm());
+            orderedMap.put("userId", item.getUserId());
             orderedMap.put("stdntNo", item.getStdntNo());
             orderedMap.put("usernm", item.getUsernm());
             orderedMap.put("entyR", item.getEntyR());
@@ -451,6 +452,7 @@ public class ClsController extends ControllerBase {
                         "{\"colModel\":["
                                 + "{\"label\":\"No\",\"name\":\"lineNo\",\"align\":\"center\",\"width\":\"3000\"},"
                                 + "{\"label\":\"학과\",\"name\":\"deptnm\",\"align\":\"center\",\"width\":\"7000\"},"
+                                + "{\"label\":\"대표아이디\",\"name\":\"userId\",\"align\":\"center\",\"width\":\"7000\"},"
                                 + "{\"label\":\"학번\",\"name\":\"stdntNo\",\"align\":\"center\",\"width\":\"7000\"},"
                                 + "{\"label\":\"이름\",\"name\":\"usernm\",\"align\":\"center\",\"width\":\"6000\"},"
                                 + "{\"label\":\"Q&A(답변/등록)\",\"name\":\"qaText\",\"align\":\"center\",\"width\":\"6000\"},"
@@ -474,6 +476,7 @@ public class ClsController extends ControllerBase {
                 ListOrderedMap orderedMap = new ListOrderedMap();
                 orderedMap.put("lineNo",       item.getLineNo());
                 orderedMap.put("deptnm",       item.getDeptnm());
+                orderedMap.put("userId",       item.getUserId());
                 orderedMap.put("stdntNo",      item.getStdntNo());
                 orderedMap.put("usernm",       item.getUsernm());
                 orderedMap.put("qaText",       item.getQaAnsCnt() + "/" + item.getQaRegCnt());

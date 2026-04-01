@@ -66,8 +66,8 @@ import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.crs.term.service.TermService;
 import knou.lms.crs.term.vo.TermVO;
 import knou.lms.dashboard.dto.DashboardParam;
-import knou.lms.dashboard.facade.DashboardFacadeService;
 import knou.lms.dashboard.service.AcadSchService;
+import knou.lms.dashboard.service.DashboardFacadeService;
 import knou.lms.dashboard.service.DashboardService;
 import knou.lms.dashboard.service.SchService;
 import knou.lms.dashboard.vo.AcadSchVO;
@@ -2424,23 +2424,29 @@ public class DashboardController extends ControllerBase {
      * @throws Exception *********************************
      */
     @RequestMapping(value = "/dashboard.do")
-    public String dashBoard2(HttpServletRequest request, ModelMap model) throws Exception {
-
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
-
+    public String dashboard(HttpServletRequest request, ModelMap model) throws Exception {    	
+    
+    	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>/dashboard/dashboard.do진입");
+    	UserContext 	userCtx = (UserContext) SessionInfo.getUserContext(request);
+    	
+    	log.info(SessionInfo.getUserContext(request).toString());
+    	
+    	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>" + (SessionInfo.getUserContext(request) == null) );
+    	
     	if ( null == userCtx ) {
-    		return "redirect:" + new URLBuilder("", "login.do",request).toString();
+    		log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>userCtx is null");
+    	    return "redirect:/";
     	}
 
-    	BaseParam param = new DashboardParam(userCtx.getOrgId(), userCtx.getUserId(), 3);
+    	BaseParam param = new DashboardParam(userCtx.getSelectedUser(), 3);
 
-    	DashboardViewModel dashVM = dashboardFacadeService.getDashboardResponse(userCtx, param);
-
-    	model.addAttribute("userCtx", userCtx);
+    	DashboardViewModel dashVM = dashboardFacadeService.getDashboardResponse(userCtx.getSelectedUser(), param);
+    	
     	model.addAttribute("dashVM", dashVM);
-
+    	
+    	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>dashVM.getViewName()=" + dashVM.getViewName());
+    	
     	return dashVM.getViewName();
-
     }
 
     /**

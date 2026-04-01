@@ -276,7 +276,7 @@
 
     <!-- 학습요소 참여현황 공통 조회 컬럼 -->
     <sql id="elemStatsColumns">
-        ROW_NUMBER() OVER(ORDER BY U.STDNT_NO ASC) AS lineNo
+        ROW_NUMBER() OVER(ORDER BY U.STDNT_NO ASC, U.USER_ID ASC) AS lineNo
       , COUNT(1) OVER() AS totalCnt
       , U.USER_ID AS userId
       , U.USERNM AS usernm
@@ -636,7 +636,7 @@
         <include refid="clsSearchHavingCondition"/>
         )
         SELECT
-        ROW_NUMBER() OVER(ORDER BY S.STDNT_NO ASC) AS lineNo
+        ROW_NUMBER() OVER(ORDER BY S.STDNT_NO ASC, S.USER_ID ASC) AS lineNo
         , S.USER_ID AS userId
         , S.USERNM AS usernm
         , S.STDNT_NO AS stdntNo
@@ -647,7 +647,7 @@
         , S.ATND_CNT AS atndCnt
         , S.LATE_CNT AS lateCnt
         FROM STDNT_BASE S
-        ORDER BY S.STDNT_NO ASC
+        ORDER BY S.STDNT_NO ASC, S.USER_ID ASC
     </select>
 
     <!-- 주차별 학습현황 건수 조회 -->
@@ -833,7 +833,7 @@
         SELECT ROWNUM AS rnum, P.*
         FROM (
         SELECT
-        ROW_NUMBER() OVER(ORDER BY S.STDNT_NO ASC) AS lineNo
+        ROW_NUMBER() OVER(ORDER BY S.STDNT_NO ASC, S.USER_ID ASC) AS lineNo
         , COUNT(1) OVER() AS totalCnt
         , S.USER_ID AS userId
         , S.USERNM AS usernm
@@ -845,7 +845,7 @@
         , S.ATND_CNT AS atndCnt
         , S.LATE_CNT AS lateCnt
         FROM STDNT_BASE S
-        ORDER BY S.STDNT_NO ASC
+        ORDER BY S.STDNT_NO ASC, S.USER_ID ASC
         ) P
         WHERE ROWNUM &lt;= (#{firstIndex} + #{listScale})
         )
@@ -947,7 +947,7 @@
         <include refid="wkUserLrnSts"/>,
         <include refid="prgrtToSts"/>
         SELECT
-        ROW_NUMBER() OVER(ORDER BY U.STDNT_NO ASC) AS lineNo
+        ROW_NUMBER() OVER(ORDER BY U.STDNT_NO ASC, U.USER_ID ASC) AS lineNo
         , U.USER_ID AS userId
         , U.USERNM AS usernm
         , U.STDNT_NO AS stdntNo
@@ -977,7 +977,7 @@
         <if test="orgId != null and orgId != ''">
             AND U.ORG_ID = #{orgId}
         </if>
-        ORDER BY U.STDNT_NO ASC
+        ORDER BY U.STDNT_NO ASC, U.USER_ID ASC <!-- 학번 , 대표아이디 정렬 -->
     </select>
 
     <!-- ============================================================ -->
@@ -1049,7 +1049,7 @@
         ON D.DEPT_ID = U.DEPT_ID
         <include refid="elemStatsJoins"/>
         <include refid="elemStatsWhere"/>
-        ORDER BY U.STDNT_NO ASC
+        ORDER BY U.STDNT_NO ASC, U.USER_ID ASC
         ) X
         WHERE ROWNUM &lt;= (#{firstIndex} + #{listScale})
         )

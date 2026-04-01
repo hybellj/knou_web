@@ -1,20 +1,14 @@
 package knou.lms.resh.web;
 
-import knou.framework.common.ControllerBase;
-import knou.framework.common.SessionInfo;
-import knou.framework.exception.AccessDeniedException;
-import knou.framework.util.LocaleUtil;
-import knou.framework.util.StringUtil;
-import knou.framework.util.URLBuilder;
-import knou.lms.common.vo.ProcessResultVO;
-import knou.lms.login.web.LoginControllerTOBE;
-import knou.lms.org.service.OrgCodeService;
-import knou.lms.resh.service.ReshAnsrService;
-import knou.lms.resh.service.ReshQstnService;
-import knou.lms.resh.service.ReshService;
-import knou.lms.resh.vo.ReshAnsrVO;
-import knou.lms.resh.vo.ReshPageVO;
-import knou.lms.resh.vo.ReshVO;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.log4j.Logger;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.context.MessageSource;
@@ -23,15 +17,26 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import knou.framework.common.ControllerBase;
+import knou.framework.common.SessionInfo;
+import knou.framework.exception.AccessDeniedException;
+import knou.framework.util.LocaleUtil;
+import knou.framework.util.StringUtil;
+import knou.framework.util.URLBuilder;
+import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.org.service.OrgCodeService;
+import knou.lms.resh.service.ReshAnsrService;
+import knou.lms.resh.service.ReshQstnService;
+import knou.lms.resh.service.ReshService;
+import knou.lms.resh.vo.ReshAnsrVO;
+import knou.lms.resh.vo.ReshPageVO;
+import knou.lms.resh.vo.ReshVO;
 
 @Controller
 @RequestMapping(value = "/resh/reshMgr")
 public class ReshMgrController extends ControllerBase {
 
-    private static final Logger log = Logger.getLogger(LoginControllerTOBE.class);
+    private static final Logger log = Logger.getLogger(ReshMgrController.class);
 
 
     @Resource(name = "reshService")

@@ -107,22 +107,21 @@ public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeServ
                 break;
         };
 
-        // 학생 수 -> ReturnVO
-        int totCnt = 0;
-        totCnt = markSubjectService.stdMrkListCntSelect(sbjctId);
-        EgovMap listCnt = new EgovMap();
-        listCnt.put("totCnt", totCnt);
-        resultVO.setReturnVO(listCnt);
-
         // 학생 성적 목록 -> ReturnListVO
         EgovMap searchMap = new EgovMap();
         searchMap.put("searchType", searchType);
         searchMap.put("sbjctId", sbjctId);
         searchMap.put("stdNos", stdNos);
 
-        List<EgovMap> listStdMrk = new ArrayList<>();
-        listStdMrk = markSubjectService.stdMrkList(searchMap);
+        List<EgovMap> listStdMrk =  markSubjectService.stdMrkList(searchMap);
         resultVO.setReturnList(listStdMrk);
+
+        // 학생 수 -> ReturnVO
+        int totCnt = listStdMrk.size();
+//        totCnt = markSubjectService.stdMrkListCntSelect(sbjctId);
+        EgovMap listCnt = new EgovMap();
+        listCnt.put("totCnt", totCnt);
+        resultVO.setReturnVO(listCnt);
 
         // 성적반영비율 -> ReturnSubVO
         MarkItemSettingVO mrkItmStngVO = new MarkItemSettingVO();

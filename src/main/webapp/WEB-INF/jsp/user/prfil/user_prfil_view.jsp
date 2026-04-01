@@ -27,12 +27,7 @@
                 <div class="sub-content">
                     <div class="page-info">
                         <h2 class="page-title">프로필</h2>
-                        <div class="navi_bar">
-                            <ul>
-                                <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                <li><span class="current">프로필</span></li>
-                            </ul>
-                        </div>
+                        <uiex:navibar type="main"/> <%-- 네비게이션바 --%>
                     </div>
 
                     <div class="user-wrap">

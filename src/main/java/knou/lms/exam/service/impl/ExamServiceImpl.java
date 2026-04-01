@@ -429,6 +429,104 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 
         return processResultVO;
     }
+
+    /*****************************************************
+     * 장애인/고령자 시험 지원 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listDsblUserPaging(ExamVO vo) throws Exception{
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countDsblUser(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listDsblUserPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 장애인/고령자 시험 지원 목록 조회
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    public List<EgovMap> dsblUserList(Map<String, Object> params) throws Exception {
+        List<EgovMap> list = examDAO.dsblUserList(params);
+        for (EgovMap map : list) {
+            String userStatus        = (String) map.get("userStatus");
+            String dsblTynm          = (String) map.get("dsblTynm");
+            String dsblGrdnm         = (String) map.get("dsblGrdnm");
+            String examSprtAplyTynm  = (String) map.get("examSprtAplyTynm");
+            String sprtMidAddMnts    = (String) map.get("sprtMidAddMnts");
+            String sprtLstAddMnts    = (String) map.get("sprtLstAddMnts");
+            String midCnclAplyStscd  = (String) map.get("midCnclAplyStscd");
+            String lstCnclAplyStscd  = (String) map.get("lstCnclAplyStscd");
+
+            // 장애인/고령자 구분명
+            map.put("usrStatusNm", "Seniors".equals(userStatus) ? "고령자" : (dsblTynm != null ? dsblTynm : ""));
+
+            // 장애 정도명
+            map.put("dsblGrdnmNm", "Seniors".equals(userStatus) ? "-" : (dsblGrdnm != null ? dsblGrdnm : ""));
+
+            // 신청 학기 (고정값)
+            map.put("examGbn", "중간/기말");
+
+            // 요청사항 (중간/기말 동일 유형)
+            String tynm = examSprtAplyTynm != null ? examSprtAplyTynm : "";
+            map.put("examSprtAplyTynmRpt", tynm + "/" + tynm);
+
+            // 처리결과
+            boolean midEmpty = sprtMidAddMnts == null || sprtMidAddMnts.isEmpty();
+            boolean lstEmpty = sprtLstAddMnts == null || sprtLstAddMnts.isEmpty();
+            if (midEmpty && lstEmpty) {
+                map.put("addMnts", "-");
+            } else {
+                map.put("addMnts", "연장(" + (midEmpty ? "" : sprtMidAddMnts) + ")분/"
+                        + "연장(" + (lstEmpty ? "" : sprtLstAddMnts) + ")분");
+            }
+
+            // 취소요청
+            if (midCnclAplyStscd != null && !midCnclAplyStscd.isEmpty()
+                    && lstCnclAplyStscd != null && !lstCnclAplyStscd.isEmpty()) {
+                if ("CNCL_APLY".equals(midCnclAplyStscd)) {
+                    map.put("cancleReq", "신청");
+                } else if ("CNCL_APRV".equals(midCnclAplyStscd)) {
+                    map.put("cancleReq", "승인");
+                } else {
+                    map.put("cancleReq", "-");
+                }
+            } else {
+                map.put("cancleReq", "-");
+            }
+        }
+        return list;
+    }
+
+    /*****************************************************
+     * 장애인/고령자 시험 지원 상세 조회
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public ExamVO selectDsblDtl(ExamVO vo) throws Exception {
+        return examDAO.selectDsblDtl(vo);
+    }
+
     /*****************************************************
      * 성적 공개여부 수정
      * @param vo

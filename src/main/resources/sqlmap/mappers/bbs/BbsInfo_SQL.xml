@@ -1241,14 +1241,13 @@
 		WHERE 1=1
 			AND ORG_ID = #{orgId}
 			AND BBS_ID = #{bbsId}
-			<!-- <if test="sbjctId != null and sbjctId != ''">
-	          	AND SBJCT_ID = #{sbjctId}
-	        </if> -->
+			AND BBS_TYCD = #{bbsTycd}
+			<!-- AND BBS_REF_TYCD = #{bbsRefTycd} -->
 	</select>
 
 	<select id="selectBbsLect" parameterType="bbsVO" resultType="bbsVO">
 		/*
-			SQL ID : BbsDAO.selectBbs
+			SQL ID : BbsDAO.selectBbsLect
 			설 명 : 게시판 정보 조회
 		*/
 		SELECT

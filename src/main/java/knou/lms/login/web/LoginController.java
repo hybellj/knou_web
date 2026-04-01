@@ -52,7 +52,7 @@ import knou.lms.user.vo.UsrUserInfoVO;
 
 @Controller
 public class LoginController extends ControllerBase {
-    private static Logger log = Logger.getLogger(LoginControllerTOBE.class);
+    private static Logger log = Logger.getLogger(LoginController.class);
     
     @Autowired
     private LoginService loginService;

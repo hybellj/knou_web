@@ -2,10 +2,7 @@ package knou.lms.forum2.web;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import knou.lms.crs.term.service.TermService;
 import knou.lms.crs.term.vo.TermVO;
+import knou.lms.file.service.AttachFileService;
+import knou.lms.file.vo.AtflVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +94,9 @@ public class Forum2LectController extends ControllerBase {
 
     @Resource(name = "sysFileService")
     private SysFileService sysFileService;
+
+    @Resource(name="attachFileService")
+    private AttachFileService attachFileService;
 
     @Resource(name="teamService")
     private TeamService teamService;
@@ -282,12 +284,12 @@ public class Forum2LectController extends ControllerBase {
 
     // 이전 토론 가져오기 팝업
     @RequestMapping(value="/Form/forumCopyPop.do")
-    public String forumCopyPop(Forum2VO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String forumCopyPop(Forum2VO forum2VO, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
         String orgId = SessionInfo.getOrgId(request);
-        String sbjctId = vo.getSbjctId();
+        String sbjctId = forum2VO.getSbjctId();
 
         // 강의실 대표교수 정보 조회
         // TODO : 26.3.26 임시 막음 처리.
@@ -303,7 +305,7 @@ public class Forum2LectController extends ControllerBase {
         forumVO.setSbjctId(sbjctId);
         List<EgovMap> smstrChrtList = forum2Service.selectProfSmstrChrtList(forumVO);
 
-        model.addAttribute("vo", vo);
+        model.addAttribute("forum2VO", forum2VO);
         model.addAttribute("smstrChrtList", smstrChrtList);
         model.addAttribute("repUserId", repUserId);
 
@@ -519,7 +521,7 @@ public class Forum2LectController extends ControllerBase {
         model.addAttribute("crsCreCd", forumVO.getCrsCreCd());
         model.addAttribute("userId", StringUtil.nvl(SessionInfo.getUserId(request)));
         model.addAttribute("userName", StringUtil.nvl(SessionInfo.getUserNm(request)));
-        model.addAttribute("forumVo", forumVO);
+        model.addAttribute("forumVO", forumVO);
 
         return "forum2/lect/forum_bbs_manage";
     }
@@ -1027,7 +1029,8 @@ public class Forum2LectController extends ControllerBase {
          */
         forumVO.setCrsCreCd(crsCreCd);
 
-        model.addAttribute("forumVo", forumVO);
+        forumVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
+        model.addAttribute("forumVO", forumVO);
         model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
 
         CreCrsVO creCrsVO = new CreCrsVO();
@@ -1260,22 +1263,22 @@ public class Forum2LectController extends ControllerBase {
 
     // 교수 메모 팝업창 정보
     @RequestMapping(value="/forumProfMemoPop.do")
-    public String forumProfMemoPop(ForumJoinUserVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String forumProfMemoPop(ForumJoinUserVO forumJoinUserVO, ModelMap model, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
         CreCrsVO creCrsVO = new CreCrsVO();
-        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO.setCrsCreCd(forumJoinUserVO.getCrsCreCd());
         // TODO : 26.3.23 : AS-IS code TO-BE 필요시 적용.
         /*creCrsVO = crecrsService.infoCreCrs(creCrsVO);
         request.setAttribute("creCrsVO", creCrsVO);*/
-        request.setAttribute("forumCd", vo.getForumCd());
-        request.setAttribute("stdId", vo.getStdId());
+        request.setAttribute("forumCd", forumJoinUserVO.getForumCd());
+        request.setAttribute("stdId", forumJoinUserVO.getStdId());
 
-        vo.setUserId(SessionInfo.getUserId(request));
-        vo = forum2JoinUserService.selectProfMemo(vo);
-        request.setAttribute("vo", vo);
+        forumJoinUserVO.setUserId(SessionInfo.getUserId(request));
+        forumJoinUserVO = forum2JoinUserService.selectProfMemo(forumJoinUserVO);
+        request.setAttribute("forumJoinUserVO", forumJoinUserVO);
 
         return "forum2/popup/forum_prof_memo";
     }
@@ -1653,12 +1656,12 @@ public class Forum2LectController extends ControllerBase {
 
     // 엑셀 성적 등록 팝업
     @RequestMapping(value="/forumScoreExcelUploadPop.do")
-    public String forumScoreExcelUploadPop(ForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String forumScoreExcelUploadPop(ForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
-        vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
+        forumVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
 
-        model.addAttribute("vo", vo);
+        model.addAttribute("forumVO", forumVO);
         model.addAttribute("userId", userId);
 
         return "forum2/popup/forum_score_excel_upload";
@@ -1725,7 +1728,7 @@ public class Forum2LectController extends ControllerBase {
 
         ProcessResultVO<ForumJoinUserVO> resultVO = new ProcessResultVO<>();
         try {
-            List<FileVO> fileList = FileUtil.getUploadFileList(uploadFiles);
+            /*List<FileVO> fileList = FileUtil.getUploadFileList(uploadFiles);
             FileVO fileVO = null;
 
             if(fileList != null && !fileList.isEmpty() && fileList.size() > 0) {
@@ -1734,12 +1737,30 @@ public class Forum2LectController extends ControllerBase {
                 String fileExt = FileUtil.getFileExtention(fileVO.getFileNm());
                 fileVO.setFilePath(uploadPath);
                 fileVO.setFileSaveNm(fileVO.getFileSaveNm() + "." + fileExt);
+            }*/
+            List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(uploadFiles, uploadPath);
+            List<String> fileIdList = new ArrayList<>();
+
+            // 첨부파일
+            if (uploadFileList.size() > 0) {
+                for (AtflVO atflVO : uploadFileList) {
+                    atflVO.setRefId(vo.getForumCd());
+                    atflVO.setRgtrId(vo.getRgtrId());
+                    atflVO.setMdfrId(vo.getMdfrId());
+                    atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+                    fileIdList.add(atflVO.getAtflId());
+                }
+
+                // 첨부파일 저장
+                attachFileService.insertAtflList(uploadFileList);
             }
+
+            AtflVO atflVO = uploadFileList.get(0);
 
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put("startRaw", 4);
             map.put("excelGrid", vo.getExcelGrid());
-            map.put("fileVO", fileVO);
+            map.put("atflVO", atflVO);
             map.put("searchKey", "excelUpload");
 
             ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();

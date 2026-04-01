@@ -143,15 +143,17 @@
 			SEARCH_SDTTM = $("#searchSdttm").val();
 			SEARCH_EDTTM = $("#searchEdttm").val();
 			SEARCH_VALUE = $("#searchValue").val();
+			BBS_ID       =  BBS_ID;
 			PAGE_INDEX = pageIndex;
 
 			var extData = {
-					pageIndex		: pageIndex
+					orgId         : ORG_ID
+					, pageIndex		: pageIndex
 					, listScale		: LIST_SCALE
-					, orgId         : ORG_ID
 					, searchSdttm   : SEARCH_SDTTM
 					, searchEdttm   : SEARCH_EDTTM
 					, searchValue 	: $("#searchValue").val()
+					, bbsId         : BBS_ID
 			};
 
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do"

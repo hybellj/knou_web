@@ -52,7 +52,7 @@
 			kvArr.push({'key' : 'examBscId',   	'val' : "${vo.examBscId}"});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
 
-			submitForm(urlMap[tab], "", "", kvArr);
+			submitForm(urlMap[tab], kvArr);
 		}
 
 		/**
@@ -334,7 +334,7 @@
 							html += "			<tbody>";
 							html += "				<tr>";
 							html += "					<th>주제</th>";
-							html += "					<td class='t_left'>" + v.examTtl + "</td>";
+							html += "					<td class='t_left'>" + UiComm.escapeHtml(v.examTtl) + "</td>";
 							html += "				</tr>";
 							html += "				<tr>";
 							html += "					<th>내용</th>";

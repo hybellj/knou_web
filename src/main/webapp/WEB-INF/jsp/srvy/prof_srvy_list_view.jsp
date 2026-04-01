@@ -215,7 +215,7 @@
 			kvArr.push({'key' : 'srvyId',   	'val' : srvyId});
 			kvArr.push({'key' : 'sbjctId', 		'val' : "${sbjctId}"});
 
-			submitForm(urlMap[tab], "", "", kvArr);
+			submitForm(urlMap[tab], kvArr);
 		}
 
 		/**
@@ -279,9 +279,9 @@
 				srvyList.forEach(function(v,i) {
 					var srvyGbnnm = v.srvyGbn == "SRVY_TEAM" ? "설문 팀" : "설문";
 					// 제목
-					var srvyTtl = "<a href='javascript:srvyViewMv(\""+v.srvyId+"\", 2)' class='header header-icon link'>" + escapeHtml(v.srvyTtl) + "</a>";
+					var srvyTtl = "<a href='javascript:srvyViewMv(\""+v.srvyId+"\", 2)' class='header header-icon link'>" + UiComm.escapeHtml(v.srvyTtl) + "</a>";
 					// 기간
-					var srvyDttm = dateFormat("date", v.srvySdttm) + " ~ " + dateFormat("date", v.srvyEdttm);
+					var srvyDttm = UiComm.formatDate(v.srvySdttm, "datetime2") + " ~ " + UiComm.formatDate(v.srvyEdttm, "datetime2");
 					// 성적반영비율
 					var mrkRfltrt  = "<div class='mrkInputDiv ui input'>";
 						mrkRfltrt += "	<input type='text' class='mrkRfltrt w80' data-examGbn=\"" + v.srvyGbn + "\" data-srvyId=\"" + v.srvyId + "\" value=\"" + v.mrkRfltrt + "\" inputmask='numeric' inputmode='decimal' maxVal='100' />";
