@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.user.dao.UserDAO">
+
+    <select id="userSelect" resultType="knou.lms.user.vo.UserVO">
+        /*	설 명 : 사용자조회	*/
+        SELECT	 *
+        FROM 	TB_LMS_USER USR
+        WHERE 	USER_ID = #{userId}
+    </select>
+    
+    <select id="registeredUsersSelect"  parameterType="map" resultType="knou.lms.user.vo.UserVO">
+        /*  설 명 : 등록된사용자들조회 - 대표아이디로등록된사용자들조회 */
+        SELECT	 *
+        FROM 	TB_LMS_USER USR
+        WHERE 	USER_RPRS_ID = #{userRprsId}
+    </select>
+
+</mapper>
