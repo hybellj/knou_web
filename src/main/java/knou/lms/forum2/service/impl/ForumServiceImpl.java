@@ -229,13 +229,30 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                         if (teamDtl == null || !dvclasNo.equals(teamDtl.getDvclasNo())) {
                             continue;
                         }
-                        vo.setDscsId(IdGenerator.getNewId(IdPrefixType.DSCS.getCode()));
+                        String childDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
+                        vo.setDscsId(childDscsId);
                         vo.setUpDscsId(newDscsId);
                         vo.setTeamId(teamDtl.getTeamId());
                         vo.setDscsTtl(teamDtl.getDscsTtl());
                         vo.setDscsCts(teamDtl.getDscsCts());
                         vo.setByteamDscsUseyn("N");
                         forumDAO.insertForum(vo);
+
+                        // 팀별 첨부파일 저장 (refId = 자식 토론 ID)
+                        if (!StringUtil.isNull(teamDtl.getTeamUploadFiles())) {
+                            List<AtflVO> teamFiles = FileUtil.getUploadAtflList(
+                                    teamDtl.getTeamUploadFiles(), teamDtl.getTeamUploadPath());
+                            for (AtflVO atflVO : teamFiles) {
+                                atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+                                atflVO.setRefId(childDscsId);
+                                atflVO.setRgtrId(vo.getRgtrId());
+                                atflVO.setMdfrId(vo.getMdfrId());
+                                atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+                            }
+                            if (!teamFiles.isEmpty()) {
+                                attachFileService.insertAtflList(teamFiles);
+                            }
+                        }
                     }
                 }
                 // 다음 분반 루프를 위해 원복
@@ -320,6 +337,21 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                     teamDtl.setMdfrId(vo.getMdfrId());
                     teamDtl.setRgtrId(vo.getRgtrId());
                     forumDAO.updateChildForumDtls(teamDtl);
+                    // 팀별 첨부파일 저장 (refId = JS에서 전달된 자식 토론 ID)
+                    if (!StringUtil.isNull(teamDtl.getTeamUploadFiles()) && !StringUtil.isNull(teamDtl.getDscsId())) {
+                        List<AtflVO> teamFiles = FileUtil.getUploadAtflList(
+                                teamDtl.getTeamUploadFiles(), teamDtl.getTeamUploadPath());
+                        for (AtflVO atflVO : teamFiles) {
+                            atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+                            atflVO.setRefId(teamDtl.getDscsId());
+                            atflVO.setRgtrId(vo.getRgtrId());
+                            atflVO.setMdfrId(vo.getMdfrId());
+                            atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+                        }
+                        if (!teamFiles.isEmpty()) {
+                            attachFileService.insertAtflList(teamFiles);
+                        }
+                    }
                 }
             }
         }
@@ -361,6 +393,22 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                         vo.setDscsCts(teamDtl.getDscsCts());
                         vo.setByteamDscsUseyn("N");
                         forumDAO.insertForum(vo);
+                        // 팀별 첨부파일 저장 (refId = 신규 자식 토론 ID)
+                        String childDscsId = vo.getDscsId();
+                        if (!StringUtil.isNull(teamDtl.getTeamUploadFiles())) {
+                            List<AtflVO> teamFiles = FileUtil.getUploadAtflList(
+                                    teamDtl.getTeamUploadFiles(), teamDtl.getTeamUploadPath());
+                            for (AtflVO atflVO : teamFiles) {
+                                atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+                                atflVO.setRefId(childDscsId);
+                                atflVO.setRgtrId(vo.getRgtrId());
+                                atflVO.setMdfrId(vo.getMdfrId());
+                                atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+                            }
+                            if (!teamFiles.isEmpty()) {
+                                attachFileService.insertAtflList(teamFiles);
+                            }
+                        }
                     }
                     // 원복
                     vo.setDscsId(parentDscsId);

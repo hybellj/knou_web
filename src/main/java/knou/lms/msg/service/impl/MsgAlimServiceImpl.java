@@ -31,7 +31,9 @@ public class MsgAlimServiceImpl extends ServiceBase implements MsgAlimService {
      ******************************************************/
     @Override
     public EgovMap selectAlimUnrdCnt(MsgAlimVO vo) {
-        return msgAlimDAO.selectAlimUnrdCnt(vo);
+//        return msgAlimDAO.selectAlimUnrdCnt(vo);
+        // TODO : 26.3.20 hybellj : TestCode Remove.
+        return new EgovMap();
     }
 
     /*****************************************************

@@ -12,6 +12,8 @@
     <script type="text/javascript">
         var dialog;
         const editors = {};	// 에디터 목록 저장용
+        var teamUploaderIds   = [];  // 팀 업로더 ID 목록 (순서 보장)
+        var teamUploadResults = {};  // { uploaderId: {uploadFiles, uploadPath} }
 
         $(document).ready(function() {
             // 부주제 조회
@@ -575,12 +577,17 @@
                 var html = buildForumTeamListHtml(returnList);
                 $("#subInfoDiv" + dvclasNo).empty().html(html);
                 if (returnList.length > 0) {
+                    // 재로드 시 업로더 목록 초기화 (중복 방지)
+                    teamUploaderIds   = [];
+                    teamUploadResults = {};
+
                     returnList.forEach(function(v, i) {
                         editors[v.teamId + '_editor' + i] = UiEditor({
                             targetId  : v.teamId + '_contentTextArea_' + i,
-                            uploadPath: "/forum",
+                            uploadPath: "${forum2VO.uploadPath}",
                             height    : "250px"
                         });
+                        createTeamFileUploader(v.teamId, i, "${forum2VO.uploadPath}");
                     });
                 }
             } else {
@@ -607,7 +614,7 @@
         html += "            <th>학습그룹 구성원</th>";
         html += "        </tr>";
         list.forEach(function(v, i) {
-            html += "    <tr class='subForumTr' data-team-id='" + escHtml(v.teamId || '') + "' data-team-nm='" + escHtml(v.teamnm || '') + "'>";
+            html += "    <tr class='subForumTr' data-team-id='" + escHtml(v.teamId || '') + "' data-team-nm='" + escHtml(v.teamnm || '') + "' data-dscs-id='" + escHtml(v.dscsId || '') + "'>";
             html += "        <th><label>" + escHtml(v.teamnm || '') + "</label></th>";
             html += "        <td>";
             html += "            <table class='table-type5'>";
@@ -628,6 +635,12 @@
             html += "                            </div>";
             html += "                        </td>";
             html += "                    </tr>";
+            html += "                    <tr>";
+            html += "                        <th><label>파일첨부</label></th>";
+            html += "                        <td>";
+            html += "                            <div id='teamUploaderWrap_" + v.teamId + "_" + i + "'></div>";
+            html += "                        </td>";
+            html += "                    </tr>";
             html += "                </tbody>";
             html += "            </table>";
             html += "        </td>";
@@ -637,6 +650,51 @@
         html += "    </tbody>";
         html += "</table>";
         return html;
+    }
+
+    /** 팀별 파일 업로더 동적 생성 (DextUploaderTag.java 출력 구조를 JS로 재현) */
+    function createTeamFileUploader(teamId, idx, uploadPath) {
+        var uid  = 'teamFileUploader_' + teamId + '_' + idx;
+        var wrap = 'teamUploaderWrap_' + teamId + '_' + idx;
+        var h    = 36; // simple uiMode: listSize(1) * 36px
+
+        var html = [
+            "<div id='" + uid + "-container' class='dext5-container'",
+            "     style='width:100%;height:" + h + "px;display:flex;'></div>",
+            "<div id='" + uid + "-btn-area' class='dext5-btn-area simple' style='display:flex;'>",
+            "    <button type='button' id='" + uid + "_btn-add'",
+            "            style='height:" + h + "px;' title='파일 선택'><i class='xi-file-add-o'></i></button>",
+            "    <button type='button' id='" + uid + "_btn-delete' disabled='true'",
+            "            style='height:" + h + "px;' title='삭제'><i class='xi-trash-o'></i></button>",
+            "    <button type='button' id='" + uid + "_btn-reset'",
+            "            style='height:" + h + "px;display:none;' title='초기화'",
+            "            onclick=\"resetDextFiles('" + uid + "')\"><i class='xi-refresh'></i></button>",
+            "</div>"
+        ].join('');
+        $('#' + wrap).html(html);
+
+        UiFileUploader({
+            id             : uid,
+            parentId       : uid + '-container',
+            btnFile        : uid + '_btn-add',
+            btnDelete      : uid + '_btn-delete',
+            uploadMode     : 'ORAF',
+            maxTotalSize   : 100,
+            maxFileSize    : 100,
+            fileCount      : 1,
+            extensionFilter: '*',
+            finishFunc     : '',    // continueUploadChain에서 동적 세팅
+            uploadUrl      : '/dext/uploadFileDext.up',
+            path           : uploadPath,  // ← 반드시 유효한 값 (절대 빈값 금지)
+            oldFiles       : [],
+            useFileBox     : false,
+            style          : 'list',
+            uiMode         : 'simple'
+        });
+
+        if (teamUploaderIds.indexOf(uid) === -1) {
+            teamUploaderIds.push(uid);
+        }
     }
 
     function escHtml(str) {
@@ -805,7 +863,7 @@
                 $teamRows = $subInfoDiv.children();
             }
 
-            $teamRows.each(function() {
+            $teamRows.each(function(rowIdx) {
                 var $row = $(this);
                 var teamId = $.trim($row.attr('data-team-id') || pickFieldValue($row, [
                     "input[name='teamId']",
@@ -831,12 +889,6 @@
                     "textarea[name='subForumCts']",
                     "textarea[id*='contentTextArea']"
                 ]);
-                var attchFileId = pickFieldValue($row, [
-                    "input[name='attchFileId']",
-                    "input[name='fileSn']",
-                    "input[name='fileId']"
-                ]);
-
                 // 팀ID/팀명은 필수로 보고, 둘 다 비어있으면 빈 row로 간주한다.
                 if (!teamId && !teamNm) {
                     return;
@@ -849,30 +901,98 @@
                 appendTeamForumDetailParam(index, 'teamNm', teamNm);
                 appendTeamForumDetailParam(index, 'dscsTtl', teamTtl);
                 appendTeamForumDetailParam(index, 'dscsCts', teamCts);
-                appendTeamForumDetailParam(index, 'attchFileId', attchFileId);
+
+                // 팀 업로더 결과 수집 (rowIdx = each 내부 0-based 카운터)
+                var uid          = 'teamFileUploader_' + teamId + '_' + rowIdx;
+                var uploadResult = teamUploadResults[uid] || {};
+                appendTeamForumDetailParam(index, 'teamUploadFiles', uploadResult.uploadFiles || '');
+                appendTeamForumDetailParam(index, 'teamUploadPath',  uploadResult.uploadPath  || '${forum2VO.uploadPath}');
+
+                // 자식 토론 ID (수정 모드에서 2-4 분기 파일 저장에 필요)
+                var childDscsId = $.trim($row.attr('data-dscs-id') || '');
+                appendTeamForumDetailParam(index, 'dscsId', childDscsId);
                 index++;
             });
         });
     }
 
-    // 파일 업로드 완료 콜백
+    /** STEP 1: 메인 업로더(fileUploader) 처리 시작 */
+    function startUploadChain() {
+        var dx = dx5.get("fileUploader");
+        if (dx && dx.availUpload()) {
+            dx.startUpload(); // 완료 → finishUpload() 콜백
+        } else {
+            if (dx) { $("#delFileIdStr").val(dx.getDelFileIdStr()); }
+            continueUploadChain(0);
+        }
+    }
+
+    /** STEP 2: 메인 업로더 완료 콜백 (기존 finishUpload 대체) */
     function finishUpload() {
-        let url = "/common/uploadFileCheck.do";
-        let dx = dx5.get("fileUploader");
-        let data = {
-            "uploadFiles" : dx.getUploadFiles(),
-            "uploadPath"  : dx.getUploadPath()
-        };
-        ajaxCall(url, data, function(data) {
-            if (data.result > 0) {
-                $("#uploadFiles").val(dx5.get("fileUploader").getUploadFiles());
-                doSaveForum();
-            } else {
+        var dx = dx5.get("fileUploader");
+        ajaxCall("/common/uploadFileCheck.do",
+            { uploadFiles: dx.getUploadFiles(), uploadPath: dx.getUploadPath() },
+            function(data) {
+                if (data.result > 0) {
+                    $("#uploadFiles").val(dx.getUploadFiles());
+                    continueUploadChain(0);
+                } else {
+                    UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+                }
+            },
+            function() {
                 UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
             }
-        }, function(xhr, status, error) {
-            UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
-        });
+        );
+    }
+
+    /** STEP 3: 팀 업로더 순차 처리 */
+    function continueUploadChain(teamIdx) {
+        if (teamIdx >= teamUploaderIds.length) {
+            appendTeamForumDetailParams(); // 업로드 결과 포함하여 수집
+            doSaveForum();
+            return;
+        }
+
+        var uid = teamUploaderIds[teamIdx];
+        var dx  = dx5.get(uid);
+
+        if (!dx) {
+            teamUploadResults[uid] = { uploadFiles: '', uploadPath: '' };
+            continueUploadChain(teamIdx + 1);
+            return;
+        }
+
+        if (dx.availUpload()) {
+            DX_ENV[uid].finishFunc = "onTeamUploadComplete('" + uid + "'," + teamIdx + ")";
+            dx.resetUploadUrl();
+            dx.upload();
+        } else {
+            teamUploadResults[uid] = { uploadFiles: '', uploadPath: dx.getUploadPath() };
+            continueUploadChain(teamIdx + 1);
+        }
+    }
+
+    /** STEP 4: 팀 업로더 개별 완료 콜백 */
+    function onTeamUploadComplete(uid, teamIdx) {
+        var dx = dx5.get(uid);
+        ajaxCall("/common/uploadFileCheck.do",
+            { uploadFiles: dx.getUploadFiles(), uploadPath: dx.getUploadPath() },
+            function(data) {
+                if (data.result > 0) {
+                    teamUploadResults[uid] = {
+                        uploadFiles: dx.getUploadFiles(),
+                        uploadPath : dx.getUploadPath()
+                    };
+                    continueUploadChain(teamIdx + 1);
+                } else {
+                    UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+                }
+            },
+            function() {
+                UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+            }
+        );
     }
 
     // 토론등록/저장
@@ -883,15 +1003,8 @@
             syncDiscussionDateTimeFields();
             appendDvclasSelParams();
             appendLrnGrpInfoParams();
-            appendTeamForumDetailParams();
-
-            let dx = dx5.get("fileUploader");
-            if (dx.availUpload()) {
-                dx.startUpload(); // 업로드 완료 후 finishUpload() → doSaveForum() 호출
-            } else {
-                $("#delFileIdStr").val(dx.getDelFileIdStr());
-                doSaveForum();
-            }
+            // appendTeamForumDetailParams()는 모든 업로드 완료 후 체인 끝에서 호출
+            startUploadChain();
         });
     }
 

@@ -23,6 +23,10 @@ public class Forum2TeamDscsVO extends DefaultVO {
     private int atclCnt;           // 참여글 수 (ATCL_CNT)
     private int cmntCnt;           // 댓글 수 (CMNT_CNT)
 
+    // 팀별 파일 업로드 파라미터 (JSP → Service 전달용, DB 컬럼 없음)
+    private String teamUploadFiles; // 팀별 업로드된 파일 JSON 문자열
+    private String teamUploadPath;  // 팀별 업로드 경로
+
     // Getter & Setter
     public String getDscsId() {
         return dscsId;
@@ -134,5 +138,21 @@ public class Forum2TeamDscsVO extends DefaultVO {
 
     public void setCmntCnt(int cmntCnt) {
         this.cmntCnt = cmntCnt;
+    }
+
+    public String getTeamUploadFiles() {
+        return teamUploadFiles;
+    }
+
+    public void setTeamUploadFiles(String teamUploadFiles) {
+        this.teamUploadFiles = teamUploadFiles;
+    }
+
+    public String getTeamUploadPath() {
+        return teamUploadPath;
+    }
+
+    public void setTeamUploadPath(String teamUploadPath) {
+        this.teamUploadPath = teamUploadPath;
     }
 }
