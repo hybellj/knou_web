@@ -270,7 +270,7 @@
 	            }
 	            html += "	</div>";
 
-	            html += "	<textarea id='fdbkValue" + (i+1) + "' rows='10' class='' style='resize:auto;display:none' readonly='readonly'>" + o.fdbkCts + "</textarea>";
+	            html += "	<textarea id='fdbkValue" + (i+1) + "' rows='3' class='width-100per' style='resize:none;display:none' readonly='readonly'>" + o.fdbkCts + "</textarea>";
 	            html += "	<div id='fdbkValueDiv" + (i+1) + "' class='ui segment' style='max-height:200px;overflow:auto'><pre>" + o.fdbkCts + "</pre></div>";
 
 	            var aName = "";
@@ -528,10 +528,10 @@
 
 				<div  id="feedbackWrite" class="" style="display:none;">
 					<div class="field ui fluid input">
-                    	<textarea id="fdbkValue" style="width:100%;height:100px;resize: none;" rows="5" placeholder="<spring:message code='forum.label.feedback.input'/>"></textarea><!-- 피드백 입력 -->
+                    	<textarea id="fdbkValue" style="width:100%;height:100px;resize: none;" rows="3" placeholder="<spring:message code='forum.label.feedback.input'/>"></textarea><!-- 피드백 입력 -->
                     </div>
 
-                    <div id="uploaderBox" class="mt10 width-100per">
+                    <div id="uploadBox" class="mt10 width-100per">
                         <!-- TODO : 피드백 File Uplaod -->
                         <uiex:dextuploader
                                 id="fileUploaderNewFeedback"
