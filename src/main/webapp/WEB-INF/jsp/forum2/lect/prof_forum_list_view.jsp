@@ -198,7 +198,7 @@
         });
 
         $('#btnGoRegist').on('click', function () {
-            location.href = '<c:url value="/forum2/forumLect/profForumWriteView.do" />';
+            goWrite('');
         });
 
         if(!PAGE_INDEX) {
@@ -489,9 +489,16 @@
     // 토론등록/수정
     function goWrite(dscsId) {
         if (dscsId != null && dscsId != "") {
-            location.href = '<c:url value="/forum2/forumLect/profForumEditView.do" />?dscsId=' + encodeURIComponent(dscsId);
+            let extData = {
+                dscsId	: dscsId
+            };
+            location.href = "<c:url value="/forum2/forumLect/profForumEditView.do" />?" + "encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);
         } else {
-            location.href = '<c:url value="/forum2/forumLect/profForumWriteView.do" />';
+            let extData = {
+                dscsId	: ''
+            };
+            /*location.href = "<c:url value="/forum2/forumLect/profForumWriteView.do" />?" + "encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);*/
+            location.href = "<c:url value="/forum2/forumLect/profForumWriteView.do" />?" + "encParams="+EPARAM;
         }
     }
 

@@ -11,5 +11,9 @@ public interface UserService {
 	UserVO userSelect(String userId) throws Exception;
 
 	List<UserVO> registeredUsersSelect(String userRprsId) throws Exception;
+
+	List<String> userIdsSelect(String userRprsId) throws Exception;
+
+	List<EgovMap> subjectByUserOrgIdSelect(List<String> profIds, List<String> stdntIds) throws Exception;
 	
 }

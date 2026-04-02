@@ -141,10 +141,13 @@
 					oknokHtml = "<spring:message code='forum.label.oknok.notok' />";     // 반대
 				}
 				var joinStatusHtml = "";
+				var joinDtdmHtml = "";
 				if(v.joinStatus == "미참여") {
 					joinStatusHtml += "<span class='fcRed'>"+ v.joinStatus +"</span>";
+					joinDtdmHtml = "-";
 				} else {
 					joinStatusHtml += v.joinStatus;
+					joinDtdmHtml = dateFormat(v.regDttm);
 				}
 
 				var mngHtml = "";
@@ -161,7 +164,7 @@
 					fdk:				fdkHtml,
 					oknokGbn:			oknokHtml,
 					joinStatus:			joinStatusHtml,
-					joinDtdm:			v.joinDtdm,
+					joinDtdm:			joinDtdmHtml,
 					evlyn: 				v.evalYn,
 					mng: 				mngHtml,
 					// 팀관련:항목
@@ -1382,7 +1385,7 @@
 									{title:"피드백", 	field:"fdk", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
 									("${forumVO.forumCtgrCd}" != "TEAM" && "${forumVO.prosConsForumCfg}" == "Y" ? {title:"찬반", field:"oknokGbn", headerHozAlign:"center", hozAlign:"center", width:60, minWidth:60} : null),
 									{title:"참여상태", 	field:"joinStatus", 		headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
-									{title:"참여일시", 	field:"joinDtdm", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
+									{title:"참여일시", 	field:"joinDtdm", 			headerHozAlign:"center", hozAlign:"center",	width:140,	minWidth:140},
 									{title:"평가여부", 	field:"evlyn", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
 									{title:"관리", 		field:"mng", 				headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:200},
 								].filter(function(col) {return col !== null;})

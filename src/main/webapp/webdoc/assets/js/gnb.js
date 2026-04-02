@@ -524,7 +524,7 @@ function moveMenu(obj, menuUrl, upMenuId, menuId, menunm, linkTargetTycd){
 		}
 	}
 
-	$("#moveForm input[name=addParams]").val(UiComm.makeEncParams({upMenuId:upMenuId,menuId:menuId}));
+	$("#moveForm input[name=addParams]").val(UiComm.makeEncParams({upMenuId:upMenuId, menuId:menuId, menuTarget:linkTargetTycd}));
 	$("#moveForm input[name=menunm]").val(menunm);
 	$("#moveForm input[name=menuUrl]").val(menuUrl);
 	$("#moveForm input[name=upMenuId]").val(upMenuId);

@@ -5,16 +5,61 @@
 
     <select id="userSelect" resultType="knou.lms.user.vo.UserVO">
         /*	설 명 : 사용자조회	*/
-        SELECT	 *
+        SELECT	*
         FROM 	TB_LMS_USER USR
         WHERE 	USER_ID = #{userId}
     </select>
     
     <select id="registeredUsersSelect"  parameterType="map" resultType="knou.lms.user.vo.UserVO">
         /*  설 명 : 등록된사용자들조회 - 대표아이디로등록된사용자들조회 */
-        SELECT	 *
+        SELECT	*
         FROM 	TB_LMS_USER USR
         WHERE 	USER_RPRS_ID = #{userRprsId}
     </select>
+    
+    <select id="userIdsSelect"  parameterType="map" resultType="string">
+        /*  설 명 : 등록된사용자아이디들조회 - 대표아이디로등록된사용자아이디들조회 */
+        SELECT	USER_ID
+        FROM 	TB_LMS_USER USR
+        WHERE 	USER_RPRS_ID = #{userRprsId}
+    </select>
+    
+    <select id="subjectByUserOrgIdSelect"  parameterType="map" resultType="eGovMap">
+        /*  설 명 : 교수별과목에서 수강생별과목에서 기관아이디조회 */
+        SELECT ORG_ID, ORGNM, USER_TYCD
+		FROM 
+			( 	SELECT 	O.ORG_ID, O.ORGNM, S.SBJCT_ID, S.SBJCTNM, 'PROF' AS USER_TYCD
+				FROM 	TB_LMS_SBJCT	S
+						JOIN	TB_LMS_SMSTR_CHRT SC	ON 	S.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+						JOIN 	TB_LMS_ORG O			ON 	SC.ORG_ID = O.ORG_ID
+				WHERE	1 = 1 
+						<if test="profIds != null and profIds.size() > 0">
+				            AND S.PROF_ID IN 
+				            <foreach collection="profIds" item="id" open="(" separator="," close=")">
+				                #{id}
+				            </foreach>
+				        </if>
+				        <if test="profIds == null or profIds.size() == 0">
+				            AND 1 = 2 /* 리스트가 비어있을 경우 조회를 방지하기 위한 조건 */
+				        </if>
+				UNION ALL
+				SELECT 	O.ORG_ID, O.ORGNM, S.SBJCT_ID, S.SBJCTNM, 'STDNT' AS USER_TYCD
+				FROM 	TB_LMS_ATNDLC A
+						JOIN	TB_LMS_SBJCT	S		ON	A.SBJCT_ID = S.SBJCT_ID
+						JOIN	TB_LMS_SMSTR_CHRT SC	ON 	S.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+						JOIN 	TB_LMS_ORG O			ON 	SC.ORG_ID = O.ORG_ID
+				WHERE	1 = 1
+						<if test="stdntIds != null and stdntIds.size() > 0">
+				            AND A.USER_ID IN 
+				            <foreach collection="stdntIds" item="id" open="(" separator="," close=")">
+				                #{id}
+				            </foreach>
+				        </if>
+				        <if test="stdntIds == null or stdntIds.size() == 0">
+				            AND 1 = 2
+				        </if>
+			)
+		GROUP BY ORG_ID, ORGNM, USER_TYCD ORDER BY ORG_ID
+    </select>    
 
 </mapper>

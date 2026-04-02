@@ -30,7 +30,7 @@ public class BbsVO extends DefaultVO {
     private int    listCnt;			// 목록 수 (구 listViewCnt)
 
     private int    atflMaxCnt;		// (구 atchFileCnt)
-    private int    atflMaxSz;		// (구 atchFileSizeLimit)
+    private int    atflMaxsz;		// (구 atchFileSizeLimit)
     private String atflUseyn;		// (구 atchUseYn)
 
     private String univId;			// 대학교 아이디
@@ -163,11 +163,11 @@ public class BbsVO extends DefaultVO {
 	public void setAtflMaxCnt(int atflMaxCnt) {
 		this.atflMaxCnt = atflMaxCnt;
 	}
-	public int getAtflMaxSz() {
-		return atflMaxSz;
+	public int getAtflMaxsz() {
+		return atflMaxsz;
 	}
-	public void setAtflMaxSz(int atflMaxSz) {
-		this.atflMaxSz = atflMaxSz;
+	public void setAtflMaxsz(int atflMaxsz) {
+		this.atflMaxsz = atflMaxsz;
 	}
 	public String getAtflUseyn() {
 		return atflUseyn;

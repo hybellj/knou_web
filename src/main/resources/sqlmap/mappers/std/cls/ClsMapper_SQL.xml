@@ -954,6 +954,7 @@
         , D.DEPTNM AS deptnm
         , NULL AS entyR
         , NVL(TO_CHAR(A.SCYR), '-') AS scyr
+        , NVL(TO_CHAR(W.LRN_PRGRT), '0') AS prgrt
         FROM TB_LMS_ATNDLC A
         JOIN TB_LMS_USER U
         ON U.USER_ID = A.USER_ID

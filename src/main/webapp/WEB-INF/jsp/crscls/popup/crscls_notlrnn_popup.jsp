@@ -32,8 +32,9 @@
         <table class="table-type2">
             <colgroup>
                 <col style="width:8%">
-                <col style="width:20%">
                 <col style="width:18%">
+                <col style="width:20%">
+                <col style="width:14%">
                 <col style="width:14%">
                 <col style="width:14%">
                 <col style="width:12%">
@@ -42,15 +43,16 @@
             <tr>
                 <th>No</th>
                 <th>학과</th>
+                <th>과목</th>
+                <th>대표아이디</th>
                 <th>학번</th>
                 <th>이름</th>
-                <th>입학년도</th>
-                <th>학년</th>
+                <th>진도율</th>
             </tr>
             </thead>
             <tbody id="notLrnnBody">
             <tr>
-                <td colspan="6" class="t_center">조회 중...</td>
+                <td colspan="7" class="t_center">조회 중...</td>
             </tr>
             </tbody>
         </table>
@@ -69,7 +71,9 @@
     var CTX      = "<%=request.getContextPath()%>";
     var _p       = new URLSearchParams(location.search);
     var sbjctId  = _p.get("sbjctId")  || "";
+    var sbjctnm  = "<c:out value='${sbjctnm}'/>" || _p.get("sbjctnm") || "";
     var dvclasNo = _p.get("dvclasNo") || "";
+    var sbjctDisplay = sbjctnm ? (sbjctnm + (dvclasNo ? " " + dvclasNo + "반" : "")) : "-";
     var wkNo     = parseInt(_p.get("wkNo") || "0", 10);
 
     var currentUserIds = [];
@@ -139,7 +143,7 @@
                 if (!res || res.result !== 1 || !res.returnList || res.returnList.length === 0) {
                     currentUserIds = [];
                     $("#popTotalCnt").text("0");
-                    $body.append('<tr><td colspan="6" class="t_center">미학습자가 없습니다.</td></tr>');
+                    $body.append('<tr><td colspan="7" class="t_center">미학습자가 없습니다.</td></tr>');
                     return;
                 }
 
@@ -161,18 +165,19 @@
                 list.forEach(function (item, idx) {
                     $body.append(
                         '<tr>'
-                        + '<td class="t_center" data-th="No">'      + (idx + 1) + '</td>'
-                        + '<td class="t_center" data-th="학과">'     + escHtml(item.deptnm  || '-') + '</td>'
-                        + '<td class="t_center" data-th="학번">'     + escHtml(item.stdntNo || '-') + '</td>'
-                        + '<td class="t_center" data-th="이름">'     + escHtml(item.usernm  || '-') + '</td>'
-                        + '<td class="t_center" data-th="입학년도">' + escHtml(item.entyR   || '-') + '</td>'
-                        + '<td class="t_center" data-th="학년">'     + escHtml(item.scyr    || '-') + '</td>'
+                        + '<td class="t_center" data-th="No">' + escHtml(item.lineNo || (idx + 1)) + '</td>'
+                        + '<td class="t_center" data-th="학과">' + escHtml(item.deptnm || '-') + '</td>'
+                        + '<td class="t_center" data-th="과목">' + escHtml(sbjctDisplay) + '</td>'
+                        + '<td class="t_center" data-th="대표아이디">' + escHtml(item.userId || '-') + '</td>'
+                        + '<td class="t_center" data-th="학번">' + escHtml(item.stdntNo || '-') + '</td>'
+                        + '<td class="t_center" data-th="이름">' + escHtml(item.usernm || '-') + '</td>'
+                        + '<td class="t_center" data-th="진도율">' + escHtml(item.prgrt || '0') + '%</td>'
                         + '</tr>'
                     );
                 });
             },
             error: function () {
-                $("#notLrnnBody").html('<tr><td colspan="6" class="t_center"><spring:message code="fail.common.msg"/></td></tr>');
+                $("#notLrnnBody").html('<tr><td colspan="7" class="t_center"><spring:message code="fail.common.msg"/></td></tr>');
             }
         });
     }
@@ -183,12 +188,13 @@
     function downloadExcel() {
         var excelGrid = {
             colModel: [
-                {label:'No',       name:'lineNo',  align:'center', width:'3000'},
-                {label:'학과',     name:'deptnm',  align:'center', width:'7000'},
-                {label:'학번',     name:'stdntNo', align:'center', width:'7000'},
-                {label:'이름',     name:'usernm',  align:'center', width:'6000'},
-                {label:'입학년도', name:'entyR',   align:'center', width:'5000'},
-                {label:'학년',     name:'scyr',    align:'center', width:'3000'}
+                {label:'No',         name:'lineNo',  align:'center', width:'3000'},
+                {label:'학과',       name:'deptnm',  align:'center', width:'7000'},
+                {label:'과목',       name:'sbjctnm', align:'center', width:'9000'},
+                {label:'대표아이디', name:'userId',  align:'center', width:'7000'},
+                {label:'학번',       name:'stdntNo', align:'center', width:'7000'},
+                {label:'이름',       name:'usernm',  align:'center', width:'6000'},
+                {label:'진도율',     name:'prgrt',   align:'center', width:'5000'}
             ]
         };
 
@@ -196,6 +202,7 @@
         var $form = $('<form name="notLrnnExcelForm" method="post"></form>');
         $form.attr("action", CTX + "/crscls/selectCrsClsNoStudyWeekExcelDown.do");
         $form.append($('<input/>', {type:'hidden', name:'sbjctId',   value: sbjctId}));
+        $form.append($('<input/>', {type:'hidden', name:'sbjctnm',   value: sbjctnm}));
         $form.append($('<input/>', {type:'hidden', name:'dvclasNo',  value: dvclasNo}));
         $form.append($('<input/>', {type:'hidden', name:'wkNo',      value: wkNo}));
         $form.append($('<input/>', {type:'hidden', name:'excelGrid', value: JSON.stringify(excelGrid)}));

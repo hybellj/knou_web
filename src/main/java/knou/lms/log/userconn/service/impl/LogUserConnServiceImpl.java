@@ -152,7 +152,7 @@ public class LogUserConnServiceImpl implements LogUserConnService {
                 return CommConst.CONN_CHECK_LIST[i][1];
             }
         }
-        System.out.println(">>>>CONN_CHECK_LIST 에 .do를 등록해라 >>>>>>>>>>>return >>>>>>>>>>>>.... uri>>>>>>>>>>>>>>>>>>>>>>>>" + uri);
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>CONN_CHECK_LIST 에 .do를 등록해야 합니다=uri" + uri);
         return null;
     }
 

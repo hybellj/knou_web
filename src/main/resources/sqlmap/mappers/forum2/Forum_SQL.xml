@@ -10,7 +10,7 @@
             FROM TB_LMS_DSCS_PTCP PT
             JOIN TB_LMS_ATNDLC AT
               ON AT.USER_ID = PT.USER_ID
-             AND AT.ATNDLC_STSCD = 'S'
+             AND AT.ATNDLC_STSCD = 'ATNDLC'
              AND AT.AUDITYN = 'N'
             JOIN TB_LMS_DSCS D
               ON D.DSCS_ID = PT.DSCS_ID
@@ -70,7 +70,7 @@
             , A.MDFR_ID
             , A.MOD_DTTM
             , A.SBJCT_ID
-            , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumAtclCnt
+            , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclCnt
             , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
                WHERE B.DELYN = 'N'
                  AND B.DSCS_ATCL_ID IN (
@@ -79,8 +79,8 @@
                      WHERE C.DSCS_ID = A.DSCS_ID
                        AND C.DELYN = 'N'
                  )) AS forumCmntCnt
-        , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'OK' AND B.ATCL_LV = 0) AS forumAtclPorsCnt
-        , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'NOTOK' AND B.ATCL_LV = 0) AS forumAtclConsCnt
+        , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'OK' AND B.ATCL_LV = 0 AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclPorsCnt
+        , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'NOTOK' AND B.ATCL_LV = 0 AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclConsCnt
         , (
                 SELECT COUNT(*)
                     FROM TB_LMS_ATNDLC ATNDLC
@@ -93,7 +93,7 @@
                 SELECT COUNT(1)
                 FROM TB_LMS_ATNDLC AA
                 WHERE AA.SBJCT_ID = #{sbjctId}
-                    AND AA.ATNDLC_STSCD = 'S'
+                    AND AA.ATNDLC_STSCD = 'ATNDLC'
                     AND AA.AUDITYN = 'N'
                     AND (
                         EXISTS (
@@ -141,7 +141,7 @@
 	             FROM TB_LMS_ATNDLC
 	             WHERE SBJCT_ID = #{sbjctId}
 	               AND USER_ID = #{userId}
-	               AND ATNDLC_STSCD = 'S'
+	               AND ATNDLC_STSCD = 'ATNDLC'
 	       )
 	    ) AS forumMyScore
 
@@ -155,7 +155,7 @@
 	                  FROM TB_LMS_ATNDLC
 	                  WHERE SBJCT_ID = #{sbjctId}
 	                    AND USER_ID = #{userId}
-	                    AND ATNDLC_STSCD = 'S'                )
+	                    AND ATNDLC_STSCD = 'ATNDLC'                )
 	        ) THEN 1
 	        ELSE 0
 	    END AS forumMyFdbk
@@ -265,7 +265,7 @@
           , A.SBJCT_ID
           , A.BYTEAM_DSCS_USEYN
           /* 게시글 수 조회 */
-          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N') AS forumAtclCnt
+          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclCnt
           /* 댓글 수 조회 */
           , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
              WHERE B.DELYN = 'N'
@@ -276,9 +276,9 @@
                    AND C.DELYN = 'N'
              )) AS forumCmntCnt
           /* 찬성 수 조회 */
-          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'OK' AND B.ATCL_LV = 0) AS forumAtclPorsCnt
+          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'OK' AND B.ATCL_LV = 0 AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclPorsCnt
           /* 반대 수 조회 */
-          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'NOTOK' AND B.ATCL_LV = 0) AS forumAtclConsCnt
+          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'NOTOK' AND B.ATCL_LV = 0 AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclConsCnt
           /* 전체 수강생 수 조회 */
           , (
             SELECT COUNT(*)
@@ -293,7 +293,7 @@
             SELECT COUNT(1)
             FROM TB_LMS_ATNDLC AA
             WHERE AA.SBJCT_ID = #{sbjctId}
-              AND AA.ATNDLC_STSCD = 'S'
+              AND AA.ATNDLC_STSCD = 'ATNDLC'
               AND AA.AUDITYN = 'N'
               AND (
                 EXISTS (

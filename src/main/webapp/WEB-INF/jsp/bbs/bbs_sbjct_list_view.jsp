@@ -15,11 +15,11 @@
 	<%@ include file="/WEB-INF/jsp/bbs/common/bbs_common_inc.jsp" %>
 
 	<script type="text/javascript">
-		var BBS_ID 			= '<c:out value="${bbsAtclVO.bbsId}" />';
-		var BBS_TYCD 		= '<c:out value="${bbsAtclVO.bbsTycd}" />';
+		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
+		var BBS_TYCD 		= '<c:out value="${bbsVO.bbsTycd}" />';
 		var SEARCH_VALUE	= '<c:out value="${param.searchValue}" />';
-		var PAGE_INDEX		= '<c:out value="${bbsAtclVO.pageIndex}" />';
-		var LIST_SCALE		= '<c:out value="${bbsAtclVO.listScale}" />';
+		var PAGE_INDEX		= '<c:out value="${bbsVO.pageIndex}" />';
+		var LIST_SCALE		= '<c:out value="${bbsVO.listScale}" />';
 		var TAB 			= '<c:out value="${param.tab}" />';
 		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
 		var BBS_IDS;
@@ -116,6 +116,8 @@
 				  encParams		: EPARAM
 				, addParams		: UiComm.makeEncParams(extData)
 			};
+
+			UiComm.showLoading(true);
 
 			ajaxCall(url, data, function(data) {
 				if (data.encParams != null && data.encParams != '') {

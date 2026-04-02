@@ -9,7 +9,7 @@
     </jsp:include>
 </head>
 <style>
-    .inputScore {
+    .inputScore, .totScore, .nonEvalScore {
         width: 60px !important;
         min-width: auto !important;
         max-width: none !important;
@@ -33,66 +33,57 @@
             });
 
             // 평가점수 입력 및 최종점수 계산
-            $(document).on("blur", "input[name*=rowScr]", function () {
-                let inputScore = this.value;
-                let mrkItmTycd = this.dataset.mrkitmtycd;
+            $(document).on("blur", "input[class*=inputScore]", function () {
 
-                console.log(inputScore);
-                console.log(mrkItmTycd);
+                let inputScore = this.value;    // 입력점수
+                let mrkItmTycd = this.dataset.mrkitmtycd;   // 입력한 성적항목유형코드
 
-                let $row = $(this).closest(".tabulator-row");
+                let $row = $(this).closest(".tabulator-row"); //row 선택
 
-                console.log($row);
+                // 기존 점수
+                let prevRawScr = this.dataset.prevscr;
+                let prevFinalScr = $row.find("input[name=finalScr]").data("prevscr");
 
-                // 평가점수 반영률 계산 (finalScore)
-                $(this).val(inputScore);
-                let calScore = calcScr(inputScore, mrkItmTycd);
+                // 1. 최종점수 계산
+                let calScore = calcScr(inputScore, mrkItmTycd); // 입력점수에 대한 최종점수
+                $row.find("input[name=finalScr][data-mrkitmtycd='" + mrkItmTycd + "']").val(calScore); // 산출 총점 재계산을 위해 선반영
 
-                // 계산된 점수 반영
-                $row.find("input[name*=finalScr][data-mrkitmtycd='" + mrkItmTycd + "']").val(calScore); // 성적항목 최종점수 input
-                $row.find("input[name*=finalScrTxt][data-mrkitmtycd='" + mrkItmTycd + "']").text(calScore); // 성적항목 최종점수 input
-
-                // 총점 계산 (totScr)
-                let totScr = 0;
-
-                $row.find("input[name*=Scr]").each(function () {
-
-                    if ($(this).attr("name") == "totScr") return;
-
+                // 2. 산출 총점 재계산
+                let lstScr = 0;
+                $row.find("input[name*=finalScr]").each(function () { //성적항목별 최종점수 합치기
                     let finalScore = $(this).val() == "-" ? 0 : parseFloat($(this).val());
-                    totScr += finalScore;
+                    lstScr += finalScore;
                 });
+                lstScr = Number(lstScr.toFixed(2));
 
-                totScr = totScr.toFixed(2);
+                // 3. 총점 재계산
+                let totScr = 0;
+                let adtnScr = Number($row.find("input[name=adtnScr]").val());
+                let etcScr = Number($row.find("input[name=etcScr]").val());
+                totScr = lstScr + adtnScr + etcScr;
+
+                if (totScr > 100) {
+                    // 기존 점수로 복구
+                    $(this).val(prevRawScr);
+                    $row.find("input[name=finalScr][data-mrkitmtycd='" + mrkItmTycd + "']").val(prevFinalScr);
+
+                    $(this).focus();
+                    UiComm.showMessage("총점은 100점을 넘길 수 없습니다.", "warning");
+                    return false;
+                }
+
+                // 최종점수 반영
+                $row.find("input[name=finalScr][data-mrkitmtycd='" + mrkItmTycd + "']").val(calScore); // 성적항목 최종점수 input
+                $row.find("span[name=finalScrTxt][data-mrkitmtycd='" + mrkItmTycd + "']").text(calScore); // 성적항목 최종점수 input
+
+                // 산출 총점 반영
+                $row.find("input[name=lstScr]").val(lstScr);
+                $row.find("span[name=lstScrTxt]").text(lstScr);
 
                 // 총점 반영
                 $row.find("input[name=totScr]").val(totScr);
-
             });
         });
-
-        function setRow($row, inputScore, mrkItmTycd) {
-            // 평가점수 반영률 계산 (finalScore)
-            $(this).val(inputScore);
-            let calScore = calcScr(inputScore, mrkItmTycd);
-
-            // 계산된 점수 반영
-            $row.find("input[name*=finalScr][data-mrkitmtycd='" + mrkItmTycd + "']").val(calScore); // 성적항목 최종점수 input
-            $row.find("input[name*=finalScrTxt][data-mrkitmtycd='" + mrkItmTycd + "']").text(calScore); // 성적항목 최종점수 input
-
-            // 총점 계산 (totScr)
-            let totScr = 0;
-
-            $row.find("input[name*=Scr]").each(function () {
-                let finalScore = $(this).val() == "-" ? 0 : parseFloat($(this).val());
-                totScr += finalScore;
-            });
-
-            totScr = totScr.toFixed(2);
-
-            // 총점 반영
-            $row.find("input[name=totScr]").val(totScr);
-        }
 
         // 학기기수 세팅 변경
         function changeSmstrChrt() {
@@ -286,9 +277,9 @@
 
         }
 
+        // 최종 점수 계산
         function calcScr(input, mrkItmTycd) {
             let mrkRfltrt = 0;
-            let calScore = 0;
             if ( mrkItmTycd == "MIDEXAM") {
                 mrkRfltrt = midexamHead;
             } else if (mrkItmTycd == "LSTEXAM") {
@@ -306,32 +297,32 @@
             }  else if (mrkItmTycd == "SMNR") {
                 mrkRfltrt = smnrHead;
             }
-            calScore = (input * mrkRfltrt / 100).toFixed(2);
 
-            return calScore;
+            return (input * mrkRfltrt / 100).toFixed(2);
         }
 
-        function calcRowData(row, mrkItmTycd, inputScore) {
-            let data = row.getData();
+        function getOriginRawScr(fianlScore, mrkItmTycd) {
+            let mrkRfltrt = 0;
 
-            // 항목점수 계산
-            let calScore = calcScr(inputScore, mrkItmTycd);
-            data[mrkItmTycd] = calScore;
+            if ( mrkItmTycd == "MIDEXAM") {
+                mrkRfltrt = midexamHead;
+            } else if (mrkItmTycd == "LSTEXAM") {
+                mrkRfltrt = lstexamHead;
+            }  else if (mrkItmTycd == "ATNDC") {
+                mrkRfltrt = atndcHead;
+            }  else if (mrkItmTycd == "ASMT") {
+                mrkRfltrt = asmtHead;
+            }  else if (mrkItmTycd == "DSCS") {
+                mrkRfltrt = dscsHead;
+            }  else if (mrkItmTycd == "QUIZ") {
+                mrkRfltrt = quizHead;
+            }  else if (mrkItmTycd == "SRVY") {
+                mrkRfltrt = srvyHead;
+            }  else if (mrkItmTycd == "SMNR") {
+                mrkRfltrt = smnrHead;
+            }
 
-            // 총점계산
-            let totScore = 0;
-
-            Object.keys(data).forEach(key => {
-                if (key == "MIDEXAM" || key == "LSTEXAM" || key == "ATNDC" || key == "ASMT" ||
-                    key == "DSCS" || key == "QUIZ" || key == "SRVY" || key == "SMNR") {
-                    totScore += parseFloat(data[key]);
-                }
-
-                data.lstScr = totScore.toFixed(2);
-
-                // 테이블 반영
-                row.update(data);
-            })
+            return (fianlScore * 100 / mrkRfltrt).toFixed(2);
         }
     </script>
 
@@ -492,23 +483,6 @@
                                         [ <spring:message code="exam.label.stare.user.cnt" /><!-- 대상인원 --><span id="totCnt">0</span> <spring:message code="forum.label.person" /><!-- 명 -->]
                                     </small>
                                 </div>
-
-                                <%--<script type="text/javascript">
-                                    //초기화 방법 1__일반적인 형식
-                                    $('#tabPopupF .item').tab();
-
-                                    $(function () {
-                                        $("#btnF").popup({
-                                            popup: '#popupF',
-                                            hoverable: true,
-                                            position: 'left center',
-                                            onShow: function () {
-                                                $("#popupFTab1").trigger("click");
-                                            }
-                                        });
-                                    });
-                                </script>--%>
-
                             </div>
 
                             <form id="tableForm">
@@ -581,7 +555,7 @@
                                     <div class="option-content gap4 header2">
                                         <div class="sec_head mra">
                                             <spring:message code="common.label.grade.chart"/>: <spring:message code="dashboard.all"/><!-- 성적 등급 분포도 : 전체 -->
-                                            <input type="text" class="rawScore" value="\${std[rawScore]}" inputmask="numeric" mask="999.99" maxVal="100" style="width: 100px;">
+                                            <input type="text" id="testInput" value="">
                                         </div>
                                         <select class="ui dropdown" id="graphSelect">
                                         </select>
@@ -844,10 +818,10 @@
                     userId: std.userId,
                     stdntNo: std.stdntNo,
                     usernm: std.usernm,
-                    lstScr: `<input type="hidden" name="lstScr" value="\${std.lstScr}" inputmask="numeric" mask="999.99" maxVal="100"><span>\${std.lstScr || 0}</span>`,
+                    lstScr: `<input type="hidden" name="lstScr" value="\${std.lstScr}" inputmask="numeric" mask="999.99" maxVal="100"><span name="lstScrTxt">\${std.lstScr || 0}</span>`,
                     adtnScr: `<input type="hidden" name="adtnScr" value="\${std.adtnScr}" inputmask="numeric" mask="999.99" maxVal="100"><span>\${std.adtnScr || 0}</span>`,
-                    etcScr: `<input type="text" class="inputScore" name="etcScr" value="\${std.etcScr || 0}" inputmask="numeric" mask="999.99" maxVal="100">`,
-                    totScr: `<input type="text" class="inputScore" name="totScr" value="\${std.totScr || 0}" inputmask="numeric" mask="999.99" maxVal="100">`,
+                    etcScr: `<input type="text" class="inputScore" name="etcScr"  data-prevscr="\${std.etcScr || 0}" value="\${std.etcScr || 0}" inputmask="numeric" mask="999.99" maxVal="100">`,
+                    totScr: `<input type="text" class="totScore" name="totScr" value="\${std.totScr || 0}" inputmask="numeric" mask="999.99" maxVal="100">`,
                 //     ------------ 상세정보 버튼 클릭 시 넘길 데이터
                     details: `<button type="button" class="btn basic small" onclick='goDetailStd("\${std.userId}", "\${std.sbjctId}")'>상세보기</button>`
                 };
@@ -858,13 +832,16 @@
                        const tycd = item.mrkItmTycd;
                        const rawScore = rawScoreMapping[tycd];
                        const finalScore = finalScoreMapping[tycd];
+
+                       let html = "";
+
+                       if (std[rawScore] == -1) html += `<input type="text" class="inputScore" name="rowScr" data-mrkitmtycd="\${tycd}" value="-" inputmask="numeric" mask="999.99" maxVal="100" style="margin: 0 !important;" readonly>`;
+
                        row[tycd] = `
-                        <div class="score-row">
-                            <input type="text" class="inputScore" name="rowScr" data-mrkitmtycd="\${tycd}" value="\${std[rawScore]}" inputmask="numeric" mask="999.99" maxVal="100">
+                            <input type="text" class="inputScore" name="rowScr" data-mrkitmtycd="\${tycd}" data-prevscr="\${std[rawScore]}" value="\${std[rawScore]}" inputmask="numeric" mask="999.99" maxVal="100" style="margin: 0 !important;">
                             <span>&nbsp;>&nbsp;</span>
-                            <span name="finalScrTxt">\${std[finalScore]}</span>
-                            <input type="hidden" class="finalScore" name="finalScr" data-mrkitmtycd="\${tycd}" value="\${std[finalScore]}" inputmask="numeric" mask="999.99" maxVal="100">
-                        </div>
+                            <span name="finalScrTxt" data-mrkitmtycd="\${tycd}">\${std[finalScore]}</span>
+                            <input type="hidden" name="finalScr" data-mrkitmtycd="\${tycd}" data-prevscr="\${std[finalScore]}" value="\${std[finalScore]}" inputmask="numeric" mask="999.99" maxVal="100">
                         `;
                    }
                 });
@@ -880,7 +857,7 @@
             // inputMask 작동되도록 재호출
             setTimeout(() => {
                 UiInputmask();
-            }, 100);
+            }, 500);
 
             return dataList;
         }

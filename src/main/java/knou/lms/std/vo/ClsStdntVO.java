@@ -22,9 +22,9 @@ public class ClsStdntVO extends DefaultVO {
     private String scyr;          // 학년
     private String mobileNo;      // 휴대전화
     private String email;         // 이메일
-
-    // TB_LMS_DEPT
     private String deptnm;        // 학과명
+
+    private String prgrt;         // 진도율
 
     // 주차별 학습상태 목록 (동적 주차 대응)
     private List<ClsWkStsVO> wkStsList;
@@ -69,6 +69,9 @@ public class ClsStdntVO extends DefaultVO {
 
     public String getDeptnm() { return deptnm; }
     public void setDeptnm(String deptnm) { this.deptnm = deptnm; }
+
+    public String getPrgrt() { return prgrt; }
+    public void setPrgrt(String prgrt) { this.prgrt = prgrt; }
 
     public List<ClsWkStsVO> getWkStsList() { return wkStsList; }
     public void setWkStsList(List<ClsWkStsVO> wkStsList) { this.wkStsList = wkStsList; }

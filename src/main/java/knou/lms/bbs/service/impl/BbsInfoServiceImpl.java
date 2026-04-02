@@ -1,6 +1,7 @@
 package knou.lms.bbs.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -695,5 +696,52 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
         processResultVO.setPageInfo(pageInfo);
 
         return processResultVO;
+    }
+
+    /*****************************************************
+     * 게시판 정보 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void bbsMngInfoRegist(BbsVO vo) throws Exception {
+        String bbsId = IdGenerator.getNewId("BBS");
+        vo.setBbsId(bbsId);
+        bbsInfoDAO.bbsMngInfoRegist(vo);
+
+        List<String> optnList = new ArrayList<>();
+        if (vo.getOptnCd() != null && !vo.getOptnCd().isEmpty()) {
+            optnList = new ArrayList<>(Arrays.asList(vo.getOptnCd().split(",")));
+        }
+
+        if (optnList != null) {
+            for (String optnCd : optnList) {
+                String bbsOptnId = IdGenerator.getNewId("BBOPT");
+                vo.setBbsOptnId(bbsOptnId);
+                vo.setOptnCd(optnCd);
+
+                bbsInfoDAO.bbsMngInfoOptnRegist(vo);
+            }
+        }
+
+		/*
+		 * if("PHOTO".equals(StringUtil.nvl(bbsCd))) { vo.setBbsTycd("ALBUM"); } else {
+		 * vo.setBbsTycd("BOARD"); }
+		 */
+        // 게시판 언어 저장
+		/*
+		 * BbsInfoLangVO bbsInfoLangVO = new BbsInfoLangVO();
+		 * bbsInfoLangVO.setBbsId(bbsId); bbsInfoLangVO.setLangCd(vo.getBbsBscLangCd());
+		 * bbsInfoLangVO.setBbsNm(vo.getBbsnm());
+		 * bbsInfoLangVO.setBbsDesc(vo.getBbsExpln());
+		 * bbsInfoLangDAO.updateBbsInfoLang(bbsInfoLangVO);
+		 */
+
+        // 강의실 게시판 연결
+		/*
+		 * if(ValidationUtils.isNotEmpty(crsCreCd)) { BbsRltnVO bbsRltnVO = new
+		 * BbsRltnVO(); bbsRltnVO.setBbsId(bbsId); bbsRltnVO.setRltnRefCd(crsCreCd);
+		 * bbsRltnVO.setRltnType("COURSE"); bbsRltnDAO.insertBbsRltn(bbsRltnVO); }
+		 */
     }
 }

@@ -123,7 +123,7 @@ public class Forum2LectController extends ControllerBase {
      */
     @RequestMapping(value = "/profForumListView.do")
     public String profForumListView(Forum2ListVO forum2ListVO, ModelMap model, HttpServletRequest request) throws Exception {
-        model.addAttribute("orgId", SessionInfo.getOrgId(request));
+        model.addAttribute("orgId", forum2ListVO.getOrgId());
         model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
         model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
 
@@ -506,9 +506,10 @@ public class Forum2LectController extends ControllerBase {
         ProcessResultVO<Forum2VO> forumRs = forum2Service.selectForum(param);
         Forum2VO dscs = forumRs.getReturnVO();
         */
-        // TODO : 26.3.10 test value 삭제 예정.
-//        param.setDscsId(test_DscsId);
+        // TODO : 26.4.1(sbjctId 필수값이어야 함.)
+        param.setSbjctId(forumVO.getSbjctId());
         param.setDscsId(forumVO.getForumCd());
+
         Forum2VO tempForum2VO = forum2Service.selectForum(param);
         forumVO = convertForum2VOtoForumVO(tempForum2VO) ;
 
@@ -939,7 +940,7 @@ public class Forum2LectController extends ControllerBase {
         // TODO : 26.3.18 (임시로 복사 처리함)
         Forum2VO param = new Forum2VO();
         param.setDscsId(forumVO.getForumCd());
-//        forumVO = forum2Service.selectForum(forumVO);
+        param.setSbjctId(forumVO.getSbjctId());
         Forum2VO tempForum2VO = forum2Service.selectForum(param);
         forumVO = convertForum2VOtoForumVO(tempForum2VO);
         // TODO : 26.3.18 (임시로 복사 처리함)
@@ -1248,6 +1249,7 @@ public class Forum2LectController extends ControllerBase {
             // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
             /*vo = forum2Service.selectForum(vo);*/
             Forum2VO param = new Forum2VO();
+            param.setSbjctId(vo.getSbjctId());
             param.setDscsId(vo.getForumCd());
             EgovMap scoreMap = forum2Service.viewScoreChart(param);
 
@@ -1932,6 +1934,7 @@ public class Forum2LectController extends ControllerBase {
         // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
         /*vo = forum2Service.selectForum(vo);*/
         Forum2VO param = new Forum2VO();
+        param.setSbjctId(vo.getSbjctId());
         param.setDscsId(vo.getForumCd());
         Forum2VO tempForum2VO = forum2Service.selectForum(param);
         vo = convertForum2VOtoForumVO(tempForum2VO);

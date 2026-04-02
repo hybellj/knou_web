@@ -31,7 +31,6 @@
 		var LIST_SCALE		= '<c:out value="${bbsVO.listScale}" />';
 		var EPARAM			= '<c:out value="${encParams}" />';
 
-
 		$(document).ready(function() {
 			$("#searchValue").on("keydown", function(e) {
 				if(e.keyCode == 13) {
@@ -143,6 +142,7 @@
 			SEARCH_SDTTM = $("#searchSdttm").val();
 			SEARCH_EDTTM = $("#searchEdttm").val();
 			SEARCH_VALUE = $("#searchValue").val();
+
 			PAGE_INDEX = pageIndex;
 
 			var extData = {
@@ -151,7 +151,7 @@
 					, orgId         : ORG_ID
 					, searchSdttm   : SEARCH_SDTTM
 					, searchEdttm   : SEARCH_EDTTM
-					, searchValue 	: $("#searchValue").val()
+					, searchValue 	: SEARCH_VALUE
 			};
 
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do"
@@ -175,15 +175,11 @@
 	        		atclListTable.clearData();
 	        		atclListTable.replaceData(dataList);
 	        		atclListTable.setPageInfo(data.pageInfo);
-
-
-	        		//let frameId = window.frameElement ? window.frameElement.id : "";
-	        		//parent.resizeIframe(frameId);
 	            } else {
-	             	showMessage(data.message, "error"); // 에러가 발생했습니다!
+	            	UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
 	            }
 			}, function(xhr, status, error) {
-				showMessage("<spring:message code='fail.common.msg'/>", "error"); // 에러가 발생했습니다!
+				UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
 			}, true);
 		}
 
@@ -191,7 +187,6 @@
 		function moveWriteAtcl() {
 			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclWrite.do?encParams="+EPARAM;
 		}
-
 
 		// 조회자 목록 모달
 		function viewerListModal(crsCreCd, atclId) {

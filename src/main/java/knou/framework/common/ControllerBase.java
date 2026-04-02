@@ -74,8 +74,10 @@ public class ControllerBase {
 			String uri			= request.getRequestURI();
 			String type 		= "";
 			boolean isMain		= false;
-			
-			System.out.println(">>>>>>>>>ControllerBase>>>>>>>>>>>>>>>>>>>>>>>>init >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> start");
+
+			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase.init start");
+			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase uri=" + uri);
+
 
 			// 암호화 파라메터가 있는 경우 값을 VO에 세팅
 			if (paramVO != null) {
@@ -100,7 +102,6 @@ public class ControllerBase {
 				}
 			}
 
-			System.out.println(">>>>>>>>>ControllerBase>>>>>>>>>>>>>>>>>uri=" + uri);
 			// URL이 대시보드 이면,
 			if (uri.indexOf("Dashboard.do") > -1) {
 				isMain = true;
@@ -131,8 +132,9 @@ public class ControllerBase {
 
 			SessionUtil.setSessionValue(request, "PAGE_TYPE", type);
 			SessionUtil.setSessionValue(request, "BODY_CLASS", bodyClass);
-			
-			System.out.println(">>>>>>>>>>>ControllerBase>>>>>>>>>>>>>>>>>>>>>>init >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> end");
+
+			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase.init end");
+
 
 		} catch (Exception e) {
 			log.error(e.getMessage());

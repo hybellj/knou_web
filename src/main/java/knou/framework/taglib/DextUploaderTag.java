@@ -84,25 +84,10 @@ public class DextUploaderTag extends TagSupport {
 			String uploadUrl = "";
 			if ("".equals(StringUtil.nvl(url))) {
 			    if("EXNJ".equals(uploadMode)) {
-			        uploadUrl = CommConst.PRODUCT_DOMAIN + CommConst.DEXT_FILE_BULK_UPLOAD;
+			        uploadUrl = CommConst.DEXT_FILE_BULK_UPLOAD;
 			    } else {
-			        uploadUrl = CommConst.PRODUCT_DOMAIN + CommConst.DEXT_FILE_UPLOAD;
+			        uploadUrl = CommConst.DEXT_FILE_UPLOAD;
 			    }
-			}
-			else {
-				uploadUrl = url;
-				if (uploadUrl.indexOf("http") == -1) {
-					uploadUrl = CommConst.PRODUCT_DOMAIN + uploadUrl;
-				}
-			}
-
-			if (uploadUrl.indexOf("type=") == -1) {
-				if (uploadUrl.indexOf("?") == -1) {
-					uploadUrl += "?type="+type;
-				}
-				else {
-					uploadUrl += "&type="+type;
-				}
 			}
 
 			String extensionFilter = "*";
@@ -158,6 +143,7 @@ public class DextUploaderTag extends TagSupport {
 				btnStyle = "height:"+height+"px;";
 			}
 
+			/*
 			tag.append("<div id=\""+id+"-container\" class=\"dext5-container\" style=\""+cssStyle+"\"></div>\n");
 
 			if (!"single".equals(style)) {
@@ -187,15 +173,19 @@ public class DextUploaderTag extends TagSupport {
 
 				tag.append("</div>\n");
 			}
+			*/
 
+			tag.append("<div id=\""+id+"_box\"></div>\n");
 			tag.append("<script>\n");
 			tag.append("UiFileUploader({\n");
 			tag.append("id:\""+id+"\",\n");
+			tag.append("targetId:\""+id+"_box\",\n");
 			tag.append("parentId:\""+id+"-container\",\n");
 			tag.append("btnFile:\""+id+"_btn-add\",\n");
 			tag.append("btnDelete:\""+id+"_btn-delete\",\n");
 			tag.append("lang:\""+language+"\",\n");
 			tag.append("uploadMode:\""+uploadMode+"\",\n");
+			tag.append("listSize:"+listSize+",\n");
 			tag.append("maxTotalSize:"+limitSize+",\n");
 			tag.append("maxFileSize:"+oneLimitSize+",\n");
 			tag.append("extensionFilter:\""+extensionFilter+"\",\n");

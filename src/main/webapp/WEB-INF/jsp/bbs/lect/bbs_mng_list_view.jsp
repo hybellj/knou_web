@@ -90,7 +90,7 @@
 
 		// 글쓰기
 		function moveWriteAtcl() {
-			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclWrite.do?encParams="+EPARAM;
+			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsMngAdd.do?encParams="+EPARAM;
 		}
 
 		// 게시글 리스트 생성

@@ -68,6 +68,7 @@ public class DefaultVO implements Serializable {
     // 메뉴
     private String		upMenuId;			// 상위메뉴아이디
     private String		menuId;				// 메뉴아이디
+    private String		menuTarget;			// 메뉴 Target
 
     //
     // 이하 필드들은 사용여부 확인하여 삭제할것....
@@ -826,5 +827,13 @@ public class DefaultVO implements Serializable {
 
 	public void setMenuId(String menuId) {
 		this.menuId = menuId;
+	}
+
+	public String getMenuTarget() {
+		return menuTarget;
+	}
+
+	public void setMenuTarget(String menuTarget) {
+		this.menuTarget = menuTarget;
 	}
 }

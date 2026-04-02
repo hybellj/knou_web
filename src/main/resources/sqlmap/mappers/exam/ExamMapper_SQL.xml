@@ -1280,50 +1280,49 @@
 
     <sql id="listQueryForSbst">
         SELECT
-            ROW_NUMBER() OVER(ORDER BY TO_DATE(B.REG_DTTM, 'YYYYMMDDHH24MISS') DESC) AS "LINE_NO"
-            , B.EXAM_EVL_SBST_ID    AS "EXAM_EVL_SBST_ID"
-            , B_CD.CDNM             AS "EXAM_EVL_SBSTNM"
+            ROW_NUMBER() OVER(ORDER BY TO_DATE(SBST.REG_DTTM, 'YYYYMMDDHH24MISS') DESC) AS "LINE_NO"
+            , BSC.EXAM_BSC_ID           AS "EXAM_BSC_ID"
+            , SBST.EXAM_EVL_SBST_ID     AS "EXAM_EVL_SBST_ID"
+            , CMMN1.CDNM                AS "EXAM_EVL_SBSTNM"
             , CASE
-                WHEN C.ASMT_ID IS NOT NULL THEN 'ASMT'      /* 과제 */
-                WHEN D.EXAM_BSC_ID IS NOT NULL THEN 'QUIZ'  /* 퀴즈 */
+                WHEN ASMT.ASMT_ID IS NOT NULL THEN 'ASMT'      /* 과제 */
+                WHEN QUIZ.EXAM_BSC_ID IS NOT NULL THEN 'QUIZ'  /* 퀴즈 */
             END AS "GBN"
             /* 과제 */
-            , C.ASMT_ID             AS "ASMT_ID"
-            , C.ASMT_TTL            AS "ASMT_TTL"
-            , C.ASMT_SBMSN_SDTTM    AS "ASMT_SBMSN_SDTTM"
-            , C.ASMT_SBMSN_EDTTM    AS "ASMT_SBMSN_EDTTM"
-            , C.EVL_SCR_TYCD        AS "EVL_SCR_TYCD"
-            , C_CD1.CDNM            AS "EVL_SCR_TYNM"
+            , ASMT.ASMT_TTL             AS "ASMT_TTL"
+            , ASMT.ASMT_SBMSN_SDTTM     AS "ASMT_SBMSN_SDTTM"
+            , ASMT.ASMT_SBMSN_EDTTM     AS "ASMT_SBMSN_EDTTM"
+            , ASMT.EVL_SCR_TYCD         AS "EVL_SCR_TYCD"
+            , CMMN2.CDNM                AS "EVL_SCR_TYNM"
             /* 퀴즈 */
-            , D.EXAM_BSC_ID         AS "EXAM_BSC_ID"
-            , D.EXAM_TTL            AS "EXAM_TTL"
-            , E.EXAM_PSBL_SDTTM     AS "EXAM_PSBL_SDTTM"
-            , E.EXAM_PSBL_EDTTM     AS "EXAM_PSBL_EDTTM"
-            , B.REG_DTTM            AS "REG_DTTM"
+            , QUIZ.EXAM_TTL             AS "EXAM_TTL"
+            , QUIZ_DTL.EXAM_PSBL_SDTTM  AS "EXAM_PSBL_SDTTM"
+            , QUIZ_DTL.EXAM_PSBL_EDTTM  AS "EXAM_PSBL_EDTTM"
+            , SBST.REG_DTTM             AS "REG_DTTM"
         FROM
             /* 시험 기본 */
-            TB_LMS_EXAM_BSC A
+            TB_LMS_EXAM_BSC BSC
             /* 시험 대체 평가 */
-            JOIN TB_LMS_EXAM_EVL_SBST B
-                ON A.EXAM_BSC_ID = B.EXAM_BSC_ID
-            JOIN TB_LMS_CMMN_CD B_CD
-                ON B.EXAM_SBST_TYCD = B_CD.CD
-                AND B_CD.UP_CD = 'EXAM_SBST_TYCD'
+            JOIN TB_LMS_EXAM_EVL_SBST SBST
+                ON BSC.EXAM_BSC_ID = SBST.EXAM_BSC_ID
+            JOIN TB_LMS_CMMN_CD CMMN1
+                ON SBST.EXAM_SBST_TYCD = CMMN1.CD
+                AND CMMN1.UP_CD = 'EXAM_SBST_TYCD'
             /* 과제 */
-            LEFT JOIN TB_LMS_ASMT C
-                ON A.SBJCT_ID = C.SBJCT_ID
-                AND B.EXAM_SBST_ID = C.ASMT_ID
-            JOIN TB_LMS_CMMN_CD C_CD1
-                ON C.EVL_SCR_TYCD = C_CD1.CD
-                AND C_CD1.UP_CD = 'EVL_SCR_TYCD'
+            LEFT JOIN TB_LMS_ASMT ASMT
+                ON BSC.SBJCT_ID = ASMT.SBJCT_ID
+                AND SBST.EXAM_SBST_ID = ASMT.ASMT_ID
+            LEFT JOIN TB_LMS_CMMN_CD CMMN2
+                ON ASMT.EVL_SCR_TYCD = CMMN2.CD
+                AND CMMN2.UP_CD = 'EVL_SCR_TYCD'
             /* 퀴즈 */
-            LEFT JOIN TB_LMS_EXAM_BSC D
-                ON A.SBJCT_ID = D.SBJCT_ID
-                AND B.EXAM_SBST_ID = D.EXAM_BSC_ID
-            LEFT JOIN TB_LMS_EXAM_DTL E
-                ON D.EXAM_BSC_ID = E.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_EXAM_BSC QUIZ
+                ON BSC.SBJCT_ID = QUIZ.SBJCT_ID
+                AND SBST.EXAM_SBST_ID = QUIZ.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_EXAM_DTL QUIZ_DTL
+                ON QUIZ.EXAM_BSC_ID = QUIZ_DTL.EXAM_BSC_ID
         WHERE
-            A.EXAM_BSC_ID = #{examBscId}
+            BSC.EXAM_BSC_ID =#{examBscId}
     </sql>
 
     <sql id="listQueryForSbstUser">
@@ -2138,6 +2137,61 @@
             (<include refid="listQueryForSbst"/>) Z
     </select>
 
+    <!-- 교수 시험대체 과제 조회 -->
+    <select id="selectProfSbstAsmt" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectProfSbstAsmt
+            설명 : 교수 시험대체 과제 조회
+        */
+        SELECT
+            ASMT.ASMT_TTL                   AS "ASMT_TTL"
+            , ASMT.ASMT_CTS                 AS "ASMT_CTS"
+            , ASMT.ASMT_SBMSN_SDTTM         AS "ASMT_SBMSN_SDTTM"
+            , ASMT.ASMT_SBMSN_EDTTM         AS "ASMT_SBMSN_EDTTM"
+            , ASMT.MRK_RFLTYN               AS "MRK_RFLTYN"
+            , ASMT.MRK_OYN                  AS "MRK_OYN"
+            , ASMT.EVL_SCR_TYCD             AS "EVL_SCR_TYCD"
+            , ASMT.SBASMT_TYCD              AS "SBASMT_TYCD"
+            , ASMT.SBMSN_FILE_MIME_TYCD     AS "SBMSN_FILE_MIME_TYCD"
+        FROM
+            TB_LMS_EXAM_BSC BSC
+            JOIN TB_LMS_EXAM_EVL_SBST SBST
+                ON BSC.EXAM_BSC_ID = SBST.EXAM_BSC_ID
+            JOIN TB_LMS_ASMT ASMT
+                ON SBST.EXAM_SBST_ID = ASMT.ASMT_ID
+        WHERE
+            BSC.EXAM_BSC_ID = #{examBscId}
+    </select>
+
+    <!-- 교수 시험대체 퀴즈 조회 -->
+    <select id="selectProfSbstQuiz" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectProfSbstQuiz
+            설명 : 교수 시험대체 퀴즈 조회
+        */
+        SELECT
+            QUIZ.EXAM_TTL               AS "EXAM_TTL"
+            , QUIZ.EXAM_CTS             AS "EXAM_CTS"
+            , QUIZ_DTL.EXAM_PSBL_SDTTM  AS "EXAM_PSBL_SDTTM"
+            , QUIZ_DTL.EXAM_PSBL_EDTTM  AS "EXAM_PSBL_EDTTM"
+            , QUIZ_DTL.EXAM_MNTS        AS "EXAM_MNTS"
+            , QUIZ.MRK_RFLTYN           AS "MRK_RFLTYN"
+            , QUIZ.MRK_OYN              AS "MRK_OYN"
+            , QUIZ.QSTN_DSPLY_GBNCD     AS "QSTN_DSPLY_GBNCD"
+            , QUIZ.QSTN_RNDMYN          AS "QSTN_RNDMYN"
+            , QUIZ.QSTN_VWITM_RNDMYN    AS "QSTN_VWITM_RNDMYN"
+        FROM
+            TB_LMS_EXAM_BSC BSC
+            JOIN TB_LMS_EXAM_EVL_SBST SBST
+                ON BSC.EXAM_BSC_ID = SBST.EXAM_BSC_ID
+            JOIN TB_LMS_EXAM_BSC QUIZ
+                ON SBST.EXAM_SBST_ID = QUIZ.EXAM_BSC_ID
+            JOIN TB_LMS_EXAM_DTL QUIZ_DTL
+                ON QUIZ.EXAM_BSC_ID = QUIZ_DTL.EXAM_BSC_ID
+        WHERE
+            BSC.EXAM_BSC_ID = #{examBscId}
+    </select>
+
     <!-- 교수 시험대체 대상자 목록 페이징  -->
     <select id="listProfSbstUserPaging" parameterType="examVO" resultType="examVO">
         /*
@@ -2215,7 +2269,7 @@
                 , CMMNCD.CDNM   AS "EXAM_GBNNM"
                 , DTL.EXAM_PSBL_SDTTM
                 , PROF.USERNM   AS "PROFNM"
-                , '튜터1'        AS "TUTNM"           /* 튜터 정보로 수정 예정 */
+                , ''        AS "TUTNM"           /* 튜터 정보로 수정 예정 */
                 , USR.USER_RPRS_ID
                 , USR.STDNT_NO
                 , USR.USERNM    AS "USERNM"
@@ -2223,7 +2277,7 @@
                 , ABSNCE.ABSNCE_TTL
                 , ABSNCE.ABSNCE_RFLTRT
                 , ABSNCE.ABSNCE_CTS
-                , '첨부파일'     AS "FILE"         /* 추후 첨부파일 경로로 수정 예정 */
+                , ''     AS "FILE"          /* 추후 첨부파일 경로로 수정 예정 */
             FROM
                 TB_LMS_EXAM_BSC BSC
                 JOIN TB_LMS_EXAM_ABSNCE ABSNCE

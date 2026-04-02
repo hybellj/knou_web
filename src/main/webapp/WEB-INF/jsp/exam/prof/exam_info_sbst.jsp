@@ -61,8 +61,6 @@
                 return dataList;
             } else {
                 list.forEach(function(v, i) {
-                    // ID (과제|퀴즈)
-                    var sbstId;
                     // 제목 (과제|퀴즈)
                     var ttl;
                     // 기간 (과제|퀴즈)
@@ -70,13 +68,11 @@
                     // 평가 방법 (과제|퀴즈)
                     var evl;
                     if (v.gbn == "ASMT") {
-                        sbstId = v.asmtId;
-                        ttl = "<a href='javascript:sbstViewMv(\"" + v.asmtId + "\",\"" + v.gbn + "\")' class='header header-icon link'>"
+                        ttl = "<a href='javascript:sbstViewMv(\"" + v.examBscId + "\",\"" + v.gbn + "\")' class='header header-icon link'>"
                             + escapeHtml(v.asmtTtl) + "</a>";
                         duringDate = dateFormat("date", v.asmtSbmsnSdttm) + " ~ " + dateFormat("date", v.asmtSbmsnEdttm);
                         evl = v.evlScrTynm;
                     } else {
-                        sbstId = v.examBscId;
                         ttl = "<a href='javascript:sbstViewMv(\"" + v.examBscId + "\",\"" + v.gbn + "\")' class='header header-icon link'>"
                             + escapeHtml(v.examTtl) + "</a>";
                         duringDate = dateFormat("date", v.examPsblSdttm) + " ~ " + dateFormat("date", v.examPsblEdttm);
@@ -87,7 +83,6 @@
                     dataList.push({
                         lineNo:         v.lineNo
                         , examEvlSbstnm:v.examEvlSbstnm
-                        , sbstId:       sbstId
                         , ttl:          ttl
                         , duringDate:   duringDate
                         , evl:          evl
@@ -329,6 +324,20 @@
             kvArr.push({'key' : 'tabType',            'val' : tab});
             kvArr.push({'key' : 'isModify',           'val' : 'Y'});
             submitForm(urlMap[tab], "", "", kvArr);
+        }
+
+        /**
+         * 시험 대체 상세 화면 이동
+         * @param {String} examBscId    - 시험 기본 ID
+         * @param {String} gbn          - 구분 [ASMT|QUIZ]
+         */
+        function sbstViewMv(examBscId, gbn) {
+            var url = "/exam/profExamSbstWrite.do";
+
+            var kvArr = [];
+            kvArr.push({'key' : 'examBscId', 'val' : examBscId});
+            kvArr.push({'key' : 'gbn',       'val' : gbn});
+            submitForm(url, "", "", kvArr);
         }
 
         /* 메세지 전송 기능 */
@@ -631,7 +640,7 @@
                                 <div class="board_top margin-top-4">
                                     <h4>[${examVO.examGbnnm}] 시험 대체 설정</h4>
                                     <div class="right-area">
-                                        <a class="btn type2">등록</a>
+                                        <a href="javascript:sbstViewMv('${vo.examBscId}','')" class="btn type2">등록</a>
                                     </div>
                                 </div>
                                 <div id = "sbstArea">

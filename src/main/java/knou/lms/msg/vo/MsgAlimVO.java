@@ -5,7 +5,6 @@ import knou.lms.common.vo.DefaultVO;
 public class MsgAlimVO extends DefaultVO {
     private static final long serialVersionUID = 1L;
 
-    private String sndngTycd;
     private String mblSndngTycd;
     private int listCnt = 5;
 
@@ -18,20 +17,7 @@ public class MsgAlimVO extends DefaultVO {
     private String sndngDttm;
     private String readDttm;
     private String readYn;
-
-    private int pushCnt;
-    private int smsCnt;
-    private int shrtntCnt;
-    private int alimtalkCnt;
-    private int totalUnreadCnt;
-
-    public String getSndngTycd() {
-        return sndngTycd;
-    }
-
-    public void setSndngTycd(String sndngTycd) {
-        this.sndngTycd = sndngTycd;
-    }
+    private String isRead;
 
     public String getMblSndngTycd() {
         return mblSndngTycd;
@@ -113,43 +99,12 @@ public class MsgAlimVO extends DefaultVO {
         this.readYn = readYn;
     }
 
-    public int getPushCnt() {
-        return pushCnt;
+    public String getIsRead() {
+        return isRead;
     }
 
-    public void setPushCnt(int pushCnt) {
-        this.pushCnt = pushCnt;
-    }
-
-    public int getSmsCnt() {
-        return smsCnt;
-    }
-
-    public void setSmsCnt(int smsCnt) {
-        this.smsCnt = smsCnt;
-    }
-
-    public int getShrtntCnt() {
-        return shrtntCnt;
-    }
-
-    public void setShrtntCnt(int shrtntCnt) {
-        this.shrtntCnt = shrtntCnt;
-    }
-
-    public int getAlimtalkCnt() {
-        return alimtalkCnt;
-    }
-
-    public void setAlimtalkCnt(int alimtalkCnt) {
-        this.alimtalkCnt = alimtalkCnt;
-    }
-
-    public int getTotalUnreadCnt() {
-        return totalUnreadCnt;
-    }
-
-    public void setTotalUnreadCnt(int totalUnreadCnt) {
-        this.totalUnreadCnt = totalUnreadCnt;
+    public void setIsRead(String isRead) {
+        this.isRead = isRead;
+        this.readYn = isRead;
     }
 }

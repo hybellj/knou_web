@@ -531,9 +531,23 @@ public class ClsController extends ControllerBase {
      */
     @RequestMapping(value = "/selectNotLrnnPopupView.do")
     public String selectNotLrnnPopupView(ClsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        model.addAttribute("sbjctId", request.getParameter("sbjctId"));
-        model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
-        model.addAttribute("wkNo", request.getParameter("wkNo"));
+        String sbjctId = request.getParameter("sbjctId");
+        String dvclasNo = request.getParameter("dvclasNo");
+        String wkNo = request.getParameter("wkNo");
+
+        model.addAttribute("sbjctId", sbjctId);
+        model.addAttribute("dvclasNo", dvclasNo);
+        model.addAttribute("wkNo", wkNo);
+
+        ClsVO param = new ClsVO();
+        param.setOrgId(SessionInfo.getOrgId(request));
+        param.setSbjctId(sbjctId);
+
+        ClsVO clsInfo = clsService.selectClsDetail(param);
+        if (clsInfo != null) {
+            model.addAttribute("sbjctnm", clsInfo.getSbjctnm());
+        }
+
         return "std/popup/cls_notlrnn_popup";
     }
 
@@ -548,7 +562,7 @@ public class ClsController extends ControllerBase {
      */
     @RequestMapping(value = "/selectClsNoStudyWeekExcelDown.do")
     public String downExcelClsNoStudyWeek(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-
+        String dvclasNo = request.getParameter("dvclasNo");
         vo.setOrgId(SessionInfo.getOrgId(request));
 
         List<ClsStdntVO> list = clsService.selectClsNoStudyWeek(vo);
@@ -560,10 +574,12 @@ public class ClsController extends ControllerBase {
             ListOrderedMap orderedMap = new ListOrderedMap();
             orderedMap.put("lineNo",  item.getLineNo());
             orderedMap.put("deptnm",  item.getDeptnm());
+            orderedMap.put("sbjctnm",
+                    vo.getSbjctnm() + (ValidationUtils.isEmpty(dvclasNo) ? "" : " " + dvclasNo + "반"));
+            orderedMap.put("userId",  item.getUserId());
             orderedMap.put("stdntNo", item.getStdntNo());
             orderedMap.put("usernm",  item.getUsernm());
-            orderedMap.put("entyR",   item.getEntyR());
-            orderedMap.put("scyr",    item.getScyr());
+            orderedMap.put("prgrt",   item.getPrgrt());
             newList.add(orderedMap);
         }
 

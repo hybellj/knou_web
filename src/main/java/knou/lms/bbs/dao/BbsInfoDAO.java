@@ -228,4 +228,18 @@ public interface BbsInfoDAO {
      * @throws Exception
      ******************************************************/
     public List<BbsVO> listBbsMngInfoPaging(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 정보 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void bbsMngInfoRegist(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 옵션 정보 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void bbsMngInfoOptnRegist(BbsVO vo) throws Exception;
 }

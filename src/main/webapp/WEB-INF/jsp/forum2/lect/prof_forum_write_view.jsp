@@ -587,6 +587,7 @@
                             uploadPath: "${forum2VO.uploadPath}",
                             height    : "250px"
                         });
+                        // TODO : 26.4.2 (팀별 파일 업로더)
                         createTeamFileUploader(v.teamId, i, "${forum2VO.uploadPath}");
                     });
                 }
@@ -599,7 +600,7 @@
     /** 팀 목록 HTML 생성 (appendTeamForumDetailParams 호환 구조) */
     function buildForumTeamListHtml(list) {
         if (!list || list.length === 0) {
-            return '<p class="p_gray">팀 정보가 없습니다.</p>';
+            return '<p class="p_gray"></p>'; // 팀 정보가 없는 경우.
         }
         var html = "<table class='table-type2'>";
         html += "    <colgroup>";
@@ -609,9 +610,9 @@
         html += "    </colgroup>";
         html += "    <tbody>";
         html += "        <tr>";
-        html += "            <th>팀</th>";
-        html += "            <th>부 주제</th>";
-        html += "            <th>학습그룹 구성원</th>";
+        html += "            <th><spring:message code='forum.label.team'/></th>"; // 팀
+        html += "            <th><spring:message code='forum.label.team.ttl'/></th>"; // 부주제
+        html += "            <th><spring:message code='forum.label.lrngrp.mebers'/></th>"; // 학습그룹 구성원
         html += "        </tr>";
         list.forEach(function(v, i) {
             html += "    <tr class='subForumTr' data-team-id='" + escHtml(v.teamId || '') + "' data-team-nm='" + escHtml(v.teamnm || '') + "' data-dscs-id='" + escHtml(v.dscsId || '') + "'>";
@@ -624,11 +625,11 @@
             html += "                </colgroup>";
             html += "                <tbody>";
             html += "                    <tr>";
-            html += "                        <th><label for='" + v.teamId + "_dtlSubjTtl_" + i + "' class='req'>주제</label></th>";
+            html += "                        <th><label for='" + v.teamId + "_dtlSubjTtl_" + i + "'><spring:message code='forum.label.team.ttl'/></label></th>"; // <!--부주제-->
             html += "                        <td><input type='text' id='" + v.teamId + "_dtlSubjTtl_" + i + "' name='teamTtl' value='" + escHtml(v.dscsTtl || '') + "' inputmask='byte' maxLen='200' class='width-100per' /></td>";
             html += "                    </tr>";
             html += "                    <tr>";
-            html += "                        <th><label for='" + v.teamId + "_contentTextArea_" + i + "' class='req'>내용</label></th>";
+            html += "                        <th><label for='" + v.teamId + "_contentTextArea_" + i + "'><spring:message code='common.label.contents'/></label></th>"; // 내용
             html += "                        <td>";
             html += "                            <div class='editor-box'>";
             html += "                                <textarea name='" + v.teamId + "_contentTextArea_" + i + "' id='" + v.teamId + "_contentTextArea_" + i + "'>" + escHtml(v.dscsCts || '') + "</textarea>";
@@ -636,7 +637,7 @@
             html += "                        </td>";
             html += "                    </tr>";
             html += "                    <tr>";
-            html += "                        <th><label>파일첨부</label></th>";
+            html += "                        <th><label><spring:message code='forum.label.attachFile'/></label></th>"; // 첨부파일
             html += "                        <td>";
             html += "                            <div id='teamUploaderWrap_" + v.teamId + "_" + i + "'></div>";
             html += "                        </td>";
@@ -652,46 +653,26 @@
         return html;
     }
 
-    /** 팀별 파일 업로더 동적 생성 (DextUploaderTag.java 출력 구조를 JS로 재현) */
+    /** 팀별 파일 업로더 동적 생성 */
     function createTeamFileUploader(teamId, idx, uploadPath) {
-        var uid  = 'teamFileUploader_' + teamId + '_' + idx;
-        var wrap = 'teamUploaderWrap_' + teamId + '_' + idx;
-        var h    = 36; // simple uiMode: listSize(1) * 36px
+        var uid  = 'teamFileUploader_' + teamId + '_' + idx;    // 파일 업로드 개별 ID
+        var wrap = 'teamUploaderWrap_' + teamId + '_' + idx;    // 파일 업로드 박스가 보여질 위치
 
-        var html = [
-            "<div id='" + uid + "-container' class='dext5-container'",
-            "     style='width:100%;height:" + h + "px;display:flex;'></div>",
-            "<div id='" + uid + "-btn-area' class='dext5-btn-area simple' style='display:flex;'>",
-            "    <button type='button' id='" + uid + "_btn-add'",
-            "            style='height:" + h + "px;' title='파일 선택'><i class='xi-file-add-o'></i></button>",
-            "    <button type='button' id='" + uid + "_btn-delete' disabled='true'",
-            "            style='height:" + h + "px;' title='삭제'><i class='xi-trash-o'></i></button>",
-            "    <button type='button' id='" + uid + "_btn-reset'",
-            "            style='height:" + h + "px;display:none;' title='초기화'",
-            "            onclick=\"resetDextFiles('" + uid + "')\"><i class='xi-refresh'></i></button>",
-            "</div>"
-        ].join('');
-        $('#' + wrap).html(html);
-
-        UiFileUploader({
-            id             : uid,
-            parentId       : uid + '-container',
-            btnFile        : uid + '_btn-add',
-            btnDelete      : uid + '_btn-delete',
-            uploadMode     : 'ORAF',
-            maxTotalSize   : 100,
-            maxFileSize    : 100,
-            fileCount      : 1,
-            extensionFilter: '*',
-            finishFunc     : '',    // continueUploadChain에서 동적 세팅
-            uploadUrl      : '/dext/uploadFileDext.up',
-            path           : uploadPath,  // ← 반드시 유효한 값 (절대 빈값 금지)
-            oldFiles       : [],
-            useFileBox     : false,
-            style          : 'list',
-            uiMode         : 'simple'
+        // 파일업로더 생성
+        FileUploader({
+			id: uid,
+			targetId: wrap,
+			path: "",
+			limitCount: 5,
+			limitSize: 100,
+			oneLimitSize: 100,
+			listSize: 2,
+			fileList: "",
+			finishFunc: "",
+			allowedTypes: "*"
         });
 
+        // team upload 정보에 uid push
         if (teamUploaderIds.indexOf(uid) === -1) {
             teamUploaderIds.push(uid);
         }
@@ -908,7 +889,7 @@
                 appendTeamForumDetailParam(index, 'teamUploadFiles', uploadResult.uploadFiles || '');
                 appendTeamForumDetailParam(index, 'teamUploadPath',  uploadResult.uploadPath  || '${forum2VO.uploadPath}');
 
-                // 자식 토론 ID (수정 모드에서 2-4 분기 파일 저장에 필요)
+                // 자식 토론 ID (수정 모드에서 분기 파일 저장)
                 var childDscsId = $.trim($row.attr('data-dscs-id') || '');
                 appendTeamForumDetailParam(index, 'dscsId', childDscsId);
                 index++;
@@ -935,6 +916,7 @@
             function(data) {
                 if (data.result > 0) {
                     $("#uploadFiles").val(dx.getUploadFiles());
+                    // 팀 업로더 순차 처리
                     continueUploadChain(0);
                 } else {
                     UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
@@ -950,7 +932,7 @@
     function continueUploadChain(teamIdx) {
         if (teamIdx >= teamUploaderIds.length) {
             appendTeamForumDetailParams(); // 업로드 결과 포함하여 수집
-            doSaveForum();
+            doSaveForum(); // 최종 토론 정보 저장
             return;
         }
 
@@ -964,9 +946,7 @@
         }
 
         if (dx.availUpload()) {
-            DX_ENV[uid].finishFunc = "onTeamUploadComplete('" + uid + "'," + teamIdx + ")";
-            dx.resetUploadUrl();
-            dx.upload();
+            dx.startUpload();
         } else {
             teamUploadResults[uid] = { uploadFiles: '', uploadPath: dx.getUploadPath() };
             continueUploadChain(teamIdx + 1);
@@ -974,7 +954,9 @@
     }
 
     /** STEP 4: 팀 업로더 개별 완료 콜백 */
-    function onTeamUploadComplete(uid, teamIdx) {
+    function onTeamUploadComplete(uid) {
+        // teamIdx는 teamUploaderIds.indexOf(uid)로 역산.
+        var teamIdx = teamUploaderIds.indexOf(uid);
         var dx = dx5.get(uid);
         ajaxCall("/common/uploadFileCheck.do",
             { uploadFiles: dx.getUploadFiles(), uploadPath: dx.getUploadPath() },
@@ -1071,7 +1053,7 @@
             UiComm.showLoading(false);
             if (resp.result > 0) {
                 var v = resp.returnVO;
-                if (!v) { UiComm.showMessage("데이터가 없습니다.", "error"); return; }
+                if (!v) { UiComm.showMessage("<spring:message code='forum.alert.data.empty'/>", "error"); return; } //선택할 데이터가 없습니다.
 
                 // 토론 제목
                 $('#dscsTtl').val(v.dscsTtl || '');

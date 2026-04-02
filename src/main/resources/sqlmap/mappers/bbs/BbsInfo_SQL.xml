@@ -1276,9 +1276,14 @@
 		FROM TB_LMS_BBS
 		WHERE 1=1
 			AND ORG_ID = #{orgId}
-			AND BBS_ID = #{bbsId}
+			AND BBS_TYCD = #{bbsTycd}
 	        AND SBJCT_ID = #{sbjctId}
-	        AND BBS_ID NOT IN ('NTC', 'NOTICE', 'QNA', '1ON1')
+	        <if test="bbsIdList != null and bbsIdList.size() > 0">
+		        AND BBS_ID NOT IN
+		        <foreach collection="bbsIdList" item="item" open="(" separator="," close=")">
+		            #{item}
+		        </foreach>
+		    </if>
 	</select>
 
 	<insert id="bbsInfoRegist" parameterType="bbsVO">
@@ -1350,7 +1355,7 @@
 			#{bbsOptnId}
 			, #{bbsId}
 			, #{optnCd}
-			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'BBS_NTC_OPTN_TYCD' AND CD_VL = #{optnCd})
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'BBS_NTC_OPTN_TYCD' AND CD = #{optnCd})
 			, 'Y'
 			, #{userId}
 			, FN_DTTM()
@@ -1380,4 +1385,78 @@
 		<include refid="listQuery" />
 		<include refid="CommonSQL.pageSubfix" />
 	</select>
+
+	<insert id="bbsMngInfoRegist" parameterType="bbsVO">
+		/*
+             SQL ID : BbsInfoDAO.bbsMngInfoRegist
+             설  명 : 게시판 정보 저장
+         */
+		INSERT INTO TB_LMS_BBS (
+			  BBS_ID
+	        , ORG_ID
+	        , SBJCT_ID
+	        , BBS_REF_TYPE_ID
+	        , BBS_REF_TYCD
+	        , BBSNM
+	        , BBS_ENNM
+	        , BBS_EXPLN
+	        , BBS_TYCD
+	        , BBS_LANG_CD
+	        , MENU_ID
+	        , MN_IMG_FILE_ID
+	        , LIST_CNT
+	        , ATFL_MAX_CNT
+	        , ATFL_MAXSZ
+	        , ATFL_USEYN
+	        , DELYN
+	        , BBS_ADDYN
+	        , RGTR_ID
+	        , REG_DTTM
+	    ) VALUES (
+	          #{bbsId}
+	        , #{orgId}
+	        , #{sbjctId}
+	        , #{bbsRefTypeId}
+	        , #{bbsRefTycd}
+	        , #{bbsnm}
+	        , #{bbsEnnm}
+	        , #{bbsExpln}
+	        , #{bbsTycd}
+	        , 'ko' <!-- 임시 -->
+	        , #{menuId}
+	        , #{mnImgFileId}
+	        , #{listCnt}
+	        , #{atflMaxCnt}
+	        , #{atflMaxsz}
+	        , #{atflUseyn}
+	        , 'N'
+	        , 'Y'
+	        , #{rgtrId}
+	        , FN_DTTM()
+	    )
+	</insert>
+
+	<insert id="bbsMngInfoOptnRegist" parameterType="bbsVO">
+		/*
+             SQL ID : BbsInfoDAO.bbsMngInfoOptnRegist
+             설  명 : 게시판 정보 저장
+         */
+		INSERT INTO TB_LMS_BBS_OPTN (
+			BBS_OPTN_ID
+			, BBS_ID
+			, OPTN_CD
+			, OPTNNM
+			, OPTN_USEYN
+			, RGTR_ID
+			, REG_DTTM
+		) VALUES(
+			#{bbsOptnId}
+			, #{bbsId}
+			, #{optnCd}
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'BBS_NTC_OPTN_TYCD' AND CD = #{optnCd})
+			, 'Y'
+			, #{userId}
+			, FN_DTTM()
+		)
+	</insert>
 </mapper>

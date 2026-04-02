@@ -42,7 +42,7 @@ public class DextFileUpDownController extends ControllerBase {
     @Resource(name="apiService")
     private ApiService apiService;
 
-    /***************************************************** 
+    /*****************************************************
      * 일반 파일 업로드(덱스트)
      * @param vo
      * @param model
@@ -68,9 +68,6 @@ public class DextFileUpDownController extends ControllerBase {
 
         // 웹 경로_webdata path
         String dataPath = CommConst.WEBDATA_PATH;
-
-        // type // PRACTICE
-        String type = StringUtil.nvl(request.getParameter("type"));
 
         // 업로드 금지 확장자
         String[] noExts = CommConst.UPLOAD_NO_EXTS;
@@ -121,17 +118,6 @@ public class DextFileUpDownController extends ControllerBase {
 
                         // 파일저장
                         item.saveAs(saveFolder, saveFile);
-
-                        // 실기과제 제출인 경우 이미지, PDF 썸네일 이미지 생성
-                        if("PRACTICE".equals(type) && path.indexOf("/asmt/") > -1) {
-                            boolean isImage = ImageTool.isImage(item.getLastSavedFilePath());
-
-                            // 이미지 썸네일 생성 (20M이하만 변환)
-                            if(isImage && saveFile.length() < 20 * 1024 * 1024) {
-                                File svFile = new File(item.getLastSavedFilePath());
-                                boolean result = saveThumbnail(svFile, fileId + "_thumb." + fileExt, 300, 300);
-                            }
-                        }
                     }
 
                     JSONObject obj = new JSONObject();
@@ -152,7 +138,7 @@ public class DextFileUpDownController extends ControllerBase {
         // System.out.println("arr.toJSONString() :::"+arr.toJSONString());
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 대용량 파일 업로드(덱스트)
      * @param vo
      * @param model

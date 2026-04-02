@@ -353,6 +353,24 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     }
 
     /*****************************************************
+     * 교수 시험대체 과제 조회
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public ExamVO selectProfSbstAsmt(ExamVO vo) throws Exception {
+        return examDAO.selectProfSbstAsmt(vo);
+    }
+
+    /*****************************************************
+     * 교수 시험대체 퀴즈 조회
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public ExamVO selectProfSbstQuiz(ExamVO vo) throws Exception {
+        return examDAO.selectProfSbstQuiz(vo);
+    }
+
+    /*****************************************************
      * 교수 시험 결시자 목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>

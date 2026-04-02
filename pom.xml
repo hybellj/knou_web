@@ -400,7 +400,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <release>21</release> <!-- version -->
+                    <release>21</release><!-- version -->
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>

@@ -25,68 +25,103 @@
 
         var curByteamSubrexamUseyn = '${vo.byteamSubrexamUseyn}';   // 팀 여부
         var hasSubSubject = '${examVO.lrnGrpSubsbjctUseyn}';        // 부 주제
-        var examInfoListTable = null; // 시험정보 및 평가 Tabulator - 탭 최초 활성화 시 생성
+        var sbstUserInfoListTable = null;
+        var setUrl = "";            // 등록|수정 URL
+        var gbn = '${gbn}';         // 과제|퀴즈 판별용
+        const editors = {};	        // 에디터 목록 저장용
 
         /*****************************************************************************
          * tabulator 관련 기능
-         * 1. initExamInfoListTable :   컬럼 정의 (대상자 전체 | 팀)
-         * 2. loadExamInfoList :        컬럼에 들어갈 데이터 ajax 호출
-         * 3. changeInfoListScale :     페이지 row수 세팅
+         * 1. initSbstUserInfoListTable :   컬럼 정의 (시험 대체 대상자)
+         * 2. createSbstUserInfoListHtml:   각 컬럼에 들어갈 데이터 세팅 및 버튼 요소 생성 (시험 대체 대상자)
+         * 3. loadSbstUserInfoList :        컬럼에 들어갈 데이터 ajax 호출 (시험 대체 대상자)
          *****************************************************************************/
         /* 1 */
-        function initExamInfoListTable() {
-            if (examInfoListTable) return;
-            var examInfoColumns = curByteamSubrexamUseyn === 'Y' ? [
-                {title:"No",       field:"lineNo",        headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                {title:"팀명",     field:"teamnm",        headerHozAlign:"center", hozAlign:"left",   width:120, minWidth:120},
-                {title:"학과",     field:"deptnm",        headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"대표아이디",field:"userRprsId",    headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"학번",     field:"stntNo",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"이름",     field:"usernm",        headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"역할",     field:"ldryn",         headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"시험점수", field:"examScr",       headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가점수", field:"totScr",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"응시상태", field:"tkexamCmptnyn", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"응시횟수", field:"tkexamCnt",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가여부", field:"evlyn",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
-            ] : [
-                {title:"No",       field:"lineNo",        headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                {title:"학과",     field:"deptnm",        headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"대표아이디",field:"userRprsId",    headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                {title:"이름",     field:"usernm",        headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"시험점수", field:"examScr",       headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가점수", field:"totScr",        headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"응시상태", field:"tkexamCmptnyn", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"응시횟수", field:"tkexamCnt",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"평가여부", field:"evlyn",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
+        function initSbstUserInfoListTable() {
+            if (sbstUserInfoListTable) return;
+            var examInfoColumns =  [
+                {title:"No",       field:"lineNo",      headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
+                {title:"학과",     field:"deptnm",       headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
+                {title:"대표아이디",field:"userRprsId",   headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
+                {title:"학번",     field:"stdntNo",      headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"이름",     field:"usernm",       headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
+                {title:"결시사유", field:"absnceCts",     headerHozAlign:"center", hozAlign:"left", width:0, minWidth:100},
+                {title:"적용비율", field:"absnceRfltrt",  headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
+                {title:"결시승인", field:"aplyStsStts",   headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
             ];
-            examInfoListTable = UiTable("examInfoList", {
+            sbstUserInfoListTable = UiTable("sbstUserList", {
                 lang: "ko",
                 selectRow: "checkbox",
-                pageFunc: loadExamInfoList,
+                pageFunc: loadSbstUserInfoList,
                 columns: examInfoColumns
             });
         }
         /* 2 */
-        function loadExamInfoList(pageIndex) {
-            initExamInfoListTable();
+        function createSbstUserInfoListHtml(list) {
+            let dataList = [];
+            if (list.length == 0) {
+                return dataList;
+            } else {
+                list.forEach(function(v, i) {
+                    // 학번
+                    var stdntNo;
+                    if (v.stdntNo == "" || v.stdntNo == null) {
+                        stdntNo = "-";
+                    } else {
+                        stdntNo = v.stdntNo;
+                    }
+                    // 반영비율
+                    var absnceRfltrt;
+                    if (v.absnceRfltrt == "" || v.absnceRfltrt == null) {
+                        absnceRfltrt = '-'
+                    } else {
+                        absnceRfltrt = v.absnceRfltrt + "%";
+                    }
+                    // 결시승인
+                    var aplyStsStts;
+                    if (v.aplyStsStts == "Y") {
+                        aplyStsStts = "<span>승인</span>";
+                    } else {
+                        aplyStsStts = "<span class='fcRed'>미승인</span>";
+                    }
+                    dataList.push({
+                        lineNo:         v.lineNo
+                        , deptnm:       v.deptnm
+                        , userRprsId:   v.userRprsId
+                        , stdntNo:      stdntNo
+                        , userId:       v.userId
+                        , usernm:       v.usernm
+                        , absnceCts:    v.absnceCts
+                        , absnceRfltrt: absnceRfltrt
+                        , aplyStsStts:  aplyStsStts
+                        , mobileNo:     v.mobileNo
+                        , email:        v.email
+                    });
+                });
+            }
+            return dataList;
+        }
+        /* 3 */
+        function loadSbstUserInfoList(pageIndex) {
+            initSbstUserInfoListTable();
             PAGE_INDEX = pageIndex || PAGE_INDEX;
             UiComm.showLoading(true);
             $.ajax({
-                url: "/exam/tkexamUserPaging.do",
+                url: "/exam/examSbstUserPaging.do",
                 type: "GET",
                 data: {
-                    examBscId: curExamBscId,
-                    byteamSubrexamUseyn: curByteamSubrexamUseyn,
-                    pageIndex: PAGE_INDEX,
-                    listScale: LIST_SCALE
+                    examBscId   : curExamBscId,
+                    pageIndex   : PAGE_INDEX,
+                    listScale   : LIST_SCALE
                 },
                 dataType: "json",
                 success: function(data) {
                     if (data.result > 0) {
-                        examInfoListTable.clearData();
-                        examInfoListTable.replaceData(data.returnList || []);
-                        examInfoListTable.setPageInfo(data.pageInfo);
+                        var returnList = data.returnList || [];
+                        var dataList   = createSbstUserInfoListHtml(returnList);
+                        sbstUserInfoListTable.clearData();
+                        sbstUserInfoListTable.replaceData(dataList);
+                        sbstUserInfoListTable.setPageInfo(data.pageInfo);
                     } else {
                         alert(data.message);
                     }
@@ -98,11 +133,6 @@
                     UiComm.showLoading(false);
                 }
             });
-        }
-        /* 3 */
-        function changeInfoListScale(scale) {
-            LIST_SCALE = scale;
-            loadExamInfoList(1);
         }
 
         /*****************************************************************************
@@ -176,6 +206,33 @@
             $("#examSubsbjctbody").append(html);
         }
 
+        /*****************************************************************************
+         * form 요소 제어 함수
+         * 1. eventSbstTypeRd :     시험 대체 유형 라디오 버튼 change 이벤트
+         * 2. initQuizCheckbox:     퀴즈 체크박스 초기값 세팅
+         *****************************************************************************/
+        /* 1 */
+        function eventSbstTypeRd() {
+            $('input[name="sbst-type-rd"]').on('change', function() {
+                if ($(this).val() === 'ASMT') {
+                    $('#asmt-write').show();
+                    $('#quiz-write').hide();
+                } else {
+                    $('#quiz-write').show();
+                    $('#asmt-write').hide();
+                }
+            });
+        }
+        /* 2 */
+        function initQuizCheckbox() {
+            if ('${sbstVO.qstnRndmyn}' === 'Y') {
+                $('#quiz-mix-type').trigger('click');
+            }
+            if ('${sbstVO.qstnVwitmRndmyn}' === 'Y') {
+                $('#quiz-view-mix-type').trigger('click');
+            }
+        }
+
         /**
          * 시험 화면 이동
          * @param {String}  examBscId           - 시험 기본 ID
@@ -204,14 +261,48 @@
             submitForm(urlMap[tab], "", "", kvArr);
         }
 
+        /* 메세지 전송 기능 */
+        function sendMsg() {
+            var rcvUserInfoStr = "";
+            var sendCnt = 0;
+
+            $.each($('#sbstUserList').find("input:checkbox[name=evalChk]:not(:disabled):checked"), function() {
+                sendCnt++;
+                if (sendCnt > 1) rcvUserInfoStr += "|";
+                rcvUserInfoStr += $(this).attr("user_id");
+                rcvUserInfoStr += ";" + $(this).attr("user_nm");
+                rcvUserInfoStr += ";" + $(this).attr("mobile");
+                rcvUserInfoStr += ";" + $(this).attr("email");
+            });
+
+            if (sbstUserInfoListTable.getSelectedData("userId").length == 0) {
+                /* 메시지 발송 대상자를 선택하세요. */
+                alert("<spring:message code='common.alert.sysmsg.select_user'/>");
+                return;
+            }
+
+            window.open("about:blank", "msgWindow", "scrollbars=yes,width=1280,height=950,location=no,resizable=yes");
+
+            var form = document.alarmForm;
+            form.action = "<%=CommConst.SYSMSG_URL_SEND%>";
+            form.target = "msgWindow";
+            form[name='alarmType'].value = "S"; // 발송구분(SMS:S, PUSH:P, EMAIL:E, 쪽지:N)
+            form[name='rcvUserInfoStr'].value = rcvUserInfoStr; //보내는사람 정보
+            form.submit();
+        }
+
         $(document).ready(function() {
+            loadSbstUserInfoList();
+
             setAccordion();
             eventAccordion();
 
-            // loadExamInfoList();
             if (hasSubSubject == 'Y') {
                 examSubAsmtListAppend();
             }
+
+            initQuizCheckbox();
+            eventSbstTypeRd();
         });
 	</script>
 </head>
@@ -329,7 +420,6 @@
                                 <!-- 고정 영역 -->
                                 <div class="board_top">
                                     <i class="icon-svg-openbook"></i>
-                                    <!-- 탭에 따라서 메인 제목을 바꾸는 로직이 필요하다 -->
                                     <h3 class="board-title">시험 대체</h3>
                                     <div class="right-area">
                                         <button type="button" class="btn basic" onclick="examViewMv(8)">목록</button>
@@ -473,30 +563,43 @@
                                 <div class="board_top margin-top-4 padding-2">
                                     <h4>[${examVO.examGbnnm}] 시험 대체 설정</h4>
                                     <div class="right-area">
-                                        <button type="button" id="save-sbst-btn" class="btn type2">저장</button>
-                                        <button type="button" id="quiz-mng-btn" class="btn type2">문항관리</button>
+                                        <button type="button" class="btn type2">저장</button>
+                                        <c:if test="${not empty gbn}">
+                                            <button type="button" class="btn type2">삭제</button>
+                                            <c:if test="${gbn eq 'QUIZ'}">
+                                                <button type="button" class="btn type2">문항관리</button>
+                                            </c:if>
+                                        </c:if>
                                     </div>
                                 </div>
                                 <!-- 시험대체 선택 영역 -->
-                                <div class="search-typeA margin-bottom-4">
-                                    <div class = "item" id = "serch-sbst">
-                                        <span class = "item_tit">
-                                            <label for = "">시험대체 유형</label>
-                                        </span>
-                                        <div class="form-inline">
-                                            <span class="custom-input">
-                                                <input type="radio" name="absnt-type-rd" id="absnt-type-amst-rd" value="Y" checked="">
-                                                <label for="absnt-type-amst-rd">과제</label>
-                                            </span>
-                                            <span class="custom-input ml5">
-                                                <input type="radio" name="absnt-type-rd" id="absnt-type-quiz-rd" value="N">
-                                                <label for="absnt-type-quiz-rd">퀴즈</label>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <table class = "table-type5" >
+                                    <colgroup>
+                                        <col class="width-15per" />
+                                        <col class="" />
+                                    </colgroup>
+                                    <tbody>
+                                        <tr>
+                                            <th>
+                                                <label for="sbst-type-label" class ="req">시험대체 유형</label>
+                                            </th>
+                                            <td>
+                                                <div class="form-row">
+                                                    <span class="custom-input">
+                                                        <input type="radio" name="sbst-type-rd" id="sbst-type-amst-rd" value="ASMT" ${gbn eq 'ASMT' || empty gbn ? 'checked' : '' } ${empty gbn ? '' : 'disabled'}>
+                                                        <label for="sbst-type-amst-rd">과제</label>
+                                                    </span>
+                                                    <span class="custom-input ml5">
+                                                        <input type="radio" name="sbst-type-rd" id="sbst-type-quiz-rd" value="QUIZ" ${gbn eq 'QUIZ' ? 'checked' : '' } ${empty gbn ? '' : 'disabled'}>
+                                                        <label for="sbst-type-quiz-rd">퀴즈</label>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                                 <!-- [과제] 시험 대체 form 영역 -->
-                                <form id = "asmt-write" name = "asmt-write">
+                                <form id = "asmt-write" name = "asmt-write" style="${gbn eq 'ASMT' || empty gbn ? '' : 'display:none;'}">
                                     <table class = "table-type5">
                                         <colgroup>
                                             <col class="width-15per" />
@@ -511,7 +614,10 @@
                                                 </th>
                                                 <td>
                                                     <div class="form-row">
-                                                        <input class="form-control width-50per" type="text" name="name" id="asmt-ttl-label" value="" placeholder="과제명 입력" required="true" inputmask="byte" maxlen="30" minlen="3" autocomplete="off">
+                                                        <input class="form-control width-50per"
+                                                               type="text" name="name" id="asmt-ttl" value="${sbstVO.asmtTtl}"
+                                                               placeholder="과제명을 입력하세요" required="true" inputmask="byte"
+                                                               maxlen="150" autocomplete="off">
                                                     </div>
                                                 </td>
                                             </tr>
@@ -525,14 +631,22 @@
                                                         <dl>
                                                             <dd>
                                                                 <div class="editor-box">
-                                                                    <label for="asmt-cts" class="hide">Content</label>
-                                                                    <textarea id="asmt-cts" name="asmt-cts" required="true"></textarea>
+                                                                    <label for="asmtCts" class="hide">Content</label>
+                                                                    <textarea id="asmtCts" name="asmtCts" required="true">
+                                                                        <c:out value="${sbstVO.asmtCts}"/>
+                                                                    </textarea>
+                                                                        <script>
+                                                                            // HTML 에디터
+                                                                            editors['editor_asmt'] = UiEditor({
+                                                                                targetId: "asmtCts",
+                                                                                uploadPath: "/asmt",
+                                                                                height: "400px"
+                                                                            });
+                                                                        </script>
                                                                 </div>
                                                             </dd>
                                                         </dl>
                                                     </li>
-                                                    </section>
-                                                    <!--//섹션 에디터-->
                                                 </td>
                                             </tr>
                                             <!-- [과제] 제출기간 -->
@@ -542,11 +656,11 @@
                                                 </th>
                                                 <td>
                                                     <div class="date_area">
-                                                        <input type="text" placeholder="시작일" id="asmt-sbmsn-sdttm1" class="datepicker" timeId="asmt-sbmsn-sdttm2" required="true">
-                                                        <input type="text" placeholder="시작시간" id="asmt-sbmsn-sdttm2" class="timepicker" dateId="asmt-sbmsn-sdttm1" required="true">
+                                                        <input type="text" class="datepicker" id="dateAsmtSt" name="dateAsmtSt" timeId="timeAsmtSt" toDate="dateAsmtEd" required="true" placeholder="시작일" value="${fn:substring(sbstVO.asmtSbmsnSdttm,0,8)}">
+                                                        <input type="text" class="timepicker" id="timeAsmtSt" name="timeAsmtSt" dateId="dateAsmtSt" required="true" placeholder="시작시간" value="${fn:substring(sbstVO.asmtSbmsnSdttm,8,12)}">
                                                         <span class="txt-sort">~</span>
-                                                        <input type="text" placeholder="종료일" id="asmt-sbmsn-edttm1" class="datepicker" timeId="asmt-sbmsn-edttm2" required="true">
-                                                        <input type="text" placeholder="종료시간" id="asmt-sbmsn-edttm2" class="timepicker" dateId="asmt-sbmsn-edttm1" required="true">
+                                                        <input type="text" class="datepicker" id="dateAsmtEd" name="dateAsmtEd" timeId="timeAsmtEd" fromDate="dateAsmtSt" required="true" placeholder="종료일" value="${fn:substring(sbstVO.asmtSbmsnEdttm,0,8)}">
+                                                        <input type="text" class="timepicker" id="timeAsmtEd" name="timeAsmtEd" dateId="dateAsmtEd" required="true" placeholder="종료시간" value="${fn:substring(sbstVO.asmtSbmsnEdttm,8,12)}">
                                                     </div>
                                                 </td>
                                             </tr>
@@ -558,11 +672,11 @@
                                                 <td>
                                                     <div class="form-inline">
                                                         <span class="custom-input">
-                                                            <input type="radio" name="asmt-mkr-rfltyn-rd" id="asmt-mkr-rfltyn-y-rd" value="Y" checked="">
+                                                            <input type="radio" name="asmt-mkr-rfltyn-rd" id="asmt-mkr-rfltyn-y-rd" value="Y" ${sbstVO.mrkRfltyn eq 'Y' || empty gbn ? 'checked' : '' }>
                                                             <label for="asmt-mkr-rfltyn-y-rd">예</label>
                                                         </span>
                                                         <span class="custom-input ml5">
-                                                            <input type="radio" name="asmt-mkr-rfltyn-rd" id="asmt-mkr-rfltyn-n-rd" value="N">
+                                                            <input type="radio" name="asmt-mkr-rfltyn-rd" id="asmt-mkr-rfltyn-n-rd" value="N" ${sbstVO.mrkRfltyn eq 'N' ? 'checked' : '' }>
                                                             <label for="asmt-mkr-rfltyn-n-rd">아니오</label>
                                                         </span>
                                                     </div>
@@ -576,11 +690,11 @@
                                                 <td>
                                                     <div class="form-inline">
                                                         <span class="custom-input">
-                                                            <input type="radio" name="asmt-mkr-oyn-rd" id="asmt-mkr-oyn-y-rd" value="Y" checked="">
+                                                            <input type="radio" name="asmt-mkr-oyn-rd" id="asmt-mkr-oyn-y-rd" value="Y" ${sbstVO.mrkOyn eq 'Y' || empty gbn ? 'checked' : '' }>
                                                             <label for="asmt-mkr-oyn-y-rd">예</label>
                                                         </span>
                                                         <span class="custom-input ml5">
-                                                            <input type="radio" name="asmt-mkr-oyn-rd" id="asmt-mkr-oyn-n-rd" value="N">
+                                                            <input type="radio" name="asmt-mkr-oyn-rd" id="asmt-mkr-oyn-n-rd" value="N" ${sbstVO.mrkOyn eq 'N' ? 'checked' : '' }>
                                                             <label for="asmt-mkr-oyn-n-rd">아니오</label>
                                                         </span>
                                                     </div>
@@ -594,11 +708,11 @@
                                                 <td>
                                                     <div class="form-inline">
                                                         <span class="custom-input">
-                                                            <input type="radio" name="asmt-evl-scr-tycd-rd" id="asmt-evl-scr-tycd-scr-rd" value="SCR" checked="">
+                                                            <input type="radio" name="asmt-evl-scr-tycd-rd" id="asmt-evl-scr-tycd-scr-rd" value="SCR" ${sbstVO.evlScrTycd eq 'SCR' || empty gbn ? 'checked' : '' }>
                                                             <label for="asmt-evl-scr-tycd-scr-rd">점수형</label>
                                                         </span>
                                                         <span class="custom-input ml5">
-                                                            <input type="radio" name="asmt-evl-scr-tycd-rd" id="asmt-evl-scr-tycd-rblc-rd" value="RUBRIC_SCR">
+                                                            <input type="radio" name="asmt-evl-scr-tycd-rd" id="asmt-evl-scr-tycd-rblc-rd" value="RUBRIC_SCR" ${sbstVO.evlScrTycd eq 'RUBRIC_SCR' ? 'checked' : '' }>
                                                             <label for="asmt-evl-scr-tycd-rblc-rd">루브릭</label>
                                                         </span>
                                                     </div>
@@ -612,11 +726,11 @@
                                                 <td>
                                                     <div class="form-inline">
                                                         <span class="custom-input">
-                                                            <input type="radio" name="asmt-sbasmt-tycd-rd" id="asmt-sbasmt-tycd-fl-rd" value="FILE" checked="">
+                                                            <input type="radio" name="asmt-sbasmt-tycd-rd" id="asmt-sbasmt-tycd-fl-rd" value="FILE" ${sbstVO.sbasmtTycd eq 'FILE' || empty gbn ? 'checked' : '' }>
                                                             <label for="asmt-sbasmt-tycd-fl-rd">파일</label>
                                                         </span>
                                                         <span class="custom-input ml5">
-                                                            <input type="radio" name="asmt-sbasmt-tycd-rd" id="asmt-sbasmt-tycd-inpt-txt-rd" value="INPUT_TEXT">
+                                                            <input type="radio" name="asmt-sbasmt-tycd-rd" id="asmt-sbasmt-tycd-inpt-txt-rd" value="INPUT_TEXT" ${sbstVO.sbasmtTycd eq 'INPUT_TEXT' ? 'checked' : '' }>
                                                             <label for="asmt-sbasmt-tycd-inpt-txt-rd">텍스트</label>
                                                         </span>
                                                     </div>
@@ -641,8 +755,8 @@
                                                                 <label for="pdf">PDF</label>
                                                             </span>
                                                             <span class="custom-input">
-                                                                <input type="checkbox" name="name" id="text">
-                                                                <label for="text">TEXT</label>
+                                                                <input type="checkbox" name="name" id="txt">
+                                                                <label for="text">TXT</label>
                                                             </span>
                                                             <span class="custom-input">
                                                                 <input type="checkbox" name="name" id="program-source">
@@ -699,7 +813,7 @@
                                     </table>
                                 </form>
                                 <!-- [퀴즈] 시험 대체 form 영역 -->
-                                <form id = "quiz-write" name = "quiz-write">
+                                <form id = "quiz-write" name = "quiz-write" style="${gbn eq 'QUIZ' ? '' : 'display:none;'}">
                                     <table class = "table-type5">
                                         <colgroup>
                                             <col class="width-15per" />
@@ -714,7 +828,10 @@
                                                 </th>
                                                 <td>
                                                     <div class="form-row">
-                                                        <input class="form-control width-50per" type="text" name="name" id="quiz-ttl-label" value="" placeholder="퀴즈명 입력" required="true" inputmask="byte" maxlen="30" minlen="3" autocomplete="off">
+                                                        <input class="form-control width-50per"
+                                                               type="text" name="name" id="quiz-ttl" value="${sbstVO.examTtl}"
+                                                               placeholder="퀴즈명을 입력하세요." required="true" inputmask="byte"
+                                                               maxlen="150" autocomplete="off">
                                                     </div>
                                                 </td>
                                             </tr>
@@ -728,14 +845,22 @@
                                                         <dl>
                                                             <dd>
                                                                 <div class="editor-box">
-                                                                    <label for="quiz-cts" class="hide">Content</label>
-                                                                    <textarea id="quiz-cts" name="quiz-cts" required="true"></textarea>
+                                                                    <label for="quizCts" class="hide">Content</label>
+                                                                    <textarea id="quizCts" name="quizCts" required="true">
+                                                                        <c:out value="${sbstVO.examCts}"/>
+                                                                    </textarea>
+                                                                    <script>
+                                                                        // HTML 에디터
+                                                                        editors['editor_quiz'] = UiEditor({
+                                                                            targetId: "quizCts",
+                                                                            uploadPath: "/quiz",
+                                                                            height: "400px"
+                                                                        });
+                                                                    </script>
                                                                 </div>
                                                             </dd>
                                                         </dl>
                                                     </li>
-                                                    </section>
-                                                    <!--//섹션 에디터-->
                                                 </td>
                                             </tr>
                                             <!-- [퀴즈] 응시기간 -->
@@ -745,11 +870,24 @@
                                                 </th>
                                                 <td>
                                                     <div class="date_area">
-                                                        <input type="text" placeholder="시작일" id="quiz-sbmsn-sdttm1" class="datepicker" timeId="quiz-sbmsn-sdttm2" required="true">
-                                                        <input type="text" placeholder="시작시간" id="quiz-sbmsn-sdttm2" class="timepicker" dateId="quiz-sbmsn-sdttm1" required="true">
+                                                        <input type="text" class="datepicker" id="dateQuizSt" name="dateQuizSt" timeId="timeQuizSt" toDate="dateQuizEd" required="true" placeholder="시작일" value="${fn:substring(sbstVO.examPsblSdttm,0,8)}">
+                                                        <input type="text" class="timepicker" id="timeQuizSt" name="timeQuizSt" dateId="dateQuizSt" required="true" placeholder="시작시간" value="${fn:substring(sbstVO.examPsblSdttm,8,12)}">
                                                         <span class="txt-sort">~</span>
-                                                        <input type="text" placeholder="종료일" id="quiz-sbmsn-edttm1" class="datepicker" timeId="quiz-sbmsn-edttm2" required="true">
-                                                        <input type="text" placeholder="종료시간" id="quiz-sbmsn-edttm2" class="timepicker" dateId="quiz-sbmsn-edttm1" required="true">
+                                                        <input type="text" class="datepicker" id="dateQuizEd" name="dateQuizEd" timeId="timeQuizEd" fromDate="dateQuizSt" required="true" placeholder="종료일" value="${fn:substring(sbstVO.examPsblEdttm,0,8)}">
+                                                        <input type="text" class="timepicker" id="timeQuizEd" name="timeQuizEd" dateId="dateQuizEd" required="true" placeholder="종료시간" value="${fn:substring(sbstVO.examPsblEdttm,8,12)}">
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <!-- 시험시간 -->
+                                            <tr>
+                                                <th>
+                                                    <label for="timeLabel" class = "req">시험시간</label>
+                                                </th>
+                                                <td>
+                                                    <div class="form-row">
+                                                        <div class="input_btn">
+                                                            <input class="form-control sm" id="quizMnts" type="text" inputmask="numeric" maxlength="3" required="true" value="${sbstVO.examMnts}"><label>분</label>
+                                                        </div>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -761,11 +899,11 @@
                                                 <td>
                                                     <div class="form-inline">
                                                         <span class="custom-input">
-                                                            <input type="radio" name="quiz-mkr-rfltyn-rd" id="quiz-mkr-rfltyn-y-rd" value="Y" checked="">
+                                                            <input type="radio" name="quiz-mkr-rfltyn-rd" id="quiz-mkr-rfltyn-y-rd" value="Y" ${sbstVO.mrkRfltyn eq 'Y' || empty gbn ? 'checked' : '' }>
                                                             <label for="quiz-mkr-rfltyn-y-rd">예</label>
                                                         </span>
                                                         <span class="custom-input ml5">
-                                                            <input type="radio" name="quiz-mkr-rfltyn-rd" id="quiz-mkr-rfltyn-n-rd" value="N">
+                                                            <input type="radio" name="quiz-mkr-rfltyn-rd" id="quiz-mkr-rfltyn-n-rd" value="N" ${sbstVO.mrkRfltyn eq 'N' ? 'checked' : '' }>
                                                             <label for="quiz-mkr-rfltyn-n-rd">아니오</label>
                                                         </span>
                                                     </div>
@@ -779,11 +917,11 @@
                                                 <td>
                                                     <div class="form-inline">
                                                         <span class="custom-input">
-                                                            <input type="radio" name="quiz-mkr-oyn-rd" id="quiz-mkr-oyn-y-rd" value="Y" checked="">
+                                                            <input type="radio" name="quiz-mkr-oyn-rd" id="quiz-mkr-oyn-y-rd" value="Y" ${sbstVO.mrkOyn eq 'Y' || empty gbn ? 'checked' : '' }>
                                                             <label for="quiz-mkr-oyn-y-rd">예</label>
                                                         </span>
                                                         <span class="custom-input ml5">
-                                                            <input type="radio" name="quiz-mkr-oyn-rd" id="quiz-mkr-oyn-n-rd" value="N">
+                                                            <input type="radio" name="quiz-mkr-oyn-rd" id="quiz-mkr-oyn-n-rd" value="N" ${sbstVO.mrkOyn eq 'N' ? 'checked' : '' }>
                                                             <label for="quiz-mkr-oyn-n-rd">아니오</label>
                                                         </span>
                                                     </div>
@@ -797,12 +935,12 @@
                                                 <td>
                                                     <div class="form-inline">
                                                         <span class="custom-input">
-                                                            <input type="radio" name="quiz-view-type-rd" id="quiz-view-type-all-rd" value="ALL" checked="">
+                                                            <input type="radio" name="quiz-view-type-rd" id="quiz-view-type-all-rd" value="WHOL" ${sbstVO.qstnDsplyGbncd eq 'WHOL' || empty gbn ? 'checked' : '' }>
                                                             <label for="quiz-view-type-all-rd">전체 문제표시</label>
                                                         </span>
                                                         <span class="custom-input ml5">
-                                                            <input type="radio" name="quiz-view-type-rd" id="quiz-view-type-one-rd" value="ONE">
-                                                            <label for="quiz-view-type-one-rd">1문제씩 표시</label>
+                                                            <input type="radio" name="quiz-view-type-rd" id="quiz-view-type-one-rd" value="EACH" ${sbstVO.qstnDsplyGbncd eq 'EACH' ? 'checked' : '' }>
+                                                            <label for="quiz-view-type-one-rd">한문제씩 표시</label>
                                                         </span>
                                                     </div>
                                                 </td>
@@ -836,28 +974,31 @@
                                                 </th>
                                                 <td>
                                                     <uiex:dextuploader
-                                                            id="quizFileUploader"
-                                                            path="/quiz"
-                                                            limitCount="5"
-                                                            limitSize="100"
-                                                            oneLimitSize="100"
-                                                            listSize="3"
-                                                            fileList=""
-                                                            finishFunc="finishUpload()"
-                                                            allowedTypes="*"
+                                                        id="quizFileUploader"
+                                                        path="/quiz"
+                                                        limitCount="5"
+                                                        limitSize="100"
+                                                        oneLimitSize="100"
+                                                        listSize="3"
+                                                        fileList=""
+                                                        finishFunc="finishUpload()"
+                                                        allowedTypes="*"
                                                     />
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </form>
-                                <!-- 가운데 영역 -->
-                                <div class="board_top">
+                                <!-- 시험 대체 대상자 영역 -->
+                                <div class="board_top margin-top-4">
+                                    <h4>[${examVO.examGbnnm}] 시험 대체 대상자</h4>
                                     <div class="right-area">
-                                        <button type="button" id="sms-send2-btn" class="btn type2">보내기</button>
+                                        <a href="javascript:sendMsg()" class="btn basic small">보내기</a>
                                     </div>
                                 </div>
-                                시험 대체 대상자 tabulator
+                                <div id = "sbstUserArea">
+                                    <div id="sbstUserList"></div>
+                                </div>
                             </div>
                         </div>
                     </div>

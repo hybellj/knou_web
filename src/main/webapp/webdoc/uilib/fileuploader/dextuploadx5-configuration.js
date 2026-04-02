@@ -5,6 +5,8 @@
 	let productPath = (new URL(document.currentScript.src)).pathname;
 	productPath = productPath.substring(0, productPath.lastIndexOf('/') + 1);
 
+	console.log("productPath="+productPath);
+
     if (!location.origin) location.origin = location.protocol + "//" + location.host;
 
     //console.log("location.origin ::: "+location.origin);

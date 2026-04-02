@@ -820,7 +820,7 @@ dashboard - sub
 .course_history .course_week li > .cont { display: block; margin: 0 2rem; overflow: hidden; height: 0; transition: all 0.3s ease; }
 .course_history .course_week li > .cont .table-wrap.scroll { height: 15rem; overflow-y: auto;}
 .course_history .course_week li > .cont .table-type1 {font-size: 1.4rem;}
-.course_history .course_week li.active .cont { height: auto; margin:2rem 2rem 2rem 2rem; overflow: visible;}
+.course_history .course_week li.active .cont { height: auto !important; margin:2rem 2rem 2rem 2rem; overflow: visible;}
 .course_history .course_week li.active .title-wrap {border-radius: 8px 8px 0 0; border-bottom: 1px solid #DEE2E6;}
 .course_history .course_week li.active .arrow { transform: rotate(180deg); }
 .course_history .course_week > li + li {margin-top: 1.8rem;}

@@ -1,6 +1,6 @@
 
 // 기본설정
-var dex5Object 	= new Object();
+let dex5Object 	= new Object();
 dex5Object.path = "";							// 업로드 경로
 dex5Object.finishFunc = "";						// 업로드 종료시 호출
 dex5Object.deletelFileId =  new Array();		// 업로드된 파일 정보를 업로드 컴포넌트에서 보여줄때 사용
@@ -16,16 +16,109 @@ dex5Object.noExtension = "exe,com,bat,cmd,jsp,msi,html,htm,js,scr,asp,aspx,php,p
 dex5Object.fileUploadTotalCount = 0; 			// 파일 업로드 갯수
 dex5Object.fileUploadName = new Array();		// 파일명 목록
 dex5Object.fileUploadId = new Array();			// 파일ID 목록
+dex5Object.uploadUrl = "/dext/uploadFileDext.up";			// 업로드URL(일반)
+dex5Object.uploadUrlBig = "/dext/uploadBulkFileDexts.up";	// 업로드URL(대용량)
 
-var fileInfo = "";
-var uplod_result = false;
+let fileInfo = "";
+let uplod_result = false;
 
 // 업로더 환경 변수
-var DX_ENV = new Object();
+let DX_ENV = new Object();
+
+// 파일업로더 생성 (Dextuploader)
+function UiFileUploader(opts) {
+	let id = opts.id;
+	let targetId = opts.targetId;
+	let uploadMode = (opts.bigSize == undefined || !opts.bigSize) ? "ORAF" : "EXNJ";
+	let lang = (opts.lang == undefined ? "ko" : opts.lang);
+	let uploadUrl = opts.uploadUrl;
+
+	if (uploadUrl == undefined || uploadUrl == "") {
+		if (uploadMode == "ORAF") {
+			uploadUrl = dex5Object.uploadUrl;
+		}
+		else {
+			uploadUrl = dex5Object.uploadUrlBig;
+		}
+	}
+	if (uploadUrl.indexOf("http") != 0) {
+		uploadUrl = window.location.origin + uploadUrl;
+	}
+
+	let uiMode = opts.uiMode == undefined ? "normal" : opts.uiMode;
+	let style = opts.style == undefined ? "list" : opts.style;
+	let listSize = opts.listSize == undefined ? 1 : opts.listSize;
+	let height = 72 + (listSize * 36);
+	if (style == "single") {
+		height = 35;
+	}
+	if (uiMode == "simple") {
+		height = (listSize * 36);
+	}
+
+	let container = `
+		<div id="${id}-container" class="dext5-container" style="width:100%;height:${height}px;"></div>
+		<div id="${id}-btn-area" class="dext5-btn-area" style="">
+			<button type="button" id="${id}_btn-add" style="" title="${getMsg('select')}">${getMsg('select')}</button>
+			<button type="button" id="${id}_btn-delete" disabled='true' style="" title="${getMsg('delete')}">${getMsg('delete')}</button>
+			<button type="button" id="${id}_btn-reset" style="display:none" title="${getMsg('reset')}" onclick="resetDextFiles('fileUploader')"><i class='xi-refresh'></i></button>
+		</div>
+	`;
+
+	$("#"+opts.targetId).append(container);
+
+	DX_ENV[id] = {
+		totalCount: 0,
+		fileUploadNames: new Array(),
+		fileUploadIds: new Array(),
+		blockSize: dex5Object.blockSize,
+		uploadMode: (opts.bigSize == undefined || !opts.bigSize) ? "ORAF" : "EXNJ",
+		fileCount: (opts.limitCount == undefined ? dex5Object.fileCount : opts.limitCount),
+		maxTotalSize: (opts.limitSize == undefined ? dex5Object.maxTotalSize : (opts.limitSize * 1024 * 1024)),
+	    maxFileSize: (opts.oneLimitSize == undefined ? dex5Object.maxFileSize : (opts.oneLimitSize * 1024 * 1024)),
+		minFileSize: dex5Object.minFileSize,
+		extensionFilter: opts.allowedTypes == undefined ? "*" : opts.allowedTypes,
+		noExtension: opts.noExtension == undefined ? dex5Object.noExtension : opts.noExtension,
+	    finishFunc: opts.finishFunc == undefined ? "" : opts.finishFunc,
+	    uploadUrl: uploadUrl,
+	    path: (opts.path == undefined ? "" : opts.path),
+		oldFiles: opts.fileList == undefined ? "" : opts.fileList,
+		useFileBox: (opts.useFileBox == undefined ? false : opts.useFileBox),
+		btnFile: id+"_btn-add",
+		btnDelete: id+"_btn-delete",
+		lang: (opts.lang == undefined ? "ko" : opts.lang),
+		style: style,
+		uiMode: uiMode
+	};
+
+	dx5.create({
+	    mode: "multi",
+	    id: id,
+	    parentId: id+"-container",
+	    btnFile: id+"_btn-add",
+	    btnDeleteSelected: id+"_btn-delete",
+	    lang: (opts.lang == undefined ? "ko" : opts.lang),
+		style: style,
+		statusBarVisible:true
+	});
+
+	// 메시지
+	function getMsg(key, ...args) {
+	    let msg = UiFileUploaderMsg[lang][key];
+	    msg = msg.replace(/\{(\d+)\}/g, (match, index) => {
+	        if (index < args.length && args[index] !== undefined && args[index] !== null) {
+	            return args[index];
+	        }
+	        return match;
+	    });
+
+	    return msg;
+	}
+}
 
 
 // 파일업로더 생성 (Dextuploader)
-function UiFileUploader(data) {
+function UiFileUploader_old(data) {
 	DX_ENV[data.id] = {
 		totalCount: 0,
 		fileUploadNames: new Array(),
@@ -537,3 +630,28 @@ function getDextNewFileId() {
 
 	return newId + randStr;
 }
+
+
+// 파일업로더 메시지
+const UiFileUploaderMsg = {
+    ko: {
+        select: "파일선택",
+        delete: "삭제",
+        reset: "초기화"
+    },
+    en: {
+		select: "Select",
+		delete: "Delete",
+		reset: "Reset"
+    },
+    ja: {
+		select: "파일선택",
+		delete: "삭제",
+		reset: "초기화"
+    },
+    zh: {
+		select: "파일선택",
+		delete: "삭제",
+		reset: "초기화"
+    }
+};

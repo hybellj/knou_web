@@ -79,11 +79,17 @@ public class ExamVO extends DefaultVO {
     private String  gbn;                // 구분 (ASMT: 과제, QUIZ: 퀴즈)
     private String  asmtId;             // 과제 ID
     private String  asmtTtl;            // 과제 제목
+    private String  asmtCts;            // 과제 내용
     private String  asmtSbmsnSdttm;     // 과제 제출 시작일시
     private String  asmtSbmsnEdttm;     // 과제 제출 종료일시
+    private String  sbasmtTycd;         // 대체과제 유형코드
+    private String  sbmsnFileMimeTycd;  // 제출 파일 MIME 유형코드
     private String  evlScrTycd;         // 평가점수유형코드
     private String  evlScrTynm;         // 평가점수유형명
     private String  regDttm;            // 등록일시
+    private String  qstnDsplyGbncd;     // 문항 표시 구분코드
+    private String  qstnRndmyn;         // 문항 랜덤 여부
+    private String  qstnVwitmRndmyn;    // 문항 보기 항목 랜덤 여부
 
     private String  absnceTtl;          // 결시 사유
     private String  absnceCts;          // 결시 사유
@@ -499,6 +505,12 @@ public class ExamVO extends DefaultVO {
     public void setAsmtTtl(String asmtTtl) {
         this.asmtTtl = asmtTtl;
     }
+    public String getAsmtCts() {
+        return asmtCts;
+    }
+    public void setAsmtCts(String asmtCts) {
+        this.asmtCts = asmtCts;
+    }
     public String getAsmtSbmsnSdttm() {
         return asmtSbmsnSdttm;
     }
@@ -510,6 +522,36 @@ public class ExamVO extends DefaultVO {
     }
     public void setAsmtSbmsnEdttm(String asmtSbmsnEdttm) {
         this.asmtSbmsnEdttm = asmtSbmsnEdttm;
+    }
+    public String getSbasmtTycd() {
+        return sbasmtTycd;
+    }
+    public void setSbasmtTycd(String sbasmtTycd) {
+        this.sbasmtTycd = sbasmtTycd;
+    }
+    public String getSbmsnFileMimeTycd() {
+        return sbmsnFileMimeTycd;
+    }
+    public void setSbmsnFileMimeTycd(String sbmsnFileMimeTycd) {
+        this.sbmsnFileMimeTycd = sbmsnFileMimeTycd;
+    }
+    public String getQstnDsplyGbncd() {
+        return qstnDsplyGbncd;
+    }
+    public void setQstnDsplyGbncd(String qstnDsplyGbncd) {
+        this.qstnDsplyGbncd = qstnDsplyGbncd;
+    }
+    public String getQstnRndmyn() {
+        return qstnRndmyn;
+    }
+    public void setQstnRndmyn(String qstnRndmyn) {
+        this.qstnRndmyn = qstnRndmyn;
+    }
+    public String getQstnVwitmRndmyn() {
+        return qstnVwitmRndmyn;
+    }
+    public void setQstnVwitmRndmyn(String qstnVwitmRndmyn) {
+        this.qstnVwitmRndmyn = qstnVwitmRndmyn;
     }
     public String getEvlScrTycd() {
         return evlScrTycd;

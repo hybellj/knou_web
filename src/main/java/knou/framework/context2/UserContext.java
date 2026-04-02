@@ -1,12 +1,15 @@
 package knou.framework.context2;
 
+import java.util.List;
 import java.util.Map;
+
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.lms.user.vo.UserVO;
 
 public class UserContext {
 	
-	// 삭제 예정입니다. 2023.03.31 by jinkoon
+	// 초기 UserContext와의 호환을 위해 유지 2026.04.02 by jinkoon
 	public UserContext(String orgId, String userId, String authrtCd
 			, String authrtGrpcd, String userRprsId, String userLastLogin) {
 		this.orgId = orgId;
@@ -16,7 +19,7 @@ public class UserContext {
 		this.userRprsId = userRprsId;
 		this.userLastLogin = userLastLogin;
 	}
-	// 삭제 예정입니다. 2023.03.31 by jinkoon
+	// 초기 UserContext와의 호환을 위해 유지 2026.04.02 by jinkoon
 	public UserContext(String orgId, String userId, String userTycd, String authrtCd
 			, String authrtGrpcd, String userRprsId, String userLastLogin) {
 		this.orgId = orgId;
@@ -52,6 +55,8 @@ public class UserContext {
 	UserVO	selectedUser;
 	
 	Map<String, UserVO> registeredUsers;
+	
+	List<EgovMap> userOrgIdsFromSubject;
 	
 	String 	orgId;
 	String	userRprsId;
@@ -227,6 +232,12 @@ public class UserContext {
 	public String getUserTycd() {
 		return this.userTycd;
 	}	
+	public List<EgovMap> getUserOrgIdsFromSubject() {
+		return userOrgIdsFromSubject;
+	}
+	public void setUserOrgIdsFromSubject(List<EgovMap> userOrgIdsFromSubject) {
+		this.userOrgIdsFromSubject = userOrgIdsFromSubject;
+	}
 	public void setDeptId(String deptId) {
 		this.deptId = deptId;
 	}

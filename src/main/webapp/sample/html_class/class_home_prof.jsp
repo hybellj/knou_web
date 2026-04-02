@@ -4,6 +4,7 @@
 <html lang="ko">
 <head>
 	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+        <jsp:param name="module" value="editor,fileuploader"/>
 		<jsp:param name="style" value="classroom"/>
 	</jsp:include>
 </head>
@@ -1227,7 +1228,9 @@
                     <div class="modal-btn-box">
                         <button type="button" class="btn modal__btn" data-modal-open="modal1">학습진도관리</button> 
                         <button type="button" class="btn modal__btn" data-modal-open="modal2">평가비중</button> 
-                        <button type="button" class="btn modal__btn" data-modal-open="modal3">평가방법 : 루브릭</button>                   
+                        <button type="button" class="btn modal__btn" data-modal-open="modal3">평가방법 : 루브릭</button>  
+                        <button type="button" class="btn modal__btn" data-modal-open="modal4">학습자료 수정</button>    
+                        <button type="button" class="btn modal__btn" data-modal-open="modal5">결시신청 현황</button>               
                     </div>
                     <!--// modal popup 보여주기 버튼(개발시 삭제) -->
 
@@ -1676,6 +1679,305 @@
                     </div>                                       
                                     
                     <div class="modal_btns">
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal 4 -->
+        <div class="modal-overlay" id="modal4" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-lg" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">학습자료 수정</h2> 
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body">                    
+
+                    <div class="board_top">
+                        <h3 class="board-title">1주차</h3>
+                        <div class="right-area">
+                            <span class="total_txt">학습기간 :<b> 2026.03.05 ~ 2026.03.16</b></span>
+                        </div>
+                    </div>
+
+                    <!--table-type-->
+                    <div class="table-wrap">
+                        <table class="table-type5">
+                            <colgroup>
+                                <col class="width-15per" />
+                                <col class="" />
+                            </colgroup>
+                            <tbody>                                
+                                <tr>
+                                    <th><label for="select_fullLabel">제목</label></th>
+                                    <td>
+                                        <div class="form-row">
+                                            <input class="form-control width-100per" type="text" name="name" id="name_label" value="" placeholder="제목 입력">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="sendUserCk">출결대상</label></th>
+                                    <td>
+                                        <span class="custom-input">
+                                            <input type="checkbox" name="sendUserCk" id="sendUserCk" checked>
+                                            <label for="sendUserCk">출결체크 대상에 포함</label>
+                                        </span>		
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="dataLabel">학습자료</label></th>
+                                    <td>
+                                        <div class="item_btns">
+                                            <a href="#0" class="active"><!-- 활성화 active 추가-->
+                                                <i class="icon-svg-play-circle" aria-hidden="true"></i>
+                                                <span>동영상</span>
+                                            </a>
+                                            <a href="#0">
+                                                <i class="icon-svg-layout-alt" aria-hidden="true"></i>
+                                                <span>PDF</span>
+                                            </a>
+                                            <a href="#0">
+                                                <i class="icon-svg-paperclip" aria-hidden="true"></i>
+                                                <span>파일</span>
+                                            </a>
+                                            <a href="#0">
+                                                <i class="icon-svg-share" aria-hidden="true"></i>
+                                                <span>소셜</span>
+                                            </a>
+                                            <a href="#0">
+                                                <i class="icon-svg-link" aria-hidden="true"></i>
+                                                <span>웹링크</span>
+                                            </a>
+                                            <a href="#0">
+                                                <i class="icon-svg-type-square" aria-hidden="true"></i>
+                                                <span>텍스트</span>
+                                            </a>
+                                        </div>	
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="attchFile">첨부파일</label></th>
+                                    <td>
+                                        <div id="fileUploader-container" class="dext5-container" style="width:100%;height:180px;"></div>
+                                        <div id="fileUploader-btn-area" class="dext5-btn-area" style=""><button type="button" id="fileUploader_btn-add" style="" title="파일선택">파일선택</button><button type="button" id="fileUploader_btn-delete" disabled='true' style="" title="삭제">삭제</button><button type="button" id="fileUploader_btn-reset" style="display:none" title="초기화" onclick="resetDextFiles('fileUploader')"><i class='xi-refresh'></i></button></div>
+                                        <script>
+                                        UiFileUploader({
+                                            id:"fileUploader",
+                                            parentId:"fileUploader-container",
+                                            btnFile:"fileUploader_btn-add",
+                                            btnDelete:"fileUploader_btn-delete",
+                                            lang:"ko",
+                                            uploadMode:"ORAF",
+                                            maxTotalSize:100,
+                                            maxFileSize:100,
+                                            extensionFilter:"*",
+                                            noExtension:"exe,com,bat,cmd,jsp,msi,html,htm,js,scr,asp,aspx,php,php3,php4,ocx,jar,war,py",
+                                            finishFunc:"finishUpload()",
+                                            uploadUrl:"https://localhost/dext/uploadFileDext.up?type=",
+                                            path:"/bbs",
+                                            fileCount:5,
+                                            oldFiles:[],
+                                            useFileBox:false,
+                                            style:"list",
+                                            uiMode:"normal"
+                                        });
+                                        </script>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="socialLabel">소셜</label></th>
+                                    <td>
+                                        <div class="form-tab">
+                                            <!-- Tab btn -->
+                                            <div class="tab_btn">
+                                                <a href="#tab01" class="current">URL 주소</a>
+                                                <a href="#tab02">소스코드</a>
+                                            </div>
+                                            <div id="tab01" class="tab-content">
+                                                <small class="note">* Youtube, TED, Vimeo의 동영상 주소를 입력하여 등록할 수 있습니다.</small>
+                                                <div class="form-row">
+                                                    <input class="form-control width-100per" type="text" name="name" id="url_label" value="" placeholder="소셜미디어 URL 주소를 붙여 넣으세요">
+                                                </div>                                                
+                                            </div>
+                                            <div id="tab02" class="tab-content" style="display:none;">
+                                                <small class="note">* Iframe 형식 HTML 코드를 등록합니다.</small>
+                                                <div class="form-row">
+                                                    <label class="width-100per"><textarea rows="4" class="form-control resize-none">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/FJ2d-FPqDGE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                                    </textarea></label>
+                                                </div>
+                                                <div class="msg-txt mt10">
+                                                    <p class="txt">* 소셜 미디어에서 제공하는 공유 코드를 복사하여 붙여 넣습니다.</p>
+                                                    <button type="button" class="btn gray1">저장</button>
+                                                </div>                                               
+                                            </div>
+                                        </div>
+
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="playerArea">강의보기</label></th>
+                                    <td>
+                                        <div class="video-container">
+                                            <iframe src="https://www.youtube.com/embed/zyAeJbVqYSI?si=pSQ65VLxrJ0NkfaV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>                                        
+                                        </div>                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="contTextarea">학습내용</label></th>
+                                    <td>
+                                        <label class="width-100per"><textarea rows="4" class="form-control resize-none"></textarea></label>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                                    
+                    <div class="modal_btns">
+                        <button type="button" class="btn type1">저장</button>
+                        <button type="button" class="btn type1">삭제</button>
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal 5 -->
+        <div class="modal-overlay" id="modal5" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-xl" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">결시신청 현황</h2> 
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body"> 
+                    <div class="tit_divider">결시신청 신청기간</div>                   
+
+                    <div class="msg-box warning mt20">
+                        <div class="txt_group">
+                            <p class="txt ct"><strong>중간고사 : </strong>2026.03.03 00:00 ~ 2026.05.10 23:59</p>
+                            <p class="txt ct"><strong>기말고사 : </strong>2026.06.02 00:00 ~ 2026.12.10 23:59</p>
+                        </div>
+                    </div>
+
+                    <div class="board_top">
+                        <h3 class="board-title">수강생</h3>  
+                        <div class="right-area">
+                             <span class="total_txt">[ 전체 <b class="fcBlue">3</b>건 ]</span>
+                        </div>                          
+                    </div>
+                    <div class="board_top in_table">
+                        <select class="form-select" id="selectDate1">
+                            <option value="2026">2026</option>                                
+                        </select>
+                        <select class="form-select" id="selectDate2">
+                            <option value="2학기">2학기</option>
+                            <option value="1학기">1학기</option>
+                        </select>
+                        <select class="form-select" id="selectDate3">
+                            <option value="시험구분">시험구분</option>
+                            <option value="중간고사">중간고사</option>
+                            <option value="기말고사">기말고사</option>
+                        </select>
+                        <select class="form-select" id="selectDate4">
+                            <option value="승인여부">승인여부</option>                                
+                        </select>
+                        <!-- search small -->
+                        <div class="search-typeC">
+                            <input class="form-control" type="text" name="" id="inputSearch1" value="" placeholder="학번/이름 입력">
+                            <button type="button" class="btn basic icon search" aria-label="검색"><i class="icon-svg-search"></i></button>
+                        </div>
+                        <div class="right-area">                            
+                            <button type="button" class="btn basic">메시지 보내기</button>   
+                            <button type="button" class="btn type2">엑셀 다운로드</button>                             
+                        </div>
+                    </div>
+
+                    <!--table-type2-->
+                    <div class="table-wrap">
+                        <table class="table-type2">
+                            <colgroup>
+                                <col style="width:3%">
+                               
+                                <col style="width:4%">
+                                <col style="width:11%">
+                                <col style="width:10%">
+                                <col style="width:10%">
+                                <col style="width:7%">
+                                <col style="">
+                                <col style="width:5%">
+                                <col style="width:5%">
+                                <col style="width:5%">
+                                <col style="width:5%">
+                                <col style="width:9%">
+                                <col style="width:6%">                                
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <span class="custom-input onlychk"><input type="checkbox" id="chkall"><label for="chkall"></label></span>
+                                    </th>
+                                    <th>번호</th>
+                                    <th>학과</th>
+                                    <th>아이디</th>
+                                    <th>학번</th>
+                                    <th>이름</th>                                 
+                                    <th>과목명</th>
+                                    <th>분반</th>                                                                                                            
+                                    <th>시험구분</th>
+                                    <th>시험응시</th>
+                                    <th>처리상태</th>
+                                    <th>처리일시</th>
+                                    <th>담당자</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-th="선택">
+                                        <span class="custom-input onlychk"><input type="checkbox" id="chk1"><label for="chk1"></label></span>
+                                    </td>
+                                    <td data-th="번호">1</td>
+                                    <td data-th="학과">문예창작콘텐츠</td>                                    
+                                    <td data-th="아이디">Test01</td>
+                                    <td data-th="학번">K202612547</td>
+                                    <td data-th="이름"><span class="fcBlue">학습자4</span></td>
+                                    <td data-th="과목명">고전문학심화</td>
+                                    <td data-th="분반">01</td>                                    
+                                    <td data-th="시험구분">중간고사</td>
+                                    <td data-th="시험응시">N</td>
+                                    <td data-th="처리상태"><span class="fcBlue">반려</span></td>
+                                    <td data-th="처리일시">2026.05.10 15:25</td>
+                                    <td data-th="담당자">김관리</td>
+                                </tr>
+                                <tr>
+                                    <td data-th="선택">
+                                        <span class="custom-input onlychk"><input type="checkbox" id="chk1"><label for="chk1"></label></span>
+                                    </td>
+                                    <td data-th="번호">1</td>
+                                    <td data-th="학과">문예창작콘텐츠</td>                                    
+                                    <td data-th="아이디">Test01</td>
+                                    <td data-th="학번">K202612547</td>
+                                    <td data-th="이름"><span class="fcBlue">학습자4</span></td>
+                                    <td data-th="과목명">고전문학심화</td>
+                                    <td data-th="분반">01</td>                                    
+                                    <td data-th="시험구분">중간고사</td>
+                                    <td data-th="시험응시">N</td>
+                                    <td data-th="처리상태"><span class="fcBlue">반려</span></td>
+                                    <td data-th="처리일시">2026.05.10 15:25</td>
+                                    <td data-th="담당자">김관리</td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                    <!--//table-type2-->
+
+                    
+
+                   
+                                    
+                    <div class="modal_btns">                      
                         <button type="button" class="btn type2">닫기</button>
                     </div>
                 </div>

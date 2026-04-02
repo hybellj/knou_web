@@ -71,7 +71,7 @@
 			, score
 			, evalYn
 			, scoreNull
-			, (CASE WHEN actlCnt > 0 THEN '참여' ELSE '미참여' END) AS joinStatus
+			, (CASE WHEN actlCnt > 0 THEN '참여완료' ELSE '미참여' END) AS joinStatus
 			, actlCnt
 			, cmntCnt
 			, teamCd
@@ -79,6 +79,7 @@
 			, forumFdbkCd
 			, fdbkCts
 			, oknokGbnCd
+		    , (CASE WHEN actlCnt > 0 THEN regDttm ELSE '-' END) AS regDttm
 			, profMemo
 			, teamNm
 			, CASE WHEN memberRole = 'Y' THEN '팀장' ELSE '팀원' END AS memberRole
@@ -131,6 +132,7 @@
 				  WHERE B.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' AND B.UP_DSCS_FDBK_ID IS NULL
 					AND B.MOD_DTTM = (SELECT MAX(MOD_DTTM) FROM TB_LMS_DSCS_FDBK WHERE DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND USER_ID = A.USER_ID AND DELYN = 'N' AND UP_DSCS_FDBK_ID IS NULL)
 					AND ROWNUM = 1) AS fdbkCts
+			   , P.REG_DTTM AS regDttm
 			   , P.PROF_MEMO AS profMemo
 			   , TM.TEAMNM AS teamNm
 			   , TM.LDRYN AS memberRole

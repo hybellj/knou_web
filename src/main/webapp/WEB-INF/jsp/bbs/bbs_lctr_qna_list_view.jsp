@@ -17,7 +17,7 @@
 	<script type="text/javascript">
 		var ORG_ID 			= '<c:out value="${bbsVO.orgId}" />';
 		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
-		var BBS_TYCD 			= '<c:out value="${bbsVO.bbsTycd}" />';
+		var BBS_TYCD 		= '<c:out value="${bbsVO.bbsTycd}" />';
 		var SEARCH_VALUE	= '<c:out value="${param.searchValue}" />';
 		var PAGE_INDEX		= '<c:out value="${bbsVO.pageIndex}" />';
 		var LIST_SCALE		= '<c:out value="${bbsVO.listScale}" />';

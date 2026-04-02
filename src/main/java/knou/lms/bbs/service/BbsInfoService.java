@@ -228,4 +228,11 @@ public interface BbsInfoService {
      * @throws Exception
      ******************************************************/
     public ProcessResultVO<BbsVO> bbsMngList(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 정보 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void bbsMngInfoRegist(BbsVO vo) throws Exception;
 }

@@ -62,7 +62,7 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		
-		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1 preHandle AuthenticInterceptor");
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1 preHandle AuthenticInterceptor");
 				
         String uri = request.getRequestURI();
         String profiles = messageSource.getMessage("SERVER.MODE", null, null);
@@ -72,7 +72,7 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
 
 	    // 시스템 점검중 안내페이지 표시여부
 	    if ("Y".equals(CommConst.WORK_PAGE_YN)) {
-	    	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1-1 preHandle AuthenticInterceptor");            
+	    	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1-1 preHandle AuthenticInterceptor");            
             response.sendRedirect("/");
             return false;
 	    }
@@ -111,12 +111,12 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
 
         	SessionUtil.setSessionValue(request, "MOVE_URL_NOLOGIN", moveUrl);
         	response.sendRedirect("/sso/CreateRequest.jsp");
-        	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2 preHandle AuthenticInterceptor");
+        	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2 preHandle AuthenticInterceptor");
 	        return false;
         }
 	    
         if(checkSession && !SessionInfo.isLogin(request)) {
-	    	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3 preHandle AuthenticInterceptor");
+	    	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3 preHandle AuthenticInterceptor");
 	        response.sendRedirect("/");
 	        return false;
 	    }
@@ -134,7 +134,7 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
             //System.out.println("ssoStatus -----------------------------------"+ssoStatus);
 
             if ("logout".equals(ssoStatus) && !"".equals(userId)) {
-            	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>4 preHandle AuthenticInterceptor");
+            	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>4 preHandle AuthenticInterceptor");
                 request.getSession().invalidate();
                 response.sendRedirect("/");
                 return false;
@@ -171,7 +171,7 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
                 if (sid != null && !sessionId.equals(sid)) {
                     String loginGbn = SessionInfo.getLoginGbn(request);
                     // 세션 초기화
-                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>X invalidate 호출");
+                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>X invalidate 호출");
                     request.getSession().invalidate();
                     request.getSession().setAttribute("MULTICON_STATE", "LOGOUT");
                     request.getSession().setAttribute("LOGOUT_GBN", loginGbn);
@@ -181,7 +181,7 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
 
             // 사용자 접속상태 저장
             if (valid) {
-            	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>logUserConnService.saveUserConnState 사용자접속상태저장");
+            	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>logUserConnService.saveUserConnState 사용자접속상태저장");
                 logUserConnService.saveUserConnState(request);
             }
 
@@ -211,12 +211,12 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
             }
         }
         catch (Exception e) {
-        	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>5 preHandle AuthenticInterceptor");
+        	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>5 preHandle AuthenticInterceptor");
             System.out.println("ERROR : AuthenticInterceptor ---> "+e.toString());
             e.printStackTrace();
         }
 
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>6 preHandle AuthenticInterceptor");
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>6 preHandle AuthenticInterceptor");
 
 		return true;
 	}

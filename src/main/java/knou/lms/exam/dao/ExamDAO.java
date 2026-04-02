@@ -76,6 +76,12 @@ public interface ExamDAO {
     // 교수 시험대체 대상자 목록 카운트
     public int countProfSbstUser(ExamVO vo) throws Exception;
 
+    // 교수 시험대체 과제 조회
+    public ExamVO selectProfSbstAsmt(ExamVO vo) throws Exception;
+
+    // 교수 시험대체 퀴즈 조회
+    public ExamVO selectProfSbstQuiz(ExamVO vo) throws Exception;
+
     // 교수 시험 결시자 목록 페이징
     public List<ExamVO> listProfAbsnceUserPaging(ExamVO vo) throws Exception;
 

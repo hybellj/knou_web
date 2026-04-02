@@ -605,6 +605,7 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         PageInfo pageInfo = new PageInfo(vo);
         // 목록 조회
         List<BbsAtclVO> atclList;
+
         switch (vo.getBbsTycd()) {
 	        case "QNA":
 	            atclList = bbsAtclDAO.selectBbsLctrQnaList(vo);

@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.ServiceBase;
@@ -25,5 +26,15 @@ public class UserServiceImpl  extends ServiceBase implements UserService{
 	@Override
 	public List<UserVO> registeredUsersSelect(String userRprsId) throws Exception {
 		return userDAO.registeredUsersSelect(userRprsId);
+	}
+
+	@Override
+	public List<String> userIdsSelect(String userRprsId) throws Exception {
+		return userDAO.userIdsSelect(userRprsId);
+	}
+
+	@Override
+	public List<EgovMap> subjectByUserOrgIdSelect(List<String> profIds, List<String> stdntIds) throws Exception {
+		return userDAO.subjectByUserOrgIdSelect(profIds, stdntIds);
 	}
 }

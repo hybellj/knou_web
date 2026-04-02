@@ -18,9 +18,9 @@ classroom - layout, common
 .class .class_sub_top .btn-wrap .btn.type1 { background: hsl(227, 4%, 60%, .3); color: #fff; border-color: #4c5263; }
 .class .class_sub_top .btn-wrap .btn.type2 { background: #4c5c8a; color: #fff; border-color: #4c5c8a; }
 
-.class .navi_bar li { display: inline-block; color: var(--white-50);}
-.class .navi_bar .xi-home-o { font-size: 1.5rem; color: var(--white-50);}
-.class .navi_bar .current { color: var(--white-70); font-weight: 500; }
+.class .navi_bar li { display: inline-block; }
+.class .navi_bar .xi-home-o { font-size: 1.5rem; }
+.class .navi_bar .current {  font-weight: 500; }
 .class .navi_bar li + li::before { content: "·"; position: relative; font-size: 2.6rem; line-height: .4; left: 0px; top: 5px; margin-right: 5px; opacity: .3; }
 @media(max-width: 1600px){  
     .class .class_sub {padding: 2.4rem ;}
@@ -589,7 +589,7 @@ classroom - main
 /* .course_list .course_week li.active .cont { opacity: 1; visibility: visible; height: auto;  overflow: visible; padding:2rem 3rem 2rem 3rem; transition: all .3s ease; } */
 .course_list .course_week li > .cont { display: block; margin: 0 3rem; overflow: hidden; height: 0; transition: all 0.3s ease; }
 .course_list .course_week li.active .title-wrap {border-radius: 8px 8px 0 0; border-bottom: 1px solid #DEE2E6;}
-.course_list .course_week li.active .cont { height: auto; margin:2rem 3rem 2rem 3rem; overflow: visible;}
+.course_list .course_week li.active .cont { height: auto !important; margin:2rem 3rem 2rem 3rem; overflow: visible;}
 .course_list .course_week li.active .arrow { transform: rotate(180deg); }
 .course_list .course_week > li + li {margin-top: 1.8rem;}
 .course_list .course_week .btn_right {font-size: 1.4rem; display: flex; gap: .5rem; align-items: center; margin-left: auto;}
@@ -791,7 +791,25 @@ classroom - main
 .list-tit {font-size: 1.6rem; font-weight: 600; margin-bottom: .3rem;}
 .list-tit-bg {width: fit-content; font-size: 1.4rem; font-weight: 500; color: #fff; padding: .4rem 1.2rem; margin-bottom: .5rem; background-color: #4C5B6E; border-radius: 100em;}
 
-
+/* 모달 : 학습자료 수정 */
+.table-wrap .item_btns {display: flex; flex: 1; font-size:1.4rem; font-weight:600; align-items: center; padding:0; gap: 0rem 1rem;}
+.table-wrap .item_btns a {display: flex; min-width: 4rem; flex-direction: column; align-items: center; gap: .4rem; padding:.5rem 1rem; border-radius: var(--border-radius-5); transition: all 0.2s;}
+.table-wrap .item_btns a [class*="-svg-"] {width: 2rem; height: 2rem; color: #4C4C4D;}
+.table-wrap .item_btns a:hover {color: var(--primary); background-color: hsl(212, 88%, 33%, .1);}
+.table-wrap .item_btns a:hover [class*="-svg-"]  {color: var(--primary);}
+.table-wrap .item_btns a.active {color: var(--primary); background-color: hsl(212, 88%, 33%, .1);}
+.table-wrap .item_btns a.active [class*="-svg-"] {color: var(--primary);}
+.table-wrap .tab_btn a {padding: .8rem 1.5rem; font-size: 1.4rem;}
+.table-wrap .form-tab .tab_btn {margin-bottom: 1rem;}
+.table-wrap .form-tab pre {
+    border-radius: var(--border-radius-8);
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1.4rem;
+    color: #333;
+    border: 1px solid #8C969C;
+    white-space: pre-wrap;
+}
 
 /* =======================================================================================
 classroom - main - stu
@@ -980,6 +998,19 @@ classroom - sub - common
 .class_sub .page-info {margin-bottom: 2.5rem;}
 .prof-box + .board_top { margin-top: 3rem; }
 
+
+
+/* 강의실 공통 과목정보 - 기존 */
+.segment.class-area.sub { display: flex;   
+    gap: 2.5rem;
+    padding: 2rem 3rem 2rem 3rem;
+    border-radius: 10px 10px 10px 10px;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);}
+.segment.class-area.sub .class_info {display: flex; flex-wrap: wrap; width: 100%; justify-content: space-between;}
+.segment.class-area.sub .class_info .class_tit .labels {margin-bottom: .8rem; margin-top: -2.3rem;}
+.segment.class-area.sub .class_info .class_tit .labels .label {border-radius: 0 0 12px 12px; box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.15);}
+.segment.class-area.sub .class_info h2 {line-height: 1.2; font-size: 2.6rem; font-weight: 700;}
+
 /* 교수/튜터/조교정보 */
 .prof-box { display: grid; width: 100%; grid-template-columns: repeat(2, 1fr); gap: 3rem; /*padding: 2.2rem 2.5rem;*/ border-radius: 10px; border: 0px solid #D0D0D0; }
 .prof-box .left_item {display: flex; gap: 2rem; flex-direction: column; align-items: center; }
@@ -1011,8 +1042,8 @@ classroom - sub - common
 .rubrics_wrap {}
 .rubrics_wrap .rub_write {display: flex; flex-direction: column;}
 .rubrics_wrap .rub_write .eval_item {display: flex; flex-direction: column; gap: .8rem; margin-top: .8rem;}
-.rubrics_wrap .rub_write .eval_item .item {display: flex; }
-.rubrics_wrap .rub_write .eval_item .item .label_num { align-items: center; justify-content: center; width: 4rem; background-color: #ebebeb; border-radius: 5px 0 0 5px;}
+.rubrics_wrap .rub_write .eval_item .item {display: flex; border: 1px solid #3D5480; border-radius: 7px 6px 6px 7px;}
+.rubrics_wrap .rub_write .eval_item .item .label_num { align-items: center; justify-content: center; width: 4rem; background: #3D5480; color: #fff; border-radius: 5px 0 0 5px;}
 .rubrics_wrap .rub_write .eval_item .item .wide {flex: 1;}
 .rubrics_wrap .rub_write .eval_item .item .sm {border-left: 0; border-right: 0; width: 7rem; color:var(--blue-600);}
 .rubrics_wrap .rub_write .eval_item .item input {border-radius: 0; }
@@ -1030,10 +1061,96 @@ classroom - sub - common
     .rubrics_wrap .rub_grade .board_top .form-inline .custom-input input + label {margin-right: 1rem;}
 }
 
-/* 토론 */
+/* 카드형 */
 .board_card_list.class {grid-template-columns: repeat(3, 1fr);}
-.board_card_list.class .card_item .extra .desc p {border-bottom: 0; padding: .4rem 0;}
-.board_card_list.class .card_item .card_header {gap: 0;}
-.board_card_list.class .card_item .card_header .btn_right {margin-left: auto;}
-.board_card_list.class .card_item .card_header .label {border-radius: 4px;}
+.board_card_list.class .card_item .board_tit {font-size: 1.8rem;}
 .board_card_list.class .card_item .board_tit .labels {gap: 0rem; margin-bottom: .5rem;}
+.board_card_list.class .card_item .board_tit .label {margin-right: .3rem;}
+.board_card_list.class .card_item .card_header {gap: 0; background-color: transparent; border-bottom: 1px solid #E0E4E9;}
+.board_card_list.class .card_item .card_header .btn_right {margin-left: auto;}
+.board_card_list.class .card_item .card_header .btn_right .btn {background-color: transparent; border: none;}
+.board_card_list.class .card_item .card_header .btn_right .dropdown {font-size: 1.4rem;}
+.board_card_list.class .card_item .card_header .label {border-radius: 3px;}
+.board_card_list.class .card_item .extra .process-bar { display: flex; height: 26px !important; margin-bottom: 1rem; line-height: 26px !important; border-radius: 4px; }
+.board_card_list.class .card_item .extra .process-bar li { flex: 1 1 auto; float: left; font-size: .875em; color: #fff; text-align: center; }
+.board_card_list.class .card_item .extra .process-bar li:first-child { border-radius: 4px 0 0 4px; }
+.board_card_list.class .card_item .extra .process-bar li:last-child { border-radius: 0 4px 4px 0; }
+.board_card_list.class .card_item .extra .process-bar .bar-blue {     background: #2C9AE9;}
+.board_card_list.class .card_item .extra .process-bar .bar-grey { background: #bfc1c4; }
+.board_card_list.class .card_item .extra .desc {font-size: 1.5rem;}
+.board_card_list.class .card_item .extra .desc p {border-bottom: 0; padding: .4rem 0; align-items: center;}
+.board_card_list.class .btn_right .dropdown .option-wrap .item {padding: 4px 12px;}
+.board_card_list.class .card_item input.form-control {min-height: 26px; line-height: 1;} 
+.board_card_list.class .card_item .input_btn input { border-radius: 0.4rem 0 0 0.4rem !important; padding: .4rem 1rem .3rem 1.2rem !important; }
+.board_card_list.class .card_item .input_btn button, 
+.board_card_list.class .card_item .input_btn label {
+    padding: 0.4rem .8rem;
+    font-size: 1.5rem;
+    color: #333;
+    border: 1px solid #ccc;
+    border-left: 0;
+    background-color: #fff;
+    border-radius: 0 0.4rem 0.4rem 0;
+}
+@media(max-width:1280px) {
+    .board_card_list.class {grid-template-columns: repeat(2, 1fr);}
+}
+@media(max-width:660px) {
+    .board_card_list.class {grid-template-columns: 1fr;}
+}
+
+/* 등록 - 옵션 */
+.options_wrap { width: 100%; margin-top: 1rem;}
+.options_wrap li { border: 1px solid #DEE2E6; margin: 15px 0; border-radius: 8px; box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.08);}
+.options_wrap li .title-wrap { display: flex;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    position: relative;
+    border-radius: 8px;
+    border: 1px solid #d9d9d9;
+    box-sizing: border-box;
+    vertical-align: top;
+    background: #fff;; }
+.options_wrap li.active .title-wrap {border-radius: 8px 8px 0 0;}
+.options_wrap li .title-wrap .title { width: 100%; color: var(--txt_02); font-weight: 500; font-size: 1.7rem; display: flex; gap: .5rem; align-items: center;}
+.options_wrap li .title-wrap .title strong {margin-right: .5rem; font-weight: 700;}
+.options_wrap li .title-wrap .arrow { color: #333; position: absolute; top:50% !important; bottom: auto !important; transform: translateY(-50%); right: 10px; font-size: 14px; padding: 6px; transition: all .25s ease; }
+.options_wrap li > .cont { display: block; margin: 0 2rem; overflow: hidden; height: 0; transition: all 0.3s ease; background-color: #fff;}
+.options_wrap li > .cont .table-type5 {font-size: 1.4rem; border: 1px solid #D4D6D6;}
+.options_wrap li > .cont .table-type5 tbody tr th {background-color: #f0f2f6;}
+.options_wrap li > .cont .option_list {display: flex; flex-direction: column; gap: .8rem;}
+.options_wrap li > .cont .option_list .form-inline {display: flex; align-items: center;}
+.options_wrap li > .cont .option_list .form-inline label {min-width:12rem; margin-right: 1rem;}
+.options_wrap li.active .cont { height: auto !important; margin:2rem 2rem 2rem 2rem; overflow: visible;}
+.options_wrap li.active .title-wrap {border-radius: 8px 8px 0 0; border: none; border-bottom: 1px solid #DEE2E6;}
+.options_wrap li.active .arrow { transform: rotate(180deg); top:auto !important;}
+.options_wrap > li + li {margin-top: 1.8rem;}
+.options_wrap .btn_right {font-size: 1.4rem; display: flex; gap: .5rem; align-items: center; margin-left: auto;}
+@media (max-width: 1024px) {
+        .options_wrap ul li > .cont .table-wrap.scroll {height: 25rem; }
+        .options_wrap ul li .title-wrap .arrow {top: auto; bottom: 0rem;}
+        .course_history .table-type1 thead {display: block;}
+        .course_history .table-type1 thead tr th.all  {flex: 0 1 100%;}
+}
+@media (max-width: 800px) {
+        .options_wrap li > .cont .table-type5 tbody tr th {padding: 8px 8px 8px 8px;}
+}
+@media (max-width: 768px) {
+        .options_wrap ul li .title-wrap .lecture_box.work .arrow {bottom: -.2rem;}
+}
+@media (max-width: 480px) {
+         .course_history .table-type1 tr > *:not(.check)[data-th]:before {display: none;}
+         .course_history .table-type1 tr > *:not(.check) {padding: .8rem 1.5rem;}
+}
+
+/* 등록 - 팀구성 */
+.team_item {display: flex; flex-direction: column; gap: .5rem; margin-top: .8rem; padding: 1.4rem; border-radius: 6px; background-color: #f4f4f5;}
+.team_item .item {display: flex;  border-radius: 7px 6px 6px 7px;}
+.team_item .item .label_num { align-items: center; justify-content: center; width: 5rem; border-radius: 5px 0 0 5px; background-color: #ffffff; border: 1px solid #C5C8D1; border-right: none;}
+.team_item .item .wide {flex: 1;}
+.team_item .item .sm {border-left: 0; border-right: 0; width: 7rem; color:var(--blue-600);}
+.team_item .item input {border-radius: 0; }
+.team_item .item .btn { border-radius: 0 5px 5px 0; line-height: 1; font-size: 1.4rem; background: #4D4D4D; border-color: #4D4D4D; color: #fff; padding: .8rem 1rem;}
+@media (max-width: 480px) {
+    .team_item .item .btn {font-size: 1.3rem;}
+}

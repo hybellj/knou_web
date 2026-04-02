@@ -26,6 +26,7 @@
 		var PAGE_INDEX		= '<c:out value="${bbsVO.pageIndex}" />';
 		var TAB 			= '<c:out value="${param.tab}" />';
 		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
+		var BBS_TYCD		= '<c:out value="${bbsVO.bbsTycd}" />';
 		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
 		var BBS_IDS;
 
@@ -146,14 +147,17 @@
 			BBS_ID       =  BBS_ID;
 			PAGE_INDEX = pageIndex;
 
+			var currentBbsTycd = '<c:out value="${param.bbsTycd}" />';
+		    if(!currentBbsTycd) currentBbsTycd = BBS_TYCD; // 파라미터 없으면 기본값 사용
 			var extData = {
 					orgId         : ORG_ID
 					, pageIndex		: pageIndex
 					, listScale		: LIST_SCALE
 					, searchSdttm   : SEARCH_SDTTM
 					, searchEdttm   : SEARCH_EDTTM
-					, searchValue 	: $("#searchValue").val()
+					, searchValue 	: SEARCH_VALUE
 					, bbsId         : BBS_ID
+					, bbsTycd       : currentBbsTycd
 			};
 
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do"

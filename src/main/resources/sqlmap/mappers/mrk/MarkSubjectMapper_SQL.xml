@@ -14,6 +14,8 @@
              , X.USERNM
              , X.TOT_SCR
              , X.LST_SCR
+             , X.ADTN_SCR
+             , X.ETC_SCR
              , X.ATNDC_SCORE
              , X.ATNDC_SCORE_RATIO
              , ROUND((CAST(CASE WHEN X.ATNDC_SCORE < 0 THEN 0 ELSE X.ATNDC_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.ATNDC_SCORE_RATIO AS NUMBER(5, 2)), 2) AS ATNDC_SCORE_AVG
@@ -46,7 +48,6 @@
              , X.SMNR_SCORE_RATIO
              , ROUND((CAST(CASE WHEN X.SMNR_SCORE < 0 THEN 0 ELSE X.SMNR_SCORE END AS NUMBER(5, 2)) / 100) * CAST(X.SMNR_SCORE_RATIO AS NUMBER(5, 2)), 2) AS SMNR_SCORE_AVG
              , X.SMNR_ITEM_ID
-             , X.ETC_SCORE
              , X.PROF_MEMO
              , ROUND(
                   ROUND((CAST(CASE WHEN X.ATNDC_SCORE < 0 THEN 0 ELSE X.ATNDC_SCORE END     AS NUMBER(5, 2)) / 100) * CAST(X.ATNDC_SCORE_RATIO 		AS NUMBER(5, 2)), 2)
@@ -74,9 +75,10 @@
                 , MAX(USR.USERNM) AS USERNM
                 --    , MAX(USR.MOBILE_NO) AS MOBILE_NO
                 --    , MAX(USR.EMAIL) AS EMAIL
+                , MAX(A.ADTN_SCR) AS ADTN_SCR
                 , MAX(A.TOT_SCR) AS TOT_SCR
                 , MAX(A.LST_SCR) AS LST_SCR
-                , MAX(NVL(A.ADTN_SCR, 0)) AS ETC_SCORE
+                , MAX(A.ETC_SCR) AS ETC_SCR
                 , MAX(A.PROF_MEMO) AS PROF_MEMO
                 --
                 , MAX(CASE WHEN C.MRK_ITM_TYCD = 'MIDEXAM' THEN B.SCR ELSE 0 END) AS MIDEXAM_SCORE
