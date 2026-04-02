@@ -318,7 +318,7 @@
                 "    <div class='option-wrap'>",
                 "        <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'><spring:message code='forum.label.forum.joinCnt'/><spring:message code='forum.button.hide.apply'/></a></div>",/*참여글 숨김*/
                 "        <div class='item'><a href='javascript:void(0)' data-action='editPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"' data-post-idx='"+ i +"'><spring:message code='forum.button.mod'/></a></div>",/*수정*/
-                "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'></a><spring:message code='forum.button.del'/></div>",/*삭제*/
+                "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'><spring:message code='forum.button.del'/></a></div>",/*삭제*/
                 "    </div>",
                 "</div>"
             ].join('');
@@ -328,7 +328,7 @@
                 "    <button type='button' class='btn basic icon set settingBtn' aria-label='게시글 관리'><i class='xi-ellipsis-v'></i></button>",
                 "    <div class='option-wrap'>",
                 "        <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'><spring:message code='forum.label.forum.joinCnt'/><spring:message code='forum.button.hide.apply'/></a></div>",/*참여글 숨김*/
-                "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'></a><spring:message code='forum.button.del'/></div>",/*삭제*/
+                "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'><spring:message code='forum.button.del'/></a></div>",/*삭제*/
                 "    </div>",
                 "</div>"
             ].join('');
