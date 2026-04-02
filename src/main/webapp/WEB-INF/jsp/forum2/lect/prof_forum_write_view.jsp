@@ -659,17 +659,18 @@
         var wrap = 'teamUploaderWrap_' + teamId + '_' + idx;    // 파일 업로드 박스가 보여질 위치
 
         // 파일업로더 생성
-        FileUploader({
-			id: uid,
-			targetId: wrap,
-			path: "",
-			limitCount: 5,
-			limitSize: 100,
-			oneLimitSize: 100,
-			listSize: 2,
-			fileList: "",
-			finishFunc: "",
-			allowedTypes: "*"
+        UiFileUploader({
+            id: uid,
+            targetId: wrap,
+            path: uploadPath,
+            limitCount: 1,
+            limitSize: 100,
+            oneLimitSize: 100,
+            listSize: 1,
+            fileList: "",   // TODO : 수정시는 공통 작업 예정([{}, {}]
+            finishFunc: "onTeamUploadComplete('" + uid + "')",
+            allowedTypes: "*",
+            uiMode: 'simple'
         });
 
         // team upload 정보에 uid push
