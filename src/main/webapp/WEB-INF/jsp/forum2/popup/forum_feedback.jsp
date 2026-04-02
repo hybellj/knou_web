@@ -129,7 +129,7 @@
 			edtNo = i;
 			
 			// 피드백 등록 버튼
-			if (fileUploaderNewFeedback.getFileCount() > 0) {
+			if (fileUploaderNewFeedback.availUpload()) {
 				fileUploaderNewFeedback.startUpload();
 			} else {
 				// 저장 호출
@@ -161,7 +161,6 @@
 				"fdbkCts"     : $("#fdbkValue"+edtNo).val(),
 				"uploadFiles" : fileUploaderNewFeedback.getUploadFiles(),
 				"uploadPath"  : fileUploaderNewFeedback.getUploadPath(),
-				"copyFiles"   : fileUploaderNewFeedback.getCopyFiles(),
 				"delFileIds"  : fileUploaderNewFeedback.getDelFileIds(),
 				/*"audioData"   : aRecord[`aRecord`+edtNo].audioData,
 				"audioFile"   : aRecord[`aRecord`+edtNo].audioFile*/
@@ -441,7 +440,7 @@
 				return false;
 			}
 
-			if (fileUploaderNewFeedback.getFileCount() > 0) {
+			if (fileUploaderNewFeedback.availUpload()) {
 				fileUploaderNewFeedback.startUpload();
 			} else {
 				// 저장 호출
@@ -451,12 +450,22 @@
 
 	    // 파일 업로드 완료
 	    function finishUploadNewFeedback() {
-	    	if (upType == "add") {
-	    		regFdbk();
-	    	}
-	    	else {
-		    	edtFdbk();
-		    }
+	    	var fileUploaderNewFeedback = dx5.get("fileUploaderNewFeedback");
+	    	var url = "/common/uploadFileCheck.do";
+	    	var data = {
+	    		"uploadFiles" : fileUploaderNewFeedback.getUploadFiles(),
+	    		"uploadPath"  : fileUploaderNewFeedback.getUploadPath()
+	    	};
+	    	ajaxCall(url, data, function(data) {
+	    		if(data.result > 0) {
+	    			if (upType == "add") { regFdbk(); }
+	    			else { edtFdbk(); }
+	    		} else {
+	    			alert("<spring:message code='success.common.file.transfer.fail'/>");
+	    		}
+	    	}, function(xhr, status, error) {
+	    		alert("<spring:message code='success.common.file.transfer.fail'/>");
+	    	});
 	    }
 
 		// 피드백 저장
@@ -472,7 +481,6 @@
 					"teamCd" : $("#teamCd").val(),
 					"fdbkCts" : $("#fdbkValue").val(),
 					"uploadFiles" : fileUploaderNewFeedback.getUploadFiles(),
-					"copyFiles"   : fileUploaderNewFeedback.getCopyFiles(),
 					"uploadPath"  : fileUploaderNewFeedback.getUploadPath(),
 				};
 

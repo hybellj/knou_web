@@ -692,8 +692,7 @@
 				_pendingFdbkGroups = getForumCdGroups(); // BYTEAM='Y': confirm 전에 그룹 저장
 			}
 			if(confirm("<spring:message code='forum.alert.feedback.confirm'/>")) {
-				if (fileUploader.getFileCount() > 0) {
-					$('#fdbkFileUp').css("visibility", "visible");
+				if (fileUploader.availUpload()) {
 					fileUploader.startUpload();
 				}else{
 					submitFdbk();
@@ -781,10 +780,9 @@
 		// 피드백 파일업로드
 		function finishUpload(){
 			var fileUploader = dx5.get("fileUploader");
-			var url = "/file/fileHome/saveFileInfo.do";
+			var url = "/common/uploadFileCheck.do";
 			var data = {
 				"uploadFiles" : fileUploader.getUploadFiles(),
-				"copyFiles"   : fileUploader.getCopyFiles(),
 				"uploadPath"  : fileUploader.getUploadPath()
 			};
 

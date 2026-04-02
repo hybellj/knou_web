@@ -1,21 +1,22 @@
 package knou.lms.forum2.service.impl;
 
+import knou.framework.common.CommConst;
 import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
+import knou.framework.util.FileUtil;
+import knou.framework.util.IdGenUtil;
 import knou.framework.util.IdGenerator;
-import knou.framework.vo.FileVO;
-import knou.lms.common.service.SysFileService;
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.file.service.AttachFileService;
+import knou.lms.file.vo.AtflVO;
 import knou.lms.forum2.dao.ForumFdbkDAO;
 import knou.lms.forum2.dao.ForumJoinUserDAO;
 import knou.lms.forum2.service.ForumFdbkService;
 import knou.lms.forum.vo.ForumFdbkVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service("forum2FdbkService")
@@ -26,16 +27,16 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
 
     @Resource(name="forum2JoinUserDAO")
     private ForumJoinUserDAO forumJoinUserDAO;
-    
-    @Autowired
-    private SysFileService sysFileService;
+
+    @Resource(name="attachFileService")
+    private AttachFileService attachFileService;
 
     /*****************************************************
      * <p>
      * TODO 토론 피드백 목록 조회
      * </p>
      * 토론 피드백 목록 조회
-     * 
+     *
      * @param ForumFdbkVO
      * @return List<EgovMap>
      * @throws Exception
@@ -44,13 +45,13 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
     public List<EgovMap> forumFdbkList(ForumFdbkVO vo) throws Exception {
         return forumFdbkDAO.forumFdbkList(vo);
     }
-    
+
     /*****************************************************
      * <p>
      * TODO 토론 피드백 등록
      * </p>
-     * 토론 피드백 등록
-     * 
+     * 토론 피드백 등록 (파일 없는 메모 경로)
+     *
      * @param ForumFdbkVO
      * @return void
      * @throws Exception
@@ -58,9 +59,6 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
     @Override
     public void insertForumFdbk(ForumFdbkVO vo) throws Exception {
         forumFdbkDAO.insertForumFdbk(vo);
-        
-        // 파일저장
-        this.insertFileInfo(vo, vo.getForumFdbkCd(), "", "Y");
     }
 
     /*****************************************************
@@ -68,7 +66,7 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
      * TODO 토론 피드백 수정
      * </p>
      * 토론 피드백 수정
-     * 
+     *
      * @param ForumFdbkVO
      * @return void
      * @throws Exception
@@ -83,7 +81,7 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
      * TODO 토론 피드백 삭제
      * </p>
      * 토론 피드백 삭제
-     * 
+     *
      * @param ForumFdbkVO
      * @return void
      * @throws Exception
@@ -103,15 +101,15 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
     @Override
     public ProcessResultVO<ForumFdbkVO> insertFdbk(ForumFdbkVO vo) throws Exception {
         ProcessResultVO<ForumFdbkVO> resultVO = new ProcessResultVO<ForumFdbkVO>();
-        
+
         try {
             String[] stdArr = vo.getStdId().split(",");
-            
+
             if(stdArr.length > 0) {
                 for(int i = 0; i < stdArr.length; i++) {
                     vo.setStdId(stdArr[i]);
                     vo.setForumFdbkCd(IdGenerator.getNewId(IdPrefixType.DSFDK.getCode()));
-                    
+
                     /*
                     // 토론 참여자(tb_lms_forum_join_user) 테이블에 등록
                     ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
@@ -123,13 +121,22 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
                     forumJoinUserVO.setMdfrId(vo.getUserId());
                     forumJoinUserDAO.insertStdScore(forumJoinUserVO);
                     */
-                    
+
                     // 토론 피드백(tb_lms_forum_fdbk) 테이블에 등록
                     forumFdbkDAO.insertFdbk(vo);
 
-                    // TODO : 26.3.23 : 파일 레퍼 인터페이스 변경 처리.
-                    // 파일저장
-                    /*this.insertFileInfo(vo, vo.getForumFdbkCd(), "", "Y");*/
+                    // 파일 저장
+                    List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+                    for (AtflVO atflVO : uploadFileList) {
+                        atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+                        atflVO.setRefId(vo.getForumFdbkCd());
+                        atflVO.setRgtrId(vo.getUserId());
+                        atflVO.setMdfrId(vo.getUserId());
+                        atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+                    }
+                    if (!uploadFileList.isEmpty()) {
+                        attachFileService.insertAtflList(uploadFileList);
+                    }
                 }
             }
             resultVO.setResult(1);
@@ -140,28 +147,6 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
         return resultVO;
     }
 
-    public FileVO insertFileInfo(ForumFdbkVO vo, String nSn, String oSn, String delYn) throws Exception {
-        FileVO fVo = new FileVO();
-        fVo.setOrgId(vo.getOrgId());
-        fVo.setUserId(vo.getUserId());
-        fVo.setRepoCd("FORUM");
-        fVo.setFilePath(vo.getUploadPath());
-
-        fVo.setFileBindDataSn(nSn);
-        fVo.setCopyFileBindDataSn(oSn);
-        fVo.setUploadFiles(vo.getUploadFiles());
-        fVo.setCopyFiles(vo.getCopyFiles());
-        fVo.setDelFileIds(vo.getDelFileIds());
-
-        fVo.setAudioData(vo.getAudioData());
-        fVo.setAudioFile(vo.getAudioFile());
-
-        fVo.setOrginDelYn(delYn);
-        sysFileService.insertFileInfo(fVo);
-
-        return fVo;
-    }
-
     // 피드백 조회
     @Override
     public List<ForumFdbkVO> selectFdbk(ForumFdbkVO vo) throws Exception {
@@ -169,16 +154,14 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
 
         if(forumFdbkList != null) {
             for(ForumFdbkVO vo1 : forumFdbkList) {
-                FileVO fileVO = new FileVO();
-                fileVO.setRepoCd("FORUM");
-                fileVO.setFileBindDataSn(vo1.getForumFdbkCd());
-                // TODO : 26.3.25 Modify : 임시 막음 처리.
-//                List<FileVO> fileList = sysFileService.list(fileVO).getReturnList();
-                List<FileVO> fileList = new ArrayList<>();
+                AtflVO atflParam = new AtflVO();
+                atflParam.setAtflRepoId(CommConst.REPO_DSCS);
+                atflParam.setRefId(vo1.getForumFdbkCd());
+                List<AtflVO> fileList = attachFileService.selectAtflListByRefId(atflParam);
                 vo1.setFileList(fileList);
             }
         }
-       
+
         return forumFdbkList;
     }
 
@@ -186,13 +169,23 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
     @Override
     public ProcessResultVO<ForumFdbkVO> updateFdbk(ForumFdbkVO vo) throws Exception {
         ProcessResultVO<ForumFdbkVO> resultVO = new ProcessResultVO<ForumFdbkVO>();
-        
+
         try {
             forumFdbkDAO.updateFdbk(vo);
-            
+
             // 파일 저장
-            this.insertFileInfo(vo, vo.getForumFdbkCd(), "", "Y");
-            
+            List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+            for (AtflVO atflVO : uploadFileList) {
+                atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+                atflVO.setRefId(vo.getForumFdbkCd());
+                atflVO.setRgtrId(vo.getUserId());
+                atflVO.setMdfrId(vo.getUserId());
+                atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+            }
+            if (!uploadFileList.isEmpty()) {
+                attachFileService.insertAtflList(uploadFileList);
+            }
+
             resultVO.setResult(1);
         } catch (Exception e) {
             resultVO.setResult(-1);
@@ -205,23 +198,22 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
     @Override
     public ProcessResultVO<ForumFdbkVO> deleteFdbk(ForumFdbkVO vo) throws Exception {
         ProcessResultVO<ForumFdbkVO> resultVO = new ProcessResultVO<ForumFdbkVO>();
-        
+
         try {
             forumFdbkDAO.deleteFdbk(vo);
-            
+
             resultVO.setResult(1);
         } catch (Exception e) {
             resultVO.setResult(-1);
             throw e;
         }
-        
+
         return resultVO;
     }
 
     // 피드백 갯수
     @Override
     public int cntFdbk(ForumFdbkVO vo) throws Exception {
-        
         return forumFdbkDAO.cntFdbk(vo);
     }
 
