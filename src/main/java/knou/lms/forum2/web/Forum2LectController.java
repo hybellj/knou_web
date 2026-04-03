@@ -186,6 +186,7 @@ public class Forum2LectController extends ControllerBase {
         // 현 사용자의 구분(학생, 교수)
         String userType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
         vo.setSearchKeyNm(userType);
+        vo.setViewAll("PROF".equals(userType)); // 교수 화면은 삭제여부 관계없이 조회되도록함.
         vo.setUserId(userId);
 
         try {
@@ -537,6 +538,7 @@ public class Forum2LectController extends ControllerBase {
         forumAtclVO.setListScale(forumVO.getListScale());
         forumAtclVO.setCrsCreCd(forumVO.getCrsCreCd());
 
+        forumAtclVO.setViewAll(true);// 교수 화면은 삭제여부 관계없이 조회되도록함.
         ProcessResultVO<ForumAtclVO> resultVO = new ProcessResultVO<>();
         try {
             resultVO = forum2AtclService.listPageing(forumAtclVO);
@@ -680,6 +682,25 @@ public class Forum2LectController extends ControllerBase {
         return returnVo;
     }
 
+    // 참여글 숨김
+    @RequestMapping(value = "/Form/hideAtcl.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> hideAtcl(ForumVO forumVO, HttpServletRequest request) throws Exception {
+        ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<>();
+        try {
+            ForumAtclVO forumAtclVO = new ForumAtclVO();
+            forumAtclVO.setForumCd(forumVO.getForumCd());
+            forumAtclVO.setAtclSn(request.getParameter("atclSn"));
+            forumAtclVO.setMdfrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            forum2AtclService.hideAtcl(forumAtclVO);
+            returnVo.setResult(1);
+        } catch (Exception e) {
+            returnVo.setResult(-1);
+            returnVo.setMessage(getCommonFailMessage());
+        }
+        return returnVo;
+    }
+
     /**
      * 토론댓글등록
      * @param forumVO
@@ -791,6 +812,24 @@ public class Forum2LectController extends ControllerBase {
             forumCmntVO.setCmntSn(request.getParameter("cmntSn"));
             forumCmntVO.setMdfrId(StringUtil.nvl(SessionInfo.getUserId(request)));
             forum2CmntService.deleteCmnt(forumCmntVO);
+            returnVo.setResult(1);
+        } catch (Exception e) {
+            returnVo.setResult(-1);
+            returnVo.setMessage(getCommonFailMessage());
+        }
+        return returnVo;
+    }
+
+    // 댓글 숨김
+    @RequestMapping(value = "/Form/hideCmnt.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> hideCmnt(ForumVO forumVO, HttpServletRequest request) throws Exception {
+        ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<>();
+        try {
+            ForumCmntVO forumCmntVO = new ForumCmntVO();
+            forumCmntVO.setCmntSn(request.getParameter("cmntSn"));
+            forumCmntVO.setMdfrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            forum2CmntService.hideCmnt(forumCmntVO);
             returnVo.setResult(1);
         } catch (Exception e) {
             returnVo.setResult(-1);
@@ -1187,6 +1226,7 @@ public class Forum2LectController extends ControllerBase {
         forumAtclVO.setListScale(forumVO.getListScale());
         forumAtclVO.setStdList(stdList);
         forumAtclVO.setCrsCreCd(crsCreCd);
+        forumAtclVO.setViewAll(true);// 교수 화면은 삭제여부 관계없이 조회되도록함.
 
         ProcessResultVO<ForumAtclVO> resultList = forum2AtclService.listPageing(forumAtclVO);
 

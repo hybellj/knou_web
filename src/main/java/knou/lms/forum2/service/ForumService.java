@@ -16,7 +16,6 @@ public interface ForumService {
     void updateForumMrkRfltrt(List<Forum2VO> list) throws Exception;
     ProcessResultVO<Forum2VO> saveForum(Forum2VO vo) throws Exception;
     ProcessResultVO<Forum2VO> selectProfSbjctForumList(Forum2VO vo) throws Exception;
-    Forum2VO select(Forum2VO vo) throws Exception;
     ProcessResultVO<Forum2VO> deleteForum(Forum2VO vo) throws Exception;
     ProcessResultVO<Forum2VO> copyForum(Forum2VO vo) throws Exception;
     ProcessResultVO<Forum2TeamDscsVO> modifyTeamDscsOyn(Forum2TeamDscsVO vo) throws Exception;

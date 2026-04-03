@@ -1,6 +1,9 @@
 package knou.lms.forum2.vo;
 
 import knou.lms.common.vo.DefaultVO;
+import knou.lms.file.vo.AtflVO;
+
+import java.util.List;
 
 public class Forum2TeamDscsVO extends DefaultVO {
 

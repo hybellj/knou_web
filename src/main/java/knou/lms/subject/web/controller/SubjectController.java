@@ -13,6 +13,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import knou.framework.common.ControllerBase;
+import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
 import knou.framework.util.URLBuilder;
 import knou.lms.common.dto.BaseParam;
@@ -27,7 +28,7 @@ import knou.lms.subject.web.view.SubjectViewModel;
 @Controller
 public class SubjectController extends ControllerBase {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SubjectController.class);
+    private static final Logger log = LoggerFactory.getLogger(SubjectController.class);
 
     @Resource(name="subjectFacadeService")
     private SubjectFacadeService subjectFacadeService;
@@ -46,7 +47,7 @@ public class SubjectController extends ControllerBase {
     private SubjectViewModel prepareSubject(HttpServletRequest request, ModelMap model) throws Exception {
 
         String sbjctId = request.getParameter("sbjctId");
-        UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+        UserContext userCtx = SessionInfo.getUserContext(request);
 
         if (userCtx == null) {
             throw new RuntimeException("LOGIN_REQUIRED");
@@ -71,38 +72,43 @@ public class SubjectController extends ControllerBase {
 
     /**
      * 과목화면
-     * @param sbjctId
+     * @param SubjectVO
      * @param userCtx
      * @param model
      * @return
      * @throws Exception
      */
     @RequestMapping(value={"/subject.do"})
-    public String subject(SubjectVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+    public String subject(SubjectVO svo, HttpServletRequest request, ModelMap model) throws Exception {
 
     	SubjectViewModel subjectVM = new SubjectViewModel();
-    	String sbjctId = vo.getSbjctId();
+    	String sbjctId = request.getParameter("sbjctId");
+    	   	
+    	try {
+    		
+    	addEncParam("sbjctId", sbjctId);
 
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    	UserContext userCtx = SessionInfo.getUserContext(request);
+    	
     	if ( null == userCtx ) {
-    		LOGGER.info("세션정보가 없습니다. 로그인페이지로 이동합니다.");
-    		return "redirect:" + new URLBuilder("", "login.do",request).toString();
+    		log.info("세션정보가 없습니다. 로그인페이지로 이동합니다.");
+    		return "redirect:" + new URLBuilder("", "loginTOBE.do",request).toString();
     	}
 
     	if ( null == sbjctId || "".equals(sbjctId)) {
-    		LOGGER.info("과목아이디가 없습니다.");
+    		log.info("과목아이디가 없습니다.");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 
     	// 과목접근권한확인
     	if ( ! subjectService.hasSubjectAuthority( sbjctId, userCtx ) ) {
-    		LOGGER.info("권한이 없습니다");
+    		log.info("권한이 없습니다");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 
     	// 암호화 파라메터 추가
-    	addEncParam("sbjctId", sbjctId);
-    	addEncParam("orgId", vo.getOrgId());
+    	//addEncParam("sbjctId", sbjctId);
+    	//addEncParam("orgId", vo.getOrgId());
 
     	LectureWknoScheduleVO lctrWknoSchdlVO = subjectService.currLctrWknoSchdlSelect(sbjctId);
     	model.addAttribute("lctrWknoSchdlVO", lctrWknoSchdlVO);
@@ -130,6 +136,12 @@ public class SubjectController extends ControllerBase {
     	model.addAttribute("subjectVM", subjectVM);
 
     	model.addAttribute("contentPage", "/WEB-INF/jsp/subject/prof_classroom.jsp");
+    	
+    	} catch ( Exception e ) {
+    		e.printStackTrace();
+    	}
+    	
+    	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + subjectVM.getViewName());
 
     	return subjectVM.getViewName();
     }
@@ -148,7 +160,8 @@ public class SubjectController extends ControllerBase {
     	SubjectViewModel subjectVM = new SubjectViewModel();
     	String sbjctId = vo.getSbjctId();
 
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    	UserContext userCtx = SessionInfo.getUserContext(request);
+    	
     	if ( null == userCtx ) {
     		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>세션정보가 없습니다. 로그인페이지로 이동합니다.");
     		return "redirect:" + new URLBuilder("", "login.do",request).toString();
@@ -191,16 +204,16 @@ public class SubjectController extends ControllerBase {
     	String sbjctId = request.getParameter("sbjctId");
     	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
     	if ( null == userCtx ) {
-    		LOGGER.info("세션정보가 없습니다. 로그인페이지로 이동합니다.");
+    		log.info("세션정보가 없습니다. 로그인페이지로 이동합니다.");
     		return "redirect:" + new URLBuilder("", "login.do",request).toString();
     	}
     	if ( null == sbjctId || "".equals(sbjctId)) {
-    		LOGGER.info("과목아이디가 없습니다.");
+    		log.info("과목아이디가 없습니다.");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
     	// 과목접근권한확인
     	if ( ! subjectService.hasSubjectAuthority( sbjctId, userCtx ) ) {
-    		LOGGER.info("권한이 없습니다");
+    		log.info("권한이 없습니다");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 

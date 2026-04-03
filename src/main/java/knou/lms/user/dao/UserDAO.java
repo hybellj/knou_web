@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
+import knou.lms.user.vo.UserIdsDTO;
 import knou.lms.user.vo.UserVO;
 
 @Mapper("userDAO")
@@ -15,7 +16,5 @@ public interface UserDAO {
 	
 	public List<UserVO> registeredUsersSelect(String userRprsId) throws Exception;
 
-	public List<String> userIdsSelect(String userRprsId) throws Exception;
-
-	public List<EgovMap> subjectByUserOrgIdSelect(@Param("profIds") List<String> profIds, @Param("stdntIds") List<String> stdntIds) throws Exception;
+	public UserIdsDTO userIdsSelect(String userRprsId) throws Exception;
 }

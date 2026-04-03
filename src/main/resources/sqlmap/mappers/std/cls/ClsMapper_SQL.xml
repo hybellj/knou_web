@@ -10,25 +10,25 @@
     <!-- 주차별 사용자 학습상태 집계 CTE -->
     <sql id="wkUserLrnSts">
         WK_USER_LRN_STS AS (
-            SELECT
-                WS.SBJCT_ID
-              , L.USER_ID
-              , L.LCTR_WKNO AS WKNO
-              , MAX(L.PRGRT) AS LRN_PRGRT
-              , MAX(CASE WHEN L.PRGRT >= 100 THEN 1 ELSE 0 END) AS CMPTN_YN_NUM
-              , MAX(
-                    CASE
-                        WHEN L.LRN_STSCD = 'ATND' THEN 3
-                        WHEN L.LRN_STSCD = 'LATE' THEN 2
-                        WHEN L.LRN_STSCD = 'ABSNT' THEN 1
-                        ELSE 0
-                    END
-                ) AS LRN_STS_ORD
-            FROM TB_LMS_BYWKNO_USER_LRN_STS L
-            JOIN TB_LMS_LCTR_WKNO_SCHDL WS
-              ON WS.LCTR_WKNO_SCHDL_ID = L.LCTR_WKNO_SCHDL_ID
-            WHERE WS.SBJCT_ID = #{sbjctId}
-        GROUP BY WS.SBJCT_ID, L.USER_ID, L.LCTR_WKNO
+          SELECT
+              WS.SBJCT_ID
+            , L.USER_ID
+            , WS.LCTR_WKNO AS WKNO
+            , MAX(L.PRGRT) AS LRN_PRGRT
+            , MAX(CASE WHEN L.PRGRT >= 100 THEN 1 ELSE 0 END) AS CMPTN_YN_NUM
+            , MAX(
+                  CASE
+                      WHEN UPPER(TRIM(L.LRN_STSCD)) = 'ATND' THEN 3
+                      WHEN UPPER(TRIM(L.LRN_STSCD)) = 'LATE' THEN 2
+                      WHEN UPPER(TRIM(L.LRN_STSCD)) = 'ABSNT' THEN 1
+                      ELSE 0
+                  END
+              ) AS LRN_STS_ORD
+          FROM TB_LMS_BYWKNO_USER_LRN_STS L
+          JOIN TB_LMS_LCTR_WKNO_SCHDL WS
+            ON WS.LCTR_WKNO_SCHDL_ID = L.LCTR_WKNO_SCHDL_ID
+          WHERE WS.SBJCT_ID = #{sbjctId}
+        GROUP BY WS.SBJCT_ID, L.USER_ID, WS.LCTR_WKNO
         )
     </sql>
 
@@ -1318,18 +1318,21 @@
     <select id="selectStdntWkLrnSummary"
             parameterType="knou.lms.std.vo.ClsWkLrnVO"
             resultType="knou.lms.std.vo.ClsWkLrnVO">
+        WITH
+        <include refid="wkUserLrnSts"/>,
+        <include refid="prgrtToSts"/>
         SELECT
             WS.SBJCT_ID AS "sbjctId"
              , A.USER_ID AS "userId"
              , WS.LCTR_WKNO AS "wkNo"
              , MAX(WS.LCTR_WKNO_SCHDL_ID) AS "lctrWknoSchdlId"
              , CASE
-                   WHEN MAX(CASE WHEN A.LRN_STSCD = 'ATND' THEN 1 ELSE 0 END) = 1 THEN 'ATND'
-                   WHEN MAX(CASE WHEN A.LRN_STSCD = 'LATE' THEN 1 ELSE 0 END) = 1 THEN 'LATE'
-                   WHEN MAX(CASE WHEN A.LRN_STSCD = 'ABSNT' THEN 1 ELSE 0 END) = 1 THEN 'ABSNT'
-                   WHEN MAX(NVL(A.PRGRT,0)) >= 100 THEN 'ATND'
-                   WHEN MAX(NVL(A.PRGRT,0)) > 0 THEN 'LATE'
-                   ELSE 'ABSNT'
+            WHEN NVL(MAX(DECODE(UPPER(TRIM(A.LRN_STSCD)), 'ATND', 3, 'LATE', 2, 'ABSNT', 1, 0)), NVL(MAX(W.LRN_STS_ORD), 0)) = 3 THEN 'ATND'
+            WHEN NVL(MAX(DECODE(UPPER(TRIM(A.LRN_STSCD)), 'ATND', 3, 'LATE', 2, 'ABSNT', 1, 0)), NVL(MAX(W.LRN_STS_ORD), 0)) = 2 THEN 'LATE'
+            WHEN NVL(MAX(DECODE(UPPER(TRIM(A.LRN_STSCD)), 'ATND', 3, 'LATE', 2, 'ABSNT', 1, 0)), NVL(MAX(W.LRN_STS_ORD), 0)) = 1 THEN 'ABSNT'
+            WHEN NVL(MAX(NVL(A.PRGRT, 0)), MAX(NVL(W.LRN_PRGRT, 0))) >= NVL(MAX(C.ATND_MIN_PRGRT), 80) THEN 'ATND'
+            WHEN NVL(MAX(NVL(A.PRGRT, 0)), MAX(NVL(W.LRN_PRGRT, 0))) >= NVL(MAX(C.LATE_MIN_PRGRT), 60) THEN 'LATE'
+            ELSE 'ABSNT'
             END AS "atndSts"
              , SUM(NVL(A.TOT_MNTS, 0)) AS "inPrdLrnMin"
              , 0 AS "inPrdLrnSec"
@@ -1373,8 +1376,14 @@
                    ELSE 'N'
             END AS "lastWkYn"
         FROM TB_LMS_BYWKNO_USER_LRN_STS A
-                 JOIN TB_LMS_LCTR_WKNO_SCHDL WS
-                      ON WS.LCTR_WKNO_SCHDL_ID = A.LCTR_WKNO_SCHDL_ID
+        JOIN TB_LMS_LCTR_WKNO_SCHDL WS
+        ON WS.LCTR_WKNO_SCHDL_ID = A.LCTR_WKNO_SCHDL_ID
+        LEFT JOIN WK_USER_LRN_STS W
+        ON W.USER_ID = A.USER_ID
+        AND W.SBJCT_ID = WS.SBJCT_ID
+        AND W.WKNO = WS.LCTR_WKNO
+        LEFT JOIN PRGRT_TO_STS C
+        ON C.SBJCT_ID = WS.SBJCT_ID
         WHERE WS.SBJCT_ID = #{sbjctId}
           AND A.USER_ID = #{userId}
           AND WS.LCTR_WKNO = #{wkNo}

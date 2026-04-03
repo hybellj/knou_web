@@ -71,7 +71,7 @@
     var CTX      = "<%=request.getContextPath()%>";
     var _p       = new URLSearchParams(location.search);
     var sbjctId  = _p.get("sbjctId")  || "";
-    var sbjctnm  = "<c:out value='${sbjctnm}'/>" || _p.get("sbjctnm") || "";
+    var sbjctnm  = "<c:out value='${sbjctnm}'/>" || _p.get("sbjctnm") || ""; //fallback
     var dvclasNo = _p.get("dvclasNo") || "";
     var sbjctDisplay = sbjctnm ? (sbjctnm + (dvclasNo ? " " + dvclasNo + "반" : "")) : "-";
     var wkNo     = parseInt(_p.get("wkNo") || "0", 10);

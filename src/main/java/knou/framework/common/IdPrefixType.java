@@ -138,6 +138,7 @@ public enum IdPrefixType {
     EXSPT("EXSPT", "시험지원신청"),
     EXTGT("EXTGT", "시험대상자"),
     EXGRP("EXGRP", "시험그룹"),
+    EXSBS("EXSBS", "시험대체"),
 
     // 성적
     MR("MR", "성적"),

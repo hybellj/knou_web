@@ -172,6 +172,62 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     }
 
     /*****************************************************
+     * 대체 시험 등록
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public ExamVO examSbstRegist(ExamVO vo) throws Exception {
+        String examGbncd = vo.getExamGbncd();
+        String sbstType = vo.getExamSbstTycd();
+
+        vo.setQstnCnddtUseyn("N");              // 문항후보 사용여부 (임시)
+        vo.setMaxTkexamCnt(99);
+        vo.setExamEvlSbstId(IdGenUtil.genNewId(IdPrefixType.EXSBS));
+        // 1. 대체 시험 분류
+        switch (sbstType) {
+            // A. 과제
+            case "SBST_ASMT" :
+                if (examGbncd.contains("MID")) {
+                    vo.setAsmtGbncd("EXAM_MID_SBST");
+                } else if (examGbncd.contains("LST")) {
+                    vo.setAsmtGbncd("EXAM_LST_SBST");
+                }
+                String asmtId = IdGenUtil.genNewId(IdPrefixType.ASMT);
+                vo.setAsmtId(asmtId);
+                vo.setExamSbstId(asmtId);
+
+                // A-1. 대체 시험 등록
+                examDAO.examSbstRegist(vo);
+
+                // 1-A-2. 과제 등록
+                examDAO.sbstAsmtRegist(vo);
+
+                break;
+            // B. 퀴즈
+            case "SBST_QUIZ" :
+                if (examGbncd.contains("MID")) {
+                    vo.setExamGbncd("EXAM_MID_SBST_QUIZ");
+                } else if (examGbncd.contains("LST")) {
+                    vo.setExamGbncd("EXAM_LST_SBST_QUIZ");
+                }
+                String quizId = IdGenUtil.genNewId(IdPrefixType.EXBSC);
+                vo.setExamSbstId(quizId);
+                // B-1. 대체 시험 등록
+                examDAO.examSbstRegist(vo);
+
+                // B-2. 시험 기본 (퀴즈) 등록
+                vo.setExamBscId(quizId);
+                examDAO.sbstQuizBscRegist(vo);
+
+                // B-2. 시험 기본 (퀴즈) 등록
+                vo.setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
+                examDAO.sbstQuizDtlRegist(vo);
+                break;
+        }
+        return vo;
+    }
+
+    /*****************************************************
      * 교수 시험목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
@@ -729,6 +785,32 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     }
 
     /*****************************************************
+     * 대체 시험 수정
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void updateExamSbst(ExamVO vo) throws Exception {
+        String sbstType = vo.getExamSbstTycd();
+
+        examDAO.updateExamSbst(vo);
+        switch (sbstType) {
+            // A. 과제
+            case "SBST_ASMT" :
+                // A-1. 과제 수정
+                examDAO.updateSbstAsmt(vo);
+                break;
+            // B. 퀴즈
+            case "SBST_QUIZ" :
+                // B-1. 시험(퀴즈) 기본 수정
+                examDAO.updateExamSbstBsc(vo);
+
+                // B-2. 시험(퀴즈) 상세 수정
+                examDAO.updateExamDtlInfo(vo);
+                break;
+        }
+    }
+
+    /*****************************************************
      * 시험 삭제
      * @param vo
      * @throws Exception
@@ -751,6 +833,32 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 
             // B-2. 시험 기본정보 삭제
             examDAO.deleteExamBscInfo(vo);
+        }
+    }
+
+    /*****************************************************
+     * 대체 시험 삭제
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void deleteExamSbst(ExamVO vo) throws Exception {
+        String sbstType = vo.getExamSbstTycd();
+
+        examDAO.deleteExamSbst(vo);
+        switch (sbstType) {
+            // A. 과제
+            case "SBST_ASMT" :
+                // A-1. 과제 삭제
+                examDAO.deleteSbstAsmt(vo);
+                break;
+            // B. 퀴즈
+            case "SBST_QUIZ" :
+                // B-1. 시험(퀴즈) 상세 삭제
+                examDAO.deleteExamDtlInfo(vo);
+
+                // B-2. 시험(퀴즈) 기본 삭제
+                examDAO.deleteExamBscInfo(vo);
+                break;
         }
     }
 

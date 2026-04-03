@@ -64,6 +64,18 @@
         WHERE DSCS_CMNT_ID = #{cmntSn}
     </update>
 
+    <update id="hideCmnt" parameterType="knou.lms.forum.vo.ForumCmntVO">
+        /*
+            SQL ID : ForumCmntDAO.hideCmnt
+            설명 : 토론방 댓글 숨김 (DELYN='H')
+        */
+        UPDATE TB_LMS_DSCS_CMNT
+        SET DELYN = 'H'
+          , MOD_DTTM = FN_DTTM()
+          , MDFR_ID = #{mdfrId}
+        WHERE DSCS_CMNT_ID = #{cmntSn}
+    </update>
+
     <select id="cmntList" parameterType="knou.lms.forum.vo.ForumAtclVO" resultType="knou.lms.forum.vo.ForumCmntVO">
         /*
         토론 댓글 목록
@@ -162,7 +174,9 @@
             ON PC.DSCS_CMNT_ID = A.UP_CMNT_ID
             LEFT JOIN TB_LMS_USER PU
             ON PU.USER_ID = PC.USER_ID
-        WHERE (A.DELYN = 'N' OR A.CHILD_YN = 'Y')
+        <where>
+            <if test="!viewAll">(A.DELYN IN ('N', 'H') OR A.CHILD_YN = 'Y')</if>
+        </where>
         ORDER BY A.RN, A.PATH
 </select>
 

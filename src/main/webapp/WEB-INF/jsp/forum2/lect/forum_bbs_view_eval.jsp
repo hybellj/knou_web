@@ -54,7 +54,7 @@ $(document).ready(function() {
 					<ul class="viewInfo">
 						<li><span><spring:message code="forum.label.reg.user"/></span>${forumAtclVO.regNm}(${forumAtclVO.userId})</li>  <!-- 작성자 -->
 						<c:choose>
-							<c:when test="${forumAtclVO.atclTypeCd eq 'NORMAL_N' || forumAtclVO.atclTypeCd eq 'TEAM_N'}">
+							<c:when test="${forumAtclVO.atclTypeCd eq 'GNRL_N' || forumAtclVO.atclTypeCd eq 'TEAM_N'}">
 							<c:if test="${forumAtclVO.prosConsTypeCd eq 'F'}">
 							<!-- <li><strong class="fcOlive">FeedBack</strong></li> -->
 							</c:if>

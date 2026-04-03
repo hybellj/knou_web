@@ -12,6 +12,7 @@ public interface ForumCmntDAO {
     public void insertCmnt(ForumCmntVO vo) throws Exception;
     public void updateCmnt(ForumCmntVO vo) throws Exception;
     public void deleteCmnt(ForumCmntVO vo) throws Exception;
+    public void hideCmnt(ForumCmntVO vo) throws Exception;
 	public List<ForumCmntVO> cmntList(ForumAtclVO vo) throws Exception;
 	public ForumCmntVO forumCmntSelect(ForumCmntVO vo) throws Exception;
 }

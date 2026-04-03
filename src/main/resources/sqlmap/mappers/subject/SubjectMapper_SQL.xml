@@ -277,7 +277,7 @@
 		CREATE INDEX IDX_EXAM_BSC_09 ON TB_LMS_EXAM_BSC(SBJCT_ID, DELYN, USEYN);
 		CREATE INDEX IDX_EXAM_DTL_09 ON TB_LMS_EXAM_DTL(EXAM_BSC_ID, DELYN, USEYN);
 	*/
-		SELECT 	SA.SBJCT_ID SUBJECT_ID
+		SELECT 	SA.SBJCT_ID SBJCT_ID
 				, SA.SBJCT_ADM_TYCD
 				, S.SBJCTNM , S.CRDTS
 				, U.USERNM, U.USER_ID  
@@ -412,7 +412,7 @@
 		
 		필요인덱스 [학생과목요약목록조회]
 	*/
-		SELECT 	  S.SBJCT_ID SUBJECT_ID
+		SELECT 	  S.SBJCT_ID SBJCT_ID
 				, SA2.SBJCT_ADM_TYCD
 				, S.SBJCTNM , S.CRDTS
 				, U.USERNM, U.USER_ID  
@@ -534,5 +534,80 @@
 		    SELECT 1 FROM TB_LMS_SBJCT_ADM WHERE USER_ID = #{userId} AND SBJCT_ID = #{sbjctId}
 		)
 	</select>	
+	
+	<select id="subjectByUserOrgIdSelect"  parameterType="map" resultType="eGovMap">
+        /*  설 명 : 교수별과목에서 수강생별과목에서 기관아이디조회 */
+        SELECT ORG_ID, ORGNM, USER_TYCD
+		FROM 
+			( 	SELECT 	O.ORG_ID, O.ORGNM, S.SBJCT_ID, S.SBJCTNM, 'PROF' AS USER_TYCD
+				FROM 	TB_LMS_SBJCT	S
+						JOIN	TB_LMS_SMSTR_CHRT SC	ON 	S.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+						JOIN 	TB_LMS_ORG O			ON 	SC.ORG_ID = O.ORG_ID
+				WHERE	1 = 1 
+						<if test="profIds != null and profIds.size() > 0">
+				            AND S.PROF_ID IN 
+				            <foreach collection="profIds" item="id" open="(" separator="," close=")">
+				                #{id}
+				            </foreach>
+				        </if>
+				        <if test="profIds == null or profIds.size() == 0">
+				            AND 1 = 2 /* 리스트가 비어있을 경우 조회를 방지하기 위한 조건 */
+				        </if>
+				UNION ALL
+				SELECT 	O.ORG_ID, O.ORGNM, S.SBJCT_ID, S.SBJCTNM, 'STDNT' AS USER_TYCD
+				FROM 	TB_LMS_ATNDLC A
+						JOIN	TB_LMS_SBJCT	S		ON	A.SBJCT_ID = S.SBJCT_ID
+						JOIN	TB_LMS_SMSTR_CHRT SC	ON 	S.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+						JOIN 	TB_LMS_ORG O			ON 	SC.ORG_ID = O.ORG_ID
+				WHERE	1 = 1
+						<if test="stdntIds != null and stdntIds.size() > 0">
+				            AND A.USER_ID IN 
+				            <foreach collection="stdntIds" item="id" open="(" separator="," close=")">
+				                #{id}
+				            </foreach>
+				        </if>
+				        <if test="stdntIds == null or stdntIds.size() == 0">
+				            AND 1 = 2
+				        </if>
+			)
+		GROUP BY ORG_ID, ORGNM, USER_TYCD ORDER BY ORG_ID
+    </select>
+    
+    <select id="subjectByUserSelect"  parameterType="map" resultType="eGovMap">
+        /*  설 명 : 사용자별과목조회 */
+        SELECT ORG_ID, ORGNM, SBJCT_ID, SBJCTNM, USER_TYCD
+		FROM 
+			( 	SELECT 	O.ORG_ID, O.ORGNM, S.SBJCT_ID, S.SBJCTNM, 'PROF' AS USER_TYCD
+				FROM 	TB_LMS_SBJCT	S
+						JOIN	TB_LMS_SMSTR_CHRT SC	ON 	S.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+						JOIN 	TB_LMS_ORG O			ON 	SC.ORG_ID = O.ORG_ID
+				WHERE	1 = 1 
+						<if test="profIds != null and profIds.size() > 0">
+				            AND S.PROF_ID IN 
+				            <foreach collection="profIds" item="id" open="(" separator="," close=")">
+				                #{id}
+				            </foreach>
+				        </if>
+				        <if test="profIds == null or profIds.size() == 0">
+				            AND 1 = 2 /* 리스트가 비어있을 경우 조회를 방지하기 위한 조건 */
+				        </if>
+				UNION ALL
+				SELECT 	O.ORG_ID, O.ORGNM, S.SBJCT_ID, S.SBJCTNM, 'STDNT' AS USER_TYCD
+				FROM 	TB_LMS_ATNDLC A
+						JOIN	TB_LMS_SBJCT	S		ON	A.SBJCT_ID = S.SBJCT_ID
+						JOIN	TB_LMS_SMSTR_CHRT SC	ON 	S.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+						JOIN 	TB_LMS_ORG O			ON 	SC.ORG_ID = O.ORG_ID
+				WHERE	1 = 1
+						<if test="stdntIds != null and stdntIds.size() > 0">
+				            AND A.USER_ID IN 
+				            <foreach collection="stdntIds" item="id" open="(" separator="," close=")">
+				                #{id}
+				            </foreach>
+				        </if>
+				        <if test="stdntIds == null or stdntIds.size() == 0">
+				            AND 1 = 2
+				        </if>
+			)
+    </select>   
 
 </mapper>

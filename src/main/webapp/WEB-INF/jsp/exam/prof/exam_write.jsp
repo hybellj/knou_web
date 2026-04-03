@@ -10,7 +10,7 @@
 
 	<script type="text/javascript">
         var isModify = "${isModify}";   // [등록|수정] 여부
-        var sbjctId = "${crsCreCd}";    // 과목 ID
+        var sbjctId = "${sbjctId}";     // 과목 ID
         var dialog;                     // UiDialog 인스턴스
         var getExamBscId = "";
         const editors = {};	            // 에디터 목록 저장용

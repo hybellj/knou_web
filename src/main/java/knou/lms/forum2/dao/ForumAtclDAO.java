@@ -18,6 +18,7 @@ public interface ForumAtclDAO {
     public ForumAtclVO selectAtcl(ForumAtclVO vo) throws Exception;
     public void updateAtcl(ForumAtclVO vo) throws Exception;
     public void deleteAtcl(ForumAtclVO vo) throws Exception;
+    public void hideAtcl(ForumAtclVO vo) throws Exception;
 //    public ForumAtclVO selectMutResult(ForumAtclVO vo) throws Exception;
 /*
     public List<ForumAtclVO> selectAtclUserList(ForumMutVO vo) throws Exception;*/

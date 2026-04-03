@@ -15,6 +15,7 @@ public interface ForumAtclService {
     public ForumAtclVO selectAtcl(ForumAtclVO vo) throws Exception;
     public void updateAtcl(ForumAtclVO vo) throws Exception;
     public void deleteAtcl(ForumAtclVO vo) throws Exception;
+    public void hideAtcl(ForumAtclVO vo) throws Exception;
     public List<ForumAtclVO> forumAtclList(ForumAtclVO vo) throws Exception;
 	public int myAtclCnt(ForumAtclVO vo) throws Exception;
     public List<ForumAtclVO> forumAtclExcalList(ForumAtclVO vo) throws Exception;

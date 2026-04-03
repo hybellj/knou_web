@@ -28,6 +28,18 @@ public interface ExamDAO {
     // 시험 대상자 등록 (수정용)
     public void examTrgtrRegist2(ExamTrgtrVO vo) throws Exception;
 
+    // 대체 시험 등록
+    public void examSbstRegist(ExamVO vo) throws Exception;
+
+    // 대체 과제 등록
+    public void sbstAsmtRegist(ExamVO vo) throws Exception;
+
+    // 대체 시험 기본(퀴즈) 등록
+    public void sbstQuizBscRegist(ExamVO vo) throws Exception;
+
+    // 대체 시험 상세(퀴즈) 등록
+    public void sbstQuizDtlRegist(ExamVO vo) throws Exception;
+
     // 교수 시험목록 조회
     public List<ExamVO> listProfExam (ExamVO vo) throws Exception;
 
@@ -124,6 +136,15 @@ public interface ExamDAO {
     // 시험 상세정보 수정
     public void updateExamDtlInfo(ExamVO vo) throws Exception;
 
+    // 대체 시험 수정
+    public void updateExamSbst(ExamVO vo) throws Exception;
+
+    // 대체 과제 수정
+    public void updateSbstAsmt(ExamVO vo) throws Exception;
+
+    // 대체 시험(퀴즈) 기본정보 수정
+    public void updateExamSbstBsc(ExamVO vo) throws Exception;
+
     // 시험 기본정보 삭제
     public void deleteExamBscInfo(ExamVO vo) throws Exception;
 
@@ -132,6 +153,12 @@ public interface ExamDAO {
 
     // 시험 대상자 삭제
     public void deleteExamTrgtr(ExamVO vo) throws Exception;
+
+    // 대체 시험 삭제
+    public void deleteExamSbst(ExamVO vo) throws Exception;
+
+    // 대체 과제 삭제
+    public void deleteSbstAsmt(ExamVO vo) throws Exception;
 
     /*****************************************************
      * 기존에 있던 DAO 영역

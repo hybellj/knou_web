@@ -19,7 +19,7 @@
     String orgDomainNm = "";
 
     if (SessionInfo.isLogin(request)) {
-        homeUrl = "/dashboard/main.do";
+        homeUrl = "/dashboard/dashboard.do";
     } else {
 	/*
 	String serverName = request.getServerName();

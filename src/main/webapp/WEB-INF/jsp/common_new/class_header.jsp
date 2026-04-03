@@ -21,7 +21,9 @@
 			<img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.png" aria-hidden="true" alt="한국방송통신대학교">
 		</a>
 	</h1>
-	<div class="option-univ"><!-- 버튼 클릭시 on 클래스 추가 -->
+	<!-- 버튼 클릭시 on 클래스 추가 -->
+	<!--
+	<div class="option-univ">
 		<a href="#0" class="go_home" data-medi-ui="univ">대학원<i class="icon-svg-arrow-down"></i></a>
 		<div class="option-wrap">
 			<div class="item"><a href="#0">전체</a></div>
@@ -29,6 +31,7 @@
 			<div class="item"><a href="#0">학위과정</a></div>
 		</div>
 	</div>
+	-->
 
 	<ul class="util">
 		<li class="zoom-control">

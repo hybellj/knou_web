@@ -1,21 +1,20 @@
 package knou.lms.lecture2.vo;
 
+import java.util.List;
+
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.mrk.vo.MarkItemSettingVO;
-
-import java.util.List;
 
 public class LctrPlandocVO extends DefaultVO {
 
     private String lctrPlandocId;        // 강의계획서아이디 (PK)
-    private String sbjctId;              // 과목아이디 (FK)
+    private String sbjctId; 		     // 과목아이디 (FK)
     private String crclmnOtln;            // 교과목개요
     private String lctrGoal;              // 강의목표
     private String lctrOpGdln;             // 운영방침
     private String lctrOpPlan;             // 운영계획
     private String rltdSbjctCts;           // 관련과목내용
     private String remakrs;                // 참고사항
-
 
     private String plyrShrtctKeyPvsnyn;    // 플레이어단축키제공여부 (Y/N)
     private String scrptPvsnyn;             // 스크립트제공여부 (Y/N)
@@ -32,8 +31,10 @@ public class LctrPlandocVO extends DefaultVO {
     private List<MarkItemSettingVO> mrkItmStngList; // 평가비율
     private List<LectureScheduleVO> wkList; // 주차
     
+    public LctrPlandocVO() {}     
+    
     public LctrPlandocVO (String sbjctId) {
-    	this.setSbjctId(sbjctId);
+        this.setSbjctId(sbjctId);
     }
 
     public String getLctrPlandocId() {
@@ -42,19 +43,17 @@ public class LctrPlandocVO extends DefaultVO {
 
     public void setLctrPlandocId(String lctrPlandocId) {
         this.lctrPlandocId = lctrPlandocId;
-    }
+    } 
 
-    @Override
     public String getSbjctId() {
-        return sbjctId;
-    }
+		return sbjctId;
+	}
 
-    @Override
-    public void setSbjctId(String sbjctId) {
-        this.sbjctId = sbjctId;
-    }
+	public void setSbjctId(String sbjctId) {
+		this.sbjctId = sbjctId;
+	}
 
-    public String getCrclmnOtln() {
+	public String getCrclmnOtln() {
         return crclmnOtln;
     }
 

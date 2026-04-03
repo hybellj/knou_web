@@ -273,7 +273,7 @@
                                 </tbody>
                             </table>
                             <div class="course_list">
-                                <ul class="accordion course_week_">
+                                <ul class="accordion course_week">
                                     <li>
                                         <div class="title-wrap">
                                             <a class="title" href="#">

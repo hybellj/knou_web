@@ -49,6 +49,8 @@ public class UserContext {
 	}
 	public void setSelectedUser(UserVO selectedUser) {
 		this.selectedUser = selectedUser;
+		// 초기 UserContext와 호환을 위해
+		initDefaultUser();
 	}
 
 	UserVO 	loginUser;
@@ -247,8 +249,14 @@ public class UserContext {
 	public Map<String, UserVO> getRegisteredUsers() {
 		return registeredUsers;
 	}	
-	
 	public void setRegisteredUsers(Map<String, UserVO> users) {
 		this.registeredUsers = users;
+	}
+	public void initDefaultUser() {
+		this.userId = this.getSelectedUser().getUserId();
+		this.authrtCd = this.getSelectedUser().getUserTycd();
+		this.orgId = this.getSelectedUser().getOrgId();
+		this.authrtGrpcd = this.getSelectedUser().getUserTycd();
+		this.setUserTycd(this.getSelectedUser().getUserTycd());
 	}
 }

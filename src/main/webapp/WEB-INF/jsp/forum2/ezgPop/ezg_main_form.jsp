@@ -562,12 +562,14 @@ function valFdbk(){
 	$("#fdbkUploadForm > input[name='uploadPath']").val("");
 
 	if(confirm('<spring:message code='forum.alert.feedback.confirm'/>')) { // 피드백을 저장하시겠습니까?
-		var fileUploader = dx5.get("fdbkFileUploader");
+		// 26.4.3 : Tobe 에 ezgrader 에서 파일 첨부 없음.
+		/*var fileUploader = dx5.get("fdbkFileUploader");
 		if (fileUploader.getFileCount() > 0) {
 			fileUploader.startUpload();
 		}else{
 			submitFdbk();
-		}
+		}*/
+		submitFdbk();
 	}
 }
 
@@ -624,7 +626,7 @@ function submitFdbk() {
 		"audioData"		: audioRecord.audioData,
 		"audioFile"		: audioRecord.audioFile
 	};
-
+debugger;
 	ajaxCall(url, data, function(data) {
 		if (data.result > 0) {
 			alert("<spring:message code='forum.alert.reg_success.feedback'/>"); // 피드백 등록에 성공하였습니다.
@@ -660,7 +662,7 @@ function submitMemo() {
 	};
 	
 	if(confirm('<spring:message code='forum.alert.memo.confirm' />')) { // 메모를 저장하시겠습니까?
-		ajaxCall(url, data, function(data) {
+		/*ajaxCall(url, data, function(data) {
 			if (data.result > 0) {
 				alert("<spring:message code='forum.alert.memo.insert' />"); // 메모 저장이 완료되었습니다.
 			} else {
@@ -668,7 +670,31 @@ function submitMemo() {
 			}
 		}, function(xhr, status, error) {
 			alert("<spring:message code='forum.alert.memo.error' />");// 메모 저장 중 에러가 발생하였습니다.
-		}, true);
+		}, true);*/
+		// TODO : 26.4.3 : 퍼블리싱 완료 후 common_new.jsp inclue 후 ajaxCall 로 처리
+		$.ajax({
+			url 	 : url,
+			async	 : false,
+			type 	 : "POST",
+			data 	   : data,
+			beforeSend: function () {
+				// TODO : 26.4.3 : 퍼블리싱 완료 후 common_new.jsp inclue 후 ajaxCall 로 처리
+				// UiComm.showLoading(true);
+			}
+		}).done(function(data) {
+			// TODO : 26.4.3 : 퍼블리싱 완료 후 common_new.jsp inclue 후 ajaxCall 로 처리
+			// UiComm.showLoading(false);
+			if (data.result > 0) {
+				alert("<spring:message code='forum.alert.memo.insert' />"); // 메모 저장이 완료되었습니다.
+			} else {
+				alert(data.message || "<spring:message code='fail.common.msg'/>");
+			}
+		}).fail(function() {
+			// TODO : 26.4.3 : 퍼블리싱 완료 후 common_new.jsp inclue 후 ajaxCall 로 처리
+			// UiComm.showLoading(false);
+			//UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+			alert("<spring:message code='fail.common.msg'/>");
+		});
 	}
 }
 

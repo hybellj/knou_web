@@ -42,6 +42,12 @@ public class ForumCmntServiceImpl extends ServiceBase implements ForumCmntServic
         forumCmntDAO.deleteCmnt(vo);
     }
 
+    // 토론방 댓글 숨김
+    @Override
+    public void hideCmnt(ForumCmntVO vo) throws Exception {
+        forumCmntDAO.hideCmnt(vo);
+    }
+
     // 토론 댓글 조회
     @Override
     public ForumCmntVO forumCmntSelect(ForumCmntVO vo) throws Exception {

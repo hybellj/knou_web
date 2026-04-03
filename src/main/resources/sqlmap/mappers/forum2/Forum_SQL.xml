@@ -70,14 +70,18 @@
             , A.MDFR_ID
             , A.MOD_DTTM
             , A.SBJCT_ID
-            , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclCnt
+            , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B
+               WHERE B.DSCS_ID = A.DSCS_ID
+               <if test="!viewAll">AND B.DELYN = 'N'</if>
+               AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclCnt
             , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
-               WHERE B.DELYN = 'N'
+               WHERE 1=1
+               <if test="!viewAll">AND B.DELYN = 'N'</if>
                  AND B.DSCS_ATCL_ID IN (
                      SELECT C.DSCS_ATCL_ID
                      FROM TB_LMS_DSCS_ATCL C
                      WHERE C.DSCS_ID = A.DSCS_ID
-                       AND C.DELYN = 'N'
+                     <if test="!viewAll">AND C.DELYN = 'N'</if>
                  )) AS forumCmntCnt
         , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'OK' AND B.ATCL_LV = 0 AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclPorsCnt
         , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'NOTOK' AND B.ATCL_LV = 0 AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclConsCnt
@@ -265,7 +269,12 @@
           , A.SBJCT_ID
           , A.BYTEAM_DSCS_USEYN
           /* 게시글 수 조회 */
-          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclCnt
+          , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B
+                             WHERE B.DSCS_ID = A.DSCS_ID
+                               AND B.DELYN = 'N'
+                               AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y'
+                                   OR EXISTS (SELECT 1 FROM TB_LMS_USER U
+                                                       WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS forumAtclCnt
           /* 댓글 수 조회 */
           , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
              WHERE B.DELYN = 'N'
@@ -615,41 +624,6 @@
              AND DSCS.DSCS_TTL LIKE FN_LIKE_VAL(#{searchValue})
            </if>
          ORDER BY SBJCT.SBJCTNM, DSCS.REG_DTTM DESC
-    </select>
-
-    <select id="select" parameterType="forum2VO" resultType="forum2VO">
-        /*
-            토론 정보 가져오기 ajax
-            ForumDAO.select
-        */
-        SELECT
-            A.SBJCT_ID
-             , A.DSCS_ID
-             , A.DSCS_TTL
-             , A.DSCS_CTS
-             , A.DVCLAS_REGYN
-             , A.DSCS_SDTTM
-             , A.DSCS_EDTTM
-             , A.MRK_RFLTYN
-             , A.EVL_CTGRCD
-             , A.TEAM_DSCS_STNGYN
-             , A.TEAM_TYCD
-             , A.MRK_OYN
-             , A.APLY_CMNT_RSPNSYN
-             , A.PROS_CONS_FORUM_CFG
-             , A.OKNOKRT_OYN
-             , A.REG_OPEN_YN
-             , A.MLT_OPNN_REGYN
-             , A.OKNOK_MODYN
-             , A.EVL_RSLT_OYN
-             , A.EVL_CRTR_USEYN
-             , A.EVL_CTGRCD
-             , A.EVL_SDTTM
-             , A.EVL_EDTTM
-             , A.MTL_EVLYN
-             , A.OTHER_VIEW_YN
-        FROM TB_LMS_DSCS A
-        WHERE DSCS_ID = #{forumCd}
     </select>
 
     <update id="deleteForum" parameterType="forum2VO">

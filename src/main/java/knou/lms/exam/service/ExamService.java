@@ -23,6 +23,9 @@ public interface ExamService {
     // 시험 등록
     public ExamBscVO examRegist(ExamBscVO vo) throws Exception;
 
+    // 대체 시험 등록
+    public ExamVO examSbstRegist(ExamVO vo) throws Exception;
+
     // 교수 시험목록 페이징
     public ProcessResultVO<ExamVO> listProfExamPaging(ExamVO vo) throws Exception;
 
@@ -89,8 +92,14 @@ public interface ExamService {
     // 시험 수정
     public void updateExamDtlInfo(ExamVO vo) throws Exception;
 
+    // 대체 시험 수정
+    public void updateExamSbst(ExamVO vo) throws Exception;
+
     // 시험 삭제
     public void deleteExamBsc(ExamVO vo) throws Exception;
+
+    // 대체 시험 삭제
+    public void deleteExamSbst(ExamVO vo) throws Exception;
 
     /*****************************************************
      * 기존에 있던 Service 영역

@@ -35,11 +35,13 @@
         FROM TB_LMS_DSCS_ATCL A
         LEFT JOIN TB_LMS_USER U ON U.USER_ID = A.RGTR_ID
         WHERE A.DSCS_ID = #{forumCd}
-          AND (A.DELYN = 'N' OR EXISTS (
+        <if test="!viewAll">
+          AND (A.DELYN IN ('N', 'H') OR EXISTS (
                 SELECT 1 FROM TB_LMS_DSCS_CMNT C
                 WHERE C.DSCS_ATCL_ID = A.DSCS_ATCL_ID
                   AND C.DELYN = 'N'
           ))
+        </if>
         <if test="searchValue != null and searchValue != ''">
           AND (
                 LOWER(A.RGTR_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
@@ -99,11 +101,13 @@
         FROM TB_LMS_DSCS_ATCL A
         LEFT JOIN TB_LMS_USER U ON U.USER_ID = A.RGTR_ID
         WHERE A.DSCS_ID = #{forumCd}
-          AND (A.DELYN = 'N' OR EXISTS (
+        <if test="!viewAll">
+          AND (A.DELYN IN ('N', 'H') OR EXISTS (
                 SELECT 1 FROM TB_LMS_DSCS_CMNT C
                 WHERE C.DSCS_ATCL_ID = A.DSCS_ATCL_ID
                   AND C.DELYN = 'N'
           ))
+        </if>
         <if test="searchValue != null and searchValue != ''">
           AND (
                 LOWER(A.RGTR_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
@@ -246,6 +250,19 @@
 		*/
         UPDATE TB_LMS_DSCS_ATCL
         SET DELYN = 'Y'
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM = FN_DTTM()
+        WHERE DSCS_ATCL_ID = #{atclSn}
+          AND DSCS_ID = #{forumCd}
+    </update>
+
+    <update id="hideAtcl" parameterType="knou.lms.forum.vo.ForumAtclVO">
+        /*
+            SQL ID : ForumAtclDAO.hideAtcl
+            설명 : 토론 게시글 숨김 (DELYN='H')
+        */
+        UPDATE TB_LMS_DSCS_ATCL
+        SET DELYN = 'H'
           , MDFR_ID = #{mdfrId}
           , MOD_DTTM = FN_DTTM()
         WHERE DSCS_ATCL_ID = #{atclSn}

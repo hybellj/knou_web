@@ -73,7 +73,7 @@ public class SubjectVO extends DefaultVO {
     private String lctrFrmtGbncd;
 
     private int atndlcStdntCnt = 0;
-
+    
     public String getSbjctId() {
         return sbjctId;
     }

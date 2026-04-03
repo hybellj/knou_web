@@ -2,8 +2,7 @@ package knou.lms.user.service;
 
 import java.util.List;
 
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-
+import knou.lms.user.vo.UserIdsDTO;
 import knou.lms.user.vo.UserVO;
 
 public interface UserService {
@@ -12,8 +11,5 @@ public interface UserService {
 
 	List<UserVO> registeredUsersSelect(String userRprsId) throws Exception;
 
-	List<String> userIdsSelect(String userRprsId) throws Exception;
-
-	List<EgovMap> subjectByUserOrgIdSelect(List<String> profIds, List<String> stdntIds) throws Exception;
-	
+	UserIdsDTO userIdsSelect(String userRprsId) throws Exception;	
 }

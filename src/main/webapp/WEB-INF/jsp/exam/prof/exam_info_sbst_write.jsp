@@ -14,14 +14,17 @@
         var PAGE_INDEX = 1;
         var LIST_SCALE = 10;
 
-        /**
-         * 목록에서 보낸 탭 타입 (버튼)
-         * 시험 ID, 시험 방식을 받게 됨.
-         * 시험 방식에 따라 보여지는 레이아웃이 다르게 됨.
-         */
         var curTabType   = '${vo.tabType}';
-        var curExamBscId = '${vo.examBscId}';
         var curTkexamMthdCd = '${vo.tkexamMthdCd}';
+
+        var curExamBscId = '${vo.examBscId}';
+        var curSbjctId = '${examVO.sbjctId}';
+        var curMrkRfltrt = '${examVO.mrkRfltrt}';
+        var curExamGbncd = '${examVO.examGbncd}';
+
+        var curExamEvlSbstId = '${sbstVO.examEvlSbstId}';
+        var curAsmtId = '${sbstVO.asmtId}';
+        var curQuizId = '${sbstVO.examBscId}';
 
         var curByteamSubrexamUseyn = '${vo.byteamSubrexamUseyn}';   // 팀 여부
         var hasSubSubject = '${examVO.lrnGrpSubsbjctUseyn}';        // 부 주제
@@ -210,16 +213,20 @@
          * form 요소 제어 함수
          * 1. eventSbstTypeRd :     시험 대체 유형 라디오 버튼 change 이벤트
          * 2. initQuizCheckbox:     퀴즈 체크박스 초기값 세팅
+         * 3. eventFlMmTycdRd :     제출파일 유형 라디오 change 이벤트
+         * 4. initFlMmTycdRd :      sbstVO.sbmsnFileMimeTycd 값 기반 라디오/체크박스 초기값 세팅
          *****************************************************************************/
         /* 1 */
         function eventSbstTypeRd() {
             $('input[name="sbst-type-rd"]').on('change', function() {
-                if ($(this).val() === 'ASMT') {
+                if ($(this).val() === 'SBST_ASMT') {
                     $('#asmt-write').show();
                     $('#quiz-write').hide();
+                    $('#quiz-mng-btn').hide();
                 } else {
                     $('#quiz-write').show();
                     $('#asmt-write').hide();
+                    $('#quiz-mng-btn').show();
                 }
             });
         }
@@ -231,6 +238,199 @@
             if ('${sbstVO.qstnVwitmRndmyn}' === 'Y') {
                 $('#quiz-view-mix-type').trigger('click');
             }
+        }
+        /* 3 */
+        function eventFlMmTycdRd() {
+            var $prvCheckboxArea   = $('#tycd-prv');
+            var $spcfcCheckboxArea = $('#tycd-spcfc');
+
+            $('input[name="asmt-sbasmt-fl-mm-tycd-rd"]').on('change', function() {
+                var val = $(this).val();
+
+                if (val === 'ALL') {
+                    $prvCheckboxArea.hide().find('input[type="checkbox"]').prop('checked', false);
+                    $spcfcCheckboxArea.hide().find('input[type="checkbox"]').prop('checked', false);
+                } else if (val === 'PRVIEW') {
+                    $prvCheckboxArea.show();
+                    $spcfcCheckboxArea.hide().find('input[type="checkbox"]').prop('checked', false);
+                } else if (val === 'SPECIFIC') {
+                    $spcfcCheckboxArea.show();
+                    $prvCheckboxArea.hide().find('input[type="checkbox"]').prop('checked', false);
+                }
+            });
+
+            // 초기 상태 반영 (현재 선택된 radio 기준)
+            $('input[name="asmt-sbasmt-fl-mm-tycd-rd"]:checked').trigger('change');
+        }
+        /* 4 */
+        function initFlMmTycdRd() {
+            var savedVal = '${sbstVO.sbmsnFileMimeTycd}';
+            if (!savedVal) return;
+
+            var prvValues   = ['img', 'pdf', 'txt', 'exe'];
+            var spcfcValues = ['HWP', 'DOC', 'PPT', 'XLS'];
+            var savedList   = savedVal.split(',');
+
+            // 저장된 값이 어느 그룹에 속하는지 판별
+            var hasPrv   = savedList.some(function(v) { return prvValues.indexOf(v)   !== -1; });
+            var hasSpcfc = savedList.some(function(v) { return spcfcValues.indexOf(v) !== -1; });
+
+            var radioVal = hasPrv ? 'PRVIEW' : (hasSpcfc ? 'SPECIFIC' : null);
+            if (!radioVal) return;
+
+            // 라디오 선택 후 change 이벤트 발생 (영역 show/hide 처리)
+            $('input[name="asmt-sbasmt-fl-mm-tycd-rd"][value="' + radioVal + '"]')
+                .prop('checked', true)
+                .trigger('change');
+
+            // 해당하는 체크박스 체크
+            savedList.forEach(function(v) {
+                $('#' + v).prop('checked', true);
+            });
+        }
+
+        /*****************************************************************************
+         * 버튼 기능
+         * 1. examSbstSaveBtnEvent :    대체 시험 데이터 [등록|수정] 버튼 이벤트 (ajax)
+         * 2. examSbstDeleteBtnEvent :  대체 시험 삭제 버튼 이벤트 (ajax)
+         *****************************************************************************/
+        /* 1 */
+        function examSbstSaveBtnEvent() {
+            $("#sbstWriteSave").on("click", function() {
+                var selectedSbstType = $('input[name="sbst-type-rd"]:checked').val();
+
+                // 선택된 form 에 맞는 validator 적용
+                var validatorFormId = (selectedSbstType === 'SBST_ASMT') ? 'asmt-write' : 'quiz-write';
+                var validator = UiValidator(validatorFormId);
+
+                validator.then(function(result) {
+                    if (result) {
+                        // 등록|수정 URL
+                        var url = (gbn === '' || gbn == null)
+                            ? "/exam/examSbstRegist.do"
+                            : "/exam/examSbstModify.do";
+
+                        // 공통 데이터
+                        var formData = {
+                            examBscId:      curQuizId ? curQuizId : curExamBscId,
+                            asmtId:         curAsmtId,
+                            examEvlSbstId:  curExamEvlSbstId,
+                            sbjctId:        curSbjctId,
+                            examGbncd:      curExamGbncd,
+                            mrkRfltrt:      curMrkRfltrt,
+                            examSbstTycd:   selectedSbstType
+                        };
+
+                        if (selectedSbstType === 'SBST_ASMT') {
+                            // [과제] form 데이터
+                            var asmtContents = editors['editor_asmt'].getPublishingHtml();
+                            var asmtSdttm    = UiComm.getDateTimeVal("dateAsmtSt", "timeAsmtSt") + "00";
+                            var asmtEdttm    = UiComm.getDateTimeVal("dateAsmtEd", "timeAsmtEd") + "59";
+
+                            formData.asmtTtl        = $('#asmt-ttl').val();
+                            formData.asmtCts        = asmtContents;
+                            formData.asmtSbmsnSdttm = asmtSdttm;
+                            formData.asmtSbmsnEdttm = asmtEdttm;
+                            formData.mrkRfltyn      = $('input[name="asmt-mkr-rfltyn-rd"]:checked').val();
+                            formData.mrkOyn         = $('input[name="asmt-mkr-oyn-rd"]:checked').val();
+                            formData.evlScrTycd     = $('input[name="asmt-evl-scr-tycd-rd"]:checked').val();
+                            formData.sbasmtTycd     = $('input[name="asmt-sbasmt-tycd-rd"]:checked').val();
+                            formData.sbmsnFileMimeTycd = $('#tycd-prv input[type="checkbox"]:checked, #tycd-spcfc input[type="checkbox"]:checked')
+                                                            .map(function() { return $(this).val(); })
+                                                            .get().join(',');
+                        } else {
+                            // [퀴즈] form 데이터
+                            var quizContents = editors['editor_quiz'].getPublishingHtml();
+                            var quizSdttm    = UiComm.getDateTimeVal("dateQuizSt", "timeQuizSt") + "00";
+                            var quizEdttm    = UiComm.getDateTimeVal("dateQuizEd", "timeQuizEd") + "59";
+
+                            formData.examTtl         = $('#quiz-ttl').val();
+                            formData.examCts         = quizContents;
+                            formData.examPsblSdttm   = quizSdttm;
+                            formData.examPsblEdttm   = quizEdttm;
+                            formData.examMnts        = $('#quizMnts').val();
+                            formData.mrkRfltyn       = $('input[name="quiz-mkr-rfltyn-rd"]:checked').val();
+                            formData.mrkOyn          = $('input[name="quiz-mkr-oyn-rd"]:checked').val();
+                            formData.qstnDsplyGbncd  = $('input[name="quiz-view-type-rd"]:checked').val();
+                            formData.qstnRndmyn      = $('#quiz-mix-type').is(':checked') ? 'Y' : 'N';
+                            formData.qstnVwitmRndmyn = $('#quiz-view-mix-type').is(':checked') ? 'Y' : 'N';
+                        }
+
+                        UiComm.showLoading(true);
+                        $.ajax({
+                            url:      url,
+                            async:    false,
+                            type:     "POST",
+                            dataType: "json",
+                            data:     formData
+                        }).done(function(data) {
+                            UiComm.showLoading(false);
+                            if (data.result > 0) {
+                                UiComm.showMessage("저장되었습니다.", "info")
+                                    .then(function() {
+                                        examViewMv(2);
+                                    });
+                            } else {
+                                UiComm.showMessage(data.message, "error");
+                            }
+                        }).fail(function() {
+                            UiComm.showLoading(false);
+                            UiComm.showMessage(
+                                gbn !== ''
+                                    ? "<spring:message code='exam.error.update' />"
+                                    : "<spring:message code='exam.error.insert' />",
+                                "error"
+                            );
+                        });
+                        console.log(formData);
+                    }
+                });
+            });
+        }
+        /* 2 */
+        function examSbstDeleteBtnEvent() {
+            $("#sbstWriteDelete").on("click", function() {
+                UiComm.showMessage("삭제하시겠습니까?", "confirm")
+                    .then(function(result) {
+                        if (result) {
+                            var selectedSbstType = $('input[name="sbst-type-rd"]:checked').val();
+
+                            var formData = {
+                                examEvlSbstId: curExamEvlSbstId,
+                                examSbstTycd:  selectedSbstType
+                            };
+
+                            if (selectedSbstType === 'SBST_ASMT') {
+                                formData.asmtId = '${sbstVO.asmtId}';
+                            } else {
+                                formData.examBscId = '${sbstVO.examBscId}';
+                            }
+
+                            UiComm.showLoading(true);
+                            $.ajax({
+                                url:      "/exam/examSbstDelete.do",
+                                async:    false,
+                                type:     "POST",
+                                dataType: "json",
+                                data:     formData
+                            }).done(function(data) {
+                                UiComm.showLoading(false);
+                                if (data.result > 0) {
+                                    UiComm.showMessage("삭제되었습니다.", "info")
+                                        .then(function() {
+                                            examViewMv(2);
+                                        });
+                                } else {
+                                    UiComm.showMessage(data.message, "error");
+                                }
+                            }).fail(function() {
+                                UiComm.showLoading(false);
+                                UiComm.showMessage("<spring:message code='exam.error.delete' />", "error");
+                            });
+                            console.log(formData);
+                        }
+                    });
+            });
         }
 
         /**
@@ -303,6 +503,10 @@
 
             initQuizCheckbox();
             eventSbstTypeRd();
+            eventFlMmTycdRd();
+            initFlMmTycdRd();
+            examSbstDeleteBtnEvent();
+            examSbstSaveBtnEvent();
         });
 	</script>
 </head>
@@ -563,13 +767,12 @@
                                 <div class="board_top margin-top-4 padding-2">
                                     <h4>[${examVO.examGbnnm}] 시험 대체 설정</h4>
                                     <div class="right-area">
-                                        <button type="button" class="btn type2">저장</button>
+                                        <button type="button" id="sbstWriteSave" class="btn type2">저장</button>
                                         <c:if test="${not empty gbn}">
-                                            <button type="button" class="btn type2">삭제</button>
-                                            <c:if test="${gbn eq 'QUIZ'}">
-                                                <button type="button" class="btn type2">문항관리</button>
-                                            </c:if>
+                                            <button type="button" id="sbstWriteDelete" class="btn type2">삭제</button>
                                         </c:if>
+                                        <button type="button" id ="quiz-mng-btn" class="btn type2" style="display: none;">문항관리</button>
+                                        <button type="button" class="btn bsc" onclick="examViewMv(2)">목록</button>
                                     </div>
                                 </div>
                                 <!-- 시험대체 선택 영역 -->
@@ -586,11 +789,11 @@
                                             <td>
                                                 <div class="form-row">
                                                     <span class="custom-input">
-                                                        <input type="radio" name="sbst-type-rd" id="sbst-type-amst-rd" value="ASMT" ${gbn eq 'ASMT' || empty gbn ? 'checked' : '' } ${empty gbn ? '' : 'disabled'}>
+                                                        <input type="radio" name="sbst-type-rd" id="sbst-type-amst-rd" value="SBST_ASMT" ${gbn eq 'ASMT' || empty gbn ? 'checked' : '' } ${empty gbn ? '' : 'disabled'}>
                                                         <label for="sbst-type-amst-rd">과제</label>
                                                     </span>
                                                     <span class="custom-input ml5">
-                                                        <input type="radio" name="sbst-type-rd" id="sbst-type-quiz-rd" value="QUIZ" ${gbn eq 'QUIZ' ? 'checked' : '' } ${empty gbn ? '' : 'disabled'}>
+                                                        <input type="radio" name="sbst-type-rd" id="sbst-type-quiz-rd" value="SBST_QUIZ" ${gbn eq 'QUIZ' ? 'checked' : '' } ${empty gbn ? '' : 'disabled'}>
                                                         <label for="sbst-type-quiz-rd">퀴즈</label>
                                                     </span>
                                                 </div>
@@ -745,45 +948,45 @@
                                                             <input type="radio" name="asmt-sbasmt-fl-mm-tycd-rd" id="asmt-sbasmt-fl-mm-tycd-prv-rd" value="PRVIEW">
                                                             <label for="asmt-sbasmt-fl-mm-tycd-prv-rd">미리 보기 가능</label>
                                                         </span>
-                                                        <div class="checkbox_type">
+                                                        <div class="checkbox_type" id="tycd-prv">
                                                             <span class="custom-input">
-                                                                <input type="checkbox" name="name" id="img">
+                                                                <input type="checkbox" name="name" id="img" value="img">
                                                                 <label for="img">이미지 (JPG, GIF, PNG)</label>
                                                             </span>
                                                             <span class="custom-input">
-                                                                <input type="checkbox" name="name" id="pdf">
+                                                                <input type="checkbox" name="name" id="pdf" value="pdf">
                                                                 <label for="pdf">PDF</label>
                                                             </span>
                                                             <span class="custom-input">
-                                                                <input type="checkbox" name="name" id="txt">
-                                                                <label for="text">TXT</label>
+                                                                <input type="checkbox" name="name" id="txt" value="txt">
+                                                                <label for="txt">TXT</label>
                                                             </span>
                                                             <span class="custom-input">
-                                                                <input type="checkbox" name="name" id="program-source">
-                                                                <label for="program-source">프로그램 소스</label>
+                                                                <input type="checkbox" name="name" id="exe" value="exe">
+                                                                <label for="exe">프로그램 소스</label>
                                                             </span>
                                                         </div>
                                                     </div>
                                                     <div class="form-row">
                                                         <span class="custom-input">
-                                                            <input type="radio" name="asmt-sbasmt-fl-mm-tycd-rd" id="asmt-sbasmt-fl-mm-tycd-Spcfc-rd" value="SPECIFIC">
-                                                            <label for="asmt-sbasmt-fl-mm-tycd-Spcfc-rd">특정 파일 가능</label>
+                                                            <input type="radio" name="asmt-sbasmt-fl-mm-tycd-rd" id="asmt-sbasmt-fl-mm-tycd-spcfc-rd" value="SPECIFIC">
+                                                            <label for="asmt-sbasmt-fl-mm-tycd-spcfc-rd">특정 파일 가능</label>
                                                         </span>
-                                                        <div class="checkbox_type">
+                                                        <div class="checkbox_type" id="tycd-spcfc">
                                                             <span class="custom-input">
-                                                                <input type="checkbox" name="name" id="HWP">
-                                                                <label for="img">HWP</label>
+                                                                <input type="checkbox" name="name" id="HWP" value="HWP">
+                                                                <label for="HWP">HWP</label>
                                                             </span>
                                                             <span class="custom-input">
-                                                                <input type="checkbox" name="name" id="DOC">
-                                                                <label for="pdf">DOC</label>
+                                                                <input type="checkbox" name="name" id="DOC" value="DOC">
+                                                                <label for="DOC">DOC</label>
                                                             </span>
                                                             <span class="custom-input">
-                                                                <input type="checkbox" name="name" id="PPT">
-                                                                <label for="text">PPT</label>
+                                                                <input type="checkbox" name="name" id="PPT" value="PPT">
+                                                                <label for="PPT">PPT</label>
                                                             </span>
                                                             <span class="custom-input">
-                                                                <input type="checkbox" name="name" id="XLS">
+                                                                <input type="checkbox" name="name" id="XLS" value="XLS">
                                                                 <label for="XLS">XLS</label>
                                                             </span>
                                                         </div>

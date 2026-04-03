@@ -44,6 +44,7 @@ public class ForumAtclVO extends DefaultVO {
     private String crsCreCd;        //개설과정 코드
     private String stdList;
 
+    private boolean viewAll;         // 교수 권한: delYn 무관 전체 조회
     private String[] sqlForeach;    // WHERE IN을 위한 배열 파라미터
     private String phtFile;
     private byte[] phtFileByte;
@@ -257,6 +258,13 @@ public class ForumAtclVO extends DefaultVO {
     }
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public boolean isViewAll() {
+        return viewAll;
+    }
+    public void setViewAll(boolean viewAll) {
+        this.viewAll = viewAll;
     }
 
     public String[] getSqlForeach() {

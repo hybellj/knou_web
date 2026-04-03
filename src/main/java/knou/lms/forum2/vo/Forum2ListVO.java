@@ -38,6 +38,7 @@ public class Forum2ListVO extends DefaultVO {
     private String modDttm; // 목록표시: 수정일시
 
     /*DB와 관계없는 파라미터*/
+    private boolean viewAll; // 전체조회여부 (교수: 삭제여부 관계없이 조회)
     private Integer forumAtclCnt; // 목록표시: 게시글 개수
     private Integer forumCmntCnt; // 목록표시: 댓글 개수
     private Integer forumUserTotalCnt; // 목록표시: 총 인원 수
@@ -278,6 +279,14 @@ public class Forum2ListVO extends DefaultVO {
 
     public void setModDttm(String modDttm) {
         this.modDttm = modDttm;
+    }
+
+    public boolean isViewAll() {
+        return viewAll;
+    }
+
+    public void setViewAll(boolean viewAll) {
+        this.viewAll = viewAll;
     }
 
     public Integer getForumAtclCnt() {

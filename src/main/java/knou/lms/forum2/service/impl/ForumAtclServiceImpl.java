@@ -85,6 +85,7 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
                     atflParam.setAtflRepoId(CommConst.REPO_DSCS);
                     atflParam.setRefId(row.getAtclSn());
                     row.setFileList(attachFileService.selectAtflListByRefId(atflParam));
+                    row.setViewAll(vo.isViewAll());
                     List<ForumCmntVO> cmntList = forumCmntDAO.cmntList(row);
                     row.setCmntList(cmntList);
                 }
@@ -217,6 +218,12 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
             }
         }
 	*/
+    }
+
+    // 토론 게시글 숨김
+    @Override
+    public void hideAtcl(ForumAtclVO vo) throws Exception {
+        forumAtclDAO.hideAtcl(vo);
     }
 
     // 나의 상호평가 결과

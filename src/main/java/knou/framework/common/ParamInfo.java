@@ -37,6 +37,8 @@ public class ParamInfo {
 		} catch (Exception e) {
 			log.error(e.getMessage());
 		}
+		
+		log.info(">>>>>>>>>ParamInfo.value=" + value);
 
 		return value;
 	}

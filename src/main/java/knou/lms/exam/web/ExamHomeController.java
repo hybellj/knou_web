@@ -777,6 +777,39 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
+     * 대체 시험 등록
+     * @param ExamBscVO
+     * @param RequestParam
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/examSbstRegist.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> examSbstRegist(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        vo.setRgtrId(userId);
+        try {
+            if(ValidationUtils.isEmpty(userId)) {
+                throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
+            }
+
+            resultVO.setReturnVO(examService.examSbstRegist(vo));
+            resultVO.setResultSuccess();
+        } catch (MediopiaDefineException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
+        } catch (Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
      * 교수 시험성적 엑셀 업로드&등록
      * @param ExamBscVO
      * @param model
@@ -1206,6 +1239,40 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
+     * 대체 시험 수정
+     * @param ExamVO
+     * @param dtlInfoStr
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/examSbstModify.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> updateSbstAsmt(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        vo.setMdfrId(userId);                   // 수정자 ID
+        try {
+            if(ValidationUtils.isEmpty(userId)) {
+                throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
+            }
+
+            examService.updateExamSbst(vo);
+            resultVO.setResultSuccess();
+            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        }  catch (MediopiaDefineException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
+        } catch(Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage("수정 중 에러가 발생하였습니다.");
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
      * 시험 삭제
      * @param ExamVO
      * @param model
@@ -1226,6 +1293,33 @@ public class ExamHomeController extends ControllerBase {
         vo.setByteamSubrexamUseyn(byteamSubrexamUseyn);
         try {
             examService.deleteExamBsc(vo);
+            resultVO.setResultSuccess();
+            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        } catch (MediopiaDefineException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
+        } catch (Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 시험 삭제
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/examSbstDelete.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> examSbstDelete(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            examService.deleteExamSbst(vo);
             resultVO.setResultSuccess();
             resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
         } catch (MediopiaDefineException e) {

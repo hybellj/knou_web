@@ -4,6 +4,7 @@ import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.util.ExcelUtilPoi;
 import knou.framework.exception.AccessDeniedException;
+import knou.framework.exception.BadRequestUrlException;
 import knou.framework.util.ValidationUtils;
 import knou.lms.std.service.ClsService;
 import knou.lms.std.vo.*;
@@ -60,6 +61,7 @@ public class CrsClsController extends ControllerBase {
 
     /**
      * 강의실 주차별 수업현황 화면
+     * - sbjctId 없으면 BadRequestUrlException
      *
      * @param vo
      * @param model
@@ -69,6 +71,11 @@ public class CrsClsController extends ControllerBase {
      */
     @RequestMapping(value = "/selectCrsClsStdntListView.do")
     public String selectCrsClsStdntListView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        if (ValidationUtils.isEmpty(vo.getSbjctId())) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
         String sessionOrgId = SessionInfo.getOrgId(request);
         UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
 
@@ -84,7 +91,6 @@ public class CrsClsController extends ControllerBase {
             lctrWknoAtndcrt = subjectService.lctrWknoAtndcrtSelect(vo.getSbjctId(), lctrWknoSchdlVO.getLctrWknoSchdlId());
         }
         model.addAttribute("lctrWknoAtndcrt", lctrWknoAtndcrt);
-        // 출석현황 카드값
 
         int sbjctConnectStdCnt = subjectService.subjectConnectStdCntSelect(vo.getSbjctId());
         model.addAttribute("sbjctConnectStdCnt", sbjctConnectStdCnt);
@@ -94,16 +100,17 @@ public class CrsClsController extends ControllerBase {
 
         List<EgovMap> stdntSubjectConnectList = subjectService.stdntSubjectConnectList(vo.getSbjctId());
         model.addAttribute("stdntSubjectConnectList", stdntSubjectConnectList);
+
         ClsVO clsVO = new ClsVO();
         clsVO.setOrgId(sessionOrgId);
         clsVO.setSbjctId(vo.getSbjctId());
 
         ClsVO clsDetail = clsService.selectClsDetail(clsVO);
 
-        model.addAttribute("orgId", sessionOrgId);
-        model.addAttribute("sbjctId", vo.getSbjctId());
-        model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
-        model.addAttribute("sbjctnm", clsDetail != null ? clsDetail.getSbjctnm() : "");
+        model.addAttribute("orgId",     sessionOrgId);
+        model.addAttribute("sbjctId",   vo.getSbjctId());
+        model.addAttribute("dvclasNo",  request.getParameter("dvclasNo"));
+        model.addAttribute("sbjctnm",   clsDetail != null ? clsDetail.getSbjctnm() : "");
         addEncParam("sbjctId", vo.getSbjctId());
         addEncParam("orgId", sessionOrgId);
 
@@ -115,6 +122,7 @@ public class CrsClsController extends ControllerBase {
 
     /**
      * 학습자 학습현황 팝업 화면
+     * - sbjctId, userId 없으면 BadRequestUrlException
      *
      * @param vo
      * @param model
@@ -125,19 +133,46 @@ public class CrsClsController extends ControllerBase {
     @RequestMapping(value = "/selectCrsStdntWkPopupView.do")
     public String selectCrsStdntWkPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String sbjctId = request.getParameter("sbjctId");
+        String userId  = request.getParameter("userId");
+        String wkNoStr = request.getParameter("wkNo");
+
+        sbjctId = sbjctId == null ? null : sbjctId.trim();
+        userId  = userId == null ? null : userId.trim();
+        wkNoStr = wkNoStr == null ? null : wkNoStr.trim();
+
+        if (ValidationUtils.isEmpty(sbjctId)) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+        if (ValidationUtils.isEmpty(userId)) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        Integer wkNo = null;
+        if (!ValidationUtils.isEmpty(wkNoStr)) {
+            try {
+                wkNo = Integer.parseInt(wkNoStr);
+                if (wkNo <= 0) {
+                    throw new BadRequestUrlException(getMessage("common.system.error"));
+                }
+            } catch (NumberFormatException e) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+        }
+
         int wkCnt = resolveWkCnt(sbjctId, SessionInfo.getOrgId(request));
 
-        model.addAttribute("wkCnt", wkCnt);
-        model.addAttribute("sbjctId", sbjctId);
+        model.addAttribute("wkCnt",    wkCnt);
+        model.addAttribute("sbjctId",  sbjctId);
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
-        model.addAttribute("userId", request.getParameter("userId"));
-        model.addAttribute("wkNo", request.getParameter("wkNo"));
+        model.addAttribute("userId",   userId);
+        model.addAttribute("wkNo",     wkNo);
 
         return "crscls/popup/crscls_stdnt_lrn_popup";
     }
 
     /**
      * 학습자 주차별 학습기록 팝업 화면
+     * - sbjctId, userId 없으면 BadRequestUrlException
      *
      * @param model
      * @param request
@@ -145,21 +180,49 @@ public class CrsClsController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value = "/selectCrsStdntWkDetailPopupView.do")
-    public String selectCrsStdntWkDetailPopupView(ModelMap model, HttpServletRequest request) throws Exception {
+    public String selectCrsStdntWkDetailPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String sbjctId = request.getParameter("sbjctId");
+        String userId  = request.getParameter("userId");
+        String wkNoStr = request.getParameter("wkNo");
+
+        sbjctId = sbjctId == null ? null : sbjctId.trim();
+        userId  = userId == null ? null : userId.trim();
+        wkNoStr = wkNoStr == null ? null : wkNoStr.trim();
+
+        if (ValidationUtils.isEmpty(sbjctId)) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+        if (ValidationUtils.isEmpty(userId)) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+        if (ValidationUtils.isEmpty(wkNoStr)) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        int wkNo;
+        try {
+            wkNo = Integer.parseInt(wkNoStr);
+        } catch (NumberFormatException e) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+        if (wkNo <= 0) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
         int wkCnt = resolveWkCnt(sbjctId, SessionInfo.getOrgId(request));
 
-        model.addAttribute("wkCnt", wkCnt);
+        model.addAttribute("wkCnt",    wkCnt);
         model.addAttribute("sbjctId",  sbjctId);
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
-        model.addAttribute("userId",   request.getParameter("userId"));
-        model.addAttribute("wkNo",     request.getParameter("wkNo"));
+        model.addAttribute("userId",   userId);
+        model.addAttribute("wkNo",     wkNo);
 
         return "crscls/popup/crscls_stdnt_week_lrn_popup";
     }
 
     /**
      * 학습요소 참여현황 팝업 화면
+     * - sbjctId, userId 없으면 BadRequestUrlException
      *
      * @param vo
      * @param model
@@ -169,14 +232,28 @@ public class CrsClsController extends ControllerBase {
      */
     @RequestMapping(value = "/selectCrsStdntElemPopupView.do")
     public String selectCrsStdntElemPopupView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        model.addAttribute("sbjctId",  request.getParameter("sbjctId"));
+        String sbjctId = request.getParameter("sbjctId");
+        String userId  = request.getParameter("userId");
+
+        sbjctId = sbjctId == null ? null : sbjctId.trim();
+        userId  = userId == null ? null : userId.trim();
+
+        if (ValidationUtils.isEmpty(sbjctId)) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+        if (ValidationUtils.isEmpty(userId)) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        model.addAttribute("sbjctId",  sbjctId);
         model.addAttribute("dvclasNo", request.getParameter("dvclasNo"));
-        model.addAttribute("userId",   request.getParameter("userId"));
+        model.addAttribute("userId",   userId);
         return "crscls/popup/crscls_stdnt_element_popup";
     }
 
     /**
      * 미학습자 현황 팝업 화면
+     * - sbjctId, wkNo 없으면 BadRequestUrlException
      *
      * @param vo
      * @param model
@@ -186,13 +263,34 @@ public class CrsClsController extends ControllerBase {
      */
     @RequestMapping(value = "/selectCrsNotLrnnPopupView.do")
     public String selectCrsNotLrnnPopupView(ClsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        String sbjctId = request.getParameter("sbjctId");
+        String sbjctId  = request.getParameter("sbjctId");
         String dvclasNo = request.getParameter("dvclasNo");
-        String wkNo = request.getParameter("wkNo");
+        String wkNoStr  = request.getParameter("wkNo");
 
-        model.addAttribute("sbjctId", sbjctId);
+        sbjctId  = sbjctId == null ? null : sbjctId.trim();
+        dvclasNo = dvclasNo == null ? null : dvclasNo.trim();
+        wkNoStr  = wkNoStr == null ? null : wkNoStr.trim();
+
+        if (ValidationUtils.isEmpty(sbjctId)) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+        if (ValidationUtils.isEmpty(wkNoStr)) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        int wkNo;
+        try {
+            wkNo = Integer.parseInt(wkNoStr);
+        } catch (NumberFormatException e) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+        if (wkNo <= 0) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        model.addAttribute("sbjctId",  sbjctId);
         model.addAttribute("dvclasNo", dvclasNo);
-        model.addAttribute("wkNo", wkNo);
+        model.addAttribute("wkNo",     wkNo);
 
         ClsVO param = new ClsVO();
         param.setOrgId(SessionInfo.getOrgId(request));
@@ -227,9 +325,16 @@ public class CrsClsController extends ControllerBase {
         vo.setOrgId(SessionInfo.getOrgId(request));
 
         try {
+            if (ValidationUtils.isEmpty(vo.getSbjctId())) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+
             List<ClsWklyStatsVO> list = clsService.selectClsWklyStats(vo);
             resultVO.setReturnList(list);
             resultVO.setResultSuccess();
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsClsWklyStats] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -256,9 +361,15 @@ public class CrsClsController extends ControllerBase {
 
         if (vo.getPageIndex() < 1)  vo.setPageIndex(1);
         if (vo.getListScale() <= 0) vo.setListScale(20);
+        if (vo.getListScale() > 100) vo.setListScale(100);
         if (vo.getPageScale() <= 0) vo.setPageScale(10);
+        if (vo.getPageScale() > 20) vo.setPageScale(20);
 
         try {
+            if (ValidationUtils.isEmpty(vo.getSbjctId())) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+
             resultVO = clsService.selectClsStdntListPaging(vo);
             if (resultVO.getResult() >= 0) {
                 resultVO.setResultSuccess();
@@ -266,6 +377,9 @@ public class CrsClsController extends ControllerBase {
                 resultVO.setResultFailed();
                 resultVO.setMessage(getCommonFailMessage());
             }
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsClsStdntListPaging] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -292,9 +406,15 @@ public class CrsClsController extends ControllerBase {
 
         if (vo.getPageIndex() < 1)  vo.setPageIndex(1);
         if (vo.getListScale() <= 0) vo.setListScale(20);
+        if (vo.getListScale() > 100) vo.setListScale(100);
         if (vo.getPageScale() <= 0) vo.setPageScale(10);
+        if (vo.getPageScale() > 20) vo.setPageScale(20);
 
         try {
+            if (ValidationUtils.isEmpty(vo.getSbjctId())) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+
             resultVO = clsService.selectClsElemStatsListPaging(vo);
             if (resultVO.getResult() >= 0) {
                 resultVO.setResultSuccess();
@@ -302,6 +422,9 @@ public class CrsClsController extends ControllerBase {
                 resultVO.setResultFailed();
                 resultVO.setMessage(getCommonFailMessage());
             }
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsClsElemStats] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -327,9 +450,19 @@ public class CrsClsController extends ControllerBase {
         vo.setOrgId(SessionInfo.getOrgId(request));
 
         try {
+            if (ValidationUtils.isEmpty(vo.getSbjctId())) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+            if (vo.getWkNo() <= 0) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+
             List<ClsStdntVO> list = clsService.selectClsNoStudyWeek(vo);
             resultVO.setReturnList(list);
             resultVO.setResultSuccess();
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsClsNoStudyWeek] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -392,6 +525,9 @@ public class CrsClsController extends ControllerBase {
             ClsStdntInfoVO result = clsService.selectClsStdntInfo(vo);
             resultVO.setReturnVO(result);
             resultVO.setResultSuccess();
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsStdntInfo] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -422,6 +558,9 @@ public class CrsClsController extends ControllerBase {
             ClsStdntVO result = clsService.selectClsStdntWeeklyInfo(vo);
             resultVO.setReturnVO(result);
             resultVO.setResultSuccess();
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsStdntWeeklyInfo] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -457,6 +596,9 @@ public class CrsClsController extends ControllerBase {
             }
             resultVO.setReturnVO(result);
             resultVO.setResultSuccess();
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsStdntWkLrnSummary] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -484,17 +626,32 @@ public class CrsClsController extends ControllerBase {
         try {
             ClsWkLrnVO accessVo = new ClsWkLrnVO();
             accessVo.setOrgId(SessionInfo.getOrgId(request));
-            accessVo.setSbjctId(request.getParameter("sbjctId"));
+            accessVo.setSbjctId(request.getParameter("sbjctId") == null ? null : request.getParameter("sbjctId").trim());
             accessVo.setUserId(vo.getUserId());
 
             String wkNoStr = request.getParameter("wkNo");
-            accessVo.setWkNo(ValidationUtils.isEmpty(wkNoStr) ? 0 : Integer.parseInt(wkNoStr));
+            wkNoStr = wkNoStr == null ? null : wkNoStr.trim();
+            if (ValidationUtils.isEmpty(wkNoStr)) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
+            try {
+                int wkNo = Integer.parseInt(wkNoStr);
+                if (wkNo <= 0) {
+                    throw new BadRequestUrlException(getMessage("common.system.error"));
+                }
+                accessVo.setWkNo(wkNo);
+            } catch (NumberFormatException e) {
+                throw new BadRequestUrlException(getMessage("common.system.error"));
+            }
 
             validateClsWkAccess(accessVo, false);
 
             List<ClsLrnLogVO> list = clsService.selectStdntLrnLog(vo);
             resultVO.setReturnList(list);
             resultVO.setResultSuccess();
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsStdntLrnLog] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -525,6 +682,9 @@ public class CrsClsController extends ControllerBase {
             List<ClsChsiLrnVO> list = clsService.selectStdntElemSbmsnList(vo);
             resultVO.setReturnList(list);
             resultVO.setResultSuccess();
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsStdntElemSbmsnList] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -555,6 +715,9 @@ public class CrsClsController extends ControllerBase {
             List<ClsAsmtSbmsnLogVO> list = clsService.selectStdntElemSbmsnLog(vo);
             resultVO.setReturnList(list);
             resultVO.setResultSuccess();
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsStdntElemSbmsnLog] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -584,9 +747,14 @@ public class CrsClsController extends ControllerBase {
         }
 
         try {
+            validateClsStdntAccess(vo.getSbjctId(), vo.getUserId(), vo.getOrgId());
+
             List<ClsAccessChartVO> list = clsService.selectStdntAccessChart(vo);
             resultVO.setReturnList(list);
             resultVO.setResultSuccess();
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsStdntAccessChart] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -613,7 +781,9 @@ public class CrsClsController extends ControllerBase {
 
         if (vo.getPageIndex() < 1)  vo.setPageIndex(1);
         if (vo.getListScale() <= 0) vo.setListScale(10);
+        if (vo.getListScale() > 100) vo.setListScale(100);
         if (vo.getPageScale() <= 0) vo.setPageScale(10);
+        if (vo.getPageScale() > 20) vo.setPageScale(20);
 
         try {
             validateClsStdntAccess(vo.getSbjctId(), vo.getUserId(), vo.getOrgId());
@@ -625,6 +795,9 @@ public class CrsClsController extends ControllerBase {
                 resultVO.setResultFailed();
                 resultVO.setMessage(getCommonFailMessage());
             }
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[selectCrsStdntActivityLog] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -632,56 +805,6 @@ public class CrsClsController extends ControllerBase {
         }
         return resultVO;
     }
-
-    /**
-     * 특정 주차 미학습자 엑셀 다운로드
-     *
-     * @param vo
-     * @param model
-     * @param request
-     * @return excelView
-     * @throws Exception
-     */
-    @RequestMapping(value = "/selectCrsClsNoStudyWeekExcelDown.do")
-    public String selectCrsClsNoStudyWeekExcelDown(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        String dvclasNo = request.getParameter("dvclasNo");
-        vo.setOrgId(SessionInfo.getOrgId(request));
-
-        List<ClsStdntVO> list = clsService.selectClsNoStudyWeek(vo);
-        String title = "미학습자현황";
-
-        List<ListOrderedMap> newList = new ArrayList<>();
-        for (ClsStdntVO item : list) {
-            ListOrderedMap orderedMap = new ListOrderedMap();
-            orderedMap.put("lineNo",  item.getLineNo());
-            orderedMap.put("deptnm",  item.getDeptnm());
-            orderedMap.put("sbjctnm", vo.getSbjctnm() + (ValidationUtils.isEmpty(dvclasNo) ? "" : " " + dvclasNo + "반"));
-            orderedMap.put("userId",  item.getUserId());
-            orderedMap.put("stdntNo", item.getStdntNo());
-            orderedMap.put("usernm",  item.getUsernm());
-            orderedMap.put("prgrt",   item.getPrgrt());
-            newList.add(orderedMap);
-        }
-
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("title",     title);
-        map.put("sheetName", title);
-        map.put("excelGrid", vo.getExcelGrid());
-        map.put("list",      newList);
-        map.put("ext",       ".xlsx(big)");
-
-        String currentDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        HashMap<String, Object> modelMap = new HashMap<>();
-        modelMap.put("outFileName", title + "_" + currentDate);
-
-        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
-        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
-
-        model.addAllAttributes(modelMap);
-        return "excelView";
-    }
-
-
 
     /* ================================================================
        처리
@@ -716,6 +839,9 @@ public class CrsClsController extends ControllerBase {
                 resultVO.setResultFailed();
                 resultVO.setMessage("출석 처리에 실패하였습니다.");
             }
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[updateCrsAtndlcProcess] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -752,6 +878,9 @@ public class CrsClsController extends ControllerBase {
                 resultVO.setResultFailed();
                 resultVO.setMessage("출석 처리 취소에 실패하였습니다.");
             }
+        } catch (AccessDeniedException | BadRequestUrlException e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             LOGGER.error("[updateCrsAtndlcCancel] fail, vo={}", vo, e);
             resultVO.setResultFailed();
@@ -765,6 +894,62 @@ public class CrsClsController extends ControllerBase {
        ================================================================ */
 
     /**
+     * 특정 주차 미학습자 엑셀 다운로드
+     *
+     * @param vo
+     * @param model
+     * @param request
+     * @return excelView
+     * @throws Exception
+     */
+    @RequestMapping(value = "/selectCrsClsNoStudyWeekExcelDown.do")
+    public String selectCrsClsNoStudyWeekExcelDown(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String dvclasNo = request.getParameter("dvclasNo");
+
+        if (ValidationUtils.isEmpty(vo.getSbjctId())) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+        if (vo.getWkNo() <= 0) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        vo.setOrgId(SessionInfo.getOrgId(request));
+
+        List<ClsStdntVO> list = clsService.selectClsNoStudyWeek(vo);
+        String title = "미학습자현황";
+
+        List<ListOrderedMap> newList = new ArrayList<>();
+        for (ClsStdntVO item : list) {
+            ListOrderedMap orderedMap = new ListOrderedMap();
+            orderedMap.put("lineNo",  item.getLineNo());
+            orderedMap.put("deptnm",  item.getDeptnm());
+            orderedMap.put("sbjctnm", vo.getSbjctnm() + (ValidationUtils.isEmpty(dvclasNo) ? "" : " " + dvclasNo + "반"));
+            orderedMap.put("userId",  item.getUserId());
+            orderedMap.put("stdntNo", item.getStdntNo());
+            orderedMap.put("usernm",  item.getUsernm());
+            orderedMap.put("prgrt",   item.getPrgrt());
+            newList.add(orderedMap);
+        }
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("title",     title);
+        map.put("sheetName", title);
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list",      newList);
+        map.put("ext",       ".xlsx(big)");
+
+        String currentDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", title + "_" + currentDate);
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+
+        model.addAllAttributes(modelMap);
+        return "excelView";
+    }
+
+    /**
      * 주차별 학습현황 엑셀 다운로드
      *
      * @param vo
@@ -775,6 +960,10 @@ public class CrsClsController extends ControllerBase {
      */
     @RequestMapping(value = "/selectCrsClsStdntListExcelDown.do")
     public String selectCrsClsStdntListExcelDown(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        if (ValidationUtils.isEmpty(vo.getSbjctId())) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
 
         vo.setOrgId(SessionInfo.getOrgId(request));
         int wkCnt = resolveWkCnt(vo.getSbjctId(), SessionInfo.getOrgId(request));

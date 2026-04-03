@@ -13,6 +13,8 @@ public class ExamVO extends DefaultVO {
      *****************************************************/
     private String  examBscId;          // 시험기본 ID
     private String  examDtlId;          // 시험기본 ID
+    private String  lctrWknoSchdlId;    // 강의주차 일정 아이디
+    private String  examGrpId;          // 시험 그룹 ID
     private String  examTycd;           // 시험유형코드
     private String  examGbncd;          // 시험구분코드
     private String  examGbnnm;          // 시험구분코드명
@@ -27,6 +29,13 @@ public class ExamVO extends DefaultVO {
     private String  tkexamCmptnynTot;   // 응시현황 (완료/전체)
     private String  evlynTot;           // 평가현황 (평가/전체)
     private String  examQstnsCmptnyn;   // 출제상태
+    private String  qstnCnddtUseyn;     // 문항 후보 사용여부
+
+    private String  avgMrkOyn;          // 평균성적 공개여부
+    private String  mrkOpenSdttm;       // 성적공개 시작일시
+    private String  imdtAnswShtInqyn;   // 즉시답안 조회여부
+    private Integer maxTkexamCnt;       // 최대응시 횟수
+
     private String  mrkOyn;             // 성적공개
     private String  sbjctId;            // 과목 ID
     private String  sbjctnm;            // 과목명
@@ -40,6 +49,7 @@ public class ExamVO extends DefaultVO {
     private String  byteamSubrexamUseyn; // 팀시험여부
     private String  lrnGrpSubsbjctUseyn; // 부 주제여부
     private String  examSbstTynm;       // 시험대체코드명
+    private String  examSbstTycd;       // 시험대체코드명
     private Integer absnceTot;          // 결시인원 COUNT
     private Integer dsblTot;            // 장애인/고령자 COUNT
 
@@ -76,10 +86,13 @@ public class ExamVO extends DefaultVO {
 
     private String  examEvlSbstId;      // 시험 대체 평가 ID
     private String  examEvlSbstnm;      // 시험 대체 평가명
+    private String  examSbstId;         // 시험 대체 ID
     private String  gbn;                // 구분 (ASMT: 과제, QUIZ: 퀴즈)
     private String  asmtId;             // 과제 ID
     private String  asmtTtl;            // 과제 제목
     private String  asmtCts;            // 과제 내용
+    private String  asmtGbncd;          // 과제 구분코드
+    private String  rublicId;           // 루브릭 ID
     private String  asmtSbmsnSdttm;     // 과제 제출 시작일시
     private String  asmtSbmsnEdttm;     // 과제 제출 종료일시
     private String  sbasmtTycd;         // 대체과제 유형코드
@@ -137,6 +150,18 @@ public class ExamVO extends DefaultVO {
     }
     public void setExamDtlId(String examDtlId) {
         this.examDtlId = examDtlId;
+    }
+    public String getLctrWknoSchdlId() {
+        return lctrWknoSchdlId;
+    }
+    public void setLctrWknoSchdlId(String lctrWknoSchdlId) {
+        this.lctrWknoSchdlId = lctrWknoSchdlId;
+    }
+    public String getExamGrpId() {
+        return examGrpId;
+    }
+    public void setExamGrpId(String examGrpId) {
+        this.examGrpId = examGrpId;
     }
     public String getExamTycd() {
         return examTycd;
@@ -209,6 +234,36 @@ public class ExamVO extends DefaultVO {
     }
     public void setExamQstnsCmptnyn(String examQstnsCmptnyn) {
         this.examQstnsCmptnyn = examQstnsCmptnyn;
+    }
+    public String getQstnCnddtUseyn() {
+        return qstnCnddtUseyn;
+    }
+    public void setQstnCnddtUseyn(String qstnCnddtUseyn) {
+        this.qstnCnddtUseyn = qstnCnddtUseyn;
+    }
+    public String getAvgMrkOyn() {
+        return avgMrkOyn;
+    }
+    public void setAvgMrkOyn(String avgMrkOyn) {
+        this.avgMrkOyn = avgMrkOyn;
+    }
+    public String getMrkOpenSdttm() {
+        return mrkOpenSdttm;
+    }
+    public void setMrkOpenSdttm(String mrkOpenSdttm) {
+        this.mrkOpenSdttm = mrkOpenSdttm;
+    }
+    public String getImdtAnswShtInqyn() {
+        return imdtAnswShtInqyn;
+    }
+    public void setImdtAnswShtInqyn(String imdtAnswShtInqyn) {
+        this.imdtAnswShtInqyn = imdtAnswShtInqyn;
+    }
+    public Integer getMaxTkexamCnt() {
+        return maxTkexamCnt;
+    }
+    public void setMaxTkexamCnt(Integer maxTkexamCnt) {
+        this.maxTkexamCnt = maxTkexamCnt;
     }
     public String getMrkOyn() {
         return mrkOyn;
@@ -294,6 +349,12 @@ public class ExamVO extends DefaultVO {
     }
     public void setExamSbstTynm(String examSbstTynm) {
         this.examSbstTynm = examSbstTynm;
+    }
+    public String getExamSbstTycd() {
+        return examSbstTycd;
+    }
+    public void setExamSbstTycd(String examSbstTycd) {
+        this.examSbstTycd = examSbstTycd;
     }
     public Integer getAbsnceTot() {
         return absnceTot;
@@ -487,6 +548,13 @@ public class ExamVO extends DefaultVO {
     public void setExamEvlSbstnm(String examEvlSbstnm) {
         this.examEvlSbstnm = examEvlSbstnm;
     }
+    public String getExamSbstId() {
+        return examSbstId;
+    }
+    public void setExamSbstId(String examSbstId) {
+        this.examSbstId = examSbstId;
+    }
+
     public String getGbn() {
         return gbn;
     }
@@ -510,6 +578,18 @@ public class ExamVO extends DefaultVO {
     }
     public void setAsmtCts(String asmtCts) {
         this.asmtCts = asmtCts;
+    }
+    public String getAsmtGbncd() {
+        return asmtGbncd;
+    }
+    public void setAsmtGbncd(String asmtGbncd) {
+        this.asmtGbncd = asmtGbncd;
+    }
+    public String getRublicId() {
+        return rublicId;
+    }
+    public void setRublicId(String rublicId) {
+        this.rublicId = rublicId;
     }
     public String getAsmtSbmsnSdttm() {
         return asmtSbmsnSdttm;

@@ -73,7 +73,14 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         Forum2VO resultVo = forumDAO.selectForum(vo);
         // 부토론 존재여부 체크
         if (resultVo.getByteamDscsUseyn().equalsIgnoreCase("Y")) {
-            resultVo.setTeamDscsList(forumDAO.selectTeamDscsList(vo.getDscsId()));
+            List<Forum2TeamDscsVO> teamList = forumDAO.selectTeamDscsList(vo.getDscsId());
+            for (Forum2TeamDscsVO teamDscs : teamList) {
+                AtflVO teamAtflParam = new AtflVO();
+                teamAtflParam.setAtflRepoId(CommConst.REPO_DSCS);
+                teamAtflParam.setRefId(teamDscs.getDscsId());
+                teamDscs.setFileList(attachFileService.selectAtflListByRefId(teamAtflParam));
+            }
+            resultVo.setTeamDscsList(teamList);
         }
         // 첨부파일 목록 조회
         AtflVO atflParam = new AtflVO();
@@ -126,7 +133,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
             vo.setOknokStngyn("N");
         }
         boolean isTeamDiscussion = "TEAM".equalsIgnoreCase(vo.getDscsUnitTycd()) || "Y".equalsIgnoreCase(vo.getDscsUnitTycd());
-        vo.setDscsUnitTycd(isTeamDiscussion ? "TEAM" : "NORMAL");
+        vo.setDscsUnitTycd(isTeamDiscussion ? "TEAM" : "GNRL");
 
         if (StringUtil.isNull(vo.getDscsId())) {
             return doInsertForum(vo, isTeamDiscussion);
@@ -318,7 +325,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         }
         vo.setByteamDscsUseyn(newByteam); // updateForum() 에서 BYTEAM_DSCS_USEYN 업데이트용
 
-        // 2-2: TEAM → NORMAL 전환 시 자식 논리 삭제
+        // 2-2: TEAM → GNRL 전환 시 자식 논리 삭제
         if (wasTeam && !isTeamDiscussion) {
             forumDAO.updateChildForumDelYn(vo);
         }
@@ -356,7 +363,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
             }
         }
 
-        // 2-3: NORMAL → TEAM 전환 시 팀그룹 생성 + 자식 토론 생성
+        // 2-3: GNRL → TEAM 전환 시 팀그룹 생성 + 자식 토론 생성
         if (!wasTeam && isTeamDiscussion) {
             // 수정 모드 기존 분반/과목 유지
             vo.setDvclsNo(currentVO.getDvclsNo());
@@ -420,7 +427,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                 }
             }
         } else {
-            vo.setDvclsNo(null); // NORMAL→TEAM 전환 외 수정 시 분반 변경 금지
+            vo.setDvclsNo(null); // GNRL→TEAM 전환 외 수정 시 분반 변경 금지
         }
 
         forumDAO.updateForum(vo);
@@ -474,23 +481,6 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         resultVO.setPageInfo(paginationInfo);
 
         return resultVO;
-    }
-
-    // 토론 정보 조회
-    @Override
-    public Forum2VO select(Forum2VO vo) throws Exception {
-        vo = forumDAO.select(vo);
-        if(vo != null) {
-            // TODO : 26.3.26 : 파일 정보 붙여야 함.
-            /*
-            FileVO fileVO = new FileVO();
-            fileVO.setRepoCd("FORUM");
-            fileVO.setFileBindDataSn(vo.getForumCd());
-            List<FileVO> fileList = sysFileService.list(fileVO).getReturnList();
-            vo.setFileList(fileList);
-            */
-        }
-        return vo;
     }
 
     /**

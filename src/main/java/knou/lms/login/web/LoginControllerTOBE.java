@@ -2,16 +2,13 @@ package knou.lms.login.web;
 
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +22,7 @@ import com.naru.provider.ServiceProvider;
 import knou.framework.common.CommConst;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
+import knou.framework.exception.LoginFailedException;
 import knou.framework.util.CommonUtil;
 import knou.framework.util.DateTimeUtil;
 import knou.framework.util.LocaleUtil;
@@ -81,9 +79,7 @@ public class LoginControllerTOBE {
     
 	/**
 	 * 로그인 처리
-	 * @param vo
-	 * @param commandMap
-	 * @param model
+	 * @param LoginParam
 	 * @param request
 	 * @param response
 	 * @return
@@ -93,116 +89,39 @@ public class LoginControllerTOBE {
     public String loginProcTOBE(LoginParam param, HttpServletRequest request, HttpServletResponse response) throws Exception {
 	    
 		log.info("loginProcTOBE.do 시작");
-		
-		String	initUrl = "redirect:/";
-		String	loginUrl = "/indexTOBE";
-
-        //	SQLInjection방어(간단필터)
-        //if ( isHackInput( param.getGoMcd()) || isHackInput(param.getGoUrl())) { // 로그인 후 페이지 이동으로 추정
-        //    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        //    return null;
-        //}
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. 인터셉터에 추가해서 로그인 후 이동한다.
-		//if (userCtx == null) {
-		//    SessionInfo.setPreviousUrl(request, request.getRequestURI());
-		//    response.sendRedirect("/login.do");
-		//    return false;
-		//}
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. 로그인 성공 후 처리
-		//String prevUrl = (String) SessionInfo.getPreviousUrl(request);
-		//if (prevUrl != null) {
-		//    SessionInfo.getPreviousUrl(request);
-		//    return "redirect:" + prevUrl;
-		//}
-		//return "redirect:/dashboard/dashboard.do";
-
-		try { 
-			
-	        boolean	existUserId = true; // TODO: userService.existUserId(param);
-	        //	userService.existUserId(param);
+	    
+	    try {
+	        // 1. 비즈니스 로직 수행 (Service에 위임)
+	        UserContext userCtx = loginService.processLogin(param);
 	        
-	        boolean isCorrectPswd = true; // TODO: userService.isCorrectPswd(param);
-	        //	userService.loing(param);
+	        // 2. 세션 처리 (Controller의 고유 역할)
+	        UserVO selectedUser = userCtx.getSelectedUser();
+	        SessionInfo.setOrgId(request,       selectedUser.getOrgId());
+	        SessionInfo.setUserId(request,      selectedUser.getUserId());
+	        SessionInfo.setUserRprsId(request,  selectedUser.getUserRprsId());
+	        SessionInfo.setAuthrtCd(request,    selectedUser.getUserTycd());
+	        SessionInfo.setAuthrtGrpcd(request, selectedUser.getUserTycd());
 	        
-	        boolean isValidUser = true; // TODO: userService.isVaildUser(param);
-	        // 	userService.isValidUser(param);
-               	
-        	//	아이디존재확인
-            if (! existUserId ) 
-                return loginUrl;
-            
-            //	비밀번호일치확인
-            if (! isCorrectPswd ) 
-                return loginUrl;
+	        // 3. 세션저장
+	        SessionInfo.setUserContext(request, userCtx);
+	        
+	        // 3-1. 초기 userContext와 호환을 위해 
+	        SessionUtil.setSessionValue(request, "userCtx", userCtx);
 
-            //	유효사용자확인
-            if (!isValidUser)
-                return loginUrl;            
-            
-            UserVO loginUser = userService.userSelect(param.getUserId());
-            
-            UserContext userCtx = new UserContext();
-            userCtx.setLoginUser(loginUser);
-            userCtx.setSelectedUser(loginUser);
+	        // 4. 화면 분기
+	        String initUrl = resolveDashboard(selectedUser.getUserTycd());
+	        log.info("initUrl=" + initUrl);
+	        
+	        return "redirect:/dashboard" + initUrl;
 
-    		List<UserVO> 	registeredUsersList = userService.registeredUsersSelect(userCtx.getSelectedUser().getUserRprsId());
-    		
-    		//1. 대표아이디로 	교수아이디들 조회
-    		List<String>	profIds =  userService.userIdsSelect(userCtx.getSelectedUser().getUserRprsId());
-            
-    		//2. 대표아이디로 	수강생아이디들 조회
-    		List<String>	stdntIds =  userService.userIdsSelect(userCtx.getSelectedUser().getUserRprsId());
-            
-            //1.1. 대표아이디 없을 경우 로그인한 아이디로 조회
-    		if ( profIds.isEmpty() )
-    			profIds.add(userCtx.getSelectedUser().getUserId());
-    		
-    		if ( stdntIds.isEmpty() )
-    			stdntIds.add(userCtx.getSelectedUser().getUserId());
-            
-            //2. 과목테이블에서[교수] 기관아이디조회, 수강테이블에서[학생] 기관아이디조회 - orgid, orgnm, sbjctId, sbjctnm, userTycd - 교수
-    		List<EgovMap> userOrgIdsFromSubject = userService.subjectByUserOrgIdSelect(profIds, stdntIds); // 과목테이블에서[교수] 기관아이디조회, 수강테이블에서[학생] 기관아이디조회
-            userCtx.setUserOrgIdsFromSubject(userOrgIdsFromSubject);
-    		
-    		
-    		// TODO: Authenticate SessionInfo 변수들과 호환을 위해 start
-    		SessionInfo.setUserId(request, userCtx.getSelectedUser().getUserId());
-    		SessionInfo.setAuthrtCd(request, userCtx.getSelectedUser().getUserTycd());
-    		SessionInfo.setAuthrtGrpcd(request, userCtx.getSelectedUser().getUserTycd());
-    		// TODO: Authenticate SessionInfo 변수들과 호환을 위해 end
-    		
-    		// TODO: 초기 UserContext와 호환을 위해 start
-    		// TODO: 초기 UserContext와 호환을 위해 end
-    		
-    		Map<String, UserVO> registeredUsers = new HashMap<>();
-    		/* 프로그램의 가독성을 위해 람다식을 사용하지 않습니다 */
-    		if ( null != registeredUsersList ) {    			
-				for (UserVO regiUser : registeredUsersList) {
-					if ( null != regiUser ) {
-						registeredUsers.put(regiUser.getUserId(), regiUser);
-					}
-				}				
-    		}    		
-    		userCtx.setRegisteredUsers(registeredUsers);    		
-    		
-    		// 3 orgCtx		생성 -- 로그인한 사용자의 대표아이디로 소속기관 전부와 해당 기관에서의 권한을 로딩 - 필요한가?
-    		// 4 menuCtx 	생성 -- 사용자가 소유한 모든 아이디의 메뉴들을 로딩 - 필요한가?
-    		// 5 subjectCtx 생성 -- 사용자가 소유한 과목의 정보를 로딩 - 필요한가?
-    		
-            // 6 권한별 화면으로 분기 PROF, STDNT, ADM
-    		initUrl = resolveDashboard(userCtx.getSelectedUser().getUserTycd()); 
-    		
-    		// UserContext를 세션에 저장
-    		SessionInfo.setUserContext(request, userCtx);
-
-        } catch (Exception e) {
-        	handleLoginFail(param.getUserId());
-            //return "redirect:/indexTOBE";
-        } finally {
-            //TODO: userService.loginModify(param.getUserId());
-        }
-        
-        return "redirect:/dashboard" + initUrl;
+	    } catch (LoginFailedException e) {
+	        // 로그인 실패 시 (비번 틀림 등)
+	        handleLoginFail(param.getUserId());
+	        return "/indexTOBE";
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return "/indexTOBE";
+	    }		
     }
 	
  	private boolean isHackInput(String uri) {
@@ -237,20 +156,11 @@ public class LoginControllerTOBE {
         SessionInfo.setUserNm(request, user.getUsernm());
         SessionInfo.setOrgId(request, user.getOrgId());
 
-        //	권한 정규화
+        //	권한 정규화?
         //String role = normalizeRole(user.getAuthrtGrpcd());
 
         //SessionInfo.setAuthrtGrpcd(request, role);
         //SessionInfo.setAuthrtCd(request, user.getAuthrtCd());
-
-        //	userCtx 생성
-		/*
-		 * UserContext userCtx = new UserContext( user.getOrgId(), user.getUserId(),
-		 * user.getAuthrtCd(), user.getRprsId(), role, SessionInfo.getLastLogin(request)
-		 * );
-		 */
-
-        //srequest.getSession().setAttribute("userCtx", userCtx);
     }
 
     private String normalizeRole(String role) {
@@ -349,8 +259,7 @@ public class LoginControllerTOBE {
         
         String loginGnb = lines[loginGnbIdx].substring(lines[loginGnbIdx].indexOf("=")+1);
         
-        System.out.println(DateTimeUtil.getCurrentDateText() + " : SSO LOGIN ---> "+ssoUserId+", "+loginGnb);
-        
+        System.out.println(DateTimeUtil.getCurrentDateText() + " : SSO LOGIN ---> "+ssoUserId+", "+loginGnb);        
         
         UsrLoginVO vo = new UsrLoginVO();
         
@@ -576,6 +485,5 @@ public class LoginControllerTOBE {
             browser = "NN";
         }
         return browser;
-    }
-    
+    }    
 }

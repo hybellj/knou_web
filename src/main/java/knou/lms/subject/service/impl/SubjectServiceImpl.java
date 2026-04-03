@@ -115,4 +115,9 @@ public class SubjectServiceImpl extends ServiceBase implements SubjectService {
 	public EgovMap lctrWknoAtndcrtSelect(String sbjctId, String lctrWknoSchdlId) throws Exception {		
 		return subjectDAO.lctrWknoAtndcrtSelect(sbjctId, lctrWknoSchdlId);
 	}
+
+	@Override
+	public List<EgovMap> subjectByUserOrgIdSelect(List<String> profIds, List<String> stdntIds) throws Exception {
+		return subjectDAO.subjectByUserOrgIdSelect(profIds, stdntIds);
+	}	
 }

@@ -8,7 +8,7 @@
 <%@include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%
 String authrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
-String orgId = ParamInfo.getParamValue(request, "orgId");
+String orgId = SessionInfo.getOrgId(request);
 String sbjctId = ParamInfo.getParamValue(request, "sbjctId");
 
 // 강의실메뉴 가져 오기
@@ -20,7 +20,6 @@ menuVO.setSbjctId(sbjctId);
 List<MenuVO> menuList = MenuInfo.getLectMenuInfo(request, menuVO);
 pageContext.setAttribute("menuList", menuList);
 %>
-
 	<aside id="gnb_class" class="common class gnb-menu expanded">
 		<form id="moveForm" method="post">
 			<input name="encParams" type="hidden" value="${encParams}">

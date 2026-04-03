@@ -1,3 +1,4 @@
+<%@ page import="knou.framework.common.SessionInfo" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
 
@@ -38,6 +39,21 @@
             <option value="관리자">관리자</option>
             <option value="교수">교수</option>
             <option value="학생">학생</option>
+        </select>
+	</div>
+	
+	<div class="option-univ"><!-- 버튼 클릭시 on 클래스 추가 -->
+		<select class="form-select" style="font-size:15px; border-radius:100em;">
+            <option value="">전체</option>
+            <c:forEach var="item" items="${SessionInfo.getUserContext(pageContext.request).getUserOrgIdsFromSubject()}">
+            	<option value="${item.orgId}">${item.orgnm}</option>
+			</c:forEach>
+        </select>
+        <select class="form-select wide" style="font-size:15px; margin-left: 5px; border-radius:100em;">
+            <option value="">전체</option>
+            <c:forEach var="item" items="${SessionInfo.getUserContext(pageContext.request).getUserOrgIdsFromSubject()}">
+            	<option value="${item.orgId}">${item.userTycd}</option>
+			</c:forEach>
         </select>
 	</div>
 

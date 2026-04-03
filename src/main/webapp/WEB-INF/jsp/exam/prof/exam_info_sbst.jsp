@@ -327,7 +327,7 @@
         }
 
         /**
-         * 시험 대체 상세 화면 이동
+         * 시험 대체 등록|수정 화면 이동
          * @param {String} examBscId    - 시험 기본 ID
          * @param {String} gbn          - 구분 [ASMT|QUIZ]
          */
@@ -335,8 +335,9 @@
             var url = "/exam/profExamSbstWrite.do";
 
             var kvArr = [];
-            kvArr.push({'key' : 'examBscId', 'val' : examBscId});
-            kvArr.push({'key' : 'gbn',       'val' : gbn});
+            kvArr.push({'key' : 'examBscId',    'val' : examBscId});
+            kvArr.push({'key' : 'tkexamMthdCd', 'val' : '${vo.tkexamMthdCd}'});
+            kvArr.push({'key' : 'gbn',          'val' : gbn});
             submitForm(url, "", "", kvArr);
         }
 

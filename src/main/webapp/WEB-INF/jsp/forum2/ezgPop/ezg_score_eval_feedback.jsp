@@ -63,7 +63,7 @@ function fdbkList(stdId) {
 	<input type="hidden" name="crsCreCd" value="${forumVo.crsCreCd}">
 </form>
 
-<c:if test="${forumVo.forumCtgrCd eq 'NORMAL' && CLASS_USER_TYPE ne 'CLASS_LEARNER'  && (empty forumVo.searchMenu || forumVo.searchMenu != 'EZG') && forumVo.evalCritUseYn eq 'N'}">
+<c:if test="${forumVo.forumCtgrCd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER'  && (empty forumVo.searchMenu || forumVo.searchMenu != 'EZG') && forumVo.evalCritUseYn eq 'N'}">
 	<div class="inline field">
 		<label class="label-title"><spring:message code="forum.label.record" /><%-- 성적 --%></label>
 		<a id="scoreText">${forumJoinUserVo.score }<spring:message code='forum.label.point'/></a><%-- 점 --%>
@@ -74,7 +74,7 @@ function fdbkList(stdId) {
 	</div>
 </c:if>
 
-	<c:if test="${forumVo.forumCtgrCd eq 'NORMAL' && CLASS_USER_TYPE ne 'CLASS_LEARNER' && forumVo.evalCritUseYn eq 'N'}">
+	<c:if test="${forumVo.forumCtgrCd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER' && forumVo.evalCritUseYn eq 'N'}">
 	<div class="ui divider"></div>
 	</c:if>
 	<c:if test="${CLASS_USER_TYPE ne 'CLASS_LEARNER'}">
@@ -107,7 +107,7 @@ function fdbkList(stdId) {
 
 
 <!-- 피드백 음석녹음 모달 팝업-->
-<div class="modal fade" id="fdbkAudioPop" tabindex="-1" role="dialog" aria-labelledby="audio-modal" aria-hidden="false">
+<%--<div class="modal fade" id="fdbkAudioPop" tabindex="-1" role="dialog" aria-labelledby="audio-modal" aria-hidden="false">
 	<div class="modal-dialog modal-dialog" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -130,7 +130,7 @@ function fdbkList(stdId) {
 			</div>
 		</div>
 	</div>
-</div>
+</div>--%>
 <!-- 피드백 음석녹음 모달 팝업-->
 <!-- 피드백 작성  모달 -->
 <div class="modal fade" id="fdbkListPop" tabindex="-1" role="dialog" aria-labelledby="<spring:message code='forum.button.feedback.write' />" aria-hidden="true"><!-- 피드백 작성하기 -->

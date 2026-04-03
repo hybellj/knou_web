@@ -645,13 +645,13 @@ const UiFileUploaderMsg = {
 		reset: "Reset"
     },
     ja: {
-		select: "파일선택",
-		delete: "삭제",
-		reset: "초기화"
+		select: "ファイル選択",
+		delete: "削除",
+		reset: "初期化"
     },
     zh: {
-		select: "파일선택",
-		delete: "삭제",
-		reset: "초기화"
+		select: "选择文件",
+		delete: "删除",
+		reset: "重置"
     }
 };

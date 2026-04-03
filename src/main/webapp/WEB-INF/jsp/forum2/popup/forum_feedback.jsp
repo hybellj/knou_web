@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+﻿<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
 <!DOCTYPE html>
@@ -286,11 +286,11 @@
                 if(fCnt > 0){
 					for(var j=0; j<o.fileList.length; j++){
 						if(o.fileList[j].fileExt != "mp3"){
-							html += "<button class='ui icon small button d-block' style='margin-bottom: 2px;' title='<spring:message code='button.download'/>' onclick=\"fileDown('"+o.fileList[j].fileSn+"','"+o.fileList[j].repoCd+"');return false;\">";
+							html += "<a href='#_' onclick=\"UiFileDownloader('"+o.fileList[j].encDownParam+"');return false;\" class='ui icon small button d-block' style='margin-bottom: 2px;'>";
 							html += "<i class='paperclip icon f080'></i>";
-							html += o.fileList[j].fileNm;
-							html += " ("+sizeToByte(o.fileList[j].fileSize)+")";
-							html += "</button>";
+							html += o.fileList[j].filenm;
+
+							html += "</a>";
 						}
 					}
 				}

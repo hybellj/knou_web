@@ -2,6 +2,7 @@ package knou.lms.subject.service;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.framework.context2.UserContext;
@@ -46,4 +47,6 @@ public interface SubjectService {
 	public int subjectTotalStdCntSelect(String sbjctId) throws Exception;
 
 	public EgovMap lctrWknoAtndcrtSelect(String sbjctId, String lctrWknoSchdlId) throws Exception;
+
+	public List<EgovMap> subjectByUserOrgIdSelect(List<String> profIds, List<String> stdntIds) throws Exception;
 }

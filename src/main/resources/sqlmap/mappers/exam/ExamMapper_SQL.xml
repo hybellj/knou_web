@@ -1683,6 +1683,172 @@
                 , FN_DTTM() )
     </insert>
 
+    <!-- 대체 시험 등록 -->
+    <insert id="examSbstRegist" parameterType="examVO">
+        /*
+            SQL ID : ExamMapper.examSbstRegist
+            설명  : 대체 시험 등록
+        */
+        INSERT INTO
+            TB_LMS_EXAM_EVL_SBST
+                ( EXAM_EVL_SBST_ID
+                , EXAM_BSC_ID
+                , EXAM_SBST_TYCD
+                , EXAM_SBST_ID
+                , RGTR_ID
+                , REG_DTTM )
+        VALUES
+                ( #{examEvlSbstId}
+                , #{examBscId}
+                , #{examSbstTycd}
+                , #{examSbstId}
+                , #{rgtrId}
+                , FN_DTTM() )
+    </insert>
+
+    <!-- 대체 과제 등록 -->
+    <insert id="sbstAsmtRegist" parameterType="examVO">
+    /*
+        SQL ID : ExamMapper.asmtRegist
+        설명  : 대체 과제 등록
+    */
+    INSERT INTO
+        TB_LMS_ASMT
+            ( ASMT_ID
+            , ASMT_TTL
+            , ASMT_CTS
+            , ASMT_GBNCD
+            , SBASMT_TYCD
+            , EVL_SCR_TYCD
+            , RUBLIC_ID
+            , SBMSN_FILE_MIME_TYCD
+            , MRK_RFLTYN
+            , MRK_RFLTRT
+            , MRK_OYN
+            , ASMT_SBMSN_SDTTM
+            , ASMT_SBMSN_EDTTM
+            , RGTR_ID
+            , REG_DTTM
+            , SBJCT_ID
+            , BYTEAM_ASMT_USEYN )
+    VALUES
+            ( #{asmtId}
+            , #{asmtTtl}
+            , #{asmtCts}
+            , #{asmtGbncd}
+            , #{sbasmtTycd}
+            , #{evlScrTycd}
+            , #{rublicId}
+            , #{sbmsnFileMimeTycd}
+            , #{mrkRfltyn}
+            , #{mrkRfltrt}
+            , #{mrkOyn}
+            , #{asmtSbmsnSdttm}
+            , #{asmtSbmsnEdttm}
+            , #{rgtrId}
+            , FN_DTTM()
+            , #{sbjctId}
+            , 'N' )
+    </insert>
+
+    <!-- 대체 시험 기본(퀴즈) 등록 -->
+    <insert id="sbstQuizBscRegist" parameterType="examVO">
+        /*
+             SQL ID : ExamMapper.sbstQuizBscRegist
+             설  명  : 대체 시험(퀴즈) 등록
+         */
+        INSERT INTO
+            TB_LMS_EXAM_BSC
+                ( EXAM_BSC_ID
+                , SBJCT_ID
+                , LCTR_WKNO_SCHDL_ID
+                , EXAM_GRP_ID
+                , EXAM_TYCD
+                , EXAM_GBNCD
+                , EXAM_TTL
+                , EXAM_CTS
+                , TKEXAM_MTHD_CD
+                , QSTN_DSPLY_GBNCD
+                , EXAMPPR_OYN
+                , AVG_MRK_OYN
+                , MRK_OPEN_SDTTM
+                , IMDT_ANSW_SHT_INQYN
+                , MAX_TKEXAM_CNT
+                , MRK_OYN
+                , QSTN_RNDMYN
+                , QSTN_VWITM_RNDMYN
+                , QSTN_CNDDT_USEYN
+                , MRK_RFLTYN
+                , MRK_RFLTRT
+                , EXAMTM_ALLOC_GBNCD
+                , EXAMTM_EXPSR_TYCD
+                , LRN_GRP_SUBASMT_STNGYN
+                , RGTR_ID
+                , REG_DTTM
+                , BYTEAM_SUBREXAM_USEYN )
+        VALUES
+            ( #{examBscId}
+            , #{sbjctId}
+            , #{lctrWknoSchdlId}
+            , #{examGrpId}
+            , 'QUIZ'
+            , #{examGbncd}
+            , #{examTtl}
+            , #{examCts}
+            , 'QUIZ'
+            , #{qstnDsplyGbncd}
+            , #{exampprOyn}
+            , #{avgMrkOyn}
+            , #{mrkOpenSdttm}
+            , #{imdtAnswShtInqyn}
+            , #{maxTkexamCnt}
+            , #{mrkOyn}
+            , #{qstnRndmyn}
+            , #{qstnVwitmRndmyn}
+            , #{qstnCnddtUseyn}
+            , #{mrkRfltyn}
+            , #{mrkRfltrt}
+            , 'REMAINDER'
+            , 'LEFT'
+            , 'N'
+            , #{rgtrId}
+            , FN_DTTM()
+            , 'N' )
+    </insert>
+
+    <!-- 대체 시험 상세(퀴즈) 등록 -->
+    <insert id="sbstQuizDtlRegist" parameterType="examVO">
+        /*
+             SQL ID : ExamMapper.sbstQuizDtlRegist
+             설  명  : 대체 시험 상세(퀴즈) 등록
+         */
+        INSERT INTO
+            TB_LMS_EXAM_DTL
+                ( EXAM_DTL_ID
+                , EXAM_BSC_ID
+                , EXAM_TTL
+                , EXAM_CTS
+                , EXAM_MNTS
+                , EXAMTM_LMTYN
+                , EXAM_PSBL_SDTTM
+                , EXAM_PSBL_EDTTM
+                , CNSDR_ADD_MNTS
+                , RGTR_ID
+                , REG_DTTM )
+        VALUES
+                ( #{examDtlId}
+                , #{examBscId}
+                , #{examTtl}
+                , #{examCts}
+                , #{examMnts}
+                , 'Y'               /* 시험시간제한여부 */
+                , #{examPsblSdttm}
+                , #{examPsblEdttm}
+                , 0                 /* 배려 추가시간 */
+                , #{rgtrId}
+                , FN_DTTM() )
+    </insert>
+
     <!-- 교수 시험목록 조회  -->
     <select id="listProfExam" parameterType="examVO" resultType="examVO">
         /*
@@ -2153,6 +2319,8 @@
             , ASMT.EVL_SCR_TYCD             AS "EVL_SCR_TYCD"
             , ASMT.SBASMT_TYCD              AS "SBASMT_TYCD"
             , ASMT.SBMSN_FILE_MIME_TYCD     AS "SBMSN_FILE_MIME_TYCD"
+            , SBST.EXAM_EVL_SBST_ID         AS "EXAM_EVL_SBST_ID"
+            , ASMT.ASMT_ID                  AS "ASMT_ID"
         FROM
             TB_LMS_EXAM_BSC BSC
             JOIN TB_LMS_EXAM_EVL_SBST SBST
@@ -2180,6 +2348,8 @@
             , QUIZ.QSTN_DSPLY_GBNCD     AS "QSTN_DSPLY_GBNCD"
             , QUIZ.QSTN_RNDMYN          AS "QSTN_RNDMYN"
             , QUIZ.QSTN_VWITM_RNDMYN    AS "QSTN_VWITM_RNDMYN"
+            , SBST.EXAM_EVL_SBST_ID     AS "EXAM_EVL_SBST_ID"
+            , QUIZ.EXAM_BSC_ID          AS "EXAM_BSC_ID"
         FROM
             TB_LMS_EXAM_BSC BSC
             JOIN TB_LMS_EXAM_EVL_SBST SBST
@@ -2489,6 +2659,7 @@
             EXAM_GBNCD              =   #{examGbncd}
             , TKEXAM_MTHD_CD        =   #{tkexamMthdCd}
             , EXAM_TTL              =   #{examTtl}
+            , EXAM_CTS              =   #{examCts}
             , MRK_RFLTYN            =   #{mrkRfltyn}
             , MRK_OYN               =   #{mrkOyn}
             , EXAMPPR_OYN           =   #{exampprOyn}
@@ -2515,6 +2686,70 @@
             , EXAM_CTS          =   #{examCts}
             , MDFR_ID           =   #{mdfrId}
             , MOD_DTTM          =   FN_DTTM()
+        WHERE
+            EXAM_BSC_ID = #{examBscId}
+    </update>
+
+    <!-- 대체 시험 수정 -->
+    <update id="updateExamSbst" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.updateExamSbst
+            설명 : 대체 시험 수정
+        */
+        UPDATE
+            TB_LMS_EXAM_EVL_SBST
+        SET
+            MDFR_ID     =   #{mdfrId}
+            , MOD_DTTM  =   FN_DTTM()
+        WHERE
+            EXAM_EVL_SBST_ID = #{examEvlSbstId}
+    </update>
+
+    <!-- 대체 과제 수정 -->
+    <update id="updateSbstAsmt" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.updateSbstAsmt
+            설명 : 대체 과제 수정
+        */
+        UPDATE
+            TB_LMS_ASMT
+        SET
+            ASMT_TTL                =   #{asmtTtl}
+            , ASMT_CTS              =   #{asmtCts}
+            , ASMT_SBMSN_SDTTM      =   #{asmtSbmsnSdttm}
+            , ASMT_SBMSN_EDTTM      =   #{asmtSbmsnEdttm}
+            , MRK_RFLTYN            =   #{mrkRfltyn}
+            , MRK_OYN               =   #{mrkOyn}
+            , EVL_SCR_TYCD          =   #{evlScrTycd}
+        <if test="'RUBLIC'.equals(evlScrTycd)">
+            , RUBLIC_ID             =   #{rublicId}
+        </if>
+            , SBASMT_TYCD           =   #{sbasmtTycd}
+            , SBMSN_FILE_MIME_TYCD  =   #{sbmsnFileMimeTycd}
+            , MDFR_ID               =   #{mdfrId}
+            , MOD_DTTM              =   FN_DTTM()
+        WHERE
+            ASMT_ID = #{asmtId}
+    </update>
+
+    <!-- 대체 시험(퀴즈) 기본 수정 -->
+    <update id="updateExamSbstBsc" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.updateExamSbstBsc
+            설명 : 대체 시험(퀴즈) 기본정보 수정
+        */
+        UPDATE
+            TB_LMS_EXAM_BSC
+        SET
+            EXAM_TTL                =   #{examTtl}
+            , EXAM_CTS              =   #{examCts}
+            , MRK_RFLTYN            =   #{mrkRfltyn}
+            , MRK_OYN               =   #{mrkOyn}
+            , QSTN_DSPLY_GBNCD      =   #{qstnDsplyGbncd}
+            , QSTN_RNDMYN           =   #{qstnRndmyn}
+            , QSTN_VWITM_RNDMYN     =   #{qstnVwitmRndmyn}
+            , MDFR_ID               =   #{mdfrId}
+            , MOD_DTTM              =   FN_DTTM()
         WHERE
             EXAM_BSC_ID = #{examBscId}
     </update>
@@ -2567,5 +2802,29 @@
                                     ON A.EXAM_BSC_ID = B.EXAM_BSC_ID
                             WHERE
                                 A.EXAM_BSC_ID = #{examBscId} )
+    </delete>
+
+    <!-- 대체 시험 삭제 -->
+    <delete id="deleteExamSbst" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.deleteExamSbst
+            설명 : 대체 시험 삭제
+        */
+        DELETE FROM
+            TB_LMS_EXAM_EVL_SBST
+        WHERE
+            EXAM_EVL_SBST_ID = #{examEvlSbstId}
+    </delete>
+
+    <!-- 대체 과제 삭제 -->
+    <delete id="deleteSbstAsmt" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.deleteSbstAsmt
+            설명 : 대체 과제 삭제
+        */
+        DELETE FROM
+            TB_LMS_ASMT
+        WHERE
+            ASMT_ID = #{asmtId}
     </delete>
 </mapper>

@@ -252,7 +252,7 @@
 
     // 찬성/반대 뱃지 (내부유틸)
     function _tmpl_prosConsBadge(v) {
-        if(v.atclTypeCd == "NORMAL_N" || v.atclTypeCd == "TEAM_N") {
+        if(v.atclTypeCd == "GNRL_N" || v.atclTypeCd == "TEAM_N") {
             return '';
         }
         if(v.prosConsTypeCd == "OK") {
@@ -267,6 +267,19 @@
     function _tmpl_cmntEditBtns(rs, postIdx, flatIdx, depth) {
         if(rs.delYn == "Y") { return ''; }
         var isOwner = (rs.rgtrId == "${userId}");
+        if(rs.delYn == "H") {
+            if(!isOwner) { return ''; }
+            return [
+                "<span class=\"cmtBtnGroup\">",
+                "    <div class=\"dropdown\">",
+                "        <button type=\"button\" class=\"btn basic icon set settingBtn\" aria-label=\"댓글 관리\"><i class=\"xi-ellipsis-v\"></i></button>",
+                "        <div class=\"option-wrap\">",
+                "            <div class=\"item\"><button class=\"cmtDel\" data-rgtr-id=\""+ rs.rgtrId +"\" data-cmnt-sn=\""+ rs.cmntSn +"\"><spring:message code='forum.button.del'/></button></div>",
+                "        </div>",
+                "    </div>",
+                "</span>"
+            ].join('');
+        }
         var replyBtn = (depth < 4)
             ? "<button class=\"cmtWri btn basic small\" data-atcl-sn=\""+ rs.atclSn +"\" data-cmnt-sn=\""+ rs.cmntSn +"\" data-post-idx=\""+ postIdx +"\" data-flat-idx=\""+ flatIdx +"\"><spring:message code='forum.button.cmnt'/> <spring:message code='forum.button.writer'/></button>"/* 댓글 작성 */
             : '';
@@ -327,7 +340,7 @@
                 "<div class='dropdown'>",
                 "    <button type='button' class='btn basic icon set settingBtn' aria-label='게시글 관리'><i class='xi-ellipsis-v'></i></button>",
                 "    <div class='option-wrap'>",
-                "        <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'><spring:message code='forum.label.forum.joinCnt'/><spring:message code='forum.button.hide.apply'/></a></div>",/*참여글 숨김*/
+                (v.delYn != "H" ? "        <div class='item'><a href='javascript:void(0)' data-action='hidePost' data-atcl-sn='"+ v.atclSn +"'><spring:message code='forum.label.forum.joinCnt'/><spring:message code='forum.button.hide.apply'/></a></div>" : ""),/*참여글 숨김*/
                 "        <div class='item'><a href='javascript:void(0)' data-action='delPost' data-atcl-sn='"+ v.atclSn +"' data-rgtr-id='"+ v.rgtrId +"'><spring:message code='forum.button.del'/></a></div>",/*삭제*/
                 "    </div>",
                 "</div>"
@@ -356,6 +369,8 @@
         }
         var delBadge = (v.delYn == "Y")
             ? " <span class=\"fcBlue mr5\">[삭제됨]</span>"
+            : (v.delYn == "H")
+            ? " <span class=\"fcRed mr5\">[숨겨짐]</span>"
             : '';
         return [
             "<div class='cont' id='atclBody"+ i +"'>",
@@ -438,10 +453,12 @@
 
         var ctsSpan = (rs.delYn == "Y")
             ? "<span class='comment'>"+ (rs.cmntCts || '') +" <span class='ui red label p4 f080'>[삭제됨]</span></span>"
+            : (rs.delYn == "H")
+            ? "<span class='comment'>"+ (rs.cmntCts || '') +" <span class='ui red label p4 f080'>[숨겨짐]</span></span>"
             : "<span class='comment' id='cmntContents"+ postIdx + flatIdx +"'>"+ rs.cmntCts +"</span>";
 
         var replyFormHTML = '';
-        if(rs.delYn != "Y") {
+        if(rs.delYn != "Y" && rs.delYn != "H") {
             var fi = "" + postIdx + flatIdx;
             replyFormHTML = [
                 "<div class='recmt_form' id='toggleCmnt"+ fi +"' style='display:none;'>",
@@ -512,6 +529,31 @@
                 "</div>"
             ].join('');
         }
+
+        if("${forumVO.prosConsForumCfg}" == "Y") {
+            var grouped = {ok: [], notok: [], fb: []};
+            forumList.forEach(function(v, i) {
+                if(v.prosConsTypeCd === 'OK')        grouped.ok.push({v: v, i: i});
+                else if(v.prosConsTypeCd === 'NOTOK') grouped.notok.push({v: v, i: i});
+                else                                  grouped.fb.push({v: v, i: i});
+            });
+            var buildSection = function(title, cssKey, items, showCount) {
+                var header = showCount
+                    ? title + " [<spring:message code='common.page.total'/> " + items.length + "<spring:message code='message.person'/>]" /*총 0명*/
+                    : title;
+                var parts = [
+                    "<div class='pros-cons-section pros-cons-section--" + cssKey + "'>",
+                    "<h4 class='pros-cons-title'>" + header + "</h4>"
+                ];
+                items.forEach(function(item) { parts.push(_createPostHTML(item.v, item.i)); });
+                parts.push("</div>");
+                return parts.join('');
+            };
+            return buildSection('<spring:message code="forum.label.pros.opinion"/>', 'ok', grouped.ok, true) /*찬성 의견*/
+                 + buildSection('<spring:message code="forum.label.cons.opinion"/>', 'notok', grouped.notok, true) /*반대 의견*/
+                 + buildSection('FeedBack', 'fb', grouped.fb, false);
+        }
+
         var parts = [];
         forumList.forEach(function(v, i) {
             parts.push(_createPostHTML(v, i));
@@ -1110,14 +1152,18 @@
         // 4-0. 참여글 숨김
         var hidePostBtn = e.target.closest('[data-action="hidePost"]');
         if(hidePostBtn) {
-            var dropdown = hidePostBtn.closest('.dropdown');
-            if(dropdown) {
-                var cont = dropdown.closest('.answer').querySelector('.cont');
-                if(cont && !cont.querySelector('.hide-badge')) {
-                    cont.insertAdjacentHTML('beforeend', '<span class="hide-badge fcRed fw-bold">[숨겨짐]</span>');
-                }
-                dropdown.querySelector('.option-wrap').classList.remove('show');
+            var atclSn = hidePostBtn.getAttribute('data-atcl-sn');
+            if(!confirm("<spring:message code='forum.button.confirm.del' />")) { return; }
+            var forumCd = "${forumVO.forumCd}";
+            if (${forumVO.byteamDscsUseyn eq 'Y'}) {
+                forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
             }
+            ajaxCall('/forum2/forumLect/Form/hideAtcl.do',
+                { atclSn: atclSn, forumCd: forumCd, userId: "${userId}" },
+                function(data) {
+                    if(data.result > 0) { listForum(); }
+                    else { alert("<spring:message code='forum.common.error'/>"); }
+                }, null, true);
             return;
         }
 
@@ -1219,12 +1265,14 @@
         // 6-5. 댓글 숨김 (cmtHide)
         var cmtHideBtn = e.target.closest('.cmtHide');
         if(cmtHideBtn) {
-            var postIdx = cmtHideBtn.getAttribute('data-post-idx');
-            var flatIdx = cmtHideBtn.getAttribute('data-flat-idx');
-            var ctsEl = document.getElementById('cmntContents' + postIdx + flatIdx);
-            if(ctsEl && !ctsEl.querySelector('.hide-badge')) {
-                ctsEl.insertAdjacentHTML('beforeend', '<span class="hide-badge ui red label p4 f080">[숨겨짐]</span>');
-            }
+            var cmntSn = cmtHideBtn.getAttribute('data-cmnt-sn');
+            if(!confirm("<spring:message code='forum.button.confirm.del' />")) { return; }
+            ajaxCall('/forum2/forumLect/Form/hideCmnt.do',
+                { cmntSn: cmntSn, userId: "${userId}" },
+                function(data) {
+                    if(data.result > 0) { listForum(); }
+                    else { alert("<spring:message code='forum.common.error'/>"); }
+                }, null, true);
             return;
         }
 
@@ -1582,56 +1630,6 @@
                     </div>
                 </div>
             </div>
-            <!-- 토론 글쓰기 팝업 -->
-            <%--<div class="modal fade" id="forumAtclPop" tabindex="-1"
-                 role="dialog"
-                 aria-labelledby="<spring:message code="forum.label.forum" /><!-- 토론 --> <spring:message code="forum.button.atcl.write" /><!-- 글쓰기 -->"
-                 aria-hidden="false">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal"
-                                    aria-label="<spring:message code='forum.button.close' />">
-                                <!-- 닫기 -->
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            <h4 class="modal-title">
-                                <spring:message code="forum.label.forum" />
-                                <!-- 토론 -->
-                                <spring:message code="forum.button.atcl.write" />
-                                <!-- 글쓰기 -->
-                            </h4>
-                        </div>
-                        <div class="modal-body">
-                            <iframe src="" id="forumAtclIfm" name="forumAtclIfm" width="100%" scrolling="no"></iframe>
-                        </div>
-                    </div>
-                </div>
-            </div>--%>
-            <!-- 토론 글쓰기 팝업 -->
-            <!-- 팀 구성원 보기 모달 -->
-            <%--<div class="modal fade" id="teamMemberPop" tabindex="-1" role="dialog" aria-labelledby="<spring:message code='forum.label.team.member.view'/>" aria-hidden="true"><!-- 팀 구성원 보기 -->
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="<spring:message code='forum.button.close'/>"><!-- 닫기 -->
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            <h4 class="modal-title"><spring:message code='forum.label.team.member.view'/><!-- 팀 구성원 보기 --></h4>
-                        </div>
-                        <div class="modal-body">
-                            <iframe src="" id="teamMemberIfm" name="teamMemberIfm" width="100%" scrolling="no"></iframe>
-                        </div>
-                    </div>
-                </div>
-            </div>--%>
-            <!-- 팀 구성원 보기 모달 -->
-            <%--<script>
-                // $('iframe').iFrameResize();
-                window.closeModal = function(){
-                    $('.modal').modal('hide');
-                };
-            </script>--%>
         </main>
 </body>
 </html>
