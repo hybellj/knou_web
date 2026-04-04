@@ -31,7 +31,7 @@
 
 			// scoreChartSet();
 
-			if("${dscsForumVO.dscsUnitTycd}" == "TEAM") {
+			if("${dscsVO.dscsUnitTycd}" == "TEAM") {
 				// loadSelectDiv();
 			}
 
@@ -70,8 +70,8 @@
 			form.attr("method", "POST");
 			form.attr("name", "manageForm");
 			form.attr("action", url);
-			form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: '<c:out value="${dscsForumVO.crsCreCd}" />'}));
-			form.append($('<input/>', {type: 'hidden', name: 'dscsId',  value: '<c:out value="${dscsForumVO.dscsId}" />'}));
+			form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: '<c:out value="${dscsVO.crsCreCd}" />'}));
+			form.append($('<input/>', {type: 'hidden', name: 'dscsId',  value: '<c:out value="${dscsVO.dscsId}" />'}));
 			form.appendTo("body");
 			form.submit();
 		}
@@ -82,11 +82,11 @@
 			var url  = "/forum2/forumLect/forumJoinUserList.do";
 
 			var data = {
-				"dscsId" 	  : "${dscsForumVO.dscsId}",
-				"crsCreCd"	  : "${dscsForumVO.crsCreCd}",
+				"dscsId" 	  : "${dscsVO.dscsId}",
+				"crsCreCd"	  : "${dscsVO.crsCreCd}",
 				"teamCd"	  : $("#teamCd").val(),
-				"dscsUnitTycd"      : "${dscsForumVO.dscsUnitTycd}",
-				"byteamDscsUseyn"  : "${dscsForumVO.byteamDscsUseyn}",
+				"dscsUnitTycd"      : "${dscsVO.dscsUnitTycd}",
+				"byteamDscsUseyn"  : "${dscsVO.byteamDscsUseyn}",
 				"pageIndex"   : page,
 				"listScale"   : $("#listScale").val(),
 				"searchKey"   : $("#searchKey").val(),
@@ -191,8 +191,8 @@
 		function loadSelectDiv() {
 			var url = "/forum/forumLect/teamSelectList.do";
 			var data = {
-				"crsCreCd" : "${dscsForumVO.crsCreCd}",
-				"teamCtgrCd" : "${dscsForumVO.teamTycd}",
+				"crsCreCd" : "${dscsVO.crsCreCd}",
+				"teamCtgrCd" : "${dscsVO.teamTycd}",
 			};
 
 			ajaxCall(url, data, function(data) {
@@ -230,7 +230,7 @@
 			var uids = userListTable.getSelectedData("userId");
 			var fcds = userListTable.getSelectedData("dscsId");
 			for (var i = 0; i < uids.length; i++) {
-				var fcd = fcds[i] || "${dscsForumVO.dscsId}";
+				var fcd = fcds[i] || "${dscsVO.dscsId}";
 				if (!groups[fcd]) groups[fcd] = [];
 				groups[fcd].push(uids[i]);
 			}
@@ -281,14 +281,14 @@
 			// var url = "/forum2/forumLect/addStdScore.do";
 
 			// BYTEAM='Y': 팀(자식토론)별 그룹핑 후 각각 호출
-			if ("${dscsForumVO.byteamDscsUseyn}" === "Y") {
+			if ("${dscsVO.byteamDscsUseyn}" === "Y") {
 				var groups = getForumCdGroups();
 				var keys = Object.keys(groups);
 				keys.forEach(function(fcd, idx) {
 					var data = {
 						"dscsId"    : fcd,
-						"crsCreCd"   : "${dscsForumVO.crsCreCd}",
-						"teamCtgrCd" : "${dscsForumVO.teamTycd}",
+						"crsCreCd"   : "${dscsVO.crsCreCd}",
+						"teamCtgrCd" : "${dscsVO.teamTycd}",
 						"stdIds"     : groups[fcd].join(","),
 						"score"      : score,
 						"scoreType"  : $("input[name='scoreType']:checked").val()
@@ -310,9 +310,9 @@
 
 			// BYTEAM='N': 기존 로직
 			var data = {
-				"dscsId" : "${dscsForumVO.dscsId}",
-				"crsCreCd" : "${dscsForumVO.crsCreCd}",
-				"teamCtgrCd" : "${dscsForumVO.teamTycd}",
+				"dscsId" : "${dscsVO.dscsId}",
+				"crsCreCd" : "${dscsVO.crsCreCd}",
+				"teamCtgrCd" : "${dscsVO.teamTycd}",
 				"stdIds" : stdIds,
 				"score" : score,
 				"scoreType" : $("input[name='scoreType']:checked").val()
@@ -618,9 +618,9 @@
 			var excelForm = $('<form></form>');
 			excelForm.attr("name","excelForm");
 			excelForm.attr("action","/forum2/forumLect/listScoreExcel.do");
-			excelForm.append($('<input/>', {type: 'hidden', name: 'dscsId', value:"${dscsForumVO.dscsId}" }));
-			excelForm.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value:"${dscsForumVO.crsCreCd}" }));
-			excelForm.append($('<input/>', {type: 'hidden', name: 'byteamDscsUseyn', value:"${dscsForumVO.byteamDscsUseyn}" }));
+			excelForm.append($('<input/>', {type: 'hidden', name: 'dscsId', value:"${dscsVO.dscsId}" }));
+			excelForm.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value:"${dscsVO.crsCreCd}" }));
+			excelForm.append($('<input/>', {type: 'hidden', name: 'byteamDscsUseyn', value:"${dscsVO.byteamDscsUseyn}" }));
 			excelForm.append($('<input/>', {type: 'hidden', name: 'excelGrid', value:JSON.stringify(excelGrid)}));
 
 			excelForm.appendTo('body');
@@ -688,7 +688,7 @@
 			}
 
 			// 피드백을 저장하시겠습니까?
-			if ("${dscsForumVO.byteamDscsUseyn}" === "Y") {
+			if ("${dscsVO.byteamDscsUseyn}" === "Y") {
 				_pendingFdbkGroups = getForumCdGroups(); // BYTEAM='Y': confirm 전에 그룹 저장
 			}
 			if(confirm("<spring:message code='forum.alert.feedback.confirm'/>")) {
@@ -812,13 +812,13 @@
 			var url = "/forum2/forumLect/Form/regFdbk.do";
 
 			// BYTEAM='Y': 팀(자식토론)별 그룹핑 후 각각 호출
-			if ("${dscsForumVO.byteamDscsUseyn}" === "Y" && _pendingFdbkGroups) {
+			if ("${dscsVO.byteamDscsUseyn}" === "Y" && _pendingFdbkGroups) {
 				var groups = _pendingFdbkGroups;
 				_pendingFdbkGroups = null;
 				var keys = Object.keys(groups);
 				keys.forEach(function(fcd, idx) {
 					var data = {
-						"crsCreCd"    : "${dscsForumVO.crsCreCd}",
+						"crsCreCd"    : "${dscsVO.crsCreCd}",
 						"dscsId"     : fcd,
 						"stdId"       : groups[fcd].join(","),
 						"fdbkCts"     : $("#fdbkValue").val(),
@@ -843,8 +843,8 @@
 
 			// BYTEAM='N': 기존 로직
 			var data = {
-				"crsCreCd"	  : "${dscsForumVO.crsCreCd}",
-				"dscsId"     : "${dscsForumVO.dscsId}",
+				"crsCreCd"	  : "${dscsVO.crsCreCd}",
+				"dscsId"     : "${dscsVO.dscsId}",
 				"stdId"  	  : stdIds,
 				"fdbkCts"     : $("#fdbkValue").val(),
 				"uploadFiles" : fileUploader.getUploadFiles(),
@@ -934,9 +934,9 @@
 				var url = "/forum2/forumLect/setScoreRatio.do";
 
 				var data = {
-					"dscsId" : "${dscsForumVO.dscsId}",
-					"crsCreCd" : "${dscsForumVO.crsCreCd}",
-					"teamCtgrCd" : "${dscsForumVO.teamTycd}",
+					"dscsId" : "${dscsVO.dscsId}",
+					"crsCreCd" : "${dscsVO.crsCreCd}",
+					"teamCtgrCd" : "${dscsVO.teamTycd}",
 					"stdId" : stdId,
 					"score" : score,
 				};
@@ -965,7 +965,7 @@
 			form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: "${dscsForumVO.crsCreCd}"}));
 			form.appendTo("body");
 			form.submit();*/
-			location.href = "/forum2/forumLect/profForumListView.do?sbjctId=" + "${dscsForumVO.crsCreCd}";
+			location.href = "/forum2/forumLect/profForumListView.do?sbjctId=" + "${dscsVO.crsCreCd}";
 		}
 
 		// 토론 수정
@@ -1022,26 +1022,26 @@
 		<input type="hidden" name="teamCtgrCd" id="teamCtgrCd">
 	</form>
 	<form name="forumCreCrsStdForm" id="forumCreCrsStdForm" method="POST">
-		<input type="hidden" name="dscsId" value="${dscsForumVO.dscsId }">
-		<input type="hidden" name="dscsUnitTycd" value="${dscsForumVO.dscsUnitTycd}">
-		<input type="hidden" name="teamCtgrCd" value="${dscsForumVO.teamTycd}">
+		<input type="hidden" name="dscsId" value="${dscsVO.dscsId }">
+		<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}">
+		<input type="hidden" name="teamCtgrCd" value="${dscsVO.teamTycd}">
 		<input type="hidden" name="stdId" value="">
-		<input type="hidden" name="crsCreCd" value="${dscsForumVO.crsCreCd}">
+		<input type="hidden" name="crsCreCd" value="${dscsVO.crsCreCd}">
 	</form>
 	<form id="ezGraderForm" name="ezGraderForm" method="POST">
-		<input type="hidden" name="crsCreCd" value="${dscsForumVO.crsCreCd }" >
-		<input type="hidden" name="dscsId" value="${dscsForumVO.dscsId }" >
-		<input type="hidden" name="dscsUnitTycd" value="${dscsForumVO.dscsUnitTycd}" >
-		<input type="hidden" name="evalCritUseYn" value="${dscsForumVO.evalCritUseYn}" >
-		<input type="hidden" name="evlScrTycd" value="${dscsForumVO.evlScrTycd}" >
+		<input type="hidden" name="crsCreCd" value="${dscsVO.crsCreCd }" >
+		<input type="hidden" name="dscsId" value="${dscsVO.dscsId }" >
+		<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}" >
+		<input type="hidden" name="evalCritUseYn" value="${dscsVO.evalCritUseYn}" >
+		<input type="hidden" name="evlScrTycd" value="${dscsVO.evlScrTycd}" >
 		<input type="hidden" name="stdId" value="">
 	</form>
 	<form name="forumChartViewForm" id="forumChartViewForm" method="POST">
-		<input type="hidden" name="dscsId" value="${dscsForumVO.dscsId }">
-		<input type="hidden" name="dscsUnitTycd" value="${dscsForumVO.dscsUnitTycd}">
-		<input type="hidden" name="teamCtgrCd" value="${dscsForumVO.teamTycd}">
+		<input type="hidden" name="dscsId" value="${dscsVO.dscsId }">
+		<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}">
+		<input type="hidden" name="teamCtgrCd" value="${dscsVO.teamTycd}">
 		<input type="hidden" name="stdId" value="">
-		<input type="hidden" name="crsCreCd" value="${dscsForumVO.crsCreCd}">
+		<input type="hidden" name="crsCreCd" value="${dscsVO.crsCreCd}">
 	</form>
 	<div id="wrap" class="main">
 		<!-- common header -->
@@ -1092,8 +1092,8 @@
 
 						<div class="board_top">
 							<div class="right-area">
-								<a href="javascript:void(0)" class="btn type2" onclick="editForum('${dscsForumVO.dscsId}','${dscsForumVO.dscsSdttm}')"><spring:message code='forum.button.mod'/><!-- 수정 --></a>
-								<a href="javascript:void(0)" class="btn type2" onclick="delForum('${dscsForumVO.dscsId}');"><spring:message code='forum.button.del'/><!-- 삭제 --></a>
+								<a href="javascript:void(0)" class="btn type2" onclick="editForum('${dscsVO.dscsId}','${dscsVO.dscsSdttm}')"><spring:message code='forum.button.mod'/><!-- 수정 --></a>
+								<a href="javascript:void(0)" class="btn type2" onclick="delForum('${dscsVO.dscsId}');"><spring:message code='forum.button.del'/><!-- 삭제 --></a>
 								<a href="javascript:void(0)" class="btn type2" onclick="viewForumList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
 							</div>
 						</div>
@@ -1113,7 +1113,7 @@
 							<h4>토론평가</h4>
 							<div class="right-area">
 								<%-- <c:if test="${!fn:contains(authGrpCd, 'TUT') }"> --%>
-								<a href="javascript:ezGraderPop('${dscsForumVO.dscsId}')" class="btn basic small">EZ-Grader</a>
+								<a href="javascript:ezGraderPop('${dscsVO.dscsId}')" class="btn basic small">EZ-Grader</a>
 								<%-- </c:if> --%>
 								<%-- <a href="javascript:allFeedback()" class="ui button"><spring:message code="forum.button.all.feedback" /></a><!-- 일괄 피드백 --> --%>
 								<a href="javascript:callScoreExcelUpload()" class="btn basic small"><spring:message code="forum.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
@@ -1131,7 +1131,7 @@
 									<option value="joinY"><spring:message code='forum.label.join'/><!-- 참여 --></option>
 									<%--<option value="after"><spring:message code='forum.label.after.join'/><!-- 지각참여 --></option>--%>
 									<option value="joinN"><spring:message code='forum.label.not.join'/><!-- 미참여 --></option>
-									<c:if test="${dscsForumVO.dscsUnitTycd eq 'TEAM'}">
+									<c:if test="${dscsVO.dscsUnitTycd eq 'TEAM'}">
 										<option value="leader"><spring:message code='forum.label.team.leader'/><!-- 팀장 --></option>
 										<option value="member"><spring:message code='forum.label.team.member'/><!-- 팀원 --></option>
 									</c:if>
@@ -1231,14 +1231,14 @@
 
 												var url = "/forum2/forumLect/updateForumJoinUserLenScore.do";
 												// BYTEAM='Y': 팀(자식토론)별 그룹핑 후 각각 호출
-												if ("${dscsForumVO.byteamDscsUseyn}" === "Y") {
+												if ("${dscsVO.byteamDscsUseyn}" === "Y") {
 													var groups = getForumCdGroups();
 													var keys = Object.keys(groups);
 													keys.forEach(function(fcd, idx) {
 														var data = {
 															"dscsId"    : fcd,
-															"crsCreCd"   : "${dscsForumVO.crsCreCd}",
-															"teamCtgrCd" : "${dscsForumVO.teamTycd}",
+															"crsCreCd"   : "${dscsVO.crsCreCd}",
+															"teamCtgrCd" : "${dscsVO.teamTycd}",
 															"stdIds"     : groups[fcd].join(","),
 															"score"      : $("#lenScore").val(),
 															"ctsLen"     : $("#ctsLen").val(),
@@ -1261,9 +1261,9 @@
 
 												// BYTEAM='N': 기존 로직
 												var data = {
-													"dscsId" : "${dscsForumVO.dscsId}",
-													"crsCreCd" : "${dscsForumVO.crsCreCd}",
-													"teamCtgrCd" : "${dscsForumVO.teamTycd}",
+													"dscsId" : "${dscsVO.dscsId}",
+													"crsCreCd" : "${dscsVO.crsCreCd}",
+													"teamCtgrCd" : "${dscsVO.teamTycd}",
 													"stdIds" : stdIds,
 													"score" : $("#lenScore").val(),
 													"ctsLen" : $("#ctsLen").val(),
@@ -1289,7 +1289,7 @@
 										</script>
 									</td>
 								</tr>
-								<c:if test="${dscsForumVO.evlScrTycd == 'PTCP_FULL_SCR'}">
+								<c:if test="${dscsVO.evlScrTycd == 'PTCP_FULL_SCR'}">
 								<tr>
 									<th><spring:message code="forum.label.evalctgr.participate.all" /><!-- 참여형 일괄평가 --></th>
 									<td>
@@ -1301,8 +1301,8 @@
 												if(window.confirm(`<spring:message code="forum.confirm.parti.score" />`)) {/* 기존 점수는 초기화되고\r\n토론 참여글 등록 수강생은 100점,\r\n미등록 수강생과 댓글만 작성한 수강생은 0점 처리됩니다.\r\n처리하시겠습니까? */
 													var url = "/forum2/forumLect/participateScore.do";
 													var data = {
-														"dscsId" : "${dscsForumVO.dscsId}",
-														"crsCreCd" : "${dscsForumVO.crsCreCd}",
+														"dscsId" : "${dscsVO.dscsId}",
+														"crsCreCd" : "${dscsVO.crsCreCd}",
 													};
 													ajaxCall(url, data, function(data) {
 														if(data.result > 0) {
@@ -1336,7 +1336,7 @@
 														<!-- TODO : 피드백 File Uplaod -->
 														<uiex:dextuploader
 																id="fileUploader"
-																path="${dscsForumVO.uploadPath}"
+																path="${dscsVO.uploadPath}"
 																limitCount="3"
 																limitSize="100"
 																oneLimitSize="100"
@@ -1373,15 +1373,15 @@
 								selectRow: "checkbox",
 								columns: [
 									{title:"No", 		field:"no",					headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},
-									("${dscsForumVO.dscsUnitTycd}" == "TEAM" ? {title: "팀명", field: "teamnm", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
+									("${dscsVO.dscsUnitTycd}" == "TEAM" ? {title: "팀명", field: "teamnm", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
 									{title:"학과", 		field:"deptnm",				headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:100},
 									{title:"대표아이디", 	field:"userRprsId", 		headerHozAlign:"center", hozAlign:"center", width:0, 	minWidth:120},
 									{title:"학번", 		field:"stdntNo",			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
 									{title:"이름", 		field:"usernm", 			headerHozAlign:"center", hozAlign:"center", width:0,	minWidth:100},
-									("${dscsForumVO.dscsUnitTycd}" == "TEAM" ? {title: "역할", field: "ldryn", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
+									("${dscsVO.dscsUnitTycd}" == "TEAM" ? {title: "역할", field: "ldryn", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 80} : null),
 									{title:"평가점수", 	field:"totScr", 			headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},
 									{title:"피드백", 	field:"fdk", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
-									("${dscsForumVO.dscsUnitTycd}" != "TEAM" && "${dscsForumVO.prosConsForumCfg}" == "Y" ? {title:"찬반", field:"oknokGbn", headerHozAlign:"center", hozAlign:"center", width:60, minWidth:60} : null),
+									("${dscsVO.dscsUnitTycd}" != "TEAM" && "${dscsVO.prosConsForumCfg}" == "Y" ? {title:"찬반", field:"oknokGbn", headerHozAlign:"center", hozAlign:"center", width:60, minWidth:60} : null),
 									{title:"참여상태", 	field:"joinStatus", 		headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
 									{title:"참여일시", 	field:"joinDtdm", 			headerHozAlign:"center", hozAlign:"center",	width:140,	minWidth:140},
 									{title:"평가여부", 	field:"evlyn", 				headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},

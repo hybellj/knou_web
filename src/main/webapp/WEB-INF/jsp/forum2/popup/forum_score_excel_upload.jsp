@@ -41,7 +41,7 @@
 		// 등록
 		function uploadExcelForum(fileObj, copyFile) {
 			var excelGrid = "";
-			if("${dscsForumVO.dscsUnitTycd}" == "TEAM") {
+			if("${dscsVO.dscsUnitTycd}" == "TEAM") {
 				excelGrid = JSON.stringify(teamExcelGrid);
 			} else {
 				excelGrid = JSON.stringify(nomalExcelGrid);
@@ -49,12 +49,12 @@
 			
 			var url = "/forum2/forumLect/uploadForumScoreExcel.do";
 			var data = {
-				"dscsId"    	  : "${dscsForumVO.dscsId}"
-				, "crsCreCd" : "${dscsForumVO.crsCreCd}"
-				, "dscsUnitTycd" : "${dscsForumVO.dscsUnitTycd}"
+				"dscsId"    	  : "${dscsVO.dscsId}"
+				, "crsCreCd" : "${dscsVO.crsCreCd}"
+				, "dscsUnitTycd" : "${dscsVO.dscsUnitTycd}"
 				, "uploadFiles"   : fileObj
 				// , "copyFiles"	  : copyFile
-				, "uploadPath"	  : "/forum/${dscsForumVO.dscsId}"
+				, "uploadPath"	  : "/forum/${dscsVO.dscsId}"
 				, "repoCd"		  : "EXCEL_UPLOAD"
 				, "excelGrid" 	  : excelGrid
 			};
@@ -74,7 +74,7 @@
 		
 		// 엑셀 샘플 다운로드
 		function sampleExcelDown() {
-			if("${dscsForumVO.dscsUnitTycd}" == "TEAM") {
+			if("${dscsVO.dscsUnitTycd}" == "TEAM") {
 		        $("#excelGrid").val(JSON.stringify(teamExcelGrid));
 			} else {
 				$("#excelGrid").val(JSON.stringify(nomalExcelGrid));
@@ -152,13 +152,13 @@
 	</script>
 	
 	<form id="forumUploadForm" name="forumUploadForm" method="POST">
-        <input type="hidden" name="dscsId" value="${dscsForumVO.dscsId}" />
-        <input type="hidden" name="crsCreCd" value="${dscsForumVO.crsCreCd}"/>
-        <input type="hidden" name="dscsUnitTycd" value="${dscsForumVO.dscsUnitTycd}"/>
+        <input type="hidden" name="dscsId" value="${dscsVO.dscsId}" />
+        <input type="hidden" name="crsCreCd" value="${dscsVO.crsCreCd}"/>
+        <input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}"/>
         <input type="hidden" name="excelGrid" value="" id="excelGrid"/>
 		<%-- 26.3.23 : New upload file 처리 field 추가 --%>
 		<input type="hidden" name="uploadFiles" id="uploadFiles" value="" />
-		<input type="hidden" name="uploadPath" id="uploadPath" value="${dscsForumVO.uploadPath}" />
+		<input type="hidden" name="uploadPath" id="uploadPath" value="${dscsVO.uploadPath}" />
 		<input type="hidden" name="delFileIdStr" id="delFileIdStr" value="" />
     </form>
 
@@ -180,7 +180,7 @@
             	<!-- 파일업로더 -->
             	<uiex:dextuploader
 					id="fileUploader"
-					path="/forum/${dscsForumVO.dscsId}"
+					path="/forum/${dscsVO.dscsId}"
 					limitCount="1"
 					limitSize="100"
 					oneLimitSize="100"

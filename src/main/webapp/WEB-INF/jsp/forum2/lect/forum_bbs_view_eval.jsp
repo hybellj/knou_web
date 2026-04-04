@@ -14,10 +14,10 @@ $(document).ready(function() {
 	}
 });
 </script>
-<c:if test="${CLASS_USER_TYPE ne 'CLASS_LEARNER' && (empty dscsForumVO.searchMenu || dscsForumVO.searchMenu != 'EZG')}">
+<c:if test="${CLASS_USER_TYPE ne 'CLASS_LEARNER' && (empty dscsVO.searchMenu || dscsVO.searchMenu != 'EZG')}">
 <h3 class="page-title mt20" id="fourmTitle"><spring:message code="forum.label.forum"/> <spring:message code="forum.label.atcl"/> <spring:message code="forum.label.list"/></h3> <!-- 토론 글 목록 -->
 </c:if>
-<c:if test="${dscsForumVO.dscsUnitTycd eq 'TEAM'}">
+<c:if test="${dscsVO.dscsUnitTycd eq 'TEAM'}">
 <h3 class="page-title mt20"></h3>
 </c:if>
 <%-- <div class="option-content">

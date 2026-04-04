@@ -25,11 +25,11 @@
 		var url  = "/forum2/forumLect/forumJoinUserList.do";
 
 		var data = {
-			"dscsId" 	  : "${dscsForumVO.dscsId}",
-			"crsCreCd"	  : "${dscsForumVO.crsCreCd}",
+			"dscsId" 	  : "${dscsVO.dscsId}",
+			"crsCreCd"	  : "${dscsVO.crsCreCd}",
 			"teamCd"	  : $("#teamCd").val(),
-			"dscsUnitTycd"     : "${dscsForumVO.dscsUnitTycd}",
-			"byteamDscsUseyn" : "${dscsForumVO.byteamDscsUseyn}",
+			"dscsUnitTycd"     : "${dscsVO.dscsUnitTycd}",
+			"byteamDscsUseyn" : "${dscsVO.byteamDscsUseyn}",
 			"pageIndex"   : page,
 			"listScale"   : $("#listScale").val(),
 			"searchKey"   : $("#searchKey").val(),
@@ -52,7 +52,7 @@
 					}
 				});
 
-				if("${dscsForumVO.prosConsForumCfg}" == 'N') {
+				if("${dscsVO.prosConsForumCfg}" == 'N') {
 					forumChartSet(joinStatusY, joinStatusN);
 				}
 			} else {
@@ -145,7 +145,7 @@
 		var maxScore = 0;
 		var avgScore = 0;
 
-		if("${dscsForumVO.dscsUnitTycd}" == "TEAM") {
+		if("${dscsVO.dscsUnitTycd}" == "TEAM") {
 			$.ajax({
 				type: "post",
 				// url: "/team/teamHome/viewScoreChart.do",
@@ -154,7 +154,7 @@
 				dataType: "json",
 				data: {
 					// "teamCtgrCd" : $("#teamCtgrCd").val(),
-					"dscsId" : "${dscsForumVO.dscsId}",
+					"dscsId" : "${dscsVO.dscsId}",
 				},
 				error: function(data) {
 					alert("<spring:message code='forum.alert.team.count.select_fail'/>"); // 팀 수를 조회하는 데에 실패하였습니다. 다시 시도해주시기 바랍니다.
@@ -261,7 +261,7 @@
 					<p><spring:message code="forum.label.forum.status" /> <!-- 토론 현황 -->
 					<table style="width:100%; table-layout:fixed;"><tr>
 						<td style="width:50%; vertical-align:top; padding:4px;">
-							<c:if test="${dscsForumVO.prosConsForumCfg eq 'Y'}">
+							<c:if test="${dscsVO.prosConsForumCfg eq 'Y'}">
 								<canvas id="pieChart" height="250"></canvas>
 								<script>
 									var ctx = document.getElementById("pieChart");
@@ -276,7 +276,7 @@
 													'#ff9f40'
 												],
 												borderWidth:1,
-												data: ["${dscsForumVO.forumAtclPorsCnt}", "${dscsForumVO.forumAtclConsCnt}"]
+												data: ["${dscsVO.forumAtclPorsCnt}", "${dscsVO.forumAtclConsCnt}"]
 											}]
 										},
 										options: {
@@ -336,7 +336,7 @@
 									});
 								</script>
 							</c:if>
-							<c:if test="${dscsForumVO.prosConsForumCfg eq 'N'}">
+							<c:if test="${dscsVO.prosConsForumCfg eq 'N'}">
 								<canvas id="pieChart" height="250"></canvas>
 							</c:if>
 						</td>

@@ -14,7 +14,6 @@ import knou.framework.vo.FileVO;
 import knou.lms.common.paging.PagingInfo;
 import knou.lms.file.service.AttachFileService;
 import knou.lms.file.vo.AtflVO;
-import knou.lms.forum2.vo.DscsForumVO;
 import knou.lms.forum2.vo.*;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;

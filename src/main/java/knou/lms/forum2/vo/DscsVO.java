@@ -2,6 +2,7 @@ package knou.lms.forum2.vo;
 
 import java.util.List;
 
+import knou.framework.util.StringUtil;
 import knou.lms.common.vo.DefaultVO;
 
 public class DscsVO extends DefaultVO {
@@ -68,6 +69,33 @@ public class DscsVO extends DefaultVO {
     private Integer forumEvalCnt;               // 평가한 인원수
 
     private String smstrChrtId;                 // 학기기수아이디
+    private String forumOpenYn;
+    private String teamAtclOpenYn;
+    private Integer evalLimitCnt;
+    private String evalRsltOpenYn;
+    private String evalCritUseYn;
+    private String avgScoreOpenYn;
+    private String declsRegYn;
+    private String pushNoticeYn;
+    private String mutEvalYn;
+    private String aplyAsnYn;
+    private String otherViewYn;
+    private String teamForumCfgYn;
+    private String otherTeamViewYn;
+    private String otherTeamAplyYn;
+    private String forumStatus;
+    private String teamCtgrCd;
+    private String teamCtgrNm;
+    private String teamNm;
+    private String stdId;
+    private String stdList;
+    private String copyForumCd;
+    private String lessonScheduleId;
+    private String lessonScheduleNm;
+    private String forumCtgrNm;
+    private int likes;
+    private String recomStatus;
+    private String[] deleteFileId;
 
     public String getDscsId() {
         return dscsId;
@@ -513,6 +541,104 @@ public class DscsVO extends DefaultVO {
 
     public String getSmstrChrtId() { return smstrChrtId; }
     public void setSmstrChrtId(String smstrChrtId) { this.smstrChrtId = smstrChrtId; }
+
+    public String getForumOpenYn() { return forumOpenYn; }
+    public void setForumOpenYn(String forumOpenYn) { this.forumOpenYn = forumOpenYn; }
+    public String getTeamAtclOpenYn() { return teamAtclOpenYn; }
+    public void setTeamAtclOpenYn(String teamAtclOpenYn) { this.teamAtclOpenYn = teamAtclOpenYn; }
+    public Integer getEvalLimitCnt() { return evalLimitCnt; }
+    public void setEvalLimitCnt(Integer evalLimitCnt) { this.evalLimitCnt = evalLimitCnt; }
+    public String getEvalRsltOpenYn() { return evalRsltOpenYn; }
+    public void setEvalRsltOpenYn(String evalRsltOpenYn) { this.evalRsltOpenYn = evalRsltOpenYn; }
+    public String getEvalCritUseYn() { return evalCritUseYn; }
+    public void setEvalCritUseYn(String evalCritUseYn) { this.evalCritUseYn = evalCritUseYn; }
+    public String getAvgScoreOpenYn() { return avgScoreOpenYn; }
+    public void setAvgScoreOpenYn(String avgScoreOpenYn) { this.avgScoreOpenYn = avgScoreOpenYn; }
+    public String getDeclsRegYn() { return declsRegYn; }
+    public void setDeclsRegYn(String declsRegYn) { this.declsRegYn = declsRegYn; }
+    public String getPushNoticeYn() { return pushNoticeYn; }
+    public void setPushNoticeYn(String pushNoticeYn) { this.pushNoticeYn = pushNoticeYn; }
+    public String getMutEvalYn() { return mutEvalYn; }
+    public void setMutEvalYn(String mutEvalYn) { this.mutEvalYn = mutEvalYn; }
+    public String getAplyAsnYn() { return aplyAsnYn; }
+    public void setAplyAsnYn(String aplyAsnYn) { this.aplyAsnYn = aplyAsnYn; }
+    public String getOtherViewYn() { return otherViewYn; }
+    public void setOtherViewYn(String otherViewYn) { this.otherViewYn = otherViewYn; }
+    public String getTeamForumCfgYn() { return teamForumCfgYn; }
+    public void setTeamForumCfgYn(String teamForumCfgYn) { this.teamForumCfgYn = teamForumCfgYn; }
+    public String getOtherTeamViewYn() { return otherTeamViewYn; }
+    public void setOtherTeamViewYn(String otherTeamViewYn) { this.otherTeamViewYn = otherTeamViewYn; }
+    public String getOtherTeamAplyYn() { return otherTeamAplyYn; }
+    public void setOtherTeamAplyYn(String otherTeamAplyYn) { this.otherTeamAplyYn = otherTeamAplyYn; }
+    public String getForumStatus() { return forumStatus; }
+    public void setForumStatus(String forumStatus) { this.forumStatus = forumStatus; }
+    public String getTeamCtgrCd() { return teamCtgrCd; }
+    public void setTeamCtgrCd(String teamCtgrCd) { this.teamCtgrCd = teamCtgrCd; }
+    public String getTeamCtgrNm() { return teamCtgrNm; }
+    public void setTeamCtgrNm(String teamCtgrNm) { this.teamCtgrNm = teamCtgrNm; }
+    public String getTeamNm() { return teamNm; }
+    public void setTeamNm(String teamNm) { this.teamNm = teamNm; }
+    public String getStdId() { return stdId; }
+    public void setStdId(String stdId) { this.stdId = stdId; }
+    public String getStdList() { return stdList; }
+    public void setStdList(String stdList) { this.stdList = stdList; }
+    public String getCopyForumCd() { return copyForumCd; }
+    public void setCopyForumCd(String copyForumCd) { this.copyForumCd = copyForumCd; }
+    public String getLessonScheduleId() { return lessonScheduleId; }
+    public void setLessonScheduleId(String lessonScheduleId) { this.lessonScheduleId = lessonScheduleId; }
+    public String getLessonScheduleNm() { return lessonScheduleNm; }
+    public void setLessonScheduleNm(String lessonScheduleNm) { this.lessonScheduleNm = lessonScheduleNm; }
+    public String getForumCtgrNm() { return forumCtgrNm; }
+    public void setForumCtgrNm(String forumCtgrNm) { this.forumCtgrNm = forumCtgrNm; }
+    public int getLikes() { return likes; }
+    public void setLikes(int likes) { this.likes = likes; }
+    public String getRecomStatus() { return recomStatus; }
+    public void setRecomStatus(String recomStatus) { this.recomStatus = recomStatus; }
+    public String[] getDeleteFileId() { return deleteFileId; }
+    public void setDeleteFileId(String[] deleteFileId) { this.deleteFileId = deleteFileId; }
+
+    public String getForumCd() { return dscsId; }
+    public void setForumCd(String forumCd) { this.dscsId = forumCd; }
+    public String getForumCtgrCd() { return dscsUnitTycd; }
+    public void setForumCtgrCd(String forumCtgrCd) { this.dscsUnitTycd = forumCtgrCd; }
+    public String getForumStartDttm() { return dscsSdttm; }
+    public void setForumStartDttm(String forumStartDttm) { this.dscsSdttm = forumStartDttm; }
+    public String getForumEndDttm() { return dscsEdttm; }
+    public void setForumEndDttm(String forumEndDttm) { this.dscsEdttm = forumEndDttm; }
+    public String getForumTitle() { return dscsTtl; }
+    public void setForumTitle(String forumTitle) { this.dscsTtl = forumTitle; }
+    public String getForumArtl() { return dscsCts; }
+    public void setForumArtl(String forumArtl) { this.dscsCts = forumArtl; }
+    public String getScoreAplyYn() { return mrkRfltyn; }
+    public void setScoreAplyYn(String scoreAplyYn) { this.mrkRfltyn = scoreAplyYn; }
+    public String getScoreOpenYn() { return mrkOyn; }
+    public void setScoreOpenYn(String scoreOpenYn) { this.mrkOyn = scoreOpenYn; }
+    public Integer getScoreRatio() { return mrkRfltrt; }
+    public void setScoreRatio(Integer scoreRatio) { this.mrkRfltrt = scoreRatio; }
+    public String getEvalCtgr() { return evlScrTycd; }
+    public void setEvalCtgr(String evalCtgr) { this.evlScrTycd = evalCtgr; }
+    @Override
+    public String getCrsCreCd() { return StringUtil.isNull(sbjctId) ? super.getCrsCreCd() : sbjctId; }
+    @Override
+    public void setCrsCreCd(String crsCreCd) { this.sbjctId = crsCreCd; super.setCrsCreCd(crsCreCd); }
+    public String getDeclsNo() { return dvclsNo; }
+    public void setDeclsNo(String declsNo) { this.dvclsNo = declsNo; }
+    public String getDelYn() { return delyn; }
+    public void setDelYn(String delYn) { this.delyn = delYn; }
+    public String getProsConsForumCfg() { return oknokStngyn; }
+    public void setProsConsForumCfg(String prosConsForumCfg) { this.oknokStngyn = prosConsForumCfg; }
+    public String getProsConsRateOpenYn() { return oknokrtOyn; }
+    public void setProsConsRateOpenYn(String prosConsRateOpenYn) { this.oknokrtOyn = prosConsRateOpenYn; }
+    public String getRegOpenYn() { return oknokRgtrOyn; }
+    public void setRegOpenYn(String regOpenYn) { this.oknokRgtrOyn = regOpenYn; }
+    public String getMultiAtclYn() { return mltOpnnRegyn; }
+    public void setMultiAtclYn(String multiAtclYn) { this.mltOpnnRegyn = multiAtclYn; }
+    public String getProsConsModYn() { return oknokModyn; }
+    public void setProsConsModYn(String prosConsModYn) { this.oknokModyn = prosConsModYn; }
+    public String getTeamCd() { return teamId; }
+    public void setTeamCd(String teamCd) { this.teamId = teamCd; }
+    public String getTeamTycd() { return teamCtgrCd; }
+    public void setTeamTycd(String teamTycd) { this.teamCtgrCd = teamTycd; }
 }
 
 

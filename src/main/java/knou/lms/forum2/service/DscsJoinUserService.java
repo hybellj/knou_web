@@ -3,8 +3,8 @@ package knou.lms.forum2.service;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.forum2.vo.DscsJoinUserVO;
 import knou.lms.forum2.vo.DscsMutVO;
-import knou.lms.forum2.vo.DscsForumVO;
 import knou.lms.forum2.vo.DscsEzGraderTeamVO;
+import knou.lms.forum2.vo.DscsVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import java.util.List;
@@ -24,10 +24,10 @@ public interface DscsJoinUserService {
     public void updateExampleExcelScore(DscsJoinUserVO vo, List<?> stdNoList, String forumCtgrCd) throws Exception;
     public List<DscsJoinUserVO> listForumJoinUser(DscsJoinUserVO vo) throws Exception;
     public List<DscsEzGraderTeamVO> listForumJoinTeam(DscsJoinUserVO vo) throws Exception;
-    public DscsJoinUserVO getMemo(DscsForumVO vo) throws Exception;
+    public DscsJoinUserVO getMemo(DscsVO vo) throws Exception;
     public void updateForumJoinUserLenScore(DscsJoinUserVO vo) throws Exception;
 	public void chkStdNoInsert(DscsMutVO vo) throws Exception;
-	public void insertJoinUser(DscsForumVO vo) throws Exception;
+	public void insertJoinUser(DscsVO vo) throws Exception;
 	public void participateScore(DscsJoinUserVO vo) throws Exception;
 	public void setScoreRatio(DscsJoinUserVO vo) throws Exception;
 

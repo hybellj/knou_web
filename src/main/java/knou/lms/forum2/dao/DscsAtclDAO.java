@@ -6,7 +6,6 @@ import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
 import knou.lms.forum2.vo.DscsAtclVO;
 import knou.lms.forum2.vo.DscsMutVO;
-import knou.lms.forum2.vo.DscsForumVO;
 
 @Mapper("dscsAtclDAO")
 public interface DscsAtclDAO {

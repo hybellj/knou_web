@@ -45,7 +45,7 @@ function fdbkList(stdId) {
 		return false;
 	}
 
-	var dscsId = "${dscsForumVO.dscsId}";
+	var dscsId = "${dscsVO.dscsId}";
 	$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
 	$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 	$("#forumCreCrsStdForm").attr("target", "fdbkListIfm");
@@ -56,14 +56,14 @@ function fdbkList(stdId) {
 
 </script>
 <form name="forumCreCrsStdForm" id="forumCreCrsStdForm" method="POST">
-	<input type="hidden" name="dscsId" value="${dscsForumVO.dscsId }">
-	<input type="hidden" name="dscsUnitTycd" value="${dscsForumVO.dscsUnitTycd}">
-	<input type="hidden" name="teamTycd" value="${dscsForumVO.teamTycd}">
+	<input type="hidden" name="dscsId" value="${dscsVO.dscsId }">
+	<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}">
+	<input type="hidden" name="teamTycd" value="${dscsVO.teamTycd}">
 	<input type="hidden" name="stdId" value="">
-	<input type="hidden" name="crsCreCd" value="${dscsForumVO.crsCreCd}">
+	<input type="hidden" name="crsCreCd" value="${dscsVO.crsCreCd}">
 </form>
 
-<c:if test="${dscsForumVO.dscsUnitTycd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER'  && (empty dscsForumVO.searchMenu || dscsForumVO.searchMenu != 'EZG') && dscsForumVO.evalCritUseYn eq 'N'}">
+<c:if test="${dscsVO.dscsUnitTycd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER'  && (empty dscsVO.searchMenu || dscsVO.searchMenu != 'EZG') && dscsVO.evalCritUseYn eq 'N'}">
 	<div class="inline field">
 		<label class="label-title"><spring:message code="forum.label.record" /><%-- 성적 --%></label>
 		<a id="scoreText">${dscsJoinUserVO.score }<spring:message code='forum.label.point'/></a><%-- 점 --%>
@@ -74,13 +74,13 @@ function fdbkList(stdId) {
 	</div>
 </c:if>
 
-	<c:if test="${dscsForumVO.dscsUnitTycd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER' && dscsForumVO.evalCritUseYn eq 'N'}">
+	<c:if test="${dscsVO.dscsUnitTycd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER' && dscsVO.evalCritUseYn eq 'N'}">
 	<div class="ui divider"></div>
 	</c:if>
 	<c:if test="${CLASS_USER_TYPE ne 'CLASS_LEARNER'}">
 	<div class="flex-item flex-wrap gap4 pt10">
-		<c:if test="${not empty dscsForumVO.searchMenu && dscsForumVO.searchMenu == 'EZG'}"> 
-		<a href="javascript:void(0);" class="ui basic fluid button" onClick="fdbkList('${dscsForumVO.stdId}')" id="cntFdbk">${cntFdbk}<spring:message code='forum.label.cnt.feedback'/><!-- 개의 피드백 --></a>
+		<c:if test="${not empty dscsVO.searchMenu && dscsVO.searchMenu == 'EZG'}"> 
+		<a href="javascript:void(0);" class="ui basic fluid button" onClick="fdbkList('${dscsVO.stdId}')" id="cntFdbk">${cntFdbk}<spring:message code='forum.label.cnt.feedback'/><!-- 개의 피드백 --></a>
 		</c:if>
 	</div>
 	</c:if>

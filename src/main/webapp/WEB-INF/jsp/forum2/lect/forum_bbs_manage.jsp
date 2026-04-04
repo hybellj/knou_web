@@ -73,8 +73,8 @@
     <script type="text/javascript">
     var dialog;
     $(document).ready(function() {
-        if("${dscsForumVO.dscsUnitTycd}" == "TEAM") {
-            if (${dscsForumVO.byteamDscsUseyn eq 'Y'}) {
+        if("${dscsVO.dscsUnitTycd}" == "TEAM") {
+            if (${dscsVO.byteamDscsUseyn eq 'Y'}) {
                 $('.team_selected_nm').prop('disabled', true);
                 $('#join_write_input_area').hide();
             } else {
@@ -164,12 +164,12 @@
         form.append($('<input/>', {type: 'hidden', name: 'dscsId',  value: '<c:out value="${dscsForumVO.dscsId}" />'}));
         form.appendTo("body");
         form.submit();*/
-        location.href = url + '?dscsId=<c:out value="${dscsForumVO.dscsId}" />';
+        location.href = url + '?dscsId=<c:out value="${dscsVO.dscsId}" />';
     }
 
     //토론글 리스트
     function listForum(page) {
-        if("${dscsForumVO.dscsUnitTycd}" == "TEAM") {
+        if("${dscsVO.dscsUnitTycd}" == "TEAM") {
             var teamNm = $("#selectTeam option:selected").text();
         } else {
             var teamNm = "";
@@ -188,8 +188,8 @@
         }
 
         // Team 토론시 팀토론 코드로 변경
-        var dscsId = "${dscsForumVO.dscsId}";
-        if (${dscsForumVO.byteamDscsUseyn eq 'Y'}) {
+        var dscsId = "${dscsVO.dscsId}";
+        if (${dscsVO.byteamDscsUseyn eq 'Y'}) {
             dscsId = $('#team_selected_name').attr('teamSelectedDscsId');
         }
 
@@ -199,12 +199,12 @@
             "listScale" : $("#listScale").val(),
             "searchValue" : searchValue,
             "dscsId" : dscsId,
-            "dscsUnitTycd" : "${dscsForumVO.dscsUnitTycd}",
-            "crsCreCd" : "${dscsForumVO.crsCreCd}",
+            "dscsUnitTycd" : "${dscsVO.dscsUnitTycd}",
+            "crsCreCd" : "${dscsVO.crsCreCd}",
             "userId" : "${userId}",
             "userName" : "${userName}",
             "stdList" : $("#teamStdList").val(),
-            "teamCtgrCd" : "${dscsForumVO.teamTycd}",
+            "teamCtgrCd" : "${dscsVO.teamTycd}",
             "teamNm" : teamNm,
         };
 
@@ -361,8 +361,8 @@
     // 게시글 본문 -> .answer > .cont
     function tmpl_atclBody(v, i) {
         var ctsHtml;
-        console.log("${dscsForumVO.prosConsForumCfg}");
-        if("${dscsForumVO.prosConsForumCfg}" == "Y") {
+        console.log("${dscsVO.prosConsForumCfg}");
+        if("${dscsVO.prosConsForumCfg}" == "Y") {
             ctsHtml = "<pre>" + v.atclCts + "</pre>";
         } else {
             ctsHtml = v.atclCts;
@@ -530,7 +530,7 @@
             ].join('');
         }
 
-        if("${dscsForumVO.prosConsForumCfg}" == "Y") {
+        if("${dscsVO.prosConsForumCfg}" == "Y") {
             var grouped = {ok: [], notok: [], fb: []};
             forumList.forEach(function(v, i) {
                 if(v.oknokGbncd === 'OK')        grouped.ok.push({v: v, i: i});
@@ -612,7 +612,7 @@
         .then(function(result) {
             if (result) {
                 // 찬반토론일 경우
-                if (${dscsForumVO.prosConsForumCfg eq 'Y'}) {
+                if (${dscsVO.prosConsForumCfg eq 'Y'}) {
                     addActl();
                 } else {
                     let dx = dx5.get("fileUploader");
@@ -657,18 +657,18 @@
     // 게시글 등록/수정
     function addActl(atclStatus) {
         // 찬반토론일 경우:파일첨부하지 않음.
-        if (${dscsForumVO.prosConsForumCfg ne 'Y'}) {
+        if (${dscsVO.prosConsForumCfg ne 'Y'}) {
             let dx = dx5.get("fileUploader");
             $("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
         }
 
         // Team 토론시 팀토론 코드로 변경
-        if (${dscsForumVO.byteamDscsUseyn eq 'Y'}) {
+        if (${dscsVO.byteamDscsUseyn eq 'Y'}) {
             var teamDscsId = $('#team_selected_name').attr('teamSelectedDscsId');
             $("input[name='dscsId']").val(teamDscsId);
         }
 
-        var atclTypeCd = "<c:out value="${dscsForumVO.dscsUnitTycd}" />"  + "_" + "<c:out value="${dscsForumVO.prosConsForumCfg}" />";
+        var atclTypeCd = "<c:out value="${dscsVO.dscsUnitTycd}" />"  + "_" + "<c:out value="${dscsVO.prosConsForumCfg}" />";
         var param = [];
         param = param.concat($("#forumListForm").serializeArray());
         param = param.concat($("#forumAtclForm").serializeArray());
@@ -717,8 +717,8 @@
         if(!result) { return false; }
 
         // Team 토론시 팀토론 코드로 변경
-        var dscsId = "${dscsForumVO.dscsId}";
-        if (${dscsForumVO.byteamDscsUseyn eq 'Y'}) {
+        var dscsId = "${dscsVO.dscsId}";
+        if (${dscsVO.byteamDscsUseyn eq 'Y'}) {
             forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
         }
 
@@ -805,8 +805,8 @@
             $("#cmntText" + index).val('');
 
             // Team 토론시 팀토론 코드로 변경
-            var dscsId = "${dscsForumVO.dscsId}";
-            if (${dscsForumVO.byteamDscsUseyn eq 'Y'}) {
+            var dscsId = "${dscsVO.dscsId}";
+            if (${dscsVO.byteamDscsUseyn eq 'Y'}) {
                 forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
             }
 
@@ -819,7 +819,7 @@
                 "dscsId" : dscsId,
                 "userId" : "${userId}",
                 "userName" : "${userName}",
-                "crsCreCd" : "${dscsForumVO.crsCreCd}"
+                "crsCreCd" : "${dscsVO.crsCreCd}"
             };
 
             ajaxCall(url, data, function(data) {
@@ -1084,12 +1084,12 @@
         form.attr("action", url);
 
         // Team 토론시 팀토론 코드로 변경
-        var dscsId = "${dscsForumVO.dscsId}";
-        if (${dscsForumVO.byteamDscsUseyn eq 'Y'}) {
-            forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
+        var dscsId = "${dscsVO.dscsId}";
+        if (${dscsVO.byteamDscsUseyn eq 'Y'}) {
+            dscsId = $('#team_selected_name').attr('teamSelectedDscsId');
         }
 
-        form.append($('<input/>', {type: 'hidden', name: 'dscsId',		value: forumCd}));
+        form.append($('<input/>', {type: 'hidden', name: 'dscsId',		value: dscsId}));
         form.append($('<input/>', {type: 'hidden', name: 'excelGrid',   value: JSON.stringify(excelGrid)}));
         form.appendTo("body");
         form.submit();
@@ -1154,12 +1154,12 @@
         if(hidePostBtn) {
             var atclSn = hidePostBtn.getAttribute('data-atcl-sn');
             if(!confirm("<spring:message code='forum.button.confirm.del' />")) { return; }
-            var dscsId = "${dscsForumVO.dscsId}";
-            if (${dscsForumVO.byteamDscsUseyn eq 'Y'}) {
-                forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
+            var dscsId = "${dscsVO.dscsId}";
+            if (${dscsVO.byteamDscsUseyn eq 'Y'}) {
+                dscsId = $('#team_selected_name').attr('teamSelectedDscsId');
             }
             ajaxCall('/forum2/forumLect/Form/hideAtcl.do',
-                { dscsAtclId: atclSn, dscsId: forumCd, userId: "${userId}" },
+                { dscsAtclId: atclSn, dscsId: dscsId, userId: "${userId}" },
                 function(data) {
                     if(data.result > 0) { listForum(); }
                     else { alert("<spring:message code='forum.common.error'/>"); }
@@ -1336,10 +1336,10 @@
         <input type="hidden" name="teamCtgrCd" id="teamCtgrCd">
     </form>
     <form name="forumListForm" id="forumListForm" action="" method="POST">
-        <input type="hidden" id="dscsId" name="dscsId" value="${dscsForumVO.dscsId}" />
-        <input type="hidden" id="dscsUnitTycd" name="dscsUnitTycd" value="${dscsForumVO.dscsUnitTycd}" />
-        <input type="hidden" id="prosConsForumCfg" name="prosConsForumCfg" value="${dscsForumVO.prosConsForumCfg}" />
-        <input type="hidden" id="crsCreCd" name="crsCreCd" value="${dscsForumVO.crsCreCd}" />
+        <input type="hidden" id="dscsId" name="dscsId" value="${dscsVO.dscsId}" />
+        <input type="hidden" id="dscsUnitTycd" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}" />
+        <input type="hidden" id="prosConsForumCfg" name="prosConsForumCfg" value="${dscsVO.prosConsForumCfg}" />
+        <input type="hidden" id="crsCreCd" name="crsCreCd" value="${dscsVO.crsCreCd}" />
         <input type="hidden" id="userId" name="userId" value="${userId}" />
         <input type="hidden" id="teamStdList" name="teamStdList" />
         <input type="hidden" id="teamCd" name="teamCd" value="" />
@@ -1410,12 +1410,12 @@
                         <!-- 토론정보 시작 -->
                         <jsp:include page="/WEB-INF/jsp/forum2/common/forum_info_inc.jsp" />
 
-                        <c:if test="${dscsForumVO.dscsUnitTycd eq 'TEAM'}">
+                        <c:if test="${dscsVO.dscsUnitTycd eq 'TEAM'}">
                             <div class="option-content mt20" id="parentDiv">
                             </div>
                         </c:if>
 
-                        <c:if test="${dscsForumVO.prosConsForumCfg eq 'Y'}">
+                        <c:if test="${dscsVO.prosConsForumCfg eq 'Y'}">
                         <!-- 찬반 토론일 경우 출력 시작  -->
                         <div class="ui segment">
                             <div class="inline field">
@@ -1427,13 +1427,13 @@
                             </div>
                             <div class="flex center-text">
                                 <span><spring:message code='forum.label.pros.status' /></span>
-                                <span>${(dscsForumVO.forumAtclPorsCnt / dscsForumVO.forumAtclCnt)*100}%</span>
+                                <span>${(dscsVO.forumAtclPorsCnt / dscsVO.forumAtclCnt)*100}%</span>
                                 <!-- 찬성 현황 -->
                                 <div id="pros_progressbar" style="height: 30px; width: 90%; "></div>
                             </div>
                             <div class="flex center-text">
                                 <span><spring:message code='forum.label.cons.status' /></span>
-                                <span> ${(dscsForumVO.forumAtclConsCnt / dscsForumVO.forumAtclCnt)*100}%</span>
+                                <span> ${(dscsVO.forumAtclConsCnt / dscsVO.forumAtclCnt)*100}%</span>
                                 <!-- 반대 현황 -->
                                 <div id="cons_progressbar" style="height: 30px; width: 90%; "></div>
                             </div>
@@ -1441,13 +1441,13 @@
                                 $(document).ready(function() {
                                     // 찬성 현황 계산
                                     const pros_progressbar = jQuery("#pros_progressbar");
-                                    var value1 = '<c:out value="${(dscsForumVO.forumAtclPorsCnt / dscsForumVO.forumAtclCnt)*100}" />';
+                                    var value1 = '<c:out value="${(dscsVO.forumAtclPorsCnt / dscsVO.forumAtclCnt)*100}" />';
                                     pros_progressbar.progressbar({value:Number(value1)});
                                     pros_progressbar.find(".ui-progressbar-value").css({"background":"#CC66CC"});
 
                                     // 반대 현황 계산
                                     const cons_progressbar = jQuery("#cons_progressbar");
-                                    var value2 = '<c:out value="${(dscsForumVO.forumAtclConsCnt / dscsForumVO.forumAtclCnt)*100}" />';
+                                    var value2 = '<c:out value="${(dscsVO.forumAtclConsCnt / dscsVO.forumAtclCnt)*100}" />';
                                     cons_progressbar.progressbar({value:Number(value2)});
                                     cons_progressbar.find(".ui-progressbar-value").css({"background":"#CC66CC"});
                                 });
@@ -1463,7 +1463,7 @@
                         <!-- 팀토론일경우 학습그룹 정보 표시 시작 -->
                         <div id="teamDscsList">
                             <c:choose>
-                                <c:when test="${dscsForumVO.byteamDscsUseyn eq 'Y'}">
+                                <c:when test="${dscsVO.byteamDscsUseyn eq 'Y'}">
                                     <br/><span><spring:message code='forum.label.lrngrp'/><%--학습그룹--%></span>
                                     <table class="table-type2">
                                         <colgroup>
@@ -1489,7 +1489,7 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <c:forEach var="item" items="${dscsForumVO.teamDscsList}" varStatus="status">
+                                        <c:forEach var="item" items="${dscsVO.teamDscsList}" varStatus="status">
                                             <tr>
                                                 <td>
                                                     <button class="btn basic small team_selected_nm" id="team_selected_nm_${status.index}">${item.teamnm}</button>
@@ -1529,7 +1529,7 @@
                             <!-- 토론방 <참여글 저장> -->
                             <div class="board_top margin-top-4 padding-2 bcLgrey4">
                             <c:choose>
-                                <c:when test="${dscsForumVO.prosConsForumCfg eq 'Y'}">
+                                <c:when test="${dscsVO.prosConsForumCfg eq 'Y'}">
                                     <h4>
                                         <spring:message code='common.professor'/> <spring:message code='forum.label.feedback'/><span id="team_selected_name" teamSelectedDscsId=""></span>
                                     </h4><!-- 교수 피드백 -->
@@ -1556,9 +1556,9 @@
 
                             <form id="forumAtclForm" name="forumAtclForm" onsubmit="return false;">
                                 <%--찬성반대토론시 파일업로드 없음 --%>
-                                <c:if test="${dscsForumVO.prosConsForumCfg eq 'N'}">
+                                <c:if test="${dscsVO.prosConsForumCfg eq 'N'}">
                                 <input type="hidden" name="uploadFiles"  id="uploadFiles" value="" />
-                                <input type="hidden" name="uploadPath"   id="uploadPath"  value="${dscsForumVO.uploadPath}" />
+                                <input type="hidden" name="uploadPath"   id="uploadPath"  value="${dscsVO.uploadPath}" />
                                 <input type="hidden" name="delFileIdStr" id="delFileIdStr"  value="" />
                                 </c:if>
                                 <div class="ui segment">
@@ -1570,18 +1570,18 @@
                                             // HTML 에디터
                                             let editor = UiEditor({
                                                 targetId: "atclCts",
-                                                uploadPath: "${dscsForumVO.uploadPath}",
+                                                uploadPath: "${dscsVO.uploadPath}",
                                                 height: "200px",
                                             });
                                         </script>
                                     </div>
                                     <%--찬성반대토론시 파일업로드 없음 --%>
-                                    <c:if test="${dscsForumVO.prosConsForumCfg eq 'N'}">
+                                    <c:if test="${dscsVO.prosConsForumCfg eq 'N'}">
                                     <div id="uploaderBox" class="mt10">
                                         <!-- TODO : 참여글 File Uplaod -->
                                         <uiex:dextuploader
                                                 id="fileUploader"
-                                                path="${dscsForumVO.uploadPath}"
+                                                path="${dscsVO.uploadPath}"
                                                 limitCount="1"
                                                 limitSize="100"
                                                 oneLimitSize="100"

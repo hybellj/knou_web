@@ -86,7 +86,7 @@ function getTargetUserInfoAndScore(obj) {
 <input type="hidden" id="selectedUserNm" value="" />
 <input type="hidden" id="selectedStdId" value="" />
 <input type="hidden" id="selectedTeamCd" value="" />
-<input type="hidden" id="ezgDscsUnitTycd" value="${dscsForumVO.dscsUnitTycd}" />
+<input type="hidden" id="ezgDscsUnitTycd" value="${dscsVO.dscsUnitTycd}" />
 <c:if test="${not empty resultList}">
 	<c:forEach items="${resultList }" var="item" varStatus="status">
 		<a href="javascript:;" name="ezgTargetUser" onClick="selectTeam(this)" data-teamCd="${item.teamCd}" data-teamStdIds="${item.teamStdIds}" data-dscs-id="${item.formCd}" class="ui grey label m0 tr active-toggle-btn flex-none ${vo.teamCd == item.teamCd?'select':''}">

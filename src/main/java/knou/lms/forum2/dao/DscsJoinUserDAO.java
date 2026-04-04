@@ -2,8 +2,8 @@ package knou.lms.forum2.dao;
 
 import knou.lms.forum2.vo.DscsJoinUserVO;
 import knou.lms.forum2.vo.DscsMutVO;
-import knou.lms.forum2.vo.DscsForumVO;
 import knou.lms.forum2.vo.DscsEzGraderTeamVO;
+import knou.lms.forum2.vo.DscsVO;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
@@ -24,11 +24,11 @@ public interface DscsJoinUserDAO {
     public List<DscsEzGraderTeamVO> listForumJoinTeam(DscsJoinUserVO vo) throws Exception;
     public int getForumJoinUser(DscsJoinUserVO vo) throws Exception;
     public int ensureJoinUser(DscsJoinUserVO vo) throws Exception;
-    public DscsJoinUserVO getMemo(DscsForumVO vo) throws Exception;
+    public DscsJoinUserVO getMemo(DscsVO vo) throws Exception;
     public int getSelectCtsLen(DscsJoinUserVO vo) throws Exception;
 	public void chkStdNoInsert(DscsMutVO vo) throws Exception;
-	public void insertJoinUser(DscsForumVO vo) throws Exception;
-	public List<DscsJoinUserVO> selectStudentsNotInPtcp(DscsForumVO vo) throws Exception;
+	public void insertJoinUser(DscsVO vo) throws Exception;
+	public List<DscsJoinUserVO> selectStudentsNotInPtcp(DscsVO vo) throws Exception;
 	public int insertForumJoinUser(DscsJoinUserVO vo) throws Exception;
 	public void participateScore(DscsJoinUserVO vo) throws Exception;
 	public void updateStdTeam(DscsJoinUserVO vo) throws Exception;

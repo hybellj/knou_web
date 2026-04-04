@@ -116,7 +116,7 @@
 
 			var url  = "/forum2/forumLect/getFdbk.do";
 			var data = {
-				"dscsId" : "${dscsForumVO.dscsId}",
+				"dscsId" : "${dscsVO.dscsId}",
 				"stdId" : "${stdId}",
 			};
 
@@ -407,8 +407,8 @@
 			var fileUploaderNewFeedback = getFeedbackUploader();
 	 		var url = "/forum2/forumLect/Form/regFdbk.do";
 			var data = {
-					"crsCreCd" : "${dscsForumVO.crsCreCd}",
-					"dscsId" : "${dscsForumVO.dscsId}",
+					"crsCreCd" : "${dscsVO.crsCreCd}",
+					"dscsId" : "${dscsVO.dscsId}",
 					"stdId" : "${stdId}",
 					"userId" : "${userId}",
 					"userName" : "${userName}",

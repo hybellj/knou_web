@@ -15,7 +15,6 @@ import knou.lms.file.vo.AtflVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -46,7 +45,6 @@ import knou.lms.forum2.vo.DscsAtclVO;
 import knou.lms.forum2.vo.DscsCmntVO;
 import knou.lms.forum2.vo.DscsFdbkVO;
 import knou.lms.forum2.vo.DscsJoinUserVO;
-import knou.lms.forum2.vo.DscsForumVO;
 import knou.lms.forum.web.ForumLectController;
 import knou.lms.forum2.service.DscsAtclService;
 import knou.lms.forum2.service.DscsCmntService;
@@ -490,7 +488,7 @@ public class DscsLectController extends ControllerBase {
      * @param request
      */
     @RequestMapping(value = "/Form/bbsManage.do")
-    public String bbsManage(DscsForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String bbsManage(DscsVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
         DscsVO param = new DscsVO();
         // TODO : 26.3.10(AS-IS Listform parameter 를 vo 로 넘김(
         /*
@@ -513,7 +511,7 @@ public class DscsLectController extends ControllerBase {
         param.setDscsId(forumVO.getForumCd());
 
         DscsVO loadedDscsVO = dscsService.selectForum(param);
-        forumVO = convertDscsVOToDscsForumVO(loadedDscsVO);
+        forumVO = loadedDscsVO;
 
         // 첨부파일저장소 설정
         forumVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
@@ -524,14 +522,14 @@ public class DscsLectController extends ControllerBase {
         model.addAttribute("crsCreCd", forumVO.getCrsCreCd());
         model.addAttribute("userId", StringUtil.nvl(SessionInfo.getUserId(request)));
         model.addAttribute("userName", StringUtil.nvl(SessionInfo.getUserNm(request)));
-        model.addAttribute("dscsForumVO", forumVO);
+        model.addAttribute("dscsVO", forumVO);
 
         return "forum2/lect/forum_bbs_manage";
     }
 
     @RequestMapping(value = "/Form/forumBbsViewList.do")
     @ResponseBody
-    public ProcessResultVO<DscsAtclVO> forumBbsViewList(DscsForumVO forumVO, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DscsAtclVO> forumBbsViewList(DscsVO forumVO, HttpServletRequest request) throws Exception {
         DscsAtclVO forumAtclVO = new DscsAtclVO();
         forumAtclVO.setDscsId(forumVO.getForumCd());
         forumAtclVO.setSearchValue(forumVO.getSearchValue());
@@ -552,19 +550,19 @@ public class DscsLectController extends ControllerBase {
     }
 
     @RequestMapping(value = "/Form/addForumBbs.do")
-    public String addForumBbs(DscsForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String addForumBbs(DscsVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
         String atclSn = IdGenerator.getNewId(IdPrefixType.DSATC.getCode());
         model.addAttribute("userId", userId);
         model.addAttribute("userName", userName);
         model.addAttribute("atclSn", atclSn);
-        model.addAttribute("dscsForumVO", forumVO);
+        model.addAttribute("dscsVO", forumVO);
         return "forum2/lect/forum_bbs_view_write";
     }
 
     @RequestMapping(value = "/Form/editForumBbs.do")
-    public String editForumBbs(DscsForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String editForumBbs(DscsVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
         String atclSn = StringUtil.nvl(request.getParameter("dscsAtclId"), request.getParameter("atclSn"));
         DscsAtclVO forumAtclVO = new DscsAtclVO();
         forumAtclVO.setDscsId(forumVO.getForumCd());
@@ -578,7 +576,7 @@ public class DscsLectController extends ControllerBase {
 
         model.addAttribute("fileList", fileList.getReturnList());
         model.addAttribute("atclSn", atclSn);
-        model.addAttribute("dscsForumVO", forumVO);
+        model.addAttribute("dscsVO", forumVO);
         model.addAttribute("forumAtclVO", forumAtclVO);
         model.addAttribute("userId", StringUtil.nvl(SessionInfo.getUserId(request)));
         model.addAttribute("userName", StringUtil.nvl(SessionInfo.getUserNm(request)));
@@ -594,7 +592,7 @@ public class DscsLectController extends ControllerBase {
      */
     @RequestMapping(value = "/Form/addAtcl.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> addAtcl(DscsForumVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> addAtcl(DscsVO vo, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
 
         String atclSn = IdGenerator.getNewId(IdPrefixType.DSATC.getCode());
@@ -634,7 +632,7 @@ public class DscsLectController extends ControllerBase {
      */
     @RequestMapping(value = "/Form/editAtcl.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> editAtcl(DscsForumVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> editAtcl(DscsVO vo, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
         try {
             String userId = StringUtil.nvl(SessionInfo.getUserId(request));
@@ -667,7 +665,7 @@ public class DscsLectController extends ControllerBase {
      */
     @RequestMapping(value = "/Form/delAtcl.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> delAtcl(DscsForumVO forumVO, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> delAtcl(DscsVO forumVO, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<>();
         try {
             DscsAtclVO forumAtclVO = new DscsAtclVO();
@@ -686,7 +684,7 @@ public class DscsLectController extends ControllerBase {
     // 참여글 숨김
     @RequestMapping(value = "/Form/hideAtcl.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> hideAtcl(DscsForumVO forumVO, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> hideAtcl(DscsVO forumVO, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<>();
         try {
             DscsAtclVO forumAtclVO = new DscsAtclVO();
@@ -711,7 +709,7 @@ public class DscsLectController extends ControllerBase {
      */
     @RequestMapping(value = "/Form/addCmnt.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> addCmnt(DscsForumVO forumVO, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> addCmnt(DscsVO forumVO, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<>();
         try {
             String userId = StringUtil.nvl(SessionInfo.getUserId(request));
@@ -780,7 +778,7 @@ public class DscsLectController extends ControllerBase {
      */
     @RequestMapping(value = "/Form/editCmnt.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> editCmnt(DscsForumVO forumVO, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> editCmnt(DscsVO forumVO, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<>();
         try {
             DscsCmntVO forumCmntVO = new DscsCmntVO();
@@ -806,7 +804,7 @@ public class DscsLectController extends ControllerBase {
      */
     @RequestMapping(value = "/Form/delCmnt.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> delCmnt(DscsForumVO forumVO, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> delCmnt(DscsVO forumVO, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<>();
         try {
             DscsCmntVO forumCmntVO = new DscsCmntVO();
@@ -824,7 +822,7 @@ public class DscsLectController extends ControllerBase {
     // 댓글 숨김
     @RequestMapping(value = "/Form/hideCmnt.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> hideCmnt(DscsForumVO forumVO, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> hideCmnt(DscsVO forumVO, HttpServletRequest request) throws Exception {
         ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<>();
         try {
             DscsCmntVO forumCmntVO = new DscsCmntVO();
@@ -961,7 +959,7 @@ public class DscsLectController extends ControllerBase {
 
     // 성적평가
     @RequestMapping(value="/Form/scoreManage.do")
-    public String scoreManage(DscsForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String scoreManage(DscsVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
@@ -982,7 +980,7 @@ public class DscsLectController extends ControllerBase {
         param.setDscsId(forumVO.getForumCd());
         param.setSbjctId(forumVO.getSbjctId());
         DscsVO loadedDscsVO = dscsService.selectForum(param);
-        forumVO = convertDscsVOToDscsForumVO(loadedDscsVO);
+        forumVO = loadedDscsVO;
         // TODO : 26.3.18 (임시로 복사 처리함)
         crsCreCd = test_sbjctId;
         model.addAttribute("crsCreCd", crsCreCd);
@@ -1002,7 +1000,7 @@ public class DscsLectController extends ControllerBase {
 
         if("PTCP_FULL_SCR".equals(StringUtil.nvl(forumVO.getEvalCtgr()))) {
             // 모든 토론 참여자를 토론 참여자 테이블에 삽입
-            DscsForumVO fvo = new DscsForumVO();
+            DscsVO fvo = new DscsVO();
             fvo.setRgtrId(userId);
             fvo.setCrsCreCd(forumVO.getCrsCreCd());
             fvo.setForumCd(forumVO.getForumCd());
@@ -1071,7 +1069,7 @@ public class DscsLectController extends ControllerBase {
         forumVO.setCrsCreCd(crsCreCd);
 
         forumVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
-        model.addAttribute("dscsForumVO", forumVO);
+        model.addAttribute("dscsVO", forumVO);
         model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
 
         CreCrsVO creCrsVO = new CreCrsVO();
@@ -1198,7 +1196,7 @@ public class DscsLectController extends ControllerBase {
 
     // 상호평가 토론방 리스트
     @RequestMapping(value="/evalForumBbsViewList.do")
-    public String evalForumBbsViewList(DscsForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String evalForumBbsViewList(DscsVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
@@ -1233,7 +1231,7 @@ public class DscsLectController extends ControllerBase {
 
         request.setAttribute("forumAtclList", resultList.getReturnList());
         request.setAttribute("pageInfo", resultList.getPageInfo());
-        request.setAttribute("dscsForumVO", forumVO);
+        request.setAttribute("dscsVO", forumVO);
         request.setAttribute("konanCopyScoreUrl", CommConst.KONAN_COPY_SCORE_URL);
 
         return "forum2/lect/forum_bbs_view_eval";
@@ -1241,7 +1239,7 @@ public class DscsLectController extends ControllerBase {
 
     // 토론 성적평가 > 피드백
     @RequestMapping(value="/forumScoreEvalFeedBack.do")
-    public String forumScoreEvalFeedBack(DscsForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String forumScoreEvalFeedBack(DscsVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
@@ -1271,7 +1269,7 @@ public class DscsLectController extends ControllerBase {
 
         request.setAttribute("fdbkSize", fdbkSize);
         request.setAttribute("forumFdbkList", forumFdbkList);
-        request.setAttribute("dscsForumVO", forumVO);
+        request.setAttribute("dscsVO", forumVO);
 
         return "forum2/lect/forum_score_eval_feedBack";
     }
@@ -1279,7 +1277,7 @@ public class DscsLectController extends ControllerBase {
     // 성적분포현황 BarChart
     @RequestMapping(value="/viewScoreChart.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> viewScoreChart(DscsForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> viewScoreChart(DscsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
@@ -1350,7 +1348,7 @@ public class DscsLectController extends ControllerBase {
 
     // 피드백
     @RequestMapping(value="/forumFdbkPop.do")
-    public String forumFeedBack(DscsForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String forumFeedBack(DscsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
@@ -1407,7 +1405,7 @@ public class DscsLectController extends ControllerBase {
 
         vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
 
-        request.setAttribute("dscsForumVO", vo);
+        request.setAttribute("dscsVO", vo);
         request.setAttribute("PAGE_FILE_UPLOAD", request.getContextPath() + CommConst.PAGE_FILE_UPLOAD);
 
         return "forum2/popup/forum_feedback";
@@ -1416,7 +1414,7 @@ public class DscsLectController extends ControllerBase {
     // 피드백 조회
     @RequestMapping(value="/getFdbk.do")
     @ResponseBody
-    public ProcessResultVO<DscsFdbkVO> getFdbk(DscsForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DscsFdbkVO> getFdbk(DscsVO vo, ModelMap map, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
@@ -1455,7 +1453,7 @@ public class DscsLectController extends ControllerBase {
     // 피드백 작성
     @RequestMapping(value="/addFdbkCts.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> addFockCts(DscsForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> addFockCts(DscsVO vo, ModelMap map, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
@@ -1499,7 +1497,7 @@ public class DscsLectController extends ControllerBase {
     // 피드백 수정
     @RequestMapping(value="/editFdbkCts.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> editFdbkCts(DscsForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> editFdbkCts(DscsVO vo, ModelMap map, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
@@ -1538,7 +1536,7 @@ public class DscsLectController extends ControllerBase {
     // 피드백 삭제
     @RequestMapping(value="/delFdbkCts.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> delFdbkCts(DscsForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> delFdbkCts(DscsVO vo, ModelMap map, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
@@ -1575,7 +1573,7 @@ public class DscsLectController extends ControllerBase {
 
     // 일괄 피드백 팝업
     @RequestMapping(value="/allForumFdbkPop.do")
-    public String allForumFdbkPop(DscsForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String allForumFdbkPop(DscsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String forumCd = vo.getForumCd();
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
@@ -1595,7 +1593,7 @@ public class DscsLectController extends ControllerBase {
     // 일괄 피드백 작성
     @RequestMapping(value="/allAddFdbkCts.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> allAddFdbkCts(DscsForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> allAddFdbkCts(DscsVO vo, ModelMap map, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
@@ -1701,12 +1699,12 @@ public class DscsLectController extends ControllerBase {
 
     // 엑셀 성적 등록 팝업
     @RequestMapping(value="/forumScoreExcelUploadPop.do")
-    public String forumScoreExcelUploadPop(DscsForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String forumScoreExcelUploadPop(DscsVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
         forumVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
 
-        model.addAttribute("dscsForumVO", forumVO);
+        model.addAttribute("dscsVO", forumVO);
         model.addAttribute("userId", userId);
 
         return "forum2/popup/forum_score_excel_upload";
@@ -1714,7 +1712,7 @@ public class DscsLectController extends ControllerBase {
 
     // 엑셀 성적 등록 샘플 엑셀 다운로드
     @RequestMapping(value="/forumScoreSampleDownload.do")
-    public String forumScoreSampleDownload(DscsForumVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public String forumScoreSampleDownload(DscsVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
@@ -1831,7 +1829,7 @@ public class DscsLectController extends ControllerBase {
 
     // 성적평가 리스트 엑셀 다운로드
     @RequestMapping(value="/listScoreExcel.do")
-    public String listScoreExcel(DscsForumVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public String listScoreExcel(DscsVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
         // 사용자 접속상태 저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
@@ -1925,7 +1923,7 @@ public class DscsLectController extends ControllerBase {
 
     // 토론현황보기
     @RequestMapping(value="/forumChartViewPop.do")
-    public String forumChartViewPop(DscsForumVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    public String forumChartViewPop(DscsVO vo, ModelMap map, HttpServletRequest request) throws Exception {
         String crsCreCd = vo.getCrsCreCd();
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
 
@@ -1980,12 +1978,12 @@ public class DscsLectController extends ControllerBase {
         param.setSbjctId(vo.getSbjctId());
         param.setDscsId(vo.getForumCd());
         DscsVO loadedDscsVO = dscsService.selectForum(param);
-        vo = convertDscsVOToDscsForumVO(loadedDscsVO);
+        vo = loadedDscsVO;
         // 찬반현황 차트용
         vo.setOrgId(orgId);
         vo.setCrsCreCd(crsCreCd);
 
-        request.setAttribute("dscsForumVO", vo);
+        request.setAttribute("dscsVO", vo);
 
         return "forum2/popup/forum_chart_view";
     }
@@ -2060,57 +2058,6 @@ public class DscsLectController extends ControllerBase {
         vo.setUserId(SessionInfo.getUserId(request));
         vo.setRgtrId(SessionInfo.getUserId(request));
         vo.setMdfrId(SessionInfo.getUserId(request));
-    }
-
-    // TODO : 26.3.24 : 임시 변환용(추후 삭제 예정)
-    private DscsForumVO convertDscsVOToDscsForumVO(DscsVO src) throws Exception {
-        DscsForumVO dest = new DscsForumVO();
-
-        if (src == null) {
-            return dest;
-        }
-
-        BeanUtils.copyProperties(src, dest);
-
-        dest.setDscsId(src.getDscsId());                // 토론ID -> forumCd
-        dest.setCrsCreCd(src.getSbjctId());              // 예: 과목ID
-        dest.setDscsTtl(src.getDscsTtl());            // 예: 토론명
-        dest.setDscsCts(src.getDscsCts());                // 토론내용
-        dest.setDscsUnitTycd(src.getDscsUnitTycd());      // 예: 토론유형
-        dest.setDscsSdttm(src.getDscsSdttm());      // 토론 시작일시
-        dest.setDscsEdttm(src.getDscsEdttm());        // 토론 종료일시
-        dest.setMrkRfltyn(src.getMrkRfltyn());         // 성적반영여부
-        dest.setScoreRatio(src.getMrkRfltrt());          // 성적반영비율
-        dest.setMrkOyn(src.getMrkOyn());           // 성적공개여부
-        dest.setDelYn(src.getDelyn());                  // 삭제여부
-        dest.setDeclsNo(src.getDvclsNo());              // 분반번호
-        dest.setDscsUnitTycd(src.getDscsUnitTycd());    // TEAM or GNRL
-        dest.setProsConsForumCfg(src.getOknokStngyn()); // 찬반토론 설정 여부.(찬반)
-        dest.setProsConsRateOpenYn(src.getOknokrtOyn());// 찬반 비율 공개(찬반)
-        dest.setRegOpenYn(src.getOknokRgtrOyn());       // 작성자 공개(찬반)
-        dest.setMultiAtclYn(src.getMltOpnnRegyn());     // 의견글 복수 등록(찬반)
-        dest.setProsConsModYn(src.getOknokModyn());     // 의견 변경(찬반)
-        dest.setByteamDscsUseyn(src.getByteamDscsUseyn()); // 팀별부토론사용여부
-        dest.setDscsGrpnm(src.getDscsGrpnm());          // 학습그룹이름.
-        dest.setEvlScrTycd(src.getEvlScrTycd());          // 평가점수유형코드
-        dest.setTeamCd(src.getTeamId());                // 팀아이디.
-
-        // DB 외 변수들
-        dest.setForumAtclCnt(src.getForumAtclCnt());
-        dest.setForumCmntCnt(src.getForumCmntCnt());
-        dest.setForumMyAtclCnt(src.getForumMyAtclCnt());
-        dest.setForumMyCmntCnt(src.getForumMyCmntCnt());
-        dest.setForumAtclPorsCnt(src.getForumAtclPorsCnt());
-        dest.setForumAtclConsCnt(src.getForumAtclConsCnt());
-        dest.setForumUserTotalCnt(src.getForumUserTotalCnt());
-        dest.setForumJoinUserCnt(src.getForumJoinUserCnt());
-        dest.setForumMyScore(src.getForumMyScore());
-        dest.setForumMyFdbk(src.getForumMyFdbk());
-        dest.setForumEvalCnt(src.getForumEvalCnt());
-        dest.setTeamDscsList(src.getTeamDscsList());
-
-        // 필요 시 추가 매핑
-        return dest;
     }
 }
 

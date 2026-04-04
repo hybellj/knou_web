@@ -14,7 +14,6 @@ import knou.lms.forum2.vo.DscsEzGraderRsltVO;
 import knou.lms.forum2.vo.DscsEzGraderVO;
 import knou.lms.forum2.vo.DscsFdbkVO;
 import knou.lms.forum2.vo.DscsJoinUserVO;
-import knou.lms.forum2.vo.DscsForumVO;
 import knou.lms.forum2.vo.DscsEzGraderTeamVO;
 import knou.lms.forum2.vo.DscsVO;
 import knou.lms.log.userconn.service.LogUserConnService;
@@ -22,7 +21,6 @@ import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
 import knou.lms.user.service.UsrUserInfoService;
 import knou.lms.user.vo.UsrUserInfoVO;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -89,7 +87,7 @@ public class DscsEzGraderLectController extends ControllerBase {
         vo.setEvalCtgr(vo.getEvalCtgr());
         
         // 모든 토론 참여자를 토론 참여자 테이블에 삽입
-        DscsForumVO forumVO = new DscsForumVO();
+        DscsVO forumVO = new DscsVO();
         forumVO.setRgtrId(userId);
         forumVO.setCrsCreCd(crsCreCd);
         forumVO.setForumCd(vo.getForumCd());
@@ -103,7 +101,7 @@ public class DscsEzGraderLectController extends ControllerBase {
     // 토론정보 조회
     @RequestMapping(value = "/forum.do")
     @ResponseBody
-    public ProcessResultVO<DscsForumVO> getForumInfoByAjax(DscsForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DscsVO> getForumInfoByAjax(DscsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
         
@@ -112,14 +110,14 @@ public class DscsEzGraderLectController extends ControllerBase {
         vo.setOrgId(orgId);
         vo.setMdfrId(userId);
 
-        ProcessResultVO<DscsForumVO> resultVO = new ProcessResultVO<DscsForumVO>();
+        ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<DscsVO>();
         try {
             // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
            /* DscsForumVO forumVO = forumService.selectForum(vo);*/
             DscsVO param = new DscsVO();
             param.setDscsId(vo.getForumCd());
             DscsVO loadedDscsVO = dscsService.selectForum(param);
-            DscsForumVO forumVO = convertDscsVOToDscsForumVO(loadedDscsVO);
+            DscsVO forumVO = loadedDscsVO;
 
             resultVO.setReturnVO(forumVO);
             resultVO.setResult(1);
@@ -150,7 +148,7 @@ public class DscsEzGraderLectController extends ControllerBase {
 
     // 토론 제출 대상 리스트 조회
     @RequestMapping(value = "/joinUserList.do")
-    public String getForumJoinUserListForEzg(DscsForumVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public String getForumJoinUserListForEzg(DscsVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
         
@@ -162,7 +160,7 @@ public class DscsEzGraderLectController extends ControllerBase {
         DscsVO param = new DscsVO();
         param.setDscsId(vo.getForumCd());
         DscsVO loadedDscsVO = dscsService.selectForum(param);
-        DscsForumVO forumVO = convertDscsVOToDscsForumVO(loadedDscsVO);
+        DscsVO forumVO = loadedDscsVO;
 
         DscsJoinUserVO paramVO = new DscsJoinUserVO();
         paramVO.setForumCd(vo.getForumCd());
@@ -182,7 +180,7 @@ public class DscsEzGraderLectController extends ControllerBase {
             viewNm = "forum2/ezgPop/ezg_join_user_list";
         }
 
-        request.setAttribute("dscsForumVO", forumVO);
+        request.setAttribute("dscsVO", forumVO);
         request.setAttribute("vo", vo);
 
         return viewNm;
@@ -341,7 +339,7 @@ public class DscsEzGraderLectController extends ControllerBase {
 
     // 토론 성적평가 > 피드백
     @RequestMapping(value = "/forumScoreEvalFeedBack.do")
-    public String forumScoreEvalFeedBack(DscsForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String forumScoreEvalFeedBack(DscsVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
@@ -370,7 +368,7 @@ public class DscsEzGraderLectController extends ControllerBase {
         DscsJoinUserVO mVO = dscsJoinUserService.getMemo(forumVO);
         
         request.setAttribute("cntFdbk", cntFdbk);
-        request.setAttribute("dscsForumVO", forumVO);
+        request.setAttribute("dscsVO", forumVO);
         request.setAttribute("mVO", mVO);
         
         return "forum2/ezgPop/ezg_score_eval_feedback";
@@ -420,55 +418,4 @@ public class DscsEzGraderLectController extends ControllerBase {
         vo.setRgtrId(SessionInfo.getUserId(request));
         vo.setMdfrId(SessionInfo.getUserId(request));
     }
-
-    // TODO : 26.3.24 : 임시 변환용(추후 삭제 예정)
-    private DscsForumVO convertDscsVOToDscsForumVO(DscsVO src) throws Exception {
-        DscsForumVO dest = new DscsForumVO();
-
-        if (src == null) {
-            return dest;
-        }
-
-        BeanUtils.copyProperties(src, dest);
-
-        dest.setDscsId(src.getDscsId());                // 토론ID -> forumCd
-        dest.setCrsCreCd(src.getSbjctId());              // 예: 과목ID
-        dest.setDscsTtl(src.getDscsTtl());            // 예: 토론명
-        dest.setDscsCts(src.getDscsCts());                // 토론내용
-        dest.setDscsUnitTycd(src.getDscsUnitTycd());      // 예: 토론유형
-        dest.setDscsSdttm(src.getDscsSdttm());      // 토론 시작일시
-        dest.setDscsEdttm(src.getDscsEdttm());        // 토론 종료일시
-        dest.setMrkRfltyn(src.getMrkRfltyn());         // 성적반영여부
-        dest.setScoreRatio(src.getMrkRfltrt());          // 성적반영비율
-        dest.setMrkOyn(src.getMrkOyn());           // 성적공개여부
-        dest.setDelYn(src.getDelyn());                  // 삭제여부
-        dest.setDeclsNo(src.getDvclsNo());              // 분반번호
-        dest.setDscsUnitTycd(src.getDscsUnitTycd());    // TEAM or GNRL
-        dest.setProsConsForumCfg(src.getOknokStngyn()); // 찬반토론 설정 여부.(찬반)
-        dest.setProsConsRateOpenYn(src.getOknokrtOyn());// 찬반 비율 공개(찬반)
-        dest.setRegOpenYn(src.getOknokRgtrOyn());       // 작성자 공개(찬반)
-        dest.setMultiAtclYn(src.getMltOpnnRegyn());     // 의견글 복수 등록(찬반)
-        dest.setProsConsModYn(src.getOknokModyn());     // 의견 변경(찬반)
-        dest.setByteamDscsUseyn(src.getByteamDscsUseyn()); // 팀별부토론사용여부
-        dest.setDscsGrpnm(src.getDscsGrpnm());          // 학습그룹이름.
-        dest.setEvlScrTycd(src.getEvlScrTycd());          // 평가점수유형코드
-
-        // DB 외 변수들
-        dest.setForumAtclCnt(src.getForumAtclCnt());
-        dest.setForumCmntCnt(src.getForumCmntCnt());
-        dest.setForumMyAtclCnt(src.getForumMyAtclCnt());
-        dest.setForumMyCmntCnt(src.getForumMyCmntCnt());
-        dest.setForumAtclPorsCnt(src.getForumAtclPorsCnt());
-        dest.setForumAtclConsCnt(src.getForumAtclConsCnt());
-        dest.setForumUserTotalCnt(src.getForumUserTotalCnt());
-        dest.setForumJoinUserCnt(src.getForumJoinUserCnt());
-        dest.setForumMyScore(src.getForumMyScore());
-        dest.setForumMyFdbk(src.getForumMyFdbk());
-        dest.setForumEvalCnt(src.getForumEvalCnt());
-        dest.setTeamDscsList(src.getTeamDscsList());
-
-        // 필요 시 추가 매핑
-        return dest;
-    }
-
 }

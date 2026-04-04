@@ -80,7 +80,7 @@ function addActl(){
 				alert("<spring:message code='forum.common.error'/>"); // ������ �߻��߽��ϴ�.
 			}, true);
 		} else { // ���
-			var dscsAtclTycd = "${dscsForumVO.dscsUnitTycd}" + "_"+ "${dscsForumVO.prosConsForumCfg}";
+			var dscsAtclTycd = "${dscsVO.dscsUnitTycd}" + "_"+ "${dscsVO.prosConsForumCfg}";
 			var dscsAtclId = $("#dscsAtclId").val();
 			
 			var url = "/forum2/forumLect/Form/addAtcl.do";
@@ -89,11 +89,11 @@ function addActl(){
 				"oknokGbncd" : oknokGbncd,
 				"dscsAtclTycd"	: dscsAtclTycd,
 				"atclCts" : cts,
-				"dscsId" : "${dscsForumVO.dscsId}",
+				"dscsId" : "${dscsVO.dscsId}",
 				"userId" : "${userId}",
 				"userName" : "${userName}",
 				"userType" : "P",
-				"crsCreCd" : "${dscsForumVO.crsCreCd}",
+				"crsCreCd" : "${dscsVO.crsCreCd}",
 				"uploadFiles" : fileUploader.getUploadFiles(),
 				"uploadPath" : uploadPath,
 				"repoCd" : "FORUM"
@@ -123,9 +123,9 @@ function addActl(){
 			<div class="content stu_section">
 				<c:set var="path" value="/forum2/${atclSn}" />
 				<form:form id="forumAtclForm" name="forumAtclForm" method="post" action="">
-				<input type="hidden" name="dscsId" id="dscsId" value="${dscsForumVO.dscsId}">
+				<input type="hidden" name="dscsId" id="dscsId" value="${dscsVO.dscsId}">
 				<input type="hidden" name="userId" id="userId" value="${userId}">
-				<input type="hidden" name="crsCreCd" id="crsCreCd" value="${dscsForumVO.crsCreCd}">
+				<input type="hidden" name="crsCreCd" id="crsCreCd" value="${dscsVO.crsCreCd}">
 				<input type="hidden" name="repoCd" id="repoCd" value="FORUM">
 				<input type="hidden" name="uploadPath" id="uploadPath" value="${path}">
 				<input type="hidden" name="copyFiles" id="copyFiles" value="" />

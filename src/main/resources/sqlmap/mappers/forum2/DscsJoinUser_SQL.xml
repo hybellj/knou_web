@@ -679,7 +679,7 @@
 			AND DSCS_ID = #{forumCd}
 	</update>
 
-	<select id="selectStudentsNotInPtcp" parameterType="knou.lms.forum2.vo.DscsForumVO" resultType="dscsJoinUserVO">
+	<select id="selectStudentsNotInPtcp" parameterType="knou.lms.forum2.vo.DscsVO" resultType="dscsJoinUserVO">
 		/*
 			SQL ID : ForumJoinUserDAO.selectStudentsNotInPtcp
 			설명 : DSCS_PTCP 미등록 학생 목록 조회 (insertJoinUser loop용)

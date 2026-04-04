@@ -13,7 +13,7 @@ import knou.lms.forum2.service.DscsJoinUserService;
 import knou.lms.forum2.vo.DscsMutVO;
 import knou.lms.forum2.vo.DscsFdbkVO;
 import knou.lms.forum2.vo.DscsJoinUserVO;
-import knou.lms.forum2.vo.DscsForumVO;
+import knou.lms.forum2.vo.DscsVO;
 import knou.lms.forum2.vo.DscsEzGraderTeamVO;
 import knou.lms.forum2.vo.DscsTeamDscsVO;
 import knou.lms.std.dao.StdDAO;
@@ -352,7 +352,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
 
     // 메모
     @Override
-    public DscsJoinUserVO getMemo(DscsForumVO vo) throws Exception {
+    public DscsJoinUserVO getMemo(DscsVO vo) throws Exception {
         
         return forumJoinUserDAO.getMemo(vo);
     }
@@ -406,7 +406,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
 
 	// 모든 토론 참여자를 토론 참여자 테이블에 삽입
 	@Override
-	public void insertJoinUser(DscsForumVO vo) throws Exception {
+	public void insertJoinUser(DscsVO vo) throws Exception {
 		// 1. 기존 레코드 팀 갱신 (WHEN MATCHED UPDATE)
 		forumJoinUserDAO.insertJoinUser(vo);
 
