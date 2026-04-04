@@ -6,13 +6,17 @@ import knou.framework.util.LocaleUtil;
 import knou.framework.util.StringUtil;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.common.vo.ProcessResultVO;
-import knou.lms.forum2.service.ForumEzGraderService;
-import knou.lms.forum2.service.ForumFdbkService;
-import knou.lms.forum2.service.ForumJoinUserService;
-import knou.lms.forum2.service.ForumService;
-import knou.lms.forum.vo.*;
+import knou.lms.forum2.service.DscsEzGraderService;
+import knou.lms.forum2.service.DscsFdbkService;
+import knou.lms.forum2.service.DscsJoinUserService;
+import knou.lms.forum2.service.DscsService;
+import knou.lms.forum2.vo.DscsEzGraderRsltVO;
+import knou.lms.forum2.vo.DscsEzGraderVO;
+import knou.lms.forum2.vo.DscsFdbkVO;
+import knou.lms.forum2.vo.DscsJoinUserVO;
+import knou.lms.forum2.vo.DscsForumVO;
 import knou.lms.forum2.vo.DscsEzGraderTeamVO;
-import knou.lms.forum2.vo.Forum2VO;
+import knou.lms.forum2.vo.DscsVO;
 import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
@@ -34,19 +38,19 @@ import java.util.Locale;
 
 @Controller
 @RequestMapping(value = "/forum2/ezgPop")
-public class Forum2EzGraderLectController extends ControllerBase {
+public class DscsEzGraderLectController extends ControllerBase {
 
     // 상호평가
-    @Resource(name="forum2EzGraderService")
-    private ForumEzGraderService forumEzGraderService;
+    @Resource(name="dscsEzGraderService")
+    private DscsEzGraderService dscsEzGraderService;
     
     // 토론 정보
-    @Resource(name="forum2Service")
-    private ForumService forum2Service;
+    @Resource(name="dscsService")
+    private DscsService dscsService;
     
     // 토론 참여자
-    @Resource(name = "forum2JoinUserService")
-    private ForumJoinUserService forumJoinUserService;
+    @Resource(name = "dscsJoinUserService")
+    private DscsJoinUserService dscsJoinUserService;
     
     //
     @Resource(name = "stdService")
@@ -62,12 +66,12 @@ public class Forum2EzGraderLectController extends ControllerBase {
     @Resource(name="logUserConnService")
     private LogUserConnService logUserConnService;
     
-    @Resource(name = "forum2FdbkService")
-    private ForumFdbkService forumFdbkService;
+    @Resource(name = "dscsFdbkService")
+    private DscsFdbkService dscsFdbkService;
     
     // EZ-Grader 메인
     @RequestMapping(value = "/ezgMainForm.do")
-    public String getEzgMainView(ForumEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String getEzgMainView(DscsEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
 
         // 사용자 접속상태 저장
         // logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
@@ -85,11 +89,11 @@ public class Forum2EzGraderLectController extends ControllerBase {
         vo.setEvalCtgr(vo.getEvalCtgr());
         
         // 모든 토론 참여자를 토론 참여자 테이블에 삽입
-        ForumVO forumVO = new ForumVO();
+        DscsForumVO forumVO = new DscsForumVO();
         forumVO.setRgtrId(userId);
         forumVO.setCrsCreCd(crsCreCd);
         forumVO.setForumCd(vo.getForumCd());
-        forumJoinUserService.insertJoinUser(forumVO);
+        dscsJoinUserService.insertJoinUser(forumVO);
 
         request.setAttribute("vo", vo);
         
@@ -99,7 +103,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
     // 토론정보 조회
     @RequestMapping(value = "/forum.do")
     @ResponseBody
-    public ProcessResultVO<ForumVO> getForumInfoByAjax(ForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DscsForumVO> getForumInfoByAjax(DscsForumVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
         
@@ -108,14 +112,14 @@ public class Forum2EzGraderLectController extends ControllerBase {
         vo.setOrgId(orgId);
         vo.setMdfrId(userId);
 
-        ProcessResultVO<ForumVO> resultVO = new ProcessResultVO<ForumVO>();
+        ProcessResultVO<DscsForumVO> resultVO = new ProcessResultVO<DscsForumVO>();
         try {
             // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
-           /* ForumVO forumVO = forumService.selectForum(vo);*/
-            Forum2VO param = new Forum2VO();
+           /* DscsForumVO forumVO = forumService.selectForum(vo);*/
+            DscsVO param = new DscsVO();
             param.setDscsId(vo.getForumCd());
-            Forum2VO tempForum2VO = forum2Service.selectForum(param);
-            ForumVO forumVO = convertForum2VOtoForumVO(tempForum2VO) ;
+            DscsVO loadedDscsVO = dscsService.selectForum(param);
+            DscsForumVO forumVO = convertDscsVOToDscsForumVO(loadedDscsVO);
 
             resultVO.setReturnVO(forumVO);
             resultVO.setResult(1);
@@ -129,7 +133,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
     // 대상 사용자 또는 팀 search view
     @RequestMapping(value = "/ezgJoinUserSearchView.do")
-    public String getEzgJoinUserSearchView(ForumEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String getEzgJoinUserSearchView(DscsEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
         
@@ -146,7 +150,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
     // 토론 제출 대상 리스트 조회
     @RequestMapping(value = "/joinUserList.do")
-    public String getForumJoinUserListForEzg(ForumVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public String getForumJoinUserListForEzg(DscsForumVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
         
@@ -154,13 +158,13 @@ public class Forum2EzGraderLectController extends ControllerBase {
         
         vo.setOrgId(orgId);
         // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
-        /* ForumVO forumVO = forumService.selectForum(vo);*/
-        Forum2VO param = new Forum2VO();
+        /* DscsForumVO forumVO = forumService.selectForum(vo);*/
+        DscsVO param = new DscsVO();
         param.setDscsId(vo.getForumCd());
-        Forum2VO tempForum2VO = forum2Service.selectForum(param);
-        ForumVO forumVO = convertForum2VOtoForumVO(tempForum2VO) ;
+        DscsVO loadedDscsVO = dscsService.selectForum(param);
+        DscsForumVO forumVO = convertDscsVOToDscsForumVO(loadedDscsVO);
 
-        ForumJoinUserVO paramVO = new ForumJoinUserVO();
+        DscsJoinUserVO paramVO = new DscsJoinUserVO();
         paramVO.setForumCd(vo.getForumCd());
         paramVO.setCrsCreCd(vo.getCrsCreCd());
         paramVO.setSearchKey(vo.getSearchKey());
@@ -169,16 +173,16 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
         String viewNm = "";
         if ("TEAM".equals(forumVO.getForumCtgrCd())) {
-            List<DscsEzGraderTeamVO> resultList= forumEzGraderService.listForumJoinTeam(paramVO, forumVO.getByteamDscsUseyn());
+            List<DscsEzGraderTeamVO> resultList= dscsEzGraderService.listForumJoinTeam(paramVO, forumVO.getByteamDscsUseyn());
             request.setAttribute("resultList", resultList);
             viewNm = "forum2/ezgPop/ezg_join_team_list";
         } else {
-            List<ForumJoinUserVO> resultList= forumEzGraderService.listForumJoinUser(paramVO);
+            List<DscsJoinUserVO> resultList= dscsEzGraderService.listForumJoinUser(paramVO);
             request.setAttribute("resultList", resultList);
             viewNm = "forum2/ezgPop/ezg_join_user_list";
         }
 
-        request.setAttribute("forumVO", forumVO);
+        request.setAttribute("dscsForumVO", forumVO);
         request.setAttribute("vo", vo);
 
         return viewNm;
@@ -186,7 +190,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
     // 전체 점수 입력 화면 로드
     @RequestMapping(value = "/ezgTotalScoreView.do")
-    public String getTotalScoreView(ForumEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String getTotalScoreView(DscsEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
         
@@ -203,7 +207,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
     // 전체 점수 입력 화면 로드
     @RequestMapping(value = "/ezgScoreView.do")
-    public String getScoreView(ForumEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String getScoreView(DscsEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
         
@@ -214,12 +218,12 @@ public class Forum2EzGraderLectController extends ControllerBase {
         vo.setMdfrId(userId);
         vo.setOrgId(orgId);
         if(vo.getStdId() != null) { 
-            ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+            DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
             forumJoinUserVO.setForumCd(vo.getForumCd());
             forumJoinUserVO.setStdId(vo.getStdId());
         
-            forumJoinUserVO = forumJoinUserService.selectForumJoinUser(forumJoinUserVO);
-            request.setAttribute("forumJoinUserVo",forumJoinUserVO);
+            forumJoinUserVO = dscsJoinUserService.selectForumJoinUser(forumJoinUserVO);
+            request.setAttribute("dscsJoinUserVO",forumJoinUserVO);
         }
 
         request.setAttribute("vo", vo);
@@ -228,7 +232,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
     // 평가항목별 점수 부여 화면 호출 (루브릭 평가 폐기 → 단순 점수 입력으로 대체)
     @RequestMapping(value = "/ezgEvalScoreView.do")
-    public String getEvalScoreView(ForumEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String getEvalScoreView(DscsEzGraderVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
@@ -237,11 +241,11 @@ public class Forum2EzGraderLectController extends ControllerBase {
         vo.setOrgId(orgId);
 
         if (vo.getStdId() != null) {
-            ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+            DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
             forumJoinUserVO.setForumCd(vo.getForumCd());
             forumJoinUserVO.setStdId(vo.getStdId());
-            forumJoinUserVO = forumJoinUserService.selectForumJoinUser(forumJoinUserVO);
-            request.setAttribute("forumJoinUserVo", forumJoinUserVO);
+            forumJoinUserVO = dscsJoinUserService.selectForumJoinUser(forumJoinUserVO);
+            request.setAttribute("dscsJoinUserVO", forumJoinUserVO);
         }
 
         request.setAttribute("vo", vo);
@@ -283,7 +287,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
     // 점수 저장 처리
     @RequestMapping(value = "/saveScore.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> saveScore(ForumEzGraderRsltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> saveScore(DscsEzGraderRsltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
         
@@ -298,7 +302,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
         ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<>();
         try {
-            returnVo = forumEzGraderService.saveScore(vo, request);
+            returnVo = dscsEzGraderService.saveScore(vo, request);
         } catch (Exception e) {
             e.printStackTrace();
             returnVo.setResult(-1);
@@ -311,7 +315,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
     // 점수 삭제 처리
     @RequestMapping(value = "/deleteScore.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> deleteScore(ForumEzGraderRsltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> deleteScore(DscsEzGraderRsltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
         
@@ -325,7 +329,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
         vo.setOrgId(orgId);
         ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<>();
         try {
-            returnVo = forumEzGraderService.deleteScore(vo, request);
+            returnVo = dscsEzGraderService.deleteScore(vo, request);
         } catch(Exception e) {
             e.printStackTrace();
             returnVo.setResult(-1);
@@ -337,21 +341,21 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
     // 토론 성적평가 > 피드백
     @RequestMapping(value = "/forumScoreEvalFeedBack.do")
-    public String forumScoreEvalFeedBack(ForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String forumScoreEvalFeedBack(DscsForumVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
         /*참여자 정보*/
         if(!"EZG".equals(forumVO.getSearchMenu())) {
-            ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+            DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
             forumJoinUserVO.setForumCd(forumVO.getForumCd());
             forumJoinUserVO.setStdId(forumVO.getStdId());
         
-            forumJoinUserVO = forumJoinUserService.selectForumJoinUser(forumJoinUserVO);
-            request.setAttribute("forumJoinUserVo",forumJoinUserVO);
+            forumJoinUserVO = dscsJoinUserService.selectForumJoinUser(forumJoinUserVO);
+            request.setAttribute("dscsJoinUserVO",forumJoinUserVO);
         }
 
-        ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
+        DscsFdbkVO forumFdbkVO = new DscsFdbkVO();
         forumFdbkVO.setForumCd(forumVO.getForumCd());
         forumFdbkVO.setStdId(forumVO.getStdId());
         
@@ -360,13 +364,13 @@ public class Forum2EzGraderLectController extends ControllerBase {
         }
         
         // 피드백 갯수
-        int cntFdbk = forumFdbkService.cntFdbk(forumFdbkVO);
+        int cntFdbk = dscsFdbkService.cntFdbk(forumFdbkVO);
         
         // 메모
-        ForumJoinUserVO mVO = forumJoinUserService.getMemo(forumVO);
+        DscsJoinUserVO mVO = dscsJoinUserService.getMemo(forumVO);
         
         request.setAttribute("cntFdbk", cntFdbk);
-        request.setAttribute("forumVo", forumVO);
+        request.setAttribute("dscsForumVO", forumVO);
         request.setAttribute("mVO", mVO);
         
         return "forum2/ezgPop/ezg_score_eval_feedback";
@@ -375,7 +379,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
     // 평가 점수 저장
     @RequestMapping(value = "saveEvalScore.do")
     @ResponseBody
-    public ProcessResultVO<DefaultVO> saveEvalScore(ForumEzGraderRsltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<DefaultVO> saveEvalScore(DscsEzGraderRsltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         String crsCreCd = vo.getCrsCreCd();
@@ -390,7 +394,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
         ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<DefaultVO>();
         try
         {
-            returnVo = forumEzGraderService.saveEvalScore(vo, request);
+            returnVo = dscsEzGraderService.saveEvalScore(vo, request);
         }
         catch (Exception e)
         {
@@ -409,7 +413,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
      * @param vo
      * @param request
      */
-    private void setCommonSessionValue(Forum2VO vo, HttpServletRequest request) {
+    private void setCommonSessionValue(DscsVO vo, HttpServletRequest request) {
         vo.setOrgId(SessionInfo.getOrgId(request));
         vo.setLangCd(SessionInfo.getLocaleKey(request));
         vo.setUserId(SessionInfo.getUserId(request));
@@ -418,8 +422,8 @@ public class Forum2EzGraderLectController extends ControllerBase {
     }
 
     // TODO : 26.3.24 : 임시 변환용(추후 삭제 예정)
-    private ForumVO convertForum2VOtoForumVO(Forum2VO src) throws Exception {
-        ForumVO dest = new ForumVO();
+    private DscsForumVO convertDscsVOToDscsForumVO(DscsVO src) throws Exception {
+        DscsForumVO dest = new DscsForumVO();
 
         if (src == null) {
             return dest;
@@ -427,19 +431,19 @@ public class Forum2EzGraderLectController extends ControllerBase {
 
         BeanUtils.copyProperties(src, dest);
 
-        dest.setForumCd(src.getDscsId());                // 토론ID -> forumCd
+        dest.setDscsId(src.getDscsId());                // 토론ID -> forumCd
         dest.setCrsCreCd(src.getSbjctId());              // 예: 과목ID
-        dest.setForumTitle(src.getDscsTtl());            // 예: 토론명
-        dest.setForumArtl(src.getDscsCts());                // 토론내용
-        dest.setForumCtgrCd(src.getDscsUnitTycd());      // 예: 토론유형
-        dest.setForumStartDttm(src.getDscsSdttm());      // 토론 시작일시
-        dest.setForumEndDttm(src.getDscsEdttm());        // 토론 종료일시
-        dest.setScoreAplyYn(src.getMrkRfltyn());         // 성적반영여부
+        dest.setDscsTtl(src.getDscsTtl());            // 예: 토론명
+        dest.setDscsCts(src.getDscsCts());                // 토론내용
+        dest.setDscsUnitTycd(src.getDscsUnitTycd());      // 예: 토론유형
+        dest.setDscsSdttm(src.getDscsSdttm());      // 토론 시작일시
+        dest.setDscsEdttm(src.getDscsEdttm());        // 토론 종료일시
+        dest.setMrkRfltyn(src.getMrkRfltyn());         // 성적반영여부
         dest.setScoreRatio(src.getMrkRfltrt());          // 성적반영비율
-        dest.setScoreOpenYn(src.getMrkOyn());           // 성적공개여부
+        dest.setMrkOyn(src.getMrkOyn());           // 성적공개여부
         dest.setDelYn(src.getDelyn());                  // 삭제여부
         dest.setDeclsNo(src.getDvclsNo());              // 분반번호
-        dest.setForumCtgrCd(src.getDscsUnitTycd());     // TEAM or GNRL
+        dest.setDscsUnitTycd(src.getDscsUnitTycd());    // TEAM or GNRL
         dest.setProsConsForumCfg(src.getOknokStngyn()); // 찬반토론 설정 여부.(찬반)
         dest.setProsConsRateOpenYn(src.getOknokrtOyn());// 찬반 비율 공개(찬반)
         dest.setRegOpenYn(src.getOknokRgtrOyn());       // 작성자 공개(찬반)
@@ -447,7 +451,7 @@ public class Forum2EzGraderLectController extends ControllerBase {
         dest.setProsConsModYn(src.getOknokModyn());     // 의견 변경(찬반)
         dest.setByteamDscsUseyn(src.getByteamDscsUseyn()); // 팀별부토론사용여부
         dest.setDscsGrpnm(src.getDscsGrpnm());          // 학습그룹이름.
-        dest.setEvalCtgr(src.getEvlScrTycd());          // 평가점수유형코드
+        dest.setEvlScrTycd(src.getEvlScrTycd());          // 평가점수유형코드
 
         // DB 외 변수들
         dest.setForumAtclCnt(src.getForumAtclCnt());

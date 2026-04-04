@@ -1,7 +1,7 @@
 package knou.lms.forum2.vo;
 
 import knou.lms.common.vo.DefaultVO;
-import knou.lms.forum.vo.ForumJoinUserVO;
+import knou.lms.forum2.vo.DscsJoinUserVO;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ public class DscsEzGraderTeamVO extends DefaultVO {
     private String evalYn;
     private String submitStdNo;     // 제출자의 학생번호(팀장이 아닌 팀원이 제출 할수도 있음.)
 
-    private List<ForumJoinUserVO> teamMembers;
+    private List<DscsJoinUserVO> teamMembers;
 
     // 파일 업로드
 //    private List<SysFileVO> attachFiles; // 관련서류첨부 파일목록
@@ -56,6 +56,13 @@ public class DscsEzGraderTeamVO extends DefaultVO {
 
     public void setTeamCtgrCd(String teamCtgrCd) {
         this.teamCtgrCd = teamCtgrCd;
+    }
+    public String getTeamTycd() {
+        return teamCtgrCd;
+    }
+
+    public void setTeamTycd(String teamTycd) {
+        this.teamCtgrCd = teamTycd;
     }
 
     public String getTeamCtgrNm() {
@@ -122,11 +129,11 @@ public class DscsEzGraderTeamVO extends DefaultVO {
         this.submitStdNo = submitStdNo;
     }
 
-    public List<ForumJoinUserVO> getTeamMembers() {
+    public List<DscsJoinUserVO> getTeamMembers() {
         return teamMembers;
     }
 
-    public void setTeamMembers(List<ForumJoinUserVO> teamMembers) {
+    public void setTeamMembers(List<DscsJoinUserVO> teamMembers) {
         this.teamMembers = teamMembers;
     }
 

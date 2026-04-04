@@ -56,7 +56,7 @@ function saveEvalScore() {
 		dataType : "json",
 		data : {
 			"crsCreCd" : $("#totalScoreBlockCrsCreCd").val()
-			, "forumCd" : $("#totalScoreBlockForumCd").val()
+			, "dscsId" : $("#totalScoreBlockDscsId").val()
 			, "evalCd" : $("#evalScoreBlockEvalCd").val()
 			, "evalTrgtUserId" : $("#totalScoreBlockStdId").val()
 			, "rltnTeamCd" : $("#totalScoreBlockTeamCd").val()
@@ -98,7 +98,7 @@ function deleteEvalScore() {
 		dataType : "json",
 		data : {
 			"crsCreCd" : $("#totalScoreBlockCrsCreCd").val()
-			, "forumCd" : $("#totalScoreBlockForumCd").val()
+			, "dscsId" : $("#totalScoreBlockDscsId").val()
 			, "evalCd" : $("#evalScoreBlockEvalCd").val()
 			, "evalTrgtUserId" : $("#totalScoreBlockStdId").val()
 			, "rltnTeamCd" : $("#totalScoreBlockTeamCd").val()
@@ -126,7 +126,7 @@ function deleteEvalScore() {
 // 상호평가결과 팝업
 function mutEvalViewPop() {
 /*	$("#mutEvalViewForm > input[name='crsCreCd']").val("${vo.crsCreCd}");
-	$("#mutEvalViewForm > input[name='forumCd']").val("${vo.forumCd}");
+	$('#mutEvalViewForm > input[name=''dscsId'']').val("${vo.dscsId}");
 	$("#mutEvalViewForm > input[name='stdId']").val("${vo.stdId}");
 	$("#mutEvalViewForm").attr("target", "mutEvalViewIfm");
 	$("#mutEvalViewForm").attr("action", "/forum2/forumLect/mutEvalViewPop.do");
@@ -136,10 +136,10 @@ function mutEvalViewPop() {
 </script>
 <div class="mt10 flex">
 	<div class="ui input flex1 ml05">
-		<input type="text" maxlength="3" placeholder="<spring:message code="forum.alert.input.score" />" id="totalScore" value="${forumJoinUserVo.score}" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');/*saveEvalScore();*/"><!-- 점수를 입력하세요. -->
+		<input type="text" maxlength="3" placeholder="<spring:message code="forum.alert.input.score" />" id="totalScore" value="${dscsJoinUserVO.score}" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');/*saveEvalScore();*/"><!-- 점수를 입력하세요. -->
 	</div>
 	<input type="hidden" id="totalScoreBlockCrsCreCd" value="${vo.crsCreCd}">
-	<input type="hidden" id="totalScoreBlockForumCd" value="${vo.forumCd}">
+	<input type="hidden" id="totalScoreBlockDscsId" value="${vo.dscsId}">
 	<input type="hidden" id="totalScoreBlockStdId" value="${vo.stdId}">
 	<input type="hidden" id="totalScoreBlockTeamCd" value="${vo.teamCd}">
 	<a href="javascript:void(0);" class="ui blue button ml05" id="btnSaveEvalScore" onClick="saveEvalScore()"><spring:message code='forum.button.save'/><!-- 저장 --></a>
@@ -155,7 +155,7 @@ function mutEvalViewPop() {
 <!-- 평가의견  모달 -->
 <form id="mutEvalViewForm" name="mutEvalViewForm" method="post">
 	<input type="hidden" name="crsCreCd" />
-	<input type="hidden" name="forumCd" />
+	<input type="hidden" name="dscsId" />
 	<input type="hidden" name="stdId" />
 </form>
 <div class="modal fade" id="mutEvalViewPop" tabindex="-1" role="dialog" aria-labelledby="<spring:message code='forum.button.feedback.write' />" aria-hidden="true"><!-- 피드백 작성하기 -->

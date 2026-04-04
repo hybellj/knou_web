@@ -1,12 +1,8 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="knou.lms.forum2.dao.ForumCmntDAO">
+<mapper namespace="knou.lms.forum2.dao.DscsCmntDAO">
 
-    <insert id="insertCmnt" parameterType="knou.lms.forum.vo.ForumCmntVO">
-		/*
-			 토론 댓글 등록
-			 ForumCmntDAO.insertCmnt
-		*/
+    <insert id="insertCmnt" parameterType="knou.lms.forum2.vo.DscsCmntVO">
         INSERT INTO TB_LMS_DSCS_CMNT (
               DSCS_CMNT_ID
             , DSCS_ATCL_ID
@@ -22,14 +18,14 @@
             , MDFR_ID
             , MOD_DTTM
         ) VALUES (
-              #{cmntSn}
-            , #{atclSn}
+              #{dscsCmntId}
+            , #{dscsAtclId}
             , #{rgtrId}
-            , #{parCmntSn}
+            , #{upCmntId}
             , #{cmntCts}
             , #{cmntCtsLen}
-            , #{ansReqYn}
-            , TO_CHAR(#{emoticonNo})
+            , #{rspnsReqyn}
+            , #{emtTycd}
             , 'N'
             , #{rgtrId}
             , FN_DTTM()
@@ -38,164 +34,135 @@
         )
     </insert>
 
-    <update id="updateCmnt" parameterType="knou.lms.forum.vo.ForumCmntVO">
-		/*
-			 토론방 댓글 수정
-			 ForumCmntDAO.updateCmnt
-		*/
+    <update id="updateCmnt" parameterType="knou.lms.forum2.vo.DscsCmntVO">
         UPDATE TB_LMS_DSCS_CMNT
         SET CMNT_CTS = #{cmntCts}
           , CMNT_CTS_LEN = #{cmntCtsLen}
-          , RSPNS_REQYN = #{ansReqYn}
+          , RSPNS_REQYN = #{rspnsReqyn}
           , MOD_DTTM = FN_DTTM()
           , MDFR_ID = #{mdfrId}
-        WHERE DSCS_CMNT_ID = #{cmntSn}
+        WHERE DSCS_CMNT_ID = #{dscsCmntId}
     </update>
 
-    <update id="deleteCmnt" parameterType="knou.lms.forum.vo.ForumCmntVO">
-		/*
-			 토론방 댓글 삭제
-			 ForumCmntDAO.deleteCmnt
-		*/
+    <update id="deleteCmnt" parameterType="knou.lms.forum2.vo.DscsCmntVO">
         UPDATE TB_LMS_DSCS_CMNT
         SET DELYN = 'Y'
           , MOD_DTTM = FN_DTTM()
           , MDFR_ID = #{mdfrId}
-        WHERE DSCS_CMNT_ID = #{cmntSn}
+        WHERE DSCS_CMNT_ID = #{dscsCmntId}
     </update>
 
-    <update id="hideCmnt" parameterType="knou.lms.forum.vo.ForumCmntVO">
-        /*
-            SQL ID : ForumCmntDAO.hideCmnt
-            설명 : 토론방 댓글 숨김 (DELYN='H')
-        */
+    <update id="hideCmnt" parameterType="knou.lms.forum2.vo.DscsCmntVO">
         UPDATE TB_LMS_DSCS_CMNT
         SET DELYN = 'H'
           , MOD_DTTM = FN_DTTM()
           , MDFR_ID = #{mdfrId}
-        WHERE DSCS_CMNT_ID = #{cmntSn}
+        WHERE DSCS_CMNT_ID = #{dscsCmntId}
     </update>
 
-    <select id="cmntList" parameterType="knou.lms.forum.vo.ForumAtclVO" resultType="knou.lms.forum.vo.ForumCmntVO">
-        /*
-        토론 댓글 목록
-        ForumCmntDAO.cmntList
-        */
+    <select id="cmntList" parameterType="knou.lms.forum2.vo.DscsAtclVO" resultType="knou.lms.forum2.vo.DscsCmntVO">
         WITH OPNN (
             RN, DSCS_CMNT_ID, DSCS_ATCL_ID, UP_CMNT_ID, CMNT_CTS, CMNT_CTS_LEN,
-            EMT_TYCD/*, RGTRNM*/, RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM, DELYN,
+            EMT_TYCD, RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM, DELYN,
             RSPNS_REQYN, USER_ID, CHILD_YN, LVL, PATH
         ) AS (
-        SELECT
-            ROW_NUMBER() OVER (ORDER BY A.REG_DTTM DESC, A.DSCS_CMNT_ID) AS RN
-            , A.DSCS_CMNT_ID
-            , A.DSCS_ATCL_ID
-            , A.UP_CMNT_ID
-            , A.CMNT_CTS
-            , A.CMNT_CTS_LEN
-            , A.EMT_TYCD
-            --                  , A.RGTRNM
-            , A.RGTR_ID
-            , A.REG_DTTM
-            , A.MDFR_ID
-            , A.MOD_DTTM
-            , A.DELYN
-            , A.RSPNS_REQYN
-            , A.USER_ID
-            , CASE WHEN C.UP_CMNT_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS CHILD_YN
-            , 1 AS LVL
-            , LPAD(A.DSCS_CMNT_ID, 20, '0') AS PATH
-        FROM TB_LMS_DSCS_CMNT A
-            LEFT JOIN (
-                SELECT DISTINCT UP_CMNT_ID
-                    FROM TB_LMS_DSCS_CMNT
-                    WHERE DELYN = 'N'
-                ) C ON C.UP_CMNT_ID = A.DSCS_CMNT_ID
-                WHERE A.UP_CMNT_ID IS NULL
-                     AND A.DSCS_ATCL_ID = #{atclSn}
-
-        UNION ALL
-
-        SELECT
-            B.RN
-            , A.DSCS_CMNT_ID
-            , A.DSCS_ATCL_ID
-            , A.UP_CMNT_ID
-            , A.CMNT_CTS
-            , A.CMNT_CTS_LEN
-            , A.EMT_TYCD
-            --                  , A.RGTRNM
-            , A.RGTR_ID
-            , A.REG_DTTM
-            , A.MDFR_ID
-            , A.MOD_DTTM
-            , A.DELYN
-            , A.RSPNS_REQYN
-            , A.USER_ID
-            , CASE WHEN C.UP_CMNT_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS CHILD_YN
-            , B.LVL + 1 AS LVL
-            , B.PATH || '-' || LPAD(A.DSCS_CMNT_ID, 20, '0') AS PATH
-        FROM TB_LMS_DSCS_CMNT A
-            JOIN OPNN B
-            ON A.UP_CMNT_ID = B.DSCS_CMNT_ID
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY A.REG_DTTM DESC, A.DSCS_CMNT_ID) AS RN
+                , A.DSCS_CMNT_ID
+                , A.DSCS_ATCL_ID
+                , A.UP_CMNT_ID
+                , A.CMNT_CTS
+                , A.CMNT_CTS_LEN
+                , A.EMT_TYCD
+                , A.RGTR_ID
+                , A.REG_DTTM
+                , A.MDFR_ID
+                , A.MOD_DTTM
+                , A.DELYN
+                , A.RSPNS_REQYN
+                , A.USER_ID
+                , CASE WHEN C.UP_CMNT_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS CHILD_YN
+                , 1 AS LVL
+                , LPAD(A.DSCS_CMNT_ID, 20, '0') AS PATH
+            FROM TB_LMS_DSCS_CMNT A
             LEFT JOIN (
                 SELECT DISTINCT UP_CMNT_ID
                 FROM TB_LMS_DSCS_CMNT
                 WHERE DELYN = 'N'
-                ) C ON C.UP_CMNT_ID = A.DSCS_CMNT_ID
-                    WHERE A.DSCS_ATCL_ID = #{atclSn}
+            ) C ON C.UP_CMNT_ID = A.DSCS_CMNT_ID
+            WHERE A.UP_CMNT_ID IS NULL
+              AND A.DSCS_ATCL_ID = #{dscsAtclId}
+
+            UNION ALL
+
+            SELECT
+                B.RN
+                , A.DSCS_CMNT_ID
+                , A.DSCS_ATCL_ID
+                , A.UP_CMNT_ID
+                , A.CMNT_CTS
+                , A.CMNT_CTS_LEN
+                , A.EMT_TYCD
+                , A.RGTR_ID
+                , A.REG_DTTM
+                , A.MDFR_ID
+                , A.MOD_DTTM
+                , A.DELYN
+                , A.RSPNS_REQYN
+                , A.USER_ID
+                , CASE WHEN C.UP_CMNT_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS CHILD_YN
+                , B.LVL + 1 AS LVL
+                , B.PATH || '-' || LPAD(A.DSCS_CMNT_ID, 20, '0') AS PATH
+            FROM TB_LMS_DSCS_CMNT A
+            JOIN OPNN B ON A.UP_CMNT_ID = B.DSCS_CMNT_ID
+            LEFT JOIN (
+                SELECT DISTINCT UP_CMNT_ID
+                FROM TB_LMS_DSCS_CMNT
+                WHERE DELYN = 'N'
+            ) C ON C.UP_CMNT_ID = A.DSCS_CMNT_ID
+            WHERE A.DSCS_ATCL_ID = #{dscsAtclId}
         )
         SELECT
-            A.DSCS_CMNT_ID as CMNT_SN
-            , A.DSCS_ATCL_ID as ATCL_SN
-            , A.UP_CMNT_ID as PAR_CMNT_SN
-            , PU.USERNM AS PAR_RGTR_NM
+            A.DSCS_CMNT_ID
+            , A.DSCS_ATCL_ID
+            , A.UP_CMNT_ID
+            , PU.USERNM AS upUsernm
             , TO_CHAR(A.CMNT_CTS) AS CMNT_CTS
             , A.CMNT_CTS_LEN
-            , A.EMT_TYCD as EMOTICON_NO
-            , U.USERNM AS RGTRNM
-            /*, A.RGTR_ID as stdId*/
+            , A.EMT_TYCD
+            , U.USERNM
             , A.RGTR_ID
             , A.REG_DTTM
             , A.MDFR_ID
             , A.MOD_DTTM
             , A.DELYN
-            , A.RSPNS_REQYN as ANS_REQ_YN
-            , A.USER_ID as STD_ID
-            , A.LVL - 1 AS LVL
+            , A.RSPNS_REQYN
+            , A.USER_ID AS STD_ID
+            , A.LVL - 1 AS lvl
             , A.PATH
-            <!-- TODO : 26.3.10 : User photo file -->
-            <!--, (SELECT PHT_FILE FROM TB_LMS_USER WHERE USER_ID = A.RGTR_ID) AS PHT_FILE_PATH -->
-            , '' AS PHT_FILE_BYTE
+            , '' AS phtFileByte
         FROM OPNN A
-            LEFT JOIN TB_LMS_USER U
-            ON U.USER_ID = A.RGTR_ID
-            LEFT JOIN TB_LMS_DSCS_CMNT PC
-            ON PC.DSCS_CMNT_ID = A.UP_CMNT_ID
-            LEFT JOIN TB_LMS_USER PU
-            ON PU.USER_ID = PC.USER_ID
+        LEFT JOIN TB_LMS_USER U ON U.USER_ID = A.RGTR_ID
+        LEFT JOIN TB_LMS_DSCS_CMNT PC ON PC.DSCS_CMNT_ID = A.UP_CMNT_ID
+        LEFT JOIN TB_LMS_USER PU ON PU.USER_ID = PC.USER_ID
         <where>
             <if test="!viewAll">(A.DELYN IN ('N', 'H') OR A.CHILD_YN = 'Y')</if>
         </where>
         ORDER BY A.RN, A.PATH
-</select>
+    </select>
 
-<select id="forumCmntSelect" parameterType="knou.lms.forum.vo.ForumCmntVO" resultType="knou.lms.forum.vo.ForumCmntVO">
-/*
-    토론 댓글 조회
-    ForumCmntDAO.forumCmntSelect
-*/
-SELECT
-     DSCS_CMNT_ID AS cmntSn
-   , DSCS_ATCL_ID AS atclSn
-   , UP_CMNT_ID AS parCmntSn
-   , CMNT_CTS AS cmntCts
-   , TO_NUMBER(NVL(EMT_TYCD, '0')) AS emoticonNo
-   , DELYN AS delYn
-   , RSPNS_REQYN AS ansReqYn
-   , CMNT_CTS_LEN AS cmntCtsLen
-FROM TB_LMS_DSCS_CMNT
-WHERE DSCS_CMNT_ID = #{cmntSn}
-</select>
+    <select id="forumCmntSelect" parameterType="knou.lms.forum2.vo.DscsCmntVO" resultType="knou.lms.forum2.vo.DscsCmntVO">
+        SELECT
+            DSCS_CMNT_ID
+          , DSCS_ATCL_ID
+          , UP_CMNT_ID
+          , CMNT_CTS
+          , EMT_TYCD
+          , DELYN
+          , RSPNS_REQYN
+          , CMNT_CTS_LEN
+        FROM TB_LMS_DSCS_CMNT
+        WHERE DSCS_CMNT_ID = #{dscsCmntId}
+    </select>
 
 </mapper>

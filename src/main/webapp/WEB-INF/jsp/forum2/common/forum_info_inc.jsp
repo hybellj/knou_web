@@ -8,19 +8,19 @@
 		<div class="title_cont">
 			<div class="left_cont">
 				<div class="lectTit_box">
-					<p class="lect_name">${forumVO.forumTitle}</p>
+					<p class="lect_name">${dscsForumVO.dscsTtl}</p>
 					<fmt:parseDate var="startDateFmt" pattern="yyyyMMddHHmm"
-						value="${forumVO.forumStartDttm }" />
+						value="${dscsForumVO.dscsSdttm }" />
 					<fmt:formatDate var="forumStartDttm"
 						pattern="yyyy.MM.dd(HH:mm)" value="${startDateFmt }" />
 					<fmt:parseDate var="endDateFmt" pattern="yyyyMMddHHmm"
-						value="${forumVO.forumEndDttm }" />
+						value="${dscsForumVO.dscsEdttm }" />
 					<fmt:formatDate var="forumEndDttm"
 						pattern="yyyy.MM.dd(HH:mm)" value="${endDateFmt }" />
 					<span class="fcGrey"><small><spring:message code='forum.label.forum.date'/><!-- 토론기간 --> : 	${forumStartDttm} ~ ${forumEndDttm}
 					| <spring:message code='forum.label.scoreAply'/><!-- 성적반영 --> :
 						<c:choose>
-							<c:when test="${forumVO.scoreAplyYn eq 'Y'}">
+							<c:when test="${dscsForumVO.mrkRfltyn eq 'Y'}">
 								<spring:message code='forum.common.yes'/><!-- 예 -->
 							</c:when>
 							<c:otherwise>
@@ -29,7 +29,7 @@
 						</c:choose>
 					| <spring:message code='forum.label.score.open'/><!-- 성적공개 --> :
 						<c:choose>
-							<c:when test="${forumVO.scoreOpenYn eq 'Y'}">
+							<c:when test="${dscsForumVO.mrkOyn eq 'Y'}">
 								<spring:message code='forum.common.yes'/><!-- 예 -->
 							</c:when>
 							<c:otherwise>
@@ -55,7 +55,7 @@
 						<th>
 							<label for="subjectLabel"><spring:message code='forum.label.forum.artl'/><!-- 토론 내용 --></label>
 						</th>
-						<td class="t_left" colspan="3"><pre>${forumVO.forumArtl}</pre></td>
+						<td class="t_left" colspan="3"><pre>${dscsForumVO.dscsCts}</pre></td>
 					</tr>
 					<tr>
 						<th>
@@ -71,7 +71,7 @@
 						</th>
 						<td class="t_left">
 							<c:choose>
-								<c:when test="${forumVO.scoreAplyYn eq 'P'}">
+								<c:when test="${dscsForumVO.mrkRfltyn eq 'P'}">
 									<spring:message code='forum.common.yes'/><!-- 예 -->
 								</c:when>
 								<c:otherwise>
@@ -84,11 +84,11 @@
 						</th>
 						<td class="t_left">
 							<c:choose>
-								<c:when test="${forumVO.scoreAplyYn ne 'Y' }">
+								<c:when test="${dscsForumVO.mrkRfltyn ne 'Y' }">
 									-
 								</c:when>
 								<c:otherwise>
-									${forumVO.scoreRatio}%
+									${dscsForumVO.scoreRatio}%
 								</c:otherwise>
 							</c:choose>
 						</td>
@@ -99,7 +99,7 @@
 						</th>
 						<td class="t_left" colspan="3">
 							<c:choose>
-								<c:when test="${forumVO.scoreOpenYn eq 'P'}">
+								<c:when test="${dscsForumVO.mrkOyn eq 'P'}">
 									<spring:message code='forum.common.yes'/><!-- 예 -->
 								</c:when>
 								<c:otherwise>
@@ -114,7 +114,7 @@
 						</th>
 						<td class="t_left" colspan="3">
 							<c:choose>
-								<c:when test="${forumVO.evalCtgr eq 'SCR'}">
+								<c:when test="${dscsForumVO.evlScrTycd eq 'SCR'}">
 									<spring:message code='forum.label.evalctgr.score'/><!-- 점수형 -->
 								</c:when>
 								<c:otherwise>
@@ -129,8 +129,8 @@
 							<label for="contLabel"><spring:message code='forum.label.attachFile'/><!-- 첨부파일 --></label>
 						</th>
 						<td class="t_left" colspan="3">
-							<c:if test="${not empty forumVO.fileList}">
-								<uiex:filedownload fileList="${forumVO.fileList}"/>
+							<c:if test="${not empty dscsForumVO.fileList}">
+								<uiex:filedownload fileList="${dscsForumVO.fileList}"/>
 							</c:if>
 						</td>
 					</tr>
@@ -140,11 +140,11 @@
 						</th>
 						<td class="t_left" colspan="3">
 							<c:choose>
-								<c:when test="${forumVO.forumCtgrCd eq 'TEAM'}">
+								<c:when test="${dscsForumVO.dscsUnitTycd eq 'TEAM'}">
 									<spring:message code='forum.common.yes'/><!-- 예 -->
 									<c:choose>
-										<c:when test="${forumVO.byteamDscsUseyn eq 'Y'}">
-											<br/><span><spring:message code='forum.label.lrngrp'/><%--학습그룹--%> : ${forumVO.dscsGrpnm}</span>
+										<c:when test="${dscsForumVO.byteamDscsUseyn eq 'Y'}">
+											<br/><span><spring:message code='forum.label.lrngrp'/><%--학습그룹--%> : ${dscsForumVO.dscsGrpnm}</span>
 											<br/><span><spring:message code='forum.label.lrngrp.dscs.setting'/><%--학습그룹별 토론 설정--%> : </span><spring:message code='forum.label.use.y'/><!-- 사용 -->
 											<table class="table-type2">
 												<colgroup>
@@ -161,7 +161,7 @@
 												</tr>
 												</thead>
 												<tbody>
-												<c:forEach var="item" items="${forumVO.teamDscsList}" varStatus="status">
+												<c:forEach var="item" items="${dscsForumVO.teamDscsList}" varStatus="status">
 													<tr>
 														<td rowspan="3">${item.teamnm}</td><!-- 팀 -->
 														<td style="background-color:#f2f2f2;"><spring:message code='forum.label.team.ttl'/></td><!-- 부주제 -->
@@ -206,7 +206,7 @@
 						</th>
 						<td class="t_left" colspan="3">
 							<c:choose>
-								<c:when test="${forumVO.otherViewYn eq 'Y'}">
+								<c:when test="${dscsForumVO.otherViewYn eq 'Y'}">
 									<spring:message code='forum.common.yes'/><!-- 예 -->
 								</c:when>
 								<c:otherwise>
@@ -221,7 +221,7 @@
 						</th>
 						<td class="t_left" colspan="3">
 							<c:choose>
-								<c:when test="${forumVO.aplyAsnYn eq 'Y'}">
+								<c:when test="${dscsForumVO.aplyAsnYn eq 'Y'}">
 									<spring:message code='forum.common.yes'/><!-- 예 -->
 								</c:when>
 								<c:otherwise>
@@ -236,17 +236,17 @@
 						</th>
 						<td class="t_left" colspan="3">
 							<c:choose>
-								<c:when test="${forumVO.prosConsForumCfg eq 'Y'}">
-									<c:if test="${forumVO.prosConsRateOpenYn eq 'Y'}">
+								<c:when test="${dscsForumVO.prosConsForumCfg eq 'Y'}">
+									<c:if test="${dscsForumVO.prosConsRateOpenYn eq 'Y'}">
 										<div><spring:message code='forum.label.prosConsRate'/><!-- 찬반 비율 공개 --> : <spring:message code='forum.common.yes'/><!-- 예 --></div>
 									</c:if>
-									<c:if test="${forumVO.regOpenYn eq 'Y'}">
+									<c:if test="${dscsForumVO.regOpenYn eq 'Y'}">
 										<div><spring:message code='forum.label.regOpen'/><!-- 작성자 공개 --> : <spring:message code='forum.common.yes'/><!-- 예 --></div>
 									</c:if>
-									<c:if test="${forumVO.multiAtclYn eq 'Y'}">
+									<c:if test="${dscsForumVO.multiAtclYn eq 'Y'}">
 										<div><spring:message code='forum.label.multiAtcl'/><!-- 의견글 복수 등록 --> : <spring:message code='forum.common.yes'/><!-- 예 --></div>
 									</c:if>
-									<c:if test="${forumVO.prosConsModYn eq 'Y'}">
+									<c:if test="${dscsForumVO.prosConsModYn eq 'Y'}">
 										<div><spring:message code='forum.label.prosConsMod'/><!-- 찬반의견 변경 --> : <spring:message code='forum.common.yes'/><!-- 예 --></div>
 									</c:if>
 								</c:when>

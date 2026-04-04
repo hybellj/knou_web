@@ -4,8 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import knou.lms.forum.dao.ForumJoinUserDAO;
-import knou.lms.forum.vo.ForumJoinUserVO;
+import knou.lms.forum2.vo.DscsJoinUserVO;
 import knou.framework.common.CommConst;
 import knou.framework.common.IdPrefixType;
 import knou.framework.util.FileUtil;
@@ -21,43 +20,41 @@ import knou.lms.common.paging.PagingInfo;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.file.service.AttachFileService;
 import knou.lms.file.vo.AtflVO;
-import knou.lms.forum2.dao.ForumAtclDAO;
-import knou.lms.forum2.dao.ForumCmntDAO;
-import knou.lms.forum2.service.ForumAtclService;
-import knou.lms.forum.vo.ForumAtclVO;
-import knou.lms.forum.vo.ForumCmntVO;
-import knou.lms.forum.vo.ForumMutVO;
+import knou.lms.forum2.dao.DscsAtclDAO;
+import knou.lms.forum2.dao.DscsCmntDAO;
+import knou.lms.forum2.dao.DscsJoinUserDAO;
+import knou.lms.forum2.service.DscsAtclService;
+import knou.lms.forum2.vo.DscsAtclVO;
+import knou.lms.forum2.vo.DscsCmntVO;
+import knou.lms.forum2.vo.DscsMutVO;
 
-@Service("forum2AtclService")
-public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclService {
+@Service("dscsAtclService")
+public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ForumAtclServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DscsAtclServiceImpl.class);
 
-    @Resource(name = "forum2AtclDAO")
-    private ForumAtclDAO forumAtclDAO;
+    @Resource(name = "dscsAtclDAO")
+    private DscsAtclDAO forumAtclDAO;
 
-    @Resource(name = "forum2CmntDAO")
-    private ForumCmntDAO forumCmntDAO;
+    @Resource(name = "dscsCmntDAO")
+    private DscsCmntDAO forumCmntDAO;
 
-    @Resource(name="forumJoinUserDAO")
-    private ForumJoinUserDAO forumJoinUserDAO;
-
-    @Resource(name = "forum2JoinUserDAO")
-    private knou.lms.forum2.dao.ForumJoinUserDAO forum2JoinUserDAO;
+    @Resource(name = "dscsJoinUserDAO")
+    private DscsJoinUserDAO dscsJoinUserDAO;
 
     @Resource(name = "attachFileService")
     private AttachFileService attachFileService;
 
     // 토론 게시글 수 카운팅
     @Override
-    public int forumAtclCount(ForumAtclVO vo) throws Exception {
+    public int forumAtclCount(DscsAtclVO vo) throws Exception {
         return forumAtclDAO.forumAtclCount(vo);
     }
 
     // 토론 게시글 페이징 목록 조회
     @Override
-    public ProcessResultVO<ForumAtclVO> listPageing(ForumAtclVO vo) throws Exception {
-        ProcessResultVO<ForumAtclVO> resultList = new ProcessResultVO<>();
+    public ProcessResultVO<DscsAtclVO> listPageing(DscsAtclVO vo) throws Exception {
+        ProcessResultVO<DscsAtclVO> resultList = new ProcessResultVO<>();
         try {
             /** start of paging */
             PagingInfo paginationInfo = new PagingInfo();
@@ -78,15 +75,15 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
             int totalCount = forumAtclDAO.count(vo);
             paginationInfo.setTotalRecordCount(totalCount);
 
-            List<ForumAtclVO> forumAtclList = forumAtclDAO.listPageing(vo);
+            List<DscsAtclVO> forumAtclList = forumAtclDAO.listPageing(vo);
             if (forumAtclList != null) {
-                for (ForumAtclVO row : forumAtclList) {
+                for (DscsAtclVO row : forumAtclList) {
                     AtflVO atflParam = new AtflVO();
                     atflParam.setAtflRepoId(CommConst.REPO_DSCS);
                     atflParam.setRefId(row.getAtclSn());
                     row.setFileList(attachFileService.selectAtflListByRefId(atflParam));
                     row.setViewAll(vo.isViewAll());
-                    List<ForumCmntVO> cmntList = forumCmntDAO.cmntList(row);
+                    List<DscsCmntVO> cmntList = forumCmntDAO.cmntList(row);
                     row.setCmntList(cmntList);
                 }
             }
@@ -103,15 +100,15 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
 
     // 토론 게시글 등록
     @Override
-    public void insertAtcl(ForumAtclVO vo, String teamCd) throws Exception {
+    public void insertAtcl(DscsAtclVO vo, String teamCd) throws Exception {
         // 내용길이 저장
         vo.setCtsLen(StringUtil.getContentLenth(vo.getCts()));
 
         forumAtclDAO.insertAtcl(vo);
 
         // 토론참여자 테이블 등록 (게시글 작성 시 단건)
-        // ForumJoinUserVO.stdId = TB_LMS_DSCS_PTCP.USER_ID = 로그인 userId (listStdScore SQL: A.USER_ID AS stdId)
-        ForumJoinUserVO joinVO = new ForumJoinUserVO();
+        // DscsJoinUserVO.stdId = TB_LMS_DSCS_PTCP.USER_ID = 로그인 userId (listStdScore SQL: A.USER_ID AS stdId)
+        DscsJoinUserVO joinVO = new DscsJoinUserVO();
         joinVO.setForumCd(vo.getForumCd());
         joinVO.setStdId(vo.getUserId());
         joinVO.setTeamCd(StringUtil.nvl(teamCd));
@@ -119,7 +116,7 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
         joinVO.setMdfrId(vo.getMdfrId());
         joinVO.setDscsPtcpId(IdGenerator.getNewId(IdPrefixType.DSPTC.getCode()));
         try {
-            forum2JoinUserDAO.ensureJoinUser(joinVO);
+            dscsJoinUserDAO.ensureJoinUser(joinVO);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             // UNIQUE 제약 위반 = 이미 존재 → 무시
             LOGGER.debug("[insertAtcl] ensureJoinUser skip - already exists: forumCd=" + vo.getForumCd() + ", userId=" + vo.getUserId());
@@ -141,13 +138,13 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
 
     // 토론 게시글 조회
     @Override
-    public ForumAtclVO selectAtcl(ForumAtclVO vo) throws Exception {
+    public DscsAtclVO selectAtcl(DscsAtclVO vo) throws Exception {
         return forumAtclDAO.selectAtcl(vo);
     }
 
     // 토론 게시글 수정
     @Override
-    public void updateAtcl(ForumAtclVO vo) throws Exception {
+    public void updateAtcl(DscsAtclVO vo) throws Exception {
         // 내용길이 저장
         vo.setCtsLen(StringUtil.getContentLenth(vo.getCts()));
 
@@ -180,7 +177,7 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
 
     // 토론 게시글 삭제
     @Override
-    public void deleteAtcl(ForumAtclVO vo) throws Exception {
+    public void deleteAtcl(DscsAtclVO vo) throws Exception {
         forumAtclDAO.deleteAtcl(vo);
 
 	// TODO : 26.3.10(AS-IS Ref)
@@ -188,11 +185,11 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
         // 파일 처리 로직 수정. 다중파일을 위한 List 처리
 //      this.saveFiles(vo);
         
-        ForumVO forumVO = new ForumVO();
+        DscsForumVO forumVO = new DscsForumVO();
         forumVO.setForumCd(vo.getForumCd());
         forumVO = forumDAO.selectForum(forumVO);
         if("R".equals(StringUtil.nvl(forumVO.getEvalCtgr()))) {
-            ForumAtclVO forumAtclVO = forumAtclDAO.selectAtcl(vo);
+            DscsAtclVO forumAtclVO = forumAtclDAO.selectAtcl(vo);
             
             String rgtrId = forumAtclVO.getRgtrId();
             
@@ -202,18 +199,18 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
             svo = stdDAO.selectStd(svo);
             
             if(svo != null) {
-                forumAtclVO = new ForumAtclVO();
+                forumAtclVO = new DscsAtclVO();
                 forumAtclVO.setCrsCreCd(svo.getCrsCreCd());
                 forumAtclVO.setForumCd(vo.getForumCd());
                 forumAtclVO.setUserId(rgtrId);
                 int atclCnt = forumAtclDAO.myAtclCnt(forumAtclVO);
                 
                 if(atclCnt == 0) {
-                    ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+                    DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
                     forumJoinUserVO.setForumCd(vo.getForumCd());
                     forumJoinUserVO.setStdId(svo.getStdId());
                     forumJoinUserVO.setMdfrId(vo.getMdfrId());
-                    forumJoinUserDAO.updateJoinUserEvalN(forumJoinUserVO);
+                    dscsJoinUserDAO.updateJoinUserEvalN(forumJoinUserVO);
                 }
             }
         }
@@ -222,44 +219,44 @@ public class ForumAtclServiceImpl extends ServiceBase implements ForumAtclServic
 
     // 토론 게시글 숨김
     @Override
-    public void hideAtcl(ForumAtclVO vo) throws Exception {
+    public void hideAtcl(DscsAtclVO vo) throws Exception {
         forumAtclDAO.hideAtcl(vo);
     }
 
     // 나의 상호평가 결과
   /*  @Override
-    public ForumAtclVO selectMutResult(ForumAtclVO vo) throws Exception {
+    public DscsAtclVO selectMutResult(DscsAtclVO vo) throws Exception {
         return forumAtclDAO.selectMutResult(vo);
     }*/
 
     // 특정 수강생의 토론 게시글 조회
 /*    @Override
-    public List<ForumAtclVO> selectAtclUserList(ForumMutVO vo) throws Exception {
+    public List<DscsAtclVO> selectAtclUserList(DscsMutVO vo) throws Exception {
         return forumAtclDAO.selectAtclUserList(vo);
     }*/
 
     // 토론 게시글 조회
     @Override
-    public List<ForumAtclVO> forumAtclList(ForumAtclVO vo) throws Exception {
+    public List<DscsAtclVO> forumAtclList(DscsAtclVO vo) throws Exception {
         return forumAtclDAO.forumAtclList(vo);
     }
 
     // 본인의 토론글 등록 갯수
     @Override
-    public int myAtclCnt(ForumAtclVO vo) throws Exception {
+    public int myAtclCnt(DscsAtclVO vo) throws Exception {
         return forumAtclDAO.myAtclCnt(vo);
     }
 
     // 토론 게시글 엑셀목록 조회
     @Override
-    public List<ForumAtclVO> forumAtclExcalList(ForumAtclVO vo) throws Exception {
+    public List<DscsAtclVO> forumAtclExcalList(DscsAtclVO vo) throws Exception {
         return forumAtclDAO.forumAtclExcalList(vo);
     }
 
 	// TODO : 26.3.10(AS-IS Ref)
 	/*
     // // 이전 토론 가져오기 첨부파일 복사
-    private void prevCopyFileAdd(ForumAtclVO vo) throws Exception {
+    private void prevCopyFileAdd(DscsAtclVO vo) throws Exception {
         if(!"".equals(StringUtil.nvl(vo.getSearchTo())) && !"".equals(StringUtil.nvl(vo.getFileSns()))) {
             // 기존 파일 삭제
             FileVO delFileVO = new FileVO();

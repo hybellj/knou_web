@@ -45,8 +45,8 @@ function fdbkList(stdId) {
 		return false;
 	}
 
-	var forumCd = "${forumVo.forumCd}";
-	$("form[name='forumCreCrsStdForm'] input[name='forumCd']").val(forumCd);
+	var dscsId = "${dscsForumVO.dscsId}";
+	$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
 	$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 	$("#forumCreCrsStdForm").attr("target", "fdbkListIfm");
 	$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumFdbkPop.do");
@@ -56,31 +56,31 @@ function fdbkList(stdId) {
 
 </script>
 <form name="forumCreCrsStdForm" id="forumCreCrsStdForm" method="POST">
-	<input type="hidden" name="forumCd" value="${forumVo.forumCd }">
-	<input type="hidden" name="forumCtgrCd" value="${forumVo.forumCtgrCd}">
-	<input type="hidden" name="teamCtgrCd" value="${forumVo.teamCtgrCd}">
+	<input type="hidden" name="dscsId" value="${dscsForumVO.dscsId }">
+	<input type="hidden" name="dscsUnitTycd" value="${dscsForumVO.dscsUnitTycd}">
+	<input type="hidden" name="teamTycd" value="${dscsForumVO.teamTycd}">
 	<input type="hidden" name="stdId" value="">
-	<input type="hidden" name="crsCreCd" value="${forumVo.crsCreCd}">
+	<input type="hidden" name="crsCreCd" value="${dscsForumVO.crsCreCd}">
 </form>
 
-<c:if test="${forumVo.forumCtgrCd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER'  && (empty forumVo.searchMenu || forumVo.searchMenu != 'EZG') && forumVo.evalCritUseYn eq 'N'}">
+<c:if test="${dscsForumVO.dscsUnitTycd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER'  && (empty dscsForumVO.searchMenu || dscsForumVO.searchMenu != 'EZG') && dscsForumVO.evalCritUseYn eq 'N'}">
 	<div class="inline field">
 		<label class="label-title"><spring:message code="forum.label.record" /><%-- 성적 --%></label>
-		<a id="scoreText">${forumJoinUserVo.score }<spring:message code='forum.label.point'/></a><%-- 점 --%>
+		<a id="scoreText">${dscsJoinUserVO.score }<spring:message code='forum.label.point'/></a><%-- 점 --%>
 		<div class="ui right labeled small input" name="scoreInput" style="display:none;">
-			<input type="number" min="0" id="${forumJoinUserVo.stdId }" name="refLabel" class="w60" maxlength="3" value="${forumJoinUserVo.score}" onkeyup="checkValid(this);">
+			<input type="number" min="0" id="${dscsJoinUserVO.stdId }" name="refLabel" class="w60" maxlength="3" value="${dscsJoinUserVO.score}" onkeyup="checkValid(this);">
 			<div class="ui basic label"><spring:message code='forum.label.point'/></div><%--점  --%>
 		</div>
 	</div>
 </c:if>
 
-	<c:if test="${forumVo.forumCtgrCd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER' && forumVo.evalCritUseYn eq 'N'}">
+	<c:if test="${dscsForumVO.dscsUnitTycd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER' && dscsForumVO.evalCritUseYn eq 'N'}">
 	<div class="ui divider"></div>
 	</c:if>
 	<c:if test="${CLASS_USER_TYPE ne 'CLASS_LEARNER'}">
 	<div class="flex-item flex-wrap gap4 pt10">
-		<c:if test="${not empty forumVo.searchMenu && forumVo.searchMenu == 'EZG'}"> 
-		<a href="javascript:void(0);" class="ui basic fluid button" onClick="fdbkList('${forumVo.stdId}')" id="cntFdbk">${cntFdbk}<spring:message code='forum.label.cnt.feedback'/><!-- 개의 피드백 --></a>
+		<c:if test="${not empty dscsForumVO.searchMenu && dscsForumVO.searchMenu == 'EZG'}"> 
+		<a href="javascript:void(0);" class="ui basic fluid button" onClick="fdbkList('${dscsForumVO.stdId}')" id="cntFdbk">${cntFdbk}<spring:message code='forum.label.cnt.feedback'/><!-- 개의 피드백 --></a>
 		</c:if>
 	</div>
 	</c:if>

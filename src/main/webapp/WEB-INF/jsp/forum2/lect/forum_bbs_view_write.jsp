@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+ï»¿<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
 <head>
@@ -6,7 +6,7 @@
 <%@ include file="/WEB-INF/jsp/common/common.jsp" %>
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
 <link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
-<%-- ¿¡µðÅÍ --%>
+<%-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ --%>
 <%@ include file="/WEB-INF/jsp/common/editor_inc.jsp" %>
 </head>
 
@@ -14,10 +14,10 @@
 $(document).ready(function() {
 });
 
-//ÀúÀå È®ÀÎ
+//ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 function saveConfirm() {
 	var fileUploader = dx5.get("fileUploader");
-	// ÆÄÀÏÀÌ ÀÖÀ¸¸é ¾÷·Îµå ½ÃÀÛ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
 	if (fileUploader.getFileCount() > 0) {
 		fileUploader.startUpload();
 	}
@@ -26,7 +26,7 @@ function saveConfirm() {
 	}
 }
 
-// ÆÄÀÏ ¾÷·Îµå ¿Ï·á
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ï·ï¿½
 function finishUpload() {
 	var fileUploader = dx5.get("fileUploader");
 	var url = "/file/fileHome/saveFileInfo.do";
@@ -42,17 +42,17 @@ function finishUpload() {
 			
 			addActl();
 		} else {
-			alert("<spring:message code='success.common.file.transfer.fail'/>1"); // ¾÷·Îµå¸¦ ½ÇÆÐÇÏ¿´½À´Ï´Ù.
+			alert("<spring:message code='success.common.file.transfer.fail'/>1"); // ï¿½ï¿½ï¿½Îµå¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 		}
 	}, function(xhr, status, error) {
-		alert("<spring:message code='success.common.file.transfer.fail'/>2"); // ¾÷·Îµå¸¦ ½ÇÆÐÇÏ¿´½À´Ï´Ù.
+		alert("<spring:message code='success.common.file.transfer.fail'/>2"); // ï¿½ï¿½ï¿½Îµå¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 	});
 }
 
-// °Ô½Ã±Û µî·Ï/¼öÁ¤
+// ï¿½Ô½Ã±ï¿½ ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½
 function addActl(){
 	var fileUploader = dx5.get("fileUploader");
-	var prosConsTypeCd = $("#prosConsTypeCd").val();
+	var oknokGbncd = $("#oknokGbncd").val();
 	var cts = editor.getPublishingHtml();
 	var atclStatus = $("#atclStatus").val();
 	var uploadPath = $("#uploadPath").val();
@@ -60,40 +60,40 @@ function addActl(){
 	$("#delFileIdStr").val(fileUploader.getDelFileIdStr());
 
 	if(editor.isEmpty() || editor.getTextContent().trim() === ""){
-		alert("<spring:message code='forum.forumBBsViewWrite.atcl'/>"); //Åä·Ð ³»¿ëÀ» ÀÔ·ÂÇØÁÖ½Ã±â ¹Ù¶ø´Ï´Ù.
+		alert("<spring:message code='forum.forumBBsViewWrite.atcl'/>"); //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ï¿½Ö½Ã±ï¿½ ï¿½Ù¶ï¿½ï¿½Ï´ï¿½.
 		return false;
 	} else {
-		if(atclStatus == 'E') { // ¼öÁ¤
-			var atclSn = $("#atclSn").val();
+		if(atclStatus == 'E') { // ï¿½ï¿½ï¿½ï¿½
+			var dscsAtclId = $("#dscsAtclId").val();
 			var url = "/forum2/forumLect/Form/editAtcl.do";
 			var data = $("#forumAtclForm").serialize();
 			
 			ajaxCall(url, data, function(data) {
 				if(data.result > 0) {
-					alert("<spring:message code='forum.alert.edit.forum.atcl_success'/>"); // Åä·Ð °Ô½Ã±Û ¼öÁ¤¿¡ ¼º°øÇÏ¿´½À´Ï´Ù.
+					alert("<spring:message code='forum.alert.edit.forum.atcl_success'/>"); // ï¿½ï¿½ï¿½ ï¿½Ô½Ã±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 					window.parent.closeModal();
 					window.parent.listForum(1);
 				} else {
-					alert("<spring:message code='forum.alert.edit.forum.atcl_fail'/>"); // Åä·Ð °Ô½Ã±Û¿¡ ¼öÁ¤¿¡ ½ÇÆÐÇÏ¿´½À´Ï´Ù. ´Ù½Ã ½ÃµµÇØÁÖ½Ã±â ¹Ù¶ø´Ï´Ù.
+					alert("<spring:message code='forum.alert.edit.forum.atcl_fail'/>"); // ï¿½ï¿½ï¿½ ï¿½Ô½Ã±Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ï¿½Ù½ï¿½ ï¿½Ãµï¿½ï¿½ï¿½ï¿½Ö½Ã±ï¿½ ï¿½Ù¶ï¿½ï¿½Ï´ï¿½.
 				}
 			}, function(xhr, status, error) {
-				alert("<spring:message code='forum.common.error'/>"); // ¿¡·¯°¡ ¹ß»ýÇß½À´Ï´Ù.
+				alert("<spring:message code='forum.common.error'/>"); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.
 			}, true);
-		} else { // µî·Ï
-			var atclTypeCd = "${forumVo.forumCtgrCd}" + "_"+ "${forumVo.prosConsForumCfg}";
-			var atclSn = $("#atclSn").val();
+		} else { // ï¿½ï¿½ï¿½
+			var dscsAtclTycd = "${dscsForumVO.dscsUnitTycd}" + "_"+ "${dscsForumVO.prosConsForumCfg}";
+			var dscsAtclId = $("#dscsAtclId").val();
 			
 			var url = "/forum2/forumLect/Form/addAtcl.do";
 			var data = {
-				"atclSn" : atclSn,
-				"prosConsTypeCd" : prosConsTypeCd,
-				"atclTypeCd"	: atclTypeCd,
-				"cts" : cts,
-				"forumCd" : "${forumVo.forumCd}",
+				"dscsAtclId" : dscsAtclId,
+				"oknokGbncd" : oknokGbncd,
+				"dscsAtclTycd"	: dscsAtclTycd,
+				"atclCts" : cts,
+				"dscsId" : "${dscsForumVO.dscsId}",
 				"userId" : "${userId}",
 				"userName" : "${userName}",
 				"userType" : "P",
-				"crsCreCd" : "${forumVo.crsCreCd}",
+				"crsCreCd" : "${dscsForumVO.crsCreCd}",
 				"uploadFiles" : fileUploader.getUploadFiles(),
 				"uploadPath" : uploadPath,
 				"repoCd" : "FORUM"
@@ -101,14 +101,14 @@ function addActl(){
 			
 			ajaxCall(url, data, function(data) {
 				if(data.result > 0) {
-					alert("<spring:message code='forum.alert.add.forum.atcl_success'/>"); // Åä·Ð °Ô½Ã±Û µî·Ï¿¡ ¼º°øÇÏ¿´½À´Ï´Ù.
+					alert("<spring:message code='forum.alert.add.forum.atcl_success'/>"); // ï¿½ï¿½ï¿½ ï¿½Ô½Ã±ï¿½ ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 					window.parent.closeModal();
 					window.parent.listForum(1);
 				} else {
-					alert("<spring:message code='forum.alert.add.forum.atcl_fail'/>"); // Åä·Ð °Ô½Ã±Û¿¡ µî·Ï¿¡ ½ÇÆÐÇÏ¿´½À´Ï´Ù. ´Ù½Ã ½ÃµµÇØÁÖ½Ã±â ¹Ù¶ø´Ï´Ù.
+					alert("<spring:message code='forum.alert.add.forum.atcl_fail'/>"); // ï¿½ï¿½ï¿½ ï¿½Ô½Ã±Û¿ï¿½ ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ï¿½Ù½ï¿½ ï¿½Ãµï¿½ï¿½ï¿½ï¿½Ö½Ã±ï¿½ ï¿½Ù¶ï¿½ï¿½Ï´ï¿½.
 				}
 			}, function(xhr, status, error) {
-				alert("<spring:message code='forum.common.error'/>"); // ¿¡·¯°¡ ¹ß»ýÇß½À´Ï´Ù.
+				alert("<spring:message code='forum.common.error'/>"); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.
 			}, true);
 		}
 		window.parent.listForum(1);
@@ -119,21 +119,21 @@ function addActl(){
 <body class="modal-page <%=SessionInfo.getThemeMode(request)%>">
 	<div id="wrap">
 		<div id="container">
-			<!-- º»¹® content ºÎºÐ -->
+			<!-- ï¿½ï¿½ï¿½ï¿½ content ï¿½Îºï¿½ -->
 			<div class="content stu_section">
 				<c:set var="path" value="/forum2/${atclSn}" />
 				<form:form id="forumAtclForm" name="forumAtclForm" method="post" action="">
-				<input type="hidden" name="forumCd" id="forumCd" value="${forumVo.forumCd}">
+				<input type="hidden" name="dscsId" id="dscsId" value="${dscsForumVO.dscsId}">
 				<input type="hidden" name="userId" id="userId" value="${userId}">
-				<input type="hidden" name="crsCreCd" id="crsCreCd" value="${forumVo.crsCreCd}">
+				<input type="hidden" name="crsCreCd" id="crsCreCd" value="${dscsForumVO.crsCreCd}">
 				<input type="hidden" name="repoCd" id="repoCd" value="FORUM">
 				<input type="hidden" name="uploadPath" id="uploadPath" value="${path}">
 				<input type="hidden" name="copyFiles" id="copyFiles" value="" />
 				<input type="hidden" name="uploadFiles" id="uploadFiles" value="">
 				<input type="hidden" name="delFileIdStr" id="delFileIdStr" value="">
-				<input type="hidden" name="prosConsTypeCd" id = "prosConsTypeCd" value="F"/>
-				<input type="hidden" name="atclStatus" id = "atclStatus" value="${empty forumAtclVO.atclSn ? 'A' : 'E'}"/>
-				<input type="hidden" name="atclSn" id = "atclSn" value="${atclSn}"/>
+				<input type="hidden" name="oknokGbncd" id = "oknokGbncd" value="F"/>
+				<input type="hidden" name="atclStatus" id = "atclStatus" value="${empty forumAtclVO.dscsAtclId ? 'A' : 'E'}"/>
+				<input type="hidden" name="dscsAtclId" id = "dscsAtclId" value="${atclSn}"/>
 	
 					<div class="ui segment">
 						<div class="ui form">
@@ -141,16 +141,16 @@ function addActl(){
 								<li>
 									<dl><dd style="height:300px">
 									<div style="height:100%">
-										<textarea name="cts" id="cts">${forumAtclVO.cts}</textarea>
+										<textarea name="atclCts" id="cts">${forumAtclVO.atclCts}</textarea>
 										<script>
-											// html ¿¡µðÅÍ »ý¼º
+											// html ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 											var editor = HtmlEditor('cts', THEME_MODE, '${path}');
 										</script>
 									</div>
 									</dd></dl>
 								</li>
 								<li>
-									<!-- ÆÄÀÏ¾÷·Î´õ -->
+									<!-- ï¿½ï¿½ï¿½Ï¾ï¿½ï¿½Î´ï¿½ -->
 									<uiex:dextuploader
 										id="fileUploader"
 										path="${path}"
@@ -171,12 +171,12 @@ function addActl(){
 				</form:form>
 	
 				<div class="bottom-content">
-					<button class="ui blue cancel button" onclick="saveConfirm();return false;"><spring:message code='forum.button.save'/><!-- ÀúÀå --></button>
-					<button class="ui black cancel button" onclick="window.parent.closeModal();return false;"><spring:message code='forum.button.close'/><!-- ´Ý±â --></button>
+					<button class="ui blue cancel button" onclick="saveConfirm();return false;"><spring:message code='forum.button.save'/><!-- ï¿½ï¿½ï¿½ï¿½ --></button>
+					<button class="ui black cancel button" onclick="window.parent.closeModal();return false;"><spring:message code='forum.button.close'/><!-- ï¿½Ý±ï¿½ --></button>
 				</div>
 			</div>
 		</div>
-		<!-- //º»¹® content ºÎºÐ -->
+		<!-- //ï¿½ï¿½ï¿½ï¿½ content ï¿½Îºï¿½ -->
 	</div>
 <script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
 </body>

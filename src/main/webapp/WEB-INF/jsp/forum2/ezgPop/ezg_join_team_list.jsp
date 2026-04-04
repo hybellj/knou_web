@@ -35,8 +35,8 @@ function toggleJoinUser(obj) {
 
 // 팀 선택 반전
 function selectTeam(obj) {
-	var childForumCd = $(obj).attr("data-forumCd");
-	if (childForumCd) { $("#ezgForumCd").val(childForumCd); }
+	var childDscsId = $(obj).attr("data-dscs-id");
+	if (childDscsId) { $("#ezgDscsId").val(childDscsId); }
 	$('.active-toggle-btn').removeClass("select");
 	$(obj).addClass("select");
 	var teamCd = $(obj).attr("data-teamCd");
@@ -52,8 +52,8 @@ function selectTeam(obj) {
 
 // 팀원 선택 반전
 function selectUser(obj) {
-	var childForumCd = $(obj).attr("data-forumCd");
-	if (childForumCd) { $("#ezgForumCd").val(childForumCd); }
+	var childDscsId = $(obj).attr("data-dscs-id");
+	if (childDscsId) { $("#ezgDscsId").val(childDscsId); }
 	$('.active-toggle-btn').removeClass("select");
 	$(obj).addClass("select");
 	var teamCd = $(obj).attr("data-teamCd");
@@ -86,10 +86,10 @@ function getTargetUserInfoAndScore(obj) {
 <input type="hidden" id="selectedUserNm" value="" />
 <input type="hidden" id="selectedStdId" value="" />
 <input type="hidden" id="selectedTeamCd" value="" />
-<input type="hidden" id="ezgForumCtgrCd" value="${forumVO.forumCtgrCd}" />
+<input type="hidden" id="ezgDscsUnitTycd" value="${dscsForumVO.dscsUnitTycd}" />
 <c:if test="${not empty resultList}">
 	<c:forEach items="${resultList }" var="item" varStatus="status">
-		<a href="javascript:;" name="ezgTargetUser" onClick="selectTeam(this)" data-teamCd="${item.teamCd}" data-teamStdIds="${item.teamStdIds}" data-forumCd="${item.formCd}" class="ui grey label m0 tr active-toggle-btn flex-none ${vo.teamCd == item.teamCd?'select':''}">
+		<a href="javascript:;" name="ezgTargetUser" onClick="selectTeam(this)" data-teamCd="${item.teamCd}" data-teamStdIds="${item.teamStdIds}" data-dscs-id="${item.formCd}" class="ui grey label m0 tr active-toggle-btn flex-none ${vo.teamCd == item.teamCd?'select':''}">
 			<!-- <div class="content stu_card"> -->
 				<!-- <div class="text_box"> -->
 					<div class="user"><span><c:out value='${item.teamNm}' /></span></div>
@@ -99,7 +99,7 @@ function getTargetUserInfoAndScore(obj) {
 
 		<c:if test="${not empty item.teamMembers}">
 			<c:forEach items="${item.teamMembers }" var="team" varStatus="teamStatus">
-				<a href="javascript:;" name="ezgTargetUser" onClick="toggleJoinUser(this)" data-userId="${team.userId}" data-userId="${team.userId}" data-userNm="${team.userNm}" data-StdId="${team.stdId}" data-teamCd="${item.teamCd}" data-teamStdIds="${item.teamStdIds}" data-forumCd="${item.formCd}" class="card active-toggle-btn ${team.joinStatus == 'JOIN'?'submit':''} ${vo.stdId == team.stdId?'select':''}">
+				<a href="javascript:;" name="ezgTargetUser" onClick="toggleJoinUser(this)" data-userId="${team.userId}" data-userId="${team.userId}" data-userNm="${team.userNm}" data-StdId="${team.stdId}" data-teamCd="${item.teamCd}" data-teamStdIds="${item.teamStdIds}" data-dscs-id="${item.formCd}" class="card active-toggle-btn ${team.joinStatus == 'JOIN'?'submit':''} ${vo.stdId == team.stdId?'select':''}">
 					<div class="content stu_card">
 					<c:if test="${item.evalYn == 'Y' || team.leaderYn == 'Y'}">
 						<div class="icon_box">

@@ -68,7 +68,7 @@ function getTargetUserInfoAndScore(obj) {
 <input type="hidden" id="selectedUserId" value="" />
 <input type="hidden" id="selectedUserNm" value="" />
 <input type="hidden" id="selectedStdId" value="" />
-<input type="hidden" id="ezgForumCtgrCd" value="${forumVO.forumCtgrCd}" />
+<input type="hidden" id="ezgDscsUnitTycd" value="${dscsForumVO.dscsUnitTycd}" />
 
 <c:if test="${not empty resultList}">
 	<c:set var="stdNos" value="" />

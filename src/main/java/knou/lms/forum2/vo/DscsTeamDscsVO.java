@@ -5,7 +5,7 @@ import knou.lms.file.vo.AtflVO;
 
 import java.util.List;
 
-public class Forum2TeamDscsVO extends DefaultVO {
+public class DscsTeamDscsVO extends DefaultVO {
 
     private static final long serialVersionUID = 1L;
     // 기본 컬럼 (SnakeCase -> CamelCase 자동 매핑)

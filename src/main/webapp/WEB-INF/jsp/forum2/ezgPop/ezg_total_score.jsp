@@ -66,7 +66,7 @@ function saveEvalScore() {
 		dataType : "json",
 		data : {
 			"crsCreCd" : $("#totalScoreBlockCrsCreCd").val()
-			, "forumCd" : $("#totalScoreBlockForumCd").val()
+			, "dscsId" : $("#totalScoreBlockDscsId").val()
 			, "evalCd" : $("#evalScoreBlockEvalCd").val()
 			, "mutEvalCd" : $("#evalScoreBlockMutEvalCd").val()
 			, "evalTrgtUserId" : $("#totalScoreBlockStdId").val()
@@ -111,7 +111,7 @@ function deleteEvalScore() {
 		dataType : "json",
 		data : {
 			"crsCreCd" : $("#totalScoreBlockCrsCreCd").val()
-			, "forumCd" : $("#totalScoreBlockForumCd").val()
+			, "dscsId" : $("#totalScoreBlockDscsId").val()
 			, "evalCd" : $("#evalScoreBlockEvalCd").val()
 			, "mutEvalCd" : $("#evalScoreBlockMutEvalCd").val()
 			, "evalTrgtUserId" : $("#totalScoreBlockStdId").val()
@@ -143,7 +143,7 @@ function deleteEvalScore() {
 		<input type="text" maxlength="3" placeholder="<spring:message code="forum.alert.input.score" />" id="totalScore" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');saveEvalScore();" ><!-- 점수를 입력하세요. -->
 	</div>
 	<input type="hidden" id="totalScoreBlockCrsCreCd" value="${CRS_CRE_CD}">
-	<input type="hidden" id="totalScoreBlockForumCd" value="${vo.forumCd}">
+	<input type="hidden" id="totalScoreBlockDscsId" value="${vo.dscsId}">
 	<input type="hidden" id="totalScoreBlockStdId" value="${vo.stdId}">
 	<input type="hidden" id="totalScoreBlockTeamCd" value="${vo.teamCd}">
 	<a href="javascript:void(0);" class="ui blue button m0" id="btnSaveEvalScore" onClick="saveEvalScore()"><spring:message code='forum.button.save'/><!-- 저장 --></a>

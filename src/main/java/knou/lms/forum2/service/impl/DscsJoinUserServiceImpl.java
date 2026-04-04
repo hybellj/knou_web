@@ -6,13 +6,16 @@ import knou.framework.util.IdGenerator;
 import knou.framework.util.StringUtil;
 import knou.lms.common.paging.PagingInfo;
 import knou.lms.common.vo.ProcessResultVO;
-import knou.lms.forum2.dao.Forum2DAO;
-import knou.lms.forum2.dao.ForumFdbkDAO;
-import knou.lms.forum2.dao.ForumJoinUserDAO;
-import knou.lms.forum2.service.ForumJoinUserService;
-import knou.lms.forum.vo.*;
+import knou.lms.forum2.dao.DscsDAO;
+import knou.lms.forum2.dao.DscsFdbkDAO;
+import knou.lms.forum2.dao.DscsJoinUserDAO;
+import knou.lms.forum2.service.DscsJoinUserService;
+import knou.lms.forum2.vo.DscsMutVO;
+import knou.lms.forum2.vo.DscsFdbkVO;
+import knou.lms.forum2.vo.DscsJoinUserVO;
+import knou.lms.forum2.vo.DscsForumVO;
 import knou.lms.forum2.vo.DscsEzGraderTeamVO;
-import knou.lms.forum2.vo.Forum2TeamDscsVO;
+import knou.lms.forum2.vo.DscsTeamDscsVO;
 import knou.lms.std.dao.StdDAO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
@@ -22,17 +25,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-@Service("forum2JoinUserService")
-public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUserService {
+@Service("dscsJoinUserService")
+public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUserService {
     
-    @Resource(name="forum2JoinUserDAO")
-    private ForumJoinUserDAO forumJoinUserDAO;
+    @Resource(name="dscsJoinUserDAO")
+    private DscsJoinUserDAO forumJoinUserDAO;
 
-    @Resource(name = "forum2DAO")
-    private Forum2DAO forum2DAO;
+    @Resource(name = "dscsDAO")
+    private DscsDAO dscsDAO;
     
-    @Resource(name="forum2FdbkDAO")
-    private ForumFdbkDAO forumFdbkDAO;
+    @Resource(name="dscsFdbkDAO")
+    private DscsFdbkDAO forumFdbkDAO;
     
     @Resource(name = "stdDAO")
     private StdDAO stdDAO;
@@ -43,22 +46,22 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
      * </p>
      * 토론 현황 조회
      * 
-     * @param ForumJoinUserVO
+     * @param DscsJoinUserVO
      * @return EgovMap
      * @throws Exception
      ******************************************************/
     @Override
-    public EgovMap selectForumScoreStatus(ForumJoinUserVO vo) throws Exception {
+    public EgovMap selectForumScoreStatus(DscsJoinUserVO vo) throws Exception {
         return forumJoinUserDAO.selectForumScoreStatus(vo);
     }
     
     /*****************************************************
      * 토론 참여 목록 조회
-     * @param ForumJoinUserVO
-     * @return List<ForumJoinUserVO>
+     * @param DscsJoinUserVO
+     * @return List<DscsJoinUserVO>
      * @throws Exception
      ******************************************************/
-    public List<ForumJoinUserVO> list(ForumJoinUserVO vo) throws Exception {
+    public List<DscsJoinUserVO> list(DscsJoinUserVO vo) throws Exception {
         vo.setPagingYn("N");
         return forumJoinUserDAO.listPaging(vo);
     }
@@ -69,12 +72,12 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
      * </p>
      * 토론 참여 목록 조회
      * 
-     * @param ForumJoinUserVO
+     * @param DscsJoinUserVO
      * @return ProcessResultVO<EgovMap>
      * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<ForumJoinUserVO> listPaging(ForumJoinUserVO vo, String byteamDscsUseyn) throws Exception {
+    public ProcessResultVO<DscsJoinUserVO> listPaging(DscsJoinUserVO vo, String byteamDscsUseyn) throws Exception {
 
         /** start of paging */
         PagingInfo paginationInfo = new PagingInfo();
@@ -89,14 +92,14 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
             vo.setTeamCd("");
         }
 
-        List<ForumJoinUserVO> forumJoinUserList = forumJoinUserDAO.listPaging(vo);
+        List<DscsJoinUserVO> forumJoinUserList = forumJoinUserDAO.listPaging(vo);
 
         if (!forumJoinUserList.isEmpty()) {
             paginationInfo.setTotalRecordCount(forumJoinUserList.get(0).getTotalCnt());
         } else {
             paginationInfo.setTotalRecordCount(0);
         }
-        ProcessResultVO<ForumJoinUserVO> resultVO = new ProcessResultVO<>();
+        ProcessResultVO<DscsJoinUserVO> resultVO = new ProcessResultVO<>();
         resultVO.setReturnList(forumJoinUserList);
         resultVO.setPageInfo(paginationInfo);
 
@@ -109,12 +112,12 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
      * </p>
      * 토론 참여 성적 반영
      * 
-     * @param ForumJoinUserVO
+     * @param DscsJoinUserVO
      * @return 
      * @throws Exception
      ******************************************************/
     @Override
-    public void updateForumJoinUserScore(ForumJoinUserVO vo) throws Exception {
+    public void updateForumJoinUserScore(DscsJoinUserVO vo) throws Exception {
         List<String> listTargetStdId = Arrays.asList(StringUtil.nvl(vo.getStdIds()).split(","));
         if("".equals(listTargetStdId.get(0))) {
             listTargetStdId = null;
@@ -124,18 +127,18 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
             listTargetStdId = null;
         }
         
-        ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+        DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
         forumJoinUserVO.setForumCd(vo.getForumCd());
         forumJoinUserVO.setRgtrId(vo.getRgtrId());
         forumJoinUserVO.setMdfrId(vo.getMdfrId());
         forumJoinUserVO.setTeamCd(vo.getTeamCd());
         
-        ForumJoinUserVO selectJoinUserVO = new ForumJoinUserVO();
+        DscsJoinUserVO selectJoinUserVO = new DscsJoinUserVO();
         selectJoinUserVO.setForumCd(vo.getForumCd());
         selectJoinUserVO.setCrsCreCd(vo.getCrsCreCd());
         selectJoinUserVO.setStdIdList(listTargetStdId);
         selectJoinUserVO.setConditionType(vo.getConditionType());
-        List<ForumJoinUserVO> joinUserList = forumJoinUserDAO.listStdScore(selectJoinUserVO);
+        List<DscsJoinUserVO> joinUserList = forumJoinUserDAO.listStdScore(selectJoinUserVO);
 
         // 일괄 점수 등록
         if("batch".equals(StringUtil.nvl(vo.getScoreType(),""))) {
@@ -159,7 +162,7 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
          // 전체 점수 가감
         } else if("addition".equals(StringUtil.nvl(vo.getScoreType(),""))) {
             for (int i = 0; i < joinUserList.size(); i++) {
-                ForumJoinUserVO joinUserVO = joinUserList.get(i);
+                DscsJoinUserVO joinUserVO = joinUserList.get(i);
                 String stdNo = StringUtil.nvl(joinUserVO.getStdId());
 //                String teamCd = StringUtil.nvl(joinUserVO.getTeamCd());
 //                int preScore = Integer.parseInt(StringUtil.nvl(joinUserVO.getScore()));
@@ -203,7 +206,7 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
                     forumJoinUserVO.setScore(0.0);
                 }
                 forumJoinUserDAO.insertStdScore(forumJoinUserVO);
-                ForumFdbkVO forumFdbkVO = new ForumFdbkVO();
+                DscsFdbkVO forumFdbkVO = new DscsFdbkVO();
                 forumFdbkVO.setForumCd(vo.getForumCd());
                 forumFdbkVO.setStdId(stdNo);
                 forumFdbkVO.setRgtrId(vo.getRgtrId());
@@ -238,24 +241,24 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
      * </p>
      * 토론 참여 정보 조회
      * 
-     * @param ForumJoinUserVO
-     * @return ForumJoinUserVO
+     * @param DscsJoinUserVO
+     * @return DscsJoinUserVO
      * @throws Exception
      ******************************************************/
     @Override
-    public ForumJoinUserVO selectForumJoinUser(ForumJoinUserVO vo) throws Exception {
+    public DscsJoinUserVO selectForumJoinUser(DscsJoinUserVO vo) throws Exception {
         return forumJoinUserDAO.selectForumJoinUser(vo);
     }
 
     // 성적분포현황차트
     @Override
-    public List<?> forumJoinUserList(ForumJoinUserVO vo) throws Exception {
+    public List<?> forumJoinUserList(DscsJoinUserVO vo) throws Exception {
         return forumJoinUserDAO.forumJoinUserList(vo);
     }
 
     // 성적평가 성적 등록
     @Override
-    public void addStdScore(ForumJoinUserVO vo) throws Exception {
+    public void addStdScore(DscsJoinUserVO vo) throws Exception {
         String[] stdArr = vo.getStdIds().split(",");
 
         if(stdArr.length > 0) {
@@ -268,9 +271,9 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
 
     // 교수 메모 팝업창 정보
     @Override
-    public ForumJoinUserVO selectProfMemo(ForumJoinUserVO vo) throws Exception {
+    public DscsJoinUserVO selectProfMemo(DscsJoinUserVO vo) throws Exception {
         // ensureJoinUser: WHEN NOT MATCHED THEN INSERT 만 실행 (기존 점수 덮어쓰기 없음)
-        ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+        DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
         forumJoinUserVO.setForumCd(vo.getForumCd());
         forumJoinUserVO.setTeamCd(vo.getTeamCd());
         forumJoinUserVO.setStdId(vo.getStdId());
@@ -287,19 +290,19 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
 
     // 교수 메모 수정
     @Override
-    public void editForumProfMemo(ForumJoinUserVO vo) throws Exception {
+    public void editForumProfMemo(DscsJoinUserVO vo) throws Exception {
         forumJoinUserDAO.editForumProfMemo(vo);
     }
 
     // 토론 참여자 페이징 목록 조회
     @Override
-    public ProcessResultVO<ForumJoinUserVO> listPageing(ForumJoinUserVO vo) throws Exception {
+    public ProcessResultVO<DscsJoinUserVO> listPageing(DscsJoinUserVO vo) throws Exception {
         return this.listPaging(vo, "");
     }
 
     // 엑셀 성적등록 엑셀 업로드
     @Override
-    public void updateExampleExcelScore(ForumJoinUserVO vo, List<?> stdNoList, String forumCtgrCd) throws Exception {
+    public void updateExampleExcelScore(DscsJoinUserVO vo, List<?> stdNoList, String forumCtgrCd) throws Exception {
         if(stdNoList != null) {
             for (int i = 0; i < stdNoList.size(); i++) {
                 Map<String, Object> stdNoMap = (Map<String, Object>)stdNoList.get(i);
@@ -321,19 +324,19 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
     }
 
     @Override
-    public List<ForumJoinUserVO> listForumJoinUser(ForumJoinUserVO vo) throws Exception {
+    public List<DscsJoinUserVO> listForumJoinUser(DscsJoinUserVO vo) throws Exception {
         return forumJoinUserDAO.listForumJoinUser(vo);
     }
 
     @Override
-    public List<DscsEzGraderTeamVO> listForumJoinTeam(ForumJoinUserVO vo) throws Exception {
+    public List<DscsEzGraderTeamVO> listForumJoinTeam(DscsJoinUserVO vo) throws Exception {
         List<DscsEzGraderTeamVO> memberList = forumJoinUserDAO.listForumJoinTeam(vo);
         if(memberList != null && !memberList.isEmpty() && memberList.size() > 0) {
             for(DscsEzGraderTeamVO teamVo : memberList) {
                 String teamStdIds = "";
                 if (teamVo.getTeamMembers() != null && !teamVo.getTeamMembers().isEmpty() && teamVo.getTeamMembers().size() > 0) {
                     int idx = 0;
-                    for(ForumJoinUserVO joinUserVo : teamVo.getTeamMembers()) {
+                    for(DscsJoinUserVO joinUserVo : teamVo.getTeamMembers()) {
                         if (idx > 0 ) {
                             teamStdIds += ",";
                         }
@@ -349,14 +352,14 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
 
     // 메모
     @Override
-    public ForumJoinUserVO getMemo(ForumVO vo) throws Exception {
+    public DscsJoinUserVO getMemo(DscsForumVO vo) throws Exception {
         
         return forumJoinUserDAO.getMemo(vo);
     }
 
     // 글자수로 점수 주기
     @Override
-    public void updateForumJoinUserLenScore(ForumJoinUserVO vo) throws Exception {
+    public void updateForumJoinUserLenScore(DscsJoinUserVO vo) throws Exception {
         List<String> listTargetStdId = Arrays.asList(StringUtil.nvl(vo.getStdIds()).split(","));
         if("".equals(listTargetStdId.get(0))) {
             listTargetStdId = null;
@@ -366,7 +369,7 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
             listTargetStdId = null;
         }
         
-        ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+        DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
         forumJoinUserVO.setForumCd(vo.getForumCd());
         forumJoinUserVO.setRgtrId(vo.getRgtrId());
         forumJoinUserVO.setMdfrId(vo.getMdfrId());
@@ -397,19 +400,19 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
 
     // 참여자가 없을 때 토론 참여자 테이블 삽입
 	@Override
-	public void chkStdNoInsert(ForumMutVO vo) throws Exception {
+	public void chkStdNoInsert(DscsMutVO vo) throws Exception {
 		forumJoinUserDAO.chkStdNoInsert(vo);
 	}
 
 	// 모든 토론 참여자를 토론 참여자 테이블에 삽입
 	@Override
-	public void insertJoinUser(ForumVO vo) throws Exception {
+	public void insertJoinUser(DscsForumVO vo) throws Exception {
 		// 1. 기존 레코드 팀 갱신 (WHEN MATCHED UPDATE)
 		forumJoinUserDAO.insertJoinUser(vo);
 
 		// 2. 미등록 학생 목록 조회 후 ID 생성하여 단건 INSERT
-		List<ForumJoinUserVO> newStudents = forumJoinUserDAO.selectStudentsNotInPtcp(vo);
-		for (ForumJoinUserVO student : newStudents) {
+		List<DscsJoinUserVO> newStudents = forumJoinUserDAO.selectStudentsNotInPtcp(vo);
+		for (DscsJoinUserVO student : newStudents) {
 			student.setDscsPtcpId(IdGenerator.getNewId(IdPrefixType.DSPTC.getCode()));
 			student.setRgtrId(vo.getRgtrId());
 			student.setMdfrId(vo.getRgtrId());
@@ -419,14 +422,14 @@ public class ForumJoinUserServiceImpl extends ServiceBase implements ForumJoinUs
 
 	// 참여형 일괄평가
 	@Override
-	public void participateScore(ForumJoinUserVO vo) throws Exception {
+	public void participateScore(DscsJoinUserVO vo) throws Exception {
         forumJoinUserDAO.participateScore(vo);
 	}
 
 	// 개별 평가점수
 	@Override
-	public void setScoreRatio(ForumJoinUserVO vo) throws Exception {
-		ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+	public void setScoreRatio(DscsJoinUserVO vo) throws Exception {
+		DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
 		forumJoinUserVO.setForumCd(vo.getForumCd());
 		forumJoinUserVO.setRgtrId(vo.getRgtrId());
 		forumJoinUserVO.setMdfrId(vo.getMdfrId());

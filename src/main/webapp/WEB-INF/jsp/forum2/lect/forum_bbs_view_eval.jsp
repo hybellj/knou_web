@@ -14,15 +14,15 @@ $(document).ready(function() {
 	}
 });
 </script>
-<c:if test="${CLASS_USER_TYPE ne 'CLASS_LEARNER' && (empty forumVo.searchMenu || forumVo.searchMenu != 'EZG')}">
+<c:if test="${CLASS_USER_TYPE ne 'CLASS_LEARNER' && (empty dscsForumVO.searchMenu || dscsForumVO.searchMenu != 'EZG')}">
 <h3 class="page-title mt20" id="fourmTitle"><spring:message code="forum.label.forum"/> <spring:message code="forum.label.atcl"/> <spring:message code="forum.label.list"/></h3> <!-- 토론 글 목록 -->
 </c:if>
-<c:if test="${forumVo.forumCtgrCd eq 'TEAM'}">
+<c:if test="${dscsForumVO.dscsUnitTycd eq 'TEAM'}">
 <h3 class="page-title mt20"></h3>
 </c:if>
 <%-- <div class="option-content">
 	<div class="ui action input search-box">
-		<input type="text" placeholder="<spring:message code='forum.label.user.no'/>,<spring:message code='forum.label.user_id'/>" id="searchValue" value="<c:out value='${forumVo.searchValue}' />"> <!-- 학번,아이디 -->
+		<input type="text" placeholder="<spring:message code='forum.label.user.no'/>,<spring:message code='forum.label.user_id'/>" id="searchValue" value="<c:out value='${dscsForumVO.searchValue}' />"> <!-- 학번,아이디 -->
 		<input type="text" style="display: none;"/> 
 		<a class="ui icon button"  onclick="listForum(1);">
 			<i class="search icon"></i>
@@ -30,10 +30,10 @@ $(document).ready(function() {
 	</div>
 	<div class="button-area">
 		<select class="ui dropdown list-num" id="listScale" onchange="listForum();">
-			<option value="10" ${forumVo.listScale == 10?'selected':''}>10</option>
-			<option value="20" ${forumVo.listScale == 20?'selected':''}>20</option>
-			<option value="50" ${forumVo.listScale == 50?'selected':''}>50</option>
-			<option value="100" ${forumVo.listScale == 100?'selected':''}>100</option>
+			<option value="10" ${dscsForumVO.listScale == 10?'selected':''}>10</option>
+			<option value="20" ${dscsForumVO.listScale == 20?'selected':''}>20</option>
+			<option value="50" ${dscsForumVO.listScale == 50?'selected':''}>50</option>
+			<option value="100" ${dscsForumVO.listScale == 100?'selected':''}>100</option>
 		</select>
 	</div>
 </div> --%>

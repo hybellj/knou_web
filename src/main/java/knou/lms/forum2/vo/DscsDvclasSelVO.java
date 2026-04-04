@@ -2,7 +2,7 @@ package knou.lms.forum2.vo;
 
 import java.io.Serializable;
 
-public class Forum2DvclasSelVO implements Serializable {
+public class DscsDvclasSelVO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

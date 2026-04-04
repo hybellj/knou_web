@@ -9,24 +9,24 @@ import knou.framework.util.IdGenerator;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.file.service.AttachFileService;
 import knou.lms.file.vo.AtflVO;
-import knou.lms.forum2.dao.ForumFdbkDAO;
-import knou.lms.forum2.dao.ForumJoinUserDAO;
-import knou.lms.forum2.service.ForumFdbkService;
-import knou.lms.forum.vo.ForumFdbkVO;
+import knou.lms.forum2.dao.DscsFdbkDAO;
+import knou.lms.forum2.dao.DscsJoinUserDAO;
+import knou.lms.forum2.service.DscsFdbkService;
+import knou.lms.forum2.vo.DscsFdbkVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
 
-@Service("forum2FdbkService")
-public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkService {
+@Service("dscsFdbkService")
+public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService {
 
-    @Resource(name="forum2FdbkDAO")
-    private ForumFdbkDAO forumFdbkDAO;
+    @Resource(name="dscsFdbkDAO")
+    private DscsFdbkDAO forumFdbkDAO;
 
-    @Resource(name="forum2JoinUserDAO")
-    private ForumJoinUserDAO forumJoinUserDAO;
+    @Resource(name="dscsJoinUserDAO")
+    private DscsJoinUserDAO forumJoinUserDAO;
 
     @Resource(name="attachFileService")
     private AttachFileService attachFileService;
@@ -37,12 +37,12 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
      * </p>
      * 토론 피드백 목록 조회
      *
-     * @param ForumFdbkVO
+     * @param DscsFdbkVO
      * @return List<EgovMap>
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> forumFdbkList(ForumFdbkVO vo) throws Exception {
+    public List<EgovMap> forumFdbkList(DscsFdbkVO vo) throws Exception {
         return forumFdbkDAO.forumFdbkList(vo);
     }
 
@@ -52,12 +52,12 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
      * </p>
      * 토론 피드백 등록 (파일 없는 메모 경로)
      *
-     * @param ForumFdbkVO
+     * @param DscsFdbkVO
      * @return void
      * @throws Exception
      ******************************************************/
     @Override
-    public void insertForumFdbk(ForumFdbkVO vo) throws Exception {
+    public void insertForumFdbk(DscsFdbkVO vo) throws Exception {
         forumFdbkDAO.insertForumFdbk(vo);
     }
 
@@ -67,12 +67,12 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
      * </p>
      * 토론 피드백 수정
      *
-     * @param ForumFdbkVO
+     * @param DscsFdbkVO
      * @return void
      * @throws Exception
      ******************************************************/
     @Override
-    public void updateForumFdbk(ForumFdbkVO vo) throws Exception {
+    public void updateForumFdbk(DscsFdbkVO vo) throws Exception {
         forumFdbkDAO.updateForumFdbk(vo);
     }
 
@@ -82,25 +82,25 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
      * </p>
      * 토론 피드백 삭제
      *
-     * @param ForumFdbkVO
+     * @param DscsFdbkVO
      * @return void
      * @throws Exception
      ******************************************************/
     @Override
-    public void deleteForumFdbk(ForumFdbkVO vo) throws Exception {
+    public void deleteForumFdbk(DscsFdbkVO vo) throws Exception {
         forumFdbkDAO.deleteForumFdbk(vo);
     }
 
     // 일괄 피드백 등록
     @Override
-    public void insertForumAllFdbk(ForumFdbkVO vo) throws Exception {
+    public void insertForumAllFdbk(DscsFdbkVO vo) throws Exception {
         forumFdbkDAO.insertForumAllFdbk(vo);
     }
 
     // 피드백 저장
     @Override
-    public ProcessResultVO<ForumFdbkVO> insertFdbk(ForumFdbkVO vo) throws Exception {
-        ProcessResultVO<ForumFdbkVO> resultVO = new ProcessResultVO<ForumFdbkVO>();
+    public ProcessResultVO<DscsFdbkVO> insertFdbk(DscsFdbkVO vo) throws Exception {
+        ProcessResultVO<DscsFdbkVO> resultVO = new ProcessResultVO<DscsFdbkVO>();
 
         try {
             String[] stdArr = vo.getStdId().split(",");
@@ -112,7 +112,7 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
 
                     /*
                     // 토론 참여자(tb_lms_forum_join_user) 테이블에 등록
-                    ForumJoinUserVO forumJoinUserVO = new ForumJoinUserVO();
+                    DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
                     forumJoinUserVO.setScore(null);
                     forumJoinUserVO.setForumCd(vo.getForumCd());
                     forumJoinUserVO.setTeamCd(vo.getTeamCd());
@@ -149,11 +149,11 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
 
     // 피드백 조회
     @Override
-    public List<ForumFdbkVO> selectFdbk(ForumFdbkVO vo) throws Exception {
-        List<ForumFdbkVO> forumFdbkList = forumFdbkDAO.selectFdbk(vo);
+    public List<DscsFdbkVO> selectFdbk(DscsFdbkVO vo) throws Exception {
+        List<DscsFdbkVO> forumFdbkList = forumFdbkDAO.selectFdbk(vo);
 
         if(forumFdbkList != null) {
-            for(ForumFdbkVO vo1 : forumFdbkList) {
+            for(DscsFdbkVO vo1 : forumFdbkList) {
                 AtflVO atflParam = new AtflVO();
                 atflParam.setAtflRepoId(CommConst.REPO_DSCS);
                 atflParam.setRefId(vo1.getForumFdbkCd());
@@ -167,8 +167,8 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
 
     // 피드백 수정
     @Override
-    public ProcessResultVO<ForumFdbkVO> updateFdbk(ForumFdbkVO vo) throws Exception {
-        ProcessResultVO<ForumFdbkVO> resultVO = new ProcessResultVO<ForumFdbkVO>();
+    public ProcessResultVO<DscsFdbkVO> updateFdbk(DscsFdbkVO vo) throws Exception {
+        ProcessResultVO<DscsFdbkVO> resultVO = new ProcessResultVO<DscsFdbkVO>();
 
         try {
             forumFdbkDAO.updateFdbk(vo);
@@ -196,8 +196,8 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
 
     // 피드백 삭제
     @Override
-    public ProcessResultVO<ForumFdbkVO> deleteFdbk(ForumFdbkVO vo) throws Exception {
-        ProcessResultVO<ForumFdbkVO> resultVO = new ProcessResultVO<ForumFdbkVO>();
+    public ProcessResultVO<DscsFdbkVO> deleteFdbk(DscsFdbkVO vo) throws Exception {
+        ProcessResultVO<DscsFdbkVO> resultVO = new ProcessResultVO<DscsFdbkVO>();
 
         try {
             forumFdbkDAO.deleteFdbk(vo);
@@ -213,7 +213,7 @@ public class ForumFdbkServiceImpl extends ServiceBase implements ForumFdbkServic
 
     // 피드백 갯수
     @Override
-    public int cntFdbk(ForumFdbkVO vo) throws Exception {
+    public int cntFdbk(DscsFdbkVO vo) throws Exception {
         return forumFdbkDAO.cntFdbk(vo);
     }
 

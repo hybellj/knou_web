@@ -40,7 +40,7 @@ function getEzgTitle() {
 	var url = "/forum2/ezgPop/forum.do";
 	var paramData = {
 		"crsCreCd" : $("#ezgCrsCreCd").val()
-		, "forumCd" : $("#ezgForumCd").val()
+		, "dscsId" : $("#ezgDscsId").val()
 	}; 
 
 	$("#loading_page").show();
@@ -53,7 +53,7 @@ function getEzgTitle() {
 		url : url,
 		success : function(data) {
 			if(data.result >= 0) {
-				$("#ezgTitle").html('<span>' + data.returnVO.forumTitle +'</span>');
+				$('#ezgTitle').html('<span>' + data.returnVO.dscsTtl +'</span>');
 				$("#evalScoreBlockEvalCd").val(""+ data.returnVO.evalCd +"");
 			} else {
 				alert(data.message);
@@ -75,7 +75,7 @@ function getJoinUserOrTeamSearchView() {
 	var url = "/forum2/ezgPop/ezgJoinUserSearchView.do";
 	var paramData = {
 		"crsCreCd" : $("#ezgCrsCreCd").val()
-		, "forumCd" : $("#ezgForumCd").val()
+		, "dscsId" : $("#ezgDscsId").val()
 	}; 
 
 	$("#joinuserOrTeamSearchBlock").load(
@@ -93,7 +93,7 @@ function getJoinUserOrTeamList() {
 
 	var paramData = {
 		"crsCreCd" : $("#ezgCrsCreCd").val()
-		, "forumCd" : $("#ezgForumCd").val()
+		, "dscsId" : $("#ezgDscsId").val()
 		, "searchKey" : $("#ezgSearchKey").val()=='SEL_ALL'?'':$("#ezgSearchKey").val()
 		, "searchSort" : $("#ezgSearchSort").val()
 		, "stdId" : $("#selectedStdId").val()
@@ -145,7 +145,7 @@ function listForum(page, userId, stdId, teamStdIds) {
 		searchValue = $("#searchValue").val();
 	} 
 
-	if(searchValue == "" && $("#ezgForumCtgrCd").val() == "TEAM") {
+	if(searchValue == "" && $("#ezgDscsUnitTycd").val() == "TEAM") {
 		$("#mutEvalChart").hide();
 		$("#mutEvalTitle").hide();
 	}
@@ -160,11 +160,11 @@ function listForum(page, userId, stdId, teamStdIds) {
 			"searchValue" : searchValue,
 			"searchKey" : searchKey,
 			"goUrl" : "",
-			"forumCd" : $("#ezgForumCd").val(),
+			"dscsId" : $("#ezgDscsId").val(),
 			"crsCreCd" : $("#ezgCrsCreCd").val(),
 			"userId" : "",
 			"userName" : "",
-			"forumCtgrCd" : $("#ezgForumCtgrCd").val(),
+			"dscsUnitTycd" : $("#ezgDscsUnitTycd").val(),
 			"stdList" : teamStdIds?teamStdIds:"",
 			"searchMenu" : "EZG"
 		}
@@ -189,11 +189,11 @@ function getTotalScoreInputView(userId, stdId, teamCd) {
 		var url = "/forum2/ezgPop/ezgTotalScoreView.do";
 		var paramData = {
 			"crsCreCd" : $("#ezgCrsCreCd").val()
-			, "forumCd" : $("#ezgForumCd").val()
+			, "dscsId" : $("#ezgDscsId").val()
 			, "userId" : userId
 			, "stdId" : stdId
 			, "teamCd" : teamCd
-			, "evalCtgr" : "${vo.evalCtgr}"
+			, "evlScrTycd" : "${vo.evlScrTycd}"
 		}; 
 
 		$("#totalScoreInputBlock").load(
@@ -206,11 +206,11 @@ function getTotalScoreInputView(userId, stdId, teamCd) {
 		var url = "/forum2/ezgPop/ezgScoreView.do";
 		var paramData = {
 			"crsCreCd" : $("#ezgCrsCreCd").val()
-			, "forumCd" : $("#ezgForumCd").val()
+			, "dscsId" : $("#ezgDscsId").val()
 			, "userId" : userId
 			, "stdId" : stdId
 			, "teamCd" : teamCd
-			, "evalCtgr" : "${vo.evalCtgr}"
+			, "evlScrTycd" : "${vo.evlScrTycd}"
 		}; 
 
 		$("#totalScoreInputBlock").load(
@@ -233,7 +233,7 @@ function getEvalScoreInputView(userId, stdId, teamCd) {
 	var url = "/forum2/ezgPop/ezgEvalScoreView.do";
 	var paramData = {
 		"crsCreCd" : $("#ezgCrsCreCd").val()
-		, "forumCd" : $("#ezgForumCd").val()
+		, "dscsId" : $("#ezgDscsId").val()
 		, "userId" : userId
 		, "stdId" : stdId
 		, "teamCd" : teamCd
@@ -278,7 +278,7 @@ function getForumFeedbackView(userId, stdId, teamCd) {
 			"/forum2/ezgPop/forumScoreEvalFeedBack.do"
 			, {
 				"crsCreCd" : $("#ezgCrsCreCd").val()
-				, "forumCd" : $("#ezgForumCd").val()
+				, "dscsId" : $("#ezgDscsId").val()
 				, "userId" : userId
 				, "stdId" : stdId
 				, "teamCd" : teamCd
@@ -308,7 +308,7 @@ function addFdbkCts(forumFdbkCd, parForumFdbkCd){
 			$.getJSON("/forum2/forumLect/addFdbkCts.do", {
 				"fdbkCts" : fdbkCts,
 				"parForumFdbkCd" : parForumFdbkCd,
-				"forumCd" : $("#ezgForumCd").val(),
+				"dscsId" : $("#ezgDscsId").val(),
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
 				"userName" : $("#selectedUserNm").val(),
@@ -326,7 +326,7 @@ function addFdbkCts(forumFdbkCd, parForumFdbkCd){
 			$.getJSON("/forum2/forumLect/editFdbkCts.do", {
 				"fdbkCts" : fdbkCts,
 				"forumFdbkCd" : forumFdbkCd,
-				"forumCd" : $("#ezgForumCd").val(),
+				"dscsId" : $("#ezgDscsId").val(),
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
 				"userName" : $("#selectedUserNm").val(),
@@ -435,7 +435,7 @@ function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
 			$.getJSON("/forum2/forumLect/addFdbkCts.do", {
 				"fdbkCts" : fCmnt,
 				"parForumFdbkCd" : parForumFdbkCd,
-				"forumCd" : $("#ezgForumCd").val(),
+				"dscsId" : $("#ezgDscsId").val(),
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
 				"userName" : $("#selectedUserNm").val(),
@@ -453,7 +453,7 @@ function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
 			$.getJSON("/forum2/forumHome/editFdbkCts", {
 				"fdbkCts" : fCmnt,
 				"forumFdbkCd" : forumFdbkCd,
-				"forumCd" : $("#ezgForumCd").val(),
+				"dscsId" : $("#ezgDscsId").val(),
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
 				"userName" : $("#selectedUserNm").val(),
@@ -478,7 +478,7 @@ function delFdbk(forumFdbkCd) {
 		$.getJSON("/forum2/forumLect/delFdbkCts.do", {
 			"forumFdbkCd" : forumFdbkCd,
 			"stdId" : $("#selectedStdId").val(),
-			"forumCd" : $("#ezgForumCd").val(),
+			"dscsId" : $("#ezgDscsId").val(),
 			"userId" : $("#selectedUserId").val(),
 			"teamCd" : $("#selectedTeamCd").val()
 		}).done(function(data) {
@@ -617,7 +617,7 @@ function submitFdbk() {
 	var url = "/forum2/forumLect/Form/regFdbk.do";
 	var data = {
 		"crsCreCd"      : "${vo.crsCreCd}",
-		"forumCd"		: "${vo.forumCd}",
+		"dscsId"		: "${vo.dscsId}",
 		"stdId"			: stdId,
 		"teamCd"		: teamCd,
 		"fdbkCts"		: $("#fdbkValue").val(),
@@ -656,7 +656,7 @@ function submitMemo() {
 	var stdId = $(".card.active-toggle-btn.select").attr("data-stdId");
 	var url = "/forum2/forumLect/editForumProfMemo.do";
 	var data = {
-		"forumCd"     : "${vo.forumCd}",
+		"dscsId"     : "${vo.dscsId}",
 		"stdId"  	  : stdId,
 		"profMemo"    : $("#profMemo").val(),
 	};
@@ -704,7 +704,7 @@ function partiScore() {
 		var url = "/forum2/forumLect/participateScore.do";
 		
 		var data = {
-			"forumCd" : "${vo.forumCd}",
+			"dscsId" : "${vo.dscsId}",
 			"crsCreCd" : "${vo.crsCreCd}",
 		};
 		
@@ -751,7 +751,7 @@ function closeFileSelect() {
 
 <body class="modal-page EG-grader">
 <input type="hidden" id="ezgCrsCreCd" name="crsCreCd" value="${vo.crsCreCd}" />
-<input type="hidden" id="ezgForumCd" name="forumCd" value="${vo.forumCd}" />
+<input type="hidden" id="ezgDscsId" name="dscsId" value="${vo.dscsId}" />
 <input type="hidden" id="evalScoreBlockEvalCd" name="evalCd" />
 	<div id="wrap" class="pusher <%=SessionInfo.getThemeMode(request)%>">
 		<div class="header-title EG-type">
@@ -826,7 +826,7 @@ function closeFileSelect() {
 								</form>
 								<uiex:dextuploader
 									id="fdbkFileUploader"
-									path="/forum/${vo.forumCd}"
+									path="/forum/${vo.dscsId}"
 									limitCount="1"
 									limitSize="1024"
 									oneLimitSize="1024"

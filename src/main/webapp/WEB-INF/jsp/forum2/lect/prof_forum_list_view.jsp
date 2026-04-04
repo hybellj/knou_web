@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+﻿<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
 <!DOCTYPE html>
@@ -130,7 +130,7 @@
                                     <span class="list-card-button"></span>
 
                                     <%-- 목록 스케일 선택 --%>
-                                    <uiex:listScale func="changeListScale" value="${forum2ListVO.listScale}" />
+                                    <uiex:listScale func="changeListScale" value="${dscsListVO.listScale}" />
                                 </div>
                             </div>
 
@@ -177,9 +177,9 @@
     </div>
 
 <script type="text/javascript">
-    var SEARCH_VALUE	= '<c:out value="${forum2ListVO.dscsTtl}" />';
-    var PAGE_INDEX		= '<c:out value="${forum2ListVO.pageIndex}" />';
-    var LIST_SCALE		= '<c:out value="${forum2ListVO.listScale}" />';
+    var SEARCH_VALUE	= '<c:out value="${dscsListVO.dscsTtl}" />';
+    var PAGE_INDEX		= '<c:out value="${dscsListVO.pageIndex}" />';
+    var LIST_SCALE		= '<c:out value="${dscsListVO.listScale}" />';
     var EPARAM			= '<c:out value="${encParams}" />';
 
     $(document).ready(function() {
@@ -264,7 +264,7 @@
             pageIndex		: pageIndex
             , listScale		: LIST_SCALE
             , dscsTtl       : $("#dscsTtl").val()
-            , sbjctId       : '<c:out value="${forum2ListVO.sbjctId}" />'
+            , sbjctId       : '<c:out value="${dscsListVO.sbjctId}" />'
         };
 
         var url = '<c:url value="/forum2/forumLect/profForumList.do" />';

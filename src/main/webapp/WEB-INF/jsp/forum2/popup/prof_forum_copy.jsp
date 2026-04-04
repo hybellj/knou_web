@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+﻿<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko" style="position: fixed; width: 100%;">
@@ -31,7 +31,7 @@
     			"smstrChrtId" : $("#smstrChrtId").val(),
     			"sbjctId"     : ($("#sbjctId").val() || "").replace("ALL", ""),
     			"searchValue" : $("#searchValue").val(),
-				"userId"		: "${forum2VO.userId}",
+				"userId"		: "${dscsVO.userId}",
     			"pageIndex"   : 1,
     			"listScale"   : 100
     		};
@@ -83,7 +83,7 @@
 			var url  = "/forum2/forumLect/Form/smstrChrtSbjctListAjax.do";
 			var data = {
 				"smstrChrtId" : smstrChrtId,
-				"sbjctId"     : "${forum2VO.sbjctId}"
+				"sbjctId"     : "${dscsVO.sbjctId}"
 			};
 
 			ajaxCall(url, data, function(data) {

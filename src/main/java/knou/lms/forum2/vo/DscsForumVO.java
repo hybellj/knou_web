@@ -1,4 +1,4 @@
-package knou.lms.forum.vo;
+package knou.lms.forum2.vo;
 
 import java.util.List;
 
@@ -7,7 +7,7 @@ import javax.validation.constraints.Size;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.forum2.vo.DscsTeamDscsVO;
 
-public class ForumVO extends DefaultVO {
+public class DscsForumVO extends DefaultVO {
 
     private static final long serialVersionUID = 6771664743351825074L;
     
@@ -128,11 +128,23 @@ public class ForumVO extends DefaultVO {
     public void setForumCd(String forumCd) {
         this.forumCd = forumCd;
     }
+    public String getDscsId() {
+        return forumCd;
+    }
+    public void setDscsId(String dscsId) {
+        this.forumCd = dscsId;
+    }
     public String getForumCtgrCd() {
         return forumCtgrCd;
     }
     public void setForumCtgrCd(String forumCtgrCd) {
         this.forumCtgrCd = forumCtgrCd;
+    }
+    public String getDscsUnitTycd() {
+        return forumCtgrCd;
+    }
+    public void setDscsUnitTycd(String dscsUnitTycd) {
+        this.forumCtgrCd = dscsUnitTycd;
     }
     public String getForumEndDttm() {
         return forumEndDttm;
@@ -140,11 +152,23 @@ public class ForumVO extends DefaultVO {
     public void setForumEndDttm(String forumEndDttm) {
         this.forumEndDttm = forumEndDttm;
     }
+    public String getDscsEdttm() {
+        return forumEndDttm;
+    }
+    public void setDscsEdttm(String dscsEdttm) {
+        this.forumEndDttm = dscsEdttm;
+    }
     public String getForumStartDttm() {
         return forumStartDttm;
     }
     public void setForumStartDttm(String forumStartDttm) {
         this.forumStartDttm = forumStartDttm;
+    }
+    public String getDscsSdttm() {
+        return forumStartDttm;
+    }
+    public void setDscsSdttm(String dscsSdttm) {
+        this.forumStartDttm = dscsSdttm;
     }
     public String getForumOpenYn() {
         return forumOpenYn;
@@ -164,11 +188,23 @@ public class ForumVO extends DefaultVO {
     public void setScoreAplyYn(String scoreAplyYn) {
         this.scoreAplyYn = scoreAplyYn;
     }
+    public String getMrkRfltyn() {
+        return scoreAplyYn;
+    }
+    public void setMrkRfltyn(String mrkRfltyn) {
+        this.scoreAplyYn = mrkRfltyn;
+    }
     public String getScoreOpenYn() {
         return scoreOpenYn;
     }
     public void setScoreOpenYn(String scoreOpenYn) {
         this.scoreOpenYn = scoreOpenYn;
+    }
+    public String getMrkOyn() {
+        return scoreOpenYn;
+    }
+    public void setMrkOyn(String mrkOyn) {
+        this.scoreOpenYn = mrkOyn;
     }
     public String getScoreOpenDttm() {
         return scoreOpenDttm;
@@ -182,11 +218,23 @@ public class ForumVO extends DefaultVO {
     public void setForumTitle(String forumTitle) {
         this.forumTitle = forumTitle;
     }
+    public String getDscsTtl() {
+        return forumTitle;
+    }
+    public void setDscsTtl(String dscsTtl) {
+        this.forumTitle = dscsTtl;
+    }
     public String getForumArtl() {
         return forumArtl;
     }
     public void setForumArtl(String forumArtl) {
         this.forumArtl = forumArtl;
+    }
+    public String getDscsCts() {
+        return forumArtl;
+    }
+    public void setDscsCts(String dscsCts) {
+        this.forumArtl = dscsCts;
     }
     public String getTeamAtclOpenYn() {
         return teamAtclOpenYn;
@@ -309,6 +357,12 @@ public class ForumVO extends DefaultVO {
     public void setTeamCtgrCd(String teamCtgrCd) {
         this.teamCtgrCd = teamCtgrCd;
     }
+    public String getTeamTycd() {
+        return teamCtgrCd;
+    }
+    public void setTeamTycd(String teamTycd) {
+        this.teamCtgrCd = teamTycd;
+    }
     public String getForumStatus() {
         return forumStatus;
     }
@@ -429,6 +483,12 @@ public class ForumVO extends DefaultVO {
     }
     public void setEvalCtgr(String evalCtgr) {
         this.evalCtgr = evalCtgr;
+    }
+    public String getEvlScrTycd() {
+        return evalCtgr;
+    }
+    public void setEvlScrTycd(String evlScrTycd) {
+        this.evalCtgr = evlScrTycd;
     }
     public String getMutEvalYn() {
         return mutEvalYn;

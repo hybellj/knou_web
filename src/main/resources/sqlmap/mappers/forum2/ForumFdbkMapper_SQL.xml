@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="knou.lms.forum2.dao.ForumFdbkDAO">
+<mapper namespace="knou.lms.forum2.dao.DscsFdbkDAO">
 
-	<select id="forumFdbkList" parameterType="forumFdbkVO" resultType="egovMap">
+	<select id="forumFdbkList" parameterType="dscsFdbkVO" resultType="egovMap">
 		/*
 			피드백 조회
 			ForumFdbkDAO.forumFdbkList
@@ -25,7 +25,7 @@
 				, a.RGTR_ID AS TO_USER_ID
 			FROM TB_LMS_DSCS_FDBK a
 			WHERE a.UP_DSCS_FDBK_ID IS NULL
-			AND a.DSCS_ID = #{forumCd} 
+			AND a.DSCS_ID = #{dscsId} 
 			UNION ALL 
 			SELECT a.DSCS_FDBK_ID
 				,  a.UP_DSCS_FDBK_ID
@@ -44,7 +44,7 @@
 			FROM TB_LMS_DSCS_FDBK a 
 			INNER JOIN fdbk b
 			ON a.UP_DSCS_FDBK_ID = b.DSCS_FDBK_ID
-			WHERE a.DSCS_ID = #{forumCd}
+			WHERE a.DSCS_ID = #{dscsId}
 		)
 		SELECT R.*
 		  FROM (SELECT DSCS_FDBK_ID
@@ -101,7 +101,7 @@
 					, (SELECT COUNT(*) FROM FDBK B WHERE B.DSCS_ID = A.DSCS_ID AND B.PATH LIKE CONCAT('%', A.DSCS_FDBK_ID, '%') AND B.DELYN = 'N' AND B.DSCS_FDBK_ID != A.DSCS_FDBK_ID) AS CMNT_CNT
 					, RIGHT(RGTR_ID,1) AS USER_ID_COLOR
 				FROM FDBK  A
-				WHERE DSCS_ID = #{forumCd}
+				WHERE DSCS_ID = #{dscsId}
 				<choose>
 					<when test='teamCd != null and teamCd != ""'>
 						AND TEAM_ID=#{teamCd}
@@ -115,7 +115,7 @@
 			ORDER BY PATH
 	</select>
 
-	<insert id="insertForumFdbk" parameterType="forumFdbkVO">
+	<insert id="insertForumFdbk" parameterType="dscsFdbkVO">
 		/*
 			토론 피드백 등록
 			ForumFdbkDAO.insertForumFdbk
@@ -134,7 +134,7 @@
 			, MOD_DTTM
 		) VALUES (
 			#{forumFdbkCd}
-			, #{forumCd}
+			, #{dscsId}
 			, #{stdId}
 			, #{parForumFdbkCd}
 			, #{teamCd}
@@ -147,7 +147,7 @@
 		)
 	</insert>
 	
-	<update id="updateForumFdbk" parameterType="forumFdbkVO">
+	<update id="updateForumFdbk" parameterType="dscsFdbkVO">
 		/*
 			토론 피드백 수정
 			ForumFdbkDAO.updateForumFdbk
@@ -168,13 +168,13 @@
 			, DELYN = #{delYn}
 			</if>
 		WHERE DSCS_FDBK_ID = #{forumFdbkCd}
-			AND DSCS_ID = #{forumCd}
+			AND DSCS_ID = #{dscsId}
 			<if test="stdId != null and stdId != ''">
 			AND USER_ID = #{stdId}
 			</if>
 	</update>
 	
-	<update id="deleteForumFdbk" parameterType="forumFdbkVO">
+	<update id="deleteForumFdbk" parameterType="dscsFdbkVO">
 		/*
 			토론 피드백 삭제
 			ForumFdbkDAO.deleteForumFdbk
@@ -184,13 +184,13 @@
 			, MOD_DTTM = FN_DTTM()
 			, DELYN = 'Y'
 		WHERE DSCS_FDBK_ID = #{forumFdbkCd}
-			AND DSCS_ID = #{forumCd}
+			AND DSCS_ID = #{dscsId}
 			<if test="stdId != null and stdId != ''">
 			AND USER_ID = #{stdId}
 			</if>
 	</update>
 
-	<insert id="insertForumAllFdbk" parameterType="forumFdbkVO">
+	<insert id="insertForumAllFdbk" parameterType="dscsFdbkVO">
 		/*
 			일괄 피드백 등록
 			ForumFdbkDAO.insertForumAllFdbk
@@ -219,10 +219,10 @@
 			, #{mdfrId}
 			, FN_DTTM()
 		FROM TB_LMS_DSCS_PTCP
-		WHERE DSCS_ID = #{forumCd}
+		WHERE DSCS_ID = #{dscsId}
 	</insert>
 
-	<insert id="insertFdbk" parameterType="forumFdbkVO">
+	<insert id="insertFdbk" parameterType="dscsFdbkVO">
 		/*
 			패드백 등록
 			ForumFdbkDAO.insertFdbk2
@@ -242,7 +242,7 @@
 		)
 		VALUES (
 			#{forumFdbkCd}
-			, #{forumCd}
+			, #{dscsId}
 			, #{stdId}
 			, #{parForumFdbkCd}
 			, #{teamCd}
@@ -255,7 +255,7 @@
 		)
 	</insert>
 
-	<select id="selectFdbk" parameterType="forumFdbkVO" resultType="forumFdbkVO">
+	<select id="selectFdbk" parameterType="dscsFdbkVO" resultType="dscsFdbkVO">
 		/*
 			피드백 조회
 			ForumFdbkDAO.selectFdbk
@@ -263,11 +263,11 @@
 		SELECT
 			ROW_NUMBER() OVER(ORDER BY REG_DTTM) AS LINE_NO
 			, COUNT(DSCS_FDBK_ID) OVER() AS TOTAL_CNT
-			, DSCS_FDBK_ID AS FORUM_FDBK_CD
-			, UP_DSCS_FDBK_ID AS PAR_FORUM_FDBK_CD
-			, DSCS_ID AS FORUM_CD
-			, USER_ID AS STD_ID
-			, TEAM_ID AS TEAM_CD
+			, DSCS_FDBK_ID AS forumFdbkCd
+			, UP_DSCS_FDBK_ID AS parForumFdbkCd
+			, DSCS_ID AS dscsId
+			, USER_ID AS stdId
+			, TEAM_ID AS teamCd
 			, FDBK_CTS
 			, DELYN
 			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTRNM
@@ -276,13 +276,13 @@
 			, MDFR_ID
 			, MOD_DTTM
 		FROM TB_LMS_DSCS_FDBK A
-		WHERE DSCS_ID = #{forumCd}
+		WHERE DSCS_ID = #{dscsId}
 			AND USER_ID = #{stdId}
 			AND DELYN = 'N'
 		ORDER BY REG_DTTM DESC
 	</select>
 
-	<update id="updateFdbk" parameterType="forumFdbkVO">
+	<update id="updateFdbk" parameterType="dscsFdbkVO">
 		/*
 			 피드백 수정
 			ForumFdbkDAO.updateFdbk
@@ -294,7 +294,7 @@
 		 WHERE DSCS_FDBK_ID = #{forumFdbkCd}
 	</update>
 
-	<update id="deleteFdbk" parameterType="forumFdbkVO">
+	<update id="deleteFdbk" parameterType="dscsFdbkVO">
 		/*
 			피드백 삭제
 			ForumFdbkDAO.deleteFdbk
@@ -314,7 +314,7 @@
 		SELECT
 			COUNT(*) AS cntFdbk
 		FROM TB_LMS_DSCS_FDBK
-		WHERE DSCS_ID = #{forumCd}
+		WHERE DSCS_ID = #{dscsId}
 			AND USER_ID = #{stdId}
 			AND DELYN = 'N'
 	</select>

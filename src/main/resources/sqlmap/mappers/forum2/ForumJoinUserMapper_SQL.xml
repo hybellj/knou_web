@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="knou.lms.forum2.dao.ForumJoinUserDAO">
+<mapper namespace="knou.lms.forum2.dao.DscsJoinUserDAO">
 
-	<select id="selectForumScoreStatus" parameterType="forumJoinUserVO" resultType="egovMap">
+	<select id="selectForumScoreStatus" parameterType="dscsJoinUserVO" resultType="egovMap">
 		/*
 			토론 현황 조회
 			ForumJoinUserDAO.selectForumScoreStatus
@@ -48,7 +48,7 @@
 		) T
 	</select>
 
-	<select id="listPaging" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+	<select id="listPaging" parameterType="dscsJoinUserVO" resultType="dscsJoinUserVO">
 		/*
 			토론 참여 목록 조회2
 			ForumJoinUserDAO.listPaging
@@ -62,7 +62,7 @@
 					ROW_NUMBER() OVER(ORDER BY userNm) AS LINE_NO
 				</otherwise>
 			</choose>
-			, forumCd
+			, dscsId
 			, deptNm
 			, stdntNo
 			, userId
@@ -107,7 +107,7 @@
 			   CASE WHEN C.BYTEAM_DSCS_USEYN = 'Y' AND CD.DSCS_ID IS NOT NULL
 					THEN CD.DSCS_ID
 					ELSE C.DSCS_ID
-			   END AS forumCd
+			   END AS dscsId
 			   , NVL((SELECT D.DEPTNM FROM TB_LMS_DEPT D WHERE D.DEPT_ID = U.DEPT_ID), '-') AS DEPTNM
 			   , U.STDNT_NO AS stdntNo
 			   , U.USERNM AS userNm
@@ -214,7 +214,7 @@
 		ORDER BY LINE_NO ASC
 	</select>
 
-	<insert id="insertStdScore" parameterType="forumJoinUserVO">
+	<insert id="insertStdScore" parameterType="dscsJoinUserVO">
 		/*
 			토론 참여 점수 반영
 			ForumJoinUserDAO.insertStdScore
@@ -288,7 +288,7 @@
 	        )
 	</insert>
 
-	<insert id="ensureJoinUser" parameterType="forumJoinUserVO">
+	<insert id="ensureJoinUser" parameterType="dscsJoinUserVO">
 		/*
 			교수 메모 팝업 전용: 참여자 미존재 시에만 INSERT (score 덮어쓰기 없음)
 			ForumJoinUserDAO.ensureJoinUser
@@ -309,7 +309,7 @@
 			)
 	</insert>
 
-	<select id="listStdScore" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+	<select id="listStdScore" parameterType="dscsJoinUserVO" resultType="dscsJoinUserVO">
 		/*
 			토론 참여 목록 조회
 			ForumJoinUserDAO.listStdScore
@@ -382,13 +382,13 @@
 		</where>
 	</select>
 
-	<select id="selectForumJoinUser" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+	<select id="selectForumJoinUser" parameterType="dscsJoinUserVO" resultType="dscsJoinUserVO">
 		/*
 			토론 참여 정보 조회2
 			ForumJoinUserDAO.selectForumJoinUser
 		*/
 		SELECT A.USER_ID                     AS stdId
-			 , A.DSCS_ID                     AS forumCd
+			 , A.DSCS_ID                     AS dscsId
 			 , A.SCR                         AS SCR
 			 , A.EVLYN                       AS evalYn
 			 , A.RGTR_ID                     AS rgtrId
@@ -423,13 +423,13 @@
 		  AND A.DSCS_ID = #{forumCd}
 	</select>
 
-	<select id="forumJoinUserList" parameterType="forumJoinUserVO" resultType="egovMap">
+	<select id="forumJoinUserList" parameterType="dscsJoinUserVO" resultType="egovMap">
 		/*
 			수강생 토론 성적 조회2
 			ForumJoinUserDAO.forumJoinUserList
 		*/
 		SELECT U.USER_ID 	AS stdId
-			, U.DSCS_ID 	AS forumCd
+			, U.DSCS_ID 	AS dscsId
 			, NVL(SCR, 0)	AS score
 			, EVLYN	AS evalYn
 			, U.RGTR_ID 	AS rgtrId
@@ -445,7 +445,7 @@
 		  AND S.ATNDLC_STSCD = 'ATNDLC'
 	</select>
 
-	<select id="selectProfMemo" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+	<select id="selectProfMemo" parameterType="dscsJoinUserVO" resultType="dscsJoinUserVO">
 		/*
 			교수 메모 팝업창 정보
 			ForumJoinUserDAO.selectProfMemo
@@ -456,9 +456,9 @@
 			 , U.USERNM               AS userNm
 			 , NVL(A.SCR, 0)           AS score
 			 , B.SBJCT_ID              AS crsCreCd
-			 , B.DSCS_TTL              AS forumTitle
-			 , B.DSCS_SDTTM            AS forumStartDttm
-			 , B.DSCS_EDTTM            AS forumEndDttm
+			 , B.DSCS_TTL              AS dscsTtl
+			 , B.DSCS_SDTTM            AS dscsSdttm
+			 , B.DSCS_EDTTM            AS dscsEdttm
 			 , A.PROF_MEMO             AS profMemo
 		FROM TB_LMS_DSCS_PTCP A
 			 /* 토론 정보 조인 */
@@ -475,7 +475,7 @@
 		  AND A.DSCS_ID = #{forumCd}
 	</select>
 
-	<update id="editForumProfMemo" parameterType="forumJoinUserVO">
+	<update id="editForumProfMemo" parameterType="dscsJoinUserVO">
 		/*
 			교수 메모 수정
 			ForumJoinUserDAO.editForumProfMemo
@@ -500,7 +500,7 @@
 			AND DSCS_ID = #{forumCd}
 	</select>
 
-	<select id="getMemo" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+	<select id="getMemo" parameterType="dscsJoinUserVO" resultType="dscsJoinUserVO">
 		/*
 			메모
 			ForumJoinUserDAO.getMemo
@@ -512,7 +512,7 @@
 			AND DSCS_ID = #{forumCd}
 	</select>
 
-	<select id="getSelectCtsLen" parameterType="forumJoinUserVO" resultType="int">
+	<select id="getSelectCtsLen" parameterType="dscsJoinUserVO" resultType="int">
 		/*
 			넘겨 받은 글자수에 해당하는 토론 참여자 조회
 			ForumJoinUserDAO.getSelectCtsLen
@@ -536,7 +536,7 @@
 
 	</select>
 
-	<insert id="chkStdNoInsert" parameterType="forumMutVO">
+	<insert id="chkStdNoInsert" parameterType="dscsMutVO">
 		/*
 			참여자가 없을 때 토론 참여자 테이블 삽입
 			ForumJoinUserDAO.chkStdNoInsert
@@ -562,7 +562,7 @@
 		) ROWNUM = 1
 	</insert>
 
-	<insert id="insertJoinUser" parameterType="forumMutVO">
+	<insert id="insertJoinUser" parameterType="dscsMutVO">
 		/*
 			모든 참여자를 토론 참여자 테이블에 삽입
 			ForumJoinUserDAO.insertJoinUser
@@ -601,7 +601,7 @@
 				</if>
 	</insert>
 
-	<insert id="participateScore" parameterType="forumMutVO">
+	<insert id="participateScore" parameterType="dscsMutVO">
 		/*
 			참여형 일괄평가 (Oracle 11g 버전)
 			ForumJoinUserDAO.participateScore
@@ -654,7 +654,7 @@
 				, TARGET.MOD_DTTM = FN_DTTM()
 	</insert>
 	
-	<update id="updateStdTeam" parameterType="forumJoinUserVO">
+	<update id="updateStdTeam" parameterType="dscsJoinUserVO">
 		/*
 			학습자 팀 수정
 			ForumJoinUserDAO.updateStdTeam
@@ -665,7 +665,7 @@
 		  AND DSCS_ID = #{forumCd}
 	</update>
 
-	<update id="updateJoinUserEvalN" parameterType="forumJoinUserVO">
+	<update id="updateJoinUserEvalN" parameterType="dscsJoinUserVO">
 		/*
 			평가여부 초기화
 			ForumJoinUserDAO.updateJoinUserEvalN
@@ -679,14 +679,14 @@
 			AND DSCS_ID = #{forumCd}
 	</update>
 
-	<select id="selectStudentsNotInPtcp" parameterType="forumVO" resultType="forumJoinUserVO">
+	<select id="selectStudentsNotInPtcp" parameterType="knou.lms.forum2.vo.DscsForumVO" resultType="dscsJoinUserVO">
 		/*
 			SQL ID : ForumJoinUserDAO.selectStudentsNotInPtcp
 			설명 : DSCS_PTCP 미등록 학생 목록 조회 (insertJoinUser loop용)
 		*/
 		SELECT
 			A.USER_ID  AS stdId
-			, B.DSCS_ID AS forumCd
+			, B.DSCS_ID AS dscsId
 			, (SELECT MAX(E.TEAM_ID)
 			   FROM TB_LMS_TEAM_MBR E
 			   WHERE E.TEAM_ID = B.TEAM_ID
@@ -703,7 +703,7 @@
 		  )
 	</select>
 
-	<insert id="insertForumJoinUser" parameterType="forumJoinUserVO">
+	<insert id="insertForumJoinUser" parameterType="dscsJoinUserVO">
 		/*
 			SQL ID : ForumJoinUserDAO.insertForumJoinUser
 			설명 : 토론참여자 단건 INSERT (PK: DSCS_PTCP_ID IdGenerator 사용)
@@ -717,3 +717,4 @@
 		)
 	</insert>
 </mapper>
+

@@ -14,7 +14,7 @@ import knou.framework.vo.FileVO;
 import knou.lms.common.paging.PagingInfo;
 import knou.lms.file.service.AttachFileService;
 import knou.lms.file.vo.AtflVO;
-import knou.lms.forum.vo.ForumVO;
+import knou.lms.forum2.vo.DscsForumVO;
 import knou.lms.forum2.vo.*;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
@@ -24,21 +24,21 @@ import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.StringUtil;
 import knou.lms.common.vo.ProcessResultVO;
-import knou.lms.forum2.dao.Forum2DAO;
-import knou.lms.forum2.service.ForumService;
+import knou.lms.forum2.dao.DscsDAO;
+import knou.lms.forum2.service.DscsService;
 
-@Service("forum2Service")
-public class ForumServiceImpl extends ServiceBase implements ForumService {
+@Service("dscsService")
+public class DscsServiceImpl extends ServiceBase implements DscsService {
 
-    @Resource(name = "forum2DAO")
-    private Forum2DAO forumDAO;
+    @Resource(name = "dscsDAO")
+    private DscsDAO dscsDAO;
 
     @Resource(name = "attachFileService")
     private AttachFileService attachFileService;
 
     @Override
-    public List<Forum2VO> selectForumDvclasList(Forum2VO vo) throws Exception {
-        return forumDAO.selectForumDvclasList(vo);
+    public List<DscsVO> selectForumDvclasList(DscsVO vo) throws Exception {
+        return dscsDAO.selectForumDvclasList(vo);
     }
 
     /**
@@ -48,11 +48,11 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<Forum2ListVO> selectForumList(Forum2ListVO vo) throws Exception {
-        ProcessResultVO<Forum2ListVO> resultVO = new ProcessResultVO<>();
+    public ProcessResultVO<DscsListVO> selectForumList(DscsListVO vo) throws Exception {
+        ProcessResultVO<DscsListVO> resultVO = new ProcessResultVO<>();
 
         PageInfo pageInfo = new PageInfo(vo);
-        List<Forum2ListVO> list = forumDAO.selectForumList(vo);
+        List<DscsListVO> list = dscsDAO.selectForumList(vo);
         pageInfo.setTotalRecord(list);
 
         resultVO.setReturnList(list);
@@ -69,12 +69,12 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      * @throws Exception
      */
     @Override
-    public Forum2VO selectForum(Forum2VO vo) throws Exception {
-        Forum2VO resultVo = forumDAO.selectForum(vo);
+    public DscsVO selectForum(DscsVO vo) throws Exception {
+        DscsVO resultVo = dscsDAO.selectForum(vo);
         // 부토론 존재여부 체크
         if (resultVo.getByteamDscsUseyn().equalsIgnoreCase("Y")) {
-            List<Forum2TeamDscsVO> teamList = forumDAO.selectTeamDscsList(vo.getDscsId());
-            for (Forum2TeamDscsVO teamDscs : teamList) {
+            List<DscsTeamDscsVO> teamList = dscsDAO.selectTeamDscsList(vo.getDscsId());
+            for (DscsTeamDscsVO teamDscs : teamList) {
                 AtflVO teamAtflParam = new AtflVO();
                 teamAtflParam.setAtflRepoId(CommConst.REPO_DSCS);
                 teamAtflParam.setRefId(teamDscs.getDscsId());
@@ -97,10 +97,10 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<Forum2VO> modifyForumMrkOyn(Forum2VO vo) throws Exception {
-        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+    public ProcessResultVO<DscsVO> modifyForumMrkOyn(DscsVO vo) throws Exception {
+        ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
-        int affected = forumDAO.updateForumMrkOyn(vo);
+        int affected = dscsDAO.updateForumMrkOyn(vo);
         if (affected > 0) {
             resultVO.setReturnVO(vo);
             resultVO.setResultSuccess();
@@ -117,8 +117,8 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      * @throws Exception
      */
     @Override
-    public void updateForumMrkRfltrt(List<Forum2VO> list) throws Exception {
-        forumDAO.updateForumMrkRfltrt(list);
+    public void updateForumMrkRfltrt(List<DscsVO> list) throws Exception {
+        dscsDAO.updateForumMrkRfltrt(list);
     }
 
     /**
@@ -128,7 +128,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<Forum2VO> saveForum(Forum2VO vo) throws Exception {
+    public ProcessResultVO<DscsVO> saveForum(DscsVO vo) throws Exception {
         if (StringUtil.isNull(vo.getOknokStngyn())) {
             vo.setOknokStngyn("N");
         }
@@ -145,10 +145,10 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
     /**
      * 토론 등록 (신규)
      */
-    private ProcessResultVO<Forum2VO> doInsertForum(Forum2VO vo, boolean isTeamDiscussion) throws Exception {
-        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+    private ProcessResultVO<DscsVO> doInsertForum(DscsVO vo, boolean isTeamDiscussion) throws Exception {
+        ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
-        List<Forum2DvclasSelVO> dvclasSelList = vo.getDvclasSelList();
+        List<DscsDvclasSelVO> dvclasSelList = vo.getDvclasSelList();
         if (dvclasSelList == null || dvclasSelList.isEmpty()) {
             resultVO.setResultFailed("등록 시 분반 정보가 필요합니다.");
             return resultVO;
@@ -157,9 +157,9 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         Map<String, String> lrnGrpMapByDvclasNo = new HashMap<>();
         Map<String, String> lrnGrpNmMapByDvclasNo = new HashMap<>();
         Map<String, String> byteamDscsUseynMapByDvclasNo = new HashMap<>();
-        List<Forum2LrnGrpVO> lrnGrpInfoList = vo.getLrnGrpInfoList();
+        List<DscsLrnGrpVO> lrnGrpInfoList = vo.getLrnGrpInfoList();
         if (lrnGrpInfoList != null) {
-            for (Forum2LrnGrpVO info : lrnGrpInfoList) {
+            for (DscsLrnGrpVO info : lrnGrpInfoList) {
                 if (info == null) {
                     continue;
                 }
@@ -182,7 +182,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         }
 
         String firstDscsId = null;
-        for (Forum2DvclasSelVO dvclasSelVO : dvclasSelList) {
+        for (DscsDvclasSelVO dvclasSelVO : dvclasSelList) {
             // 분반별 과목개설ID 를 등록한다.
             vo.setSbjctId(dvclasSelVO.getSbjctId());
             if (dvclasSelVO == null) {
@@ -210,7 +210,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                 vo.setDscsGrpId(dscsGrpId);
                 vo.setLrnGrpId(lrnGrpId);
                 vo.setDscsGrpnm(lrnGrpnm);
-                forumDAO.insertForumGrp(vo);
+                dscsDAO.insertForumGrp(vo);
             } else {
                 vo.setDscsGrpId(null);
                 vo.setLrnGrpId(null);
@@ -226,13 +226,13 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
             vo.setByteamDscsUseyn(byteamDscsUseyn);
             vo.setUpDscsId(null);
             vo.setTeamId(null);
-            forumDAO.insertForum(vo); // 부모(또는 단일) 토론 INSERT
+            dscsDAO.insertForum(vo); // 부모(또는 단일) 토론 INSERT
 
             // 팀별 부주제 설정 시: 팀수만큼 자식 토론 생성
             if ("Y".equalsIgnoreCase(byteamDscsUseyn)) {
-                List<Forum2TeamDscsVO> teamForumDtlList = vo.getTeamForumDtlList();
+                List<DscsTeamDscsVO> teamForumDtlList = vo.getTeamForumDtlList();
                 if (teamForumDtlList != null) {
-                    for (Forum2TeamDscsVO teamDtl : teamForumDtlList) {
+                    for (DscsTeamDscsVO teamDtl : teamForumDtlList) {
                         if (teamDtl == null || !dvclasNo.equals(teamDtl.getDvclasNo())) {
                             continue;
                         }
@@ -243,7 +243,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                         vo.setDscsTtl(teamDtl.getDscsTtl());
                         vo.setDscsCts(teamDtl.getDscsCts());
                         vo.setByteamDscsUseyn("N");
-                        forumDAO.insertForum(vo);
+                        dscsDAO.insertForum(vo);
 
                         // 팀별 첨부파일 저장 (refId = 자식 토론 ID)
                         if (!StringUtil.isNull(teamDtl.getTeamUploadFiles())) {
@@ -302,21 +302,21 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
     /**
      * 토론 수정
      */
-    private ProcessResultVO<Forum2VO> doUpdateForum(Forum2VO vo, boolean isTeamDiscussion) throws Exception {
-        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+    private ProcessResultVO<DscsVO> doUpdateForum(DscsVO vo, boolean isTeamDiscussion) throws Exception {
+        ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
         // 현재 DB 상태 조회 (변경 전 유형 판별용)
-        Forum2VO currentParam = new Forum2VO();
+        DscsVO currentParam = new DscsVO();
         currentParam.setDscsId(vo.getDscsId());
-        Forum2VO currentVO = forumDAO.selectForum(currentParam);
+        DscsVO currentVO = dscsDAO.selectForum(currentParam);
         boolean wasTeam   = "TEAM".equalsIgnoreCase(currentVO.getDscsUnitTycd());
         boolean wasByteam = "Y".equalsIgnoreCase(currentVO.getByteamDscsUseyn());
 
         // byteamDscsUseyn 은 lrnGrpInfoList 를 통해 전달됨 (direct form field 없음)
         String newByteam = "N";
-        List<Forum2LrnGrpVO> lrnGrpInfoForByteam = vo.getLrnGrpInfoList();
+        List<DscsLrnGrpVO> lrnGrpInfoForByteam = vo.getLrnGrpInfoList();
         if (lrnGrpInfoForByteam != null && !lrnGrpInfoForByteam.isEmpty()) {
-            Forum2LrnGrpVO firstGrp = lrnGrpInfoForByteam.get(0);
+            DscsLrnGrpVO firstGrp = lrnGrpInfoForByteam.get(0);
             if (firstGrp != null && "Y".equalsIgnoreCase(firstGrp.getByteamDscsUseyn())) {
                 newByteam = "Y";
             }
@@ -327,23 +327,23 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
         // 2-2: TEAM → GNRL 전환 시 자식 논리 삭제
         if (wasTeam && !isTeamDiscussion) {
-            forumDAO.updateChildForumDelYn(vo);
+            dscsDAO.updateChildForumDelYn(vo);
         }
         // 2-1: TEAM 유지, byteamDscsUseyn Y → N 시 자식 논리 삭제
         else if (wasTeam && isTeamDiscussion && wasByteam && "N".equals(newByteam)) {
-            forumDAO.updateChildForumDelYn(vo);
+            dscsDAO.updateChildForumDelYn(vo);
         }
 
         // 2-4: TEAM 유지 + byteamDscsUseyn Y → Y 시 자식 토론 제목/내용 UPDATE
         if (wasTeam && isTeamDiscussion && "Y".equals(newByteam)) {
-            List<Forum2TeamDscsVO> teamForumDtlList = vo.getTeamForumDtlList();
+            List<DscsTeamDscsVO> teamForumDtlList = vo.getTeamForumDtlList();
             if (teamForumDtlList != null) {
-                for (Forum2TeamDscsVO teamDtl : teamForumDtlList) {
+                for (DscsTeamDscsVO teamDtl : teamForumDtlList) {
                     if (teamDtl == null || StringUtil.isNull(teamDtl.getTeamId())) continue;
                     teamDtl.setUpDscsId(vo.getDscsId());
                     teamDtl.setMdfrId(vo.getMdfrId());
                     teamDtl.setRgtrId(vo.getRgtrId());
-                    forumDAO.updateChildForumDtls(teamDtl);
+                    dscsDAO.updateChildForumDtls(teamDtl);
                     // 팀별 첨부파일 저장 (refId = JS에서 전달된 자식 토론 ID)
                     if (!StringUtil.isNull(teamDtl.getTeamUploadFiles()) && !StringUtil.isNull(teamDtl.getDscsId())) {
                         List<AtflVO> teamFiles = FileUtil.getUploadAtflList(
@@ -370,9 +370,9 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
             vo.setSbjctId(currentVO.getSbjctId());
 
             // lrnGrpInfoList[0] 에서 현재 분반의 학습그룹 정보 취득
-            List<Forum2LrnGrpVO> lrnGrpInfoList = vo.getLrnGrpInfoList();
+            List<DscsLrnGrpVO> lrnGrpInfoList = vo.getLrnGrpInfoList();
             if (lrnGrpInfoList != null && !lrnGrpInfoList.isEmpty()) {
-                Forum2LrnGrpVO grpInfo = lrnGrpInfoList.get(0);
+                DscsLrnGrpVO grpInfo = lrnGrpInfoList.get(0);
                 String lrnGrpId = grpInfo.getLrnGrpId();
                 String lrnGrpnm = grpInfo.getLrnGrpnm();
                 if (!StringUtil.isNull(lrnGrpId)) {
@@ -380,18 +380,18 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                     vo.setDscsGrpId(dscsGrpId);
                     vo.setLrnGrpId(lrnGrpId);
                     vo.setDscsGrpnm(lrnGrpnm);
-                    forumDAO.insertForumGrp(vo);
+                    dscsDAO.insertForumGrp(vo);
                 }
             }
 
             // byteamDscsUseyn='Y' 이면 팀별 자식 토론 생성
             if ("Y".equals(newByteam)) {
-                List<Forum2TeamDscsVO> teamForumDtlList = vo.getTeamForumDtlList();
+                List<DscsTeamDscsVO> teamForumDtlList = vo.getTeamForumDtlList();
                 if (teamForumDtlList != null) {
                     String parentDscsId = vo.getDscsId();
                     String origDscsTtl  = vo.getDscsTtl();
                     String origDscsCts  = vo.getDscsCts();
-                    for (Forum2TeamDscsVO teamDtl : teamForumDtlList) {
+                    for (DscsTeamDscsVO teamDtl : teamForumDtlList) {
                         if (teamDtl == null) continue;
                         vo.setDscsId(IdGenerator.getNewId(IdPrefixType.DSCS.getCode()));
                         vo.setUpDscsId(parentDscsId);
@@ -399,7 +399,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                         vo.setDscsTtl(teamDtl.getDscsTtl());
                         vo.setDscsCts(teamDtl.getDscsCts());
                         vo.setByteamDscsUseyn("N");
-                        forumDAO.insertForum(vo);
+                        dscsDAO.insertForum(vo);
                         // 팀별 첨부파일 저장 (refId = 신규 자식 토론 ID)
                         String childDscsId = vo.getDscsId();
                         if (!StringUtil.isNull(teamDtl.getTeamUploadFiles())) {
@@ -430,7 +430,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
             vo.setDvclsNo(null); // GNRL→TEAM 전환 외 수정 시 분반 변경 금지
         }
 
-        forumDAO.updateForum(vo);
+        dscsDAO.updateForum(vo);
 
         // 첨부파일 저장
         List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
@@ -456,7 +456,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
     // 내 강의에 등록된 토론 목록 조회
     @Override
-    public ProcessResultVO<Forum2VO> selectProfSbjctForumList(Forum2VO vo) throws Exception {
+    public ProcessResultVO<DscsVO> selectProfSbjctForumList(DscsVO vo) throws Exception {
 
         /** start of paging */
         PagingInfo paginationInfo = new PagingInfo();
@@ -467,7 +467,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
         vo.setLastIndex(paginationInfo.getLastRecordIndex());
 
-        List<Forum2VO> forumList = forumDAO.selectProfSbjctForumList(vo);
+        List<DscsVO> forumList = dscsDAO.selectProfSbjctForumList(vo);
 
         if(forumList.size() > 0) {
             paginationInfo.setTotalRecordCount(forumList.get(0).getTotalCnt());
@@ -475,7 +475,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
             paginationInfo.setTotalRecordCount(0);
         }
 
-        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+        ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
         resultVO.setReturnList(forumList);
         resultVO.setPageInfo(paginationInfo);
@@ -490,10 +490,10 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<Forum2VO> deleteForum(Forum2VO vo) throws Exception {
-        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+    public ProcessResultVO<DscsVO> deleteForum(DscsVO vo) throws Exception {
+        ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
-        int affected = forumDAO.deleteForum(vo);
+        int affected = dscsDAO.deleteForum(vo);
         if (affected > 0) {
             resultVO.setReturnVO(vo);
             resultVO.setResultSuccess();
@@ -511,10 +511,10 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<Forum2TeamDscsVO> modifyTeamDscsOyn(Forum2TeamDscsVO vo) throws Exception {
-        ProcessResultVO<Forum2TeamDscsVO> resultVO = new ProcessResultVO<>();
+    public ProcessResultVO<DscsTeamDscsVO> modifyTeamDscsOyn(DscsTeamDscsVO vo) throws Exception {
+        ProcessResultVO<DscsTeamDscsVO> resultVO = new ProcessResultVO<>();
 
-        int affected = forumDAO.updateTeamDscsOyn(vo);
+        int affected = dscsDAO.updateTeamDscsOyn(vo);
         if (affected > 0) {
             resultVO.setReturnVO(vo);
             resultVO.setResultSuccess();
@@ -529,9 +529,9 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      * 학습그룹 팀 목록 조회 (팀 토론 부주제 설정용)
      */
     @Override
-    public ProcessResultVO<Forum2TeamDscsVO> selectForumLrnGrpTeamList(Forum2TeamDscsVO vo) throws Exception {
-        ProcessResultVO<Forum2TeamDscsVO> resultVO = new ProcessResultVO<>();
-        List<Forum2TeamDscsVO> list = forumDAO.selectForumLrnGrpTeamList(vo);
+    public ProcessResultVO<DscsTeamDscsVO> selectForumLrnGrpTeamList(DscsTeamDscsVO vo) throws Exception {
+        ProcessResultVO<DscsTeamDscsVO> resultVO = new ProcessResultVO<>();
+        List<DscsTeamDscsVO> list = dscsDAO.selectForumLrnGrpTeamList(vo);
         resultVO.setReturnList(list);
         return resultVO;
     }
@@ -543,8 +543,8 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<Forum2VO> copyForum(Forum2VO vo) throws Exception {
-        ProcessResultVO<Forum2VO> resultVO = new ProcessResultVO<>();
+    public ProcessResultVO<DscsVO> copyForum(DscsVO vo) throws Exception {
+        ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
         String newDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
         vo.setDscsId(newDscsId);
@@ -552,11 +552,11 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
         /*TODO : 26.3.26
         파라미터매핑프로젝트표준확정필요
         */
-        forumDAO.copyForum(vo);
+        dscsDAO.copyForum(vo);
 
-        Forum2VO detailParam = new Forum2VO();
+        DscsVO detailParam = new DscsVO();
         detailParam.setDscsId(newDscsId);
-        Forum2VO detailVO = forumDAO.selectForum(detailParam);
+        DscsVO detailVO = dscsDAO.selectForum(detailParam);
 
         // TODO : 26.3.26 파일정보 복사(물리 파일 처리 확인 필요)
         /*
@@ -579,8 +579,8 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
     // 성적반영비율 초기화
     @Override
-    public void setScoreRatio(Forum2VO vo) throws Exception {
-        List<Forum2VO> scoreAplyList = forumDAO.getScoreRatio(vo);
+    public void setScoreRatio(DscsVO vo) throws Exception {
+        List<DscsVO> scoreAplyList = dscsDAO.getScoreRatio(vo);
 
         if( scoreAplyList != null && !scoreAplyList.isEmpty() && scoreAplyList.size() > 0) {
             int scoreAplyCnt = scoreAplyList.size();
@@ -588,7 +588,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
             int rest = 100 % scoreAplyCnt;
             int cnt = 0;
             Integer scoreRatio = 0;
-            for(Forum2VO forumVO : scoreAplyList) {
+            for(DscsVO forumVO : scoreAplyList) {
                 if(cnt == 0) {
                     scoreRatio = share + rest;
                 } else {
@@ -596,7 +596,7 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
                 }
                 vo.setMrkRfltrt(scoreRatio);
                 vo.setDscsId(forumVO.getDscsId());
-                forumDAO.setScoreRatio(vo);
+                dscsDAO.setScoreRatio(vo);
                 cnt++;
             }
         }
@@ -604,20 +604,20 @@ public class ForumServiceImpl extends ServiceBase implements ForumService {
 
     // 성적분포현황 BarChart
     @Override
-    public EgovMap viewScoreChart(Forum2VO vo) throws Exception {
-        EgovMap scoreMap = forumDAO.selectScoreChart(vo);
+    public EgovMap viewScoreChart(DscsVO vo) throws Exception {
+        EgovMap scoreMap = dscsDAO.selectScoreChart(vo);
         return scoreMap;
     }
 
     // 교수 학기기수 목록 조회 (토론 복사 팝업용)
     @Override
-    public List<EgovMap> selectProfSmstrChrtList(Forum2VO vo) throws Exception {
-        return forumDAO.selectProfSmstrChrtList(vo);
+    public List<EgovMap> selectProfSmstrChrtList(DscsVO vo) throws Exception {
+        return dscsDAO.selectProfSmstrChrtList(vo);
     }
 
     // 학기기수별 과목 목록 조회 (토론 복사 팝업용)
     @Override
-    public List<EgovMap> selectProfSmstrChrtSbjctList(Forum2VO vo) throws Exception {
-        return forumDAO.selectProfSmstrChrtSbjctList(vo);
+    public List<EgovMap> selectProfSmstrChrtSbjctList(DscsVO vo) throws Exception {
+        return dscsDAO.selectProfSmstrChrtSbjctList(vo);
     }
 }

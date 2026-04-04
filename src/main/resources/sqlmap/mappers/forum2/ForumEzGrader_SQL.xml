@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="knou.lms.forum2.dao.ForumEzGraderDAO">
+<mapper namespace="knou.lms.forum2.dao.DscsEzGraderDAO">
 
-	<select id="listForumJoinUser" parameterType="forumJoinUserVO" resultType="forumJoinUserVO">
+	<select id="listForumJoinUser" parameterType="dscsJoinUserVO" resultType="dscsJoinUserVO">
 		/*
 			토론 참여 대상 리스트2
 			ForumEzGraderDAO.listForumJoinUser
@@ -25,7 +25,7 @@
 				, (
 					SELECT COUNT(1)
 					FROM TB_LMS_DSCS_ATCL AA
-					WHERE AA.DSCS_ID = #{forumCd}
+					WHERE AA.DSCS_ID = #{dscsId}
 						AND AA.USER_ID = A.USER_ID
 						AND AA.DELYN = 'N'
 				) ATCL_CNT
@@ -34,7 +34,7 @@
 					SELECT COUNT(1)
 					FROM TB_LMS_DSCS_CMNT AA
 					JOIN TB_LMS_DSCS_ATCL AB ON AA.DSCS_ATCL_ID = AB.DSCS_ATCL_ID
-					WHERE AB.DSCS_ID = #{forumCd}
+					WHERE AB.DSCS_ID = #{dscsId}
 						AND AA.USER_ID = A.USER_ID
 						AND AA.DELYN = 'N'
 				) CMNT_CNT
@@ -42,7 +42,7 @@
 				LEFT JOIN TB_LMS_DSCS_PTCP B
 					ON A.USER_ID = B.USER_ID
 					AND B.DELYN = 'N'
-					AND B.DSCS_ID = #{forumCd}
+					AND B.DSCS_ID = #{dscsId}
 				JOIN TB_LMS_USER D
 					ON A.USER_ID = D.USER_ID
 			WHERE A.SBJCT_ID = #{crsCreCd}
@@ -73,7 +73,7 @@
 	</select>
 
 	<resultMap id="forumJoinTeamMap" type="knou.lms.forum2.vo.DscsEzGraderTeamVO">
-		<result property="teamCtgrCd" column="TEAM_TYCD" />
+		<result property="teamTycd" column="TEAM_TYCD" />
 		<result property="teamCd" column="TEAM_ID" />
 		<result property="teamNm" column="TEAMNM" />
 		<result property="formCd" column="FORUM_CD" />
@@ -81,7 +81,7 @@
 		<collection property="teamMembers" resultMap="teamMemberMap" />
 	</resultMap>
 
-	<resultMap id="teamMemberMap" type="forumJoinUserVO">
+	<resultMap id="teamMemberMap" type="dscsJoinUserVO">
 		<id property="stdId" column="USER_ID" />
 		<result property="leaderYn" column="LDRYN" />
 		<result property="SCR" column="SCR" />
@@ -93,7 +93,7 @@
 		<result property="joinStatus" column="JOIN_STATUS" />
 	</resultMap>
 
-	<select id="listForumJoinTeam" parameterType="forumJoinUserVO" resultMap="forumJoinTeamMap">
+	<select id="listForumJoinTeam" parameterType="dscsJoinUserVO" resultMap="forumJoinTeamMap">
 		/*
 			토론 참여 대상 team2
 			ForumEzGraderDAO.listForumJoinTeam
@@ -169,7 +169,7 @@
 					ON C.USER_ID = G.USER_ID
 					AND G.DELYN = 'N'
 					AND G.DSCS_ID = H.DSCS_ID
-				WHERE H.DSCS_ID = #{forumCd}
+				WHERE H.DSCS_ID = #{dscsId}
 		) A
 		WHERE 1 = 1
 		<if test="searchKey != null and searchKey == 'JOIN'">
@@ -195,7 +195,7 @@
 		</if>
 	</select>
 
-	<select id="selectEzgEvalRslt" parameterType="forumEzGraderRsltVO" resultType="forumEzGraderRsltVO">
+	<select id="selectEzgEvalRslt" parameterType="dscsEzGraderRsltVO" resultType="dscsEzGraderRsltVO">
 		/*
 			평가 결과 조회2 (TB_LMS_DSCS_PTCP 단독 조회)
 			ForumEzGraderDAO.selectEzgEvalRslt
@@ -204,10 +204,10 @@
 			 , A.EVLYN AS evalYn
 		FROM TB_LMS_DSCS_PTCP A
 		WHERE A.USER_ID = #{evalTrgtUserId}
-			AND A.DSCS_ID = #{forumCd}
+			AND A.DSCS_ID = #{dscsId}
 	</select>
 
-	<insert id="initStdScoreToAllTeamMember" parameterType="forumEzGraderRsltVO">
+	<insert id="initStdScoreToAllTeamMember" parameterType="dscsEzGraderRsltVO">
 		/*
 			팀원 모두에게 점수 초기화2
 			ForumEzGraderDAO.initStdScoreToAllTeamMember
@@ -224,22 +224,22 @@
 				AND A.USER_ID = #{evalTrgtUserId}
 			</if>
 		) S
-		ON (T.DSCS_ID = #{forumCd} AND T.USER_ID = S.USER_ID)
+		ON (T.DSCS_ID = #{dscsId} AND T.USER_ID = S.USER_ID)
 		WHEN MATCHED THEN
 			UPDATE SET SCR = S.SCR, MDFR_ID = #{rgtrId}, MOD_DTTM = FN_DTTM()
 		WHEN NOT MATCHED THEN
 			INSERT (TEAM_ID, DSCS_ID, USER_ID, SCR, RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM)
-			VALUES (S.TEAM_ID, #{forumCd}, S.USER_ID, S.SCR, #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
+			VALUES (S.TEAM_ID, #{dscsId}, S.USER_ID, S.SCR, #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
 	</insert>
 
-	<update id="updateJoinUserScore" parameterType="forumEzGraderRsltVO">
+	<update id="updateJoinUserScore" parameterType="dscsEzGraderRsltVO">
 		/*
 			토론 참여 유저(미참여자 포함)에 평가점수 부여2
 			ForumEzGraderDAO.updateJoinUserScore
 			-- MERGE 사용 사유(Upsert): 참여자 점수 존재 시 덮어쓰기, 없으면 신규 삽입
 		*/
 		MERGE INTO TB_LMS_DSCS_PTCP T
-		USING (SELECT #{evalTrgtUserId} AS USER_ID, #{forumCd} AS DSCS_ID FROM DUAL) S
+		USING (SELECT #{evalTrgtUserId} AS USER_ID, #{dscsId} AS DSCS_ID FROM DUAL) S
 		ON (T.DSCS_ID = S.DSCS_ID AND T.USER_ID = S.USER_ID)
 		WHEN MATCHED THEN
 			UPDATE SET
@@ -249,10 +249,10 @@
 				, MOD_DTTM = FN_DTTM()
 		WHEN NOT MATCHED THEN
 			INSERT (USER_ID, DSCS_ID, SCR, EVLYN, DELYN, RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM)
-			VALUES (#{evalTrgtUserId}, #{forumCd}, #{evalScore}, 'Y', 'N', #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
+			VALUES (#{evalTrgtUserId}, #{dscsId}, #{evalScore}, 'Y', 'N', #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
 	</update>
 
-	<delete id="deleteTeamStdScore" parameterType="forumEzGraderRsltVO" >
+	<delete id="deleteTeamStdScore" parameterType="dscsEzGraderRsltVO" >
 		/*
 			팀원 총 평가점수  삭제2
 			ForumEzGraderDAO.deleteTeamStdScore
@@ -264,7 +264,7 @@
 		</if>
 	</delete>
 
-	<insert id="insertStdScoreToAllTeamMember" parameterType="forumEzGraderRsltVO">
+	<insert id="insertStdScoreToAllTeamMember" parameterType="dscsEzGraderRsltVO">
 		/*
 			팀원 모두에게 총 평가점수 부여2
 			ForumEzGraderDAO.insertStdScoreToAllTeamMember
@@ -283,12 +283,12 @@
 				AND TEAM_ID = #{rltnTeamCd}
 			</if>
 		) S
-		ON (T.DSCS_ID = #{forumCd} AND T.USER_ID = S.USER_ID)
+		ON (T.DSCS_ID = #{dscsId} AND T.USER_ID = S.USER_ID)
 		WHEN MATCHED THEN
 			UPDATE SET SCR = #{evalScore}, MDFR_ID = #{rgtrId}, MOD_DTTM = FN_DTTM()
 		WHEN NOT MATCHED THEN
 			INSERT (TEAM_ID, DSCS_ID, USER_ID, SCR, RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM)
-			VALUES (S.TEAM_ID, #{forumCd}, S.USER_ID, #{evalScore}, #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
+			VALUES (S.TEAM_ID, #{dscsId}, S.USER_ID, #{evalScore}, #{rgtrId}, FN_DTTM(), #{rgtrId}, FN_DTTM())
 	</insert>
 
 </mapper>

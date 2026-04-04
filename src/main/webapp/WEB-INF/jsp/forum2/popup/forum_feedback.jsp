@@ -57,7 +57,7 @@
 			UiFileUploader({
 				id: currentFeedbackUploaderId,
 				targetId: wrapId,
-				path: "${forum2VO.uploadPath}",
+				path: "${dscsVO.uploadPath}",
 				limitCount: 3,
 				limitSize: 100,
 				oneLimitSize: 100,
@@ -116,7 +116,7 @@
 
 			var url  = "/forum2/forumLect/getFdbk.do";
 			var data = {
-				"forumCd" : "${forumVo.forumCd}",
+				"dscsId" : "${dscsForumVO.dscsId}",
 				"stdId" : "${stdId}",
 			};
 
@@ -407,8 +407,8 @@
 			var fileUploaderNewFeedback = getFeedbackUploader();
 	 		var url = "/forum2/forumLect/Form/regFdbk.do";
 			var data = {
-					"crsCreCd" : "${forumVo.crsCreCd}",
-					"forumCd" : "${forumVo.forumCd}",
+					"crsCreCd" : "${dscsForumVO.crsCreCd}",
+					"dscsId" : "${dscsForumVO.dscsId}",
 					"stdId" : "${stdId}",
 					"userId" : "${userId}",
 					"userName" : "${userName}",
@@ -451,9 +451,9 @@
                         <div class="mla fcBlue">
                             <button type="button" id="btnAddFdbkMain" class="btn type1 small" onclick="btnAddFdbk();"${student =='STD' ? ' style="display:none;"': ''}><spring:message code="forum.button.feedback.add" /><!-- 피드백 등록 --></button>
                             <button type="button" class="btn type2 small" onclick="btnCancelFdbk();" style="display:none;"><spring:message code="forum.button.feedback.cancel" /><!-- 피드백 취소 --></button>
-                            <b>${forumJoinUserVO.deptNm } ${forumJoinUserVO.userId } ${forumJoinUserVO.userNm }
+                            <b>${dscsJoinUserVO.deptNm } ${dscsJoinUserVO.userId } ${dscsJoinUserVO.userNm }
                                 <c:if test="${student ne 'STD'}">
-                                <span class="f150">${forumJoinUserVO.score}<spring:message code="forum.label.point" /></span><!-- 점 -->
+                                <span class="f150">${dscsJoinUserVO.score}<spring:message code="forum.label.point" /></span><!-- 점 -->
                                 </c:if>
                             </b>
                         </div>

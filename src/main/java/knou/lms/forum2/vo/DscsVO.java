@@ -4,7 +4,7 @@ import java.util.List;
 
 import knou.lms.common.vo.DefaultVO;
 
-public class Forum2VO extends DefaultVO {
+public class DscsVO extends DefaultVO {
 
     private static final long serialVersionUID = 1L;
 
@@ -49,10 +49,10 @@ public class Forum2VO extends DefaultVO {
 
     private String[] dvclsNoList; // 분반별 저장 대상 DVCLS_NO 목록
     private String[] lrnGrpIdList; // 분반별 학습그룹 ID 목록
-    private List<Forum2DvclasSelVO> dvclasSelList; // 분반선택 목록(sbjctIds)
-    private List<Forum2LrnGrpVO> lrnGrpInfoList; // 학습그룹선택 목록(teamForumDiv)
-    private List<Forum2TeamDscsVO> teamDscsList;     // 팀토론 상세목록 (SELECT용)
-    private List<Forum2TeamDscsVO> teamForumDtlList; // 팀별 부주제 입력 목록 (INSERT용, JSP 바인딩)
+    private List<DscsDvclasSelVO> dvclasSelList; // 분반선택 목록(sbjctIds)
+    private List<DscsLrnGrpVO> lrnGrpInfoList; // 학습그룹선택 목록(teamForumDiv)
+    private List<DscsTeamDscsVO> teamDscsList;     // 팀토론 상세목록 (SELECT용)
+    private List<DscsTeamDscsVO> teamForumDtlList; // 팀별 부주제 입력 목록 (INSERT용, JSP 바인딩)
 
     /*DB와 관계없는 파라미터*/
     private Integer forumAtclCnt;               // 게시글 갯수
@@ -391,35 +391,35 @@ public class Forum2VO extends DefaultVO {
         this.lrnGrpIdList = lrnGrpIdList;
     }
 
-    public List<Forum2DvclasSelVO> getDvclasSelList() {
+    public List<DscsDvclasSelVO> getDvclasSelList() {
         return dvclasSelList;
     }
 
-    public void setDvclasSelList(List<Forum2DvclasSelVO> dvclasSelList) {
+    public void setDvclasSelList(List<DscsDvclasSelVO> dvclasSelList) {
         this.dvclasSelList = dvclasSelList;
     }
 
-    public List<Forum2LrnGrpVO> getLrnGrpInfoList() {
+    public List<DscsLrnGrpVO> getLrnGrpInfoList() {
         return lrnGrpInfoList;
     }
 
-    public void setLrnGrpInfoList(List<Forum2LrnGrpVO> lrnGrpInfoList) {
+    public void setLrnGrpInfoList(List<DscsLrnGrpVO> lrnGrpInfoList) {
         this.lrnGrpInfoList = lrnGrpInfoList;
     }
 
-    public List<Forum2TeamDscsVO> getTeamDscsList() {
+    public List<DscsTeamDscsVO> getTeamDscsList() {
         return teamDscsList;
     }
 
-    public void setTeamDscsList(List<Forum2TeamDscsVO> teamDscsList) {
+    public void setTeamDscsList(List<DscsTeamDscsVO> teamDscsList) {
         this.teamDscsList = teamDscsList;
     }
 
-    public List<Forum2TeamDscsVO> getTeamForumDtlList() {
+    public List<DscsTeamDscsVO> getTeamForumDtlList() {
         return teamForumDtlList;
     }
 
-    public void setTeamForumDtlList(List<Forum2TeamDscsVO> teamForumDtlList) {
+    public void setTeamForumDtlList(List<DscsTeamDscsVO> teamForumDtlList) {
         this.teamForumDtlList = teamForumDtlList;
     }
 

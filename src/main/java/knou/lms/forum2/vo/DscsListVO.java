@@ -2,7 +2,7 @@ package knou.lms.forum2.vo;
 
 import knou.lms.common.vo.DefaultVO;
 
-public class Forum2ListVO extends DefaultVO {
+public class DscsListVO extends DefaultVO {
 
     private static final long serialVersionUID = 1L;
 

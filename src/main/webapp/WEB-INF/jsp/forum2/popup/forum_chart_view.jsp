@@ -25,11 +25,11 @@
 		var url  = "/forum2/forumLect/forumJoinUserList.do";
 
 		var data = {
-			"forumCd" 	  : "${forumVo.forumCd}",
-			"crsCreCd"	  : "${forumVo.crsCreCd}",
+			"dscsId" 	  : "${dscsForumVO.dscsId}",
+			"crsCreCd"	  : "${dscsForumVO.crsCreCd}",
 			"teamCd"	  : $("#teamCd").val(),
-			"forumCtgrCd"     : "${forumVo.forumCtgrCd}",
-			"byteamDscsUseyn" : "${forumVo.byteamDscsUseyn}",
+			"dscsUnitTycd"     : "${dscsForumVO.dscsUnitTycd}",
+			"byteamDscsUseyn" : "${dscsForumVO.byteamDscsUseyn}",
 			"pageIndex"   : page,
 			"listScale"   : $("#listScale").val(),
 			"searchKey"   : $("#searchKey").val(),
@@ -52,7 +52,7 @@
 					}
 				});
 
-				if("${forumVo.prosConsForumCfg}" == 'N') {
+				if("${dscsForumVO.prosConsForumCfg}" == 'N') {
 					forumChartSet(joinStatusY, joinStatusN);
 				}
 			} else {
@@ -145,7 +145,7 @@
 		var maxScore = 0;
 		var avgScore = 0;
 
-		if("${forumVo.forumCtgrCd}" == "TEAM") {
+		if("${dscsForumVO.dscsUnitTycd}" == "TEAM") {
 			$.ajax({
 				type: "post",
 				// url: "/team/teamHome/viewScoreChart.do",
@@ -154,7 +154,7 @@
 				dataType: "json",
 				data: {
 					// "teamCtgrCd" : $("#teamCtgrCd").val(),
-					"forumCd" : "${forumVo.forumCd}",
+					"dscsId" : "${dscsForumVO.dscsId}",
 				},
 				error: function(data) {
 					alert("<spring:message code='forum.alert.team.count.select_fail'/>"); // 팀 수를 조회하는 데에 실패하였습니다. 다시 시도해주시기 바랍니다.
@@ -248,9 +248,9 @@
 	</script>
 
 	<form id="forumUploadForm" name="forumUploadForm" method="POST">
-        <input type="hidden" name="forumCd" value="${vo.forumCd}" />
+        <input type="hidden" name="dscsId" value="${vo.dscsId}" />
         <input type="hidden" name="crsCreCd" value="${vo.crsCreCd}"/>
-        <input type="hidden" name="forumCtgrCd" value="${vo.forumCtgrCd}"/>
+        <input type="hidden" name="dscsUnitTycd" value="${vo.dscsUnitTycd}"/>
         <input type="hidden" name="excelGrid" value="" id="excelGrid"/>
     </form>
 
@@ -261,7 +261,7 @@
 					<p><spring:message code="forum.label.forum.status" /> <!-- 토론 현황 -->
 					<table style="width:100%; table-layout:fixed;"><tr>
 						<td style="width:50%; vertical-align:top; padding:4px;">
-							<c:if test="${forumVo.prosConsForumCfg eq 'Y'}">
+							<c:if test="${dscsForumVO.prosConsForumCfg eq 'Y'}">
 								<canvas id="pieChart" height="250"></canvas>
 								<script>
 									var ctx = document.getElementById("pieChart");
@@ -276,7 +276,7 @@
 													'#ff9f40'
 												],
 												borderWidth:1,
-												data: ["${forumVo.forumAtclPorsCnt}", "${forumVo.forumAtclConsCnt}"]
+												data: ["${dscsForumVO.forumAtclPorsCnt}", "${dscsForumVO.forumAtclConsCnt}"]
 											}]
 										},
 										options: {
@@ -336,7 +336,7 @@
 									});
 								</script>
 							</c:if>
-							<c:if test="${forumVo.prosConsForumCfg eq 'N'}">
+							<c:if test="${dscsForumVO.prosConsForumCfg eq 'N'}">
 								<canvas id="pieChart" height="250"></canvas>
 							</c:if>
 						</td>
