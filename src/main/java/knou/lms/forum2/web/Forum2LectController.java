@@ -1404,6 +1404,8 @@ public class Forum2LectController extends ControllerBase {
         String student = (SessionInfo.getAuthrtGrpcd(request).contains("USR")) ? "STD" : "";
         request.setAttribute("student", student);
 
+        vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
+
         request.setAttribute("forumVo", vo);
         request.setAttribute("PAGE_FILE_UPLOAD", request.getContextPath() + CommConst.PAGE_FILE_UPLOAD);
 
