@@ -573,17 +573,6 @@
 			});
 		}
 
-		// 일괄 피드백 팝업
-		function allFeedback() {
-			forumCommon.initModal("allFeedback");
-			var dscsId = $("form[name='forumCreCrsStdForm'] input[name='dscsId']").val();
-			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
-			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/allDscsFdbkPop.do");
-			$("#forumCreCrsStdForm").submit();
-			$("#forumPop").modal("show");
-		}
-
 		// 엑셀 성적 등록
 		function callScoreExcelUpload() {
 			/*forumCommon.initModal("scoreExcel");
