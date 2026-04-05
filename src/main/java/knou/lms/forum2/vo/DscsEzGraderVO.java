@@ -6,7 +6,7 @@ public class DscsEzGraderVO extends DefaultVO {
 	
 	private static final long serialVersionUID = 7100179735049056024L;
 	
-	private String forumCd;
+	private String dscsId;
     private String orgId;                  // 기관 코드
     private String crsCreCd;
     private String stdId;
@@ -16,19 +16,12 @@ public class DscsEzGraderVO extends DefaultVO {
     private String evalCritUseYn;          // 평가기준사용여부
     private String evalCtgr;               // 평가방식(R : 루브릭)
 
-    public String getForumCd() {
-        return forumCd;
-    }
-
-    public void setForumCd(String forumCd) {
-        this.forumCd = forumCd;
-    }
     public String getDscsId() {
-        return forumCd;
+        return dscsId;
     }
 
     public void setDscsId(String dscsId) {
-        this.forumCd = dscsId;
+        this.dscsId = dscsId;
     }
 
     public String getOrgId() {

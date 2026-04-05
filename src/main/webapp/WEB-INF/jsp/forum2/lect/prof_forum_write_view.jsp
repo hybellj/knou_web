@@ -1042,14 +1042,14 @@
     }
 
     // 이전 토론 가져오기 팝업에서 선택 시 호출 (window.parent.copyDscs)
-    function copyDscs(forumCd) {
+    function copyDscs(dscsId) {
         UiComm.showLoading(true);
         $.ajax({
             url     : "/forum2/forumLect/Form/forumCopy.do",
             async   : false,
             type    : "POST",
             dataType: "json",
-            data    : { "dscsId": forumCd }
+            data    : { "dscsId": dscsId }
         }).done(function(resp) {
             UiComm.showLoading(false);
             if (resp.result > 0) {
@@ -1123,8 +1123,8 @@
                         $('#lrnGrpnm'     + dvclasNo).val(v.dscsGrpnm || '');
                         $('#setForumDiv'  + dvclasNo).show();
                         // selectTeam() 미사용: 내부에서 upDscsId 를 빈값으로 호출하므로
-                        // 복사 원본 dscsId(forumCd)를 직접 넘겨 팀별 부주제 제목/내용 로드
-                        loadForumTeamList(v.lrnGrpId, dvclasNo, forumCd);
+                        // 복사 원본 dscsId를 직접 넘겨 팀별 부주제 제목/내용 로드
+                        loadForumTeamList(v.lrnGrpId, dvclasNo, dscsId);
                         if (v.byteamDscsUseyn === 'Y') {
                             $chk.prop('checked', true);
                             $('#subInfoDiv' + dvclasNo).show();                    // 부주제 영역 노출

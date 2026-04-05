@@ -1036,12 +1036,12 @@
     }
 
     //토론 수정
-    function editForum(forumCd,forumStartDttm) {
-        location.href = '<c:url value="/forum2/forumLect/profDscsEditView.do" />?dscsId=' + encodeURIComponent(forumCd);
+    function editForum(dscsId,forumStartDttm) {
+        location.href = '<c:url value="/forum2/forumLect/profDscsEditView.do" />?dscsId=' + encodeURIComponent(dscsId);
     }
 
     //토론삭제
-    function delForum(forumCd) {
+    function delForum(dscsId) {
         /*var result = confirm("
         <spring:message code='forum.alert.confirm.delete'/>"); // 정말 토론을 삭제 하시겠습니까?
 
@@ -1051,7 +1051,7 @@
         form.attr("method", "POST");
         form.attr("name", "forumForm");
         form.attr("action", "/forum2/forumLect/Form/delForum.do");
-        form.append($('<input/>', {type: 'hidden', name: 'dscsId', value: forumCd}));
+        form.append($('<input/>', {type: 'hidden', name: 'dscsId', value: dscsId}));
         form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: '
         <c:out value="${dscsForumVO.crsCreCd}" />'}));
         form.appendTo("body");
@@ -1181,13 +1181,13 @@
         var atclSaveBtn = e.target.closest('.atcl_edit_save');
         if(atclSaveBtn) {
             var atclSn         = atclSaveBtn.getAttribute('data-atcl-sn');
-            var forumCd        = atclSaveBtn.getAttribute('data-forum-cd');
+            var dscsId         = atclSaveBtn.getAttribute('data-forum-cd');
             var prosConsTypeCd = atclSaveBtn.getAttribute('data-pros-cons-type-cd');
             var postIdx        = atclSaveBtn.getAttribute('data-post-idx');
             var cts            = (document.getElementById('atclEditCts' + postIdx) || {}).value || '';
             if(!cts.trim()) { alert('<spring:message code="forum.alert.input.forum_reply"/>'); return; }
             ajaxCall('/forum2/forumLect/Form/editAtcl.do',
-                { dscsAtclId: atclSn, dscsId: forumCd, oknokGbncd: prosConsTypeCd, atclCts: cts },
+                { dscsAtclId: atclSn, dscsId: dscsId, oknokGbncd: prosConsTypeCd, atclCts: cts },
                 function(data) {
                     if(data.result > 0) { editingPostId = null; listForum(); }
                     else { alert("<spring:message code='forum.common.error'/>"); /* 오류가 발생했습니다! */ }

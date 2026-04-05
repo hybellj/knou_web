@@ -364,14 +364,6 @@ public class DscsAtclVO extends DefaultVO {
         setDscsAtclId(atclSn);
     }
 
-    public String getForumCd() {
-        return getDscsId();
-    }
-
-    public void setForumCd(String forumCd) {
-        setDscsId(forumCd);
-    }
-
     public String getParAtclSn() {
         return getUpDscsAtclId();
     }

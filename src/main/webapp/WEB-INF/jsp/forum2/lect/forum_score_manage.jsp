@@ -171,7 +171,7 @@
 					teamnm:				v.teamNm,
 					ldryn:				v.memberRole,
 					userId:				v.userId,
-					forumCd:			v.dscsId		// BYTEAM='Y'이면 자식 DSCS_ID
+					dscsId:			v.dscsId		// BYTEAM='Y'이면 자식 DSCS_ID
 				});
 
 			});
@@ -223,7 +223,7 @@
 			}
 		}
 
-		// BYTEAM='Y' 전용: 선택 학생을 자식토론 forumCd 기준으로 그룹핑
+		// BYTEAM='Y' 전용: 선택 학생을 자식토론 dscsId 기준으로 그룹핑
 		var _pendingFdbkGroups = null;
 		function getForumCdGroups() {
 			var groups = {};
@@ -514,23 +514,23 @@
 	*/
 
 		// 메모 팝업
-		function stdMemoForm(forumCd, stdId, obj) {
+		function stdMemoForm(dscsId, stdId, obj) {
 			// 선택된 피드백의 아이콘 색상 초기화 및 변경
 			/*if($(".ui.basic.small.button").parents("tr").hasClass("focused")) {
 				$(".ui.basic.small.button").parents("tr").removeClass("focused");
 			}
 			$("[data-stdNo='"+ stdNo +"']").parents("tr").addClass("focused");
 
-			var forumCd = "${dscsForumVO.dscsId}";
+			var dscsId = "${dscsForumVO.dscsId}";
 			forumCommon.initModal("profMemo");
-			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(forumCd);
+			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
 			$("form[name='forumCreCrsStdForm'] input[name='stdNo']").val(stdNo);
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
 			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/dscsProfMemoPop.do");
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
 
-			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(forumCd);
+			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
 			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 
 			var queryString = $("#forumCreCrsStdForm").serialize();
@@ -544,23 +544,23 @@
 		}
 
 		// 피드백 작성 팝업
-		function fdbkList(forumCd, stdId, obj) {
+		function fdbkList(dscsId, stdId, obj) {
 			// 선택된 피드백의 아이콘 색상 초기화 및 변경
 			if($(".xi-comment-o").parents().hasClass("focused")) {
 				$(".xi-comment-o").parents().removeClass("focused");
 			}
 			$(obj).parents().addClass("focused");
 
-			/*var forumCd = "${dscsForumVO.dscsId}";
+			/*var dscsId = "${dscsForumVO.dscsId}";
 			forumCommon.initModal("feedback");
-			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(forumCd);
+			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
 			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
 			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/dscsFdbkPop.do");
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
 
-			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(forumCd);
+			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
 			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 
 			var queryString = $("#forumCreCrsStdForm").serialize();
@@ -639,15 +639,15 @@
 		}
 
 		// EZ-Grader 팝업 화면
-		function ezGraderPop(forumCd, stdId) {
-			/*$('#ezGraderForm input[name="dscsId"]').val(forumCd);
+		function ezGraderPop(dscsId, stdId) {
+			/*$('#ezGraderForm input[name="dscsId"]').val(dscsId);
 			$('#ezGraderForm input[name="stdId"]').val(stdId);
 			$("#ezGraderForm").attr("target", "ezGraderPopIfm");
 			$("#ezGraderForm").attr("action", "/forum/ezgPop/ezgMainForm.do");
 			$("#ezGraderForm").submit();
 			$('#ezGraderPop').modal('show');*/
 
-			$("form[name='ezGraderForm'] input[name='dscsId']").val(forumCd);
+			$("form[name='ezGraderForm'] input[name='dscsId']").val(dscsId);
 			$("form[name='ezGraderForm'] input[name='stdId']").val(stdId);
 
 			const width = window.innerWidth;
@@ -969,12 +969,12 @@
 		}
 
 		// 토론 수정
-		function editForum(forumCd,forumStartDttm) {
-			location.href = '<c:url value="/forum2/forumLect/profDscsEditView.do" />?dscsId=' + encodeURIComponent(forumCd);
+		function editForum(dscsId,forumStartDttm) {
+			location.href = '<c:url value="/forum2/forumLect/profDscsEditView.do" />?dscsId=' + encodeURIComponent(dscsId);
 		}
 
 		// 토론삭제
-		function delForum(forumCd) {
+		function delForum(dscsId) {
 			/*var result = confirm("<spring:message code='forum.alert.confirm.delete'/>"); // 정말 토론을 삭제 하시겠습니까?
 
 		if(!result){return false;}
@@ -984,7 +984,7 @@
 		form.attr("name", "forumForm");
 		form.attr("action", "/forum2/forumLect/Form/delForum.do");
 		form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: '<c:out value="${dscsForumVO.crsCreCd}" />'}));
-		form.append($('<input/>', {type: 'hidden', name: 'dscsId', value: forumCd}));
+		form.append($('<input/>', {type: 'hidden', name: 'dscsId', value: dscsId}));
 		form.appendTo("body");
 		form.submit();*/
 		}

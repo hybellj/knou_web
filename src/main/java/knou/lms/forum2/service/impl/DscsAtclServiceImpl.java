@@ -119,7 +119,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
             dscsJoinUserDAO.ensureJoinUser(joinVO);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             // UNIQUE 제약 위반 = 이미 존재 → 무시
-            LOGGER.debug("[insertAtcl] ensureJoinUser skip - already exists: forumCd=" + vo.getForumCd() + ", userId=" + vo.getUserId());
+            LOGGER.debug("[insertAtcl] ensureJoinUser skip - already exists: dscsId=" + vo.getDscsId() + ", userId=" + vo.getUserId());
         }
 
         // 파일 등록 (attachFileService)

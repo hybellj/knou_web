@@ -9,7 +9,7 @@ public class DscsEzGraderRsltVO extends DefaultVO {
     private String orgId;           // 기관 코드
 
     private String crsCreCd;
-    private String forumCd;
+    private String dscsId;
     private String evalCd;
     private String forumSendCd;
     private String mutEvalCd;
@@ -39,17 +39,11 @@ public class DscsEzGraderRsltVO extends DefaultVO {
     public void setCrsCreCd(String crsCreCd) {
         this.crsCreCd = crsCreCd;
     }
-    public String getForumCd() {
-        return forumCd;
-    }
-    public void setForumCd(String forumCd) {
-        this.forumCd = forumCd;
-    }
     public String getDscsId() {
-        return forumCd;
+        return dscsId;
     }
     public void setDscsId(String dscsId) {
-        this.forumCd = dscsId;
+        this.dscsId = dscsId;
     }
     public String getEvalCd() {
         return evalCd;

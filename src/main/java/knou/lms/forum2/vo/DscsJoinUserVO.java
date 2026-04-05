@@ -13,7 +13,7 @@ public class DscsJoinUserVO extends DefaultVO {
     private String  stdIds;         // ajax 등 데이처 처리용.stdIdList 와 같이 사용
     private List<String> stdIdList;
     
-    private String  forumCd;        // 토론 코드
+    private String  dscsId;         // 토론 코드
     private String  teamCd;         // 팀 코드
     private Double  score;          // 점수
     private String  scoreNull;
@@ -89,17 +89,11 @@ public class DscsJoinUserVO extends DefaultVO {
         this.stdntNo = stdntNo;
     }
 
-    public String getForumCd() {
-        return forumCd;
-    }
-    public void setForumCd(String forumCd) {
-        this.forumCd = forumCd;
-    }
     public String getDscsId() {
-        return forumCd;
+        return dscsId;
     }
     public void setDscsId(String dscsId) {
-        this.forumCd = dscsId;
+        this.dscsId = dscsId;
     }
     public String getTeamCd() {
         return teamCd;

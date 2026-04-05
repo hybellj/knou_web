@@ -493,7 +493,7 @@ public class DscsLectController extends ControllerBase {
         /*
         // Ref.>lect/form_list.jsp
         <form name="forumListForm" id="forumListForm" action="" method="POST">
-            <input type="hidden" id="forumCd" name="forumCd" />
+            <input type="hidden" id="dscsId" name="dscsId" />
             <input type="hidden" id="crsCreCd" name="crsCreCd" value="${forumVO.crsCreCd}"/>
             <input type="hidden" id="userId" name="userId" value="${userId}"/>
             <input type="hidden" id="userName" name="userName" value="${userName}"/>
@@ -1313,7 +1313,6 @@ public class DscsLectController extends ControllerBase {
         // TODO : 26.3.23 : AS-IS code TO-BE 필요시 적용.
         /*creCrsVO = crecrsService.infoCreCrs(creCrsVO);
         request.setAttribute("creCrsVO", creCrsVO);*/
-        request.setAttribute("forumCd", forumJoinUserVO.getDscsId());
         request.setAttribute("dscsId", forumJoinUserVO.getDscsId());
         request.setAttribute("stdId", forumJoinUserVO.getStdId());
 
@@ -1360,19 +1359,18 @@ public class DscsLectController extends ControllerBase {
         /*creCrsVO = crecrsService.infoCreCrs(creCrsVO);*/
         request.setAttribute("creCrsVO", creCrsVO);
 
-        String forumCd = vo.getDscsId();
+        String dscsId = vo.getDscsId();
         String stdId = vo.getStdId();
         String teamCd = vo.getTeamCd();
 
-        request.setAttribute("forumCd", forumCd);
-        request.setAttribute("dscsId", forumCd);
+        request.setAttribute("dscsId", dscsId);
         request.setAttribute("stdId", stdId);
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
 
         DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-        forumJoinUserVO.setDscsId(forumCd);
+        forumJoinUserVO.setDscsId(dscsId);
         forumJoinUserVO.setStdId(stdId);
         forumJoinUserVO.setUserId(userId);
         forumJoinUserVO = dscsJoinUserService.selectProfMemo(forumJoinUserVO);
@@ -1390,7 +1388,7 @@ public class DscsLectController extends ControllerBase {
         */
 
         DscsFdbkVO forumFdbkVO = new DscsFdbkVO();
-        forumFdbkVO.setDscsId(forumCd);
+        forumFdbkVO.setDscsId(dscsId);
         forumFdbkVO.setStdId(stdId);
 
         if(teamCd != null || teamCd != "") {
@@ -1575,7 +1573,7 @@ public class DscsLectController extends ControllerBase {
     // 일괄 피드백 팝업
     @RequestMapping(value={"/allForumFdbkPop.do", "/allDscsFdbkPop.do"})
     public String allForumFdbkPop(DscsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        String forumCd = vo.getDscsId();
+        String dscsId = vo.getDscsId();
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
         String userName = StringUtil.nvl(SessionInfo.getUserNm(request));
@@ -1584,12 +1582,11 @@ public class DscsLectController extends ControllerBase {
         vo.setRgtrId(userId);
         dscsJoinUserService.insertJoinUser(vo);
 
-        request.setAttribute("forumCd", forumCd);
-        request.setAttribute("dscsId", forumCd);
+        request.setAttribute("dscsId", dscsId);
         request.setAttribute("userId", userId);
         request.setAttribute("userName", userName);
 
-        return "forum/popup/forum_all_feedback";
+        return "forum2/popup/forum_all_feedback";
     }
 
     // 일괄 피드백 작성

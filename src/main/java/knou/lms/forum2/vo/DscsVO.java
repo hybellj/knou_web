@@ -597,8 +597,6 @@ public class DscsVO extends DefaultVO {
     public String[] getDeleteFileId() { return deleteFileId; }
     public void setDeleteFileId(String[] deleteFileId) { this.deleteFileId = deleteFileId; }
 
-    public String getForumCd() { return dscsId; }
-    public void setForumCd(String forumCd) { this.dscsId = forumCd; }
     public String getForumCtgrCd() { return dscsUnitTycd; }
     public void setForumCtgrCd(String forumCtgrCd) { this.dscsUnitTycd = forumCtgrCd; }
     public String getForumStartDttm() { return dscsSdttm; }

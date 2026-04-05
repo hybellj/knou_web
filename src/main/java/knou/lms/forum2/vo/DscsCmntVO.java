@@ -195,14 +195,6 @@ public class DscsCmntVO extends DefaultVO {
         setDscsCmntId(cmntSn);
     }
 
-    public String getForumCd() {
-        return getDscsId();
-    }
-
-    public void setForumCd(String forumCd) {
-        setDscsId(forumCd);
-    }
-
     public String getAtclSn() {
         return getDscsAtclId();
     }

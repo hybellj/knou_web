@@ -9,7 +9,7 @@ public class DscsMutVO extends DefaultVO {
     private static final long serialVersionUID = -1116530926234534895L;
 
     private String stdId;     // 수강생 번호
-    private String forumCd;   // 토론코드
+    private String dscsId;    // 토론코드
     private String mutSn;     // 상호평가 고유번호
     private String parAtclSn; // 상위 게시글 고유번호
     private Double score;     // 점수
@@ -30,19 +30,12 @@ public class DscsMutVO extends DefaultVO {
         this.stdId = stdId;
     }
 
-    public String getForumCd() {
-        return forumCd;
-    }
-
-    public void setForumCd(String forumCd) {
-        this.forumCd = forumCd;
-    }
     public String getDscsId() {
-        return forumCd;
+        return dscsId;
     }
 
     public void setDscsId(String dscsId) {
-        this.forumCd = dscsId;
+        this.dscsId = dscsId;
     }
 
     public String getMutSn() {
