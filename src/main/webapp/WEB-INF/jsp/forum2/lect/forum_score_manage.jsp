@@ -79,7 +79,7 @@
 		// 참여자 리스트 조회
 		function listForumUser(page) {
 			var univGbn = "${creCrsVO.univGbn}";
-			var url  = "/forum2/forumLect/forumJoinUserList.do";
+			var url  = "/forum2/forumLect/dscsJoinUserList.do";
 
 			var data = {
 				"dscsId" 	  : "${dscsVO.dscsId}",
@@ -133,7 +133,7 @@
 				scoreHtml += "		</div>";
 				<%--scoreHtml += "		<div class=\"ui basic label\"><spring:message code='forum.label.point' /></div>"; // 점--%>
 
-				var fdkHtml = "<i class=\"xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('"+ v.forumCd +"', '"+ v.userId +"', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
+				var fdkHtml = "<i class=\"xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('"+ v.dscsId +"', '"+ v.userId +"', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
 				var oknokHtml = "-";
 				if(v.oknokGbnCd === "OK") {
 					oknokHtml = "<spring:message code='forum.label.oknok.ok' />";        // 찬성
@@ -151,8 +151,8 @@
 				}
 
 				var mngHtml = "";
-				mngHtml += "		<a href=\"javascript:ezGraderPop('"+ v.forumCd +"', '"+ v.userId +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></a>"; // 참여글보기
-				mngHtml += "		<a href=\"javascript:stdMemoForm('"+ v.forumCd +"', '"+ v.userId +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></a>"; // 메모
+				mngHtml += "		<a href=\"javascript:ezGraderPop('"+ v.dscsId +"', '"+ v.userId +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></a>"; // 참여글보기
+				mngHtml += "		<a href=\"javascript:stdMemoForm('"+ v.dscsId +"', '"+ v.userId +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></a>"; // 메모
 
 				dataList.push({
 					no: 				v.lineNo,
@@ -171,7 +171,7 @@
 					teamnm:				v.teamNm,
 					ldryn:				v.memberRole,
 					userId:				v.userId,
-					forumCd:			v.forumCd		// BYTEAM='Y'이면 자식 DSCS_ID
+					forumCd:			v.dscsId		// BYTEAM='Y'이면 자식 DSCS_ID
 				});
 
 			});
@@ -277,7 +277,7 @@
 				}
 			}
 
-			var url = "/forum2/forumLect/updateForumJoinUserScore.do";
+			var url = "/forum2/forumLect/updateDscsJoinUserScore.do";
 			// var url = "/forum2/forumLect/addStdScore.do";
 
 			// BYTEAM='Y': 팀(자식토론)별 그룹핑 후 각각 호출
@@ -526,7 +526,7 @@
 			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(forumCd);
 			$("form[name='forumCreCrsStdForm'] input[name='stdNo']").val(stdNo);
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumProfMemoPop.do");
+			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/dscsProfMemoPop.do");
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
 
@@ -538,7 +538,7 @@
 				title: "메모",
 				width: 600,
 				height: 350,
-				url: "/forum2/forumLect/forumProfMemoPop.do?" + queryString,
+				url: "/forum2/forumLect/dscsProfMemoPop.do?" + queryString,
 				// autoresize: true
 			});
 		}
@@ -556,7 +556,7 @@
 			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(forumCd);
 			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumFdbkPop.do");
+			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/dscsFdbkPop.do");
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
 
@@ -568,7 +568,7 @@
 				title: "피드백",
 				width: 600,
 				height: 350,
-				url: "/forum2/forumLect/forumFdbkPop.do?" + queryString,
+				url: "/forum2/forumLect/dscsFdbkPop.do?" + queryString,
 				autoresize: true
 			});
 		}
@@ -579,7 +579,7 @@
 			var dscsId = $("form[name='forumCreCrsStdForm'] input[name='dscsId']").val();
 			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
 			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/allForumFdbkPop.do");
+			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/allDscsFdbkPop.do");
 			$("#forumCreCrsStdForm").submit();
 			$("#forumPop").modal("show");
 		}
@@ -970,7 +970,7 @@
 
 		// 토론 수정
 		function editForum(forumCd,forumStartDttm) {
-			location.href = '<c:url value="/forum2/forumLect/profForumEditView.do" />?dscsId=' + encodeURIComponent(forumCd);
+			location.href = '<c:url value="/forum2/forumLect/profDscsEditView.do" />?dscsId=' + encodeURIComponent(forumCd);
 		}
 
 		// 토론삭제
@@ -1229,7 +1229,7 @@
 													stdIds += userListTable.getSelectedData("userId")[i];
 												}
 
-												var url = "/forum2/forumLect/updateForumJoinUserLenScore.do";
+												var url = "/forum2/forumLect/updateDscsJoinUserLenScore.do";
 												// BYTEAM='Y': 팀(자식토론)별 그룹핑 후 각각 호출
 												if ("${dscsVO.byteamDscsUseyn}" === "Y") {
 													var groups = getForumCdGroups();

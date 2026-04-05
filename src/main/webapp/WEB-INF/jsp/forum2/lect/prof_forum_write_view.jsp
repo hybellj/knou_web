@@ -409,7 +409,7 @@
         });
 
         $('#btnSave').on('click', function () {
-            saveForum();
+            saveDscs();
         });
 
         $('#btnCopy').on('click', function () {
@@ -566,7 +566,7 @@
 
     /** 학습그룹 팀 목록 조회 후 subInfoDiv 에 렌더링 */
     function loadForumTeamList(lrnGrpId, dvclasNo, overrideUpDscsId) {
-        var url  = '<c:url value="/forum2/forumLect/profForumLrnGrpTeamListAjax.do" />';
+        var url  = '<c:url value="/forum2/forumLect/profDscsLrnGrpTeamListAjax.do" />';
         var data = {
             lrnGrpId : lrnGrpId,
             upDscsId : (overrideUpDscsId !== undefined) ? overrideUpDscsId : '${dscsVO.dscsId}'
@@ -979,7 +979,7 @@
     }
 
     // 토론등록/저장
-    function saveForum() {
+    function saveDscs() {
         let validator = UiValidator("forumWriteForm");
         validator.then(function(result) {
             syncAllSwitchHidden();
@@ -993,8 +993,8 @@
 
     // 실제 저장 AJAX 호출
     function doSaveForum() {
-        var registUrl = '<c:url value="/forum2/forumLect/profForumRegist.do" />';
-        var modifyUrl = '<c:url value="/forum2/forumLect/profForumModify.do" />';
+        var registUrl = '<c:url value="/forum2/forumLect/profDscsRegist.do" />';
+        var modifyUrl = '<c:url value="/forum2/forumLect/profDscsModify.do" />';
         var isModifyMode = '${mode}' === 'E';
         var url = isModifyMode ? modifyUrl : registUrl;
         var param = $('#forumWriteForm').serialize();
@@ -1041,8 +1041,8 @@
         });
     }
 
-    // 이전 토론 가져오기 팝업에서 선택 시 호출 (window.parent.copyForum)
-    function copyForum(forumCd) {
+    // 이전 토론 가져오기 팝업에서 선택 시 호출 (window.parent.copyDscs)
+    function copyDscs(forumCd) {
         UiComm.showLoading(true);
         $.ajax({
             url     : "/forum2/forumLect/Form/forumCopy.do",

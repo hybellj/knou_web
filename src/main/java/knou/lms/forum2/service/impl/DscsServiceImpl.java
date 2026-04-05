@@ -36,8 +36,8 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
     private AttachFileService attachFileService;
 
     @Override
-    public List<DscsVO> selectForumDvclasList(DscsVO vo) throws Exception {
-        return dscsDAO.selectForumDvclasList(vo);
+    public List<DscsVO> selectDscsDvclasList(DscsVO vo) throws Exception {
+        return dscsDAO.selectDscsDvclasList(vo);
     }
 
     /**
@@ -47,11 +47,11 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<DscsListVO> selectForumList(DscsListVO vo) throws Exception {
+    public ProcessResultVO<DscsListVO> selectDscsList(DscsListVO vo) throws Exception {
         ProcessResultVO<DscsListVO> resultVO = new ProcessResultVO<>();
 
         PageInfo pageInfo = new PageInfo(vo);
-        List<DscsListVO> list = dscsDAO.selectForumList(vo);
+        List<DscsListVO> list = dscsDAO.selectDscsList(vo);
         pageInfo.setTotalRecord(list);
 
         resultVO.setReturnList(list);
@@ -68,8 +68,8 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public DscsVO selectForum(DscsVO vo) throws Exception {
-        DscsVO resultVo = dscsDAO.selectForum(vo);
+    public DscsVO selectDscs(DscsVO vo) throws Exception {
+        DscsVO resultVo = dscsDAO.selectDscs(vo);
         // 부토론 존재여부 체크
         if (resultVo.getByteamDscsUseyn().equalsIgnoreCase("Y")) {
             List<DscsTeamDscsVO> teamList = dscsDAO.selectTeamDscsList(vo.getDscsId());
@@ -96,10 +96,10 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<DscsVO> modifyForumMrkOyn(DscsVO vo) throws Exception {
+    public ProcessResultVO<DscsVO> modifyDscsMrkOyn(DscsVO vo) throws Exception {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
-        int affected = dscsDAO.updateForumMrkOyn(vo);
+        int affected = dscsDAO.updateDscsMrkOyn(vo);
         if (affected > 0) {
             resultVO.setReturnVO(vo);
             resultVO.setResultSuccess();
@@ -116,8 +116,8 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public void updateForumMrkRfltrt(List<DscsVO> list) throws Exception {
-        dscsDAO.updateForumMrkRfltrt(list);
+    public void updateDscsMrkRfltrt(List<DscsVO> list) throws Exception {
+        dscsDAO.updateDscsMrkRfltrt(list);
     }
 
     /**
@@ -127,7 +127,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<DscsVO> saveForum(DscsVO vo) throws Exception {
+    public ProcessResultVO<DscsVO> saveDscs(DscsVO vo) throws Exception {
         if (StringUtil.isNull(vo.getOknokStngyn())) {
             vo.setOknokStngyn("N");
         }
@@ -135,16 +135,16 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
         vo.setDscsUnitTycd(isTeamDiscussion ? "TEAM" : "GNRL");
 
         if (StringUtil.isNull(vo.getDscsId())) {
-            return doInsertForum(vo, isTeamDiscussion);
+            return doInsertDscs(vo, isTeamDiscussion);
         } else {
-            return doUpdateForum(vo, isTeamDiscussion);
+            return doUpdateDscs(vo, isTeamDiscussion);
         }
     }
 
     /**
      * 토론 등록 (신규)
      */
-    private ProcessResultVO<DscsVO> doInsertForum(DscsVO vo, boolean isTeamDiscussion) throws Exception {
+    private ProcessResultVO<DscsVO> doInsertDscs(DscsVO vo, boolean isTeamDiscussion) throws Exception {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
         List<DscsDvclasSelVO> dvclasSelList = vo.getDvclasSelList();
@@ -209,7 +209,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
                 vo.setDscsGrpId(dscsGrpId);
                 vo.setLrnGrpId(lrnGrpId);
                 vo.setDscsGrpnm(lrnGrpnm);
-                dscsDAO.insertForumGrp(vo);
+                dscsDAO.insertDscsGrp(vo);
             } else {
                 vo.setDscsGrpId(null);
                 vo.setLrnGrpId(null);
@@ -225,7 +225,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
             vo.setByteamDscsUseyn(byteamDscsUseyn);
             vo.setUpDscsId(null);
             vo.setTeamId(null);
-            dscsDAO.insertForum(vo); // 부모(또는 단일) 토론 INSERT
+            dscsDAO.insertDscs(vo); // 부모(또는 단일) 토론 INSERT
 
             // 팀별 부주제 설정 시: 팀수만큼 자식 토론 생성
             if ("Y".equalsIgnoreCase(byteamDscsUseyn)) {
@@ -242,7 +242,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
                         vo.setDscsTtl(teamDtl.getDscsTtl());
                         vo.setDscsCts(teamDtl.getDscsCts());
                         vo.setByteamDscsUseyn("N");
-                        dscsDAO.insertForum(vo);
+                        dscsDAO.insertDscs(vo);
 
                         // 팀별 첨부파일 저장 (refId = 자식 토론 ID)
                         if (!StringUtil.isNull(teamDtl.getTeamUploadFiles())) {
@@ -301,13 +301,13 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
     /**
      * 토론 수정
      */
-    private ProcessResultVO<DscsVO> doUpdateForum(DscsVO vo, boolean isTeamDiscussion) throws Exception {
+    private ProcessResultVO<DscsVO> doUpdateDscs(DscsVO vo, boolean isTeamDiscussion) throws Exception {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
         // 현재 DB 상태 조회 (변경 전 유형 판별용)
         DscsVO currentParam = new DscsVO();
         currentParam.setDscsId(vo.getDscsId());
-        DscsVO currentVO = dscsDAO.selectForum(currentParam);
+        DscsVO currentVO = dscsDAO.selectDscs(currentParam);
         boolean wasTeam   = "TEAM".equalsIgnoreCase(currentVO.getDscsUnitTycd());
         boolean wasByteam = "Y".equalsIgnoreCase(currentVO.getByteamDscsUseyn());
 
@@ -326,11 +326,11 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
 
         // 2-2: TEAM → GNRL 전환 시 자식 논리 삭제
         if (wasTeam && !isTeamDiscussion) {
-            dscsDAO.updateChildForumDelYn(vo);
+            dscsDAO.updateChildDscsDelYn(vo);
         }
         // 2-1: TEAM 유지, byteamDscsUseyn Y → N 시 자식 논리 삭제
         else if (wasTeam && isTeamDiscussion && wasByteam && "N".equals(newByteam)) {
-            dscsDAO.updateChildForumDelYn(vo);
+            dscsDAO.updateChildDscsDelYn(vo);
         }
 
         // 2-4: TEAM 유지 + byteamDscsUseyn Y → Y 시 자식 토론 제목/내용 UPDATE
@@ -342,7 +342,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
                     teamDtl.setUpDscsId(vo.getDscsId());
                     teamDtl.setMdfrId(vo.getMdfrId());
                     teamDtl.setRgtrId(vo.getRgtrId());
-                    dscsDAO.updateChildForumDtls(teamDtl);
+                    dscsDAO.updateChildDscsDtls(teamDtl);
                     // 팀별 첨부파일 저장 (refId = JS에서 전달된 자식 토론 ID)
                     if (!StringUtil.isNull(teamDtl.getTeamUploadFiles()) && !StringUtil.isNull(teamDtl.getDscsId())) {
                         List<AtflVO> teamFiles = FileUtil.getUploadAtflList(
@@ -379,7 +379,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
                     vo.setDscsGrpId(dscsGrpId);
                     vo.setLrnGrpId(lrnGrpId);
                     vo.setDscsGrpnm(lrnGrpnm);
-                    dscsDAO.insertForumGrp(vo);
+                    dscsDAO.insertDscsGrp(vo);
                 }
             }
 
@@ -398,7 +398,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
                         vo.setDscsTtl(teamDtl.getDscsTtl());
                         vo.setDscsCts(teamDtl.getDscsCts());
                         vo.setByteamDscsUseyn("N");
-                        dscsDAO.insertForum(vo);
+                        dscsDAO.insertDscs(vo);
                         // 팀별 첨부파일 저장 (refId = 신규 자식 토론 ID)
                         String childDscsId = vo.getDscsId();
                         if (!StringUtil.isNull(teamDtl.getTeamUploadFiles())) {
@@ -429,7 +429,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
             vo.setDvclsNo(null); // GNRL→TEAM 전환 외 수정 시 분반 변경 금지
         }
 
-        dscsDAO.updateForum(vo);
+        dscsDAO.updateDscs(vo);
 
         // 첨부파일 저장
         List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
@@ -455,7 +455,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
 
     // 내 강의에 등록된 토론 목록 조회
     @Override
-    public ProcessResultVO<DscsVO> selectProfSbjctForumList(DscsVO vo) throws Exception {
+    public ProcessResultVO<DscsVO> selectProfSbjctDscsList(DscsVO vo) throws Exception {
 
         /** start of paging */
         PagingInfo paginationInfo = new PagingInfo();
@@ -466,7 +466,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
         vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
         vo.setLastIndex(paginationInfo.getLastRecordIndex());
 
-        List<DscsVO> forumList = dscsDAO.selectProfSbjctForumList(vo);
+        List<DscsVO> forumList = dscsDAO.selectProfSbjctDscsList(vo);
 
         if(forumList.size() > 0) {
             paginationInfo.setTotalRecordCount(forumList.get(0).getTotalCnt());
@@ -489,10 +489,10 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<DscsVO> deleteForum(DscsVO vo) throws Exception {
+    public ProcessResultVO<DscsVO> deleteDscs(DscsVO vo) throws Exception {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
-        int affected = dscsDAO.deleteForum(vo);
+        int affected = dscsDAO.deleteDscs(vo);
         if (affected > 0) {
             resultVO.setReturnVO(vo);
             resultVO.setResultSuccess();
@@ -528,9 +528,9 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * 학습그룹 팀 목록 조회 (팀 토론 부주제 설정용)
      */
     @Override
-    public ProcessResultVO<DscsTeamDscsVO> selectForumLrnGrpTeamList(DscsTeamDscsVO vo) throws Exception {
+    public ProcessResultVO<DscsTeamDscsVO> selectDscsLrnGrpTeamList(DscsTeamDscsVO vo) throws Exception {
         ProcessResultVO<DscsTeamDscsVO> resultVO = new ProcessResultVO<>();
-        List<DscsTeamDscsVO> list = dscsDAO.selectForumLrnGrpTeamList(vo);
+        List<DscsTeamDscsVO> list = dscsDAO.selectDscsLrnGrpTeamList(vo);
         resultVO.setReturnList(list);
         return resultVO;
     }
@@ -542,7 +542,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<DscsVO> copyForum(DscsVO vo) throws Exception {
+    public ProcessResultVO<DscsVO> copyDscs(DscsVO vo) throws Exception {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
         String newDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
@@ -551,11 +551,11 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
         /*TODO : 26.3.26
         파라미터매핑프로젝트표준확정필요
         */
-        dscsDAO.copyForum(vo);
+        dscsDAO.copyDscs(vo);
 
         DscsVO detailParam = new DscsVO();
         detailParam.setDscsId(newDscsId);
-        DscsVO detailVO = dscsDAO.selectForum(detailParam);
+        DscsVO detailVO = dscsDAO.selectDscs(detailParam);
 
         // TODO : 26.3.26 파일정보 복사(물리 파일 처리 확인 필요)
         /*

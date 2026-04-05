@@ -109,7 +109,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
         // 토론참여자 테이블 등록 (게시글 작성 시 단건)
         // DscsJoinUserVO.stdId = TB_LMS_DSCS_PTCP.USER_ID = 로그인 userId (listStdScore SQL: A.USER_ID AS stdId)
         DscsJoinUserVO joinVO = new DscsJoinUserVO();
-        joinVO.setForumCd(vo.getForumCd());
+        joinVO.setDscsId(vo.getDscsId());
         joinVO.setStdId(vo.getUserId());
         joinVO.setTeamCd(StringUtil.nvl(teamCd));
         joinVO.setRgtrId(vo.getRgtrId());
@@ -185,9 +185,9 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
         // 파일 처리 로직 수정. 다중파일을 위한 List 처리
 //      this.saveFiles(vo);
         
-        DscsForumVO forumVO = new DscsForumVO();
-        forumVO.setForumCd(vo.getForumCd());
-        forumVO = forumDAO.selectForum(forumVO);
+        DscsVO forumVO = new DscsVO();
+        forumVO.setDscsId(vo.getDscsId());
+        forumVO = forumDAO.selectDscs(forumVO);
         if("R".equals(StringUtil.nvl(forumVO.getEvalCtgr()))) {
             DscsAtclVO forumAtclVO = forumAtclDAO.selectAtcl(vo);
             
@@ -201,13 +201,13 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
             if(svo != null) {
                 forumAtclVO = new DscsAtclVO();
                 forumAtclVO.setCrsCreCd(svo.getCrsCreCd());
-                forumAtclVO.setForumCd(vo.getForumCd());
+                forumAtclVO.setDscsId(vo.getDscsId());
                 forumAtclVO.setUserId(rgtrId);
                 int atclCnt = forumAtclDAO.myAtclCnt(forumAtclVO);
                 
                 if(atclCnt == 0) {
                     DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-                    forumJoinUserVO.setForumCd(vo.getForumCd());
+                    forumJoinUserVO.setDscsId(vo.getDscsId());
                     forumJoinUserVO.setStdId(svo.getStdId());
                     forumJoinUserVO.setMdfrId(vo.getMdfrId());
                     dscsJoinUserDAO.updateJoinUserEvalN(forumJoinUserVO);
@@ -261,7 +261,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
             // 기존 파일 삭제
             FileVO delFileVO = new FileVO();
             delFileVO.setRepoCd(vo.getRepoCd());
-            delFileVO.setFileBindDataSn(vo.getForumCd());
+            delFileVO.setFileBindDataSn(vo.getDscsId());
             List<FileVO> delFileList = sysFileService.list(delFileVO).getReturnList();
             for(FileVO dfvo : delFileList) {
                 sysFileService.removeFile(dfvo);
@@ -304,7 +304,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
             fileVO.setUploadFiles(uploadFile.toString());
             fileVO.setFilePath(vo.getUploadPath());
             fileVO.setRgtrId(vo.getRgtrId());
-            fileVO.setFileBindDataSn(vo.getForumCd());
+            fileVO.setFileBindDataSn(vo.getDscsId());
             sysFileService.copyFile(fileVO);
         }
     }

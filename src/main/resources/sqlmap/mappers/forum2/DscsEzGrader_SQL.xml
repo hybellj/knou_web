@@ -2,10 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.forum2.dao.DscsEzGraderDAO">
 
-	<select id="listForumJoinUser" parameterType="dscsJoinUserVO" resultType="dscsJoinUserVO">
+	<select id="listDscsJoinUser" parameterType="dscsJoinUserVO" resultType="dscsJoinUserVO">
 		/*
 			토론 참여 대상 리스트2
-			ForumEzGraderDAO.listForumJoinUser
+			DscsEzGraderDAO.listDscsJoinUser
 		*/
 		SELECT A.USER_ID AS stdId
 			, A.USER_ID AS userId
@@ -93,10 +93,10 @@
 		<result property="joinStatus" column="JOIN_STATUS" />
 	</resultMap>
 
-	<select id="listForumJoinTeam" parameterType="dscsJoinUserVO" resultMap="forumJoinTeamMap">
+	<select id="listDscsJoinTeam" parameterType="dscsJoinUserVO" resultMap="forumJoinTeamMap">
 		/*
 			토론 참여 대상 team2
-			ForumEzGraderDAO.listForumJoinTeam
+			DscsEzGraderDAO.listDscsJoinTeam
 		*/
 		SELECT A.TEAM_TYCD
 			, A.TEAM_ID

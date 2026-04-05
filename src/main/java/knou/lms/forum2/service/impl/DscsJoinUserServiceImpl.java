@@ -51,8 +51,8 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
      * @throws Exception
      ******************************************************/
     @Override
-    public EgovMap selectForumScoreStatus(DscsJoinUserVO vo) throws Exception {
-        return forumJoinUserDAO.selectForumScoreStatus(vo);
+    public EgovMap selectDscsScoreStatus(DscsJoinUserVO vo) throws Exception {
+        return forumJoinUserDAO.selectDscsScoreStatus(vo);
     }
     
     /*****************************************************
@@ -117,7 +117,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
      * @throws Exception
      ******************************************************/
     @Override
-    public void updateForumJoinUserScore(DscsJoinUserVO vo) throws Exception {
+    public void updateDscsJoinUserScore(DscsJoinUserVO vo) throws Exception {
         List<String> listTargetStdId = Arrays.asList(StringUtil.nvl(vo.getStdIds()).split(","));
         if("".equals(listTargetStdId.get(0))) {
             listTargetStdId = null;
@@ -128,13 +128,13 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
         }
         
         DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-        forumJoinUserVO.setForumCd(vo.getForumCd());
+        forumJoinUserVO.setDscsId(vo.getDscsId());
         forumJoinUserVO.setRgtrId(vo.getRgtrId());
         forumJoinUserVO.setMdfrId(vo.getMdfrId());
         forumJoinUserVO.setTeamCd(vo.getTeamCd());
         
         DscsJoinUserVO selectJoinUserVO = new DscsJoinUserVO();
-        selectJoinUserVO.setForumCd(vo.getForumCd());
+        selectJoinUserVO.setDscsId(vo.getDscsId());
         selectJoinUserVO.setCrsCreCd(vo.getCrsCreCd());
         selectJoinUserVO.setStdIdList(listTargetStdId);
         selectJoinUserVO.setConditionType(vo.getConditionType());
@@ -207,7 +207,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
                 }
                 forumJoinUserDAO.insertStdScore(forumJoinUserVO);
                 DscsFdbkVO forumFdbkVO = new DscsFdbkVO();
-                forumFdbkVO.setForumCd(vo.getForumCd());
+                forumFdbkVO.setDscsId(vo.getDscsId());
                 forumFdbkVO.setStdId(stdNo);
                 forumFdbkVO.setRgtrId(vo.getRgtrId());
                 forumFdbkVO.setMdfrId(vo.getMdfrId());
@@ -216,10 +216,10 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
                     // 피드백 수정
                     if(!"".equals(fdbkCts)) {
                         forumFdbkVO.setFdbkCts(fdbkCts);
-                        forumFdbkDAO.updateForumFdbk(forumFdbkVO);
+                        forumFdbkDAO.updateDscsFdbk(forumFdbkVO);
                     // 피드백 삭제
                     } else {
-                        forumFdbkDAO.deleteForumFdbk(forumFdbkVO);
+                        forumFdbkDAO.deleteDscsFdbk(forumFdbkVO);
                     }
                 } else {
                     // 피드백 등록
@@ -228,7 +228,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
                         forumFdbkVO.setForumFdbkCd(forumFdbkCd);
                         forumFdbkVO.setFdbkCts(fdbkCts);
                         forumFdbkVO.setDelYn("N");
-                        forumFdbkDAO.insertForumFdbk(forumFdbkVO);
+                        forumFdbkDAO.insertDscsFdbk(forumFdbkVO);
                     }
                 }
             }
@@ -246,14 +246,14 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
      * @throws Exception
      ******************************************************/
     @Override
-    public DscsJoinUserVO selectForumJoinUser(DscsJoinUserVO vo) throws Exception {
-        return forumJoinUserDAO.selectForumJoinUser(vo);
+    public DscsJoinUserVO selectDscsJoinUser(DscsJoinUserVO vo) throws Exception {
+        return forumJoinUserDAO.selectDscsJoinUser(vo);
     }
 
     // 성적분포현황차트
     @Override
-    public List<?> forumJoinUserList(DscsJoinUserVO vo) throws Exception {
-        return forumJoinUserDAO.forumJoinUserList(vo);
+    public List<?> dscsJoinUserList(DscsJoinUserVO vo) throws Exception {
+        return forumJoinUserDAO.dscsJoinUserList(vo);
     }
 
     // 성적평가 성적 등록
@@ -274,7 +274,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
     public DscsJoinUserVO selectProfMemo(DscsJoinUserVO vo) throws Exception {
         // ensureJoinUser: WHEN NOT MATCHED THEN INSERT 만 실행 (기존 점수 덮어쓰기 없음)
         DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-        forumJoinUserVO.setForumCd(vo.getForumCd());
+        forumJoinUserVO.setDscsId(vo.getDscsId());
         forumJoinUserVO.setTeamCd(vo.getTeamCd());
         forumJoinUserVO.setStdId(vo.getStdId());
         forumJoinUserVO.setRgtrId(vo.getUserId());
@@ -324,13 +324,13 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
     }
 
     @Override
-    public List<DscsJoinUserVO> listForumJoinUser(DscsJoinUserVO vo) throws Exception {
-        return forumJoinUserDAO.listForumJoinUser(vo);
+    public List<DscsJoinUserVO> listDscsJoinUser(DscsJoinUserVO vo) throws Exception {
+        return forumJoinUserDAO.listDscsJoinUser(vo);
     }
 
     @Override
-    public List<DscsEzGraderTeamVO> listForumJoinTeam(DscsJoinUserVO vo) throws Exception {
-        List<DscsEzGraderTeamVO> memberList = forumJoinUserDAO.listForumJoinTeam(vo);
+    public List<DscsEzGraderTeamVO> listDscsJoinTeam(DscsJoinUserVO vo) throws Exception {
+        List<DscsEzGraderTeamVO> memberList = forumJoinUserDAO.listDscsJoinTeam(vo);
         if(memberList != null && !memberList.isEmpty() && memberList.size() > 0) {
             for(DscsEzGraderTeamVO teamVo : memberList) {
                 String teamStdIds = "";
@@ -359,7 +359,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
 
     // 글자수로 점수 주기
     @Override
-    public void updateForumJoinUserLenScore(DscsJoinUserVO vo) throws Exception {
+    public void updateDscsJoinUserLenScore(DscsJoinUserVO vo) throws Exception {
         List<String> listTargetStdId = Arrays.asList(StringUtil.nvl(vo.getStdIds()).split(","));
         if("".equals(listTargetStdId.get(0))) {
             listTargetStdId = null;
@@ -370,7 +370,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
         }
         
         DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-        forumJoinUserVO.setForumCd(vo.getForumCd());
+        forumJoinUserVO.setDscsId(vo.getDscsId());
         forumJoinUserVO.setRgtrId(vo.getRgtrId());
         forumJoinUserVO.setMdfrId(vo.getMdfrId());
         forumJoinUserVO.setTeamCd(vo.getTeamCd());
@@ -416,7 +416,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
 			student.setDscsPtcpId(IdGenerator.getNewId(IdPrefixType.DSPTC.getCode()));
 			student.setRgtrId(vo.getRgtrId());
 			student.setMdfrId(vo.getRgtrId());
-			forumJoinUserDAO.insertForumJoinUser(student);
+			forumJoinUserDAO.insertDscsJoinUser(student);
 		}
 	}
 
@@ -430,7 +430,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
 	@Override
 	public void setScoreRatio(DscsJoinUserVO vo) throws Exception {
 		DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-		forumJoinUserVO.setForumCd(vo.getForumCd());
+		forumJoinUserVO.setDscsId(vo.getDscsId());
 		forumJoinUserVO.setRgtrId(vo.getRgtrId());
 		forumJoinUserVO.setMdfrId(vo.getMdfrId());
 		forumJoinUserVO.setTeamCd(vo.getTeamCd());

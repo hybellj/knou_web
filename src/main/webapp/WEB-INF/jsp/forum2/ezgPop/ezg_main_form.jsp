@@ -113,17 +113,17 @@ function getJoinUserOrTeamList() {
 }
 
 // 토론 내용(파일) 화면 로드
-function getForumContsView(userId, stdId, teamCd, teamStdIds) {
+function getDscsContsView(userId, stdId, teamCd, teamStdIds) {
 	if (!stdId && !teamCd) {
 		$("#forumContBlock").empty();
 		return;
 	}
 
-	listForum(1, userId, stdId, teamStdIds);
+	listDscs(1, userId, stdId, teamStdIds);
 }
 
 // 토론글 리스트
-function listForum(page, userId, stdId, teamStdIds) {
+function listDscs(page, userId, stdId, teamStdIds) {
 	var searchValue = "";
 	var searchKey = "";
 	var listScale = $("#listScale").val();
@@ -272,7 +272,7 @@ function cmntView(atclSn,index) {
 }
 
 // feedback 화면 로드
-function getForumFeedbackView(userId, stdId, teamCd) {
+function getDscsFeedbackView(userId, stdId, teamCd) {
 	if(stdId) {
 		$("#forumFeedbackBlock").load(
 			"/forum2/ezgPop/forumScoreEvalFeedBack.do"
@@ -292,7 +292,7 @@ function getForumFeedbackView(userId, stdId, teamCd) {
 }
 
 function reloadFeedbackView() {
-	getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+	getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 }
 
 // 피드백 작성/ 수정하기 
@@ -316,10 +316,10 @@ function addFdbkCts(forumFdbkCd, parForumFdbkCd){
 			}).done(function(data) {
 				if (data.result > 0) {
 					alert("<spring:message code='forum.alert.reg_success.feedback' />"); // 피드백 등록에 성공하였습니다.
-					getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+					getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 				} else {
 					alert("<spring:message code='forum.alert.reg_fail.feedback' />"); // 피드백 등록에 실패하였습니다. 다시 시도해주시기 바랍니다.
-					getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+					getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 				}
 			});
 		} else {
@@ -334,10 +334,10 @@ function addFdbkCts(forumFdbkCd, parForumFdbkCd){
 			}).done(function(data) {
 				if (data.result > 0) {
 					alert("<spring:message code='forum.alert.mod_success.feedback' />"); // 피드백 수정에 성공하였습니다.
-					getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+					getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 				} else {
 					alert("<spring:message code='forum.alert.mod_fail.feedback' />"); // 피드백 수정에 실패하였습니다. 다시 시도해주시기 바랍니다.
-					getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+					getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 				}
 			});
 		}
@@ -443,10 +443,10 @@ function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
 			}).done(function(data) {
 				if (data.result > 0) {
 					alert("<spring:message code='forum.alert.reg_success.reply' />"); // 댓글 등록에 성공하였습니다.
-					getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+					getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 				} else {
 					alert("<spring:message code='forum.alert.reg_fail.reply' />"); // 댓글 등록에 실패하였습니다. 다시 시도해주시기 바랍니다.
-					getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+					getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 				}
 			});
 		} else {
@@ -461,10 +461,10 @@ function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
 			}).done(function(data) {
 				if (data.result > 0) {
 					alert("<spring:message code='forum.alert.mod_success.reply' />"); // 댓글 수정에 성공하였습니다.
-					getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+					getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 				} else {
 					alert("<spring:message code='forum.alert.mod_fail.reply' />"); // 댓글 수정에 실패하였습니다. 다시 시도해주시기 바랍니다.
-					getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+					getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 				}
 			});
 		}
@@ -484,10 +484,10 @@ function delFdbk(forumFdbkCd) {
 		}).done(function(data) {
 			if (data.result > 0) {
 				alert("<spring:message code='forum.alert.del_success' />"); // 삭제에 성공하였습니다.
-				getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+				getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 			} else {
 				alert("<spring:message code='forum.alert.del_fail' />"); // 삭제에 실패하였습니다. 다시 시도해주시기 바랍니다.
-				getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+				getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 			}
 		});
 	});
@@ -630,7 +630,7 @@ debugger;
 	ajaxCall(url, data, function(data) {
 		if (data.result > 0) {
 			alert("<spring:message code='forum.alert.reg_success.feedback'/>"); // 피드백 등록에 성공하였습니다.
-			getForumFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
+			getDscsFeedbackView($("#selectedUserId").val(), $("#selectedStdId").val(), $("#selectedTeamCd").val());
 		} else {
 			alert("<spring:message code='forum.alert.reg_fail.feedback'/>"); // 피드백 등록에 실패하였습니다. 다시 시도해주시기 바랍니다.
 		}
@@ -654,7 +654,7 @@ function submitMemo() {
 
 	// 팀 선택 OR 개인선택 확인 후 분기
 	var stdId = $(".card.active-toggle-btn.select").attr("data-stdId");
-	var url = "/forum2/forumLect/editForumProfMemo.do";
+	var url = "/forum2/forumLect/editDscsProfMemo.do";
 	var data = {
 		"dscsId"     : "${vo.dscsId}",
 		"stdId"  	  : stdId,

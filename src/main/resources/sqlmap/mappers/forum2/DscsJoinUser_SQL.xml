@@ -2,10 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.forum2.dao.DscsJoinUserDAO">
 
-	<select id="selectForumScoreStatus" parameterType="dscsJoinUserVO" resultType="egovMap">
+	<select id="selectDscsScoreStatus" parameterType="dscsJoinUserVO" resultType="egovMap">
 		/*
 			토론 현황 조회
-			ForumJoinUserDAO.selectForumScoreStatus
+			DscsJoinUserDAO.selectDscsScoreStatus
 		*/
 		SELECT
 			NVL(SUM(IF(T.atclCnt = 0 AND T.cmntCnt = 0, 1, 0)), 0) AS noStareCnt
@@ -382,10 +382,10 @@
 		</where>
 	</select>
 
-	<select id="selectForumJoinUser" parameterType="dscsJoinUserVO" resultType="dscsJoinUserVO">
+	<select id="selectDscsJoinUser" parameterType="dscsJoinUserVO" resultType="dscsJoinUserVO">
 		/*
 			토론 참여 정보 조회2
-			ForumJoinUserDAO.selectForumJoinUser
+			DscsJoinUserDAO.selectDscsJoinUser
 		*/
 		SELECT A.USER_ID                     AS stdId
 			 , A.DSCS_ID                     AS dscsId
@@ -423,10 +423,10 @@
 		  AND A.DSCS_ID = #{forumCd}
 	</select>
 
-	<select id="forumJoinUserList" parameterType="dscsJoinUserVO" resultType="egovMap">
+	<select id="dscsJoinUserList" parameterType="dscsJoinUserVO" resultType="egovMap">
 		/*
 			수강생 토론 성적 조회2
-			ForumJoinUserDAO.forumJoinUserList
+			DscsJoinUserDAO.dscsJoinUserList
 		*/
 		SELECT U.USER_ID 	AS stdId
 			, U.DSCS_ID 	AS dscsId
@@ -488,10 +488,10 @@
 			AND DSCS_ID = #{forumCd}
 	</update>
 
-	<select id="getForumJoinUser" resultType="int">
+	<select id="getDscsJoinUser" resultType="int">
 		/*
 			토론 참여자 테이블에 해당 참여자가 있는지 체크
-			ForumJoinUserDAO.getForumJoinUser
+			DscsJoinUserDAO.getDscsJoinUser
 		*/
 		SELECT
 			COUNT(*)
@@ -703,9 +703,9 @@
 		  )
 	</select>
 
-	<insert id="insertForumJoinUser" parameterType="dscsJoinUserVO">
+	<insert id="insertDscsJoinUser" parameterType="dscsJoinUserVO">
 		/*
-			SQL ID : ForumJoinUserDAO.insertForumJoinUser
+			SQL ID : DscsJoinUserDAO.insertDscsJoinUser
 			설명 : 토론참여자 단건 INSERT (PK: DSCS_PTCP_ID IdGenerator 사용)
 		*/
 		INSERT INTO TB_LMS_DSCS_PTCP (

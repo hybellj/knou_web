@@ -81,7 +81,7 @@ public class DscsEzGraderLectController extends ControllerBase {
         vo.setRgtrId(userId);
         vo.setMdfrId(userId);
         vo.setOrgId(orgId);
-        vo.setForumCd(vo.getForumCd());
+        vo.setDscsId(vo.getDscsId());
         vo.setStdId(vo.getStdId());
         vo.setCrsCreCd(crsCreCd);
         vo.setEvalCtgr(vo.getEvalCtgr());
@@ -90,7 +90,7 @@ public class DscsEzGraderLectController extends ControllerBase {
         DscsVO forumVO = new DscsVO();
         forumVO.setRgtrId(userId);
         forumVO.setCrsCreCd(crsCreCd);
-        forumVO.setForumCd(vo.getForumCd());
+        forumVO.setDscsId(vo.getDscsId());
         dscsJoinUserService.insertJoinUser(forumVO);
 
         request.setAttribute("vo", vo);
@@ -113,10 +113,10 @@ public class DscsEzGraderLectController extends ControllerBase {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<DscsVO>();
         try {
             // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
-           /* DscsForumVO forumVO = forumService.selectForum(vo);*/
+           /* DscsVO forumVO = dscsService.selectDscs(vo);*/
             DscsVO param = new DscsVO();
-            param.setDscsId(vo.getForumCd());
-            DscsVO loadedDscsVO = dscsService.selectForum(param);
+            param.setDscsId(vo.getDscsId());
+            DscsVO loadedDscsVO = dscsService.selectDscs(param);
             DscsVO forumVO = loadedDscsVO;
 
             resultVO.setReturnVO(forumVO);
@@ -156,14 +156,14 @@ public class DscsEzGraderLectController extends ControllerBase {
         
         vo.setOrgId(orgId);
         // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
-        /* DscsForumVO forumVO = forumService.selectForum(vo);*/
+        /* DscsVO forumVO = dscsService.selectDscs(vo);*/
         DscsVO param = new DscsVO();
-        param.setDscsId(vo.getForumCd());
-        DscsVO loadedDscsVO = dscsService.selectForum(param);
+        param.setDscsId(vo.getDscsId());
+        DscsVO loadedDscsVO = dscsService.selectDscs(param);
         DscsVO forumVO = loadedDscsVO;
 
         DscsJoinUserVO paramVO = new DscsJoinUserVO();
-        paramVO.setForumCd(vo.getForumCd());
+        paramVO.setDscsId(vo.getDscsId());
         paramVO.setCrsCreCd(vo.getCrsCreCd());
         paramVO.setSearchKey(vo.getSearchKey());
         paramVO.setSearchSort(vo.getSearchSort());
@@ -171,11 +171,11 @@ public class DscsEzGraderLectController extends ControllerBase {
 
         String viewNm = "";
         if ("TEAM".equals(forumVO.getForumCtgrCd())) {
-            List<DscsEzGraderTeamVO> resultList= dscsEzGraderService.listForumJoinTeam(paramVO, forumVO.getByteamDscsUseyn());
+            List<DscsEzGraderTeamVO> resultList= dscsEzGraderService.listDscsJoinTeam(paramVO, forumVO.getByteamDscsUseyn());
             request.setAttribute("resultList", resultList);
             viewNm = "forum2/ezgPop/ezg_join_team_list";
         } else {
-            List<DscsJoinUserVO> resultList= dscsEzGraderService.listForumJoinUser(paramVO);
+            List<DscsJoinUserVO> resultList= dscsEzGraderService.listDscsJoinUser(paramVO);
             request.setAttribute("resultList", resultList);
             viewNm = "forum2/ezgPop/ezg_join_user_list";
         }
@@ -217,10 +217,10 @@ public class DscsEzGraderLectController extends ControllerBase {
         vo.setOrgId(orgId);
         if(vo.getStdId() != null) { 
             DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-            forumJoinUserVO.setForumCd(vo.getForumCd());
+            forumJoinUserVO.setDscsId(vo.getDscsId());
             forumJoinUserVO.setStdId(vo.getStdId());
         
-            forumJoinUserVO = dscsJoinUserService.selectForumJoinUser(forumJoinUserVO);
+            forumJoinUserVO = dscsJoinUserService.selectDscsJoinUser(forumJoinUserVO);
             request.setAttribute("dscsJoinUserVO",forumJoinUserVO);
         }
 
@@ -240,9 +240,9 @@ public class DscsEzGraderLectController extends ControllerBase {
 
         if (vo.getStdId() != null) {
             DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-            forumJoinUserVO.setForumCd(vo.getForumCd());
+            forumJoinUserVO.setDscsId(vo.getDscsId());
             forumJoinUserVO.setStdId(vo.getStdId());
-            forumJoinUserVO = dscsJoinUserService.selectForumJoinUser(forumJoinUserVO);
+            forumJoinUserVO = dscsJoinUserService.selectDscsJoinUser(forumJoinUserVO);
             request.setAttribute("dscsJoinUserVO", forumJoinUserVO);
         }
 
@@ -346,15 +346,15 @@ public class DscsEzGraderLectController extends ControllerBase {
         /*참여자 정보*/
         if(!"EZG".equals(forumVO.getSearchMenu())) {
             DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-            forumJoinUserVO.setForumCd(forumVO.getForumCd());
+            forumJoinUserVO.setDscsId(forumVO.getDscsId());
             forumJoinUserVO.setStdId(forumVO.getStdId());
         
-            forumJoinUserVO = dscsJoinUserService.selectForumJoinUser(forumJoinUserVO);
+            forumJoinUserVO = dscsJoinUserService.selectDscsJoinUser(forumJoinUserVO);
             request.setAttribute("dscsJoinUserVO",forumJoinUserVO);
         }
 
         DscsFdbkVO forumFdbkVO = new DscsFdbkVO();
-        forumFdbkVO.setForumCd(forumVO.getForumCd());
+        forumFdbkVO.setDscsId(forumVO.getDscsId());
         forumFdbkVO.setStdId(forumVO.getStdId());
         
         if(forumVO.getTeamCd() != null || forumVO.getTeamCd() != "") {

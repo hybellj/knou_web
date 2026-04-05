@@ -29,32 +29,32 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
 
     // 토론 참여 대상 리스트 조회
     @Override
-    public List<DscsJoinUserVO> listForumJoinUser(DscsJoinUserVO vo) throws Exception {
-        return forumEzGraderDAO.listForumJoinUser(vo);
+    public List<DscsJoinUserVO> listDscsJoinUser(DscsJoinUserVO vo) throws Exception {
+        return forumEzGraderDAO.listDscsJoinUser(vo);
     }
 
     // 토론 참여 대상 TEAM 조회
     @Override
-    public List<DscsEzGraderTeamVO> listForumJoinTeam(DscsJoinUserVO vo, String byteamDscsUseyn) throws Exception {
+    public List<DscsEzGraderTeamVO> listDscsJoinTeam(DscsJoinUserVO vo, String byteamDscsUseyn) throws Exception {
         List<DscsEzGraderTeamVO> memberList;
 
         if ("Y".equals(byteamDscsUseyn)) {
             // 팀별부토론: 부모 forumCd로 자식 토론 목록 조회 후 자식 DSCS_ID별로 팀원 조회
-            List<DscsTeamDscsVO> childList = dscsDAO.selectTeamDscsList(vo.getForumCd());
+            List<DscsTeamDscsVO> childList = dscsDAO.selectTeamDscsList(vo.getDscsId());
             memberList = new ArrayList<>();
             if (childList != null) {
                 for (DscsTeamDscsVO child : childList) {
                     DscsJoinUserVO childVo = new DscsJoinUserVO();
-                    childVo.setForumCd(child.getDscsId());
+                    childVo.setDscsId(child.getDscsId());
                     childVo.setCrsCreCd(vo.getCrsCreCd());
                     childVo.setSearchKey(vo.getSearchKey());
                     childVo.setSearchSort(vo.getSearchSort());
-                    List<DscsEzGraderTeamVO> partial = forumEzGraderDAO.listForumJoinTeam(childVo);
+                    List<DscsEzGraderTeamVO> partial = forumEzGraderDAO.listDscsJoinTeam(childVo);
                     if (partial != null) memberList.addAll(partial);
                 }
             }
         } else {
-            memberList = forumEzGraderDAO.listForumJoinTeam(vo);
+            memberList = forumEzGraderDAO.listDscsJoinTeam(vo);
         }
 
         if (memberList != null && !memberList.isEmpty()) {

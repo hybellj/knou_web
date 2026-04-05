@@ -267,7 +267,7 @@
             , sbjctId       : '<c:out value="${dscsListVO.sbjctId}" />'
         };
 
-        var url = '<c:url value="/forum2/forumLect/profForumList.do" />';
+        var url = '<c:url value="/forum2/forumLect/profDscsList.do" />';
 
         UiComm.showLoading(true);
         ajaxCall(url, param, function(data) {
@@ -471,7 +471,7 @@
             , mrkOyn: isChecked ? 'Y' : 'N'
         };
 
-        var url = "/forum2/forumLect/profForumMrkOynModify.do";
+        var url = "/forum2/forumLect/profDscsMrkOynModify.do";
         ajaxCall(url, param, function (data) {
             $el.prop("disabled", false);
             if (data.result > 0) {
@@ -492,27 +492,24 @@
             let extData = {
                 dscsId	: dscsId
             };
-            location.href = "<c:url value="/forum2/forumLect/profForumEditView.do" />?" + "encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);
+            location.href = "<c:url value="/forum2/forumLect/profDscsEditView.do" />?" + "encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);
         } else {
             let extData = {
                 dscsId	: ''
             };
-            /*location.href = "<c:url value="/forum2/forumLect/profForumWriteView.do" />?" + "encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);*/
-            location.href = "<c:url value="/forum2/forumLect/profForumWriteView.do" />?" + "encParams="+EPARAM;
+            /*location.href = "<c:url value="/forum2/forumLect/profDscsWriteView.do" />?" + "encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);*/
+            location.href = "<c:url value="/forum2/forumLect/profDscsWriteView.do" />?" + "encParams="+EPARAM;
         }
     }
 
     // 토론방
     function goForumBbs(dscsId) {
-        // TODO : forumCd -> dscsId 로 변경해야 함.
-        //location.href = '/forum2/forumLect/Form/bbsManage.do?dscsId=' + encodeURIComponent(dscsId);
-        location.href = '/forum2/forumLect/Form/bbsManage.do?forumCd=' + encodeURIComponent(dscsId);
+        location.href = '/forum2/forumLect/Form/bbsManage.do?dscsId=' + encodeURIComponent(dscsId);
     }
 
     // 토론평가
     function goForumScore(dscsId) {
-        // TODO : forumCd -> dscsId 로 변경해야 함.
-        location.href = '/forum2/forumLect/Form/scoreManage.do?forumCd=' + encodeURIComponent(dscsId);
+        location.href = '/forum2/forumLect/Form/scoreManage.do?dscsId=' + encodeURIComponent(dscsId);
     }
 
     //토론삭제
@@ -522,7 +519,7 @@
                 if (result) {
                     // '확인' 선택
                     $.ajax({
-                        url: "/forum2/forumLect/profForumDelete.do",
+                        url: "/forum2/forumLect/profDscsDelete.do",
                         type: "POST",
                         contentType: "application/json",
                         data: JSON.stringify({dscsId:dscsId}),

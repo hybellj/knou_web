@@ -9,15 +9,14 @@ import java.util.List;
 @Mapper("dscsFdbkDAO")
 public interface DscsFdbkDAO {
 
-    public List<EgovMap> forumFdbkList(DscsFdbkVO vo) throws Exception;
-    public void insertForumFdbk(DscsFdbkVO vo) throws Exception;
-    public void updateForumFdbk(DscsFdbkVO vo) throws Exception;
-    public void deleteForumFdbk(DscsFdbkVO vo) throws Exception;
-    public void insertForumAllFdbk(DscsFdbkVO vo) throws Exception;
+    public List<EgovMap> dscsFdbkList(DscsFdbkVO vo) throws Exception;
+    public void insertDscsFdbk(DscsFdbkVO vo) throws Exception;
+    public void updateDscsFdbk(DscsFdbkVO vo) throws Exception;
+    public void deleteDscsFdbk(DscsFdbkVO vo) throws Exception;
+    public void insertDscsAllFdbk(DscsFdbkVO vo) throws Exception;
     public List<DscsFdbkVO> selectFdbk(DscsFdbkVO vo) throws Exception;
     public void insertFdbk(DscsFdbkVO vo) throws Exception;
     public void updateFdbk(DscsFdbkVO vo) throws Exception;
     public void deleteFdbk(DscsFdbkVO vo) throws Exception;
     public int cntFdbk(DscsFdbkVO vo) throws Exception;
-
 }

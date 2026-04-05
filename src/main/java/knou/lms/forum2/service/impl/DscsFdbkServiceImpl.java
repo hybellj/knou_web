@@ -42,8 +42,8 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> forumFdbkList(DscsFdbkVO vo) throws Exception {
-        return forumFdbkDAO.forumFdbkList(vo);
+    public List<EgovMap> dscsFdbkList(DscsFdbkVO vo) throws Exception {
+        return forumFdbkDAO.dscsFdbkList(vo);
     }
 
     /*****************************************************
@@ -57,8 +57,8 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
      * @throws Exception
      ******************************************************/
     @Override
-    public void insertForumFdbk(DscsFdbkVO vo) throws Exception {
-        forumFdbkDAO.insertForumFdbk(vo);
+    public void insertDscsFdbk(DscsFdbkVO vo) throws Exception {
+        forumFdbkDAO.insertDscsFdbk(vo);
     }
 
     /*****************************************************
@@ -72,8 +72,8 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
      * @throws Exception
      ******************************************************/
     @Override
-    public void updateForumFdbk(DscsFdbkVO vo) throws Exception {
-        forumFdbkDAO.updateForumFdbk(vo);
+    public void updateDscsFdbk(DscsFdbkVO vo) throws Exception {
+        forumFdbkDAO.updateDscsFdbk(vo);
     }
 
     /*****************************************************
@@ -87,14 +87,14 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
      * @throws Exception
      ******************************************************/
     @Override
-    public void deleteForumFdbk(DscsFdbkVO vo) throws Exception {
-        forumFdbkDAO.deleteForumFdbk(vo);
+    public void deleteDscsFdbk(DscsFdbkVO vo) throws Exception {
+        forumFdbkDAO.deleteDscsFdbk(vo);
     }
 
     // 일괄 피드백 등록
     @Override
-    public void insertForumAllFdbk(DscsFdbkVO vo) throws Exception {
-        forumFdbkDAO.insertForumAllFdbk(vo);
+    public void insertDscsAllFdbk(DscsFdbkVO vo) throws Exception {
+        forumFdbkDAO.insertDscsAllFdbk(vo);
     }
 
     // 피드백 저장
@@ -114,7 +114,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
                     // 토론 참여자(tb_lms_forum_join_user) 테이블에 등록
                     DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
                     forumJoinUserVO.setScore(null);
-                    forumJoinUserVO.setForumCd(vo.getForumCd());
+                    forumJoinUserVO.setDscsId(vo.getDscsId());
                     forumJoinUserVO.setTeamCd(vo.getTeamCd());
                     forumJoinUserVO.setStdId(stdArr[i]);
                     forumJoinUserVO.setRgtrId(vo.getUserId());

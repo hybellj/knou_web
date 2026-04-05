@@ -52,7 +52,7 @@
 
 	        		if(returnList.length > 0) {
 	        			returnList.forEach(function(v) {
-							var selectBtn = "<a href='javascript:window.parent.copyForum(\"" + v.dscsId + "\")' class='btn basic small'><spring:message code='forum.button.selection'/>​</a>";
+							var selectBtn = "<a href='javascript:window.parent.copyDscs(\"" + v.dscsId + "\")' class='btn basic small'><spring:message code='forum.button.selection'/>​</a>";
 
 	        				dataList.push({
 	    						no:          v.lineNo,

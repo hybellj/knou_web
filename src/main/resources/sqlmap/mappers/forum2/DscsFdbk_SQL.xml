@@ -2,10 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.forum2.dao.DscsFdbkDAO">
 
-	<select id="forumFdbkList" parameterType="dscsFdbkVO" resultType="egovMap">
+	<select id="dscsFdbkList" parameterType="dscsFdbkVO" resultType="egovMap">
 		/*
 			피드백 조회
-			ForumFdbkDAO.forumFdbkList
+			DscsFdbkDAO.dscsFdbkList
 		*/
 		WITH RECURSIVE fdbk as 
 		(
@@ -115,10 +115,10 @@
 			ORDER BY PATH
 	</select>
 
-	<insert id="insertForumFdbk" parameterType="dscsFdbkVO">
+	<insert id="insertDscsFdbk" parameterType="dscsFdbkVO">
 		/*
 			토론 피드백 등록
-			ForumFdbkDAO.insertForumFdbk
+			DscsFdbkDAO.insertDscsFdbk
 		*/
 		INSERT INTO TB_LMS_DSCS_FDBK (
 			DSCS_FDBK_ID
@@ -147,10 +147,10 @@
 		)
 	</insert>
 	
-	<update id="updateForumFdbk" parameterType="dscsFdbkVO">
+	<update id="updateDscsFdbk" parameterType="dscsFdbkVO">
 		/*
 			토론 피드백 수정
-			ForumFdbkDAO.updateForumFdbk
+			DscsFdbkDAO.updateDscsFdbk
 		*/
 		UPDATE TB_LMS_DSCS_FDBK SET
 			  MDFR_ID = #{mdfrId}
@@ -174,10 +174,10 @@
 			</if>
 	</update>
 	
-	<update id="deleteForumFdbk" parameterType="dscsFdbkVO">
+	<update id="deleteDscsFdbk" parameterType="dscsFdbkVO">
 		/*
 			토론 피드백 삭제
-			ForumFdbkDAO.deleteForumFdbk
+			DscsFdbkDAO.deleteDscsFdbk
 		*/
 		UPDATE TB_LMS_DSCS_FDBK SET
 			  MDFR_ID = #{mdfrId}
@@ -190,10 +190,10 @@
 			</if>
 	</update>
 
-	<insert id="insertForumAllFdbk" parameterType="dscsFdbkVO">
+	<insert id="insertDscsAllFdbk" parameterType="dscsFdbkVO">
 		/*
 			일괄 피드백 등록
-			ForumFdbkDAO.insertForumAllFdbk
+			DscsFdbkDAO.insertDscsAllFdbk
 		*/
 		INSERT INTO TB_LMS_DSCS_FDBK (
 			DSCS_FDBK_ID

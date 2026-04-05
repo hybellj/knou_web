@@ -18,9 +18,9 @@ $(document).ready(function() {
 
 // 메모 저장
 function saveProfMemo() {
-	var url  = "/forum2/forumLect/editForumProfMemo.do";
+	var url  = "/forum2/forumLect/editDscsProfMemo.do";
 	var data = {
-		"dscsId"  	: "${forumCd}",
+			"dscsId"  	: "${dscsId}",
 		"stdId" 	: "${stdId}",
 		"profMemo"	: $("#profMemo").val()
 	};

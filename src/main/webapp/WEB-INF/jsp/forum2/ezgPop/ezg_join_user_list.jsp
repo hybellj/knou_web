@@ -6,10 +6,10 @@ $(document).ready(function() {
 	var selUser = $("a[name=ezgTargetUser].select");
 	if (selUser.length == 0) {
 		// 선택된 유저가 없을 때 중간 화면에 뿌려줄 토론글
-//		getForumContsView("", "ALL");
+//		getDscsContsView("", "ALL");
 		displayNoselectuserBlock(true);
 	} else {
-		getForumContsView($(selUser).attr("data-userId"), $(selUser).attr("data-stdId"));
+		getDscsContsView($(selUser).attr("data-userId"), $(selUser).attr("data-stdId"));
 	}
 
 	$("#selectedUserId").val($(selUser).attr("data-userId"));
@@ -25,7 +25,7 @@ function toggleJoinUser(obj) {
 		$("#selectedUserId").val('');
 		$("#selectedUserNm").val('');
 		$("#selectedStdId").val('');
-		getForumContsView("", "");
+		getDscsContsView("", "");
 		getTargetUserInfoAndScore(null);
 		displayNoselectuserBlock(true);
 		$("#cntFdbk").text("0<spring:message code='forum.label.cnt.feedback'/>"); //개의 피드백 
@@ -45,7 +45,7 @@ function toggleJoinUser(obj) {
 			box.scrollTop(box.scrollTop() + (topPos + $(obj).height() - box.height()) + 10);
 		}
 		
-		getForumContsView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
+		getDscsContsView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
 		getTargetUserInfoAndScore(obj);
 		displayNoselectuserBlock(false);
 	}
@@ -61,7 +61,7 @@ function toggleJoinUser(obj) {
 function getTargetUserInfoAndScore(obj) {
 	getTotalScoreInputView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
 	getTargetUserInfoView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
-	getForumFeedbackView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
+	getDscsFeedbackView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
 }
 </script>
 

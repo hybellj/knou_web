@@ -49,7 +49,7 @@ function fdbkList(stdId) {
 	$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
 	$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
 	$("#forumCreCrsStdForm").attr("target", "fdbkListIfm");
-	$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumFdbkPop.do");
+	$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/dscsFdbkPop.do");
 	$("#forumCreCrsStdForm").submit();
 	$('#fdbkListPop').modal('show');
 }

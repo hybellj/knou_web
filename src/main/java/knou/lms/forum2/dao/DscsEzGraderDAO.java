@@ -10,12 +10,11 @@ import java.util.List;
 @Mapper("dscsEzGraderDAO")
 public interface DscsEzGraderDAO {
 
-    public List<DscsJoinUserVO> listForumJoinUser(DscsJoinUserVO vo) throws Exception;
-    public List<DscsEzGraderTeamVO> listForumJoinTeam(DscsJoinUserVO vo) throws Exception;
+    public List<DscsJoinUserVO> listDscsJoinUser(DscsJoinUserVO vo) throws Exception;
+    public List<DscsEzGraderTeamVO> listDscsJoinTeam(DscsJoinUserVO vo) throws Exception;
     public void updateJoinUserScore(DscsEzGraderRsltVO vo) throws Exception;
     public void deleteTeamStdScore(DscsEzGraderRsltVO vo) throws Exception;
     public void insertStdScoreToAllTeamMember(DscsEzGraderRsltVO vo) throws Exception;
     public DscsEzGraderRsltVO selectEzgEvalRslt(DscsEzGraderRsltVO vo) throws Exception;
     public void initStdScoreToAllTeamMember(DscsEzGraderRsltVO vo) throws Exception;
-
 }

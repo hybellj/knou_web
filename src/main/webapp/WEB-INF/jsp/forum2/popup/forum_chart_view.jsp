@@ -22,7 +22,7 @@
 
 	// 참여자 리스트 조회
 	function listForumUser(page) {
-		var url  = "/forum2/forumLect/forumJoinUserList.do";
+		var url  = "/forum2/forumLect/dscsJoinUserList.do";
 
 		var data = {
 			"dscsId" 	  : "${dscsVO.dscsId}",

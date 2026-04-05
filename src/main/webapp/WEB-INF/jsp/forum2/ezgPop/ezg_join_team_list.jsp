@@ -45,7 +45,7 @@ function selectTeam(obj) {
 	$("#selectedUserNm").val('');
 	$("#selectedStdId").val('');
 	$("#selectedTeamCd").val($(obj).attr("data-teamCd"));
-	getForumContsView(null, "ALL", $(obj).attr("data-teamCd"), $(obj).attr("data-teamStdIds"));
+	getDscsContsView(null, "ALL", $(obj).attr("data-teamCd"), $(obj).attr("data-teamStdIds"));
 	getTargetUserInfoAndScore(obj);
 	$("#forumFeedbackBlock").empty();
 }
@@ -71,7 +71,7 @@ function selectUser(obj) {
 	$("#selectedUserNm").val($(obj).attr("data-userNm"));
 	$("#selectedStdId").val($(obj).attr("data-StdId"));
 	$("#selectedTeamCd").val($(obj).attr("data-teamCd"));
-	getForumContsView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-teamCd"), $(obj).attr("data-teamStdIds"));
+	getDscsContsView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-teamCd"), $(obj).attr("data-teamStdIds"));
 	getTargetUserInfoAndScore(obj)
 }
 
@@ -79,7 +79,7 @@ function selectUser(obj) {
 function getTargetUserInfoAndScore(obj) {
 	getTotalScoreInputView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-teamCd"));
 	getTargetUserInfoView($(obj).attr("data-userId"), $(obj).attr("data-StdId"));
-	getForumFeedbackView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-teamCd"));
+	getDscsFeedbackView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-teamCd"));
 }
 </script>
 <input type="hidden" id="selectedUserId" value="" />

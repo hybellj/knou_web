@@ -719,7 +719,7 @@
         // Team 토론시 팀토론 코드로 변경
         var dscsId = "${dscsVO.dscsId}";
         if (${dscsVO.byteamDscsUseyn eq 'Y'}) {
-            forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
+            dscsId = $('#team_selected_name').attr('teamSelectedDscsId');
         }
 
         var url = "/forum2/forumLect/Form/delAtcl.do";
@@ -807,7 +807,7 @@
             // Team 토론시 팀토론 코드로 변경
             var dscsId = "${dscsVO.dscsId}";
             if (${dscsVO.byteamDscsUseyn eq 'Y'}) {
-                forumCd = $('#team_selected_name').attr('teamSelectedDscsId');
+                dscsId = $('#team_selected_name').attr('teamSelectedDscsId');
             }
 
             var url = "/forum2/forumLect/Form/addCmnt.do";
@@ -1037,7 +1037,7 @@
 
     //토론 수정
     function editForum(forumCd,forumStartDttm) {
-        location.href = '<c:url value="/forum2/forumLect/profForumEditView.do" />?dscsId=' + encodeURIComponent(forumCd);
+        location.href = '<c:url value="/forum2/forumLect/profDscsEditView.do" />?dscsId=' + encodeURIComponent(forumCd);
     }
 
     //토론삭제
