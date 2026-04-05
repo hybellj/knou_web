@@ -603,7 +603,7 @@
     // 게시글(참여글) 등록 버튼
     function addAtclBtn(atclSn, atclStatus){
         /*$("#forumListForm").attr("target", "forumAtclIfm");
-        $("#forumListForm").attr("action", "/forum2/forumLect/Form/addForumBbs.do");
+        $("#forumListForm").attr("action", "/forum2/forumLect/Form/addDscsBbs.do");
         $("#forumListForm").submit();
         $('#forumAtclPop').modal('show');*/
 

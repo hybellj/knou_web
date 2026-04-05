@@ -290,8 +290,8 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
 
     // 교수 메모 수정
     @Override
-    public void editForumProfMemo(DscsJoinUserVO vo) throws Exception {
-        forumJoinUserDAO.editForumProfMemo(vo);
+    public void editDscsProfMemo(DscsJoinUserVO vo) throws Exception {
+        forumJoinUserDAO.editDscsProfMemo(vo);
     }
 
     // 토론 참여자 페이징 목록 조회

@@ -153,7 +153,7 @@ function listDscs(page, userId, stdId, teamStdIds) {
 	searchKey = $("#ezgSearchKey").val()=='SEL_ALL'?'':$("#ezgSearchKey").val();
 	
 	$("#forumContBlock").load(
-		"/forum2/forumLect/evalForumBbsViewList.do"
+		"/forum2/forumLect/evalDscsBbsViewList.do"
 		, {
 			"pageIndex" : page,
 			"listScale" : listScale,

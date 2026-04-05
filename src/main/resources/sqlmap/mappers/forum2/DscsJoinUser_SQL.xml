@@ -475,10 +475,10 @@
 		  AND A.DSCS_ID = #{dscsId}
 	</select>
 
-	<update id="editForumProfMemo" parameterType="dscsJoinUserVO">
+	<update id="editDscsProfMemo" parameterType="dscsJoinUserVO">
 		/*
 			교수 메모 수정
-			ForumJoinUserDAO.editForumProfMemo
+			DscsJoinUserDAO.editDscsProfMemo
 		*/
 		UPDATE TB_LMS_DSCS_PTCP SET
 			MDFR_ID = #{mdfrId}

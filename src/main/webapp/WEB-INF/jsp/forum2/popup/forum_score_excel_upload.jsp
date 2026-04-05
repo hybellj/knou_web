@@ -47,7 +47,7 @@
 				excelGrid = JSON.stringify(nomalExcelGrid);
 			}
 			
-			var url = "/forum2/forumLect/uploadForumScoreExcel.do";
+			var url = "/forum2/forumLect/uploadDscsScoreExcel.do";
 			var data = {
 				"dscsId"    	  : "${dscsVO.dscsId}"
 				, "crsCreCd" : "${dscsVO.crsCreCd}"

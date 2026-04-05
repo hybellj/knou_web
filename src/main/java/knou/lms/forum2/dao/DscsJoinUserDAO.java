@@ -19,7 +19,7 @@ public interface DscsJoinUserDAO {
     public DscsJoinUserVO selectDscsJoinUser(DscsJoinUserVO vo) throws Exception;
     public List<?> dscsJoinUserList(DscsJoinUserVO vo) throws Exception;
     public DscsJoinUserVO selectProfMemo(DscsJoinUserVO vo) throws Exception;
-    public void editForumProfMemo(DscsJoinUserVO vo) throws Exception;
+    public void editDscsProfMemo(DscsJoinUserVO vo) throws Exception;
     public List<DscsJoinUserVO> listDscsJoinUser(DscsJoinUserVO vo) throws Exception;
     public List<DscsEzGraderTeamVO> listDscsJoinTeam(DscsJoinUserVO vo) throws Exception;
     public int getDscsJoinUser(DscsJoinUserVO vo) throws Exception;

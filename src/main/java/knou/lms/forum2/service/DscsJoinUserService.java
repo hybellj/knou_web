@@ -19,7 +19,7 @@ public interface DscsJoinUserService {
     public List<?> dscsJoinUserList(DscsJoinUserVO vo) throws Exception;
     public void addStdScore(DscsJoinUserVO vo) throws Exception;
     public DscsJoinUserVO selectProfMemo(DscsJoinUserVO vo) throws Exception;
-    public void editForumProfMemo(DscsJoinUserVO vo) throws Exception;
+    public void editDscsProfMemo(DscsJoinUserVO vo) throws Exception;
     public ProcessResultVO<DscsJoinUserVO> listPageing(DscsJoinUserVO vo) throws Exception;
     public void updateExampleExcelScore(DscsJoinUserVO vo, List<?> stdNoList, String forumCtgrCd) throws Exception;
     public List<DscsJoinUserVO> listDscsJoinUser(DscsJoinUserVO vo) throws Exception;
