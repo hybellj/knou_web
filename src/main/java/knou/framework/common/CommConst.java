@@ -582,6 +582,7 @@ public class CommConst {
     public static final String CONN_ETC = "ETC";
     public static final String CONN_QUIZ = "QUIZ";
     public static final String CONN_SCORE_OVERALL = "SCORE_OVERALL";
+    public static final String CONN_LCTR_PLANDOC = "LCTR_PLANDOC";
 
     // 사용자 접속체크 시간
     public static final int 		CONN_USER_CHECK_TIME = framework.getInt("framework.connuser.check.time");
@@ -710,6 +711,7 @@ public class CommConst {
 
     // 사용자 접속상태 체크값
     public static final String[][] CONN_CHECK_LIST = {
+    		{"/lctr/plandoc/profLctrPlandocView.do", CONN_LCTR_PLANDOC},    		
     		{"/userIndex.do", CONN_HOME},
     		{"/dashboard/dashboard.do", CONN_HOME},
     		{"/dashboard/main.do", CONN_HOME},

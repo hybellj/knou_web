@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import knou.lms.sch.vo.OrgTaskScheduleVO;
 import org.springframework.stereotype.Service;
 
 import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
@@ -79,4 +80,15 @@ public class SchCalendarServiceImpl implements SchCalendarService {
         return resultVO;
     }
 
+    /**
+     * 기관업무일정 조회
+     * @param orgId
+     * @param taskSchdlTycd
+     * @return
+     */
+    @Override
+    public OrgTaskScheduleVO orgTaskSchdlSelect(String orgId, String taskSchdlTycd) {
+
+        return schCalendarDAO.orgTaskSchdlSelect(orgId, taskSchdlTycd);
+    }
 }

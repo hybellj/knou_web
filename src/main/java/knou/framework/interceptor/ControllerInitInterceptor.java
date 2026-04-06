@@ -28,9 +28,8 @@ public class ControllerInitInterceptor implements HandlerInterceptor {
 	            ApplicationContext ctx = WebApplicationContextUtils.getWebApplicationContext(request.getServletContext());
 	            controller = ctx.getBean((String) controller);
 	        }
-			
-	        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1. ControllerInitInterceptor preHandle");
-	        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1. ControllerInitInterceptor preHandle toString()" + controller.toString());
+	        
+	        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2. ControllerInitInterceptor preHandle toString()>>>>" + controller.toString());
 			request.setAttribute("CURRENT_CONTROLLER", controller);
 		}
 

@@ -1,17 +1,5 @@
 package knou.lms.lecture2.facade.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import knou.framework.common.ServiceBase;
 import knou.framework.context2.UserContext;
 import knou.framework.util.StringUtil;
@@ -27,10 +15,20 @@ import knou.lms.mrk.vo.MarkItemSettingVO;
 import knou.lms.subject.dto.SubjectParam;
 import knou.lms.subject.service.SubjectService;
 import knou.lms.subject.vo.SubjectVO;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service("lctrPlandocFacadeService")
 public class LctrPlandocFacadeServiceImpl extends ServiceBase implements LctrPlandocFacadeService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LctrPlandocFacadeServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(LctrPlandocFacadeServiceImpl.class);
 
 
     @Resource(name="lctrPlandocService")
@@ -60,6 +58,8 @@ public class LctrPlandocFacadeServiceImpl extends ServiceBase implements LctrPla
     public LctrPlandocView loadLctrPlandocView(UserContext userCtx, LctrPlandocVO lctrPlandocVO) throws Exception {
         LctrPlandocView lpv = new LctrPlandocView();
         String sbjctId = lctrPlandocVO.getSbjctId();
+
+        log.info("sbjctId={}", sbjctId);
 
         // 과목정보, 장애인/고령자 지원
         SubjectVO subjectVO = subjectService.subjectSelect(sbjctId);
@@ -116,7 +116,6 @@ public class LctrPlandocFacadeServiceImpl extends ServiceBase implements LctrPla
 
         // 주차별 강의내용
         lpv.setLectureScheduleList(lectureScheduleService.profLectureScheduleList(new SubjectParam(sbjctId)));
-
         return lpv;
     }
 

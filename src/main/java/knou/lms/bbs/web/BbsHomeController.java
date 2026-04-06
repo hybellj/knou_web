@@ -62,6 +62,7 @@ import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.org.service.OrgInfoService;
 import knou.lms.org.vo.OrgInfoVO;
+import knou.lms.user.CurrentUser;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.vo.UsrDeptCdVO;
 
@@ -794,8 +795,8 @@ public class BbsHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/removeAtcl.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<BbsAtclVO> removeAtcl(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public ProcessResultVO<BbsAtclVO> removeAtcl(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
 
@@ -1671,8 +1672,7 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsAtclListView.do")
-    public String bbsAtclListView(BbsVO bbsVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsAtclListView(BbsVO bbsVO, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
 
 		String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
@@ -1777,8 +1777,8 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsAtclView.do")
-    public String bbsAtclView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsAtclView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
@@ -1865,8 +1865,8 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsAtclWrite.do")
-    public String bbsAtclWrite(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsAtclWrite(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
@@ -1919,8 +1919,8 @@ public class BbsHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/bbsAtclSave.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<BbsAtclVO> bbsAtclSave(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public ProcessResultVO<BbsAtclVO> bbsAtclSave(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
 
@@ -2007,8 +2007,8 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsAtclEditWrite.do")
-    public String bbsAtclEditWrite(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsAtclEditWrite(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx, 
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
     	boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
@@ -2134,8 +2134,8 @@ public class BbsHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/bbsAtclCmntListAjax.do")
     @ResponseBody
-    public ProcessResultVO<BbsCmntVO> bbsAtclCmntListAjax(BbsCmntVO bbsCmntVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public ProcessResultVO<BbsCmntVO> bbsAtclCmntListAjax(BbsCmntVO bbsCmntVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<BbsCmntVO> resultVO = new ProcessResultVO<>();
 
@@ -2167,8 +2167,8 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsSbjctListView.do")
-    public String bbsSbjctListView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsSbjctListView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx, 
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
@@ -2233,8 +2233,8 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsSbjctView.do")
-    public String bbsSbjctView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsSbjctView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
     	boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
@@ -2313,9 +2313,9 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsSbjctRegistView.do")
-    public String bbsSbjctRegistView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
-
+    public String bbsSbjctRegistView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
+    	
         boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
         String orgId = userCtx.getOrgId();
@@ -2371,8 +2371,8 @@ public class BbsHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/bbsAtclSbjctRegist.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<BbsAtclVO> bbsAtclSbjctRegist(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public ProcessResultVO<BbsAtclVO> bbsAtclSbjctRegist(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
     	ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
 
@@ -2432,8 +2432,8 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsLctrQnaListView.do")
-    public String bbsLctrQnaListView(BbsVO bbsVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsLctrQnaListView(BbsVO bbsVO, ModelMap model, @CurrentUser UserContext userCtx,
+    		HttpServletRequest request) throws Exception {
 
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
@@ -2493,8 +2493,8 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsLctrQnaView.do")
-    public String bbsLctrQnaView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsLctrQnaView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
@@ -2577,8 +2577,8 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsDscsnListView.do")
-    public String bbsDscsnListView(BbsVO bbsVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsDscsnListView(BbsVO bbsVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
@@ -2640,8 +2640,8 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsDscsnView.do")
-    public String bbsDscsnView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsDscsnView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
@@ -2717,8 +2717,8 @@ public class BbsHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/bbsAtclRspnsRegist.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<BbsAtclVO> bbsAtclRspnsRegist(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public ProcessResultVO<BbsAtclVO> bbsAtclRspnsRegist(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
     	ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
 
@@ -2799,8 +2799,8 @@ public class BbsHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/bbsAtclCmntRegist.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<BbsCmntVO> bbsAtclCmntRegist(BbsCmntVO bbsCmntVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public ProcessResultVO<BbsCmntVO> bbsAtclCmntRegist(BbsCmntVO bbsCmntVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<BbsCmntVO> resultVO = new ProcessResultVO<>();
 
@@ -2897,8 +2897,8 @@ public class BbsHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/bbsAtclCmntDelete.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<BbsCmntVO> bbsAtclCmntDelete(BbsCmntVO bbsCmntVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public ProcessResultVO<BbsCmntVO> bbsAtclCmntDelete(BbsCmntVO bbsCmntVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<BbsCmntVO> resultVO = new ProcessResultVO<>();
 
@@ -2983,8 +2983,8 @@ public class BbsHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/bbsAtclSbjctDtlView.do")
     @ResponseBody
-    public ProcessResultVO<BbsAtclVO> bbsAtclSbjctDtlView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public ProcessResultVO<BbsAtclVO> bbsAtclSbjctDtlView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
 
@@ -3053,8 +3053,8 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsAtclGrpNtcPopView.do")
-    public String bbsAtclGrpNtcPopView(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public String bbsAtclGrpNtcPopView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         String orgId = userCtx.getOrgId();
         String userId = userCtx.getUserId();

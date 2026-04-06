@@ -34,6 +34,8 @@ import knou.lms.subject.service.SubjectFacadeService;
 import knou.lms.subject.service.SubjectService;
 import knou.lms.subject.vo.LectureWknoScheduleVO;
 import knou.lms.subject.web.view.SubjectViewModel;
+import knou.lms.user.CurrentUser;
+
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 /**
@@ -70,14 +72,14 @@ public class CrsClsController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value = "/selectCrsClsStdntListView.do")
-    public String selectCrsClsStdntListView(ClsStdntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String selectCrsClsStdntListView(ClsStdntVO vo, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         if (ValidationUtils.isEmpty(vo.getSbjctId())) {
             throw new BadRequestUrlException(getMessage("common.system.error"));
         }
 
         String sessionOrgId = SessionInfo.getOrgId(request);
-        UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
 
         BaseParam param = new SubjectParam(vo.getSbjctId(), userCtx, 3);
         SubjectViewModel subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);

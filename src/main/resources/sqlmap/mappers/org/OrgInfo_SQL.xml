@@ -14,9 +14,6 @@
 			, A.ORG_NCNM
 			, A.RPRS_TELNO
 			, A.ORG_REG_NO
-			, A.ORG_ZIP
-			, A.ORG_ADDR
-			, A.RPRS_FAX
 			, A.DMNNM
 		FROM TB_LMS_ORG A
 		WHERE A.ORG_ID = #{orgId}

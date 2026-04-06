@@ -13,6 +13,7 @@ public class DscsEzGraderTeamVO extends DefaultVO {
 
     private String teamCtgrCd;
     private String teamCtgrNm;
+    private String teamTycd;
     private String teamCd;
     private String teamNm;
     private String asmntSubmitStatusCd;
@@ -57,12 +58,13 @@ public class DscsEzGraderTeamVO extends DefaultVO {
     public void setTeamCtgrCd(String teamCtgrCd) {
         this.teamCtgrCd = teamCtgrCd;
     }
+
     public String getTeamTycd() {
-        return teamCtgrCd;
+        return teamTycd;
     }
 
     public void setTeamTycd(String teamTycd) {
-        this.teamCtgrCd = teamTycd;
+        this.teamTycd = teamTycd;
     }
 
     public String getTeamCtgrNm() {

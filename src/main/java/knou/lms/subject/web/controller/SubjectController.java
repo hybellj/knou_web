@@ -23,6 +23,7 @@ import knou.lms.subject.service.SubjectService;
 import knou.lms.subject.vo.LectureWknoScheduleVO;
 import knou.lms.subject.vo.SubjectVO;
 import knou.lms.subject.web.view.SubjectViewModel;
+import knou.lms.user.CurrentUser;
 
 @RequestMapping(value="/subject")
 @Controller
@@ -44,14 +45,10 @@ public class SubjectController extends ControllerBase {
      * @return
      * @throws Exception
      */
-    private SubjectViewModel prepareSubject(HttpServletRequest request, ModelMap model) throws Exception {
+    private SubjectViewModel prepareSubject(UserContext userCtx,
+    		HttpServletRequest request, ModelMap model) throws Exception {
 
         String sbjctId = request.getParameter("sbjctId");
-        UserContext userCtx = SessionInfo.getUserContext(request);
-
-        if (userCtx == null) {
-            throw new RuntimeException("LOGIN_REQUIRED");
-        }
 
         if (sbjctId == null || sbjctId.isEmpty()) {
             throw new RuntimeException("INVALID_SUBJECT");
@@ -79,21 +76,15 @@ public class SubjectController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value={"/subject.do"})
-    public String subject(SubjectVO svo, HttpServletRequest request, ModelMap model) throws Exception {
+    public String subject(SubjectVO svo, @CurrentUser UserContext userCtx, 
+    		HttpServletRequest request, ModelMap model) throws Exception {
 
     	SubjectViewModel subjectVM = new SubjectViewModel();
     	String sbjctId = request.getParameter("sbjctId");
     	   	
     	try {
     		
-    	addEncParam("sbjctId", sbjctId);
-
-    	UserContext userCtx = SessionInfo.getUserContext(request);
-    	
-    	if ( null == userCtx ) {
-    		log.info("세션정보가 없습니다. 로그인페이지로 이동합니다.");
-    		return "redirect:" + new URLBuilder("", "loginTOBE.do",request).toString();
-    	}
+    	addEncParam("sbjctId", sbjctId);    	
 
     	if ( null == sbjctId || "".equals(sbjctId)) {
     		log.info("과목아이디가 없습니다.");
@@ -155,17 +146,11 @@ public class SubjectController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value={"/sbjctAdmList.do"})
-    public String sbjctAdmList(SubjectVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+    public String sbjctAdmList(SubjectVO vo, @CurrentUser UserContext userCtx, 
+    		HttpServletRequest request, ModelMap model) throws Exception {
 
     	SubjectViewModel subjectVM = new SubjectViewModel();
     	String sbjctId = vo.getSbjctId();
-
-    	UserContext userCtx = SessionInfo.getUserContext(request);
-    	
-    	if ( null == userCtx ) {
-    		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>세션정보가 없습니다. 로그인페이지로 이동합니다.");
-    		return "redirect:" + new URLBuilder("", "login.do",request).toString();
-    	}
 
     	if ( null == sbjctId || "".equals(sbjctId)) {
     		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>과목아이디가 없습니다.");
@@ -199,14 +184,10 @@ public class SubjectController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value={"/sbjctClasSchdlList.do"})
-    public String sbjctClasSchdlList(HttpServletRequest request, ModelMap model) throws Exception {
+    public String sbjctClasSchdlList(@CurrentUser UserContext userCtx, HttpServletRequest request, ModelMap model) throws Exception {
     	
     	String sbjctId = request.getParameter("sbjctId");
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
-    	if ( null == userCtx ) {
-    		log.info("세션정보가 없습니다. 로그인페이지로 이동합니다.");
-    		return "redirect:" + new URLBuilder("", "login.do",request).toString();
-    	}
+    	
     	if ( null == sbjctId || "".equals(sbjctId)) {
     		log.info("과목아이디가 없습니다.");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();

@@ -134,6 +134,7 @@ public class ExamVO extends DefaultVO {
     private String  lstCnclAplyStscd;   // 기말시험 취소신청 상태코드
     private String  midExamBscId;       // 중간시험 기본 ID
     private String  lstExamBscId;       // 기말시험 기본 ID
+    private String  quizBscId;          // 시험 그룹 ID
 
     /*****************************************************
      * Getter / Setter
@@ -813,6 +814,12 @@ public class ExamVO extends DefaultVO {
     }
     public void setLstExamBscId(String lstExamBscId) {
         this.lstExamBscId = lstExamBscId;
+    }
+    public String getQuizBscId() {
+        return quizBscId;
+    }
+    public void setQuizBscId(String quizBscId) {
+        this.quizBscId = quizBscId;
     }
 
     /*****************************************************

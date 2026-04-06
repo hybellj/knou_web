@@ -1,37 +1,30 @@
 package knou.lms.std.vo;
 
 import knou.lms.common.vo.DefaultVO;
-
 import java.math.BigDecimal;
 
 /**
  * 전체수업현황 - 학습요소 참여현황 VO
- * 화면ID : KNOU_MN_B0102060102 (학습요소 참여현황 탭)
  */
+
 public class ClsElemStatsVO extends DefaultVO {
     private static final long serialVersionUID = -5863588968258046138L;
 
     // 조건
-    private String sbjctId;
-    private String keyword;
-
-    // 공통 결과
-    private String lineNo;
-    private int totalCnt;
+    private String keyword;   // 검색어
 
     // ===== 요소별 집계 필드 <현재 미사용> =====
-    private String elemTypeNm;
-    private String title;
-    private int trgtCnt;
-    private int joinCnt;
-    private int notJoinCnt;
-    private BigDecimal joinRt;
+    private String elemTypeNm;  //학습요소 유형명
+    private String title;     // 학습요소 제목
+    private int trgtCnt;     // 대상자 수
+    private int joinCnt;      // 참여자 수
+    private int notJoinCnt;    //미참여자 수
+    private BigDecimal joinRt;  // 참여율
 
     // ===== "학습요소 참여현황" 표(학생 행) 필드 =====
-    private String userId;
-    private String usernm;
-    private String stdntNo;
-    private String deptnm;
+    private String usernm;   // 학습자명
+    private String stdntNo;  //학번
+    private String deptnm;   // 학과명
 
     private int qaAnsCnt;       // Q&A 답변
     private int qaRegCnt;       // Q&A 등록
@@ -59,21 +52,11 @@ public class ClsElemStatsVO extends DefaultVO {
     private BigDecimal midScore;        // 중간 대표값
     private BigDecimal finalScore;      // 기말 대표값
 
-    // 엑셀
-    private String excelGrid;
 
-    // getter/setter
-    public String getSbjctId() { return sbjctId; }
-    public void setSbjctId(String sbjctId) { this.sbjctId = sbjctId; }
+
 
     public String getKeyword() { return keyword; }
     public void setKeyword(String keyword) { this.keyword = keyword; }
-
-    public String getLineNo() { return lineNo; }
-    public void setLineNo(String lineNo) { this.lineNo = lineNo; }
-
-    public int getTotalCnt() { return totalCnt; }
-    public void setTotalCnt(int totalCnt) { this.totalCnt = totalCnt; }
 
     public String getElemTypeNm() { return elemTypeNm; }
     public void setElemTypeNm(String elemTypeNm) { this.elemTypeNm = elemTypeNm; }
@@ -92,9 +75,6 @@ public class ClsElemStatsVO extends DefaultVO {
 
     public BigDecimal getJoinRt() { return joinRt; }
     public void setJoinRt(BigDecimal joinRt) { this.joinRt = joinRt; }
-
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
 
     public String getUsernm() { return usernm; }
     public void setUsernm(String usernm) { this.usernm = usernm; }
@@ -161,7 +141,4 @@ public class ClsElemStatsVO extends DefaultVO {
 
     public BigDecimal getFinalScore() { return finalScore; }
     public void setFinalScore(BigDecimal finalScore) { this.finalScore = finalScore; }
-
-    public String getExcelGrid() { return excelGrid; }
-    public void setExcelGrid(String excelGrid) { this.excelGrid = excelGrid; }
 }

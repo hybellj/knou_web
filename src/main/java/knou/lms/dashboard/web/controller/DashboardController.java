@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
@@ -31,10 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import knou.framework.common.CommConst;
@@ -52,7 +49,6 @@ import knou.framework.util.MapToVoUtil;
 import knou.framework.util.SecureUtil;
 import knou.framework.util.SessionUtil;
 import knou.framework.util.StringUtil;
-import knou.framework.util.URLBuilder;
 import knou.framework.util.ValidationUtils;
 import knou.lms.bbs.service.BbsAtclService;
 import knou.lms.bbs.vo.BbsAtclVO;
@@ -78,14 +74,14 @@ import knou.lms.dashboard.vo.SchVO;
 import knou.lms.dashboard.web.view.DashboardViewModel;
 import knou.lms.erp.service.ErpService;
 import knou.lms.erp.util.ErpUtil;
-import knou.lms.msg.service.MsgAlimService;
-import knou.lms.msg.vo.MsgAlimVO;
 import knou.lms.log.lesson.service.LogLessonActnHstyService;
 import knou.lms.log.logintry.service.LogUserLoginTryLogService;
 import knou.lms.log.logintry.vo.LogUserLoginTryLogVO;
 import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.log.userconn.vo.LogUserConnStateVO;
 import knou.lms.menu.vo.MenuVO;
+import knou.lms.msg.service.MsgAlimService;
+import knou.lms.msg.vo.MsgAlimVO;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.resh.vo.ReshVO;
 import knou.lms.sch.service.PopupNoticeService;
@@ -93,6 +89,7 @@ import knou.lms.sch.vo.PopupNoticeVO;
 import knou.lms.std.service.StdService;
 import knou.lms.sys.service.SysJobSchService;
 import knou.lms.sys.vo.SysJobSchVO;
+import knou.lms.user.CurrentUser;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.service.UsrUserInfoService;
 import knou.lms.user.vo.UsrDeptCdVO;
@@ -2331,8 +2328,8 @@ public class DashboardController extends ControllerBase {
 
     @RequestMapping("/widgetStngPopView.do")
     @ResponseBody
-    public Map<String, Object> widgetStngPopView(DashboardVO vo, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public Map<String, Object> widgetStngPopView(DashboardVO vo, @CurrentUser UserContext userCtx,
+    		HttpServletRequest request) throws Exception {
     	String userId = userCtx.getUserId();
 
     	Map<String, Object> result = new HashMap<>();
@@ -2364,8 +2361,8 @@ public class DashboardController extends ControllerBase {
 
     @RequestMapping("/widgetStngColrPopView.do")
     @ResponseBody
-    public Map<String, Object> widgetStngColrPopView(DashboardVO vo, HttpServletRequest request) throws Exception {
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("userCtx");
+    public Map<String, Object> widgetStngColrPopView(DashboardVO vo, @CurrentUser UserContext userCtx,
+    		HttpServletRequest request) throws Exception {
     	String userId = userCtx.getUserId();
 
         Map<String, Object> result = new HashMap<>();
@@ -2424,28 +2421,34 @@ public class DashboardController extends ControllerBase {
      * @throws Exception *********************************
      */
     @RequestMapping(value = "/dashboard.do")
-    public String dashboard(HttpServletRequest request, ModelMap model) throws Exception {    	
+    public String dashboard(@CurrentUser UserContext userCtx, HttpServletRequest request, ModelMap model) throws Exception {   
+    //public String dashboard(HttpServletRequest request, ModelMap model) throws Exception {   
     
+    	DashboardViewModel dashVM = new DashboardViewModel();
+    	try {
     	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>/dashboard/dashboard.do진입");
-    	UserContext 	userCtx = (UserContext) SessionInfo.getUserContext(request);
+    	//UserContext 	userCtx = (UserContext) SessionInfo.getUserContext(request);
     	
-    	log.info(SessionInfo.getUserContext(request).toString());
+    	//log.info(SessionInfo.getUserContext(request).toString());
     	
-    	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>" + (SessionInfo.getUserContext(request) == null) );
+    	//log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>" + (SessionInfo.getUserContext(request) == null) );
     	
-    	if ( null == userCtx ) {
-    		log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>userCtx is null");
-    	    return "redirect:/";
-    	}
+    	//if ( null == userCtx ) {
+    	//	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>userCtx is null");
+    	//    return "redirect:/";
+    	//}
 
     	BaseParam param = new DashboardParam(userCtx.getSelectedUser(), 3);
 
-    	DashboardViewModel dashVM = dashboardFacadeService.getDashboardResponse(userCtx.getSelectedUser(), param);
+    	dashVM = dashboardFacadeService.getDashboardResponse(userCtx.getSelectedUser(), param);
     	
     	model.addAttribute("dashVM", dashVM);
     	
     	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>dashVM.getViewName()=" + dashVM.getViewName());
     	
+    	} catch ( Exception e ) {
+    		e.printStackTrace();
+    	}
     	return dashVM.getViewName();
     }
 

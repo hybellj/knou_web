@@ -13,44 +13,52 @@ import java.util.Map;
 @Mapper("markSubjectDAO")
 public interface MarkSubjectDAO {
 
+    public List<MarkSubjectVO> mrkSbjctList(String sbjctId)throws Exception;
+
+    public List<MarkSubjectDetailVO> mrkSbjctDtlList(String sbjctId)throws Exception;
+
     public List<EgovMap> stdMrkList(EgovMap searchMap)throws Exception;
 
-    public int stdMrkListCntSelect(@Param("sbjctId")String sbjctId)throws Exception;
+    public int stdMrkListCntSelect(String sbjctId)throws Exception;
 
-    public int invalidMrkRfltrtSumAsmtSelect(@Param("sbjctId")String sbjctId)throws Exception;
+    public int invalidMrkRfltrtSumAsmtSelect(String sbjctId)throws Exception;
 
-    public int invalidMrkRfltrtSumQuizSelect(@Param("sbjctId")String sbjctId)throws Exception;
+    public int invalidMrkRfltrtSumQuizSelect(String sbjctId)throws Exception;
 
-    public int invalidMrkRfltrtSumDscsSelect(@Param("sbjctId")String sbjctId)throws Exception;
+    public int invalidMrkRfltrtSumDscsSelect(String sbjctId)throws Exception;
 
-    public int invalidMrkRfltrtSumSmnrSelect(@Param("sbjctId")String sbjctId)throws Exception;
+    public int invalidMrkRfltrtSumSmnrSelect(String sbjctId)throws Exception;
 
-    public int invalidMrkRfltrtSumSrvySelect(@Param("sbjctId")String sbjctId)throws Exception;
+    public int invalidMrkRfltrtSumSrvySelect(String sbjctId)throws Exception;
 
-    public void allStdMrkSbjctDelete(@Param("sbjctId")String sbjctId)throws Exception;
+    public void allStdMrkSbjctDelete(String sbjctId)throws Exception;
 
-    public void allStdMrkSbjctDtlDelete(@Param("sbjctId")String sbjctId)throws Exception;
+    public void allStdMrkSbjctDtlDelete(String sbjctId)throws Exception;
 
-    public List<MarkSubjectVO> stdMrkSbjctList(@Param("sbjctId")String sbjctId)throws Exception;
+    public List<MarkSubjectVO> stdMrkSbjctList(String sbjctId)throws Exception;
 
-    public List<EgovMap> stdAttdSummaryByWeekSelect(@Param("sbjctId")String sbjctId)throws Exception;
+    public List<EgovMap> stdAttdSummaryByWeekSelect(String sbjctId)throws Exception;
 
     public List<EgovMap> examEvlScoreList(@Param("sbjctId")String sbjctId, @Param("searchKey")String searchKey)throws Exception;
 
-    public List<EgovMap> smnrEvlScoreList(@Param("sbjctId")String sbjctId)throws Exception;
+    public List<EgovMap> smnrEvlScoreList(String sbjctId)throws Exception;
 
-    public List<EgovMap> asmtEvlScoreList(@Param("sbjctId")String sbjctId)throws Exception;
+    public List<EgovMap> asmtEvlScoreList(String sbjctId)throws Exception;
 
-    public List<EgovMap> dscsEvlScoreList(@Param("sbjctId")String sbjctId)throws Exception;
+    public List<EgovMap> dscsEvlScoreList(String sbjctId)throws Exception;
 
-    public List<EgovMap> quizEvlScoreList(@Param("sbjctId")String sbjctId)throws Exception;
+    public List<EgovMap> quizEvlScoreList(String sbjctId)throws Exception;
 
-    public List<EgovMap> srvyEvlScoreList(@Param("sbjctId")String sbjctId)throws Exception;
+    public List<EgovMap> srvyEvlScoreList(String sbjctId)throws Exception;
 
-    public List<EgovMap> adtnScoreList(@Param("sbjctId")String sbjctId)throws Exception;
+    public List<EgovMap> adtnScoreList(String sbjctId)throws Exception;
 
     public int mrkSbjctBatchInsert(List<MarkSubjectVO> mrksbjctList)throws Exception;
 
     public int mrkSbjctDtlBatchInsert(List<MarkSubjectDetailVO> mrksbjctDtlList)throws Exception;
+
+    public int mrkSbjctBatchUpdate(List<MarkSubjectVO> mrksbjctList)throws Exception;
+
+    public int mrkSbjctDtlBatchUpdate(List<MarkSubjectDetailVO> mrksbjctList)throws Exception;
 
 }

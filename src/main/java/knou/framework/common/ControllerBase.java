@@ -62,7 +62,8 @@ public class ControllerBase {
 	 * @param modelMap
 	 * @param paramVO
 	 */
-	public void init(HttpServletRequest request, ModelMap modelMap, Object paramVO) {
+	public void init(HttpServletRequest request, ModelMap modelMap, Object paramVO) throws Exception {
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase.init 진입");
 		try {
 			this.request 		= request;
 			this.session 		= request.getSession();

@@ -438,7 +438,8 @@ public class LoginController extends ControllerBase {
 				SessionInfo.getLastLogin(request) );
 
         // 3. model에 추가하면 세션에도 자동 저장됨
-        request.getSession().setAttribute("userCtx", userCtx);
+        //request.getSession().setAttribute("userCtx", userCtx);
+        request.getSession().setAttribute("USER_CONTEXT", userCtx);
         /*	Session에 저장 end */
 
         return "redirect:/dashboard/main.do";

@@ -57,23 +57,23 @@
 			});
 		});
 
-		function forumView(tab) {
+		function dscsViewTab(tab) {
+			if (tab == "0") {
+				location.href = '<c:url value="/forum2/forumLect/profDscsEditView.do" />?dscsId=' + encodeURIComponent('<c:out value="${dscsVO.dscsId}" />');
+				return;
+			}
+
 			var urlMap = {
-				"0" : "/forum/forumLect/Form/infoManage.do",		// 토론정보
-				"1" : "/forum2/forumLect/Form/bbsManage.do",		// 토론방
-				"2" : "/forum2/forumLect/Form/scoreManage.do",	// 토론평가
-				"3" : "/forum/forumLect/Form/mutEvalResult.do",	// 상호평가
+				"1" : "/forum2/forumLect/Form/bbsManage.do",
+				"2" : "/forum2/forumLect/Form/scoreManage.do"
 			};
 
 			var url  = urlMap[tab];
-			var form = $("<form></form>");
-			form.attr("method", "POST");
-			form.attr("name", "manageForm");
-			form.attr("action", url);
-			form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: '<c:out value="${dscsVO.crsCreCd}" />'}));
-			form.append($('<input/>', {type: 'hidden', name: 'dscsId',  value: '<c:out value="${dscsVO.dscsId}" />'}));
-			form.appendTo("body");
-			form.submit();
+			if (!url) {
+				return;
+			}
+
+			location.href = url + '?dscsId=<c:out value="${dscsVO.dscsId}" />&sbjctId=<c:out value="${dscsVO.sbjctId}" />';
 		}
 
 		// 참여자 리스트 조회
@@ -590,7 +590,7 @@
 		}
 
 		// 엑셀 다운로드
-		function forumExcelDown() {
+		function dscsExcelDown() {
 			var excelGrid = {
 				colModel:[
 					{label:'<spring:message code="main.common.number.no" />', name:'lineNo', align:'center', width:'1000'}, // NO.
@@ -632,7 +632,7 @@
 			/*$('#ezGraderForm input[name="dscsId"]').val(dscsId);
 			$('#ezGraderForm input[name="stdId"]').val(stdId);
 			$("#ezGraderForm").attr("target", "ezGraderPopIfm");
-			$("#ezGraderForm").attr("action", "/forum/ezgPop/ezgMainForm.do");
+			$("#ezGraderForm").attr("action", "/forum2/ezgPop/ezgMainForm.do");
 			$("#ezGraderForm").submit();
 			$('#ezGraderPop').modal('show');*/
 
@@ -945,7 +945,7 @@
 		}
 
 		// 목록
-		function viewForumList() {
+		function viewDscsList() {
 			/*var url  = "/forum2/forumLect/Form/forumList.do";
 			var form = $("<form></form>");
 			form.attr("method", "POST");
@@ -954,28 +954,46 @@
 			form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: "${dscsForumVO.crsCreCd}"}));
 			form.appendTo("body");
 			form.submit();*/
-			location.href = "/forum2/forumLect/profForumListView.do?sbjctId=" + "${dscsVO.crsCreCd}";
+			location.href = "/forum2/forumLect/profForumListView.do?sbjctId=" + "${dscsVO.sbjctId}";
 		}
 
 		// 토론 수정
-		function editForum(dscsId,forumStartDttm) {
+		function editDscs(dscsId,forumStartDttm) {
 			location.href = '<c:url value="/forum2/forumLect/profDscsEditView.do" />?dscsId=' + encodeURIComponent(dscsId);
 		}
 
 		// 토론삭제
-		function delForum(dscsId) {
-			/*var result = confirm("<spring:message code='forum.alert.confirm.delete'/>"); // 정말 토론을 삭제 하시겠습니까?
+		function deleteDscs(dscsId) {
+			UiComm.showMessage("<spring:message code='forum.alert.confirm.delete' />", "confirm")
+				.then(function(result) {
+					if (!result) {
+						return;
+					}
 
-		if(!result){return false;}
-
-		var form = $("<form></form>");
-		form.attr("method", "POST");
-		form.attr("name", "forumForm");
-		form.attr("action", "/forum2/forumLect/Form/delForum.do");
-		form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: '<c:out value="${dscsForumVO.crsCreCd}" />'}));
-		form.append($('<input/>', {type: 'hidden', name: 'dscsId', value: dscsId}));
-		form.appendTo("body");
-		form.submit();*/
+					$.ajax({
+						url: "/forum2/forumLect/profDscsDelete.do",
+						type: "POST",
+						contentType: "application/json",
+						data: JSON.stringify({dscsId:dscsId}),
+						dataType: "json",
+						beforeSend: function () {
+							UiComm.showLoading(true);
+						}
+					}).done(function(data) {
+						UiComm.showLoading(false);
+						if (data.result > 0) {
+							UiComm.showMessage("<spring:message code='success.common.save' />", "success")
+								.then(function() {
+									location.href = '<c:url value="/forum2/forumLect/profForumListView.do" />';
+								});
+						} else {
+							UiComm.showMessage(data.message || "<spring:message code='forum.common.error' />", "alert");
+						}
+					}).fail(function() {
+						UiComm.showLoading(false);
+						UiComm.showMessage("<spring:message code='forum.common.error' />", "alert");
+					});
+				});
 		}
 
 		// 팀 구성원 보기
@@ -988,7 +1006,7 @@
 		}
 
 		// 토론현황보기
-		function forumChartView() {
+		function dscsChartView() {
 			/*forumCommon.initModal("chartView");
 			$("#forumChartViewForm").attr("target", "forumPopIfm");
 			$("#forumChartViewForm").attr("action", "/forum2/forumLect/forumChartViewPop.do");
@@ -1081,16 +1099,16 @@
 
 						<div class="board_top">
 							<div class="right-area">
-								<a href="javascript:void(0)" class="btn type2" onclick="editForum('${dscsVO.dscsId}','${dscsVO.dscsSdttm}')"><spring:message code='forum.button.mod'/><!-- 수정 --></a>
-								<a href="javascript:void(0)" class="btn type2" onclick="delForum('${dscsVO.dscsId}');"><spring:message code='forum.button.del'/><!-- 삭제 --></a>
-								<a href="javascript:void(0)" class="btn type2" onclick="viewForumList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
+								<a href="javascript:void(0)" class="btn type2" onclick="editDscs('${dscsVO.dscsId}','${dscsVO.dscsSdttm}')"><spring:message code='forum.button.mod'/><!-- 수정 --></a>
+								<a href="javascript:void(0)" class="btn type2" onclick="deleteDscs('${dscsVO.dscsId}');"><spring:message code='forum.button.del'/><!-- 삭제 --></a>
+								<a href="javascript:void(0)" class="btn type2" onclick="viewDscsList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
 							</div>
 						</div>
 
 						<div class="listTab">
 							<ul>
-								<li class="mw120 select"><a href="javascript:void(0)" onclick="forumView(2)"><spring:message code='forum.label.forum.info.score'/><!-- 토론정보 및 평가 --></a></li>
-								<li class="mw120"><a  href="javascript:void(0)" onclick="forumView(1)"><spring:message code='forum.label.forum.bbs'/><!-- 토론방 --></a></li>
+								<li class="mw120 select"><a href="javascript:void(0)" onclick="dscsViewTab(2)"><spring:message code='forum.label.forum.info.score'/><!-- 토론정보 및 평가 --></a></li>
+								<li class="mw120"><a  href="javascript:void(0)" onclick="dscsViewTab(1)"><spring:message code='forum.label.forum.bbs'/><!-- 토론방 --></a></li>
 							</ul>
 						</div>
 
@@ -1348,8 +1366,8 @@
 						<div class="board_top margin-top-4">
 							<div class="right-area">
 								<%-- <div class="sec_head mra"><spring:message code="forum.label.submit.status" /><!-- 토론현황 --></div> --%>
-								<a href="javascript:forumChartView()" class="btn type1"><spring:message code="forum.label.submit.status" /></a><!-- 토론현황 -->
-								<a href="javascript:forumExcelDown()" class="btn type1"><spring:message code="forum.label.excel.download" /></a><!-- 엑셀다운로드 -->
+								<a href="javascript:dscsChartView()" class="btn type1"><spring:message code="forum.label.submit.status" /></a><!-- 토론현황 -->
+								<a href="javascript:dscsExcelDown()" class="btn type1"><spring:message code="forum.label.excel.download" /></a><!-- 엑셀다운로드 -->
 							</div>
 						</div>
 						<!-- 검색결과 영역-버튼들:끝 -->

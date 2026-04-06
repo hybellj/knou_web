@@ -1,6 +1,7 @@
 package knou.lms.sch.service;
 
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.sch.vo.OrgTaskScheduleVO;
 import knou.lms.sch.vo.SchCalendarVO;
 
 public interface SchCalendarService {
@@ -13,5 +14,8 @@ public interface SchCalendarService {
 	
 	// 수업일정 페이징 조회
 	ProcessResultVO<SchCalendarVO> listPaging(SchCalendarVO vo) throws Exception;
+
+    // 기관업무일정 조회
+    OrgTaskScheduleVO orgTaskSchdlSelect(String orgId, String taskSchdlTycd);
 
 }

@@ -43,6 +43,7 @@ import knou.lms.srvy.vo.SrvyVO;
 import knou.lms.srvy.vo.SrvyVwitmVO;
 import knou.lms.srvy.vo.SrvypprVO;
 import knou.lms.srvy.web.view.SrvyMainView;
+import knou.lms.user.CurrentUser;
 
 @Controller
 @RequestMapping(value="/srvy")
@@ -458,15 +459,8 @@ public class SrvyController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value="/profSrvyQstnMngView.do")
-    public String profSrvyQstnMngView(SrvyVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = new UserContext(SessionInfo.getOrgId(request),
-                SessionInfo.getUserId(request),
-                SessionInfo.getUserTycd(request),
-                SessionInfo.getAuthrtCd(request),
-                SessionInfo.getAuthrtGrpcd(request),
-                SessionInfo.getUserRprsId(request),
-                SessionInfo.getLastLogin(request));
-        request.getSession().setAttribute("USER_CONTEXT", userCtx);
+    public String profSrvyQstnMngView(SrvyVO vo, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         SrvyMainView srvyMainView = srvyFacadeService.loadProfSrvyQstnMngView(vo, userCtx);
 

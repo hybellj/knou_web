@@ -450,7 +450,7 @@ function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
 				}
 			});
 		} else {
-			$.getJSON("/forum2/forumHome/editFdbkCts", {
+			$.getJSON("/forum2/forumLect/editFdbkCts.do", {
 				"fdbkCts" : fCmnt,
 				"forumFdbkCd" : forumFdbkCd,
 				"dscsId" : $("#ezgDscsId").val(),

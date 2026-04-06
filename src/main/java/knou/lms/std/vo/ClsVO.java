@@ -2,36 +2,39 @@ package knou.lms.std.vo;
 
 import knou.lms.common.vo.DefaultVO;
 
+/**
+ * 전체수업현황 - 과목/분반 기본정보 VO
+ * 공통 필드(orgId, userId, sbjctId, rgtrId, mdfrId, menuId, upMenuId, paging/search 등)는 DefaultVO 상속 필드를 사용한다.
+ **/
+
 public class ClsVO extends DefaultVO {
     private static final long serialVersionUID = -8061054982843918999L;
 
-    private String sbjctId;
-    private String sbjctYr;
-    private String sbjctSmstr;
-    private String crclmnNo;
-    private String sbjctnm;
-    private String dvclasNo;
-    private String dvclasNcknm;
-    private    int crdts;
-    private String profId;
-    private String usernm;
-    private String coProfNm; // 공동교수
-    private String deptId;
-    private String deptnm;
+    private String sbjctYr; // 과목년도
+    private String sbjctSmstr; // 과목 학기
+    private String crclmnNo; // 교육과정 번호
+    private String sbjctnm; // 과목명
+    private String dvclasNo; // 분반 번호
+    private String dvclasNcknm; // 분반 별칭
+    private    int crdts; // 학점
+    private String profId; // 당당교수 ID
+    private String usernm; // 담당교수명
+    private String coProfNm; // 공동교수명
+    private String deptId; // 학과 ID
+    private String deptnm; // 학과명
     private String smstrChrtId; // 학기차수 ID
-    private String useyn;
-    private String delyn;
-    private String searchYr;
-    private String searchOrgId;
-    private String searchKeyword;
+    private String useyn; // 사용 여부
+    private String delyn; // 삭제 여부
+    private String searchYr; // 검색년도
+    private String searchOrgId; // 검색 조직 ID
+    private String searchKeyword; // 검색어
 
-    private String tutor;   // TB_LMS_SBJCT_ADM SBJCT_ADM_TYCD = 'TUTOR'
-    private String asst;    // TB_LMS_SBJCT_ADM SBJCT_ADM_TYCD = 'ASST'
+    private String tutor;   // 튜터명
+    private String asst;    // 조교명
 
     private int wkCnt;  // 전체 주차 수 (TB_LMS_SBJCT.WHOL_WK_CNT)
 
-    public String getSbjctId() { return sbjctId; }
-    public void setSbjctId(String sbjctId) { this.sbjctId = sbjctId; }
+
 
     public String getSbjctYr() { return sbjctYr; }
     public void setSbjctYr(String sbjctYr) { this.sbjctYr = sbjctYr; }

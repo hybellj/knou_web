@@ -38,7 +38,7 @@ public class DextUploaderTag extends TagSupport {
 	private int listSize 			= 1;	// 파일목록 표시수 (창크기)
 	private String allowedTypes		= "*";	// 업로드 가능 타입 (확장명만 입력, 구분자[,], 전체:*)
 	private String notAllowedTypes	= "";	// 업로드 금지 타입 (생략시 기본값 설정, 확장명만 입력, 구분자[,])
-	private String finishFunc		= "finishUpload()";	// 업로드 종료시 호출할 함수명
+	private String finishFunc		= "finishUpload";	// 업로드 종료시 호출할 함수명
 	private boolean useFileBox		= false; // 파일함 사용여부
 	private boolean bigSize		= false; // 대용량 업로드
 	private String lang				= "";
@@ -143,6 +143,10 @@ public class DextUploaderTag extends TagSupport {
 				btnStyle = "height:"+height+"px;";
 			}
 
+			if (finishFunc.indexOf("()") > -1) {
+				finishFunc = finishFunc.replace("()", "");
+			}
+
 			/*
 			tag.append("<div id=\""+id+"-container\" class=\"dext5-container\" style=\""+cssStyle+"\"></div>\n");
 
@@ -190,7 +194,7 @@ public class DextUploaderTag extends TagSupport {
 			tag.append("maxFileSize:"+oneLimitSize+",\n");
 			tag.append("extensionFilter:\""+extensionFilter+"\",\n");
 			tag.append("noExtension:\""+noExtension+"\",\n");
-			tag.append("finishFunc:\""+finishFunc+"\",\n");
+			tag.append("finishFunc:"+finishFunc+",\n");
 			tag.append("uploadUrl:\""+uploadUrl+"\",\n");
 			tag.append("path:\""+path+"\",\n");
 			if (!"single".equals(style)) {

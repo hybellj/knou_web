@@ -15,6 +15,7 @@ import knou.framework.context2.UserContext;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.service.PopupNtcService;
 import knou.lms.msg.vo.PopupNtcVO;
+import knou.lms.user.CurrentUser;
 
 @Controller
 public class PopupNtcController extends ControllerBase {
@@ -48,8 +49,8 @@ public class PopupNtcController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value = "/popupNtcListView.do")
-    public String popupNtcListView(PopupNtcVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
+    public String popupNtcListView(PopupNtcVO vo, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         if (!isAdmin(userCtx)) {
             model.addAttribute("message", getCommonNoAuthMessage());
@@ -102,9 +103,8 @@ public class PopupNtcController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value = "/popupNtcDetail.do")
-    public String popupNtcDetail(PopupNtcVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
-
+    public String popupNtcDetail(PopupNtcVO vo, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
         if (!isAdmin(userCtx)) {
             model.addAttribute("message", getCommonNoAuthMessage());
             return "common/error";
@@ -127,8 +127,8 @@ public class PopupNtcController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value = "/popupNtcRegist.do")
-    public String popupNtcRegist(PopupNtcVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
+    public String popupNtcRegist(PopupNtcVO vo, @CurrentUser UserContext userCtx, 
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         if (!isAdmin(userCtx)) {
             model.addAttribute("message", getCommonNoAuthMessage());
@@ -150,8 +150,8 @@ public class PopupNtcController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value = "/popupNtcModify.do")
-    public String popupNtcModify(PopupNtcVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
+    public String popupNtcModify(PopupNtcVO vo, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         if (!isAdmin(userCtx)) {
             model.addAttribute("message", getCommonNoAuthMessage());

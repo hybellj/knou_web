@@ -83,6 +83,12 @@ public interface ExamService {
     // 장애인/고령자 시험 지원 상세 조회
     public ExamVO selectDsblDtl(ExamVO vo) throws Exception;
 
+    // 교수 퀴즈 관리 퀴즈 목록 페이징
+    public ProcessResultVO<ExamVO> listExamQuizPaging(ExamVO vo) throws Exception;
+
+    // 교수 퀴즈관리 퀴즈 조회
+    public ExamVO selectProfQuizMng (ExamVO vo) throws Exception;
+
     // 성적 반영비율 수정
     public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
 

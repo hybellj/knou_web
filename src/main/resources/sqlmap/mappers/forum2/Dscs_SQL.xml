@@ -210,8 +210,7 @@
         )
         SELECT
               SBJCT.SBJCT_ID
-            , SBJCT.DVCLAS_NO AS DVCLAS_NO
-            , SBJCT.SBJCT_ID AS DVCLS_NO
+            , SBJCT.DVCLAS_NO
         FROM TB_LMS_SBJCT SBJCT
         JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
           ON SBJCT.SBJCT_ID = SBJCT_ADM.SBJCT_ID

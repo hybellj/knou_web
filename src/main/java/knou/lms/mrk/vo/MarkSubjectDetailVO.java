@@ -9,6 +9,15 @@ public class MarkSubjectDetailVO extends DefaultVO {
     private String mrkItmTycd;      // 성적 항목 유형코드
     private double scr;         // 점수
 
+    public MarkSubjectDetailVO() {
+    }
+
+    public MarkSubjectDetailVO(String userId, String mrkSbjctId, String mrkItmTycd, double scr) {
+        this.mrkSbjctId = mrkSbjctId;
+        this.mrkItmTycd = mrkItmTycd;
+        this.scr = scr;
+    }
+
     public String getMrkSbjctDtlId() {
         return mrkSbjctDtlId;
     }

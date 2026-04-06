@@ -5,17 +5,11 @@ import knou.lms.common.vo.DefaultVO;
 import java.util.List;
 
 /**
- * 전체수업현황 - 주차별 수강생 학습현황 VO
- * 화면ID : KNOU_MN_B0102060102
+ * 주차별 수강생 학습현황 VO
  */
 public class ClsStdntVO extends DefaultVO {
     private static final long serialVersionUID = 194466706021209066L;
 
-    // TB_LMS_ATNDLC
-    private String sbjctId;       // 과목 ID
-
-    // TB_LMS_USER
-    private String userId;        // 사용자 ID
     private String usernm;        // 학생 이름
     private String stdntNo;       // 학번
     private String entyR;         // 입학연도
@@ -26,7 +20,7 @@ public class ClsStdntVO extends DefaultVO {
 
     private String prgrt;         // 진도율
 
-    // 주차별 학습상태 목록 (동적 주차 대응)
+    // 주차별 학습상태 목록
     private List<ClsWkStsVO> wkStsList;
 
     // 출석/지각/결석 집계
@@ -39,15 +33,9 @@ public class ClsStdntVO extends DefaultVO {
     private int    absnWknoFrom;  // 결석주차 시작
     private int    absnWknoTo;    // 결석주차 종료
     private int    wkNo;          // 주차 번호
-    private List<Integer> wkList;  // MyBatis <foreach>용 입력 파라미터 (1~15 주차 리스트)
-    private String excelGrid;  // 엑셀
+    private List<Integer> wkList;  // 조회 대상 주차 목록
 
 
-    public String getSbjctId() { return sbjctId; }
-    public void setSbjctId(String sbjctId) { this.sbjctId = sbjctId; }
-
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
 
     public String getUsernm() { return usernm; }
     public void setUsernm(String usernm) { this.usernm = usernm; }
@@ -100,6 +88,4 @@ public class ClsStdntVO extends DefaultVO {
     public List<Integer> getWkList() { return wkList; }
     public void setWkList(List<Integer> wkList) { this.wkList = wkList; }
 
-    public String getExcelGrid() { return excelGrid; }
-    public void setExcelGrid(String excelGrid) { this.excelGrid = excelGrid; }
 }

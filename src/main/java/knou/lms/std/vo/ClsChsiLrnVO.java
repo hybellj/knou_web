@@ -6,10 +6,8 @@ import java.util.List;
 
 /**
  * 학습자 주차별 학습현황 팝업 - 차시별 학습 VO
- * 화면ID : KNOU_MN_B0102060102 (슬라이드7 팝업)
- *
- * sbjctId, userId, orgId 는 DefaultVO 상속
  */
+
 public class ClsChsiLrnVO extends DefaultVO {
     private static final long serialVersionUID = 2230947856412309871L;
 
@@ -34,7 +32,7 @@ public class ClsChsiLrnVO extends DefaultVO {
     // 3분 단위 학습로그 목록 (조회 결과)
     private List<ClsLrnLogVO> logList;
 
-    // ===================== getter / setter =====================
+
 
     public String getChsiSchdlId()              { return chsiSchdlId; }
     public void setChsiSchdlId(String v)        { this.chsiSchdlId = v; }

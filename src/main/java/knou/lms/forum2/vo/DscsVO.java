@@ -84,6 +84,7 @@ public class DscsVO extends DefaultVO {
     private String otherTeamViewYn;
     private String otherTeamAplyYn;
     private String forumStatus;
+    private String teamTycd;
     private String teamCtgrCd;
     private String teamCtgrNm;
     private String teamNm;
@@ -635,8 +636,8 @@ public class DscsVO extends DefaultVO {
     public void setProsConsModYn(String prosConsModYn) { this.oknokModyn = prosConsModYn; }
     public String getTeamCd() { return teamId; }
     public void setTeamCd(String teamCd) { this.teamId = teamCd; }
-    public String getTeamTycd() { return teamCtgrCd; }
-    public void setTeamTycd(String teamTycd) { this.teamCtgrCd = teamTycd; }
+    public String getTeamTycd() { return teamTycd; }
+    public void setTeamTycd(String teamTycd) { this.teamTycd = teamTycd; }
 }
 
 

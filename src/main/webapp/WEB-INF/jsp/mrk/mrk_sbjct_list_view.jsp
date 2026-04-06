@@ -21,18 +21,29 @@
         let SEARCH_OBJ;
         let ratioArr = [];
         let midexamHead, lstexamHead, atndcHead, asmtHead, dscsHead, quizHead, srvyHead, smnrHead, etcHead = "";
+        let autoSaveInterval = null;
 
-        $(document).ready(function() {
-            changeSbjctList();
+        $(function () {
+            changeSbjctList(); // 학기기수 세팅 변경
 
-            // 평가점수 가져오기(점수입력 초기화)
+            /*이벤트 바인딩 시작*/
+            bindScoreInitEvents() // 평가점수 가져오기 버튼
+            bindScoreModifyEvents() // 점수 수정
+            /*이벤트 바인딩 끝*/
+
+        });
+
+        // 평가점수 가져오기(점수입력 초기화)
+        function bindScoreInitEvents() {
             $("#btnScoreCalInit").on("click", function () {
                 isMrkProcPeriod().done(function () {
                     onScoreCalInit();
                 });
             });
+        }
 
-            // 평가점수 입력 및 최종점수 계산
+        // rawScore 수정 이벤트 (finalScore 계산 및 totScore 재산정)
+        function bindScoreModifyEvents() {
             $(document).on("blur", "input[class*=inputScore]", function () {
 
                 let inputScore = this.value;    // 입력점수
@@ -83,7 +94,7 @@
                 // 총점 반영
                 $row.find("input[name=totScr]").val(totScr);
             });
-        });
+        }
 
         // 학기기수 세팅 변경
         function changeSmstrChrt() {
@@ -195,37 +206,9 @@
             });
         }
 
-        // 평가점수 가져오기
-        function onScoreCalInit() {
-            let scoreStatus = $("#scoreStatus").val();
-
-            if (scoreStatus == "MRK_CNVS_ING" || scoreStatus == "MRK_CNVS_CMPTN") {
-                // 기존 저장된 성적이 초기화됩니다. 평가점수를 가져오시겠습니까?
-                if (!confirm('<spring:message code="score.confirm.select.msg1" />\r\n<spring:message code="score.confirm.select.msg2" />')) return false;
-            }
-
-            let sbjctId = $("#sSbjctId").val();
-            let param = {"sbjctId": sbjctId};
-
-            $.ajax({
-                url : "/mrk/profStdMrkInitAjax.do",
-                data: param,
-                type: "POST",
-                success: function (data) {
-                    if (data.result > 0) {
-                        listStdMrk({"sbjctId": param});
-                    }else {
-                        UiComm.showMessage(data.message, "error");
-                    }
-                },
-                error: function(xhr, status, error) {
-                    UiComm.showMessage('<spring:message code="fail.common.msg" />', "error"); // 에러가 발생했습니다!
-                }
-            });
-        }
-
         // 학생 성적 목록 조회
         function listStdMrk(rowData, searchType = '') {
+            UiComm.showLoading(true);
             let sbjctId = rowData.sbjctId;
 
             $.ajax({
@@ -242,6 +225,8 @@
                     if (mrkRfltrtInfoMapList.length <= 0 ) {
                         $("#scoreAllListDiv").css("display", "none");
                         UiComm.showMessage("<spring:message code='score.label.process.msg19' />", "warning");/*해당과목의 평가기준을 먼저 입력해주세요.*/
+                        UiComm.showLoading(false);
+                        setAutoSave("OFF");
                         return;
                     }
 
@@ -267,17 +252,54 @@
                                 const data = row.getData();
                                 const rowEl = row.getElement();
                                 $(rowEl).attr("data-user-id", data.userId);
+                                $(rowEl).attr("data-chgyn", "N");
                             })
                         })
                     });
 
                     $("#scoreAllListDiv").css("display", "block");
+                    UiComm.showLoading(false);
+                    setAutoSave("ON");
                 }
             });
 
         }
 
-        // 최종 점수 계산
+        // 평가점수 가져오기
+        function onScoreCalInit() {
+            UiComm.showLoading(true);
+            let scoreStatus = $("#scoreStatus").val();
+
+            if (scoreStatus == "MRK_CNVS_ING" || scoreStatus == "MRK_CNVS_CMPTN") {
+                // 기존 저장된 성적이 초기화됩니다. 평가점수를 가져오시겠습니까?
+                if (!confirm('<spring:message code="score.confirm.select.msg1" />\r\n<spring:message code="score.confirm.select.msg2" />')) return false;
+            }
+
+            let sbjctId = $("#sSbjctId").val();
+            let param = {"sbjctId": sbjctId};
+
+            $.ajax({
+                url : "/mrk/profStdMrkInitAjax.do",
+                data: param,
+                type: "POST",
+                success: function (data) {
+                    if (data.result > 0) {
+                        listStdMrk({"sbjctId": param});
+                    }else {
+                        UiComm.showMessage(data.message, "error");
+                        setAutoSave("OFF");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    UiComm.showMessage('<spring:message code="fail.common.msg" />', "error"); // 에러가 발생했습니다!
+                    setAutoSave("OFF");
+                }, complete: function () {
+                    UiComm.showLoading(false);
+                }
+            });
+        }
+
+        // 총점(totScr) 계산
         function calcScr(input, mrkItmTycd) {
             let mrkRfltrt = 0;
             if ( mrkItmTycd == "MIDEXAM") {
@@ -301,33 +323,18 @@
             return (input * mrkRfltrt / 100).toFixed(2);
         }
 
-        function getOriginRawScr(fianlScore, mrkItmTycd) {
-            let mrkRfltrt = 0;
+        function setAutoSave(status) {
+            clearInterval(autoSaveInterval);
 
-            if ( mrkItmTycd == "MIDEXAM") {
-                mrkRfltrt = midexamHead;
-            } else if (mrkItmTycd == "LSTEXAM") {
-                mrkRfltrt = lstexamHead;
-            }  else if (mrkItmTycd == "ATNDC") {
-                mrkRfltrt = atndcHead;
-            }  else if (mrkItmTycd == "ASMT") {
-                mrkRfltrt = asmtHead;
-            }  else if (mrkItmTycd == "DSCS") {
-                mrkRfltrt = dscsHead;
-            }  else if (mrkItmTycd == "QUIZ") {
-                mrkRfltrt = quizHead;
-            }  else if (mrkItmTycd == "SRVY") {
-                mrkRfltrt = srvyHead;
-            }  else if (mrkItmTycd == "SMNR") {
-                mrkRfltrt = smnrHead;
+            if (status == "OFF") {
+                autoSaveInterval = null;
+            } else if(status == "ON") {
+                autoSaveInterval = setInterval(function () {
+                    onSave("Y");
+                }, 0.5 * 60 * 1000);
             }
-
-            return (fianlScore * 100 / mrkRfltrt).toFixed(2);
         }
     </script>
-
-
-    <input type="hidden" id="sUserId" name="sUserId" value="<c:out value="${sUserId}" />"/>
 
     <div id="wrap" class="main">
 
@@ -862,34 +869,65 @@
             return dataList;
         }
 
-        function onSave() {
-
-            if (!confirm("저장하시겠습니까?")) return false;
+        // 성적 저장
+        function onSave(autoSaveYn) {
+            UiComm.showLoading(true);
 
             // 학생 성적을 담을 배열
-            const stdMrkList = [];
+            const stdMrkList = {};
 
             // 모든 성적행 찾아 루프돌기
-            $(".tabulator-row").each(function () {
-               let $row = $(this); // row
+            $("#scoreAllListDiv").find(".tabulator-row").each(function () {
+                const $row = $(this);
 
-               // 행에 심어둔 userId 추출
-               let userId = $row.attr("data-user-id");
+                // 학생 객체 생성
+                const userId = $row.attr("data-user-id");
 
-               // 학생 성적 정보 객체 생성
-                let rowData = {
-                    "userId"    : userId,
-                    "midExam"   : parseFloat($row.find(".rawScore[tabulator-field='MIDEXAM']").val()) || 0,
-                    "lstExam"   : parseFloat($row.find(".rawScore[tabulator-field='LSTEXAM']").val()) || 0,
-                    "atndc"     : parseFloat($row.find(".rawScore[tabulator-field='ATNDC']").val()) || 0,
-                    "asmt"      : parseFloat($row.find(".rawScore[tabulator-field='ASMT']").val()) || 0,
-                    "dscs"      : parseFloat($row.find(".rawScore[tabulator-field='DSCS']").val()) || 0,
-                    "quiz"      : parseFloat($row.find(".rawScore[tabulator-field='QUIZ']").val()) || 0,
-                    "srvy"      : parseFloat($row.find(".rawScore[tabulator-field='SRVY']").val()) || 0,
-                    "smnr"      : parseFloat($row.find(".rawScore[tabulator-field='SMNR']").val()) || 0
+                // 해당 userId 키가 없으면 빈 객체 생성 및 초기화
+                if (!stdMrkList[userId]){
+                    stdMrkList[userId] = {};
                 }
-                console.log(rowData);
+
+                // 학생 성적 정보 insert
+                // -- 평가점수
+                $row.find("input[name=rowScr]").each(function () {
+                    stdMrkList[userId][this.dataset.mrkitmtycd] = this.value;
+                });
+                // -- 최종점수는 백단에서 계산
+                // -- 기타점수
+                stdMrkList[userId]["etcScr"]=$row.find("input[name=etcScr]").val();
             });
+
+            const param = {
+                "sbjctId": $("#sSbjctId").val(),
+                "stdMrkList": stdMrkList
+            };
+
+            $.ajax({
+                url : "/mrk/profStdMrkModify.do",
+                type : "POST",
+                data : JSON.stringify(param),
+                contentType : "application/json; charset=utf-8",
+                success: function (data) {
+                    if (data.result > 0) {
+                        if (autoSaveYn != 'Y') { // 자동저장 여부
+                            UiComm.showMessage('<spring:message code="score.alert.success_save.message" />', "success");
+                        }
+                        listStdMrk({"sbjctId": $("#sSbjctId").val()})
+                    } else{
+                        UiComm.showMessage(data.message, "error");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    UiComm.showMessage('<spring:message code="fail.common.msg" />', "error"); // 에러가 발생했습니다!
+                },
+                complete: function () {
+                    UiComm.showLoading(false);
+                }
+
+            });
+
+
         }
 
     </script>

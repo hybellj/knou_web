@@ -4,12 +4,10 @@ import knou.lms.common.vo.DefaultVO;
 
 /**
  * 수강생 상세정보 VO
- * 화면ID : KNOU_MN_B0102060102 (학습자 학습현황 팝업)
  */
 public class ClsStdntInfoVO extends DefaultVO {
     private static final long serialVersionUID = 3921047865412309871L;
 
-    private String userId;      // 사용자 ID
     private String usernm;      // 이름
     private String stdntNo;     // 학번
     private String mobileNo;    // 휴대폰번호
@@ -17,11 +15,8 @@ public class ClsStdntInfoVO extends DefaultVO {
     private String orgNm;       // 기관명
     private String photoUrl;    // 사진 URL
 
-    // 검색 조건
-    private String sbjctId;
 
-    public String getUserId()  { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+
 
     public String getUsernm()  { return usernm; }
     public void setUsernm(String usernm) { this.usernm = usernm; }
@@ -40,7 +35,4 @@ public class ClsStdntInfoVO extends DefaultVO {
 
     public String getPhotoUrl() { return photoUrl; }
     public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
-
-    public String getSbjctId() { return sbjctId; }
-    public void setSbjctId(String sbjctId) { this.sbjctId = sbjctId; }
 }

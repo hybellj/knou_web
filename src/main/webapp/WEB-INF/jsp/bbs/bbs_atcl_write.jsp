@@ -37,9 +37,9 @@
     	}
 
     	// 파일 업로드 완료
-        function finishUpload() {
+        function finishUpload(uploaderId) {
         	let url = "/common/uploadFileCheck.do"; // 업로드된 파일 검증 URL
-        	let dx = dx5.get("fileUploader");
+        	let dx = dx5.get(uploaderId);
         	let data = {
         		"uploadFiles" : dx.getUploadFiles(),
         		"uploadPath"  : dx.getUploadPath()

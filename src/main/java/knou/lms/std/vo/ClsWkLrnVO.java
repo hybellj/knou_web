@@ -1,25 +1,22 @@
 package knou.lms.std.vo;
 
 import knou.lms.common.vo.DefaultVO;
-
 import java.util.List;
 
 /**
  * 학습자 주차별 학습현황 팝업 - 주차 요약 VO
- * 화면ID : KNOU_MN_B0102060102 (슬라이드7 팝업)
- *
- * sbjctId, userId, orgId, rgtrId, mdfrId 는 DefaultVO 상속
- */
+ **/
+
 public class ClsWkLrnVO extends DefaultVO {
     private static final long serialVersionUID = 4412309871039847561L;
 
     // 조회 조건 (sbjctId, userId, orgId 는 DefaultVO 상속)
     private int    wkNo;          // 주차 번호
-    private String elemType;
+    private String elemType;      // 학습요소 유형
     private String lctrWknoSchdlId; // 주차 스케줄 ID
 
     // 주차 요약 - 출결
-    private String atndSts;       // 출결상태 (O:출석 / △:지각 / X:결석)
+    private String atndSts;       // 출결 상태(ATND/LATE/ABSNT)
     private int    totalLrnMin;   // 총 학습시간(분)
 
     // 기간 내 / 기간 후 학습시간
@@ -41,9 +38,9 @@ public class ClsWkLrnVO extends DefaultVO {
     private String lastWkYn;      // Y: 14주차 마지막일 → 버튼 숨김
 
     // 차시 목록 (조회 결과 담는 용도)
-    private List<ClsChsiLrnVO> chsiList;
+    private List<ClsChsiLrnVO> chsiList; //차시별 학습 목록
 
-    // ===================== getter / setter =====================
+
 
     public int getWkNo()                { return wkNo; }
     public void setWkNo(int v)          { this.wkNo = v; }

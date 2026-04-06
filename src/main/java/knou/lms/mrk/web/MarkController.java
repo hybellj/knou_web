@@ -4,10 +4,15 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.mrk.service.MarkSubjectService;
+import knou.lms.mrk.vo.MarkSubjectDetailVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +26,9 @@ import knou.lms.mrk.facade.MarkFacadeService;
 import knou.lms.score.vo.ScoreOverallVO;
 import knou.lms.score.web.ScoreOverallController;
 
+import java.util.List;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/mrk")
 public class MarkController extends ControllerBase {
@@ -30,7 +38,10 @@ public class MarkController extends ControllerBase {
     @Resource(name="markFacadeService")
     private MarkFacadeService markFacadeService;
 
-	/**
+    @Resource(name="markSubjectService")
+    private MarkSubjectService markSubjectService;
+
+    /**
 	 * 교수 > 대시보드 > 글로벌메뉴 > 성적관리
 	 * 
 	 * @return .jsp
@@ -81,7 +92,7 @@ public class MarkController extends ControllerBase {
         String orgId = SessionInfo.getOrgId(request);
 
         try {
-            resultVO = markFacadeService.stdMrkListSelect(orgId, sbjctId, searchType);
+            resultVO = markSubjectService.stdMrkList(orgId, sbjctId, searchType);
             resultVO.setResult(1);
         } catch (Exception e) {
             LOGGER.debug("e: ", e);
@@ -94,7 +105,7 @@ public class MarkController extends ControllerBase {
     }
 
     /**
-     * 해당 과목 학생들의 평가점수 가져오기 (초기화)
+     * [교수]해당 과목의 학생 성적 초기화 (평가점수 가져오기)
      * @param sbjctId
      * @param request
      */
@@ -108,7 +119,7 @@ public class MarkController extends ControllerBase {
         String userId = SessionInfo.getUserId(request);
 
         try{
-            markFacadeService.profStdMrkInitAjax(sbjctId, orgId, userId);
+            markSubjectService.stdMrkInit(orgId, sbjctId, userId);
             resultVO.setResultSuccess();
 
         }catch (Exception e) {
@@ -117,5 +128,40 @@ public class MarkController extends ControllerBase {
 
         return resultVO;
     }
-	
+
+    /**
+     * [교수] 과목의 학생 성적 수정
+     * @param param
+     * @param request
+     * @return
+     */
+    @PostMapping("/profStdMrkModify.do")
+	@ResponseBody
+    public ProcessResultVO<EgovMap> profStdMrkModify(@RequestBody Map<String, Object> param, HttpServletRequest request) {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+
+        String orgId = SessionInfo.getOrgId(request);
+        String userId = SessionInfo.getUserId(request);
+
+        try {
+            // unchecked cast 해소
+            ObjectMapper mapper = new ObjectMapper();
+
+            String sbjctId = (String) param.get("sbjctId");
+            Map<String, Map<String, String>> stdMrkList = mapper.convertValue(
+                    param.get("stdMrkList"),
+                    new TypeReference<Map<String, Map<String, String>>>() {}
+            );
+
+            markSubjectService.stdMrkModify(stdMrkList, orgId, sbjctId, userId);
+
+            resultVO.setResultSuccess();
+
+        } catch (Exception e) {
+            resultVO.setResultFailed(e.getMessage());
+        }
+
+
+        return resultVO;
+    }
 }

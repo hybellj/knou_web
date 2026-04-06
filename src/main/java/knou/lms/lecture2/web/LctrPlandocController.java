@@ -3,12 +3,12 @@ package knou.lms.lecture2.web;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
-import knou.framework.util.URLBuilder;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.lecture2.facade.LctrPlandocFacadeService;
 import knou.lms.lecture2.service.LctrPlandocService;
 import knou.lms.lecture2.vo.LctrPlandocVO;
 import knou.lms.lecture2.vo.LctrPlandocView;
+import knou.lms.user.CurrentUser;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 @Controller
 @RequestMapping(value="/lctr/plandoc")
 public class LctrPlandocController extends ControllerBase {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LctrPlandocController.class);
+    private static final Logger log = LoggerFactory.getLogger(LctrPlandocController.class);
 
     @Resource(name="lctrPlandocService")
     private LctrPlandocService lctrPlandocService;
@@ -42,7 +42,8 @@ public class LctrPlandocController extends ControllerBase {
      * @return
      */
     @RequestMapping(value="/profLctrPlandocListView.do")
-    public String profLctrPlandocListView(LctrPlandocVO lctrPlandocVO, HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    public String profLctrPlandocListView(LctrPlandocVO lctrPlandocVO, @CurrentUser UserContext userCtx,
+                                          HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
 
         model.addAttribute("plandocVO", lctrPlandocVO);
         return "lecture/plandoc/prof_lctr_plandoc_list_view";
@@ -59,49 +60,21 @@ public class LctrPlandocController extends ControllerBase {
      */
     @RequestMapping(value="/profLctrPlandocListAjax.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> profLctrPlandocListAjax(LctrPlandocVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> profLctrPlandocListAjax(LctrPlandocVO vo, @CurrentUser UserContext userCtx,
+                                                            ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
         vo.setUserId(SessionInfo.getUserId(request));
         try {
             resultVO = lctrPlandocService.lctrPlandocListPaging(vo);
             resultVO.setResult(1);
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
         return resultVO;
     }
 
-    /**
-     * 교수 강의계획서 상세 화면
-     *
-     * @param lctrPlandocVO
-     * @param request
-     * @param response
-     * @param model
-     * @return
-     */
-    @RequestMapping(value="/profLctrPlandocView.do")
-    public String profLctrPlandocView(LctrPlandocVO lctrPlandocVO, HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
-        
-    	UserContext userCtx = SessionInfo.getUserContext(request);
-
-        LctrPlandocView lpv = lctrPlandocFacadeService.loadLctrPlandocView(userCtx, lctrPlandocVO);
-
-        model.addAttribute("subjectInfo", lpv.getSubjectInfo());
-        model.addAttribute("profInfo", lpv.getProfInfo());
-        model.addAttribute("coprofList", lpv.getCoprofList());
-        model.addAttribute("tutList", lpv.getTutList());
-        model.addAttribute("AssiList", lpv.getAssiList());
-        model.addAttribute("lctrPlandocInfo", lpv.getLctrPlandocInfo());
-        model.addAttribute("mrkEvlInfo", lpv.getMrkEvlInfo());
-        model.addAttribute("txtbkList", lpv.getTxtbkList());
-        model.addAttribute("lectureScheduleList", lpv.getLectureScheduleList());
-        model.addAttribute("mrkItmStngList", lpv.getMrkItmStngList());
-
-        return "lecture/plandoc/prof_lctr_plandoc_view";
-    }
 
     /**
      * 교수 강의계획서 수정 화면
@@ -114,9 +87,8 @@ public class LctrPlandocController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value="/profLctrPlandocModifyView.do")
-    public String profLctrPlandocModifyView(LctrPlandocVO lctrPlandocVO, HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
-    	
-    	UserContext userCtx = SessionInfo.getUserContext(request);
+    public String profLctrPlandocModifyView(LctrPlandocVO lctrPlandocVO, @CurrentUser UserContext userCtx,
+                                            HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
 
         LctrPlandocView lpv = lctrPlandocFacadeService.loadLctrPlandocModifyView(userCtx, lctrPlandocVO);
 
@@ -139,8 +111,8 @@ public class LctrPlandocController extends ControllerBase {
 
     @RequestMapping(value="/profLctrPlandocModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<LctrPlandocVO> profLctrPlandocModifyAjax(LctrPlandocVO lctrPlandocVO, HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
-    	UserContext userCtx = SessionInfo.getUserContext(request);
+    public ProcessResultVO<LctrPlandocVO> profLctrPlandocModifyAjax(LctrPlandocVO lctrPlandocVO, @CurrentUser UserContext userCtx,
+                                                                    HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
 
         ProcessResultVO<LctrPlandocVO> resultVO = new ProcessResultVO<LctrPlandocVO>();
 
@@ -155,7 +127,6 @@ public class LctrPlandocController extends ControllerBase {
         return resultVO;
     }
 
-
     /**
      * 교수 강의계획서 상세팝업
      *
@@ -166,14 +137,8 @@ public class LctrPlandocController extends ControllerBase {
      * @return
      */
     @RequestMapping(value="/profLctrPlandocPopView.do")
-    public String profLctrPlandocPopView(LctrPlandocVO lctrPlandocVO, HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
-
-    	UserContext userCtx = SessionInfo.getUserContext(request);
-        
-    	if(null == userCtx) {
-            LOGGER.info("세션정보가 없습니다. 로그인페이지로 이동합니다.");
-            return "redirect:" + new URLBuilder("", "login.do", request).toString();
-        }
+    public String profLctrPlandocPopView(LctrPlandocVO lctrPlandocVO, @CurrentUser UserContext userCtx,
+                                         HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
 
         LctrPlandocView lpv = lctrPlandocFacadeService.loadLctrPlandocView(userCtx, lctrPlandocVO);
 
@@ -189,5 +154,34 @@ public class LctrPlandocController extends ControllerBase {
         model.addAttribute("mrkItmStngList", lpv.getMrkItmStngList());
 
         return "lecture/plandoc/prof_lctr_plandoc_pop_view";
+    }
+
+    /**
+     * 교수 강의계획서 상세 화면
+     *
+     * @param lctrPlandocVO
+     * @param request
+     * @param response
+     * @param model
+     * @return
+     */
+    @RequestMapping(value="/profLctrPlandocView.do")
+    public String profLctrPlandocView(LctrPlandocVO lctrPlandocVO, @CurrentUser UserContext userCtx,
+                                      HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+
+        LctrPlandocView lpv = lctrPlandocFacadeService.loadLctrPlandocView(userCtx, lctrPlandocVO);
+
+        model.addAttribute("subjectInfo", lpv.getSubjectInfo());
+        model.addAttribute("profInfo", lpv.getProfInfo());
+        model.addAttribute("coprofList", lpv.getCoprofList());
+        model.addAttribute("tutList", lpv.getTutList());
+        model.addAttribute("AssiList", lpv.getAssiList());
+        model.addAttribute("lctrPlandocInfo", lpv.getLctrPlandocInfo());
+        model.addAttribute("mrkEvlInfo", lpv.getMrkEvlInfo());
+        model.addAttribute("txtbkList", lpv.getTxtbkList());
+        model.addAttribute("lectureScheduleList", lpv.getLectureScheduleList());
+        model.addAttribute("mrkItmStngList", lpv.getMrkItmStngList());
+
+        return "lecture/plandoc/prof_lctr_plandoc_view";
     }
 }

@@ -130,5 +130,5 @@
 
     <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" />
 	<mvc:annotation-driven validator="validator" />
-
+	
 </beans>

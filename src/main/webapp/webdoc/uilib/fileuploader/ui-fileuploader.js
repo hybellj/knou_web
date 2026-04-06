@@ -48,19 +48,35 @@ function UiFileUploader(opts) {
 	let uiMode = opts.uiMode == undefined ? "normal" : opts.uiMode;
 	let style = opts.style == undefined ? "list" : opts.style;
 	let listSize = opts.listSize == undefined ? 1 : opts.listSize;
-	let height = 72 + (listSize * 36);
-	if (style == "single") {
-		height = 35;
-	}
+	let height = style == "single" ? 35 : (72 + (listSize * 36));
+	let addBtnMsg = getMsg('select');
+	let delBtnMsg = getMsg('delete');
+	let btnAareaStyle = "";
+	let btnClass = "";
+	let cssStyle = "width:100%;height:"+height+"px;";
+		
 	if (uiMode == "simple") {
-		height = (listSize * 36);
+		addBtnMsg = "<i class='xi-file-add-o'></i>";
+		delBtnMsg = "<i class='xi-trash-o'></i>";
+		
+		cssStyle += "display:flex";
+		btnAareaStyle = "display:flex";
+		btnClass += "simple";
+		//btnStyle = "height:"+height+"px;";
 	}
 
+/*
+	tag.append("<button type=\"button\" id=\""+id+"_btn-add\" style=\""+btnStyle+"\" title=\""+message.getMessage("button.select.file")+"\"><i class='xi-file-add-o'></i></button>");
+	tag.append("<button type=\"button\" id=\""+id+"_btn-delete\" disabled='true' style=\""+btnStyle+"\" title=\""+message.getMessage("button.delete")+"\"><i class='xi-trash-o'></i></button>");
+	tag.append("<button type=\"button\" id=\""+id+"_btn-reset\" style=\""+btnStyle+resetStyle+"\" title=\""+message.getMessage("button.reset")+"\" onclick=\"resetDextFiles('"+id+"')\"><i class='xi-refresh'></i></button>");	
+*/
+
+
 	let container = `
-		<div id="${id}-container" class="dext5-container" style="width:100%;height:${height}px;"></div>
-		<div id="${id}-btn-area" class="dext5-btn-area" style="">
-			<button type="button" id="${id}_btn-add" style="" title="${getMsg('select')}">${getMsg('select')}</button>
-			<button type="button" id="${id}_btn-delete" disabled='true' style="" title="${getMsg('delete')}">${getMsg('delete')}</button>
+		<div id="${id}-container" class="dext5-container ${btnClass}" style="width:100%;height:${height}px;"></div>
+		<div id="${id}-btn-area" class="dext5-btn-area" style="${btnAareaStyle}">
+			<button type="button" id="${id}_btn-add" style="" title="${getMsg('select')}">${addBtnMsg}</button>
+			<button type="button" id="${id}_btn-delete" disabled='true' style="" title="${getMsg('delete')}">${delBtnMsg}</button>
 			<button type="button" id="${id}_btn-reset" style="display:none" title="${getMsg('reset')}" onclick="resetDextFiles('fileUploader')"><i class='xi-refresh'></i></button>
 		</div>
 	`;
@@ -478,17 +494,8 @@ function onDX5UploadCompleted(id) {
 	var env = dx.env;
 
 	// 파일업로드 컴포넌트에서 설정한 함수호출
-	if(env != null && env.finishFunc != undefined && env.finishFunc != "") {
-		if(env.finishFunc.indexOf("()") < 0) {
-			env.finishFunc += "()";
-		}
-		eval(env.finishFunc);
-	}
-	else if(dex5Object.finishFunc != "") {
-		if(dex5Object.finishFunc.indexOf("()") < 0) {
-			dex5Object.finishFunc += "()";
-		}
-		eval(dex5Object.finishFunc);
+	if (env.finishFunc && typeof env.finishFunc === "function") {
+		env.finishFunc(id);
 	}
 }
 
@@ -576,9 +583,9 @@ function onDX5ItemAdding(id, obj) {
 	}
 
 	if (!check) {
-		var msg = "업로드할 수 없는 파일입니다.\n스크립트(소스) 파일은 ZIP으로 압축하여 업로드하세요.";
+		var msg = "업로드할 수 없는 파일입니다.";
 		if (dx.env.lang != "ko") {
-			msg = "This file cannot be uploaded.\nCompress the script(source) file into ZIP and upload it.";
+			msg = "This file cannot be uploaded.";
 		}
 		alert("["+obj.name+"] "+msg);
 	}

@@ -8,6 +8,8 @@ import knou.framework.util.ExcelUtilPoi;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.service.MsgTmpltService;
 import knou.lms.msg.vo.MsgTmpltVO;
+import knou.lms.user.CurrentUser;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,16 +31,6 @@ public class MsgTmpltController extends ControllerBase {
     private static final int PAGE_SIZE = 12;
     private static final String ORG_MSG = "ORG_MSG";
     private static final String INDV_MSG = "INDV_MSG";
-
-    private UserContext getUserContext(HttpServletRequest request) {
-        return new UserContext(
-                SessionInfo.getOrgId(request),
-                SessionInfo.getUserId(request),
-                SessionInfo.getAuthrtCd(request),
-                SessionInfo.getAuthrtGrpcd(request),
-                SessionInfo.getUserRprsId(request),
-                SessionInfo.getLastLogin(request));
-    }
 
     private boolean isAdmin(UserContext userCtx) {
         String authrtGrpcd = userCtx.getAuthrtGrpcd();
@@ -65,8 +57,8 @@ public class MsgTmpltController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value = "/profMsgTmpltListView.do")
-    public String profMsgTmpltListView(MsgTmpltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
+    public String profMsgTmpltListView(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         model.addAttribute("userCtx", userCtx);
         model.addAttribute("vo", vo);
@@ -85,8 +77,8 @@ public class MsgTmpltController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value = "/mngrMsgTmpltListView.do")
-    public String mngrMsgTmpltListView(MsgTmpltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = getUserContext(request);
+    public String mngrMsgTmpltListView(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         if (!isAdmin(userCtx)) {
             model.addAttribute("message", getCommonNoAuthMessage());
@@ -110,11 +102,11 @@ public class MsgTmpltController extends ControllerBase {
      */
     @RequestMapping(value = "/msgTmpltListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltListAjax(MsgTmpltVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgTmpltVO> msgTmpltListAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
+    		HttpServletRequest request) throws Exception {
         ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
 
         try {
-            UserContext userCtx = getUserContext(request);
 
             initSearchParam(vo, userCtx);
 
@@ -161,11 +153,11 @@ public class MsgTmpltController extends ControllerBase {
      */
     @RequestMapping(value = "/msgTmpltRegistAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltRegistAjax(MsgTmpltVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgTmpltVO> msgTmpltRegistAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
+    		HttpServletRequest request) throws Exception {
         ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
 
         try {
-            UserContext userCtx = getUserContext(request);
 
             if (ORG_MSG.equals(vo.getMsgCtsGbncd()) && !isAdmin(userCtx)) {
                 resultVO.setResult(ProcessResultVO.RESULT_FAIL);
@@ -196,11 +188,11 @@ public class MsgTmpltController extends ControllerBase {
      */
     @RequestMapping(value = "/msgTmpltModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltModifyAjax(MsgTmpltVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgTmpltVO> msgTmpltModifyAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
+    		HttpServletRequest request) throws Exception {
         ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
 
         try {
-            UserContext userCtx = getUserContext(request);
             String userId = userCtx.getUserId();
             boolean admin = isAdmin(userCtx);
 
@@ -239,11 +231,11 @@ public class MsgTmpltController extends ControllerBase {
      */
     @RequestMapping(value = "/msgTmpltDeleteAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltDeleteAjax(MsgTmpltVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgTmpltVO> msgTmpltDeleteAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
+    		HttpServletRequest request) throws Exception {
         ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
 
         try {
-            UserContext userCtx = getUserContext(request);
             String userId = userCtx.getUserId();
             boolean admin = isAdmin(userCtx);
 
@@ -269,11 +261,11 @@ public class MsgTmpltController extends ControllerBase {
      */
     @RequestMapping(value = "/msgTmpltAllDeleteAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltAllDeleteAjax(MsgTmpltVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgTmpltVO> msgTmpltAllDeleteAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
+    		HttpServletRequest request) throws Exception {
         ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
 
         try {
-            UserContext userCtx = getUserContext(request);
 
             vo.setOrgId(userCtx.getOrgId());
 
@@ -308,11 +300,11 @@ public class MsgTmpltController extends ControllerBase {
      */
     @RequestMapping(value = "/msgTmpltExcelListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltExcelListAjax(MsgTmpltVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgTmpltVO> msgTmpltExcelListAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
+    		HttpServletRequest request) throws Exception {
         ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
 
         try {
-            UserContext userCtx = getUserContext(request);
 
             initSearchParam(vo, userCtx);
 
@@ -332,13 +324,13 @@ public class MsgTmpltController extends ControllerBase {
      * 메시지 템플릿 엑셀 다운로드
      */
     @RequestMapping(value = "/msgTmpltExcelDown.do")
-    public String msgTmpltExcelDown(MsgTmpltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String msgTmpltExcelDown(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
         String authrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
         if (authrtGrpcd == null || (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF"))) {
             throw new BadRequestUrlException(getCommonNoAuthMessage());
         }
 
-        UserContext userCtx = getUserContext(request);
         initSearchParam(vo, userCtx);
 
         List<MsgTmpltVO> list = msgTmpltService.selectTmpltExcelList(vo);

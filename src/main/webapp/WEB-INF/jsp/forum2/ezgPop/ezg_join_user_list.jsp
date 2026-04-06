@@ -80,7 +80,7 @@ function getTargetUserInfoAndScore(obj) {
 		<c:if test="${status.index ne '0'}">
 			<c:set var="stdIds" value="${stdIds},${item.userId}" />
 		</c:if>
-		<a href="javascript:;" name="ezgTargetUser" onClick="toggleJoinUser(this)" data-userId="${item.userId}" data-userId="${item.userId}" data-userNm="${item.userNm}" data-stdId="${item.stdId}" class="card active-toggle-btn ${item.joinStatus == 'JOIN'?'submit':''} ${vo.stdId == item.stdId?'select':''}">
+		<a href="javascript:;" name="ezgTargetUser" onClick="toggleJoinUser(this)" data-userId="${item.userId}" data-userId="${item.userId}" data-userNm="${item.userNm}" data-stdId="${item.stdId}" class="card active-toggle-btn ${item.joinStatus == 'JOIN'?'submit':''} ${dscsVO.stdId == item.stdId?'select':''}">
 			<div class="content stu_card">
 			<c:if test="${item.evalYn == 'Y'}">
 				<div class="icon_box">

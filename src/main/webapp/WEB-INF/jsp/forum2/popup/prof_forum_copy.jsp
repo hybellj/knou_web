@@ -17,7 +17,7 @@
 		$(document).ready(function() {
 			$("#searchValue").on("keyup", function(e) {
 				if(e.keyCode == 13) {
-					forumListSelect();
+					dscsListSelect();
 				}
 			});
 		});
@@ -25,8 +25,8 @@
 		/**
 		 * 이전 토론 목록 조회
 		 */
-    	function forumListSelect() {
-    		var url  = "/forum2/forumLect/Form/forumCopyList.do";
+    	function dscsListSelect() {
+    		var url  = "/forum2/forumLect/Form/dscsCopyList.do";
     		var data = {
     			"smstrChrtId" : $("#smstrChrtId").val(),
     			"sbjctId"     : ($("#sbjctId").val() || "").replace("ALL", ""),
@@ -65,8 +65,8 @@
 	        			});
 	        		}
 
-	        		forumListTable.clearData();
-	        		forumListTable.replaceData(dataList);
+	        		dscsListTable.clearData();
+	        		dscsListTable.replaceData(dataList);
 	            } else {
 	            	UiComm.showMessage(data.message, "error");
 	            }
@@ -120,18 +120,18 @@
 						<option value="<c:out value='${row.smstrchrtid}' />"><c:out value="${row.smstrchrtnm}" /></option>
 					</c:forEach>
                 </select>
-                <select class="form-select" id="sbjctId" onchange="forumListSelect()">
+                <select class="form-select" id="sbjctId" onchange="dscsListSelect()">
                     <option value=""><spring:message code='forum.label.subject.select'/><!-- 과목 선택 --></option>
                 </select>
                 <input class="form-control wide" type="text" id="searchValue" placeholder="<spring:message code='forum.button.forumNm.input'/>"><!-- 토론명 입력 -->
-                <button type="button" class="btn basic icon search" aria-label="검색" onclick="forumListSelect()"><i class="icon-svg-search"></i></button>
+                <button type="button" class="btn basic icon search" aria-label="검색" onclick="dscsListSelect()"><i class="icon-svg-search"></i></button>
             </div>
 
             <div id="list"></div>
 
             <script>
 				// 리스트 테이블
-				let forumListTable = UiTable("list", {
+				let dscsListTable = UiTable("list", {
 					lang: "ko",
 					height: 400,
 					columns: [

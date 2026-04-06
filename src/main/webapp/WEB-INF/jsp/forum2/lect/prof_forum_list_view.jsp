@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
 <!DOCTYPE html>
@@ -150,10 +150,10 @@
                                                 <i class="xi-ellipsis-v"></i>
                                             </button>
                                             <div class="option-wrap">
-                                                <div class="item"><a href="javascript:goForumBbs('#[valDscsId]')"><spring:message code='forum.label.forum.bbs'/></a></div><!-- 토론방 -->
-                                                <div class="item"><a href="javascript:goForumScore('#[valDscsId]')"><spring:message code='forum.button.eval'/></a></div><!-- 토론평가 -->
+                                                <div class="item"><a href="javascript:goDscsBbs('#[valDscsId]')"><spring:message code='forum.label.forum.bbs'/></a></div><!-- 토론방 -->
+                                                <div class="item"><a href="javascript:goDscsScore('#[valDscsId]')"><spring:message code='forum.button.eval'/></a></div><!-- 토론평가 -->
                                                 <div class="item"><a href="javascript:goWrite('#[valDscsId]')"><spring:message code='forum.button.mod'/></a></div><!-- 수정 -->
-                                                <div class="item"><a href="javascript:delForum('#[valDscsId]')"><spring:message code='forum.button.del'/></a></div><!-- 삭제 -->
+                                                <div class="item"><a href="javascript:deleteDscs('#[valDscsId]')"><spring:message code='forum.button.del'/></a></div><!-- 삭제 -->
                                             </div>
                                         </div>
                                     </div>
@@ -211,7 +211,7 @@
     });
 
     <%-- 리스트 테이블 --%>
-    let forumListTable = UiTable("forumList", {
+    let dscsListTable = UiTable("forumList", {
         lang: "ko",
         pageFunc: listPaging,
         changeFunc: chanageModeEvent,
@@ -276,10 +276,10 @@
                 let returnList = data.returnList || [];
 
                 // 테이블 데이터 설정
-                let dataList = createForumListHTML(returnList, data.pageInfo);
-                forumListTable.clearData();
-                forumListTable.replaceData(dataList);
-                forumListTable.setPageInfo(data.pageInfo);
+                let dataList = createDscsListHTML(returnList, data.pageInfo);
+                dscsListTable.clearData();
+                dscsListTable.replaceData(dataList);
+                dscsListTable.setPageInfo(data.pageInfo);
                 UiInputmask();
             } else {
                 UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
@@ -297,7 +297,7 @@
     function mrkRfltrtFrmTrsf(type) {
         if(type == 1) {
             // 현재 테이블모드가 list 이면 성적반영비율 입력필드 표시
-            if (forumListTable.mode === "list") {
+            if (dscsListTable.mode === "list") {
                 $("#mrkRfltrtFrmTrsfBtn").hide();
                 $(".mrkRfltrtFrmTrsfDiv").css("display", "inline-block");
                 $(".mrkInputDiv").show();
@@ -307,7 +307,7 @@
             }
             // 현재 테이블모드가 card 이며 list 모드로 변경
             else {
-                forumListTable.changeMode("list");
+                dscsListTable.changeMode("list");
                 scoreInputMode = false;
                 setTimeout(function(){
                     mrkRfltrtFrmTrsf(1);
@@ -326,7 +326,7 @@
     function mrkRfltrtModify() {
         var isMrkCheck = true;
         var sumMrkRfltrt = 0;
-        var forumMrkList = [];
+        var dscsMrkList = [];
 
         $(".mrkRfltrt").each(function(i) {
             if(Number($(this).val()) < 0 || Number($(this).val()) > 100) {
@@ -341,7 +341,7 @@
             }
 
             sumMrkRfltrt += parseInt($(this).val(), 10);
-            forumMrkList.push({
+            dscsMrkList.push({
                 dscsId : $(this).attr("data-dscsId"),
                 mrkRfltrt : $(this).val()
             });
@@ -362,7 +362,7 @@
                     url: "/forum2/forumLect/forumMrkRfltrtModifyAjax.do",
                     type: "POST",
                     contentType: "application/json",
-                    data: JSON.stringify(forumMrkList),
+                    data: JSON.stringify(dscsMrkList),
                     dataType: "json",
                     beforeSend: function () {
                         UiComm.showLoading(true);
@@ -383,13 +383,13 @@
         }
     }
 
-    function createForumListHTML(forumList, pageInfo) {
+    function createDscsListHTML(dscsList, pageInfo) {
         let dataList = [];
-        if(forumList.length === 0) {
+        if(dscsList.length === 0) {
             return dataList;
         }
 
-        forumList.forEach(function(v, i) {
+        dscsList.forEach(function(v, i) {
             var lineNo = pageInfo.totalRecordCount - v.lineNo + 1;
 
             let col0 = "";
@@ -405,7 +405,7 @@
 
             // 토론 제목
             var dscsTtl = v.dscsTtl.replaceAll("<", "&lt").replaceAll(">", "&gt");
-            var linkUrl = 'javascript:goForumScore(\'' + v.dscsId + '\')';
+            var linkUrl = 'javascript:goDscsScore(\'' + v.dscsId + '\')';
             let title = "";
             title += '<a href="' + linkUrl + '" title="' + dscsTtl + '" class="header header-icon link">';
             title += dscsTtl;
@@ -421,17 +421,17 @@
             }
 
             // 참여현황
-            var joinUserStatusHtml = "<a href='javascript:goForumScore(\"" + v.dscsId + "\", 3)' class='fcBlue'>" + v.forumJoinUserCnt + "/" + v.forumUserTotalCnt + "</a>";
+            var joinUserStatusHtml = "<a href='javascript:goDscsScore(\"" + v.dscsId + "\", 3)' class='fcBlue'>" + v.forumJoinUserCnt + "/" + v.forumUserTotalCnt + "</a>";
 
             // 평가현황
-            var mrkStatusHtml = "<a href='javascript:goForumScore(\"" + v.dscsId + "\", 3)' class='fcBlue'>" + v.forumEvalCnt + "/" + v.forumJoinUserCnt + "</a>";
+            var mrkStatusHtml = "<a href='javascript:goDscsScore(\"" + v.dscsId + "\", 3)' class='fcBlue'>" + v.forumEvalCnt + "/" + v.forumJoinUserCnt + "</a>";
 
             // 관리메뉴 추가
             var mngHtml = "";
-            mngHtml += "<a href=\"javascript:goForumBbs('" + v.dscsId + "')\" class=\"btn basic small\"><spring:message code='forum.label.forum.bbs'/></a>";// 토론방
-            mngHtml += "<a href=\"javascript:goForumScore('" + v.dscsId + "')\" class=\"btn basic small\"><spring:message code='forum.button.eval'/></a>"; // 토론평가
+            mngHtml += "<a href=\"javascript:goDscsBbs('" + v.dscsId + "')\" class=\"btn basic small\"><spring:message code='forum.label.forum.bbs'/></a>";// 토론방
+            mngHtml += "<a href=\"javascript:goDscsScore('" + v.dscsId + "')\" class=\"btn basic small\"><spring:message code='forum.button.eval'/></a>"; // 토론평가
             mngHtml += "<a href=\"javascript:goWrite('" + v.dscsId + "')\" class=\"btn basic small\"><spring:message code='forum.button.mod'/></a>"; // 수정
-            mngHtml += "<a href=\"javascript:delForum('" + v.dscsId + "')\" class=\"btn basic small\"><spring:message code='forum.button.del'/></a>"; // 삭제
+            mngHtml += "<a href=\"javascript:deleteDscs('" + v.dscsId + "')\" class=\"btn basic small\"><spring:message code='forum.button.del'/></a>"; // 삭제
 
             dataList.push({
                 no: col0,
@@ -492,29 +492,29 @@
             let extData = {
                 dscsId	: dscsId
             };
-            location.href = "<c:url value="/forum2/forumLect/profDscsEditView.do" />?" + "encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);
+            location.href = "<c:url value='/forum2/forumLect/profDscsEditView.do' />?" + "encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData) + '&sbjctId=<c:out value="${dscsListVO.sbjctId}" />';
         } else {
             let extData = {
                 dscsId	: ''
             };
-            /*location.href = "<c:url value="/forum2/forumLect/profDscsWriteView.do" />?" + "encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);*/
-            location.href = "<c:url value="/forum2/forumLect/profDscsWriteView.do" />?" + "encParams="+EPARAM;
+            /*location.href = "<c:url value='/forum2/forumLect/profDscsWriteView.do' />?" + "encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);*/
+            location.href = "<c:url value='/forum2/forumLect/profDscsWriteView.do' />?" + '&sbjctId=<c:out value="${dscsListVO.sbjctId}" />';
         }
     }
 
     // 토론방
-    function goForumBbs(dscsId) {
-        location.href = '/forum2/forumLect/Form/bbsManage.do?dscsId=' + encodeURIComponent(dscsId);
+    function goDscsBbs(dscsId) {
+        location.href = '/forum2/forumLect/Form/bbsManage.do?dscsId=' + encodeURIComponent(dscsId) + '&sbjctId=<c:out value="${dscsListVO.sbjctId}" />';
     }
 
     // 토론평가
-    function goForumScore(dscsId) {
-        location.href = '/forum2/forumLect/Form/scoreManage.do?dscsId=' + encodeURIComponent(dscsId);
+    function goDscsScore(dscsId) {
+        location.href = '/forum2/forumLect/Form/scoreManage.do?dscsId=' + encodeURIComponent(dscsId) + '&sbjctId=<c:out value="${dscsListVO.sbjctId}" />';
     }
 
-    //토론삭제
-    function delForum(dscsId) {
-        UiComm.showMessage("<spring:message code="forum.alert.confirm.delete" />", "confirm")/*  정말 토론을 삭제 하시겠습니까?  */
+    // 토론삭제
+    function deleteDscs(dscsId) {
+        UiComm.showMessage("<spring:message code='forum.alert.confirm.delete' />", "confirm")/*  정말 토론을 삭제 하시겠습니까?  */
             .then(function(result) {
                 if (result) {
                     // '확인' 선택
@@ -545,3 +545,4 @@
 </script>
 </body>
 </html>
+

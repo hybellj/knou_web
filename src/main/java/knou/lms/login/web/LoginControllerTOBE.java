@@ -103,10 +103,10 @@ public class LoginControllerTOBE {
 	        SessionInfo.setAuthrtGrpcd(request, selectedUser.getUserTycd());
 	        
 	        // 3. 세션저장
-	        SessionInfo.setUserContext(request, userCtx);
+	        SessionInfo.setUserContext(request, userCtx); // USER_CONTEXT
 	        
 	        // 3-1. 초기 userContext와 호환을 위해 
-	        SessionUtil.setSessionValue(request, "userCtx", userCtx);
+	        SessionUtil.setSessionValue(request, "userCtx", userCtx); //userCtx
 
 	        // 4. 화면 분기
 	        String initUrl = resolveDashboard(selectedUser.getUserTycd());

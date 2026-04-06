@@ -135,6 +135,7 @@
 
 </div>
 <script type="text/javascript">
+    var CTX = "<%=request.getContextPath()%>";
     let PAGE_INDEX = '<c:out value="${plandocVO.pageIndex}" />';
     let LIST_SCALE = '<c:out value="${plandocVO.listScale}" />';
     let plandocListTable;
@@ -296,6 +297,7 @@
         // 상세 페이지로 이동
         location.href = "/lctr/plandoc/profLctrPlandocView.do?sbjctId=" + encodeURIComponent(sbjctId);
     }
+
 </script>
 </body>
 </html>

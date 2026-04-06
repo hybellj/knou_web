@@ -148,30 +148,25 @@ public class DscsEzGraderLectController extends ControllerBase {
 
     // 토론 제출 대상 리스트 조회
     @RequestMapping(value = "/joinUserList.do")
-    public String getForumJoinUserListForEzg(DscsVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public String getForumJoinUserListForEzg(DscsVO dscsVO, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
         
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        
-        vo.setOrgId(orgId);
-        // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
-        /* DscsVO forumVO = dscsService.selectDscs(vo);*/
-        DscsVO param = new DscsVO();
-        param.setDscsId(vo.getDscsId());
-        DscsVO loadedDscsVO = dscsService.selectDscs(param);
-        DscsVO forumVO = loadedDscsVO;
+
+        dscsVO.setOrgId(orgId);
+        dscsVO = dscsService.selectDscs(dscsVO);
 
         DscsJoinUserVO paramVO = new DscsJoinUserVO();
-        paramVO.setDscsId(vo.getDscsId());
-        paramVO.setCrsCreCd(vo.getCrsCreCd());
-        paramVO.setSearchKey(vo.getSearchKey());
-        paramVO.setSearchSort(vo.getSearchSort());
-        paramVO.setForumCtgrCd(forumVO.getForumCtgrCd());
+        paramVO.setDscsId(dscsVO.getDscsId());
+        paramVO.setCrsCreCd(dscsVO.getCrsCreCd());
+        paramVO.setSearchKey(dscsVO.getSearchKey());
+        paramVO.setSearchSort(dscsVO.getSearchSort());
+        paramVO.setForumCtgrCd(dscsVO.getForumCtgrCd());
 
         String viewNm = "";
-        if ("TEAM".equals(forumVO.getForumCtgrCd())) {
-            List<DscsEzGraderTeamVO> resultList= dscsEzGraderService.listDscsJoinTeam(paramVO, forumVO.getByteamDscsUseyn());
+        if ("TEAM".equals(dscsVO.getForumCtgrCd())) {
+            List<DscsEzGraderTeamVO> resultList= dscsEzGraderService.listDscsJoinTeam(paramVO, dscsVO.getByteamDscsUseyn());
             request.setAttribute("resultList", resultList);
             viewNm = "forum2/ezgPop/ezg_join_team_list";
         } else {
@@ -180,8 +175,7 @@ public class DscsEzGraderLectController extends ControllerBase {
             viewNm = "forum2/ezgPop/ezg_join_user_list";
         }
 
-        request.setAttribute("dscsVO", forumVO);
-        request.setAttribute("vo", vo);
+        request.setAttribute("dscsVO", dscsVO);
 
         return viewNm;
     }

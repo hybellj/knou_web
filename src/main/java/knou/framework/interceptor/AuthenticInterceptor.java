@@ -166,6 +166,8 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
                 loginVO.setUserId(userId);
                 loginVO = usrLoginService.selectSessionId(loginVO);
                 String sid = loginVO.getSessionId();
+                
+                System.out.println("sid=" + sid + ", sessionId="+sessionId);
 
                 // 중복 로그인 시
                 if (sid != null && !sessionId.equals(sid)) {
@@ -178,6 +180,8 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
                     valid = false;
                 }
             }
+            
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> valid=" + valid);
 
             // 사용자 접속상태 저장
             if (valid) {

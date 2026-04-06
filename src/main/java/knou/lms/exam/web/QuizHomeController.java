@@ -43,6 +43,7 @@ import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
+import knou.lms.user.CurrentUser;
 import knou.lms.user.service.UsrUserInfoService;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -482,15 +483,8 @@ public class QuizHomeController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value="/profQuizQstnMngView.do")
-    public String profQuizQstnMngView(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userCtx = new UserContext(SessionInfo.getOrgId(request),
-                SessionInfo.getUserId(request),
-                SessionInfo.getUserTycd(request),
-                SessionInfo.getAuthrtCd(request),
-                SessionInfo.getAuthrtGrpcd(request),
-                SessionInfo.getUserRprsId(request),
-                SessionInfo.getLastLogin(request));
-        request.getSession().setAttribute("USER_CONTEXT", userCtx);
+    public String profQuizQstnMngView(ExamBscVO vo, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
 
         QuizMainView quizMainView = quizFacadeService.loadProfQuizQstnMngView(vo, userCtx);
 

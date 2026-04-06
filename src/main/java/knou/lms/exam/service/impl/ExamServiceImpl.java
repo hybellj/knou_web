@@ -210,16 +210,49 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                 } else if (examGbncd.contains("LST")) {
                     vo.setExamGbncd("EXAM_LST_SBST_QUIZ");
                 }
-                String quizId = IdGenUtil.genNewId(IdPrefixType.EXBSC);
-                vo.setExamSbstId(quizId);
+                String quizId1 = IdGenUtil.genNewId(IdPrefixType.EXBSC);
+                vo.setExamSbstId(quizId1);
                 // B-1. 대체 시험 등록
                 examDAO.examSbstRegist(vo);
 
-                // B-2. 시험 기본 (퀴즈) 등록
-                vo.setExamBscId(quizId);
+                // B-2. 시험 그룹 등록 (시험 + 퀴즈로 묶기)
+                vo.setExamGrpId(IdGenUtil.genNewId(IdPrefixType.EXGRP));
+                examDAO.examGrpRegist2(vo);
+
+                // B-3. 기본 시험 (부모) GRP 수정
+                examDAO.updateExamBscGrp(vo);
+
+                // B-4. 시험 기본 (퀴즈) 등록
+                vo.setExamBscId(quizId1);
                 examDAO.sbstQuizBscRegist(vo);
 
-                // B-2. 시험 기본 (퀴즈) 등록
+                // B-5. 시험 기본 (퀴즈) 등록
+                vo.setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
+                examDAO.sbstQuizDtlRegist(vo);
+                break;
+            // C. 퀴즈
+            case "QUIZ" :
+                if (examGbncd.contains("MID")) {
+                    vo.setExamGbncd("QUIZ_EXAM_MID");
+                } else if (examGbncd.contains("LST")) {
+                    vo.setExamGbncd("QUIZ_EXAM_LST");
+                } else {
+                    vo.setExamGbncd("QUIZ");
+                }
+                String quizId2 = IdGenUtil.genNewId(IdPrefixType.EXBSC);
+
+                // C-1. 시험 그룹 등록 (시험 + 퀴즈로 묶기)
+                vo.setExamGrpId(IdGenUtil.genNewId(IdPrefixType.EXGRP));
+                examDAO.examGrpRegist2(vo);
+
+                // C-2. 기본 시험 (부모) GRP 수정
+                examDAO.updateExamBscGrp(vo);
+
+                // C-3. 시험 기본 (퀴즈) 등록
+                vo.setExamBscId(quizId2);
+                examDAO.sbstQuizBscRegist(vo);
+
+                // C-4. 시험 기본 (퀴즈) 등록
                 vo.setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
                 examDAO.sbstQuizDtlRegist(vo);
                 break;
@@ -602,6 +635,45 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     }
 
     /*****************************************************
+     * 교수 퀴즈 관리 퀴즈 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listExamQuizPaging(ExamVO vo) throws Exception{
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countExamQuiz(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listExamQuizPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 교수 퀴즈관리 퀴즈 조회
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public ExamVO selectProfQuizMng(ExamVO vo) throws Exception {
+        return examDAO.selectProfQuizMng(vo);
+    }
+
+    /*****************************************************
      * 성적 공개여부 수정
      * @param vo
      * @throws Exception
@@ -792,15 +864,24 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     public void updateExamSbst(ExamVO vo) throws Exception {
         String sbstType = vo.getExamSbstTycd();
 
-        examDAO.updateExamSbst(vo);
         switch (sbstType) {
-            // A. 과제
+            // A. 대체 과제
             case "SBST_ASMT" :
+                examDAO.updateExamSbst(vo);
                 // A-1. 과제 수정
                 examDAO.updateSbstAsmt(vo);
                 break;
-            // B. 퀴즈
+            // B. 대체 퀴즈
             case "SBST_QUIZ" :
+                examDAO.updateExamSbst(vo);
+                // B-1. 시험(퀴즈) 기본 수정
+                examDAO.updateExamSbstBsc(vo);
+
+                // B-2. 시험(퀴즈) 상세 수정
+                examDAO.updateExamDtlInfo(vo);
+                break;
+            // C. 퀴즈
+            case "QUIZ" :
                 // B-1. 시험(퀴즈) 기본 수정
                 examDAO.updateExamSbstBsc(vo);
 
@@ -824,6 +905,7 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
             // A-2. 시험 상세정보 삭제
             examDAO.deleteExamDtlInfo(vo);
 
+//             여기 GRP 삭제 로직 수정
             // A-3. 시험 기본정보 삭제
             examDAO.deleteExamBscInfo(vo);
         } else {
@@ -853,11 +935,24 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                 break;
             // B. 퀴즈
             case "SBST_QUIZ" :
+                String beforeBscId = vo.getExamBscId(); // 시험 ID 저장
+                vo.setExamBscId(vo.getQuizBscId());     // 기존 시험 ID를 quiz 의 기본 ID로 변경
+                String beforeGrpId = vo.getExamGrpId(); // 그룹 ID 저장
                 // B-1. 시험(퀴즈) 상세 삭제
                 examDAO.deleteExamDtlInfo(vo);
 
                 // B-2. 시험(퀴즈) 기본 삭제
                 examDAO.deleteExamBscInfo(vo);
+
+                // B-4. 시험 기본 grp 비워놓기
+                vo.setExamGrpId(null);
+                vo.setExamBscId(beforeBscId);
+                examDAO.updateExamBscGrp(vo);
+
+                // B-3. 시험(퀴즈) 그룹 삭제
+                vo.setExamGrpId(beforeGrpId);
+                examDAO.deleteExamGrp(vo);
+
                 break;
         }
     }

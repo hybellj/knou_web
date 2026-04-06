@@ -706,7 +706,10 @@
                                     <ul>
                                         <!-- 실시간/퀴즈 에 따라 버튼 동적 생성 -->
                                         <li class="mw120 select" style = "pointer-events: none;"><a onclick="examViewMv(1)">시험정보 및 평가</a></li>
-                                        <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
+                                        <c:if test="${vo.tkexamMthdCd eq 'RLTM' and (examVO.examGbncd eq 'EXAM_LST'
+                                                                                    or examVO.examGbncd eq 'EXAM_LST_TEAM'
+                                                                                    or examVO.examGbncd eq 'EXAM_MID'
+                                                                                    or examVO.examGbncd eq 'EXAM_MID_TEAM')}">
                                             <li class="mw120"><a onclick="examViewMv(2)">시험 대체</a></li>
                                             <li class="mw120"><a onclick="examViewMv(3)">결시 내용 및 현황</a></li>
                                             <li class="mw120"><a onclick="examViewMv(4)">장애인/고령자 지원 현황</a></li>
@@ -824,39 +827,38 @@
                                                             </c:if>
                                                         </td>
                                                     </tr>
-                                                    <tr>
-                                                        <th><label>시험 대체</label></th>
-                                                        <td class="t_left" colspan="3">
-                                                            <div class = "item_list">
-                                                                ${examVO.examSbstTynm}
-                                                                <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
+                                                    <c:if test="${vo.tkexamMthdCd eq 'RLTM' and (examVO.examGbncd eq 'EXAM_LST'
+                                                                                                or examVO.examGbncd eq 'EXAM_LST_TEAM'
+                                                                                                or examVO.examGbncd eq 'EXAM_MID'
+                                                                                                or examVO.examGbncd eq 'EXAM_MID_TEAM')}">
+                                                        <tr>
+                                                            <th><label>시험 대체</label></th>
+                                                            <td class="t_left" colspan="3">
+                                                                <div class = "item_list">
+                                                                    ${examVO.examSbstTynm}
                                                                     <button type="button" class = "btn basic" onclick="examViewMv(2)">시험 대체</button>
-                                                                </c:if>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>결시 현황</label></th>
-                                                        <td class="t_left" colspan="3">
-                                                            <div class = "item_list">
-                                                                ${examVO.absnceTot} 명
-                                                                <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th><label>결시 현황</label></th>
+                                                            <td class="t_left" colspan="3">
+                                                                <div class = "item_list">
+                                                                    ${examVO.absnceTot} 명
                                                                     <button type="button" class = "btn basic" onclick="examViewMv(3)">결시 내용 및 현황</button>
-                                                                </c:if>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><label>장애인/고령자 지원</label></th>
-                                                        <td class="t_left" colspan="3">
-                                                            <div class = "item_list">
-                                                                ${examVO.dsblTot} 명
-                                                                <c:if test="${vo.tkexamMthdCd eq 'RLTM'}">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th><label>장애인/고령자 지원</label></th>
+                                                            <td class="t_left" colspan="3">
+                                                                <div class = "item_list">
+                                                                    ${examVO.dsblTot} 명
                                                                     <button type="button" class = "btn basic" onclick="examViewMv(4)">장애인/고령자 지원</button>
-                                                                </c:if>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </c:if>
                                                 </tbody>
                                             </table>
                                         </div>
