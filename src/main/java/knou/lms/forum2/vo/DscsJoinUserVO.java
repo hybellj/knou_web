@@ -7,14 +7,14 @@ import knou.lms.common.vo.DefaultVO;
 public class DscsJoinUserVO extends DefaultVO {
 	private static final long serialVersionUID = 2877017439237698606L;
 
-	private String  crsCreCd;
+	private String  sbjctId;
     private String  stdId;          // 수강생 번호
     private String  stdntNo;        // 학번.
     private String  stdIds;         // ajax 등 데이처 처리용.stdIdList 와 같이 사용
     private List<String> stdIdList;
     
     private String  dscsId;         // 토론 코드
-    private String  teamCd;         // 팀 코드
+    private String  teamId;         // 팀 코드
     private Double  score;          // 점수
     private String  scoreNull;
     private String  leaderYn;       // 팀장 여부
@@ -24,9 +24,9 @@ public class DscsJoinUserVO extends DefaultVO {
     private String  fdbkCts;        // 피드백
     private String  oknokGbnCd;     // 찬반구분코드 원시값 (OK/NOTOK/-)
 
-    private String  forumTitle;     // 토론제목
-    private String  forumStartDttm; // 토론시작일시
-    private String  forumEndDttm;   // 토론 종료일시
+    private String  dscsTtl;        // 토론제목
+    private String  dscsSdttm;      // 토론시작일시
+    private String  dscsEdttm;      // 토론 종료일시
     
     private String  scoreType;
     private String  joinStatus;
@@ -51,7 +51,7 @@ public class DscsJoinUserVO extends DefaultVO {
     private String	deptNm;
     private String	teamNm;          // 팀명
     private String	memberRole;      // 역할
-    private String	forumCtgrCd;     // 팀 토론 여부
+    private String	dscsUnitTycd;    // 팀 토론 여부
 
     private int		mutCnt;			// 참여 인원
     private int		mutAvg;			// 평균 별점
@@ -95,11 +95,11 @@ public class DscsJoinUserVO extends DefaultVO {
     public void setDscsId(String dscsId) {
         this.dscsId = dscsId;
     }
-    public String getTeamCd() {
-        return teamCd;
+    public String getTeamId() {
+        return teamId;
     }
-    public void setTeamCd(String teamCd) {
-        this.teamCd = teamCd;
+    public void setTeamId(String teamId) {
+        this.teamId = teamId;
     }
     public Double getScore() {
         return score;
@@ -119,11 +119,11 @@ public class DscsJoinUserVO extends DefaultVO {
     public void setDelYn(String delYn) {
         this.delYn = delYn;
     }
-    public String getCrsCreCd() {
-        return crsCreCd;
+    public String getSbjctId() {
+        return sbjctId;
     }
-    public void setCrsCreCd(String crsCreCd) {
-        this.crsCreCd = crsCreCd;
+    public void setSbjctId(String sbjctId) {
+        this.sbjctId = sbjctId;
     }
     public String getStdIds() {
         return stdIds;
@@ -191,41 +191,23 @@ public class DscsJoinUserVO extends DefaultVO {
     public void setProfMemo(String profMemo) {
         this.profMemo = profMemo;
     }
-    public String getForumTitle() {
-        return forumTitle;
-    }
-    public void setForumTitle(String forumTitle) {
-        this.forumTitle = forumTitle;
-    }
     public String getDscsTtl() {
-        return forumTitle;
+        return dscsTtl;
     }
     public void setDscsTtl(String dscsTtl) {
-        this.forumTitle = dscsTtl;
-    }
-    public String getForumStartDttm() {
-        return forumStartDttm;
-    }
-    public void setForumStartDttm(String forumStartDttm) {
-        this.forumStartDttm = forumStartDttm;
+        this.dscsTtl = dscsTtl;
     }
     public String getDscsSdttm() {
-        return forumStartDttm;
+        return dscsSdttm;
     }
     public void setDscsSdttm(String dscsSdttm) {
-        this.forumStartDttm = dscsSdttm;
-    }
-    public String getForumEndDttm() {
-        return forumEndDttm;
-    }
-    public void setForumEndDttm(String forumEndDttm) {
-        this.forumEndDttm = forumEndDttm;
+        this.dscsSdttm = dscsSdttm;
     }
     public String getDscsEdttm() {
-        return forumEndDttm;
+        return dscsEdttm;
     }
     public void setDscsEdttm(String dscsEdttm) {
-        this.forumEndDttm = dscsEdttm;
+        this.dscsEdttm = dscsEdttm;
     }
     public String getFdbkCts() {
         return fdbkCts;
@@ -275,17 +257,11 @@ public class DscsJoinUserVO extends DefaultVO {
     public void setLeaderYn(String leaderYn) {
         this.leaderYn = leaderYn;
     }
-    public String getForumCtgrCd() {
-        return forumCtgrCd;
-    }
-    public void setForumCtgrCd(String forumCtgrCd) {
-        this.forumCtgrCd = forumCtgrCd;
-    }
     public String getDscsUnitTycd() {
-        return forumCtgrCd;
+        return dscsUnitTycd;
     }
     public void setDscsUnitTycd(String dscsUnitTycd) {
-        this.forumCtgrCd = dscsUnitTycd;
+        this.dscsUnitTycd = dscsUnitTycd;
     }
     public String getMobileNo() {
         return mobileNo;

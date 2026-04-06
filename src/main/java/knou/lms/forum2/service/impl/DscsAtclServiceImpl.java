@@ -111,7 +111,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
         DscsJoinUserVO joinVO = new DscsJoinUserVO();
         joinVO.setDscsId(vo.getDscsId());
         joinVO.setStdId(vo.getUserId());
-        joinVO.setTeamCd(StringUtil.nvl(teamCd));
+        joinVO.setTeamId(StringUtil.nvl(teamCd));
         joinVO.setRgtrId(vo.getRgtrId());
         joinVO.setMdfrId(vo.getMdfrId());
         joinVO.setDscsPtcpId(IdGenerator.getNewId(IdPrefixType.DSPTC.getCode()));
@@ -195,7 +195,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
             
             StdVO svo = new StdVO();
             svo.setUserId(rgtrId);
-            svo.setCrsCreCd(forumVO.getCrsCreCd());
+            svo.setCrsCreCd(forumVO.getSbjctId());
             svo = stdDAO.selectStd(svo);
             
             if(svo != null) {

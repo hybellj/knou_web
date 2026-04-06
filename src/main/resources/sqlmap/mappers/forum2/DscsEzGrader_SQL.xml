@@ -45,7 +45,7 @@
 					AND B.DSCS_ID = #{dscsId}
 				JOIN TB_LMS_USER D
 					ON A.USER_ID = D.USER_ID
-			WHERE A.SBJCT_ID = #{crsCreCd}
+			WHERE A.SBJCT_ID = #{sbjctId}
 				AND A.ATNDLC_STSCD = 'ATNDLC'
 				AND A.AUDITYN = 'N'
 		) A
@@ -74,10 +74,10 @@
 
 	<resultMap id="forumJoinTeamMap" type="knou.lms.forum2.vo.DscsEzGraderTeamVO">
 		<result property="teamTycd" column="TEAM_TYCD" />
-		<result property="teamCd" column="TEAM_ID" />
+		<result property="teamId" column="TEAM_ID" />
 		<result property="teamNm" column="TEAMNM" />
 		<result property="formCd" column="FORUM_CD" />
-		<result property="crsCreCd" column="CRS_CRE_CD" />
+		<result property="sbjctId" column="CRS_CRE_CD" />
 		<collection property="teamMembers" resultMap="teamMemberMap" />
 	</resultMap>
 
@@ -102,7 +102,7 @@
 			, A.TEAM_ID
 			, A.TEAMNM
 			, A.DSCS_ID AS FORUM_CD
-			, #{crsCreCd} AS CRS_CRE_CD
+			, #{sbjctId} AS CRS_CRE_CD
 			, A.USER_ID AS STD_ID
 			, A.LDRYN
 			, A.SCR AS score

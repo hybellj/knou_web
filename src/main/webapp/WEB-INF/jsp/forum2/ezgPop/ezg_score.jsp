@@ -4,7 +4,7 @@
 <link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
 <script type="text/javascript">
 $(document).ready(function() {
-	if("${vo.teamCd}" != "" && "${vo.stdId}" =="") {
+	if("${vo.teamId}" != "" && "${vo.stdId}" =="") {
 		$("#teamAlert").show();
 	}else{
 		$("#teamAlert").hide();
@@ -55,11 +55,11 @@ function saveEvalScore() {
 		async: false,
 		dataType : "json",
 		data : {
-			"crsCreCd" : $("#totalScoreBlockCrsCreCd").val()
+			"sbjctId" : $("#totalScoreBlockSbjctId").val()
 			, "dscsId" : $("#totalScoreBlockDscsId").val()
 			, "evalCd" : $("#evalScoreBlockEvalCd").val()
 			, "evalTrgtUserId" : $("#totalScoreBlockStdId").val()
-			, "rltnTeamCd" : $("#totalScoreBlockTeamCd").val()
+			, "rltnTeamCd" : $("#totalScoreBlockTeamId").val()
 			, "evalScore" : $("#totalScore").val()
 		},
 		url : url,
@@ -97,11 +97,11 @@ function deleteEvalScore() {
 		async: false,
 		dataType : "json",
 		data : {
-			"crsCreCd" : $("#totalScoreBlockCrsCreCd").val()
+			"sbjctId" : $("#totalScoreBlockSbjctId").val()
 			, "dscsId" : $("#totalScoreBlockDscsId").val()
 			, "evalCd" : $("#evalScoreBlockEvalCd").val()
 			, "evalTrgtUserId" : $("#totalScoreBlockStdId").val()
-			, "rltnTeamCd" : $("#totalScoreBlockTeamCd").val()
+			, "rltnTeamCd" : $("#totalScoreBlockTeamId").val()
 		},
 		url : url,
 		success : function(data){
@@ -125,7 +125,7 @@ function deleteEvalScore() {
 
 // 상호평가결과 팝업
 function mutEvalViewPop() {
-/*	$("#mutEvalViewForm > input[name='crsCreCd']").val("${vo.crsCreCd}");
+/*	$("#mutEvalViewForm > input[name='sbjctId']").val("${vo.sbjctId}");
 	$('#mutEvalViewForm > input[name=''dscsId'']').val("${vo.dscsId}");
 	$("#mutEvalViewForm > input[name='stdId']").val("${vo.stdId}");
 	$("#mutEvalViewForm").attr("target", "mutEvalViewIfm");
@@ -138,13 +138,13 @@ function mutEvalViewPop() {
 	<div class="ui input flex1 ml05">
 		<input type="text" maxlength="3" placeholder="<spring:message code="forum.alert.input.score" />" id="totalScore" value="${dscsJoinUserVO.score}" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');/*saveEvalScore();*/"><!-- 점수를 입력하세요. -->
 	</div>
-	<input type="hidden" id="totalScoreBlockCrsCreCd" value="${vo.crsCreCd}">
+	<input type="hidden" id="totalScoreBlockSbjctId" value="${vo.sbjctId}">
 	<input type="hidden" id="totalScoreBlockDscsId" value="${vo.dscsId}">
 	<input type="hidden" id="totalScoreBlockStdId" value="${vo.stdId}">
-	<input type="hidden" id="totalScoreBlockTeamCd" value="${vo.teamCd}">
+	<input type="hidden" id="totalScoreBlockTeamId" value="${vo.teamId}">
 	<a href="javascript:void(0);" class="ui blue button ml05" id="btnSaveEvalScore" onClick="saveEvalScore()"><spring:message code='forum.button.save'/><!-- 저장 --></a>
 	<a href="javascript:void(0);" class="ui blue button ml05" onClick="deleteEvalScore()"><spring:message code='forum.button.reset'/><!-- 초기화 --></a>
-	<c:if test="${vo.evalCtgr eq 'R'}">
+	<c:if test="${vo.evlScrTycd eq 'R'}">
 		<a href="javascript:void(0);" class="ui Lgrey button m0" onClick="partiScore()"><spring:message code='forum.label.evalctgr.participate.all'/><!-- 참여형 일괄평가 --></a>
 	</c:if>
 </div>
@@ -154,7 +154,7 @@ function mutEvalViewPop() {
 
 <!-- 평가의견  모달 -->
 <form id="mutEvalViewForm" name="mutEvalViewForm" method="post">
-	<input type="hidden" name="crsCreCd" />
+	<input type="hidden" name="sbjctId" />
 	<input type="hidden" name="dscsId" />
 	<input type="hidden" name="stdId" />
 </form>

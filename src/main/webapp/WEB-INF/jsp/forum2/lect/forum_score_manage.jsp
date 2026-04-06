@@ -29,12 +29,6 @@
 				}
 			});
 
-			// scoreChartSet();
-
-			if("${dscsVO.dscsUnitTycd}" == "TEAM") {
-				// loadSelectDiv();
-			}
-
 			$('#scr-toggle-icon').click(function() {
 				$(this).children("i").toggleClass("xi-plus xi-minus");
 			});
@@ -83,8 +77,8 @@
 
 			var data = {
 				"dscsId" 	  : "${dscsVO.dscsId}",
-				"crsCreCd"	  : "${dscsVO.crsCreCd}",
-				"teamCd"	  : $("#teamCd").val(),
+				"sbjctId"	  : "${dscsVO.sbjctId}",
+				"teamId"	  : $("#teamCd").val(),
 				"dscsUnitTycd"      : "${dscsVO.dscsUnitTycd}",
 				"byteamDscsUseyn"  : "${dscsVO.byteamDscsUseyn}",
 				"pageIndex"   : page,
@@ -187,33 +181,6 @@
 			listForumUser(1);
 		}
 
-		// 팀토론 일때 검색 조건 추가
-		function loadSelectDiv() {
-			var url = "/forum/forumLect/teamSelectList.do";
-			var data = {
-				"crsCreCd" : "${dscsVO.crsCreCd}",
-				"teamCtgrCd" : "${dscsVO.teamTycd}",
-			};
-
-			ajaxCall(url, data, function(data) {
-				var html = "";
-				if(data.result > 0) {
-					html += "<select class=\"ui compact dropdown mr10\" name=\"teamCd\"  id=\"teamCd\" onchange=\"listForumUser()\">";
-					html += "	<option value=\"all\"><spring:message code='resh.common.search.all' /></option>";	// 전체
-					data.returnList.forEach(function(v, i) {
-						html += "	<option value=\""+ v.teamCd +"\">"+ v.teamNm +"</option>";
-					});
-					html += "</select>";
-
-					$("#selectDiv").empty().append(html);
-				} else {
-					alert(data.message);
-				}
-			}, function(xhr, status, error) {
-				alert("<spring:message code='forum.common.error' />");/* 오류가 발생했습니다! */
-			}, true);
-		}
-
 		// 성적처리 방식에 따른 아이콘 유무
 		function plusMinusIconControl(scoreType) {
 			if(scoreType == 'batch') {
@@ -287,7 +254,7 @@
 				keys.forEach(function(fcd, idx) {
 					var data = {
 						"dscsId"    : fcd,
-						"crsCreCd"   : "${dscsVO.crsCreCd}",
+						"sbjctId"   : "${dscsVO.sbjctId}",
 						"teamCtgrCd" : "${dscsVO.teamTycd}",
 						"stdIds"     : groups[fcd].join(","),
 						"score"      : score,
@@ -311,7 +278,7 @@
 			// BYTEAM='N': 기존 로직
 			var data = {
 				"dscsId" : "${dscsVO.dscsId}",
-				"crsCreCd" : "${dscsVO.crsCreCd}",
+				"sbjctId" : "${dscsVO.sbjctId}",
 				"teamCtgrCd" : "${dscsVO.teamTycd}",
 				"stdIds" : stdIds,
 				"score" : score,
@@ -324,7 +291,6 @@
 					$("#stdIds").val("");
 					$("#scoreValue").val("");
 					listForumUser(1);
-					// scoreChartSet();
 				} else {
 					alert(data.message);
 				}
@@ -408,110 +374,6 @@
 				}
 			});
 		}
-
-		/*
-        // 성적 통계 차트
-        function scoreChartSet() {
-            var minScore = 0;
-            var maxScore = 0;
-            var avgScore = 0;
-            if("${dscsForumVO.dscsUnitTycd}" == "TEAM") {
-			$.ajax({
-				type: "post",
-				// url: "/team/teamHome/viewScoreChart.do",
-				url: "/forum2/forumLect/viewScoreChart.do",
-				async: false,
-				dataType: "json",
-				data: {
-					// "teamCtgrCd" : $("#teamCtgrCd").val(),
-					"dscsId" : $("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(),
-				},
-				error: function(data) {
-					alert("<spring:message code='forum.alert.team.count.select_fail'/>"); // 팀 수를 조회하는 데에 실패하였습니다. 다시 시도해주시기 바랍니다.
-					return false;
-				},
-				success: function(data) {
-					if(data == null) {
-						minScore = 0;
-						maxScore = 0;
-						avgScore = 0;
-					} else {
-						minScore = data.minScore;
-						maxScore = data.maxScore;
-						avgScore = data.avgScore;
-					}
-				}
-			});
-		} else {
-			minScore = "${minScore}";
-			maxScore = "${maxScore}";
-			avgScore = "${avgScore}";
-		}
-
-		var ctx = document.getElementById("barChart");
-		var myChart = new Chart(ctx, {
-			type: 'bar',
-			data: {
-				labels: ["<spring:message code='forum.label.avg.score'/>", "<spring:message code='forum.label.max.score'/>", "<spring:message code='forum.label.min.score'/>"], // 평균점수, 최고점수, 최저점수
-				datasets: [{
-					data: [avgScore, maxScore ,minScore],
-					backgroundColor: [
-						'rgba(75, 192, 192, .6)',
-						'rgba(54, 162, 235, .6)',
-						'rgba(255, 99, 132, .6)'
-					],
-					borderWidth: 1
-				}]
-			},
-			options: {
-				events: false,
-				showTooltips: false,
-				title: {
-				display: true,
-				text: '<spring:message code='forum.label.score.chart.status'/>', // 성적 분포 현황
-				fontSize: 14,
-				fontColor: "#666",
-				},
-				animation: {
-				duration: 1000,
-				onComplete: function () {
-					// render the value of the chart above the bar
-					var ctx = this.chart.ctx;
-					ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, 'normal', Chart.defaults.global.defaultFontFamily);
-					ctx.fillStyle = this.chart.config.options.defaultFontColor;
-					ctx.textAlign = 'center';
-					ctx.textBaseline = 'bottom';
-					this.data.datasets.forEach(function (dataset) {
-						for (var i = 0; i < dataset.data.length; i++) {
-							var model = dataset._meta[Object.keys(dataset._meta)[0]].data[i]._model;
-							ctx.fillStyle = '#fff'; // label color
-							ctx.fillText(dataset.data[i], model.x, model.y + 20);
-						}
-					});
-				}},
-				scales: {
-					yAxes: [{
-						ticks: {
-							min: 0,
-							max: 100,
-							stepSize: 20,
-							callback: function(value){return value+ "<spring:message code='forum.label.point'/>"} // 점
-						},
-						scaleLabel: {
-							display: true
-						}
-					}],
-					xAxes: [{
-						barPercentage: 0.6
-					}]
-				},
-				legend: {
-					display: false
-				}
-			}
-		});
-	}
-	*/
 
 		// 메모 팝업
 		function stdMemoForm(dscsId, stdId, obj) {
@@ -608,7 +470,7 @@
 			excelForm.attr("name","excelForm");
 			excelForm.attr("action","/forum2/forumLect/listScoreExcel.do");
 			excelForm.append($('<input/>', {type: 'hidden', name: 'dscsId', value:"${dscsVO.dscsId}" }));
-			excelForm.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value:"${dscsVO.crsCreCd}" }));
+			excelForm.append($('<input/>', {type: 'hidden', name: 'sbjctId', value:"${dscsVO.sbjctId}" }));
 			excelForm.append($('<input/>', {type: 'hidden', name: 'byteamDscsUseyn', value:"${dscsVO.byteamDscsUseyn}" }));
 			excelForm.append($('<input/>', {type: 'hidden', name: 'excelGrid', value:JSON.stringify(excelGrid)}));
 
@@ -807,7 +669,7 @@
 				var keys = Object.keys(groups);
 				keys.forEach(function(fcd, idx) {
 					var data = {
-						"crsCreCd"    : "${dscsVO.crsCreCd}",
+						"sbjctId"    : "${dscsVO.sbjctId}",
 						"dscsId"     : fcd,
 						"stdId"       : groups[fcd].join(","),
 						"fdbkCts"     : $("#fdbkValue").val(),
@@ -832,7 +694,7 @@
 
 			// BYTEAM='N': 기존 로직
 			var data = {
-				"crsCreCd"	  : "${dscsVO.crsCreCd}",
+				"sbjctId"	  : "${dscsVO.sbjctId}",
 				"dscsId"     : "${dscsVO.dscsId}",
 				"stdId"  	  : stdIds,
 				"fdbkCts"     : $("#fdbkValue").val(),
@@ -924,7 +786,7 @@
 
 				var data = {
 					"dscsId" : "${dscsVO.dscsId}",
-					"crsCreCd" : "${dscsVO.crsCreCd}",
+					"sbjctId" : "${dscsVO.sbjctId}",
 					"teamCtgrCd" : "${dscsVO.teamTycd}",
 					"stdId" : stdId,
 					"score" : score,
@@ -934,7 +796,6 @@
 					if(data.result > 0) {
 						alert("<spring:message code='forum.alert.mut.setScore' />"); // 평가점수가 정상적으로 수정되었습니다.
 						listForumUser(1);
-						// scoreChartSet();
 					} else {
 						alert(data.message);
 					}
@@ -951,7 +812,7 @@
 			form.attr("method", "POST");
 			form.attr("name", "listForm");
 			form.attr("action", url);
-			form.append($('<input/>', {type: 'hidden', name: 'crsCreCd', value: "${dscsForumVO.crsCreCd}"}));
+			form.append($('<input/>', {type: 'hidden', name: 'sbjctId', value: "${dscsForumVO.sbjctId}"}));
 			form.appendTo("body");
 			form.submit();*/
 			location.href = "/forum2/forumLect/profForumListView.do?sbjctId=" + "${dscsVO.sbjctId}";
@@ -1033,10 +894,10 @@
 		<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}">
 		<input type="hidden" name="teamCtgrCd" value="${dscsVO.teamTycd}">
 		<input type="hidden" name="stdId" value="">
-		<input type="hidden" name="crsCreCd" value="${dscsVO.crsCreCd}">
+		<input type="hidden" name="sbjctId" value="${dscsVO.sbjctId}">
 	</form>
 	<form id="ezGraderForm" name="ezGraderForm" method="POST">
-		<input type="hidden" name="crsCreCd" value="${dscsVO.crsCreCd }" >
+		<input type="hidden" name="sbjctId" value="${dscsVO.sbjctId }" >
 		<input type="hidden" name="dscsId" value="${dscsVO.dscsId }" >
 		<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}" >
 		<input type="hidden" name="evalCritUseYn" value="${dscsVO.evalCritUseYn}" >
@@ -1048,7 +909,7 @@
 		<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}">
 		<input type="hidden" name="teamCtgrCd" value="${dscsVO.teamTycd}">
 		<input type="hidden" name="stdId" value="">
-		<input type="hidden" name="crsCreCd" value="${dscsVO.crsCreCd}">
+		<input type="hidden" name="sbjctId" value="${dscsVO.sbjctId}">
 	</form>
 	<div id="wrap" class="main">
 		<!-- common header -->
@@ -1244,7 +1105,7 @@
 													keys.forEach(function(fcd, idx) {
 														var data = {
 															"dscsId"    : fcd,
-															"crsCreCd"   : "${dscsVO.crsCreCd}",
+															"sbjctId"   : "${dscsVO.sbjctId}",
 															"teamCtgrCd" : "${dscsVO.teamTycd}",
 															"stdIds"     : groups[fcd].join(","),
 															"score"      : $("#lenScore").val(),
@@ -1269,7 +1130,7 @@
 												// BYTEAM='N': 기존 로직
 												var data = {
 													"dscsId" : "${dscsVO.dscsId}",
-													"crsCreCd" : "${dscsVO.crsCreCd}",
+													"sbjctId" : "${dscsVO.sbjctId}",
 													"teamCtgrCd" : "${dscsVO.teamTycd}",
 													"stdIds" : stdIds,
 													"score" : $("#lenScore").val(),
@@ -1282,7 +1143,6 @@
 														alert("<spring:message code='forum.alert.length.score.success' />"); // 글자수로 점수 주기를 성공하였습니다.
 														$("#stdIds").val("");
 														listForumUser(1);
-														// scoreChartSet();
 														$("#ctsLen").val("");
 														$("input:checkbox[id='chkCmnt']").prop("checked", false);
 														$("#lenScore").val("");
@@ -1309,13 +1169,12 @@
 													var url = "/forum2/forumLect/participateScore.do";
 													var data = {
 														"dscsId" : "${dscsVO.dscsId}",
-														"crsCreCd" : "${dscsVO.crsCreCd}",
+														"sbjctId" : "${dscsVO.sbjctId}",
 													};
 													ajaxCall(url, data, function(data) {
 														if(data.result > 0) {
 															alert("<spring:message code='forum.alert.evalctgr.participate.all' />"); // 참여형 일괄평가가 완료되었습니다.
 															listForumUser(1);
-															// scoreChartSet();
 														} else {
 															alert(data.message);
 														}

@@ -103,8 +103,8 @@
 				FROM FDBK  A
 				WHERE DSCS_ID = #{dscsId}
 				<choose>
-					<when test='teamCd != null and teamCd != ""'>
-						AND TEAM_ID=#{teamCd}
+					<when test='teamId != null and teamId != ""'>
+						AND TEAM_ID=#{teamId}
 					</when>
 					<otherwise>
 						AND USER_ID = #{stdId}
@@ -137,7 +137,7 @@
 			, #{dscsId}
 			, #{stdId}
 			, #{parForumFdbkCd}
-			, #{teamCd}
+			, #{teamId}
 			, #{fdbkCts}
 			, 'N'
 			, #{rgtrId}
@@ -158,8 +158,8 @@
 			<if test="parForumFdbkCd != null and parForumFdbkCd != ''">
 			, UP_DSCS_FDBK_ID = #{parForumFdbkCd}
 			</if>
-			<if test="teamCd != null and teamCd != ''">
-			, TEAM_ID = #{teamCd}
+			<if test="teamId != null and teamId != ''">
+			, TEAM_ID = #{teamId}
 			</if>
 			<if test="fdbkCts != null and fdbkCts != ''">
 			, FDBK_CTS = #{fdbkCts}
@@ -245,7 +245,7 @@
 			, #{dscsId}
 			, #{stdId}
 			, #{parForumFdbkCd}
-			, #{teamCd}
+			, #{teamId}
 			, #{fdbkCts}
 			, 'N'
 			, #{userId}
@@ -267,7 +267,7 @@
 			, UP_DSCS_FDBK_ID AS parForumFdbkCd
 			, DSCS_ID AS dscsId
 			, USER_ID AS stdId
-			, TEAM_ID AS teamCd
+			, TEAM_ID AS teamId
 			, FDBK_CTS
 			, DELYN
 			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTRNM

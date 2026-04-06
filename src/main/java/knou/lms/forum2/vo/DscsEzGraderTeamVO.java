@@ -9,12 +9,12 @@ public class DscsEzGraderTeamVO extends DefaultVO {
 
     private String formCd;
     private String orgId;           // 기관 코드
-    private String crsCreCd;
+    private String sbjctId;
 
     private String teamCtgrCd;
     private String teamCtgrNm;
     private String teamTycd;
-    private String teamCd;
+    private String teamId;
     private String teamNm;
     private String asmntSubmitStatusCd;
     private int    score;
@@ -43,12 +43,12 @@ public class DscsEzGraderTeamVO extends DefaultVO {
         this.orgId = orgId;
     }
 
-    public String getCrsCreCd() {
-        return crsCreCd;
+    public String getSbjctId() {
+        return sbjctId;
     }
 
-    public void setCrsCreCd(String crsCreCd) {
-        this.crsCreCd = crsCreCd;
+    public void setSbjctId(String sbjctId) {
+        this.sbjctId = sbjctId;
     }
 
     public String getTeamCtgrCd() {
@@ -75,12 +75,12 @@ public class DscsEzGraderTeamVO extends DefaultVO {
         this.teamCtgrNm = teamCtgrNm;
     }
 
-    public String getTeamCd() {
-        return teamCd;
+    public String getTeamId() {
+        return teamId;
     }
 
-    public void setTeamCd(String teamCd) {
-        this.teamCd = teamCd;
+    public void setTeamId(String teamId) {
+        this.teamId = teamId;
     }
 
     public String getTeamNm() {

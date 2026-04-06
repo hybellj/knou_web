@@ -39,7 +39,7 @@ $(document).ready(function() {
 function getEzgTitle() {
 	var url = "/forum2/ezgPop/forum.do";
 	var paramData = {
-		"crsCreCd" : $("#ezgCrsCreCd").val()
+		"sbjctId" : $("#ezgSbjctId").val()
 		, "dscsId" : $("#ezgDscsId").val()
 	}; 
 
@@ -74,7 +74,7 @@ function getEzgTitle() {
 function getJoinUserOrTeamSearchView() {
 	var url = "/forum2/ezgPop/ezgJoinUserSearchView.do";
 	var paramData = {
-		"crsCreCd" : $("#ezgCrsCreCd").val()
+		"sbjctId" : $("#ezgSbjctId").val()
 		, "dscsId" : $("#ezgDscsId").val()
 	}; 
 
@@ -92,12 +92,12 @@ function getJoinUserOrTeamList() {
 	var url = "/forum2/ezgPop/joinUserList.do";
 
 	var paramData = {
-		"crsCreCd" : $("#ezgCrsCreCd").val()
+		"sbjctId" : $("#ezgSbjctId").val()
 		, "dscsId" : $("#ezgDscsId").val()
 		, "searchKey" : $("#ezgSearchKey").val()=='SEL_ALL'?'':$("#ezgSearchKey").val()
 		, "searchSort" : $("#ezgSearchSort").val()
 		, "stdId" : $("#selectedStdId").val()
-		, "teamCd" : $("#selectedTeamCd").val()
+		, "teamId" : $("#selectedTeamCd").val()
 	}; 
 
 	$("#rubric_card").load(
@@ -161,7 +161,7 @@ function listDscs(page, userId, stdId, teamStdIds) {
 			"searchKey" : searchKey,
 			"goUrl" : "",
 			"dscsId" : $("#ezgDscsId").val(),
-			"crsCreCd" : $("#ezgCrsCreCd").val(),
+			"sbjctId" : $("#ezgSbjctId").val(),
 			"userId" : "",
 			"userName" : "",
 			"dscsUnitTycd" : $("#ezgDscsUnitTycd").val(),
@@ -185,14 +185,14 @@ function getTotalScoreInputView(userId, stdId, teamCd) {
 	// 평가방식(EVAL_CTGR : R) ==> 루브릭
 	/*
 	평가방식 루브릭이 참여형으로 바뀜으로 인한 필요없는 로직
-	if("${vo.evalCtgr}" == "R") {
+	if("${vo.evlScrTycd}" == "R") {
 		var url = "/forum2/ezgPop/ezgTotalScoreView.do";
 		var paramData = {
-			"crsCreCd" : $("#ezgCrsCreCd").val()
+			"sbjctId" : $("#ezgSbjctId").val()
 			, "dscsId" : $("#ezgDscsId").val()
 			, "userId" : userId
 			, "stdId" : stdId
-			, "teamCd" : teamCd
+			, "teamId" : teamCd
 			, "evlScrTycd" : "${vo.evlScrTycd}"
 		}; 
 
@@ -205,11 +205,11 @@ function getTotalScoreInputView(userId, stdId, teamCd) {
 	*/
 		var url = "/forum2/ezgPop/ezgScoreView.do";
 		var paramData = {
-			"crsCreCd" : $("#ezgCrsCreCd").val()
+			"sbjctId" : $("#ezgSbjctId").val()
 			, "dscsId" : $("#ezgDscsId").val()
 			, "userId" : userId
 			, "stdId" : stdId
-			, "teamCd" : teamCd
+			, "teamId" : teamCd
 			, "evlScrTycd" : "${vo.evlScrTycd}"
 		}; 
 
@@ -232,11 +232,11 @@ function getEvalScoreInputView(userId, stdId, teamCd) {
 
 	var url = "/forum2/ezgPop/ezgEvalScoreView.do";
 	var paramData = {
-		"crsCreCd" : $("#ezgCrsCreCd").val()
+		"sbjctId" : $("#ezgSbjctId").val()
 		, "dscsId" : $("#ezgDscsId").val()
 		, "userId" : userId
 		, "stdId" : stdId
-		, "teamCd" : teamCd
+		, "teamId" : teamCd
 	};
 
 	$("#evalScoreInputBlock").load(
@@ -259,7 +259,7 @@ function getTargetUserInfoView(userId, stdId) {
 		, {
 			"userId" : userId
 			, "stdId" : stdId
-			, "crsCreCd" : "${vo.crsCreCd}"
+			, "sbjctId" : "${vo.sbjctId}"
 			, "searchMenu" : "EZG"
 		}
 		, function () {}
@@ -277,11 +277,11 @@ function getDscsFeedbackView(userId, stdId, teamCd) {
 		$("#forumFeedbackBlock").load(
 			"/forum2/ezgPop/forumScoreEvalFeedBack.do"
 			, {
-				"crsCreCd" : $("#ezgCrsCreCd").val()
+				"sbjctId" : $("#ezgSbjctId").val()
 				, "dscsId" : $("#ezgDscsId").val()
 				, "userId" : userId
 				, "stdId" : stdId
-				, "teamCd" : teamCd
+				, "teamId" : teamCd
 				, "searchMenu" : "EZG"
 			}
 			, function (response, status, xhr) {
@@ -312,7 +312,7 @@ function addFdbkCts(forumFdbkCd, parForumFdbkCd){
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
 				"userName" : $("#selectedUserNm").val(),
-				"teamCd" : $("#selectedTeamCd").val()
+				"teamId" : $("#selectedTeamCd").val()
 			}).done(function(data) {
 				if (data.result > 0) {
 					alert("<spring:message code='forum.alert.reg_success.feedback' />"); // 피드백 등록에 성공하였습니다.
@@ -330,7 +330,7 @@ function addFdbkCts(forumFdbkCd, parForumFdbkCd){
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
 				"userName" : $("#selectedUserNm").val(),
-				"teamCd" : $("#selectedTeamCd").val()
+				"teamId" : $("#selectedTeamCd").val()
 			}).done(function(data) {
 				if (data.result > 0) {
 					alert("<spring:message code='forum.alert.mod_success.feedback' />"); // 피드백 수정에 성공하였습니다.
@@ -439,7 +439,7 @@ function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
 				"userName" : $("#selectedUserNm").val(),
-				"teamCd" : $("#selectedTeamCd").val()
+				"teamId" : $("#selectedTeamCd").val()
 			}).done(function(data) {
 				if (data.result > 0) {
 					alert("<spring:message code='forum.alert.reg_success.reply' />"); // 댓글 등록에 성공하였습니다.
@@ -457,7 +457,7 @@ function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
 				"userName" : $("#selectedUserNm").val(),
-				"teamCd" : $("#selectedTeamCd").val()
+				"teamId" : $("#selectedTeamCd").val()
 			}).done(function(data) {
 				if (data.result > 0) {
 					alert("<spring:message code='forum.alert.mod_success.reply' />"); // 댓글 수정에 성공하였습니다.
@@ -480,7 +480,7 @@ function delFdbk(forumFdbkCd) {
 			"stdId" : $("#selectedStdId").val(),
 			"dscsId" : $("#ezgDscsId").val(),
 			"userId" : $("#selectedUserId").val(),
-			"teamCd" : $("#selectedTeamCd").val()
+			"teamId" : $("#selectedTeamCd").val()
 		}).done(function(data) {
 			if (data.result > 0) {
 				alert("<spring:message code='forum.alert.del_success' />"); // 삭제에 성공하였습니다.
@@ -601,25 +601,25 @@ function finishUpload(){
 function submitFdbk() {
 	var fileUploader = dx5.get("fdbkFileUploader");
 	var stdId = "";
-	var teamCd = "";
+	var teamId = "";
 	
 	if($(".card.active-toggle-btn.select").length > 1){
 		$(".card.active-toggle-btn.select").each(function(i) {
 		if(i > 0) stdId += ",";
 		stdId += $(this).attr("data-stdId");
-		teamCd = $(this).attr("data-teamcd");
+		teamId = $(this).attr("data-team-id");
 	});
 	}else{
 		stdId = $(".card.active-toggle-btn.select").attr("data-stdId");
-		teamCd = $(".card.active-toggle-btn.select").attr("data-teamcd");
+		teamId = $(".card.active-toggle-btn.select").attr("data-team-id");
 	}
 	
 	var url = "/forum2/forumLect/Form/regFdbk.do";
 	var data = {
-		"crsCreCd"      : "${vo.crsCreCd}",
+		"sbjctId"       : "${vo.sbjctId}",
 		"dscsId"		: "${vo.dscsId}",
 		"stdId"			: stdId,
-		"teamCd"		: teamCd,
+		"teamId"		: teamId,
 		"fdbkCts"		: $("#fdbkValue").val(),
 		"uploadFiles"	: $("#fdbkUploadForm > input[name='uploadFiles']").val(),
 		"uploadPath"	: $("#fdbkUploadForm > input[name='uploadPath']").val(),
@@ -705,7 +705,7 @@ function partiScore() {
 		
 		var data = {
 			"dscsId" : "${vo.dscsId}",
-			"crsCreCd" : "${vo.crsCreCd}",
+			"sbjctId" : "${vo.sbjctId}",
 		};
 		
 		ajaxCall(url, data, function(data) {
@@ -750,7 +750,7 @@ function closeFileSelect() {
 </script>
 
 <body class="modal-page EG-grader">
-<input type="hidden" id="ezgCrsCreCd" name="crsCreCd" value="${vo.crsCreCd}" />
+<input type="hidden" id="ezgSbjctId" name="sbjctId" value="${vo.sbjctId}" />
 <input type="hidden" id="ezgDscsId" name="dscsId" value="${vo.dscsId}" />
 <input type="hidden" id="evalScoreBlockEvalCd" name="evalCd" />
 	<div id="wrap" class="pusher <%=SessionInfo.getThemeMode(request)%>">

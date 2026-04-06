@@ -18,15 +18,15 @@ $(document).ready(function() {
 
 // toggle join user
 function toggleJoinUser(obj) {
-	var teamCd = $(obj).attr("data-teamCd");
+	var teamId = $(obj).attr("data-team-id");
 	var userId = $(obj).data("userid");
 	
 	if(userId !== undefined || userId !== "") {
-		$("a[name=ezgTargetUser][data-teamCd=" + teamCd + "]").removeClass("select");
+		$("a[name=ezgTargetUser][data-team-id=" + teamId + "]").removeClass("select");
 	}
 	
 	if ($(obj).hasClass("select")) {
-		var selTeam = $("a[name=ezgTargetUser][data-teamCd=" + teamCd + "]:first");
+		var selTeam = $("a[name=ezgTargetUser][data-team-id=" + teamId + "]:first");
 		selectTeam(selTeam);
 	} else {
 		selectUser(obj);
@@ -39,13 +39,13 @@ function selectTeam(obj) {
 	if (childDscsId) { $("#ezgDscsId").val(childDscsId); }
 	$('.active-toggle-btn').removeClass("select");
 	$(obj).addClass("select");
-	var teamCd = $(obj).attr("data-teamCd");
-	$("a[name=ezgTargetUser][data-teamCd=" + teamCd + "]").addClass("select");
+	var teamId = $(obj).attr("data-team-id");
+	$("a[name=ezgTargetUser][data-team-id=" + teamId + "]").addClass("select");
 	$("#selectedUserId").val('');
 	$("#selectedUserNm").val('');
 	$("#selectedStdId").val('');
-	$("#selectedTeamCd").val($(obj).attr("data-teamCd"));
-	getDscsContsView(null, "ALL", $(obj).attr("data-teamCd"), $(obj).attr("data-teamStdIds"));
+	$("#selectedTeamCd").val($(obj).attr("data-team-id"));
+	getDscsContsView(null, "ALL", $(obj).attr("data-team-id"), $(obj).attr("data-teamStdIds"));
 	getTargetUserInfoAndScore(obj);
 	$("#forumFeedbackBlock").empty();
 }
@@ -56,7 +56,7 @@ function selectUser(obj) {
 	if (childDscsId) { $("#ezgDscsId").val(childDscsId); }
 	$('.active-toggle-btn').removeClass("select");
 	$(obj).addClass("select");
-	var teamCd = $(obj).attr("data-teamCd");
+	var teamId = $(obj).attr("data-team-id");
 	let topPos = $(obj).position().top - 50;
 	let box = $("#rubric_card");
 	if (topPos < 0) {
@@ -66,20 +66,20 @@ function selectUser(obj) {
 		box.scrollTop(box.scrollTop() + (topPos + $(obj).height() - box.height()) + 10);
 	}
 	
-	$("a[name=ezgTargetUser][data-teamCd=" + teamCd + "]:first").addClass("select");
+	$("a[name=ezgTargetUser][data-team-id=" + teamId + "]:first").addClass("select");
 	$("#selectedUserId").val($(obj).attr("data-userId"));
 	$("#selectedUserNm").val($(obj).attr("data-userNm"));
 	$("#selectedStdId").val($(obj).attr("data-StdId"));
-	$("#selectedTeamCd").val($(obj).attr("data-teamCd"));
-	getDscsContsView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-teamCd"), $(obj).attr("data-teamStdIds"));
+	$("#selectedTeamCd").val($(obj).attr("data-team-id"));
+	getDscsContsView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-team-id"), $(obj).attr("data-teamStdIds"));
 	getTargetUserInfoAndScore(obj)
 }
 
 // 제줄자의 평가점수 및 유저 정보 조회
 function getTargetUserInfoAndScore(obj) {
-	getTotalScoreInputView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-teamCd"));
+	getTotalScoreInputView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-team-id"));
 	getTargetUserInfoView($(obj).attr("data-userId"), $(obj).attr("data-StdId"));
-	getDscsFeedbackView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-teamCd"));
+	getDscsFeedbackView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-team-id"));
 }
 </script>
 <input type="hidden" id="selectedUserId" value="" />
@@ -89,7 +89,7 @@ function getTargetUserInfoAndScore(obj) {
 <input type="hidden" id="ezgDscsUnitTycd" value="${dscsVO.dscsUnitTycd}" />
 <c:if test="${not empty resultList}">
 	<c:forEach items="${resultList }" var="item" varStatus="status">
-		<a href="javascript:;" name="ezgTargetUser" onClick="selectTeam(this)" data-teamCd="${item.teamCd}" data-teamStdIds="${item.teamStdIds}" data-dscs-id="${item.formCd}" class="ui grey label m0 tr active-toggle-btn flex-none ${dscsVO.teamCd == item.teamCd?'select':''}">
+		<a href="javascript:;" name="ezgTargetUser" onClick="selectTeam(this)" data-team-id="${item.teamId}" data-teamStdIds="${item.teamStdIds}" data-dscs-id="${item.formCd}" class="ui grey label m0 tr active-toggle-btn flex-none ${dscsVO.teamId == item.teamId?'select':''}">
 			<!-- <div class="content stu_card"> -->
 				<!-- <div class="text_box"> -->
 					<div class="user"><span><c:out value='${item.teamNm}' /></span></div>
@@ -99,7 +99,7 @@ function getTargetUserInfoAndScore(obj) {
 
 		<c:if test="${not empty item.teamMembers}">
 			<c:forEach items="${item.teamMembers }" var="team" varStatus="teamStatus">
-				<a href="javascript:;" name="ezgTargetUser" onClick="toggleJoinUser(this)" data-userId="${team.userId}" data-userId="${team.userId}" data-userNm="${team.userNm}" data-StdId="${team.stdId}" data-teamCd="${item.teamCd}" data-teamStdIds="${item.teamStdIds}" data-dscs-id="${item.formCd}" class="card active-toggle-btn ${team.joinStatus == 'JOIN'?'submit':''} ${dscsVO.stdId == team.stdId?'select':''}">
+				<a href="javascript:;" name="ezgTargetUser" onClick="toggleJoinUser(this)" data-userId="${team.userId}" data-userId="${team.userId}" data-userNm="${team.userNm}" data-StdId="${team.stdId}" data-team-id="${item.teamId}" data-teamStdIds="${item.teamStdIds}" data-dscs-id="${item.formCd}" class="card active-toggle-btn ${team.joinStatus == 'JOIN'?'submit':''} ${dscsVO.stdId == team.stdId?'select':''}">
 					<div class="content stu_card">
 					<c:if test="${item.evalYn == 'Y' || team.leaderYn == 'Y'}">
 						<div class="icon_box">

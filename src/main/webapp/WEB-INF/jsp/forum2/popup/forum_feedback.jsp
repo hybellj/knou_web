@@ -407,12 +407,12 @@
 			var fileUploaderNewFeedback = getFeedbackUploader();
 	 		var url = "/forum2/forumLect/Form/regFdbk.do";
 			var data = {
-					"crsCreCd" : "${dscsVO.crsCreCd}",
+					"sbjctId" : "${dscsVO.sbjctId}",
 					"dscsId" : "${dscsVO.dscsId}",
 					"stdId" : "${stdId}",
 					"userId" : "${userId}",
 					"userName" : "${userName}",
-					"teamCd" : $("#teamCd").val(),
+					"teamId" : $("#teamCd").val(),
 					"fdbkCts" : $("#fdbkValue").val(),
 					"uploadFiles" : fileUploaderNewFeedback != null ? fileUploaderNewFeedback.getUploadFiles() : "",
 					"uploadPath"  : fileUploaderNewFeedback != null ? fileUploaderNewFeedback.getUploadPath() : "",

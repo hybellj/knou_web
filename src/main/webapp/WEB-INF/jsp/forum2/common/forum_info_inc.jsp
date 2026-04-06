@@ -88,7 +88,7 @@
 									-
 								</c:when>
 								<c:otherwise>
-									${dscsVO.scoreRatio}%
+									${dscsVO.mrkRfltrt}%
 								</c:otherwise>
 							</c:choose>
 						</td>

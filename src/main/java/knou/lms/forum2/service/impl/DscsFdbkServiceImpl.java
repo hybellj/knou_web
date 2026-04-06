@@ -115,7 +115,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
                     DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
                     forumJoinUserVO.setScore(null);
                     forumJoinUserVO.setDscsId(vo.getDscsId());
-                    forumJoinUserVO.setTeamCd(vo.getTeamCd());
+                    forumJoinUserVO.setTeamId(vo.getTeamId());
                     forumJoinUserVO.setStdId(stdArr[i]);
                     forumJoinUserVO.setRgtrId(vo.getUserId());
                     forumJoinUserVO.setMdfrId(vo.getUserId());

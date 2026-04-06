@@ -142,7 +142,7 @@
 
         // 조회할 토론 ID 를 설정 한다.
         $('#team_selected_name').attr('teamSelectedDscsId', teamDscsId);
-        $("input[name='teamCd']").val(teamId || '');
+        $("input[name='teamId']").val(teamId || '');
         listForum(1);
     }
 
@@ -198,7 +198,7 @@
             "searchValue" : searchValue,
             "dscsId" : dscsId,
             "dscsUnitTycd" : "${dscsVO.dscsUnitTycd}",
-            "crsCreCd" : "${dscsVO.crsCreCd}",
+            "sbjctId" : "${dscsVO.sbjctId}",
             "userId" : "${userId}",
             "userName" : "${userName}",
             "stdList" : $("#teamStdList").val(),
@@ -817,7 +817,7 @@
                 "dscsId" : dscsId,
                 "userId" : "${userId}",
                 "userName" : "${userName}",
-                "crsCreCd" : "${dscsVO.crsCreCd}"
+                "sbjctId" : "${dscsVO.sbjctId}"
             };
 
             ajaxCall(url, data, function(data) {
@@ -1318,10 +1318,10 @@
         <input type="hidden" id="dscsId" name="dscsId" value="${dscsVO.dscsId}" />
         <input type="hidden" id="dscsUnitTycd" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}" />
         <input type="hidden" id="prosConsForumCfg" name="prosConsForumCfg" value="${dscsVO.prosConsForumCfg}" />
-        <input type="hidden" id="crsCreCd" name="crsCreCd" value="${dscsVO.crsCreCd}" />
+        <input type="hidden" id="sbjctId" name="sbjctId" value="${dscsVO.sbjctId}" />
         <input type="hidden" id="userId" name="userId" value="${userId}" />
         <input type="hidden" id="teamStdList" name="teamStdList" />
-        <input type="hidden" id="teamCd" name="teamCd" value="" />
+        <input type="hidden" id="teamId" name="teamId" value="" />
         <input type="hidden" id="userName" name="userName" value="${userName}" />
         <input type="hidden" id="dscsAtclId" name="dscsAtclId" />
         <input type="hidden" name="oknokGbncd" id = "oknokGbncd" value="F"/>

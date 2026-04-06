@@ -65,12 +65,12 @@ function saveEvalScore() {
 		async: false,
 		dataType : "json",
 		data : {
-			"crsCreCd" : $("#totalScoreBlockCrsCreCd").val()
+			"sbjctId" : $("#totalScoreBlockSbjctId").val()
 			, "dscsId" : $("#totalScoreBlockDscsId").val()
 			, "evalCd" : $("#evalScoreBlockEvalCd").val()
 			, "mutEvalCd" : $("#evalScoreBlockMutEvalCd").val()
 			, "evalTrgtUserId" : $("#totalScoreBlockStdId").val()
-			, "rltnTeamCd" : $("#totalScoreBlockTeamCd").val()
+			, "rltnTeamCd" : $("#totalScoreBlockTeamId").val()
 			, "evalScore" : $("#totalScore").val()
 			, "evalScores" : qstrnScores
 			, "qstnNos" : qstrnCds
@@ -110,12 +110,12 @@ function deleteEvalScore() {
 		async: false,
 		dataType : "json",
 		data : {
-			"crsCreCd" : $("#totalScoreBlockCrsCreCd").val()
+			"sbjctId" : $("#totalScoreBlockSbjctId").val()
 			, "dscsId" : $("#totalScoreBlockDscsId").val()
 			, "evalCd" : $("#evalScoreBlockEvalCd").val()
 			, "mutEvalCd" : $("#evalScoreBlockMutEvalCd").val()
 			, "evalTrgtUserId" : $("#totalScoreBlockStdId").val()
-			, "rltnTeamCd" : $("#totalScoreBlockTeamCd").val()
+			, "rltnTeamCd" : $("#totalScoreBlockTeamId").val()
 		},
 		url : url,
 		success : function(data){
@@ -142,13 +142,13 @@ function deleteEvalScore() {
 	<div class="ui input flex1">
 		<input type="text" maxlength="3" placeholder="<spring:message code="forum.alert.input.score" />" id="totalScore" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');saveEvalScore();" ><!-- 점수를 입력하세요. -->
 	</div>
-	<input type="hidden" id="totalScoreBlockCrsCreCd" value="${CRS_CRE_CD}">
+	<input type="hidden" id="totalScoreBlockSbjctId" value="${CRS_CRE_CD}">
 	<input type="hidden" id="totalScoreBlockDscsId" value="${vo.dscsId}">
 	<input type="hidden" id="totalScoreBlockStdId" value="${vo.stdId}">
-	<input type="hidden" id="totalScoreBlockTeamCd" value="${vo.teamCd}">
+	<input type="hidden" id="totalScoreBlockTeamId" value="${vo.teamId}">
 	<a href="javascript:void(0);" class="ui blue button m0" id="btnSaveEvalScore" onClick="saveEvalScore()"><spring:message code='forum.button.save'/><!-- 저장 --></a>
 	<%-- <a href="javascript:void(0);" class="ui Lgrey button m0" onClick="deleteEvalScore()"><spring:message code='forum.button.reset'/><!-- 초기화 --></a> --%>
-	<c:if test="${vo.evalCtgr eq 'R'}">
+	<c:if test="${vo.evlScrTycd eq 'R'}">
 		<a href="javascript:void(0);" class="ui Lgrey button m0" onClick="partiScore()"><spring:message code='forum.label.evalctgr.participate.all'/><!-- 참여형 일괄평가 --></a>
 	</c:if>
 </div>

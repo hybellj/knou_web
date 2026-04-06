@@ -60,7 +60,7 @@ function fdbkList(stdId) {
 	<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}">
 	<input type="hidden" name="teamTycd" value="${dscsVO.teamTycd}">
 	<input type="hidden" name="stdId" value="">
-	<input type="hidden" name="crsCreCd" value="${dscsVO.crsCreCd}">
+	<input type="hidden" name="sbjctId" value="${dscsVO.sbjctId}">
 </form>
 
 <c:if test="${dscsVO.dscsUnitTycd eq 'GNRL' && CLASS_USER_TYPE ne 'CLASS_LEARNER'  && (empty dscsVO.searchMenu || dscsVO.searchMenu != 'EZG') && dscsVO.evalCritUseYn eq 'N'}">

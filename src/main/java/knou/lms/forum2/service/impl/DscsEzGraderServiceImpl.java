@@ -46,7 +46,7 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
                 for (DscsTeamDscsVO child : childList) {
                     DscsJoinUserVO childVo = new DscsJoinUserVO();
                     childVo.setDscsId(child.getDscsId());
-                    childVo.setCrsCreCd(vo.getCrsCreCd());
+                    childVo.setSbjctId(vo.getSbjctId());
                     childVo.setSearchKey(vo.getSearchKey());
                     childVo.setSearchSort(vo.getSearchSort());
                     List<DscsEzGraderTeamVO> partial = forumEzGraderDAO.listDscsJoinTeam(childVo);

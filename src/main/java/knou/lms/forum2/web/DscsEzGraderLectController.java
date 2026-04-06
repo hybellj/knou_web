@@ -76,20 +76,20 @@ public class DscsEzGraderLectController extends ControllerBase {
         
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-        String crsCreCd = vo.getCrsCreCd();
+        String sbjctId = vo.getSbjctId();
         
         vo.setRgtrId(userId);
         vo.setMdfrId(userId);
         vo.setOrgId(orgId);
         vo.setDscsId(vo.getDscsId());
         vo.setStdId(vo.getStdId());
-        vo.setCrsCreCd(crsCreCd);
-        vo.setEvalCtgr(vo.getEvalCtgr());
+        vo.setSbjctId(sbjctId);
+        vo.setEvlScrTycd(vo.getEvlScrTycd());
         
         // 모든 토론 참여자를 토론 참여자 테이블에 삽입
         DscsVO forumVO = new DscsVO();
         forumVO.setRgtrId(userId);
-        forumVO.setCrsCreCd(crsCreCd);
+        forumVO.setSbjctId(sbjctId);
         forumVO.setDscsId(vo.getDscsId());
         dscsJoinUserService.insertJoinUser(forumVO);
 
@@ -159,13 +159,13 @@ public class DscsEzGraderLectController extends ControllerBase {
 
         DscsJoinUserVO paramVO = new DscsJoinUserVO();
         paramVO.setDscsId(dscsVO.getDscsId());
-        paramVO.setCrsCreCd(dscsVO.getCrsCreCd());
+        paramVO.setCrsCreCd(dscsVO.getSbjctId());
         paramVO.setSearchKey(dscsVO.getSearchKey());
         paramVO.setSearchSort(dscsVO.getSearchSort());
-        paramVO.setForumCtgrCd(dscsVO.getForumCtgrCd());
+        paramVO.setDscsUnitTycd(dscsVO.getDscsUnitTycd());
 
         String viewNm = "";
-        if ("TEAM".equals(dscsVO.getForumCtgrCd())) {
+        if ("TEAM".equals(dscsVO.getDscsUnitTycd())) {
             List<DscsEzGraderTeamVO> resultList= dscsEzGraderService.listDscsJoinTeam(paramVO, dscsVO.getByteamDscsUseyn());
             request.setAttribute("resultList", resultList);
             viewNm = "forum2/ezgPop/ezg_join_team_list";
@@ -258,7 +258,7 @@ public class DscsEzGraderLectController extends ControllerBase {
         UsrUserInfoVO uuiVO = new UsrUserInfoVO();
         uuiVO.setUserId(stdVO.getUserId());
         uuiVO.setOrgId(orgId);
-        uuiVO.setCrsCreCd(vo.getCrsCreCd());
+        uuiVO.setCrsCreCd(vo.getSbjctId());
         UsrUserInfoVO resultVO = usrUserInfoService.viewUser(uuiVO);
         resultVO.setHy(stdVO.getHy());
         request.setAttribute("userVO", resultVO);
@@ -351,8 +351,8 @@ public class DscsEzGraderLectController extends ControllerBase {
         forumFdbkVO.setDscsId(forumVO.getDscsId());
         forumFdbkVO.setStdId(forumVO.getStdId());
         
-        if(forumVO.getTeamCd() != null || forumVO.getTeamCd() != "") {
-            forumFdbkVO.setTeamCd(forumVO.getTeamCd());
+        if(forumVO.getTeamId() != null || forumVO.getTeamId() != "") {
+            forumFdbkVO.setTeamId(forumVO.getTeamId());
         }
         
         // 피드백 갯수
@@ -374,14 +374,14 @@ public class DscsEzGraderLectController extends ControllerBase {
     public ProcessResultVO<DefaultVO> saveEvalScore(DscsEzGraderRsltVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-        String crsCreCd = vo.getCrsCreCd();
+        String sbjctId = vo.getSbjctId();
 
         Locale locale = LocaleUtil.getLocale(request);
 
         vo.setRgtrId(userId);
         vo.setMdfrId(userId);
         vo.setOrgId(orgId);
-        vo.setCrsCreCd(crsCreCd);
+        vo.setSbjctId(sbjctId);
         
         ProcessResultVO<DefaultVO> returnVo = new ProcessResultVO<DefaultVO>();
         try

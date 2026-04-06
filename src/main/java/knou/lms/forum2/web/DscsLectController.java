@@ -491,7 +491,7 @@ public class DscsLectController extends ControllerBase {
         model.addAttribute("orgId", SessionInfo.getOrgId(request));
         model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
         model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        model.addAttribute("crsCreCd", dscsVO.getCrsCreCd());
+        model.addAttribute("crsCreCd", dscsVO.getSbjctId());
         model.addAttribute("userId", StringUtil.nvl(SessionInfo.getUserId(request)));
         model.addAttribute("userName", StringUtil.nvl(SessionInfo.getUserNm(request)));
         model.addAttribute("dscsVO", dscsVO);
@@ -507,7 +507,7 @@ public class DscsLectController extends ControllerBase {
         forumAtclVO.setSearchValue(dscsVO.getSearchValue());
         forumAtclVO.setPageIndex(dscsVO.getPageIndex());
         forumAtclVO.setListScale(dscsVO.getListScale());
-        forumAtclVO.setCrsCreCd(dscsVO.getCrsCreCd());
+        forumAtclVO.setCrsCreCd(dscsVO.getSbjctId());
 
         forumAtclVO.setViewAll(true);// 교수 화면은 삭제여부 관계없이 조회되도록함.
         ProcessResultVO<DscsAtclVO> resultVO = new ProcessResultVO<>();
@@ -578,7 +578,7 @@ public class DscsLectController extends ControllerBase {
             forumAtclVO.setDscsAtclTycd(StringUtil.nvl(request.getParameter("dscsAtclTycd"), request.getParameter("atclTypeCd")));
             forumAtclVO.setAtclCts(StringUtil.nvl(request.getParameter("atclCts"), request.getParameter("cts")));
             forumAtclVO.setAtclTtl(StringUtil.nvl(request.getParameter("atclTtl"), ""));
-            forumAtclVO.setCrsCreCd(vo.getCrsCreCd());
+            forumAtclVO.setCrsCreCd(vo.getSbjctId());
             forumAtclVO.setRgtrId(userId);
             forumAtclVO.setMdfrId(userId);
             forumAtclVO.setUserId(userId);
@@ -586,7 +586,7 @@ public class DscsLectController extends ControllerBase {
             forumAtclVO.setUploadFiles(vo.getUploadFiles());
             forumAtclVO.setUploadPath(vo.getUploadPath());
             forumAtclVO.setRepoCd(vo.getRepoCd());
-            dscsAtclService.insertAtcl(forumAtclVO, vo.getTeamCd());
+            dscsAtclService.insertAtcl(forumAtclVO, vo.getTeamId());
             resultVO.setResult(1);
         } catch (Exception e) {
             resultVO.setResult(-1);
@@ -938,7 +938,7 @@ public class DscsLectController extends ControllerBase {
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         model.addAttribute("tab", request.getParameter("tab"));
 
-        String crsCreCd = dscsVO.getCrsCreCd();
+        String crsCreCd = dscsVO.getSbjctId();
         model.addAttribute("crsCreCd", crsCreCd);
 
         dscsVO = dscsService.selectDscs(dscsVO);
@@ -951,16 +951,16 @@ public class DscsLectController extends ControllerBase {
         model.addAttribute("orgId", SessionInfo.getOrgId(request));
         model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
         model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        model.addAttribute("crsCreCd", dscsVO.getCrsCreCd());
+        model.addAttribute("crsCreCd", dscsVO.getSbjctId());
 
         model.addAttribute("userId", userId);
         model.addAttribute("userName", userName);
 
-        if("PTCP_FULL_SCR".equals(StringUtil.nvl(dscsVO.getEvalCtgr()))) {
+        if("PTCP_FULL_SCR".equals(StringUtil.nvl(dscsVO.getEvlScrTycd()))) {
             // 모든 토론 참여자를 토론 참여자 테이블에 삽입
             DscsVO fvo = new DscsVO();
             fvo.setRgtrId(userId);
-            fvo.setCrsCreCd(dscsVO.getCrsCreCd());
+            fvo.setSbjctId(dscsVO.getSbjctId());
             fvo.setDscsId(dscsVO.getDscsId());
             dscsJoinUserService.insertJoinUser(fvo);
 
@@ -1024,7 +1024,7 @@ public class DscsLectController extends ControllerBase {
         /*
         dscsVO = dscsService.selectDscs(param);
          */
-        dscsVO.setCrsCreCd(crsCreCd);
+        dscsVO.setSbjctId(crsCreCd);
 
         dscsVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_DSCS));
         model.addAttribute("dscsVO", dscsVO);
@@ -1080,7 +1080,7 @@ public class DscsLectController extends ControllerBase {
         try {
             dscsJoinUserVO.setRgtrId(userId);
             dscsJoinUserVO.setMdfrId(userId);
-            dscsJoinUserVO.setTeamCd(teamCtgrCd);
+            dscsJoinUserVO.setTeamId(teamCtgrCd);
 
             dscsJoinUserService.updateDscsJoinUserScore(dscsJoinUserVO);
             resultVO.setResult(1);
@@ -1108,7 +1108,7 @@ public class DscsLectController extends ControllerBase {
         try {
             dscsJoinUserVO.setRgtrId(userId);
             dscsJoinUserVO.setMdfrId(userId);
-            dscsJoinUserVO.setTeamCd(teamCtgrCd);
+            dscsJoinUserVO.setTeamId(teamCtgrCd);
 
             dscsJoinUserService.updateDscsJoinUserLenScore(dscsJoinUserVO);
             resultVO.setResult(1);
@@ -1161,7 +1161,7 @@ public class DscsLectController extends ControllerBase {
 
         request.setAttribute("tab", request.getParameter("tab"));
 
-        String crsCreCd = dscsVO.getCrsCreCd();
+        String crsCreCd = dscsVO.getSbjctId();
 
         String stdList = dscsVO.getStdList();
 
@@ -1216,8 +1216,8 @@ public class DscsLectController extends ControllerBase {
         forumFdbkVO.setDscsId(forumVO.getDscsId());
         forumFdbkVO.setStdId(forumVO.getStdId());
 
-        if(forumVO.getTeamCd() != null || forumVO.getTeamCd() != "") {
-            forumFdbkVO.setTeamCd(forumVO.getTeamCd());
+        if(forumVO.getTeamId() != null || forumVO.getTeamId() != "") {
+            forumFdbkVO.setTeamId(forumVO.getTeamId());
         }
 
         /* 피드백 list */
@@ -1268,7 +1268,7 @@ public class DscsLectController extends ControllerBase {
         logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
         CreCrsVO creCrsVO = new CreCrsVO();
-        creCrsVO.setCrsCreCd(forumJoinUserVO.getCrsCreCd());
+        creCrsVO.setCrsCreCd(forumJoinUserVO.getSbjctId());
         // TODO : 26.3.23 : AS-IS code TO-BE 필요시 적용.
         /*creCrsVO = crecrsService.infoCreCrs(creCrsVO);
         request.setAttribute("creCrsVO", creCrsVO);*/
@@ -1313,14 +1313,14 @@ public class DscsLectController extends ControllerBase {
 
         model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
         CreCrsVO creCrsVO = new CreCrsVO();
-        creCrsVO.setCrsCreCd(vo.getCrsCreCd());
+        creCrsVO.setCrsCreCd(vo.getSbjctId());
         // TODO : 26.3.23 : AS-IS code TO-BE 필요시 적용.
         /*creCrsVO = crecrsService.infoCreCrs(creCrsVO);*/
         request.setAttribute("creCrsVO", creCrsVO);
 
         String dscsId = vo.getDscsId();
         String stdId = vo.getStdId();
-        String teamCd = vo.getTeamCd();
+        String teamCd = vo.getTeamId();
 
         request.setAttribute("dscsId", dscsId);
         request.setAttribute("stdId", stdId);
@@ -1351,7 +1351,7 @@ public class DscsLectController extends ControllerBase {
         forumFdbkVO.setStdId(stdId);
 
         if(teamCd != null || teamCd != "") {
-            forumFdbkVO.setTeamCd(teamCd);
+            forumFdbkVO.setTeamId(teamCd);
         }
 
         request.setAttribute("userId", userId);
@@ -1392,8 +1392,8 @@ public class DscsLectController extends ControllerBase {
         forumFdbkVO.setFdbkCts(fdbkCts);
         forumFdbkVO.setStdId(stdId);
 
-        if(vo.getTeamCd() != null || vo.getTeamCd() != "") {
-            forumFdbkVO.setTeamCd(vo.getTeamCd());
+        if(vo.getTeamId() != null || vo.getTeamId() != "") {
+            forumFdbkVO.setTeamId(vo.getTeamId());
         }
 
         // 피드백 리스트
@@ -1437,8 +1437,8 @@ public class DscsLectController extends ControllerBase {
         forumFdbkVO.setRgtrnm(userName);
         forumFdbkVO.setMdfrId(userId);
 
-        if(vo.getTeamCd() != null || vo.getTeamCd() != "") {
-            forumFdbkVO.setTeamCd(vo.getTeamCd());
+        if(vo.getTeamId() != null || vo.getTeamId() != "") {
+            forumFdbkVO.setTeamId(vo.getTeamId());
         }
 
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
@@ -1475,8 +1475,8 @@ public class DscsLectController extends ControllerBase {
         forumFdbkVO.setRgtrId(userId);
         forumFdbkVO.setMdfrId(userId);
 
-        if(vo.getTeamCd() != null || vo.getTeamCd() != "") {
-            forumFdbkVO.setTeamCd(vo.getTeamCd());
+        if(vo.getTeamId() != null || vo.getTeamId() != "") {
+            forumFdbkVO.setTeamId(vo.getTeamId());
         }
 
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
@@ -1514,8 +1514,8 @@ public class DscsLectController extends ControllerBase {
         forumFdbkVO.setRgtrId(userId);
         forumFdbkVO.setMdfrId(userId);
 
-        if(vo.getTeamCd() != null || vo.getTeamCd() != "") {
-            forumFdbkVO.setTeamCd(vo.getTeamCd());
+        if(vo.getTeamId() != null || vo.getTeamId() != "") {
+            forumFdbkVO.setTeamId(vo.getTeamId());
         }
 
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
@@ -1679,13 +1679,13 @@ public class DscsLectController extends ControllerBase {
 
         DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
 
-        forumJoinUserVO.setCrsCreCd(dscsVO.getCrsCreCd());
+        forumJoinUserVO.setSbjctId(dscsVO.getSbjctId());
         forumJoinUserVO.setDscsId(dscsVO.getDscsId());
 
         forumJoinUserVO.setSearchValue(dscsVO.getSearchValue());
         forumJoinUserVO.setPageIndex(dscsVO.getPageIndex());
         forumJoinUserVO.setListScale(1000);
-        forumJoinUserVO.setForumCtgrCd(dscsVO.getForumCtgrCd());
+        forumJoinUserVO.setDscsUnitTycd(dscsVO.getDscsUnitTycd());
         ProcessResultVO<DscsJoinUserVO> resultList = dscsJoinUserService.listPaging(forumJoinUserVO, dscsVO.getByteamDscsUseyn());
         request.setAttribute("forumJoinUserList", resultList.getReturnList());
         request.setAttribute("pageInfo", resultList.getPageInfo());
@@ -1796,7 +1796,7 @@ public class DscsLectController extends ControllerBase {
 
         DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
 
-        forumJoinUserVO.setCrsCreCd(dscsVO.getCrsCreCd());
+        forumJoinUserVO.setSbjctId(dscsVO.getSbjctId());
         forumJoinUserVO.setDscsId(dscsVO.getDscsId());
         forumJoinUserVO.setSearchValue(dscsVO.getSearchValue());
         forumJoinUserVO.setPageIndex(dscsVO.getPageIndex());
@@ -1865,7 +1865,7 @@ public class DscsLectController extends ControllerBase {
         try {
             vo.setRgtrId(userId);
             vo.setMdfrId(userId);
-            vo.setTeamCd(teamCtgrCd);
+            vo.setTeamId(teamCtgrCd);
             vo.setUserId(userId);
 
             dscsJoinUserService.setScoreRatio(vo);
@@ -1882,7 +1882,7 @@ public class DscsLectController extends ControllerBase {
     // 토론현황보기
     @RequestMapping(value="/forumChartViewPop.do")
     public String dscsChartViewPop(DscsVO vo, ModelMap map, HttpServletRequest request) throws Exception {
-        String crsCreCd = vo.getCrsCreCd();
+        String sbjctId = vo.getSbjctId();
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
 
         // 성적분포현황차트
@@ -1939,7 +1939,7 @@ public class DscsLectController extends ControllerBase {
         vo = loadedDscsVO;
         // 찬반현황 차트용
         vo.setOrgId(orgId);
-        vo.setCrsCreCd(crsCreCd);
+        vo.setSbjctId(sbjctId);
 
         request.setAttribute("dscsVO", vo);
 
@@ -1982,7 +1982,7 @@ public class DscsLectController extends ControllerBase {
             List<UsrUserInfoVO> listUserRecvInfo = usrUserInfoService.listUserRecvInfo(userResvInfoVO);
 
             if(listUserRecvInfo.size() > 0) {
-                String msgCtnt = "<b>[" + creCrsVO.getCrsCreNm() + "] 과목, [" + dscsVO.getForumTitle() + "] 교수님 피드백입니다.</b><br>";
+                String msgCtnt = "<b>[" + creCrsVO.getCrsCreNm() + "] 과목, [" + dscsVO.getDscsTtl() + "] 교수님 피드백입니다.</b><br>";
                 msgCtnt += vo.getFdbkCts();
 
                 ErpMessageMsgVO erpMessageMsgVO = new ErpMessageMsgVO();

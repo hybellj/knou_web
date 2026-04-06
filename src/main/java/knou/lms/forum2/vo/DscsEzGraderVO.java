@@ -8,9 +8,9 @@ public class DscsEzGraderVO extends DefaultVO {
 	
 	private String dscsId;
     private String orgId;                  // 기관 코드
-    private String crsCreCd;
+    private String sbjctId;
     private String stdId;
-    private String teamCd;
+    private String teamId;
     private String evalCd;
     
     private String evalCritUseYn;          // 평가기준사용여부
@@ -32,12 +32,12 @@ public class DscsEzGraderVO extends DefaultVO {
         this.orgId = orgId;
     }
 
-    public String getCrsCreCd() {
-        return crsCreCd;
+    public String getSbjctId() {
+        return sbjctId;
     }
 
-    public void setCrsCreCd(String crsCreCd) {
-        this.crsCreCd = crsCreCd;
+    public void setSbjctId(String sbjctId) {
+        this.sbjctId = sbjctId;
     }
 
     public String getStdId() {
@@ -48,12 +48,12 @@ public class DscsEzGraderVO extends DefaultVO {
         this.stdId = stdId;
     }
 
-    public String getTeamCd() {
-        return teamCd;
+    public String getTeamId() {
+        return teamId;
     }
 
-    public void setTeamCd(String teamCd) {
-        this.teamCd = teamCd;
+    public void setTeamId(String teamId) {
+        this.teamId = teamId;
     }
 
     public String getEvalCritUseYn() {

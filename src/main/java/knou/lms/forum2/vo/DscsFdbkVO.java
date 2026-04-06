@@ -6,15 +6,15 @@ public class DscsFdbkVO extends DefaultVO {
     
 	private static final long serialVersionUID = -934507734627621118L;
 	
-	private String  forumFdbkCd;            // 토론 피드백 코드
-    private String  dscsId;                 // 토론 코드
-    private String  stdId;                  // 수강생 번호
-    private String  parForumFdbkCd;         // 상위 토론 피드백 코드
-    private String  teamCd;                 // 팀 ID
-    private String  fdbkCts;                // 피드백 내용
-    private String  delYn;                  // 삭제 여부
+	private String  forumFdbkCd;            // ?좊줎 ?쇰뱶諛?肄붾뱶
+    private String  dscsId;                 // ?좊줎 肄붾뱶
+    private String  stdId;                  // ?섍컯??踰덊샇
+    private String  parForumFdbkCd;         // ?곸쐞 ?좊줎 ?쇰뱶諛?肄붾뱶
+    private String  teamId;                 // ? ID
+    private String  fdbkCts;                // ?쇰뱶諛??댁슜
+    private String  delYn;                  // ??젣 ?щ?
     
-    private String selectType;              //조회유형 (OBJECT, LIST, PAGING)
+    private String selectType;              //議고쉶?좏삎 (OBJECT, LIST, PAGING)
     
     public String getForumFdbkCd() {
         return forumFdbkCd;
@@ -40,11 +40,11 @@ public class DscsFdbkVO extends DefaultVO {
     public void setParForumFdbkCd(String parForumFdbkCd) {
         this.parForumFdbkCd = parForumFdbkCd;
     }
-    public String getTeamCd() {
-        return teamCd;
+    public String getTeamId() {
+        return teamId;
     }
-    public void setTeamCd(String teamCd) {
-        this.teamCd = teamCd;
+    public void setTeamId(String teamId) {
+        this.teamId = teamId;
     }
     public String getFdbkCts() {
         return fdbkCts;

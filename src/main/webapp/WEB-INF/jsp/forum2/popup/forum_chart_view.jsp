@@ -26,8 +26,8 @@
 
 		var data = {
 			"dscsId" 	  : "${dscsVO.dscsId}",
-			"crsCreCd"	  : "${dscsVO.crsCreCd}",
-			"teamCd"	  : $("#teamCd").val(),
+			"sbjctId"	  : "${dscsVO.sbjctId}",
+			"teamId"	  : $("#teamCd").val(),
 			"dscsUnitTycd"     : "${dscsVO.dscsUnitTycd}",
 			"byteamDscsUseyn" : "${dscsVO.byteamDscsUseyn}",
 			"pageIndex"   : page,
@@ -249,7 +249,7 @@
 
 	<form id="forumUploadForm" name="forumUploadForm" method="POST">
         <input type="hidden" name="dscsId" value="${vo.dscsId}" />
-        <input type="hidden" name="crsCreCd" value="${vo.crsCreCd}"/>
+        <input type="hidden" name="sbjctId" value="${vo.sbjctId}"/>
         <input type="hidden" name="dscsUnitTycd" value="${vo.dscsUnitTycd}"/>
         <input type="hidden" name="excelGrid" value="" id="excelGrid"/>
     </form>

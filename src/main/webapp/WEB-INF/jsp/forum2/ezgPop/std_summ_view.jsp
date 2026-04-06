@@ -10,7 +10,7 @@ $(document).ready(function() {
 // 이전 버튼
 function btnPrev() {
 	var stdId = $("a[name=ezgTargetUser].select").last().prev().data("stdno");
-	var teamCd = $("a[name=ezgTargetUser].select").first().prev().data("teamcd");
+	var teamId = $("a[name=ezgTargetUser].select").first().prev().data("team-id");
 	if(stdId === undefined) {
 		var stdId = $("a[name=ezgTargetUser].select").last().prev().prev().data("stdno");
 		$("a[data-stdId="+ stdId+"]").click();
@@ -23,7 +23,7 @@ function btnPrev() {
 // 다음 버튼
 function btnNext() {
 	var stdId = $("a[name=ezgTargetUser].select").last().next().data("stdno");
-	var teamCd = $("a[name=ezgTargetUser].select").last().next().data("teamcd");
+	var teamId = $("a[name=ezgTargetUser].select").last().next().data("team-id");
 	if(stdId === undefined) {
 		var stdId = $("a[name=ezgTargetUser].select").last().next().next().data("stdno");
 		$("a[data-stdId="+ stdId+"]").click();

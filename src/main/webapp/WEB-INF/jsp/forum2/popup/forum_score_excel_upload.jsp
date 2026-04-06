@@ -50,7 +50,7 @@
 			var url = "/forum2/forumLect/uploadDscsScoreExcel.do";
 			var data = {
 				"dscsId"    	  : "${dscsVO.dscsId}"
-				, "crsCreCd" : "${dscsVO.crsCreCd}"
+				, "sbjctId" : "${dscsVO.sbjctId}"
 				, "dscsUnitTycd" : "${dscsVO.dscsUnitTycd}"
 				, "uploadFiles"   : fileObj
 				// , "copyFiles"	  : copyFile
@@ -153,7 +153,7 @@
 	
 	<form id="forumUploadForm" name="forumUploadForm" method="POST">
         <input type="hidden" name="dscsId" value="${dscsVO.dscsId}" />
-        <input type="hidden" name="crsCreCd" value="${dscsVO.crsCreCd}"/>
+        <input type="hidden" name="sbjctId" value="${dscsVO.sbjctId}"/>
         <input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}"/>
         <input type="hidden" name="excelGrid" value="" id="excelGrid"/>
 		<%-- 26.3.23 : New upload file 처리 field 추가 --%>

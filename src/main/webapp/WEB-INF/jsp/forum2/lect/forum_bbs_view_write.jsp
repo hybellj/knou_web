@@ -93,7 +93,7 @@ function addActl(){
 				"userId" : "${userId}",
 				"userName" : "${userName}",
 				"userType" : "P",
-				"crsCreCd" : "${dscsVO.crsCreCd}",
+				"sbjctId" : "${dscsVO.sbjctId}",
 				"uploadFiles" : fileUploader.getUploadFiles(),
 				"uploadPath" : uploadPath,
 				"repoCd" : "FORUM"
@@ -125,7 +125,7 @@ function addActl(){
 				<form:form id="forumAtclForm" name="forumAtclForm" method="post" action="">
 				<input type="hidden" name="dscsId" id="dscsId" value="${dscsVO.dscsId}">
 				<input type="hidden" name="userId" id="userId" value="${userId}">
-				<input type="hidden" name="crsCreCd" id="crsCreCd" value="${dscsVO.crsCreCd}">
+				<input type="hidden" name="sbjctId" id="sbjctId" value="${dscsVO.sbjctId}">
 				<input type="hidden" name="repoCd" id="repoCd" value="FORUM">
 				<input type="hidden" name="uploadPath" id="uploadPath" value="${path}">
 				<input type="hidden" name="copyFiles" id="copyFiles" value="" />

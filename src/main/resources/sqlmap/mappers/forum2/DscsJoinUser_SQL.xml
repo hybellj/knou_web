@@ -42,7 +42,7 @@
 						 WHERE CD2.UP_DSCS_ID = #{dscsId} AND CD2.DELYN = 'N' AND ROWNUM = 1),
 						#{dscsId}
 					)
-				WHERE A.SBJCT_ID = #{crsCreCd}
+				WHERE A.SBJCT_ID = #{sbjctId}
 					AND A.ATNDLC_STSCD = 'ATNDLC'
 			) BASE
 		) T
@@ -55,7 +55,7 @@
 		*/
 		SELECT
 			<choose>
-				<when test='forumCtgrCd == "TEAM"'>
+				<when test='dscsUnitTycd == "TEAM"'>
 					ROW_NUMBER() OVER(ORDER BY LENGTH(teamNm), teamNm, userNm) AS LINE_NO
 				</when>
 				<otherwise>
@@ -74,7 +74,7 @@
 			, (CASE WHEN actlCnt > 0 THEN '참여완료' ELSE '미참여' END) AS joinStatus
 			, actlCnt
 			, cmntCnt
-			, teamCd
+			, teamId
 			, COUNT(1) OVER() AS totalCnt
 			, forumFdbkCd
 			, fdbkCts
@@ -123,7 +123,7 @@
 					AND B.RGTR_ID = A.USER_ID
 					AND B.DELYN = 'N') AS cmntCnt
 			   , U.USER_ID as userId
-			   , TM.TEAM_ID AS teamCd
+			   , TM.TEAM_ID AS teamId
 			   , (SELECT MIN(DSCS_FDBK_ID) KEEP (DENSE_RANK FIRST ORDER BY MOD_DTTM)
 				  FROM TB_LMS_DSCS_FDBK B
 				  WHERE B.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND B.USER_ID = A.USER_ID AND B.DELYN = 'N' AND B.UP_DSCS_FDBK_ID IS NULL) AS forumFdbkCd
@@ -178,13 +178,13 @@
 					GROUP BY MBR.USER_ID
 				)
 			) TM ON TM.USER_ID = A.USER_ID AND TM.LRN_GRP_ID = C.LRN_GRP_ID
-			<if test='teamCd != null and teamCd != ""'>
-			   AND TM.TEAM_ID = #{teamCd}
+			<if test='teamId != null and teamId != ""'>
+			   AND TM.TEAM_ID = #{teamId}
 			</if>
 
 			LEFT JOIN TB_LMS_DSCS CD ON CD.UP_DSCS_ID = C.DSCS_ID AND CD.TEAM_ID = TM.TEAM_ID AND CD.DELYN = 'N'
 			LEFT JOIN TB_LMS_DSCS_PTCP P ON P.DSCS_ID = NVL(CD.DSCS_ID, C.DSCS_ID) AND P.USER_ID = A.USER_ID
-			WHERE A.SBJCT_ID = #{crsCreCd}
+			WHERE A.SBJCT_ID = #{sbjctId}
 			  AND A.ATNDLC_STSCD = 'ATNDLC'
 			  AND A.AUDITYN = 'N'
 		) T
@@ -244,7 +244,7 @@
                     WHEN CAST(#{score} AS NUMBER) <![CDATA[>]]> 100 THEN 100
                     ELSE CAST(#{score} AS NUMBER)
                   END,
-	            T.TEAM_ID = #{teamCd},
+	            T.TEAM_ID = #{teamId},
 	            T.EVLYN = 'Y',
 	            T.MDFR_ID = #{mdfrId},
 	            T.MOD_DTTM = FN_DTTM()
@@ -273,7 +273,7 @@
 	                </otherwise>
 	            </choose>,
 	            #{dscsId},
-	            #{teamCd},
+	            #{teamId},
 	            CASE
 		            WHEN CAST(NULL AS NUMBER) <![CDATA[<]]> 0 THEN 0
 		            WHEN CAST(NULL AS NUMBER) <![CDATA[>]]> 100 THEN 100
@@ -304,7 +304,7 @@
 				RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM, DELYN
 			)
 			VALUES (
-				#{dscsPtcpId}, #{stdId}, #{dscsId}, #{teamCd}, NULL, 'N',
+				#{dscsPtcpId}, #{stdId}, #{dscsId}, #{teamId}, NULL, 'N',
 				#{rgtrId}, FN_DTTM(), #{mdfrId}, FN_DTTM(), 'N'
 			)
 	</insert>
@@ -321,12 +321,12 @@
 			, CASE WHEN atclCnt > 0 OR cmntCnt > 0 THEN '참여' ELSE '미참여' END AS joinStatus
 			, atclCnt
 			, cmntCnt
-			, teamCd
+			, teamId
 		FROM (
 			SELECT
 			   A.USER_ID AS stdId
 			   , NVL(C.SCR, 0) AS score
-			   , C.TEAM_ID AS teamCd
+			   , C.TEAM_ID AS teamId
 			   /* 결정된 targetDscsId를 사용하여 게시글 수 조회 */
 			   , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B
 				  WHERE B.DSCS_ID = NVL(TM_CD.CD_DSCS_ID, #{dscsId})
@@ -358,7 +358,7 @@
 			  ON A.USER_ID = C.USER_ID
 			  AND C.DSCS_ID = NVL(TM_CD.CD_DSCS_ID, #{dscsId})
 
-			WHERE A.SBJCT_ID = #{crsCreCd}
+			WHERE A.SBJCT_ID = #{sbjctId}
 			  AND A.ATNDLC_STSCD = 'ATNDLC'
 		) T
 		<where>
@@ -455,7 +455,7 @@
 			 , U.USER_ID               AS userId
 			 , U.USERNM               AS userNm
 			 , NVL(A.SCR, 0)           AS score
-			 , B.SBJCT_ID              AS crsCreCd
+			 , B.SBJCT_ID              AS sbjctId
 			 , B.DSCS_TTL              AS dscsTtl
 			 , B.DSCS_SDTTM            AS dscsSdttm
 			 , B.DSCS_EDTTM            AS dscsEdttm
@@ -576,11 +576,11 @@
 				, (SELECT MAX(E.TEAM_ID)
 					 FROM TB_LMS_TEAM_MBR E
 					WHERE E.TEAM_ID = B.TEAM_ID  /* B.TEAM_TYCD 대신 B.TEAM_ID 사용 */
-					  AND E.USER_ID = A.USER_ID) AS teamCd
+					  AND E.USER_ID = A.USER_ID) AS teamId
 				, #{rgtrId} AS RGTR_ID
 			FROM TB_LMS_ATNDLC A
 			JOIN TB_LMS_DSCS B ON A.SBJCT_ID = B.SBJCT_ID
-			WHERE A.SBJCT_ID = #{crsCreCd}
+			WHERE A.SBJCT_ID = #{sbjctId}
 			  AND B.DSCS_ID = #{dscsId}
 			  AND A.ATNDLC_STSCD = 'ATNDLC'
 			  AND B.DELYN = 'N'
@@ -592,7 +592,7 @@
 
 		WHEN MATCHED THEN
 			UPDATE SET
-				TARGET.TEAM_ID = SOURCE.teamCd
+				TARGET.TEAM_ID = SOURCE.teamId
 				, TARGET.MDFR_ID = SOURCE.RGTR_ID
 				, TARGET.MOD_DTTM = FN_DTTM()
 				<if test='searchKey == "INSERT"'>
@@ -660,7 +660,7 @@
 			ForumJoinUserDAO.updateStdTeam
 		*/
 		UPDATE TB_LMS_DSCS_PTCP SET
-			TEAM_ID = #{teamCd}
+			TEAM_ID = #{teamId}
 		WHERE USER_ID = #{stdId}
 		  AND DSCS_ID = #{dscsId}
 	</update>
@@ -690,10 +690,10 @@
 			, (SELECT MAX(E.TEAM_ID)
 			   FROM TB_LMS_TEAM_MBR E
 			   WHERE E.TEAM_ID = B.TEAM_ID
-			     AND E.USER_ID = A.USER_ID) AS teamCd
+			     AND E.USER_ID = A.USER_ID) AS teamId
 		FROM TB_LMS_ATNDLC A
 		JOIN TB_LMS_DSCS B ON A.SBJCT_ID = B.SBJCT_ID
-		WHERE A.SBJCT_ID = #{crsCreCd}
+		WHERE A.SBJCT_ID = #{sbjctId}
 		  AND B.DSCS_ID = #{dscsId}
 		  AND A.ATNDLC_STSCD = 'ATNDLC'
 		  AND B.DELYN = 'N'
@@ -712,7 +712,7 @@
 			DSCS_PTCP_ID, USER_ID, DSCS_ID, TEAM_ID,
 			RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM, DELYN
 		) VALUES (
-			#{dscsPtcpId}, #{stdId}, #{dscsId}, #{teamCd},
+			#{dscsPtcpId}, #{stdId}, #{dscsId}, #{teamId},
 			#{rgtrId}, FN_DTTM(), #{mdfrId}, FN_DTTM(), 'N'
 		)
 	</insert>

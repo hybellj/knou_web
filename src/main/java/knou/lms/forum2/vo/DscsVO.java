@@ -598,28 +598,6 @@ public class DscsVO extends DefaultVO {
     public String[] getDeleteFileId() { return deleteFileId; }
     public void setDeleteFileId(String[] deleteFileId) { this.deleteFileId = deleteFileId; }
 
-    public String getForumCtgrCd() { return dscsUnitTycd; }
-    public void setForumCtgrCd(String forumCtgrCd) { this.dscsUnitTycd = forumCtgrCd; }
-    public String getForumStartDttm() { return dscsSdttm; }
-    public void setForumStartDttm(String forumStartDttm) { this.dscsSdttm = forumStartDttm; }
-    public String getForumEndDttm() { return dscsEdttm; }
-    public void setForumEndDttm(String forumEndDttm) { this.dscsEdttm = forumEndDttm; }
-    public String getForumTitle() { return dscsTtl; }
-    public void setForumTitle(String forumTitle) { this.dscsTtl = forumTitle; }
-    public String getForumArtl() { return dscsCts; }
-    public void setForumArtl(String forumArtl) { this.dscsCts = forumArtl; }
-    public String getScoreAplyYn() { return mrkRfltyn; }
-    public void setScoreAplyYn(String scoreAplyYn) { this.mrkRfltyn = scoreAplyYn; }
-    public String getScoreOpenYn() { return mrkOyn; }
-    public void setScoreOpenYn(String scoreOpenYn) { this.mrkOyn = scoreOpenYn; }
-    public Integer getScoreRatio() { return mrkRfltrt; }
-    public void setScoreRatio(Integer scoreRatio) { this.mrkRfltrt = scoreRatio; }
-    public String getEvalCtgr() { return evlScrTycd; }
-    public void setEvalCtgr(String evalCtgr) { this.evlScrTycd = evalCtgr; }
-    @Override
-    public String getCrsCreCd() { return StringUtil.isNull(sbjctId) ? super.getCrsCreCd() : sbjctId; }
-    @Override
-    public void setCrsCreCd(String crsCreCd) { this.sbjctId = crsCreCd; super.setCrsCreCd(crsCreCd); }
     public String getDeclsNo() { return dvclsNo; }
     public void setDeclsNo(String declsNo) { this.dvclsNo = declsNo; }
     public String getDelYn() { return delyn; }
@@ -634,8 +612,6 @@ public class DscsVO extends DefaultVO {
     public void setMultiAtclYn(String multiAtclYn) { this.mltOpnnRegyn = multiAtclYn; }
     public String getProsConsModYn() { return oknokModyn; }
     public void setProsConsModYn(String prosConsModYn) { this.oknokModyn = prosConsModYn; }
-    public String getTeamCd() { return teamId; }
-    public void setTeamCd(String teamCd) { this.teamId = teamCd; }
     public String getTeamTycd() { return teamTycd; }
     public void setTeamTycd(String teamTycd) { this.teamTycd = teamTycd; }
 }

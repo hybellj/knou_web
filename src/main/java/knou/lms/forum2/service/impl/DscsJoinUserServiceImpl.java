@@ -88,8 +88,8 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
         vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
         vo.setLastIndex(paginationInfo.getLastRecordIndex());
 
-        if ("all".equalsIgnoreCase(StringUtil.nvl(vo.getTeamCd()))) {
-            vo.setTeamCd("");
+        if ("all".equalsIgnoreCase(StringUtil.nvl(vo.getTeamId()))) {
+            vo.setTeamId("");
         }
 
         List<DscsJoinUserVO> forumJoinUserList = forumJoinUserDAO.listPaging(vo);
@@ -131,11 +131,11 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
         forumJoinUserVO.setDscsId(vo.getDscsId());
         forumJoinUserVO.setRgtrId(vo.getRgtrId());
         forumJoinUserVO.setMdfrId(vo.getMdfrId());
-        forumJoinUserVO.setTeamCd(vo.getTeamCd());
+        forumJoinUserVO.setTeamId(vo.getTeamId());
         
         DscsJoinUserVO selectJoinUserVO = new DscsJoinUserVO();
         selectJoinUserVO.setDscsId(vo.getDscsId());
-        selectJoinUserVO.setCrsCreCd(vo.getCrsCreCd());
+        selectJoinUserVO.setSbjctId(vo.getSbjctId());
         selectJoinUserVO.setStdIdList(listTargetStdId);
         selectJoinUserVO.setConditionType(vo.getConditionType());
         List<DscsJoinUserVO> joinUserList = forumJoinUserDAO.listStdScore(selectJoinUserVO);
@@ -275,7 +275,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
         // ensureJoinUser: WHEN NOT MATCHED THEN INSERT 만 실행 (기존 점수 덮어쓰기 없음)
         DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
         forumJoinUserVO.setDscsId(vo.getDscsId());
-        forumJoinUserVO.setTeamCd(vo.getTeamCd());
+        forumJoinUserVO.setTeamId(vo.getTeamId());
         forumJoinUserVO.setStdId(vo.getStdId());
         forumJoinUserVO.setRgtrId(vo.getUserId());
         forumJoinUserVO.setMdfrId(vo.getUserId());
@@ -373,7 +373,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
         forumJoinUserVO.setDscsId(vo.getDscsId());
         forumJoinUserVO.setRgtrId(vo.getRgtrId());
         forumJoinUserVO.setMdfrId(vo.getMdfrId());
-        forumJoinUserVO.setTeamCd(vo.getTeamCd());
+        forumJoinUserVO.setTeamId(vo.getTeamId());
 
         forumJoinUserVO.setScore(vo.getScore());
         if(forumJoinUserVO.getScore() > 100) {
@@ -433,11 +433,11 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
 		forumJoinUserVO.setDscsId(vo.getDscsId());
 		forumJoinUserVO.setRgtrId(vo.getRgtrId());
 		forumJoinUserVO.setMdfrId(vo.getMdfrId());
-		forumJoinUserVO.setTeamCd(vo.getTeamCd());
+        forumJoinUserVO.setTeamId(vo.getTeamId());
 		forumJoinUserVO.setStdId(vo.getStdId());
 		forumJoinUserVO.setScore(vo.getScore());
 		forumJoinUserVO.setUserId(vo.getUserId());
-		forumJoinUserVO.setCrsCreCd(vo.getCrsCreCd());
+		forumJoinUserVO.setSbjctId(vo.getSbjctId());
 
 		forumJoinUserDAO.insertStdScore(forumJoinUserVO);
 	}
