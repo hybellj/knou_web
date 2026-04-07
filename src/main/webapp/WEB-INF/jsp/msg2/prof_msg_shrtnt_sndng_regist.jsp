@@ -10,9 +10,11 @@
 </head>
 
 <script type="text/javascript">
-    let msgId = '${fn:escapeXml(msgId)}';
-    let replyMsgShrtntSndngId = '${fn:escapeXml(replyMsgShrtntSndngId)}';
-    let isEditMode = (msgId !== '' && msgId !== 'null');
+    let msgId = '<c:out value="${msgId}" />';
+    let replyMsgShrtntSndngId = '<c:out value="${replyMsgShrtntSndngId}" />';
+    let EPARAM = '<c:out value="${encParams}" />';
+    let LIST_EPARAM = EPARAM;
+    let isEditMode = false;
     let isReplyMode = (replyMsgShrtntSndngId !== '' && replyMsgShrtntSndngId !== 'null');
     let rcvrList = [];
     let tmpltCurrentTab = 'INDV_MSG';
@@ -48,7 +50,7 @@
         fn_initRsrvSndng();
         fn_initSndngnm();
 
-        if (isEditMode) {
+        if (msgId) {
             fn_loadDetail();
             fn_loadRcvrTrgtrList();
         }
@@ -75,7 +77,8 @@
 
     /* 답장 모드: 발신자 정보를 수신자로 자동 세팅 + 운영과목 자동 세팅 */
     function fn_loadReplyInfo() {
-        ajaxCall('/msgShrtntRcvnDetailAjax.do', { msgShrtntSndngId: replyMsgShrtntSndngId }, function(res) {
+        ajaxCall('/msgShrtntRcvnDetailAjax.do', { encParams: EPARAM, addParams: UiComm.makeEncParams({ msgShrtntSndngId: replyMsgShrtntSndngId }) }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnVO) {
                 let v = res.returnVO;
                 fn_addRcvrToList({
@@ -100,7 +103,9 @@
                     fn_waitAndApplyReplySubject();
                 }
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 답장 모드: cascade 완료 대기 후 운영과목 일괄 세팅 */
@@ -168,17 +173,20 @@
     function fn_initYrSmstr() {
         fn_loadOrgList();
 
-        ajaxCall('/msgShrtntYrListAjax.do', {}, function(res) {
+        ajaxCall('/msgShrtntYrListAjax.do', { encParams: EPARAM }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
                     html += '<option value="' + v.sbjctYr + '">' + v.sbjctYr + '<spring:message code="msg.rcptnAgre.label.year" text="년"/></option>';
-                });
+                });50
                 $('#sbjctYr').html(html);
                 fn_refreshChosen('#sbjctYr');
                 fn_loadSmstrList();
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
 
         $('#sbjctYr').on('change', function() { fn_loadSmstrList(); });
         $('#sbjctSmstr').on('change', function() { fn_loadDeptList(); });
@@ -191,7 +199,8 @@
         let yr = $('#sbjctYr').val();
         if (!yr) return;
 
-        ajaxCall('/msgShrtntSmstrListAjax.do', { sbjctYr: yr }, function(res) {
+        ajaxCall('/msgShrtntSmstrListAjax.do', { encParams: EPARAM, addParams: UiComm.makeEncParams({ sbjctYr: yr }) }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
@@ -201,12 +210,15 @@
                 fn_refreshChosen('#sbjctSmstr');
                 fn_loadDeptList();
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 기관 목록 */
     function fn_loadOrgList() {
-        ajaxCall('/msgShrtntOrgListAjax.do', {}, function(res) {
+        ajaxCall('/msgShrtntOrgListAjax.do', { encParams: EPARAM }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.orgAll" text="기관 전체"/></option>';
                 res.returnList.forEach(function(v) {
@@ -215,7 +227,9 @@
                 $('#orgId').html(html);
                 fn_refreshChosen('#orgId');
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 학과 목록 */
@@ -224,7 +238,9 @@
         let smstr = $('#sbjctSmstr').val();
         if (!yr || !smstr) return;
 
-        ajaxCall('/msgShrtntDeptListAjax.do', { orgId: $('#orgId').val(), sbjctYr: yr, sbjctSmstr: smstr }, function(res) {
+        let data = { orgId: $('#orgId').val(), sbjctYr: yr, sbjctSmstr: smstr };
+        ajaxCall('/msgShrtntDeptListAjax.do', { encParams: EPARAM, addParams: UiComm.makeEncParams(data) }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 let html = '';
                 res.returnList.forEach(function(v) {
@@ -235,7 +251,9 @@
                 fn_refreshChosen('#deptId');
                 fn_loadSbjctList();
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 과목 목록 */
@@ -244,7 +262,9 @@
         let smstr = $('#sbjctSmstr').val();
         let deptId = $('#deptId').val();
 
-        ajaxCall('/msgShrtntSbjctListAjax.do', { orgId: $('#orgId').val(), sbjctYr: yr, sbjctSmstr: smstr, deptId: deptId }, function(res) {
+        let data = { orgId: $('#orgId').val(), sbjctYr: yr, sbjctSmstr: smstr, deptId: deptId };
+        ajaxCall('/msgShrtntSbjctListAjax.do', { encParams: EPARAM, addParams: UiComm.makeEncParams(data) }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>';
                 res.returnList.forEach(function(v) {
@@ -287,29 +307,38 @@
 
     /* 수정 시 상세 조회 */
     function fn_loadDetail() {
-        ajaxCall('/msgShrtntSndngDetailAjax.do', { msgId: msgId }, function(res) {
+        ajaxCall('/msgShrtntSndngDetailAjax.do', { encParams: EPARAM, addParams: UiComm.makeEncParams({ msgId: msgId }) }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnVO) {
                 let v = res.returnVO;
                 $('#ttl').val(v.ttl || '');
                 $('#txtCts').val(v.txtCts || '');
 
-                if (v.rsrvYn === 'Y' && v.rsrvSndngSdttm) {
-                    $('#rsrvYnChk').prop('checked', true).trigger('change');
-                    let dttm = v.rsrvSndngSdttm;
-                    if (dttm.length >= 8) {
-                        $('#rsrvSndngDate').val(dttm.substring(0,4) + '-' + dttm.substring(4,6) + '-' + dttm.substring(6,8));
-                    }
-                    if (dttm.length >= 12) {
-                        $('#rsrvSndngTime').val(dttm.substring(8,10) + ':' + dttm.substring(10,12));
+                if (v.rsrvYn === 'Y' && !v.rsrvSndngCnclDttm) {
+                    isEditMode = true;
+                    $('#btnSave').text('<spring:message code="msg.shrtnt.label.modify" text="수정"/>');
+
+                    if (v.rsrvSndngSdttm) {
+                        $('#rsrvYnChk').prop('checked', true).trigger('change');
+                        let dttm = v.rsrvSndngSdttm;
+                        if (dttm.length >= 8) {
+                            $('#rsrvSndngDate').val(dttm.substring(0,4) + '-' + dttm.substring(4,6) + '-' + dttm.substring(6,8));
+                        }
+                        if (dttm.length >= 12) {
+                            $('#rsrvSndngTime').val(dttm.substring(8,10) + ':' + dttm.substring(10,12));
+                        }
                     }
                 }
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 수정 시 수신대상자 목록 조회 */
     function fn_loadRcvrTrgtrList() {
-        ajaxCall('/msgShrtntRcvTrgtrListAjax.do', { msgId: msgId }, function(res) {
+        ajaxCall('/msgShrtntRcvTrgtrListAjax.do', { encParams: EPARAM, addParams: UiComm.makeEncParams({ msgId: msgId }) }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 res.returnList.forEach(function(v) {
                     fn_addRcvrToList({
@@ -318,7 +347,9 @@
                     });
                 });
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 받는 사람 추가 팝업 */
@@ -375,19 +406,24 @@
 
     /* 템플릿 팝업 - 목록 조회 */
     function fn_tmpltLoadList() {
-        let param = {
+        let data = {
             pageIndex: 1,
             listScale: 100,
             msgCtsGbncd: tmpltCurrentTab,
             searchText: $('#tmpltPopSearch').val()
         };
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(data)
+        };
         ajaxCall('/msgTmpltListAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 tmpltList = res.returnList || [];
                 fn_tmpltRenderCards();
             }
-        }, function() {
-            alert('<spring:message code="fail.common.select"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
     }
 
@@ -457,16 +493,19 @@
         if (!confirm('<spring:message code="msg.shrtnt.msg.confirmDelete"/>')) return;
         let ids = [];
         checked.each(function() { ids.push($(this).val()); });
-        ajaxCall('/msgTmpltDeleteAjax.do', { msgTmpltIds: ids.join(',') }, function(res) {
+        ajaxCall('/msgTmpltDeleteAjax.do', { encParams: EPARAM, addParams: UiComm.makeEncParams({ msgTmpltIds: ids.join(',') }) }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 alert('<spring:message code="msg.shrtnt.msg.deleteSuccess"/>');
                 tmpltSelected = null;
                 fn_tmpltClearPreview();
                 fn_tmpltLoadList();
             } else {
-                alert(res.message || '<spring:message code="fail.common.delete"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>","error");
             }
-        }, function() { UiComm.showLoading(false); });
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
+        }, true);
     }
 
     /* 수신자 목록에 추가 */
@@ -575,16 +614,21 @@
             "uploadPath": dx.getUploadPath()
         };
 
-        ajaxCall('/common/uploadFileCheck.do', data, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(data)
+        };
+        ajaxCall('/common/uploadFileCheck.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 $('#uploadFiles').val(dx.getUploadFiles());
                 fn_doSave();
             } else {
-                alert('<spring:message code="fail.common.msg"/>');
+                UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
             }
-        }, function() {
-            alert('<spring:message code="fail.common.msg"/>');
-        });
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
+        }, true);
     }
 
     /* 실제 저장 처리 */
@@ -597,7 +641,7 @@
             rsrvSndngSdttm = UiComm.getDateTimeVal('rsrvSndngDate', 'rsrvSndngTime') + '00';
         }
 
-        let param = {
+        let data = {
             msgId: msgId,
             ttl: $('#ttl').val(),
             txtCts: $('#txtCts').val(),
@@ -605,32 +649,37 @@
             sbjctYr: $('#sbjctYr').val(),
             sbjctSmstr: $('#sbjctSmstr').val(),
             sbjctId: $('#sbjctId').val(),
-            sndngnm: $('#sndngnm').val(),
+            sndngnm: $('#ownNameYnChk').is(':checked') ? '' : $('#sndngnm').val(),
             rcvrListJson: JSON.stringify(rcvrList),
             upMsgShrtntSndngId: isReplyMode ? replyMsgShrtntSndngId : '',
             uploadFiles: $('#uploadFiles').val(),
             uploadPath: $('#uploadPath').val(),
             delFileIdStr: $('#delFileIdStr').val()
         };
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(data)
+        };
 
         let url = isEditMode ? '/msgShrtntSndngModifyAjax.do' : '/msgShrtntSndngRegistAjax.do';
         let successMsg = isEditMode ? '<spring:message code="msg.shrtnt.msg.modifySuccess"/>' : '<spring:message code="msg.shrtnt.msg.registSuccess"/>';
 
         ajaxCall(url, param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 alert(successMsg);
                 fn_list();
             } else {
-                alert(res.message || '<spring:message code="fail.common.insert"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>","error");
             }
-        }, function() {
-            alert('<spring:message code="fail.common.insert"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
     }
 
     /* 목록으로 */
     function fn_list() {
-        location.href = '/profMsgShrtntListView.do?tab=SNDNG';
+        location.href = '/profMsgShrtntListView.do?encParams=' + LIST_EPARAM;
     }
 </script>
 
@@ -652,14 +701,7 @@
                 <div class="sub-content">
                     <div class="page-info">
                         <h2 class="page-title"><span><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></span><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
-                        <div class="navi_bar">
-                            <ul>
-                                <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                <li><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></li>
-                                <li><spring:message code="msg.shrtnt.label.title" text="쪽지"/></li>
-                                <li><span class="current"><spring:message code="msg.shrtnt.label.sndngRegist" text="발신하기"/></span></li>
-                            </ul>
-                        </div>
+                        <uiex:navibar type="main"/>
                     </div>
 
                     <!-- 상단 버튼 -->
@@ -668,14 +710,7 @@
                         <div class="right-area">
                             <button type="button" class="btn basic" onclick="fn_openTmpltPopup()"><spring:message code="msg.shrtnt.label.tmpltLoad" text="메시지 불러오기"/> ▼</button>
                             <button type="button" class="btn basic" onclick="fn_openTmpltSavePopup()"><spring:message code="msg.shrtnt.label.tmpltSave" text="템플릿에 저장"/> ▼</button>
-                            <c:choose>
-                                <c:when test="${not empty msgId}">
-                                    <button type="button" class="btn type1" onclick="fn_save()"><spring:message code="msg.shrtnt.label.modify" text="수정"/></button>
-                                </c:when>
-                                <c:otherwise>
-                                    <button type="button" class="btn type1" onclick="fn_save()"><spring:message code="msg.shrtnt.label.sndng" text="발신"/></button>
-                                </c:otherwise>
-                            </c:choose>
+                            <button type="button" id="btnSave" class="btn type1" onclick="fn_save()"><spring:message code="msg.shrtnt.label.sndng" text="발신"/></button>
                             <button type="button" class="btn type2" onclick="fn_list()"><spring:message code="msg.shrtnt.label.sndngList" text="발신목록"/></button>
                         </div>
                     </div>
@@ -755,7 +790,7 @@
                         <ul class="list">
                             <li class="head"><label class="req"><spring:message code="msg.shrtnt.label.sndngnm" text="발신자"/></label></li>
                             <li>
-                                <input type="text" id="sndngnm" name="sndngnm" class="form-control" style="width:200px; display:inline-block;" value="${fn:escapeXml(usernm)}" disabled>
+                                <input type="text" id="sndngnm" name="sndngnm" class="form-control" style="width:200px; display:inline-block;" value="<c:out value="${vo.userNm}"/>" disabled>
                                 <span class="custom-input" style="margin-left:10px;">
                                         <input type="checkbox" id="ownNameYnChk" name="ownNameYnChk" checked>
                                         <label for="ownNameYnChk"><spring:message code="msg.shrtnt.label.ownNameYn" text="본인 이름 선택"/></label>
@@ -824,7 +859,7 @@
     <div class="modal-content modal-xl" tabindex="-1">
         <div class="modal-header">
             <h2><spring:message code="msg.shrtnt.label.addRcvrTitle" text="받는 사람 추가"/></h2>
-            <button class="modal-close" aria-label="닫기" onclick="fn_closeModal('rcvrModal')"><i class="icon-svg-close"></i></button>
+            <button class="modal-close" aria-label="<spring:message code='msg.shrtnt.label.closeBtn' text='닫기'/>" onclick="fn_closeModal('rcvrModal')"><i class="icon-svg-close"></i></button>
         </div>
         <div class="modal-body">
             <iframe src="about:blank" style="width:100%; height:500px; border:none;"></iframe>
@@ -837,7 +872,7 @@
     <div class="modal-content modal-lg" tabindex="-1">
         <div class="modal-header">
             <h2><spring:message code="msg.shrtnt.label.tmpltLoad" text="메시지 불러오기"/></h2>
-            <button class="modal-close" aria-label="닫기" onclick="fn_closeModal('tmpltModal')"><i class="icon-svg-close"></i></button>
+            <button class="modal-close" aria-label="<spring:message code='msg.shrtnt.label.closeBtn' text='닫기'/>" onclick="fn_closeModal('tmpltModal')"><i class="icon-svg-close"></i></button>
         </div>
         <div class="modal-body">
             <!-- tab -->
@@ -909,7 +944,7 @@
     <div class="modal-content modal-lg" tabindex="-1">
         <div class="modal-header">
             <h2><spring:message code="msg.shrtnt.label.tmpltSave" text="템플릿에 저장"/></h2>
-            <button class="modal-close" aria-label="닫기" onclick="fn_closeModal('tmpltSaveModal')"><i class="icon-svg-close"></i></button>
+            <button class="modal-close" aria-label="<spring:message code='msg.shrtnt.label.closeBtn' text='닫기'/>" onclick="fn_closeModal('tmpltSaveModal')"><i class="icon-svg-close"></i></button>
         </div>
         <div class="modal-body">
             <iframe src="about:blank" style="width:100%; height:500px; border:none;"></iframe>

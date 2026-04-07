@@ -17,12 +17,12 @@ public class MsgShrtntVO extends DefaultVO {
     private String txtCts;
     private String htmlCts;
     private String rsrvSndngSdttm;
-    private String dgrsYr;
     private String smstr;
     private String rsrvSndngCnclDttm;
 
     // === TB_LMS_MSG_SHRTNT_SNDNG ===
     private String msgShrtntSndngId;
+    private String replyMsgShrtntSndngId;
     private String upMsgShrtntSndngId;
     private String sndngTtl;
     private String sndngCts;
@@ -41,7 +41,6 @@ public class MsgShrtntVO extends DefaultVO {
     private String deptId;
     private String sndngSdttm;
     private String sndngEdttm;
-    private String ownSndngYn;
     private String listType;
 
     // === 목록/상세 표시용 (가공 데이터) ===
@@ -51,7 +50,6 @@ public class MsgShrtntVO extends DefaultVO {
     private int rnum;
     private String orgnm;
     private String deptnm;
-    private String sbjctnm;
     private String dvclasNo;
     private String readYn;
     private int rcvrCnt;
@@ -144,14 +142,6 @@ public class MsgShrtntVO extends DefaultVO {
         this.rsrvSndngSdttm = rsrvSndngSdttm;
     }
 
-    public String getDgrsYr() {
-        return dgrsYr;
-    }
-
-    public void setDgrsYr(String dgrsYr) {
-        this.dgrsYr = dgrsYr;
-    }
-
     public String getSmstr() {
         return smstr;
     }
@@ -174,6 +164,14 @@ public class MsgShrtntVO extends DefaultVO {
 
     public void setMsgShrtntSndngId(String msgShrtntSndngId) {
         this.msgShrtntSndngId = msgShrtntSndngId;
+    }
+
+    public String getReplyMsgShrtntSndngId() {
+        return replyMsgShrtntSndngId;
+    }
+
+    public void setReplyMsgShrtntSndngId(String replyMsgShrtntSndngId) {
+        this.replyMsgShrtntSndngId = replyMsgShrtntSndngId;
     }
 
     public String getUpMsgShrtntSndngId() {
@@ -304,14 +302,6 @@ public class MsgShrtntVO extends DefaultVO {
         this.sndngEdttm = sndngEdttm;
     }
 
-    public String getOwnSndngYn() {
-        return ownSndngYn;
-    }
-
-    public void setOwnSndngYn(String ownSndngYn) {
-        this.ownSndngYn = ownSndngYn;
-    }
-
     public String getListType() {
         return listType;
     }
@@ -350,14 +340,6 @@ public class MsgShrtntVO extends DefaultVO {
 
     public void setDeptnm(String deptnm) {
         this.deptnm = deptnm;
-    }
-
-    public String getSbjctnm() {
-        return sbjctnm;
-    }
-
-    public void setSbjctnm(String sbjctnm) {
-        this.sbjctnm = sbjctnm;
     }
 
     public String getDvclasNo() {

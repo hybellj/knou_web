@@ -16,6 +16,7 @@
 </style>
 
 <script type="text/javascript">
+    let EPARAM = '<c:out value="${encParams}" />';
     let tmpltList = [];
 
     $(document).ready(function() {
@@ -34,12 +35,16 @@
 
     /* 기존 템플릿 목록 조회 */
     function fn_loadList() {
-        ajaxCall('/msgTmpltListAjax.do', { pageIndex: 1, listScale: 100, msgCtsGbncd: 'INDV_MSG' }, function(res) {
+        let data = { pageIndex: 1, listScale: 100, msgCtsGbncd: 'INDV_MSG' };
+        ajaxCall('/msgTmpltListAjax.do', { encParams: EPARAM, addParams: UiComm.makeEncParams(data) }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 tmpltList = res.returnList || [];
                 fn_renderCards();
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 카드 렌더링 */
@@ -74,21 +79,28 @@
             return;
         }
 
-        let param = {
+        let extData = {
             msgTmpltTtl: ttl,
             msgTmpltCts: $('#saveCts').val(),
             msgCtsGbncd: 'INDV_MSG'
         };
 
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(extData)
+        };
         ajaxCall('/msgTmpltRegistAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 alert('<spring:message code="success.common.save"/>');
                 fn_loadList();
                 $('#saveTtl').val('');
             } else {
-                alert(res.message || '<spring:message code="fail.common.insert"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>","error");
             }
-        }, function() { UiComm.showLoading(false); });
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
+        }, true);
     }
 </script>
 

@@ -9,17 +9,17 @@
 	</jsp:include>
 </head>
 
-<c:set var="orgId" value="${orgId}"/>
-<c:set var="userId" value="${userId}"/>
-<c:set var="authrtGrpcd" value="${authrtGrpcd}"/>
+<c:set var="orgId" 			value="${orgId}"/>
+<c:set var="userId" 		value="${userId}"/>
+<c:set var="authrtGrpcd" 	value="${authrtGrpcd}"/>
 
 <body class="home colorA ">
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp">
-            <jsp:param name="orgId" value="${orgId}" />
-            <jsp:param name="userId" value="${userId}" />
-            <jsp:param name="authrtGrpcd" value="${authrtGrpcd}" />
+            <jsp:param name="orgId" 		value="${orgId}" />
+            <jsp:param name="userId" 		value="${userId}" />
+            <jsp:param name="authrtGrpcd" 	value="${authrtGrpcd}" />
       	</jsp:include>
         <!-- //common header -->
 

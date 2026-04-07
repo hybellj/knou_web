@@ -136,6 +136,11 @@ public class ExamVO extends DefaultVO {
     private String  lstExamBscId;       // 기말시험 기본 ID
     private String  quizBscId;          // 시험 그룹 ID
 
+    private String  midExamScr;            // 중간고사 점수 (재시험이면 '점수(재시험)')
+    private String  midAbsnceScr;          // 중간고사 대체시험 점수
+    private String  lstExamScr;            // 기말고사 점수 (재시험이면 '점수(재시험)')
+    private String  lstAbsnceScr;          // 기말고사 대체시험 점수
+
     /*****************************************************
      * Getter / Setter
      *****************************************************/
@@ -821,6 +826,30 @@ public class ExamVO extends DefaultVO {
     public void setQuizBscId(String quizBscId) {
         this.quizBscId = quizBscId;
     }
+    public String getMidExamScr() {
+        return midExamScr;
+    }
+    public void setMidExamScr(String midExamScr) {
+        this.midExamScr = midExamScr;
+    }
+    public String getMidAbsnceScr() {
+        return midAbsnceScr;
+    }
+    public void setMidAbsnceScr(String midAbsnceScr) {
+        this.midAbsnceScr = midAbsnceScr;
+    }
+    public String getLstExamScr() {
+        return lstExamScr;
+    }
+    public void setLstExamScr(String lstExamScr) {
+        this.lstExamScr = lstExamScr;
+    }
+    public String getLstAbsnceScr() {
+        return lstAbsnceScr;
+    }
+    public void setLstAbsnceScr(String lstAbsnceScr) {
+        this.lstAbsnceScr = lstAbsnceScr;
+    }
 
     /*****************************************************
      * 기존에 있던 VO 영역
@@ -963,7 +992,7 @@ public class ExamVO extends DefaultVO {
     private String  copyExamCd;
     private String  lessonScheduleId;
     private String  lessonScheduleNm;
-    
+
     public String getExamCd() {
         return examCd;
     }

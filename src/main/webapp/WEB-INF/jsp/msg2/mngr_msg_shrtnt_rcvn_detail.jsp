@@ -9,22 +9,29 @@
 </head>
 
 <script type="text/javascript">
-    let msgShrtntSndngId = '${fn:escapeXml(msgShrtntSndngId)}';
-
+    let msgShrtntSndngId = '<c:out value="${msgShrtntSndngId}" />';
+    let EPARAM = '<c:out value="${encParams}" />';
     $(document).ready(function() {
         fn_loadDetail();
     });
 
     /* 상세 조회 */
     function fn_loadDetail() {
-        ajaxCall('/msgShrtntRcvnDetailAjax.do', { msgShrtntSndngId: msgShrtntSndngId }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ msgShrtntSndngId: msgShrtntSndngId })
+        };
+        ajaxCall('/msgShrtntRcvnDetailAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnVO) {
                 fn_renderDetail(res.returnVO);
                 fn_markRead();
             } else {
-                alert(res.message || '<spring:message code="fail.common.select"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>","error");
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
+        }, true);
     }
 
     /* 상세 렌더링 */
@@ -56,7 +63,7 @@
         if (v.atflList && v.atflList.length > 0) {
             let fileHtml = '';
             v.atflList.forEach(function(f) {
-                fileHtml += '<a href="/common/downloadFile.do?filenm=' + encodeURIComponent(f.filenm) + '&fileSavnm=' + encodeURIComponent(f.fileSavnm) + '&filePath=' + encodeURIComponent(f.filePath) + '">';
+                fileHtml += '<a href="#_" onclick="UiFileDownloader(\'' + f.encDownParam + '\');return false;" class="link" title="File download">';
                 fileHtml += '<i class="xi-paperclip"></i> ' + UiComm.escapeHtml(f.filenm);
                 fileHtml += '</a><br>';
             });
@@ -68,11 +75,18 @@
 
     /* 읽음 처리 */
     function fn_markRead() {
-        ajaxCall('/msgShrtntReadAjax.do', { msgShrtntSndngId: msgShrtntSndngId }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ msgShrtntSndngId: msgShrtntSndngId })
+        };
+        ajaxCall('/msgShrtntReadAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 fn_refreshUnreadCnt();
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
+        }, true);
     }
 
     /* 알림 미읽음 카운트 갱신 */
@@ -87,12 +101,12 @@
 
     /* 답장 */
     function fn_reply() {
-        location.href = '/mngrMsgShrtntSndngRegistView.do?replyMsgShrtntSndngId=' + encodeURIComponent(msgShrtntSndngId);
+        location.href = '/mngrMsgShrtntSndngRegistView.do?encParams=' + EPARAM + '&addParams=' + UiComm.makeEncParams({ replyMsgShrtntSndngId: msgShrtntSndngId });
     }
 
     /* 수신 목록 */
     function fn_list() {
-        location.href = '/mngrMsgShrtntListView.do';
+        location.href = '/mngrMsgShrtntListView.do?encParams=' + EPARAM;
     }
 </script>
 

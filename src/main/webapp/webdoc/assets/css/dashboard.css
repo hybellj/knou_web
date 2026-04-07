@@ -759,85 +759,8 @@ dashboard - sub
 
 
 
-/* 전체수업현황 - 주차학습기록 */
-.course_history { display: flex; flex-direction: column; gap: 5px; border: 1px solid #D0D0D0; border-radius: var(--border-radius-10); margin-top: 1rem;}
-.course_history .h_top {display: flex; width: 100%; align-items: center; flex-wrap: wrap; gap: .5rem; padding: 1.5rem 2rem; background: #fff; border-radius: 10px 10px 0 0; border-bottom: 1px solid #D0D0D0;}
-.course_history .h_top .h_left {display: flex; gap: .5rem; flex-direction: column;}
-.course_history .h_top .h_left .tit {font-size: 1.7rem; font-weight: 600; color: var(--primary3);}
-.course_history .h_top .h_right { margin-left: auto; display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
-.course_history .h_top .h_right .desc { padding: .5rem 1.5rem .5rem 1.5rem; border: 1px solid #C5C8D1; border-radius: 4px;}
-.course_history .desc { font-size: 1.4rem; font-weight: 400; color: var(--txt_02_70);}
-.course_history .desc strong { color: var(--txt_02); font-weight: 500; margin-left: .5rem;}
-.course_history .desc span + span::before {
-    float: none;
-    content: '';
-    display: inline-block;
-    width: 1px;
-    height: calc(1em - 4px);
-    background-color: var(--dark-300);
-    transform: rotate(18deg);
-    margin: 0 8px 0 4px;
-    padding: 0;
-}
-.course_history .h_content {display: flex; width: 100%; padding: 0rem 2rem 1.5rem 2rem; border-radius:  0 0 10px 10px;}
-.course_history .lecture_box { position: relative; display: flex; flex: 1; padding: 1rem 3rem 0 0; margin: 0px 0 5px 0; }
-.course_history .lecture_box .lecture_tit {display: flex; align-items: center; gap: 1rem; font-size: 1.5rem; margin-right: 1rem;}
-.course_history .lecture_box .lecture_tit .labels {display: flex; gap: 1.2rem; /*margin-right: 1.2rem;*/}
-.course_history .lecture_box .lecture_tit strong {font-weight: 600;}
-.course_history .lecture_box .state {color: #2a62e5; font-weight: 600;}
-.course_history .lecture_box .state.score {font-weight: 700; margin-right: 1rem;}
-.course_history .lecture_box.work {flex-wrap: wrap; gap: .4rem; align-items: center;}
-@media(max-width:1024px) {
-        .course_history .lecture_box { margin: 0; }
-        .course_history .lecture_box .btn_right {margin-left: auto !important;}
-        .course_history .desc {margin-left: 0;}
-        .course_history .lecture_box.work .lecture_tit {flex: auto;  width: fit-content;}
-        .course_history .lecture_box.work .desc {margin-right: .5rem;}
-}
-@media(max-width:550px) {
-        .course_history .lecture_box .lecture_tit {flex: 1;}
-        .course_history .lecture_box .lecture_tit strong {line-height: 1.1;}
-        .course_history .lecture_box .lecture_tit strong {font-size: 1.5rem;}
-        .course_history .lecture_box.work {padding-right: 0rem; flex-direction: column;}
-        .course_history .lecture_box.work .lecture_tit {margin-right: 0;}
-        .course_history .course_week .lecture_box.work {align-items: flex-start;}
-        .course_history .course_week .lecture_box.work .btn_right {padding-right: 3rem; margin-top: .5rem;}
-}
-@media(max-width:445px) {
-        .course_history .lecture_box .lecture_tit { gap: .4rem;}
-        .course_history .lecture_box .lecture_tit .labels {gap: .5rem; margin-right: .5rem;}
-}
 
-.course_history .course_week { width: 100%;}
-.course_history .course_week > li { border: 1px solid #DEE2E6; margin: 15px 0; border-radius: 8px; box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.08);}
-.course_history .course_week li .title-wrap { display: flex; flex-direction: column; gap: .2rem; background-color: #F8F9FA; position: relative; border-radius: 8px; padding: 0 1rem 1rem 1.5rem; }
-.course_history .course_week li.active .title-wrap {border-radius: 8px 8px 0 0;}
-.course_history .course_week li .title-wrap .title { width: 100%; color: var(--txt_02); font-weight: 500; font-size: 1.8rem; display: flex; gap: .5rem; align-items: center;}
-.course_history .course_week li .title-wrap .title strong {margin-right: .5rem; font-weight: 700;}
-.course_history .course_week li .title-wrap .arrow { color: #333; position: absolute; top: 10px; right: 0; font-size: 14px; padding: 6px; transition: all .25s ease; }
-.course_history .course_week li .title-wrap .chasi_tit {font-weight: 500; padding: 1.5rem 0 1rem; border-bottom:1px solid hsl(0, 0%, 80%, .5) ; }
-.course_history .course_week li .title-wrap .desc strong {font-weight: 500; }
-.course_history .course_week li > .cont { display: block; margin: 0 2rem; overflow: hidden; height: 0; transition: all 0.3s ease; }
-.course_history .course_week li > .cont .table-wrap.scroll { height: 15rem; overflow-y: auto;}
-.course_history .course_week li > .cont .table-type1 {font-size: 1.4rem;}
-.course_history .course_week li.active .cont { height: auto !important; margin:2rem 2rem 2rem 2rem; overflow: visible;}
-.course_history .course_week li.active .title-wrap {border-radius: 8px 8px 0 0; border-bottom: 1px solid #DEE2E6;}
-.course_history .course_week li.active .arrow { transform: rotate(180deg); }
-.course_history .course_week > li + li {margin-top: 1.8rem;}
-.course_history .course_week .btn_right {font-size: 1.4rem; display: flex; gap: .5rem; align-items: center; margin-left: auto;}
-@media (max-width: 1024px) {
-        .course_history .course_week li > .cont .table-wrap.scroll {height: 25rem; }
-        .course_history .course_week li .title-wrap .arrow {top: auto; bottom: 0rem;}
-        .course_history .table-type1 thead {display: block;}
-        .course_history .table-type1 thead tr th.all  {flex: 0 1 100%;}
-}
-@media (max-width: 768px) {
-        .course_history .course_week li .title-wrap .lecture_box.work .arrow {bottom: -.2rem;}
-}
-@media (max-width: 480px) {
-         .course_history .table-type1 tr > *:not(.check)[data-th]:before {display: none;}
-         .course_history .table-type1 tr > *:not(.check) {padding: .8rem 1.5rem;}
-}
+
 
 
 /* 성적관리 - 차트 */

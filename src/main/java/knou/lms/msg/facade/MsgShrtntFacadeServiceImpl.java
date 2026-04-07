@@ -11,6 +11,8 @@ import knou.lms.msg.service.MsgShrtntService;
 import knou.lms.msg.vo.MsgShrtntVO;
 import knou.lms.org.service.OrgInfoService;
 import knou.lms.org.vo.OrgInfoVO;
+import knou.lms.user.dao.UserDAO;
+import knou.lms.user.vo.UserVO;
 import org.apache.poi.ss.usermodel.*;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,9 @@ public class MsgShrtntFacadeServiceImpl extends ServiceBase implements MsgShrtnt
     @Resource(name = "attachFileService")
     private AttachFileService attachFileService;
 
+    @Resource(name = "userDAO")
+    private UserDAO userDAO;
+
     /*****************************************************
      * 기관 목록 조회
      * @return List<OrgInfoVO>
@@ -40,6 +45,41 @@ public class MsgShrtntFacadeServiceImpl extends ServiceBase implements MsgShrtnt
     @Override
     public List<OrgInfoVO> selectActiveOrgList() throws Exception {
         return orgInfoService.listActiveOrg();
+    }
+
+    /*****************************************************
+     * 기관 목록 조회 (권한 기반 필터링)
+     * @param orgId
+     * @param isAdmin
+     * @return List<OrgInfoVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<OrgInfoVO> selectActiveOrgListByAuth(String orgId, boolean isAdmin) throws Exception {
+        if (isAdmin) {
+            return orgInfoService.listActiveOrg();
+        }
+        List<OrgInfoVO> list = new ArrayList<>();
+        if (StringUtil.isNotNull(orgId)) {
+            OrgInfoVO param = new OrgInfoVO();
+            param.setOrgId(orgId);
+            OrgInfoVO org = orgInfoService.select(param);
+            if (org != null) {
+                list.add(org);
+            }
+        }
+        return list;
+    }
+
+    /*****************************************************
+     * 사용자의 orgId 조회
+     * @param userId
+     * @return String
+     * @throws Exception
+     ******************************************************/
+    private String selectUserOrgId(String userId) throws Exception {
+        UserVO user = userDAO.userSelect(userId);
+        return user != null ? user.getOrgId() : null;
     }
 
     /*****************************************************
@@ -164,6 +204,9 @@ public class MsgShrtntFacadeServiceImpl extends ServiceBase implements MsgShrtnt
      ******************************************************/
     @Override
     public void registShrtntSndngWithFiles(MsgShrtntVO vo, String uploadFiles, String uploadPath) throws Exception {
+        vo.setDgrsYr(vo.getSbjctYr());
+        vo.setSmstr(vo.getSbjctSmstr());
+
         msgShrtntService.registShrtntSndng(vo);
 
         if (StringUtil.isNotNull(uploadFiles)) {
@@ -187,6 +230,9 @@ public class MsgShrtntFacadeServiceImpl extends ServiceBase implements MsgShrtnt
      ******************************************************/
     @Override
     public void modifyShrtntSndngWithFiles(MsgShrtntVO vo, String uploadFiles, String uploadPath, String[] delFileIds) throws Exception {
+        vo.setDgrsYr(vo.getSbjctYr());
+        vo.setSmstr(vo.getSbjctSmstr());
+
         msgShrtntService.modifyShrtntSndng(vo);
 
         if (StringUtil.isNotNull(uploadFiles)) {
@@ -317,5 +363,88 @@ public class MsgShrtntFacadeServiceImpl extends ServiceBase implements MsgShrtnt
     @Override
     public List<MsgShrtntVO> selectShrtntRcvrByUserIds(MsgShrtntVO vo) {
         return msgShrtntService.selectShrtntRcvrByUserIds(vo);
+    }
+
+    /*****************************************************
+     * 목록 화면 초기 데이터 조회 및 유효성 검증
+     * @param vo
+     * @param isAdmin
+     * @return MsgShrtntVO (유효하지 않으면 null)
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public MsgShrtntVO loadListViewInfo(MsgShrtntVO vo, boolean isAdmin) throws Exception {
+        if (vo.getOrgId() != null && !"".equals(vo.getOrgId())) {
+            OrgInfoVO param = new OrgInfoVO();
+            param.setOrgId(vo.getOrgId());
+            OrgInfoVO org = orgInfoService.select(param);
+            if (org == null) {
+                return null;
+            }
+            vo.setOrgNm(org.getOrgnm());
+        }
+
+        if (StringUtil.isNotNull(vo.getUserId())) {
+            UserVO user = userDAO.userSelect(vo.getUserId());
+            if (user != null) {
+                vo.setUserNm(user.getUsernm());
+            }
+        }
+
+        return vo;
+    }
+
+    /*****************************************************
+     * 발신 등록/수정 화면 데이터 조회 (소유권 검증 포함)
+     * @param msgId
+     * @param userId
+     * @param hasSndngAuth
+     * @return EgovMap (hasAuth, fileList)
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public EgovMap loadSndngRegistViewInfo(String msgId, String userId, boolean hasSndngAuth) throws Exception {
+        EgovMap result = new EgovMap();
+
+        UserVO user = userDAO.userSelect(userId);
+        result.put("userNm", user != null ? StringUtil.nvl(user.getUsernm()) : "");
+
+        if (StringUtil.isNotNull(msgId)) {
+            if (!hasSndngAuth) {
+                MsgShrtntVO checkVO = new MsgShrtntVO();
+                checkVO.setMsgId(msgId);
+                checkVO.setSndngrId(userId);
+                MsgShrtntVO detail = selectShrtntSndngDetailWithFiles(checkVO);
+                if (detail == null) {
+                    result.put("hasAuth", false);
+                    return result;
+                }
+            }
+            result.put("hasAuth", true);
+            result.put("fileList", selectAtflListByRefId(msgId));
+        } else {
+            result.put("hasAuth", true);
+        }
+
+        return result;
+    }
+
+    /*****************************************************
+     * 조회 필터 옵션 조회
+     * @param vo
+     * @return EgovMap
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public EgovMap loadFilterOptions(MsgShrtntVO vo, boolean isAdmin) throws Exception {
+        EgovMap filterOptions = new EgovMap();
+
+        filterOptions.put("yrList", msgShrtntService.selectShrtntYrList(vo));
+        filterOptions.put("smstrList", msgShrtntService.selectShrtntSmstrList(vo));
+        filterOptions.put("orgList", selectActiveOrgListByAuth(vo.getOrgId(), isAdmin));
+        filterOptions.put("deptList", msgShrtntService.selectShrtntDeptList(vo));
+        filterOptions.put("sbjctList", msgShrtntService.selectShrtntSbjctList(vo));
+
+        return filterOptions;
     }
 }

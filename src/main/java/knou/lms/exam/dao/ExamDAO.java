@@ -97,6 +97,9 @@ public interface ExamDAO {
     // 교수 시험대체 퀴즈 조회
     public ExamVO selectProfSbstQuiz(ExamVO vo) throws Exception;
 
+    // 교수 시험대체 퀴즈 조회
+    public String selectSbstQuizExamQstnsCmptnyn(ExamVO vo) throws Exception;
+
     // 교수 시험 결시자 목록 페이징
     public List<ExamVO> listProfAbsnceUserPaging(ExamVO vo) throws Exception;
 
@@ -136,6 +139,15 @@ public interface ExamDAO {
     // 교수 퀴즈관리 퀴즈 조회
     public ExamVO selectProfQuizMng (ExamVO vo) throws Exception;
 
+    // 수강생 시험 응시현황 목록 페이징
+    public List<ExamVO> listUserTkexamStatPaging(ExamVO vo) throws Exception;
+
+    // 수강생 시험 응시현황 목록 카운트
+    public int countUserTkexamStat(ExamVO vo) throws Exception;
+
+    // 중간, 기말 시험 ID 목록 조회
+    public List<EgovMap> listExamMidLst(String sbjctId) throws Exception;
+
     // 성적 공개여부 수정
     public void updateMrkOyn(ExamVO vo) throws Exception;
 
@@ -159,6 +171,9 @@ public interface ExamDAO {
 
     // 대체 시험(퀴즈) 기본정보 수정
     public void updateExamSbstBsc(ExamVO vo) throws Exception;
+
+    // 대체 시험(퀴즈) 기본정보 수정
+    public void updateExamQstnsCmptnyn(ExamVO vo) throws Exception;
 
     // 시험 기본정보 삭제
     public void deleteExamBscInfo(ExamVO vo) throws Exception;

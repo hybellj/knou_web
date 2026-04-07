@@ -16,6 +16,7 @@
 </style>
 
 <script type="text/javascript">
+    let EPARAM = '<c:out value="${encParams}" />';
     let currentTab = 'INDV_MSG';
     let tmpltList = [];
     let selectedTmplt = null;
@@ -39,20 +40,25 @@
 
     /* 목록 조회 */
     function fn_loadList() {
-        let param = {
+        let extData = {
             pageIndex: 1,
             listScale: 100,
             msgCtsGbncd: currentTab,
             searchText: $('#popTmpltSearch').val()
         };
 
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(extData)
+        };
         ajaxCall('/msgTmpltListAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 tmpltList = res.returnList || [];
                 fn_renderCards();
             }
-        }, function() {
-            alert('<spring:message code="fail.common.select"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
     }
 
@@ -127,16 +133,23 @@
         let ids = [];
         checked.each(function() { ids.push($(this).val()); });
 
-        ajaxCall('/msgTmpltDeleteAjax.do', { msgTmpltIds: ids.join(',') }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ msgTmpltIds: ids.join(',') })
+        };
+        ajaxCall('/msgTmpltDeleteAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 alert('<spring:message code="msg.shrtnt.msg.deleteSuccess"/>');
                 selectedTmplt = null;
                 fn_clearPreview();
                 fn_loadList();
             } else {
-                alert(res.message || '<spring:message code="fail.common.delete"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>","error");
             }
-        }, function() { UiComm.showLoading(false); });
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
+        }, true);
     }
 
     /* 엔터키 검색 */

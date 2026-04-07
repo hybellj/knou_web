@@ -1320,7 +1320,7 @@ public class DscsLectController extends ControllerBase {
 
         String dscsId = vo.getDscsId();
         String stdId = vo.getStdId();
-        String teamCd = vo.getTeamId();
+        String teamId = vo.getTeamId();
 
         request.setAttribute("dscsId", dscsId);
         request.setAttribute("stdId", stdId);
@@ -1350,8 +1350,8 @@ public class DscsLectController extends ControllerBase {
         forumFdbkVO.setDscsId(dscsId);
         forumFdbkVO.setStdId(stdId);
 
-        if(teamCd != null || teamCd != "") {
-            forumFdbkVO.setTeamId(teamCd);
+        if(teamId != null || teamId != "") {
+            forumFdbkVO.setTeamId(teamId);
         }
 
         request.setAttribute("userId", userId);

@@ -181,6 +181,13 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
         return insertReceivers(vo, vo.getMdfrId());
     }
 
+    /*****************************************************
+     * 수신자 등록 (JSON 파싱 후 수신대상자 및 쪽지발송 INSERT)
+     * @param vo
+     * @param rgtrId
+     * @return int 등록된 수신자 수
+     * @throws Exception
+     ******************************************************/
     private int insertReceivers(MsgShrtntVO vo, String rgtrId) throws Exception {
         JSONParser parser = new JSONParser();
         JSONArray rcvrArr = (JSONArray) parser.parse(vo.getRcvrListJson());
@@ -305,4 +312,6 @@ public class MsgShrtntServiceImpl extends ServiceBase implements MsgShrtntServic
     public List<MsgShrtntVO> selectShrtntRcvrByUserIds(MsgShrtntVO vo) {
         return msgShrtntDAO.selectShrtntRcvrByUserIds(vo);
     }
+
+
 }

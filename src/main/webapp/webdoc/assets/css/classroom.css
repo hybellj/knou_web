@@ -51,7 +51,6 @@ classroom - layout, common
 }
 @media(max-width: 410px){  
     .class .class_sub_top .btn-wrap .sec .btn i {display: none;}
-
 }
 
 
@@ -59,7 +58,7 @@ classroom - layout, common
 classroom - gnb
 ======================================================================================= */
 aside.common.class { visibility: hidden; }
-aside.common.class { position: fixed; display: flex; flex-direction: column; width: 100%; max-width: 100%; height: 100%; left: 0; top: 0; /*transform: translateX(-100%);*/ padding: 8px 0 32px 15px; background-color: #373F57;  /*transition: all .3s;*/ z-index: 400; }
+aside.common.class { position: fixed; display: flex; flex-direction: column; width: 100%; max-width: 100%; height: 100%; left: 0; top: 0; /*transform: translateX(-100%);*/ padding: 8px 0 32px 15px; background-color: #373F57;  /*transition: all .3s;*/ z-index: 1100; }
 aside.common.class.expanded { transform: translateX(-0%); }
 aside.common.class > *:not(nav.gnb_class) { flex: none }
 aside.common.class .option-control-wrap { display: flex; flex-wrap: wrap; padding: 8px 8px 8px 8px; }
@@ -1110,7 +1109,7 @@ classroom - sub - common
     border: 1px solid #d9d9d9;
     box-sizing: border-box;
     vertical-align: top;
-    background: #fff;; }
+    background: #fff; }
 .options_wrap li.active .title-wrap {border-radius: 8px 8px 0 0;}
 .options_wrap li .title-wrap .title { width: 100%; color: var(--txt_02); font-weight: 500; font-size: 1.7rem; display: flex; gap: .5rem; align-items: center;}
 .options_wrap li .title-wrap .title strong {margin-right: .5rem; font-weight: 700;}
@@ -1150,7 +1149,61 @@ classroom - sub - common
 .team_item .item .wide {flex: 1;}
 .team_item .item .sm {border-left: 0; border-right: 0; width: 7rem; color:var(--blue-600);}
 .team_item .item input {border-radius: 0; }
-.team_item .item .btn { border-radius: 0 5px 5px 0; line-height: 1; font-size: 1.4rem; background: #4D4D4D; border-color: #4D4D4D; color: #fff; padding: .8rem 1rem;}
+.team_item .item .btn { border-radius: 0 5px 5px 0; line-height: 1; font-size: 1.4rem; background: #3D5480; border-color: #3D5480; color: #fff; padding: .8rem 1rem;}
+.team_item .item_setting {margin-top: 1rem;}
 @media (max-width: 480px) {
     .team_item .item .btn {font-size: 1.3rem;}
+}
+
+
+/* 학습요소 - 아코디언 */
+.elements_wrap { width: 100%; margin-bottom: 4rem;}
+.elements_wrap .accordion > li { border: 1px solid #DEE2E6; border-radius: 8px; box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.08);}
+.elements_wrap .accordion > li .title-wrap { display: flex;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    position: relative;
+    border-radius: 8px;
+    box-sizing: border-box; padding-right: 3rem;
+    vertical-align: top; border-left: 5px solid #51AEEB;
+    background-color: #F8F9FA; }
+.elements_wrap .accordion > li.active .title-wrap {border-radius: 8px 8px 0 0;}
+.elements_wrap .accordion > li .title-wrap .title { width: 100%; color: var(--txt_02); font-weight: 500; font-size: 1.8rem; display: flex; gap: .5rem; align-items: center;}
+.elements_wrap .accordion > li .title-wrap .title strong {margin-right: .5rem; font-weight: 600; color: var(--primary3);}
+.elements_wrap .accordion > li .title-wrap .arrow { color: #333; position: absolute; top:50% !important; bottom: auto !important; transform: translateY(-50%); right: 10px; font-size: 14px; padding: 6px; transition: all .25s ease; }
+.elements_wrap .accordion > li .title-wrap .desc { font-size: 1.4rem; font-weight: 400; color: var(--txt_02_70);}
+.elements_wrap .accordion > li .title-wrap .desc {word-break: keep-all;}
+.elements_wrap .accordion > li .title-wrap .desc strong { color: var(--txt_02_70); font-weight: 600; margin-left: .5rem;}
+.elements_wrap .accordion > li .title-wrap .desc span + span::before {
+    float: none;
+    content: '';
+    display: inline-block;
+    width: 1px;
+    height: calc(1em - 4px);
+    background-color: var(--dark-300);
+    transform: rotate(18deg);
+    margin: 0 8px 0 4px;
+    padding: 0;
+}
+.elements_wrap .accordion > li > .cont { display: block; margin: 0 2rem; overflow: hidden; height: 0; transition: all 0.3s ease; background-color: #fff;}
+.elements_wrap .accordion > li.active .cont { height: auto !important; margin:2rem 2rem 2rem 2rem; overflow: visible;}
+.elements_wrap .accordion > li.active .title-wrap {border-radius: 8px 8px 0 0; border: none; border-bottom: 1px solid #DEE2E6; border-left: 5px solid #51AEEB;}
+.elements_wrap .accordion > li.active .arrow { transform: rotate(180deg); top:auto !important;}
+.elements_wrap .accordion > li + li {margin-top: 1.8rem;}
+.elements_wrap .btn_right {font-size: 1.4rem; display: flex; gap: .5rem; align-items: center; margin-left: auto;}
+.elements_wrap .table_list { border: 1px solid #D4D6D6; font-size: 1.5rem;}
+.elements_wrap .table_list ul.list {}
+.elements_wrap .table_list ul.list > li.head {width: 18%; line-height: 1.2;}
+.elements_wrap .table_list ul.list > li {padding: 1.2rem 1.5rem; flex-wrap: wrap;}
+.elements_wrap .table_list ul.list > li.in_table {display: flex; flex-direction: column; align-items: self-start;}
+/* .elements_wrap .view_con {display: flex;} */
+@media (max-width: 1024px) {
+    .elements_wrap .accordion > li .title-wrap .arrow {top: auto; bottom: 0rem;}
+}
+@media (max-width: 800px) {
+    .elements_wrap .table_list ul.list > li.head {width: 20%;}
+    .elements_wrap .table_list ul.list > li.in_table .table-wrap {width: 100%;}
+}
+@media (max-width: 480px) {
+    .elements_wrap .table_list ul.list li.head { width: 100%; padding: .75rem 1.5rem; }
 }

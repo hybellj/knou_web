@@ -278,6 +278,83 @@
                                                     <button type="button" class="btn basic">학습그룹지정</button>
                                                 </div>
                                                 <small class="note2">! 구성된 팀이 없는 경우 메뉴 "과목설정 > 학습그룹지정"에서 팀을 생성해 주세요.</small>
+                                                
+                                                <div class="item_setting">
+                                                    <div class="checkbox_type">
+                                                        <span class="custom-input">
+                                                            <input type="checkbox" id="group_set" name="group_set" value="all" checked>
+                                                            <label for="group_set">학습그룹별 토론 설정</label>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <!-- 학습그룹별 토론설정 -->
+                                                <div class="table-wrap mb30">
+                                                    <table class="table-type5 in_table">
+                                                        <colgroup>
+                                                            <col class="width-5per" />
+                                                            <col class="width-15per" />
+                                                            <col />
+                                                        </colgroup>
+                                                        <tbody>                                                            
+                                                            <tr>
+                                                                <th rowspan="4" class="group-header"><label for="viewOption">1팀</label></th>
+                                                                <th><label>학습그룹 구성원</label></th>
+                                                                <td>
+                                                                    홍팀장1 외 11명
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th><label for="sub_topic">부주제</label></th>
+                                                                <td>
+                                                                    <div class="form-row">
+                                                                        <input class="form-control width-100per" type="text" name="name" id="sub_topic" value="" placeholder="주제 입력">
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th><label for="contTextarea">내용</label></th>
+                                                                <td>
+                                                                    <label class="width-100per"><textarea rows="4" class="form-control resize-none"></textarea></label>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th><label for="attchFile">첨부파일</label></th>
+                                                                <td>
+                                                                    첨부파일
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th rowspan="4" class="group-header"><label for="viewOption">2팀</label></th>
+                                                                <th><label>학습그룹 구성원</label></th>
+                                                                <td>
+                                                                    홍팀장1 외 11명
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th><label for="sub_topic">부주제</label></th>
+                                                                <td>
+                                                                    <div class="form-row">
+                                                                        <input class="form-control width-100per" type="text" name="name" id="sub_topic" value="" placeholder="주제 입력">
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th><label for="contTextarea">내용</label></th>
+                                                                <td>
+                                                                    <label class="width-100per"><textarea rows="4" class="form-control resize-none"></textarea></label>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th><label for="attchFile">첨부파일</label></th>
+                                                                <td>
+                                                                    첨부파일
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <!--//학습그룹별 토론설정 -->
+                                                
                                                 <div class="item">
                                                     <label class="label_num">2반</label>
                                                     <input class="form-control wide" type="text" placeholder="팀 분류 선택하세요">
@@ -412,13 +489,6 @@
 
                     </div>
 
-
-                    <!-- modal popup 보여주기 버튼(개발시 삭제) -->
-                    <div class="modal-btn-box">
-                        <button type="button" class="btn modal__btn" data-modal-open="modal1">학습그룹지정</button>          
-                    </div>
-                    <!--// modal popup 보여주기 버튼(개발시 삭제) -->
-
                 </div>
             </div>
             <!-- //content -->
@@ -426,75 +496,7 @@
 
         </main>
         <!-- //classroom-->
-
-        <!-- Modal 1 -->
-        <div class="modal-overlay" id="modal1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
-            <div class="modal-content modal-md" tabindex="-1">
-                <div class="modal-header">
-                    <h2 id="modal1Title">학습그룹지정</h2> 
-                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
-                </div>
-                <div class="modal-body"> 
-                   
-                    <div class="msg-box warning">                                
-                        <p class="txt"><i class="xi-error" aria-hidden="true"></i> 학습그룹 배정이 완료된 학습그룹만 조회됩니다.</p>                                                             
-                    </div>                    
-                    
-                    <div class="board_top">
-                        <select class="form-select wide" id="selectGroup">
-                            <option value="학습그룹 지정">학습그룹 지정</option>
-                        </select>                
-                    </div>
-
-                    <div class="table-wrap">
-                        <table class="table-type1">
-                            <colgroup>
-                                <col style="width:10%">
-                                <col style="">
-                                <col style="width:20%">
-                                <col style="width:20%">                                    
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th>번호</th>
-                                    <th>팀명</th>
-                                    <th>팀장</th>
-                                    <th>팀원</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td data-th="번호">1</td>
-                                    <td data-th="팀명">팀1</td>
-                                    <td data-th="팀장">홍길동</td>
-                                    <td data-th="팀원">10명</td>
-                                </tr>
-                                <tr>
-                                    <td data-th="번호">2</td>
-                                    <td data-th="팀명">팀2</td>
-                                    <td data-th="팀장">김철수</td>
-                                    <td data-th="팀원">10명</td>
-                                </tr>
-                                <tr>
-                                    <td data-th="번호">3</td>
-                                    <td data-th="팀명">팀3</td>
-                                    <td data-th="팀장">이영희</td>
-                                    <td data-th="팀원">10명</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="modal_btns">
-                        <button type="button" class="btn type1">확인</button>
-                        <button type="button" class="btn type2">닫기</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <script src="<%=request.getContextPath()%>/webdoc/assets/js/modal.js" defer></script>
-
+        
     </div>
 
 </body>

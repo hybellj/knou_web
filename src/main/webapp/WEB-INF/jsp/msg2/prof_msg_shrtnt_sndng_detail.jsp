@@ -10,7 +10,8 @@
 </head>
 
 <script type="text/javascript">
-    let msgId = '${fn:escapeXml(msgId)}';
+    let msgId = '<c:out value="${msgId}" />';
+    let EPARAM = '<c:out value="${encParams}" />';
     let rcvrCurrentPage = 1;
     let rcvrListScale = 10;
     let rcvrTable;
@@ -24,13 +25,20 @@
 
     /* 발신 상세 조회 */
     function fn_loadDetail() {
-        ajaxCall('/msgShrtntSndngDetailAjax.do', { msgId: msgId }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ msgId: msgId })
+        };
+        ajaxCall('/msgShrtntSndngDetailAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnVO) {
                 fn_renderDetail(res.returnVO);
             } else {
-                alert(res.message || '<spring:message code="fail.common.select"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>","error");
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
+        }, true);
     }
 
     /* 상세 렌더링 */
@@ -57,7 +65,7 @@
         if (v.atflList && v.atflList.length > 0) {
             let fileHtml = '';
             v.atflList.forEach(function(f) {
-                fileHtml += '<a href="/common/downloadFile.do?filenm=' + encodeURIComponent(f.filenm) + '&fileSavnm=' + encodeURIComponent(f.fileSavnm) + '&filePath=' + encodeURIComponent(f.filePath) + '">';
+                fileHtml += '<a href="#_" onclick="UiFileDownloader(\'' + f.encDownParam + '\');return false;" class="link" title="File download">';
                 fileHtml += '<i class="xi-paperclip"></i> ' + UiComm.escapeHtml(f.filenm);
                 fileHtml += '</a><br>';
             });
@@ -91,13 +99,18 @@
     function fn_loadRcvrList(pageIndex) {
         if (pageIndex) rcvrCurrentPage = pageIndex;
 
-        let param = {
+        let extData = {
             msgId: msgId,
             pageIndex: rcvrCurrentPage,
             listScale: rcvrListScale
         };
 
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(extData)
+        };
         ajaxCall('/msgShrtntSndngRcvrListAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 let dataList = fn_createRcvrListData(res.returnList, res.pageInfo);
                 rcvrTable.clearData();
@@ -106,8 +119,8 @@
                 let total = res.pageInfo ? res.pageInfo.totalRecordCount : 0;
                 $('#rcvrTotalCnt').text(total);
             }
-        }, function() {
-            alert('<spring:message code="fail.common.select"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
     }
 
@@ -137,7 +150,7 @@
 
     /* 수정 */
     function fn_modify() {
-        location.href = '/profMsgShrtntSndngRegistView.do?msgId=' + encodeURIComponent(msgId);
+        location.href = '/profMsgShrtntSndngRegistView.do?encParams=' + EPARAM + '&addParams=' + UiComm.makeEncParams({ msgId: msgId });
     }
 
     /* 받는 사람 엑셀 다운로드 */
@@ -201,7 +214,12 @@
 
     /* 예약 취소 처리 */
     function fn_rsrvCnclSubmit() {
-        ajaxCall('/msgShrtntRsrvCnclAjax.do', { msgId: msgId }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ msgId: msgId })
+        };
+        ajaxCall('/msgShrtntRsrvCnclAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 alert('<spring:message code="msg.shrtnt.msg.rsrvCnclSuccess"/>');
                 if (rsrvCnclDlg) rsrvCnclDlg.close();
@@ -209,14 +227,16 @@
                 $('#btnModify').hide();
                 $('#btnRsrvCncl').hide();
             } else {
-                alert(res.message || '<spring:message code="fail.common.update"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>","error");
             }
-        }, function() { UiComm.showLoading(false); });
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
+        }, true);
     }
 
     /* 목록으로 */
     function fn_list() {
-        location.href = '/profMsgShrtntListView.do?tab=SNDNG';
+        location.href = '/profMsgShrtntListView.do?encParams=' + EPARAM;
     }
 </script>
 
@@ -238,14 +258,7 @@
                 <div class="sub-content">
                     <div class="page-info">
                         <h2 class="page-title"><span><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></span><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
-                        <div class="navi_bar">
-                            <ul>
-                                <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                <li><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></li>
-                                <li><spring:message code="msg.shrtnt.label.title" text="쪽지"/></li>
-                                <li><span class="current"><spring:message code="msg.shrtnt.label.sndngDetail" text="발신 상세"/></span></li>
-                            </ul>
-                        </div>
+                        <uiex:navibar type="main"/>
                     </div>
 
                     <div class="board_top">

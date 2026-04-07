@@ -166,12 +166,12 @@
                        
                       
                         <div class="board_top">
-                            <h4 class="sub-title">과목 정보</h4>                         
+                            <h4 class="sub-title">받는 사람</h4>                         
                             <div class="right-area">
                                 <button type="button" class="btn basic">엑셀양식 다운로드</button>
                                 <button type="button" class="btn basic">엑셀 업로드</button>
-                                <button type="button" class="btn type2">추가</button>
-                                <button type="button" class="btn type2">삭제</button>
+                                <button type="button" class="btn type2"><i class="xi-plus-min"></i> 추가</button>
+                                <button type="button" class="btn type2"><i class="xi-minus-min"></i> 삭제</button>
                                 <select class="form-select type-num" id="select" title="페이지당 리스트수를 선택하세요.">
                                     <option value="ALL" selected="selected">10</option>
                                     <option value="20">20</option>

@@ -674,6 +674,46 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     }
 
     /*****************************************************
+     * 수강생 시험 응시현황 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listUserTkexamStatPaging(ExamVO vo) throws Exception{
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countUserTkexamStat(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listUserTkexamStatPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 중간, 기말 시험 ID 목록 조회
+     * @param String sbjctId
+     * @return List<EgovMap>
+     * @throws Exception
+     ******************************************************/
+    public List<EgovMap> listExamMidLst(String sbjctId) throws Exception {
+        return examDAO.listExamMidLst(sbjctId);
+    }
+
+    /*****************************************************
      * 성적 공개여부 수정
      * @param vo
      * @throws Exception
@@ -879,14 +919,26 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 
                 // B-2. 시험(퀴즈) 상세 수정
                 examDAO.updateExamDtlInfo(vo);
+
+                // B-3. 출제 완료여부 조회후 param 세팅
+                vo.setExamQstnsCmptnyn(examDAO.selectSbstQuizExamQstnsCmptnyn(vo));
+
+                // B-4. 출제 완료여부 수정
+                examDAO.updateExamQstnsCmptnyn(vo);
                 break;
             // C. 퀴즈
             case "QUIZ" :
-                // B-1. 시험(퀴즈) 기본 수정
+                // C-1. 시험(퀴즈) 기본 수정
                 examDAO.updateExamSbstBsc(vo);
 
-                // B-2. 시험(퀴즈) 상세 수정
+                // C-2. 시험(퀴즈) 상세 수정
                 examDAO.updateExamDtlInfo(vo);
+
+                // C-3. 출제 완료여부 조회후 param 세팅
+                vo.setExamQstnsCmptnyn(examDAO.selectSbstQuizExamQstnsCmptnyn(vo));
+
+                // C-4. 출제 완료여부 수정
+                examDAO.updateExamQstnsCmptnyn(vo);
                 break;
         }
     }
@@ -933,26 +985,56 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                 // A-1. 과제 삭제
                 examDAO.deleteSbstAsmt(vo);
                 break;
-            // B. 퀴즈
+            // B. 대체 퀴즈
             case "SBST_QUIZ" :
-                String beforeBscId = vo.getExamBscId(); // 시험 ID 저장
+                String beforeBscId1 = vo.getExamBscId(); // 시험 ID 저장
+                String beforeGrpId1 = vo.getExamGrpId(); // 그룹 ID 저장
                 vo.setExamBscId(vo.getQuizBscId());     // 기존 시험 ID를 quiz 의 기본 ID로 변경
-                String beforeGrpId = vo.getExamGrpId(); // 그룹 ID 저장
-                // B-1. 시험(퀴즈) 상세 삭제
-                examDAO.deleteExamDtlInfo(vo);
+                ExamBscVO examBscVO1 = new ExamBscVO();
+                examBscVO1.setExamBscId(vo.getQuizBscId());
+                // B-1. 시험(퀴즈) 상세 삭제 (삭제 상태값 변경)
+                examDAO.examDtlDelynModify(examBscVO1);
 
-                // B-2. 시험(퀴즈) 기본 삭제
-                examDAO.deleteExamBscInfo(vo);
+                // B-2. 시험(퀴즈) 기본 삭제 (삭제 상태값 변경)
+                examDAO.examBscModify(examBscVO1);
 
-                // B-4. 시험 기본 grp 비워놓기
+                // B-3. 시험 기본 grp 비워놓기
                 vo.setExamGrpId(null);
-                vo.setExamBscId(beforeBscId);
-                examDAO.updateExamBscGrp(vo);
+                examDAO.updateExamBscGrp(vo);   // 대체 퀴즈 그룹 ID 비우기
+                vo.setExamBscId(beforeBscId1);
+                examDAO.updateExamBscGrp(vo);   // 부모 시험 그룹 ID 비우기
 
-                // B-3. 시험(퀴즈) 그룹 삭제
-                vo.setExamGrpId(beforeGrpId);
+                // B-4. 시험(퀴즈) 그룹 삭제
+                vo.setExamGrpId(beforeGrpId1);
                 examDAO.deleteExamGrp(vo);
+                break;
 
+            // C. 퀴즈
+            case "QUIZ" :
+                String beforeBscId2 = vo.getExamBscId(); // 시험 ID 저장
+                String beforeGrpId2 = vo.getExamGrpId(); // 그룹 ID 저장
+                vo.setExamBscId(vo.getQuizBscId());     // 기존 시험 ID를 quiz 의 기본 ID로 변경
+                ExamBscVO examBscVO2 = new ExamBscVO();
+                examBscVO2.setExamBscId(vo.getQuizBscId());
+                // C-1. 시험(퀴즈) 상세 삭제 (삭제 상태값 변경)
+                examDAO.examDtlDelynModify(examBscVO2);
+
+                // C-2. 시험(퀴즈) 기본 삭제 (삭제 상태값 변경)
+                examDAO.examBscModify(examBscVO2);
+
+                // C-3. 시험(퀴즈) 부모 및 자식 출제완료여부 임시저장으로 설정
+                vo.setExamQstnsCmptnyn("N");
+                examDAO.updateExamQstnsCmptnyn(vo);
+
+                // C-4. 시험 기본 grp 비워놓기
+                vo.setExamGrpId(null);
+                examDAO.updateExamBscGrp(vo);   // 대체 퀴즈 그룹 ID 비우기
+                vo.setExamBscId(beforeBscId2);
+                examDAO.updateExamBscGrp(vo);   // 부모 시험 그룹 ID 비우기
+
+                // C-5. 시험(퀴즈) 그룹 삭제
+                vo.setExamGrpId(beforeGrpId2);
+                examDAO.deleteExamGrp(vo);
                 break;
         }
     }

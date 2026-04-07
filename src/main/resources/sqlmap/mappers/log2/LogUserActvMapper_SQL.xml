@@ -2,6 +2,54 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.log2.user.dao.LogUserActvDAO">
 		
+	<!-- 강의실 활동 로그 조회 현황 목록(페이징) -->
+	<sql id="logUserActvQuery">
+		SELECT
+			  COUNT(1) OVER()                                                          AS TOTAL_CNT
+			, COUNT(1) OVER() - ROW_NUMBER() OVER(ORDER BY A.ACTV_DTTM DESC) + 1      AS LINE_NO
+			, A.USER_ACTV_ID
+			, A.USER_ID
+			, A.SBJCT_ID
+			, A.REQ_TYCD
+			, A.USER_REQ_URL
+			, A.USER_REQ_MENU
+			, A.USER_REQ_CTS
+			, A.USER_TYCD
+			, A.CNTN_IP
+			, A.CNTN_DVC_TYCD
+			, A.CNTN_BRWSR
+			, A.ACTV_DTTM
+			, A.SESS_ID
+			, A.SESS_SDTTM
+			, A.SESS_EDTTM
+			, A.RGTR_ID
+			, A.REG_DTTM
+		FROM TB_LMS_LOG_USER_ACTV A
+		WHERE 1=1
+		<if test='sbjctId != null and sbjctId != ""'>
+			AND A.SBJCT_ID = #{sbjctId}
+		</if>
+		<if test='userId != null and userId != ""'>
+			AND A.USER_ID = #{userId}
+		</if>
+		<if test='searchFrom != null and searchFrom != ""'>
+			AND <![CDATA[ A.ACTV_DTTM >= #{searchFrom} ]]>
+		</if>
+		<if test='searchTo != null and searchTo != ""'>
+			AND <![CDATA[ A.ACTV_DTTM <= #{searchTo} ]]>
+		</if>
+	</sql>
+
+	<select id="selectLogUserActvList" parameterType="knou.lms.log2.user.vo.LogUserActvVO" resultType="knou.lms.log2.user.vo.LogUserActvVO">
+		/*
+			 SQL ID : LogUserActvDAO.selectLogUserActvList
+			 설  명 : 강의실 활동 로그 조회 현황(TB_LMS_LOG_USER_ACTV) 페이징
+	 	*/
+	 	<include refid="CommonSQL.pagePrefix" />
+		<include refid="logUserActvQuery" />
+		<include refid="CommonSQL.pageSubfix" />
+	</select>
+
 	<select id="stdntSubjectConnectList" parameterType="map" resultType="eGovMap">
 		/*	설명 : 사용자과목접속목록조회 - 현재시간보다 120분이전 접속기록조회*/		
 		SELECT *

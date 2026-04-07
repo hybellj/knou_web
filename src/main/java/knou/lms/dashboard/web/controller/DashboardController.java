@@ -568,8 +568,6 @@ public class DashboardController extends ControllerBase {
             //    SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
             //} >>>>> warning db에 데이터가 없어서 null 이면 어케하나?
 
-
-        	System.out.println("444444444444444444444444444");
         	LogUserLoginTryLogVO loginVO = logUserLoginTryLogService.selectLastLogin(new LogUserLoginTryLogVO(userCtx.getUserId()));
 
         	if ( null != loginVO )
@@ -950,12 +948,6 @@ public class DashboardController extends ControllerBase {
 
 
 
-
-
-
-
-
-
         // 	사용자 세션정보 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         //	********************************************************/
         //	대표아이디를 userId에 설정하면 안됩니다.
@@ -966,13 +958,6 @@ public class DashboardController extends ControllerBase {
         //String userId = SessionInfo.getUserRprsId(request);
         //String userId = SessionInfo.getUserId(request);
         userInfo.setUserId(SessionInfo.getUserId(request));
-
-
-
-
-
-
-
 
 
         // SSO 일반로그인인 경우 학생은 다시 로그인하도록 전달
@@ -1004,7 +989,6 @@ public class DashboardController extends ControllerBase {
         if ("".equals(lastLogin)) {
             LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
             loginTryLogVO.setUserId(userInfo.getUserId());
-            System.out.println("7777777777777777777777777777777777777777");
             loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
 
             if (loginTryLogVO != null) {

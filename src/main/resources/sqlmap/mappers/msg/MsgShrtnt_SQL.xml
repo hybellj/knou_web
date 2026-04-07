@@ -5,6 +5,10 @@
 
     <!-- 수신 검색 조건 -->
     <sql id="rcvnSearchCondition">
+        /*
+             SQL ID : MsgShrtntDAO.rcvnSearchCondition
+             설  명 : 수신 검색 조건
+         */
         <if test="orgId != null and orgId != ''">
             AND (DEPT.ORG_ID = #{orgId} OR MSG.SBJCT_ID IS NULL)
         </if>
@@ -50,6 +54,10 @@
 
     <!-- 발신 검색 조건 -->
     <sql id="sndngSearchCondition">
+        /*
+             SQL ID : MsgShrtntDAO.sndngSearchCondition
+             설  명 : 발신 검색 조건
+         */
         <if test="orgId != null and orgId != ''">
             AND (ORG.ORG_ID = #{orgId} OR MSG.SBJCT_ID IS NULL)
         </if>
@@ -500,7 +508,7 @@
                  , #{sndngCts}
                  , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
                  , #{sndngrId}
-                 , #{sndngnm}
+                 , CASE WHEN #{sndngnm} IS NOT NULL THEN #{sndngnm} ELSE (SELECT U.USERNM FROM TB_LMS_USER U WHERE U.USER_ID = #{sndngrId}) END
                  , #{rcvrId}
                  , #{sndngYn}
                  , 'N'
@@ -598,12 +606,10 @@
         */
         SELECT DISTINCT S.SBJCT_YR
         FROM TB_LMS_SBJCT S
-        INNER JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
         <if test="userId != null and userId != ''">
             INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
         </if>
-        WHERE D.ORG_ID = #{orgId}
-        AND S.DELYN = 'N'
+        WHERE S.DELYN = 'N'
         ORDER BY S.SBJCT_YR DESC
     </select>
 
@@ -614,12 +620,10 @@
         */
         SELECT DISTINCT TRIM(S.SBJCT_SMSTR) AS SBJCT_SMSTR
         FROM TB_LMS_SBJCT S
-        INNER JOIN TB_LMS_DEPT D ON S.DEPT_ID = D.DEPT_ID
         <if test="userId != null and userId != ''">
             INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
         </if>
-        WHERE D.ORG_ID = #{orgId}
-        AND S.DELYN = 'N'
+        WHERE S.DELYN = 'N'
         <if test="sbjctYr != null and sbjctYr != ''">
             AND S.SBJCT_YR = #{sbjctYr}
         </if>
@@ -638,7 +642,10 @@
             INNER JOIN TB_LMS_SBJCT S ON S.DEPT_ID = D.DEPT_ID AND S.DELYN = 'N'
             INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
         </if>
-        WHERE D.ORG_ID = #{orgId}
+        WHERE 1 = 1
+        <if test="orgId != null and orgId != ''">
+            AND D.ORG_ID = #{orgId}
+        </if>
         ORDER BY D.DEPTNM ASC
     </select>
 
@@ -654,8 +661,10 @@
         <if test="userId != null and userId != ''">
             INNER JOIN TB_LMS_MSG MSG ON MSG.SBJCT_ID = S.SBJCT_ID AND MSG.RGTR_ID = #{userId}
         </if>
-        WHERE D.ORG_ID = #{orgId}
-        AND S.DELYN = 'N'
+        WHERE S.DELYN = 'N'
+        <if test="orgId != null and orgId != ''">
+            AND D.ORG_ID = #{orgId}
+        </if>
         <if test="sbjctYr != null and sbjctYr != ''">
             AND S.SBJCT_YR = #{sbjctYr}
         </if>
@@ -671,6 +680,10 @@
     <!-- ==================== 받는 사람 검색 ==================== -->
 
     <sql id="rcvrSearchCondition">
+        /*
+             SQL ID : MsgShrtntDAO.rcvrSearchCondition
+             설  명 : 수신자 검색 조건
+         */
         <if test="sndngrId != null and sndngrId != ''">
             AND U.USER_ID != #{sndngrId}
         </if>
@@ -692,6 +705,10 @@
 
     <!-- 관리자 받는 사람 검색 조건 (전체 회원) -->
     <sql id="rcvrSearchAllCondition">
+        /*
+             SQL ID : MsgShrtntDAO.rcvrSearchAllCondition
+             설  명 : 수신자 전체 검색 조건
+         */
         <if test="sndngrId != null and sndngrId != ''">
             AND U.USER_ID != #{sndngrId}
         </if>
@@ -823,6 +840,16 @@
             AND EXISTS (SELECT 1 FROM TB_LMS_USER_ORG UO WHERE UO.USER_ID = U.USER_ID AND UO.ORG_ID = #{orgId})
         </if>
         ORDER BY U.USERNM ASC
+    </select>
+
+    <select id="selectOrgNm" parameterType="String" resultType="String">
+        /*
+        SQL ID : MsgShrtntDAO.selectOrgNm
+        설  명 : 기관명 조회
+        */
+        SELECT ORGNM
+        FROM TB_LMS_ORG
+        WHERE ORG_ID = #{orgId}
     </select>
 
 </mapper>

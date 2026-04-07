@@ -175,7 +175,7 @@ function listDscs(page, userId, stdId, teamStdIds) {
 }
 
 // 전체 점수 입력 화면 로드
-function getTotalScoreInputView(userId, stdId, teamCd) {
+function getTotalScoreInputView(userId, stdId, teamId) {
 	//	if (!stdId && !teamCd) {
 	//		$("#totalScoreInputBlock").empty();
 	//		$("#evalScoreInputBlock").empty();
@@ -192,14 +192,14 @@ function getTotalScoreInputView(userId, stdId, teamCd) {
 			, "dscsId" : $("#ezgDscsId").val()
 			, "userId" : userId
 			, "stdId" : stdId
-			, "teamId" : teamCd
+			, "teamId" : teamId
 			, "evlScrTycd" : "${vo.evlScrTycd}"
 		}; 
 
 		$("#totalScoreInputBlock").load(
 			url
 			, paramData
-			, function () {getEvalScoreInputView(userId, stdId, teamCd);}
+			, function () {getEvalScoreInputView(userId, stdId, teamId);}
 		);
 	} else {
 	*/
@@ -209,7 +209,7 @@ function getTotalScoreInputView(userId, stdId, teamCd) {
 			, "dscsId" : $("#ezgDscsId").val()
 			, "userId" : userId
 			, "stdId" : stdId
-			, "teamId" : teamCd
+			, "teamId" : teamId
 			, "evlScrTycd" : "${vo.evlScrTycd}"
 		}; 
 
@@ -224,8 +224,8 @@ function getTotalScoreInputView(userId, stdId, teamCd) {
 }
 
 // 문항별 점수 입력 화면 로드
-function getEvalScoreInputView(userId, stdId, teamCd) {
-	//	if (!stdId && !teamCd) {
+function getEvalScoreInputView(userId, stdId, teamId) {
+	//	if (!stdId && !teamId) {
 	//		$("#evalScoreInputBlock").empty();
 	//		return;
 	//	}
@@ -236,7 +236,7 @@ function getEvalScoreInputView(userId, stdId, teamCd) {
 		, "dscsId" : $("#ezgDscsId").val()
 		, "userId" : userId
 		, "stdId" : stdId
-		, "teamId" : teamCd
+		, "teamId" : teamId
 	};
 
 	$("#evalScoreInputBlock").load(
@@ -272,7 +272,7 @@ function cmntView(atclSn,index) {
 }
 
 // feedback 화면 로드
-function getDscsFeedbackView(userId, stdId, teamCd) {
+function getDscsFeedbackView(userId, stdId, teamId) {
 	if(stdId) {
 		$("#forumFeedbackBlock").load(
 			"/forum2/ezgPop/forumScoreEvalFeedBack.do"
@@ -281,7 +281,7 @@ function getDscsFeedbackView(userId, stdId, teamCd) {
 				, "dscsId" : $("#ezgDscsId").val()
 				, "userId" : userId
 				, "stdId" : stdId
-				, "teamId" : teamCd
+				, "teamId" : teamId
 				, "searchMenu" : "EZG"
 			}
 			, function (response, status, xhr) {

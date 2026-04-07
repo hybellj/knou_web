@@ -10,6 +10,7 @@
 </head>
 
 <script type="text/javascript">
+    let EPARAM = '<c:out value="${encParams}" />';
     let currentPage = 1;
     let listScale = 10;
     let searchTable;
@@ -37,7 +38,8 @@
 
     /* 기관 목록 */
     function fn_loadPopOrgList() {
-        ajaxCall('/msgShrtntOrgListAjax.do', {}, function(res) {
+        ajaxCall('/msgShrtntOrgListAjax.do', { encParams: EPARAM }, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.rcptnAgre.label.org" text="기관"/></option>';
                 res.returnList.forEach(function(v) {
@@ -47,12 +49,19 @@
                 fn_refreshChosen('#popOrgId');
                 fn_loadPopDeptList();
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 학과/부서 목록 */
     function fn_loadPopDeptList() {
-        ajaxCall('/msgShrtntDeptListAjax.do', { gubun: 'POPUP', orgId: $('#popOrgId').val() }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ gubun: 'POPUP', orgId: $('#popOrgId').val() })
+        };
+        ajaxCall('/msgShrtntDeptListAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과/부서선택"/></option>';
                 res.returnList.forEach(function(v) {
@@ -62,13 +71,20 @@
                 fn_refreshChosen('#popDeptId');
                 fn_loadPopSbjctList();
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 과목 목록 */
     function fn_loadPopSbjctList() {
         let deptId = $('#popDeptId').val();
-        ajaxCall('/msgShrtntSbjctListAjax.do', { deptId: deptId, orgId: $('#popOrgId').val(), gubun: 'POPUP' }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ deptId: deptId, orgId: $('#popOrgId').val(), gubun: 'POPUP' })
+        };
+        ajaxCall('/msgShrtntSbjctListAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 let html = '<option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="과목선택"/></option>';
                 res.returnList.forEach(function(v) {
@@ -77,14 +93,16 @@
                 $('#popSbjctId').html(html);
                 fn_refreshChosen('#popSbjctId');
             }
-        }, function() {});
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 검색 */
     function fn_search(pageIndex) {
         if (pageIndex) currentPage = pageIndex;
 
-        let param = {
+        let extData = {
             userTycd: $('#popUserTycd').val(),
             orgId: $('#popOrgId').val(),
             deptId: $('#popDeptId').val(),
@@ -95,7 +113,12 @@
             listScale: listScale
         };
 
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(extData)
+        };
         ajaxCall('/msgShrtntRcvrSearchAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 let dataList = fn_createListData(res.returnList, res.pageInfo);
                 searchTable.clearData();
@@ -105,8 +128,8 @@
                 $('#searchTotalCnt').text(total);
                 $('#popRcvrChkAll').prop('checked', false);
             }
-        }, function() {
-            alert('<spring:message code="fail.common.select"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
     }
 

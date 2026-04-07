@@ -10,19 +10,14 @@
 </head>
 
 <script type="text/javascript">
-    let currentPage = 1;
-    let listScale = ${pageSize};
+    let currentPage = '<c:out value="${vo.pageIndex}" />' || 1;
+    let listScale = '<c:out value="${vo.listScale}" />';
     let totalCnt = 0;
-    let activeTab = new URLSearchParams(location.search).get('tab') === 'SNDNG' ? 'SNDNG' : 'RCVN';
+    let activeTab = '<c:out value="${vo.listType}" />' || 'RCVN';
     let shrtntTable;
+    let EPARAM = '<c:out value="${encParams}" />';
 
     $(document).ready(function() {
-
-        /* URL 파라미터에 의한 초기 탭 활성화 */
-        if (activeTab === 'SNDNG') {
-            $('.tab_btn a').removeClass('current');
-            $('.tab_btn a[data-tab="SNDNG"]').addClass('current');
-        }
 
         /* 탭 클릭 이벤트 */
         $('.tab_btn a').on('click', function(e) {
@@ -37,11 +32,6 @@
         /* 셀렉트박스 change 이벤트 */
         $('#selectSbjctYr').on('change', function() {
             fn_loadSmstrList();
-            fn_loadSbjctList();
-        });
-
-        $('#selectSbjctSmstr').on('change', function() {
-            fn_loadSbjctList();
         });
 
         $('#selectOrg').on('change', function() {
@@ -53,65 +43,83 @@
             fn_loadSbjctList();
         });
 
-        /* 셀렉트박스 초기 로딩 */
-        fn_loadOrgList();
-        fn_loadYrList();
-        fn_loadDeptList();
+        /* 탭 UI 동기화 */
+        if (activeTab === 'SNDNG') {
+            $('.tab_btn a').removeClass('current');
+            $('.tab_btn a[data-tab="SNDNG"]').addClass('current');
+        }
 
-        /* 테이블 초기화 및 리스트 조회 */
-        fn_initTable();
-        fn_search();
+        /* 검색 상태 복원: listType이 있으면 상세/등록→목록 복원, 없으면 초기 진입 */
+        if ('<c:out value="${vo.listType}"/>') {
+            if ('<c:out value="${vo.orgId}"/>') $('#selectOrg').val('<c:out value="${vo.orgId}"/>').trigger('chosen:updated');
+            if ('<c:out value="${vo.sbjctYr}"/>') $('#selectSbjctYr').val('<c:out value="${vo.sbjctYr}"/>').trigger('chosen:updated');
+            if ('<c:out value="${vo.sndngSdttm}"/>') $('#sndngSdate').val('<c:out value="${vo.sndngSdttm}"/>');
+            if ('<c:out value="${vo.sndngEdttm}"/>') $('#sndngEdate').val('<c:out value="${vo.sndngEdttm}"/>');
+            if ('<c:out value="${vo.searchType}"/>') $('#selectSearchType').val('<c:out value="${vo.searchType}"/>').trigger('chosen:updated');
+            if ('<c:out value="${vo.searchText}"/>') $('#inputSearchText').val('<c:out value="${vo.searchText}"/>');
+
+            /* 학기/학과/과목 AJAX 로드 완료 후 리스트 조회 */
+            let asyncDone = 0;
+            let asyncTotal = 2;
+            function fn_onRestoreComplete() {
+                asyncDone++;
+                if (asyncDone >= asyncTotal) {
+                    fn_initTable();
+                    fn_loadList(currentPage);
+                }
+            }
+
+            fn_loadSmstrList(function() {
+                if ('<c:out value="${vo.sbjctSmstr}"/>') $('#selectSbjctSmstr').val('<c:out value="${vo.sbjctSmstr}"/>').trigger('chosen:updated');
+                fn_onRestoreComplete();
+            });
+
+            fn_loadDeptList(function() {
+                if ('<c:out value="${vo.deptId}"/>') $('#selectDept').val('<c:out value="${vo.deptId}"/>').trigger('chosen:updated');
+                fn_loadSbjctList(function() {
+                    if ('<c:out value="${vo.sbjctId}"/>') $('#selectSbjct').val('<c:out value="${vo.sbjctId}"/>').trigger('chosen:updated');
+                    fn_onRestoreComplete();
+                });
+            });
+        } else {
+            $('#selectOrg').val('').trigger('chosen:updated');
+            fn_initTable();
+            fn_loadList(currentPage);
+        }
     });
 
-    /* 학사년도 목록 조회 */
-    function fn_loadYrList() {
-        ajaxCall('/msgShrtntYrListAjax.do', {}, function(res) {
-            let $sel = $('#selectSbjctYr');
-            $sel.find('option:gt(0)').remove();
-            if (res.result > 0 && res.returnList) {
-                res.returnList.forEach(function(v) {
-                    $sel.append('<option value="' + v.sbjctYr + '">' + v.sbjctYr + '<spring:message code="msg.rcptnAgre.label.year" text="년"/></option>');
-                });
-            }
-            $sel.trigger('chosen:updated');
-        }, function() {});
-    }
-
     /* 학기 목록 조회 */
-    function fn_loadSmstrList() {
+    function fn_loadSmstrList(callback) {
         let $sel = $('#selectSbjctSmstr');
         $sel.find('option:gt(0)').remove();
         $sel.trigger('chosen:updated');
 
         let sbjctYr = $('#selectSbjctYr').val();
-        if (!sbjctYr) return;
+        if (!sbjctYr) {
+            if (typeof callback === 'function') callback();
+            return;
+        }
 
-        ajaxCall('/msgShrtntSmstrListAjax.do', { sbjctYr: sbjctYr }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ sbjctYr: sbjctYr })
+        };
+        ajaxCall('/msgShrtntSmstrListAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 res.returnList.forEach(function(v) {
                     $sel.append('<option value="' + v.sbjctSmstr + '">' + v.sbjctSmstr + '<spring:message code="msg.rcptnAgre.label.smstr" text="학기"/></option>');
                 });
             }
             $sel.trigger('chosen:updated');
-        }, function() {});
-    }
-
-    /* 기관 목록 조회 */
-    function fn_loadOrgList() {
-        ajaxCall('/msgShrtntOrgListAjax.do', {}, function(res) {
-            let $sel = $('#selectOrg');
-            $sel.find('option:gt(0)').remove();
-            if (res.result > 0 && res.returnList) {
-                res.returnList.forEach(function(v) {
-                    $sel.append('<option value="' + v.orgId + '">' + UiComm.escapeHtml(v.orgnm) + '</option>');
-                });
-            }
-            $sel.trigger('chosen:updated');
-        }, function() {});
+            if (typeof callback === 'function') callback();
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 학과 목록 조회 */
-    function fn_loadDeptList() {
+    function fn_loadDeptList(callback) {
         let $sel = $('#selectDept');
         $sel.find('option:gt(0)').remove();
         $sel.trigger('chosen:updated');
@@ -120,18 +128,26 @@
             orgId: $('#selectOrg').val()
         };
 
-        ajaxCall('/msgShrtntDeptListAjax.do', data, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(data)
+        };
+        ajaxCall('/msgShrtntDeptListAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 res.returnList.forEach(function(v) {
                     $sel.append('<option value="' + v.deptId + '">' + UiComm.escapeHtml(v.deptnm) + '</option>');
                 });
             }
             $sel.trigger('chosen:updated');
-        }, function() {});
+            if (typeof callback === 'function') callback();
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 운영과목 목록 조회 */
-    function fn_loadSbjctList() {
+    function fn_loadSbjctList(callback) {
         let $sel = $('#selectSbjct');
         $sel.find('option:gt(0)').remove();
         $sel.trigger('chosen:updated');
@@ -143,14 +159,22 @@
             deptId: $('#selectDept').val()
         };
 
-        ajaxCall('/msgShrtntSbjctListAjax.do', data, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(data)
+        };
+        ajaxCall('/msgShrtntSbjctListAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0 && res.returnList) {
                 res.returnList.forEach(function(v) {
                     $sel.append('<option value="' + v.sbjctId + '">' + UiComm.escapeHtml(v.sbjctnm) + '</option>');
                 });
             }
             $sel.trigger('chosen:updated');
-        }, function() {});
+            if (typeof callback === 'function') callback();
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>","error");
+        });
     }
 
     /* 테이블 초기화 (탭별 컬럼 구성) */
@@ -222,13 +246,19 @@
     function fn_loadList(pageIndex) {
         if (pageIndex) currentPage = pageIndex;
 
-        let param = fn_getSearchParam();
-        param.pageIndex = currentPage;
-        param.listScale = listScale;
+        let extData = fn_getSearchParam();
+        extData.pageIndex = currentPage;
+        extData.listScale = listScale;
+        extData.listType = activeTab;
 
         let url = activeTab === 'RCVN' ? '/msgShrtntRcvnListAjax.do' : '/msgShrtntSndngListAjax.do';
 
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(extData)
+        };
         ajaxCall(url, param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 let dataList = activeTab === 'RCVN' ? fn_createRcvnListData(res.returnList, res.pageInfo) : fn_createSndngListData(res.returnList, res.pageInfo);
                 shrtntTable.clearData();
@@ -236,10 +266,10 @@
                 shrtntTable.setPageInfo(res.pageInfo);
                 totalCnt = res.pageInfo ? res.pageInfo.totalRecordCount : 0;
             } else {
-                alert(res.message || '<spring:message code="fail.common.select"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>","error");
             }
-        }, function() {
-            alert('<spring:message code="fail.common.select"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
     }
 
@@ -341,17 +371,17 @@
 
     /* 수신 상세 이동 */
     function fn_rcvnDetail(msgShrtntSndngId) {
-        location.href = '/profMsgShrtntRcvnDetail.do?msgShrtntSndngId=' + msgShrtntSndngId;
+        location.href = '/profMsgShrtntRcvnDetailView.do?encParams=' + EPARAM + '&addParams=' + UiComm.makeEncParams({ msgShrtntSndngId: msgShrtntSndngId });
     }
 
     /* 발신 상세 이동 */
     function fn_sndngDetail(msgId) {
-        location.href = '/profMsgShrtntSndngDetail.do?msgId=' + msgId;
+        location.href = '/profMsgShrtntSndngDetailView.do?encParams=' + EPARAM + '&addParams=' + UiComm.makeEncParams({ msgId: msgId });
     }
 
     /* 발신하기 이동 */
     function fn_sndngRegist() {
-        location.href = '/profMsgShrtntSndngRegistView.do';
+        location.href = '/profMsgShrtntSndngRegistView.do?encParams=' + EPARAM;
     }
 
     /* 선택 삭제 */
@@ -366,17 +396,21 @@
         if (!confirm('<spring:message code="msg.shrtnt.msg.confirmDelete"/>')) return;
 
         let deletePromises = selectedIds.map(function(id) {
-            let param = { listType: activeTab };
-            param[idField] = id;
+            let delData = { listType: activeTab };
+            delData[idField] = id;
+            let param = {
+                  encParams: EPARAM
+                , addParams: UiComm.makeEncParams(delData)
+            };
             return new Promise(function(resolve, reject) {
-                ajaxCall('/msgShrtntDeleteAjax.do', param, function(res) { resolve(res); }, function() { resolve({ result: -1 }); });
+                ajaxCall('/msgShrtntDeleteAjax.do', param, function(res) { if (res.encParams) EPARAM = res.encParams; resolve(res); }, function(xhr, status, error) { UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); resolve({ result: -1 }); });
             });
         });
 
         Promise.all(deletePromises).then(function(results) {
             let failCnt = results.filter(function(r) { return r.result !== 1; }).length;
             if (failCnt > 0) {
-                alert('<spring:message code="fail.common.delete"/>');
+                UiComm.showMessage("<spring:message code='fail.common.delete'/>", "error");
             } else {
                 alert('<spring:message code="msg.shrtnt.msg.deleteSuccess"/>');
             }
@@ -390,7 +424,8 @@
         $('#rsrvCnclTtl').text(ttl);
         $('#rsrvCnclDttm').text(rsrvDttm);
         $('#rsrvCnclRcvrCnt').text(rcvrCnt);
-        $('#rsrvCnclUser').text('${fn:escapeXml(usernm)}');
+        $('#rsrvCnclUser').text('<c:out value="${vo.userNm}"/>');
+
         $('#rsrvCnclNowDttm').text(UiComm.formatDate(new Date().toISOString().replace(/[-T:\.Z]/g, '').substring(0, 14), 'datetime2'));
         $('#rsrvCnclModal').addClass('active').attr('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
@@ -405,15 +440,22 @@
     /* 예약 취소 실행 */
     function fn_doRsrvCncl() {
         let msgId = $('#rsrvCnclMsgId').val();
-        ajaxCall('/msgShrtntRsrvCnclAjax.do', { msgId: msgId }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ msgId: msgId })
+        };
+        ajaxCall('/msgShrtntRsrvCnclAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 fn_closeRsrvCnclPopup();
                 alert('<spring:message code="msg.shrtnt.msg.rsrvCnclSuccess"/>');
                 fn_loadList(currentPage);
             } else {
-                alert(res.message || '<spring:message code="fail.common.update"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>","error");
             }
-        }, function() { UiComm.showLoading(false); });
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
+        }, true);
     }
 </script>
 <body class="home colorA ${bodyClass}">
@@ -434,13 +476,7 @@
                 <div class="sub-content">
                     <div class="page-info">
                         <h2 class="page-title"><span><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></span><spring:message code="msg.shrtnt.label.title" text="쪽지"/></h2>
-                        <div class="navi_bar">
-                            <ul>
-                                <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                <li><spring:message code="msg.shrtnt.label.msgBox" text="메시지함"/></li>
-                                <li><span class="current"><spring:message code="msg.shrtnt.label.title" text="쪽지"/></span></li>
-                            </ul>
-                        </div>
+                        <uiex:navibar type="main"/>
                     </div>
 
                     <!-- search typeA -->
@@ -450,6 +486,9 @@
                             <div class="itemList">
                                 <select class="form-select" id="selectSbjctYr">
                                     <option value=""><spring:message code="msg.sndrDsctn.label.all" text="전체"/></option>
+                                    <c:forEach var="yr" items="${filterOptions.yrList}">
+                                        <option value="${yr.sbjctYr}">${yr.sbjctYr}<spring:message code="msg.rcptnAgre.label.year" text="년"/></option>
+                                    </c:forEach>
                                 </select>
                                 <select class="form-select" id="selectSbjctSmstr">
                                     <option value=""><spring:message code="msg.sndrDsctn.label.all" text="전체"/></option>
@@ -459,14 +498,23 @@
                         <div class="item">
                             <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.course" text="운영과목"/></label></span>
                             <div class="itemList">
-                                <select class="form-select" id="selectOrg">
-                                    <option value=""><spring:message code="msg.sndrDsctn.label.orgAll" text="기관 전체"/></option>
+                                <select class="form-select" id="selectOrg" autocomplete="off">
+                                    <option value="" selected><spring:message code="msg.sndrDsctn.label.orgAll" text="기관 전체"/></option>
+                                    <c:forEach var="org" items="${filterOptions.orgList}">
+                                        <option value="${org.orgId}"><c:out value="${org.orgnm}"/></option>
+                                    </c:forEach>
                                 </select>
                                 <select class="form-select wide" id="selectDept" style="max-width: 200px;">
                                     <option value=""><spring:message code="msg.sndrDsctn.label.deptAll" text="학과 전체"/></option>
+                                    <c:forEach var="dept" items="${filterOptions.deptList}">
+                                        <option value="${dept.deptId}"><c:out value="${dept.deptnm}"/></option>
+                                    </c:forEach>
                                 </select>
                                 <select class="form-select wide" id="selectSbjct" style="max-width: 200px;">
                                     <option value=""><spring:message code="msg.sndrDsctn.label.sbjctAll" text="운영과목 전체"/></option>
+                                    <c:forEach var="sbjct" items="${filterOptions.sbjctList}">
+                                        <option value="${sbjct.sbjctId}"><c:out value="${sbjct.sbjctnm}"/></option>
+                                    </c:forEach>
                                 </select>
                             </div>
                         </div>
@@ -474,9 +522,9 @@
                             <span class="item_tit"><label><spring:message code="msg.sndrDsctn.label.sndngDate" text="발신 일시"/></label></span>
                             <div class="itemList">
                                 <div class="date_area">
-                                    <input type="text" placeholder="시작일" id="sndngSdate" name="sndngSdate" class="datepicker" toDate="sndngEdate">
+                                    <input type="text" placeholder="<spring:message code='msg.shrtnt.label.startDate' text='시작일'/>" id="sndngSdate" name="sndngSdate" class="datepicker" toDate="sndngEdate">
                                     <span class="txt-sort">~</span>
-                                    <input type="text" placeholder="종료일" id="sndngEdate" name="sndngEdate" class="datepicker" fromDate="sndngSdate">
+                                    <input type="text" placeholder="<spring:message code='msg.shrtnt.label.endDate' text='종료일'/>" id="sndngEdate" name="sndngEdate" class="datepicker" fromDate="sndngSdate">
                                 </div>
                             </div>
                         </div>
@@ -504,10 +552,10 @@
                                 <a href="#0" class="current" data-tab="RCVN"><spring:message code="msg.shrtnt.label.rcvnTab" text="수신목록"/></a>
                                 <a href="#0" data-tab="SNDNG"><spring:message code="msg.shrtnt.label.sndngTab" text="발신목록"/></a>
                             </div>
-                            <button type="button" class="btn basic icon" aria-label="새로고침" onclick="fn_search()"><i class="xi-refresh"></i></button>
+                            <button type="button" class="btn basic icon" aria-label="<spring:message code='msg.shrtnt.label.refresh' text='새로고침'/>" onclick="fn_search()"><i class="xi-refresh"></i></button>
                             <button type="button" class="btn basic" onclick="fn_deleteSelected()"><spring:message code="msg.shrtnt.label.delete" text="삭제"/></button>
                             <button type="button" class="btn type2" onclick="fn_sndngRegist()"><spring:message code="msg.shrtnt.label.sndngRegist" text="발신하기"/></button>
-                            <uiex:listScale func="fn_changeListScale" value="10" />
+                            <uiex:listScale func="fn_changeListScale" value="${vo.listScale}" />
                         </div>
                     </div>
 
@@ -572,7 +620,7 @@
     <div class="modal-content modal-md" tabindex="-1">
         <div class="modal-header">
             <h2><spring:message code="msg.shrtnt.label.rsrvCnclTitle" text="발신 예약 취소"/></h2>
-            <button class="modal-close" aria-label="닫기" onclick="fn_closeRsrvCnclPopup()"><i class="icon-svg-close"></i></button>
+            <button class="modal-close" aria-label="<spring:message code='msg.shrtnt.label.closeBtn' text='닫기'/>" onclick="fn_closeRsrvCnclPopup()"><i class="icon-svg-close"></i></button>
         </div>
         <div class="modal-body">
             <div class="msg-box">

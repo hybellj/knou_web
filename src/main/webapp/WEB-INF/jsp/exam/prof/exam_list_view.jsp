@@ -96,11 +96,12 @@
                     // 관리버튼 (공통 파라미터 축약)
                     var _p  = "\"" + v.examBscId + "\",\"" + v.tkexamMthdCd + "\",\"" + v.byteamSubrexamUseyn + "\"";
                     var _dp = "\"" + v.examBscId + "\",\"" + v.byteamSubrexamUseyn + "\"";
+                    var _tk = "\"" + v.sbjctId + "\"";
                     /* context 에 spring message 등록 해야 함 */
-                    var manageBtnDefault = "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>응시현황</a>"
+                    var manageBtnDefault = "<a href='javascript:tkexamStatPop(" + _tk + ")' class='btn basic small'>응시현황</a>"
                                         + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>시험지 보기</a>"
                                         + "<a href='javascript:examViewMv(" + _p + ", 3)' class='btn basic small'>결시현황</a>";
-                    var manageCardBtnDefault = "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>응시현황</a></div>"
+                    var manageCardBtnDefault = "<div class='item'><a href='javascript:tkexamStatPop(" + _tk + ")'>응시현황</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>시험지 보기</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'>결시현황</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
@@ -110,12 +111,12 @@
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
                                         + "<div class='item'><a href='javascript:examDelete(" + _dp + ")'>삭제</a></div>";
                     var manageBtnExam = "<a href='javascript:examViewMv(" + _p + ", 2)' class='btn basic small'>시험대체</a>"
-                                        + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>응시현황</a>"
+                                        + "<a href='javascript:tkexamStatPop(" + _tk + ")' class='btn basic small'>응시현황</a>"
                                         + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>시험지 보기</a>"
                                         + "<a href='javascript:examViewMv(" + _p + ", 4)' class='btn basic small'>장애인/고령자 지원현황</a>"
                                         + "<a href='javascript:examViewMv(" + _p + ", 3)' class='btn basic small'>결시현황</a>";
                     var manageCardBtnExam = "<div class='item'><a href='javascript:examViewMv(" + _p + ", 2)'>시험대체</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>응시현황</a></div>"
+                                        + "<div class='item'><a href='javascript:tkexamStatPop(" + _tk + ")'>응시현황</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>시험지 보기</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 4)'>장애인/고령자 지원현황</a></div>"
                                         + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'>결시현황</a></div>"
@@ -368,6 +369,22 @@
                 }
             }, function(xhr, status, error) {
                 UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
+            });
+        }
+
+        /**
+         * 응시현황팝업
+         * @param {String}  sbjctId 	- 과목아이디
+         */
+        function tkexamStatPop(sbjctId) {
+            var data = "sbjctId="+sbjctId;
+
+            dialog = UiDialog("dialog1", {
+                title: "응시현황",
+                width: 800,
+                height: 500,
+                url: "/exam/tkexamStatListPopup.do?"+data,
+                autoresize: true
             });
         }
 

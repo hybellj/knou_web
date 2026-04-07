@@ -1,12 +1,116 @@
 <%@ page import="knou.framework.common.SessionInfo" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <c:if test="${pageType ne 'iframe' or param.view eq 'on'}">
 
 <c:set var="orgId" value="${orgId}"/>
 <c:set var="userId" value="${userId}"/>
 <c:set var="authrtGrpcd" value="${authrtGrpcd}"/>
+
+<script type="text/javascript">
+/* 1. 즉시 실행 로그 - 이게 안 찍히면 스크립트 태그 위치가 잘못된 것입니다. */
+console.log("--- 스크립트 진입 성공 ---");
+
+(function() {
+    // JSP 데이터 로드
+    var userData = [
+        <c:forEach var="item" items="${SessionInfo.getUserContext(pageContext.request).getUserOrgIdsFromSubject()}" varStatus="status">
+        { 
+            orgId: "${item.orgId}".trim(), 
+            orgnm: "${item.orgnm}".trim(), 
+            userTycd: "${item.userTycd}".trim(), 
+            userId: "${item.userId}".trim() 
+        }${!status.last ? ',' : ''}
+        </c:forEach>
+    ];
+
+    console.log("데이터 개수:", userData.length);
+
+    // 문서 로드 후 실행
+    window.onload = function() {
+        console.log("window.onload 실행됨");
+        
+        var orgSelect = document.getElementById('orgSelect');
+        var typeSelect = document.getElementById('typeSelect');
+        var userIdText = document.getElementById('userIdText');
+
+        if (!orgSelect) {
+            console.error("ID가 'orgSelect'인 요소를 찾을 수 없습니다.");
+            return;
+        }
+
+        // 2. 기관 중복 제거 및 채우기
+        var orgMap = {};
+        var html = '<option value="">기관을 선택하세요</option>';
+        
+        for (var i = 0; i < userData.length; i++) {
+            var item = userData[i];
+            if (item.orgId && item.orgId !== 'ALL' && !orgMap[item.orgId]) {
+                orgMap[item.orgId] = true;
+                html += '<option value="' + item.orgId + '">' + item.orgnm + '</option>';
+            }
+        }
+        orgSelect.innerHTML = html;
+        console.log("기관 SelectBox 채우기 완료");
+
+        // 3. 기관 변경 이벤트
+        orgSelect.onchange = function() {
+            var selectedId = this.value;
+            console.log("기관 변경:", selectedId);
+            
+            typeSelect.innerHTML = '<option value="">타입 선택</option>';
+            userIdText.innerText = "-";
+
+            if (!selectedId) return;
+
+            var types = [];
+            var typeMap = {};
+            
+            // 필터링 (해당 기관 + 전체)
+            for (var j = 0; j < userData.length; j++) {
+                var item = userData[j];
+                if (item.orgId === selectedId || item.orgId === 'ALL') {
+                    if (!typeMap[item.userTycd]) {
+                        typeMap[item.userTycd] = true;
+                        types.push(item.userTycd);
+                    }
+                }
+            }
+
+            for (var k = 0; k < types.length; k++) {
+                var ty = types[k];
+                var name = (ty === 'PROF') ? '교수' : (ty === 'STDNT' ? '학생' : '전체');
+                var opt = document.createElement('option');
+                opt.value = ty;
+                opt.text = name;
+                typeSelect.appendChild(opt);
+            }
+        };
+
+        // 4. 타입 변경 이벤트
+        typeSelect.onchange = function() {
+            var selectedOrg = orgSelect.value;
+            var selectedTy = this.value;
+            var foundId = "-";
+
+            for (var m = 0; m < userData.length; m++) {
+                var item = userData[m];
+                if (selectedTy === 'ALL' && item.orgId === 'ALL') {
+                    foundId = item.userId;
+                    break;
+                } else if (item.orgId === selectedOrg && item.userTycd === selectedTy) {
+                    foundId = item.userId;
+                    break;
+                }
+            }
+            userIdText.innerText = foundId;
+        };
+    };
+})();
+</script>
 
 <div id="key_access">
     <ul>
@@ -28,34 +132,17 @@
 			<img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.png" aria-hidden="true" alt="한국방송통신대학교">
 		</a>
 	</h1>
+	
 	<div class="option-univ"><!-- 버튼 클릭시 on 클래스 추가 -->
-		<select class="form-select" style="font-size:15px; border-radius:100em;">
-            <option value="">전체</option>
-            <option value="대학원">대학원</option>
-            <option value="학위과정">학위과정</option>
-        </select>
-        <select class="form-select wide" style="font-size:15px; margin-left: 5px; border-radius:100em;">
-            <option value="">전체</option>
-            <option value="관리자">관리자</option>
-            <option value="교수">교수</option>
-            <option value="학생">학생</option>
+		<select id="orgSelect" class="form-select" style="font-size:15px; border-radius:100em;">
+			<option value="">기관을 선택하세요</option>
+		</select>
+        <select id="typeSelect" class="form-select wide" style="font-size:15px; margin-left: 5px; border-radius:100em;">
+        	<option value="">타입 선택</option>
         </select>
 	</div>
 	
-	<div class="option-univ"><!-- 버튼 클릭시 on 클래스 추가 -->
-		<select class="form-select" style="font-size:15px; border-radius:100em;">
-            <option value="">전체</option>
-            <c:forEach var="item" items="${SessionInfo.getUserContext(pageContext.request).getUserOrgIdsFromSubject()}">
-            	<option value="${item.orgId}">${item.orgnm}</option>
-			</c:forEach>
-        </select>
-        <select class="form-select wide" style="font-size:15px; margin-left: 5px; border-radius:100em;">
-            <option value="">전체</option>
-            <c:forEach var="item" items="${SessionInfo.getUserContext(pageContext.request).getUserOrgIdsFromSubject()}">
-            	<option value="${item.orgId}">${item.userTycd}</option>
-			</c:forEach>
-        </select>
-	</div>
+	<div id="userIdText" style="margin-top: 10px; font-weight: bold; color: #007bff;"></div>
 
 	<ul class="util">
 		<li class="widget_setting"><!-- 버튼 클릭시 on 클래스 추가 -->

@@ -68,6 +68,8 @@ import knou.lms.lesson.vo.LessonTimeVO;
 import knou.lms.lesson.vo.LessonVO;
 import knou.lms.log.lesson.service.LogLessonActnHstyService;
 import knou.lms.log.lesson.vo.LogLessonActnHstyVO;
+import knou.lms.log2.user.service.LogUserActvService;
+import knou.lms.log2.user.vo.LogUserActvVO;
 import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.org.service.OrgInfoService;
@@ -101,7 +103,10 @@ public class LessonHomeController extends ControllerBase {
     
     @Resource(name="logLessonActnHstyService")
     private LogLessonActnHstyService logLessonActnHstyService;
-    
+
+    @Resource(name="logUserActvService")
+    private LogUserActvService logUserActvService;
+
     @Resource(name="stdService")
     private StdService stdService;
     
@@ -146,7 +151,48 @@ public class LessonHomeController extends ControllerBase {
     
     @Resource(name="erpService")
     private ErpService erpService;
-    
+
+    /*****************************************************
+     * TODO 강의실 > 과목설정 > 접속정보
+     * @param DefaultVO
+     * @return
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profCntnInfoListView.do")
+    public String profCntnInfoListView(DefaultVO defaultVO, ModelMap model, HttpServletRequest request) throws Exception {
+        Locale locale = LocaleUtil.getLocale(request);
+
+        model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
+        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
+        model.addAttribute("crsCreCd", SessionInfo.getCurCrsCreCd(request));
+
+        return "lesson/lect/prof_cntn_info_list_view";
+    }
+
+    /*****************************************************
+     * 강의실 활동 로그 조회 현황 목록 ajax (TB_LMS_LOG_USER_ACTV)
+     * @param vo
+     * @param request
+     * @return ProcessResultVO<LogUserActvVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/profLogUserActvList.do")
+    @ResponseBody
+    public ProcessResultVO<LogUserActvVO> profLogUserActvList(LogUserActvVO vo, HttpServletRequest request) throws Exception {
+        ProcessResultVO<LogUserActvVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            resultVO = logUserActvService.selectLogUserActvList(vo);
+            resultVO.setResult(1);
+        } catch(Exception e) {
+            LOGGER.debug("e: ", e);
+            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage());
+        }
+
+        return resultVO;
+    }
+
     /***************************************************** 
      * 강의실 접속 현황 가져오기 ajax
      * @param vo 

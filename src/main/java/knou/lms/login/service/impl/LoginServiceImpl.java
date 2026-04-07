@@ -54,6 +54,8 @@ public class LoginServiceImpl extends ServiceBase implements LoginService {
         // 3. 연관 사용자(대표아이디 기준) 및 아이디 리스트 조회
         String rprsId = loginUser.getUserRprsId();
         List<UserVO> registeredUsersList = userService.registeredUsersSelect(rprsId);
+        // 3-1. 가공 데이터 세팅 (Map 변환 등)
+        userCtx.setRegisteredUsers(convertToMap(registeredUsersList)); // 아디디로 사용자정보를 저장하는 MAP
         
         // 쿼리 한 방 방식 (UserIdsDTO)
         UserIdsDTO userIds = userService.userIdsSelect(rprsId);
@@ -62,12 +64,9 @@ public class LoginServiceImpl extends ServiceBase implements LoginService {
         List<String> profIds = refineIds(userIds.getProfIds(), userCtx.getSelectedUser().getUserId());
         List<String> stdntIds = refineIds(userIds.getStdntIds(), userCtx.getSelectedUser().getUserId());        
 
-        // 5. 기관 및 과목 정보 로드 (SubjectService 활용)
+        // 5. 기관 및 userTycd 정보 로드
         List<EgovMap> userOrgIdsFromSubject = subjectService.subjectByUserOrgIdSelect(profIds, stdntIds);
-        userCtx.setUserOrgIdsFromSubject(userOrgIdsFromSubject);
-
-        // 6. 가공 데이터 세팅 (Map 변환 등)
-        userCtx.setRegisteredUsers(convertToMap(registeredUsersList));
+        userCtx.setUserOrgIdsFromSubject(userOrgIdsFromSubject);        
 
         return userCtx;
     }

@@ -536,41 +536,44 @@
 	</select>	
 	
 	<select id="subjectByUserOrgIdSelect"  parameterType="map" resultType="eGovMap">
-        /*  설 명 : 교수별과목에서 수강생별과목에서 기관아이디조회 */
-        SELECT ORG_ID, ORGNM, USER_TYCD
-		FROM 
-			( 	SELECT 	O.ORG_ID, O.ORGNM, S.SBJCT_ID, S.SBJCTNM, 'PROF' AS USER_TYCD
-				FROM 	TB_LMS_SBJCT	S
-						JOIN	TB_LMS_SMSTR_CHRT SC	ON 	S.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
-						JOIN 	TB_LMS_ORG O			ON 	SC.ORG_ID = O.ORG_ID
-				WHERE	1 = 1 
-						<if test="profIds != null and profIds.size() > 0">
-				            AND S.PROF_ID IN 
-				            <foreach collection="profIds" item="id" open="(" separator="," close=")">
-				                #{id}
-				            </foreach>
-				        </if>
-				        <if test="profIds == null or profIds.size() == 0">
-				            AND 1 = 2 /* 리스트가 비어있을 경우 조회를 방지하기 위한 조건 */
-				        </if>
-				UNION ALL
-				SELECT 	O.ORG_ID, O.ORGNM, S.SBJCT_ID, S.SBJCTNM, 'STDNT' AS USER_TYCD
-				FROM 	TB_LMS_ATNDLC A
-						JOIN	TB_LMS_SBJCT	S		ON	A.SBJCT_ID = S.SBJCT_ID
-						JOIN	TB_LMS_SMSTR_CHRT SC	ON 	S.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
-						JOIN 	TB_LMS_ORG O			ON 	SC.ORG_ID = O.ORG_ID
-				WHERE	1 = 1
-						<if test="stdntIds != null and stdntIds.size() > 0">
-				            AND A.USER_ID IN 
-				            <foreach collection="stdntIds" item="id" open="(" separator="," close=")">
-				                #{id}
-				            </foreach>
-				        </if>
-				        <if test="stdntIds == null or stdntIds.size() == 0">
-				            AND 1 = 2
-				        </if>
-			)
-		GROUP BY ORG_ID, ORGNM, USER_TYCD ORDER BY ORG_ID
+        /* 설 명 : 전체 행 1개 + 기관별 교수/학생 정보 */
+		SELECT ORG_ID, ORGNM, USER_TYCD, USER_ID, SORT_KEY
+		FROM (
+		    /* 1. 시스템 전체를 대표하는 '전체' 행 딱 하나 */
+		    <if test="(profIds != null and profIds.size() > 0 and (stdntIds == null or stdntIds.size() == 0)) 
+		              or (stdntIds != null and stdntIds.size() > 0 and (profIds == null or profIds.size() == 0))">
+		    SELECT 'ALL' AS ORG_ID, '전체' AS ORGNM, 'ALL' AS USER_TYCD, 'ALL' AS USER_ID, 0 AS SORT_KEY
+		    UNION ALL
+		    </if>
+		
+		    /* 2. 교수 데이터 */
+		    SELECT O.ORG_ID, O.ORGNM, 'PROF' AS USER_TYCD, S.PROF_ID AS USER_ID, 1 AS SORT_KEY
+		    FROM TB_LMS_SBJCT S
+		    JOIN TB_LMS_SMSTR_CHRT SC ON S.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+		    JOIN TB_LMS_ORG O ON SC.ORG_ID = O.ORG_ID
+		    WHERE 1=1
+		    <if test="profIds != null and profIds.size() > 0">
+		        AND S.PROF_ID IN <foreach collection="profIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+		    </if>
+		    <if test="profIds == null or profIds.size() == 0">AND 1=2</if>
+		    GROUP BY O.ORG_ID, O.ORGNM, S.PROF_ID
+		
+		    UNION ALL
+		
+		    /* 3. 학생 데이터 */
+		    SELECT O.ORG_ID, O.ORGNM, 'STDNT' AS USER_TYCD, A.USER_ID AS USER_ID, 1 AS SORT_KEY
+		    FROM TB_LMS_ATNDLC A
+		    JOIN TB_LMS_SBJCT S ON A.SBJCT_ID = S.SBJCT_ID
+		    JOIN TB_LMS_SMSTR_CHRT SC ON S.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+		    JOIN TB_LMS_ORG O ON SC.ORG_ID = O.ORG_ID
+		    WHERE 1=1
+		    <if test="stdntIds != null and stdntIds.size() > 0">
+		        AND A.USER_ID IN <foreach collection="stdntIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+		    </if>
+		    <if test="stdntIds == null or stdntIds.size() == 0">AND 1=2</if>
+		    GROUP BY O.ORG_ID, O.ORGNM, A.USER_ID
+		) T
+		ORDER BY SORT_KEY ASC, ORG_ID ASC
     </select>
     
     <select id="subjectByUserSelect"  parameterType="map" resultType="eGovMap">

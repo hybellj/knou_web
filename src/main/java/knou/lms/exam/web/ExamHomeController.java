@@ -152,6 +152,7 @@ public class ExamHomeController extends ControllerBase {
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId();
 
         if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
             throw new AccessDeniedException(getCommonNoAuthMessage()); // 페이지 접근 권한이 없습니다.
@@ -164,7 +165,7 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
-        model.addAttribute("sbjctId", "SBJCT_OFRNG_ID2");  // 임시 하드코딩
+        model.addAttribute("sbjctId", sbjctId);
         model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
 
         // 임시로 prof 경로 추가
@@ -190,8 +191,7 @@ public class ExamHomeController extends ControllerBase {
         String examBscId = StringUtil.nvl(vo.getExamBscId());
         String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
         String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
-        String sbjctId = "SBJCT_OFRNG_ID2";    // 임시 하드코딩
-//        String sbjctId = StringUtil.nvl(vo.getSbjctId());
+        String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId();
         String isModify = null;
 
         ExamVO examVO = null;
@@ -626,7 +626,6 @@ public class ExamHomeController extends ControllerBase {
         return "exam/prof/exam_info_quiz_write";
     }
 
-
     /*****************************************************
      * 사용자 시험 응시현황 (파이)차트데이터 조회(팝업)
      * @param ExamVO
@@ -778,6 +777,42 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
+     * 응시현황 차트데이터 조회(팝업) (시험 메인 페이지)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/tkexamStatListPopup.do")
+    public String selectTkexamStat(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String midBscId = null;
+        String lstBscId = null;
+        String sbjctId = vo.getSbjctId();
+
+        List<EgovMap> examMidLst = examService.listExamMidLst(sbjctId);
+        for (EgovMap exam : examMidLst) {
+            String examGbncd = StringUtil.nvl((String) exam.get("examGbncd"));
+            if (examGbncd.contains("MID")) {
+                midBscId = StringUtil.nvl((String) exam.get("examBscId"));
+            } else if (examGbncd.contains("LST")) {
+                lstBscId = StringUtil.nvl((String) exam.get("examBscId"));
+            }
+        }
+
+        // 중간고사 (가로선) 차트 데이터 조회
+        model.addAttribute("midChartMap", examService.selectUserTkexamStatusForPieChart(midBscId, sbjctId));
+        model.addAttribute("midChartList", examService.selectUserTkexamStatusForHrChart(midBscId, sbjctId));
+
+        // 기말고사 (가로선) 차트 데이터 조회
+        model.addAttribute("lstChartMap", examService.selectUserTkexamStatusForPieChart(lstBscId, sbjctId));
+        model.addAttribute("lstChartList", examService.selectUserTkexamStatusForHrChart(lstBscId, sbjctId));
+
+        model.addAttribute("vo", vo);
+        return "exam/prof/popup/exam_user_tkexam_status_list_pop";
+    }
+
+    /*****************************************************
      * 시험 등록
      * @param ExamBscVO
      * @param RequestParam
@@ -798,7 +833,7 @@ public class ExamHomeController extends ControllerBase {
                 throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
             }
 
-            vo.setSbjctId("SBJCT_OFRNG_ID2");       // 과목 ID (임시 하드코딩 추후 vo 에서 가져오도록 설정)
+//            vo.setSbjctId("SBJCT_OFRNG_ID2");       // 과목 ID (임시 하드코딩 추후 vo 에서 가져오도록 설정)
             vo.setLctrWknoSchdlId(null);            // 강의주차 일정 아이디  (임시)
             vo.setExamGrpId(null);                  // 시험 그룹 ID (임시)
             vo.setQstnDsplyGbncd("WHOL");           // 문항 화면표시 구분코드 (임시)
@@ -928,7 +963,7 @@ public class ExamHomeController extends ControllerBase {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String orgId = SessionInfo.getOrgId(request);
         String examTtl = vo.getExamTtl();
-        String sbjctId = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
+        String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId();
 
         vo.setOrgId(orgId);
         vo.setExamTtl(examTtl);
@@ -997,7 +1032,7 @@ public class ExamHomeController extends ControllerBase {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
         String byteamSubrexamUseyn = vo.getByteamSubrexamUseyn();
-        String sbjctId = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
+        String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId();
 
         vo.setExamBscId(examBscId);
         vo.setSbjctId(sbjctId);
@@ -1026,7 +1061,7 @@ public class ExamHomeController extends ControllerBase {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
         String byteamSubrexamUseyn = vo.getByteamSubrexamUseyn();
-        String sbjctId = "SBJCT_OFRNG_ID2"; // 임시 하드코딩
+        String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId();
 
         vo.setExamBscId(examBscId);
         vo.setSbjctId(sbjctId);
@@ -1181,6 +1216,31 @@ public class ExamHomeController extends ControllerBase {
         vo.setExamBscId(examBscId);
         try {
             resultVO = examService.listExamQuizPaging(vo);
+            resultVO.setResultSuccess();
+        } catch(Exception e) {
+            resultVO.setResultFailed();
+            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
+        }
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 수강생 시험 응시현황 목록 페이징
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/tkexamStatPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listUserTkexamStatPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String sbjctId = vo.getSbjctId();
+
+        vo.setSbjctId(sbjctId);
+        try {
+            resultVO = examService.listUserTkexamStatPaging(vo);
             resultVO.setResultSuccess();
         } catch(Exception e) {
             resultVO.setResultFailed();
@@ -1387,7 +1447,7 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
-     * 시험 삭제
+     * 대체 시험 삭제
      * @param ExamVO
      * @param model
      * @param request
@@ -1398,7 +1458,9 @@ public class ExamHomeController extends ControllerBase {
     @ResponseBody
     public ProcessResultVO<ExamVO> examSbstDelete(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
+        vo.setMdfrId(userId);                   // 수정자 ID
         try {
             examService.deleteExamSbst(vo);
             resultVO.setResultSuccess();

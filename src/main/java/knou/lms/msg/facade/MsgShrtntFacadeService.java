@@ -13,6 +13,8 @@ public interface MsgShrtntFacadeService {
 
     List<OrgInfoVO> selectActiveOrgList() throws Exception;
 
+    List<OrgInfoVO> selectActiveOrgListByAuth(String orgId, boolean isAdmin) throws Exception;
+
     List<AtflVO> selectAtflListByRefId(String refId) throws Exception;
 
     ProcessResultVO<MsgShrtntVO> selectShrtntRcvnListPage(MsgShrtntVO vo);
@@ -54,4 +56,10 @@ public interface MsgShrtntFacadeService {
     List<MsgShrtntVO> selectShrtntSbjctList(MsgShrtntVO vo);
 
     List<MsgShrtntVO> selectShrtntRcvrByUserIds(MsgShrtntVO vo);
+
+    MsgShrtntVO loadListViewInfo(MsgShrtntVO vo, boolean isAdmin) throws Exception;
+
+    EgovMap loadFilterOptions(MsgShrtntVO vo, boolean isAdmin) throws Exception;
+
+    EgovMap loadSndngRegistViewInfo(String msgId, String userId, boolean hasSndngAuth) throws Exception;
 }

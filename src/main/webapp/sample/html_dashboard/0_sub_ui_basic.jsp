@@ -445,8 +445,8 @@
                         <div class="listTab">
                             <ul>
                                 <li><a href="#0">수신목록</a></li>
-                                <li class="select"><a href="#">발신목록</a></li>
-                                <li><a href="#">전체목록</a></li>
+                                <li class="select"><a href="#0">발신목록</a></li>
+                                <li><a href="#0">전체목록</a></li>
                             </ul>
                         </div>
 

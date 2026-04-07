@@ -100,7 +100,7 @@
                         manageBtns += "<a class='btn basic small'>시험지보기</a>"
                         manageBtns += "<a href='javascript:memoPopup(\"" + v.examDtlId + "\", \"" + v.tkexamId + "\", \"" + v.userId + "\")' class='btn basic small'>메모</a>"
                     } else {
-                        manageBtns += "<a class='btn basic small'>퀴즈초기화</a>"
+                        manageBtns += "<a href='javascript:quizExampprInit(\"" + v.tkexamId + "\", \"" + v.examDtlId + "\", \"" + v.userId + "\")' class='btn basic small'>퀴즈초기화</a>"
                         manageBtns += "<a class='btn basic small'>시험지보기</a>"
                         manageBtns += "<a href='javascript:examTkexamHstryPopup(\"" + v.examDtlId + "\", \"" + v.userId + "\")' class='btn basic small'>응시기록</a>"
                         manageBtns += "<a href='javascript:memoPopup(\"" + v.examDtlId + "\", \"" + v.tkexamId + "\", \"" + v.userId + "\")' class='btn basic small'>메모</a>"
@@ -347,7 +347,6 @@
 			$("#examSubsbjctbody").append(html);
 		}
 
-
         /*****************************************************************************
          * 검색 영역 기능
          * 1. examTkexamListSelect :    수강생 검색
@@ -588,6 +587,53 @@
             }, function(xhr, status, error) {
                 UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
             });
+        }
+
+        /**
+         * 퀴즈시험지초기화
+         * @param {String}  tkexamId 	- 시험응시아이디
+         * @param {String}  examBscId 	- 시험기본아이디
+         * @param {String}  examDtlId 	- 시험상세아이디
+         * @param {String}  userId 		- 사용자아이디
+         */
+        function quizExampprInit(tkexamId, examDtlId, userId) {
+            if("${examVO.examQstnsCmptnyn}" == "Y") {
+                UiComm.showMessage("퀴즈 초기화를 하시겠습니까?", "confirm")
+                    .then(function(result) {
+                        if (result) {
+                            UiComm.showLoading(true);
+                            var url  = "/quiz/profQuizExampprInitAjax.do";
+                            var data = {
+                                "tkexamId"  : tkexamId,
+                                "examBscId" : curExamBscId,
+                                "examDtlId" : examDtlId,
+                                "userId" 	: userId
+                            };
+
+                            $.ajax({
+                                url 	  : url,
+                                async	  : false,
+                                type 	  : "POST",
+                                dataType : "json",
+                                data 	  : JSON.stringify(data),
+                                contentType: "application/json; charset=UTF-8",
+                            }).done(function(data) {
+                                UiComm.showLoading(false);
+                                if (data.result > 0) {
+                                    UiComm.showMessage("퀴즈 초기화가 완료되었습니다.", "success");
+                                    quizTkexamListSelect();
+                                } else {
+                                    UiComm.showMessage(data.message, "error");
+                                }
+                            }).fail(function() {
+                                UiComm.showLoading(false);
+                                UiComm.showMessage("초기화 중 에러가 발생하였습니다.", "error");
+                            });
+                        }
+                    });
+            } else {
+                UiComm.showMessage("문제 출제 완료 후 가능합니다.", "info");
+            }
         }
 
 		$(document).ready(function() {

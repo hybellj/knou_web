@@ -25,6 +25,7 @@
         var curExamEvlSbstId = '${quizVO.examEvlSbstId}';
         var curAsmtId = '${quizVO.asmtId}';
         var curQuizId = '${quizVO.examBscId}';
+        var curExamGrpId = '${quizVO.examGrpId}';
 
         var curByteamSubrexamUseyn = '${vo.byteamSubrexamUseyn}';   // 팀 여부
         var hasSubSubject = '${examVO.lrnGrpSubsbjctUseyn}';        // 부 주제
@@ -186,17 +187,14 @@
 
         /*****************************************************************************
          * 버튼 기능
-         * 1. examQuizSaveBtnEvent :    대체 시험 데이터 [등록|수정] 버튼 이벤트 (ajax)
-         * 2. examSbstDeleteBtnEvent :  대체 시험 삭제 버튼 이벤트 (ajax)
+         * 1. examQuizSaveBtnEvent :    퀴즈 데이터 [등록|수정] 버튼 이벤트 (ajax)
+         * 2. examSbstDeleteBtnEvent :  퀴즈 삭제 버튼 이벤트 (ajax)
          *****************************************************************************/
         /* 1 */
         function examQuizSaveBtnEvent() {
             $("#quizWriteSave").on("click", function() {
-                var selectedSbstType = $('input[name="sbst-type-rd"]:checked').val();
 
-                // 선택된 form 에 맞는 validator 적용
-                var validatorFormId = (selectedSbstType === 'SBST_ASMT') ? 'asmt-write' : 'quiz-write';
-                var validator = UiValidator(validatorFormId);
+                var validator = UiValidator('quiz-write');
 
                 validator.then(function(result) {
                     if (result) {
@@ -218,6 +216,7 @@
                             sbjctId:        curSbjctId,
                             examGbncd:      curExamGbncd,
                             mrkRfltrt:      curMrkRfltrt,
+                            examGrpId:      curExamGrpId,
                             examSbstTycd:   'QUIZ',
                             examTtl:        $('#quiz-ttl').val(),
                             examCts:        quizContents,
@@ -646,7 +645,7 @@
                                             <td>
                                                 <div class="form-row">
                                                     <span class="custom-input ml5">
-                                                        <input type="radio" name="sbst-type-rd" id="sbst-type-quiz-rd" value="SBST_QUIZ" checked="">
+                                                        <input type="radio" name="sbst-type-rd" id="sbst-type-quiz-rd" value="QUIZ" checked="">
                                                         <label for="sbst-type-quiz-rd">퀴즈</label>
                                                     </span>
                                                 </div>

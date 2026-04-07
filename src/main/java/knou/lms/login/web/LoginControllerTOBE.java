@@ -85,16 +85,17 @@ public class LoginControllerTOBE {
 	 * @return
 	 * @throws Exception
 	 */
+	@SuppressWarnings("deprecation")
 	@RequestMapping(value="/loginProcTOBE.do")
     public String loginProcTOBE(LoginParam param, HttpServletRequest request, HttpServletResponse response) throws Exception {
 	    
 		log.info("loginProcTOBE.do 시작");
 	    
 	    try {
-	        // 1. 비즈니스 로직 수행 (Service에 위임)
+	        // 1. login 처리
 	        UserContext userCtx = loginService.processLogin(param);
 	        
-	        // 2. 세션 처리 (Controller의 고유 역할)
+	        // 2. 세션 변수 설정 --> 삭제예정
 	        UserVO selectedUser = userCtx.getSelectedUser();
 	        SessionInfo.setOrgId(request,       selectedUser.getOrgId());
 	        SessionInfo.setUserId(request,      selectedUser.getUserId());
@@ -102,11 +103,8 @@ public class LoginControllerTOBE {
 	        SessionInfo.setAuthrtCd(request,    selectedUser.getUserTycd());
 	        SessionInfo.setAuthrtGrpcd(request, selectedUser.getUserTycd());
 	        
-	        // 3. 세션저장
-	        SessionInfo.setUserContext(request, userCtx); // USER_CONTEXT
-	        
-	        // 3-1. 초기 userContext와 호환을 위해 
-	        SessionUtil.setSessionValue(request, "userCtx", userCtx); //userCtx
+	        // 3. USER_CONTEXT 세션저장
+	        SessionInfo.setUserContext(request, userCtx); // USER_CONTEXT	        
 
 	        // 4. 화면 분기
 	        String initUrl = resolveDashboard(selectedUser.getUserTycd());

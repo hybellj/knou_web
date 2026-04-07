@@ -89,6 +89,12 @@ public interface ExamService {
     // 교수 퀴즈관리 퀴즈 조회
     public ExamVO selectProfQuizMng (ExamVO vo) throws Exception;
 
+    // 수강생 시험 응시현황 목록 페이징
+    public ProcessResultVO<ExamVO> listUserTkexamStatPaging(ExamVO vo) throws Exception;
+
+    // 중간, 기말 시험 ID 목록 조회
+    public List<EgovMap> listExamMidLst(String sbjctId) throws Exception;
+
     // 성적 반영비율 수정
     public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
 

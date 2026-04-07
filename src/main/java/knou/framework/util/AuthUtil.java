@@ -1,40 +1,30 @@
 package knou.framework.util;
 
-import javax.servlet.http.HttpServletRequest;
-
-import knou.framework.common.SessionInfo;
+import knou.framework.context2.UserContext;
 
 public class AuthUtil {
 
-    public static boolean isAdmin(HttpServletRequest request) {
-        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+    public static boolean isAdmin(UserContext userCtx) {
+        String menuType = StringUtil.nvl(userCtx.getAuthrtGrpcd());
 
-        boolean isAdmin = menuType.contains("ADM") ? true : false;
-
-        return isAdmin;
+        return menuType.contains("ADM");
     }
 
-    public static boolean isProfessor(HttpServletRequest request) {
-        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+    public static boolean isProfessor(UserContext userCtx) {
+        String menuType = StringUtil.nvl(userCtx.getAuthrtGrpcd());
 
-        boolean isProfessor = menuType.contains("PROF");
-
-        return isProfessor;
+        return menuType.contains("PROF");
     }
 
-    public static boolean isTutor(HttpServletRequest request) {
-        String userType = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+    public static boolean isTutor(UserContext userCtx) {
+        String userType = StringUtil.nvl(userCtx.getAuthrtCd());
 
-        boolean isTutor = userType.contains("TUT");
-
-        return isTutor;
+        return userType.contains("TUT");
     }
 
-    public static boolean isStudent(HttpServletRequest request) {
-        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+    public static boolean isStudent(UserContext userCtx) {
+        String menuType = StringUtil.nvl(userCtx.getAuthrtGrpcd());
 
-        boolean isStudent = menuType.contains("USR");
-
-        return isStudent;
+        return menuType.contains("USR");
     }
 }

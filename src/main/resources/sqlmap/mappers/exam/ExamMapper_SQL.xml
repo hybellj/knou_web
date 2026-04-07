@@ -975,6 +975,7 @@
             , A.EXAM_QSTNS_CMPTNYN                          AS "EXAM_QSTNS_CMPTNYN" /* 출제상태 */
             , A.MRK_OYN                                     AS "MRK_OYN"            /* 성적공개 */
             , A.BYTEAM_SUBREXAM_USEYN                       AS "BYTEAM_SUBREXAM_USEYN" /* 팀 시험 여부 */
+            , A.SBJCT_ID                                    AS "SBJCT_ID"           /* 과목 ID */
         FROM
             TB_LMS_EXAM_BSC A
             /* 시험구분코드 (공통코드) */
@@ -1584,6 +1585,125 @@
             BSC.EXAM_BSC_ID = #{examBscId}
     </sql>
 
+    <!-- 시험 응시현황 -->
+    <sql id="listQueryForTkexamStat">
+        WITH ENROLLED AS (SELECT    /* 수강 중인 학생 목록 */
+                                ATNDLC.USER_ID
+                                , DEPT.DEPTNM
+                                , USR.USER_RPRS_ID
+                                , USR.STDNT_NO
+                                , USR.USERNM
+                            FROM
+                                TB_LMS_ATNDLC ATNDLC
+                                JOIN TB_LMS_USER USR
+                                    ON ATNDLC.USER_ID = USR.USER_ID
+                                    AND USER_STSCD = 'ACTV'
+                                JOIN TB_LMS_DEPT DEPT
+                                    ON USR.DEPT_ID = DEPT.DEPT_ID
+                            WHERE
+                                ATNDLC.SBJCT_ID = #{sbjctId}
+                                AND ATNDLC.ATNDLC_STSCD = 'ATNDLC')
+        , MID_EXAM AS (SELECT       /* 중간고사 EXAM_BSC / EXAM_DTL */
+                            EB.EXAM_BSC_ID
+                            , ED.EXAM_DTL_ID
+                        FROM
+                            TB_LMS_EXAM_BSC EB
+                            JOIN TB_LMS_EXAM_DTL ED
+                                ON ED.EXAM_BSC_ID = EB.EXAM_BSC_ID
+                        WHERE
+                            EB.SBJCT_ID = #{sbjctId}
+                            AND EB.EXAM_TYCD = 'EXAM'
+                            AND EB.EXAM_GBNCD LIKE '%MID%'
+                            AND EB.DELYN = 'N')
+        , LST_EXAM AS (SELECT       /* 기말고사 EXAM_BSC / EXAM_DTL */
+                            EB.EXAM_BSC_ID
+                            , ED.EXAM_DTL_ID
+                        FROM
+                            TB_LMS_EXAM_BSC EB
+                            JOIN TB_LMS_EXAM_DTL ED
+                                ON ED.EXAM_BSC_ID = EB.EXAM_BSC_ID
+                        WHERE
+                            EB.SBJCT_ID = #{sbjctId}
+                            AND EB.EXAM_TYCD  = 'EXAM'
+                            AND EB.EXAM_GBNCD LIKE '%LST%'
+                            AND EB.DELYN = 'N')
+        ,MID_TKEXAM AS (SELECT      /* 중간고사 응시 — 재시험 우선, 최신순으로 1건 */
+                            TK.TKEXAM_ID
+                            , TK.USER_ID
+                            , TK.RETKEXAM_YN
+                            , ROW_NUMBER() OVER (PARTITION BY TK.USER_ID ORDER BY TK.RETKEXAM_YN DESC   -- Y > N
+                                                , TK.REG_DTTM DESC) AS RN
+                        FROM
+                            TB_LMS_TKEXAM TK
+                        WHERE
+                            TK.EXAM_DTL_ID IN (SELECT EXAM_DTL_ID FROM MID_EXAM))
+        ,LST_TKEXAM AS (SELECT      /* 기말고사 응시 — 재시험 우선, 최신순으로 1건 */
+                            TK.TKEXAM_ID
+                            , TK.USER_ID
+                            , TK.RETKEXAM_YN
+                            , ROW_NUMBER() OVER (PARTITION BY TK.USER_ID ORDER BY TK.RETKEXAM_YN DESC
+                                                , TK.REG_DTTM DESC) AS RN
+                        FROM
+                            TB_LMS_TKEXAM TK
+                        WHERE
+                            TK.EXAM_DTL_ID IN (SELECT EXAM_DTL_ID FROM LST_EXAM))
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY E.USERNM DESC) AS "LINE_NO"
+            , E.USER_ID
+            , E.DEPTNM
+            , E.USER_RPRS_ID
+            , E.STDNT_NO
+            , E.USERNM
+            /* 중간고사 일반 점수 : 결시 승인자이면 NULL, 재시험이면 '(재시험)' 추가 */
+            , CASE
+                WHEN MID_ABS.USER_ID IS NOT NULL THEN NULL
+                WHEN MID_TK.RETKEXAM_YN = 'Y'   THEN TO_CHAR(MID_RSLT.TOT_SCR) || '(재시험)'
+                ELSE TO_CHAR(MID_RSLT.TOT_SCR)
+            END         AS "MID_EXAM_SCR"
+            /* 중간고사 대체시험 점수 : 결시 승인자만 값 표시 */
+            , CASE
+                WHEN MID_ABS.USER_ID IS NOT NULL THEN TO_CHAR(MID_RSLT.TOT_SCR)
+                ELSE NULL
+            END         AS "MID_ABSNCE_SCR"
+            /* 기말고사 일반 점수 */
+            , CASE
+                WHEN LST_ABS.USER_ID IS NOT NULL THEN NULL
+                WHEN LST_TK.RETKEXAM_YN = 'Y' THEN TO_CHAR(LST_RSLT.TOT_SCR) || '(재시험)'
+                ELSE TO_CHAR(LST_RSLT.TOT_SCR)
+            END         AS "LST_EXAM_SCR"
+            /* 기말고사 대체시험 점수 */
+            , CASE
+                WHEN LST_ABS.USER_ID IS NOT NULL THEN TO_CHAR(LST_RSLT.TOT_SCR)
+                ELSE NULL
+            END         AS "LST_ABSNCE_SCR"
+        FROM
+            ENROLLED E
+            /* 중간고사 응시 (미응시 학생 포함) */
+            LEFT JOIN MID_TKEXAM MID_TK
+                ON MID_TK.USER_ID = E.USER_ID
+                AND MID_TK.RN = 1
+            /* 중간고사 응시 결과 */
+            LEFT JOIN TB_LMS_TKEXAM_RSLT MID_RSLT
+                ON MID_RSLT.TKEXAM_ID = MID_TK.TKEXAM_ID
+            /* 중간고사 결시 승인자 */
+            LEFT JOIN TB_LMS_EXAM_ABSNCE MID_ABS
+                ON MID_ABS.USER_ID = E.USER_ID
+                AND MID_ABS.EXAM_BSC_ID IN (SELECT EXAM_BSC_ID FROM MID_EXAM)
+                AND MID_ABS.APLY_STSCD = 'APRV'
+            /* 기말고사 응시 (미응시 학생 포함) */
+            LEFT JOIN LST_TKEXAM LST_TK
+                ON LST_TK.USER_ID = E.USER_ID
+                AND LST_TK.RN = 1
+            /* 기말고사 응시 결과 */
+            LEFT JOIN TB_LMS_TKEXAM_RSLT LST_RSLT
+                ON LST_RSLT.TKEXAM_ID = LST_TK.TKEXAM_ID
+            /* 기말고사 결시 승인자 */
+            LEFT JOIN TB_LMS_EXAM_ABSNCE LST_ABS
+                ON LST_ABS.USER_ID = E.USER_ID
+                AND LST_ABS.EXAM_BSC_ID IN (SELECT EXAM_BSC_ID FROM LST_EXAM)
+                AND LST_ABS.APLY_STSCD = 'APRV'
+    </sql>
+
     <insert id="examBscRegist2" parameterType="examBscVO">
         /*
              SQL ID : ExamMapper.examBscRegist2
@@ -1953,6 +2073,7 @@
             , A.EXAMPPR_OYN                                    AS "EXAMPPR_OYN"    /* 시험지공개여부 */
             , A.BYTEAM_SUBREXAM_USEYN                          AS "BYTEAM_SUBREXAM_USEYN"  /* 팀시험여부 */
             , A.SBJCT_ID                                       AS "SBJCT_ID"        /* 과목 ID */
+            , A.EXAM_QSTNS_CMPTNYN                             AS "EXAM_QSTNS_CMPTNYN"  /* 시험임시저장여부 */
             , CASE
                 WHEN E.EXAM_SBST_TYCD = 'SBST_ASMT' THEN '과제'
                 WHEN E.EXAM_SBST_TYCD = 'SBST_DSCS' THEN '토론'
@@ -2240,7 +2361,6 @@
         GROUP BY CNT
     </select>
 
-
     <!-- 사용자 시험 응시현황 (가로선)차트데이터 조회 -->
     <select id="selectUserTkexamStatusForHrChart" parameterType="String" resultType="egovMap">
         /*
@@ -2431,6 +2551,20 @@
             COUNT(1)
         FROM
             (<include refid="listQueryForSbstUser"/>) Z
+    </select>
+
+    <!-- 교수 대체 시험(퀴즈) 출제완료여부 조회 -->
+    <select id="selectSbstQuizExamQstnsCmptnyn" parameterType="examVO" resultType="String">
+        /*
+            SQL ID : ExamDAO.selectSbstQuizExamQstnsCmptnyn
+            설명 : 교수 대체 시험(퀴즈) 출제완료여부 조회
+        */
+        SELECT
+            EXAM_QSTNS_CMPTNYN
+        FROM
+            TB_LMS_EXAM_BSC
+        WHERE
+            EXAM_BSC_ID = #{examBscId}
     </select>
 
     <!-- 교수 시험 결시자 목록 페이징  -->
@@ -2714,6 +2848,48 @@
             AND QUIZ.EXAM_TYCD = 'QUIZ'
     </select>
 
+    <!-- 수강생 시험 응시현황 목록 페이징  -->
+    <select id="listUserTkexamStatPaging" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listUserTkexamStatPaging
+            설명 : 수강생 시험 응시현황 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForTkexamStat"/>
+        <include refid="CommonSQL.pageSubfix" />
+    </select>
+
+    <!-- 수강생 시험 응시현황 목록 카운트  -->
+    <select id="countUserTkexamStat" parameterType="examVO" resultType="Integer">
+        /*
+            SQL ID : ExamDAO.countUserTkexamStat
+            설명 : 수강생 시험 응시현황 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForTkexamStat"/>) Z
+    </select>
+
+    <!-- 중간,기말 시험 ID 목록 조회  -->
+    <select id="listExamMidLst" parameterType="String" resultType="egovMap">
+        /*
+            SQL ID : ExamDAO.listExamMidLst
+            설명 : 중간,기말 시험 ID 목록 조회
+        */
+        SELECT
+            EXAM_BSC_ID     AS "EXAM_BSC_ID"
+            , EXAM_GBNCD    AS "EXAM_GBNCD"
+            , SBJCT_ID      AS "SBJCT_ID"
+        FROM
+            TB_LMS_EXAM_BSC
+        WHERE
+            SBJCT_ID = #{sbjctId}
+            AND (EXAM_GBNCD LIKE '%MID%' OR EXAM_GBNCD LIKE '%LST%')
+            AND EXAM_TYCD = 'EXAM'
+            AND DELYN = 'N'
+    </select>
+
     <!-- 성적 공개여부 수정  -->
     <update id="updateMrkOyn" parameterType="examVO">
         /*
@@ -2865,6 +3041,22 @@
             , MOD_DTTM              =   FN_DTTM()
         WHERE
             EXAM_BSC_ID = #{examBscId}
+    </update>
+
+    <!-- 시험(퀴즈) 출제여부 수정 -->
+    <update id="updateExamQstnsCmptnyn" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.updateExamQstnsCmptnyn
+            설명 : 시험(퀴즈) 출제여부 수정
+        */
+        UPDATE
+            TB_LMS_EXAM_BSC
+        SET
+            EXAM_QSTNS_CMPTNYN      =   #{examQstnsCmptnyn}
+            , MDFR_ID               =   #{mdfrId}
+            , MOD_DTTM              =   FN_DTTM()
+        WHERE
+            EXAM_GRP_ID = #{examGrpId}
     </update>
 
     <!-- 시험 기본정보 삭제 -->

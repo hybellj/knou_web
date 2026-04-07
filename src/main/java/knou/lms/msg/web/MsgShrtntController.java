@@ -3,7 +3,8 @@ package knou.lms.msg.web;
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.RepoInfo;
-import knou.framework.common.SessionInfo;
+import knou.framework.context2.UserContext;
+import knou.framework.exception.AccessDeniedException;
 import knou.framework.exception.BadRequestUrlException;
 import knou.framework.util.ExcelUtilPoi;
 import knou.framework.util.FileUtil;
@@ -11,12 +12,14 @@ import knou.framework.util.StringUtil;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.facade.MsgShrtntFacadeService;
 import knou.lms.msg.vo.MsgShrtntVO;
+import knou.lms.msg.web.util.MsgAuthUtil;
+import knou.lms.user.CurrentUser;
 import knou.lms.org.vo.OrgInfoVO;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,79 +41,45 @@ public class MsgShrtntController extends ControllerBase {
     private MsgShrtntFacadeService msgShrtntFacadeService;
 
     private static final int PAGE_SIZE = 10;
-    private static final String AUTH_ADM = "ADM";
-    private static final String AUTH_PROF = "PROF";
     private static final String LIST_TYPE_RCVN = "RCVN";
 
-    private boolean isAdmin(HttpServletRequest request) {
-        return StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request)).contains(AUTH_ADM);
-    }
-
-    private boolean isProfessor(HttpServletRequest request) {
-        return StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request)).contains(AUTH_PROF);
-    }
-
-    private boolean checkLoginAuth(ProcessResultVO<?> resultVO, HttpServletRequest request) {
-        if (StringUtil.isNull(SessionInfo.getUserId(request))) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getCommonNoAuthMessage());
-            return false;
+    private String handleSndngRegistView(MsgShrtntVO vo, UserContext userCtx, ModelMap model, HttpServletRequest request, boolean requireAdmin, String jspPath) throws Exception {
+        if (requireAdmin && !MsgAuthUtil.isAdmin(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
-        return true;
-    }
-
-    private boolean checkAdmProfAuth(ProcessResultVO<?> resultVO, HttpServletRequest request) {
-        String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        if (!authrtGrpcd.contains(AUTH_ADM) && !authrtGrpcd.contains(AUTH_PROF)) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getCommonNoAuthMessage());
-            return false;
-        }
-        return true;
-    }
-
-    private void applySearchConstraints(MsgShrtntVO vo, HttpServletRequest request) {
-        String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        if (authrtGrpcd.contains(AUTH_PROF) && !authrtGrpcd.contains(AUTH_ADM)) {
-            vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
-            vo.setUserId(StringUtil.nvl(SessionInfo.getUserId(request)));
-        } else if ("".equals(StringUtil.nvl(vo.getOrgId()))) {
-            vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
-        }
-    }
-
-    private String handleSndngRegistView(ModelMap model, HttpServletRequest request, boolean requireAdmin, String jspPath) throws Exception {
-        if (requireAdmin && !isAdmin(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
-        }
-        if (!requireAdmin && !isProfessor(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+        if (!requireAdmin && !MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
-        String msgId = request.getParameter("msgId");
-        String replyMsgShrtntSndngId = request.getParameter("replyMsgShrtntSndngId");
-        String refId = StringUtil.nvl(msgId, "new");
-        model.addAttribute("msgId", msgId);
-        model.addAttribute("replyMsgShrtntSndngId", replyMsgShrtntSndngId);
-        model.addAttribute("orgId", StringUtil.nvl(SessionInfo.getOrgId(request)));
-        model.addAttribute("usernm", StringUtil.nvl(SessionInfo.getUserNm(request)));
-        model.addAttribute("uploadPath", RepoInfo.getAtflRepo(request, CommConst.REPO_MSG, refId));
+        String msgId = vo.getMsgId();
 
         if (StringUtil.isNotNull(msgId)) {
-            if (!requireAdmin) {
-                MsgShrtntVO checkVO = new MsgShrtntVO();
-                checkVO.setMsgId(msgId);
-                checkVO.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
-                MsgShrtntVO detail = msgShrtntFacadeService.selectShrtntSndngDetailWithFiles(checkVO);
-                if (detail == null) {
-                    model.addAttribute("message", getCommonNoAuthMessage());
-                    return "common/error";
-                }
-            }
-            model.addAttribute("fileList", msgShrtntFacadeService.selectAtflListByRefId(msgId));
+            addEncParam("msgId", msgId);
+        } else {
+            delEncParam("msgId");
         }
+        if (StringUtil.isNotNull(vo.getReplyMsgShrtntSndngId())) {
+            addEncParam("replyMsgShrtntSndngId", vo.getReplyMsgShrtntSndngId());
+        } else {
+            delEncParam("replyMsgShrtntSndngId");
+        }
+
+        model.addAttribute("msgId", msgId);
+        model.addAttribute("replyMsgShrtntSndngId", vo.getReplyMsgShrtntSndngId());
+        model.addAttribute("orgId", userCtx.getOrgId());
+        model.addAttribute("uploadPath", RepoInfo.getAtflRepo(request, CommConst.REPO_MSG));
+
+        boolean hasSndngAuth = "Y".equals(MsgAuthUtil.getShrtntSndngAuth(userCtx, userCtx.getUserId()));
+        EgovMap registInfo = msgShrtntFacadeService.loadSndngRegistViewInfo(msgId, userCtx.getUserId(), hasSndngAuth);
+        if (!(boolean) registInfo.get("hasAuth")) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
+        }
+        vo.setUserNm(StringUtil.nvl((String) registInfo.get("userNm")));
+        if (registInfo.get("fileList") != null) {
+            model.addAttribute("fileList", registInfo.get("fileList"));
+        }
+
+        model.addAttribute("vo", vo);
 
         return jspPath;
     }
@@ -119,199 +88,237 @@ public class MsgShrtntController extends ControllerBase {
 
     /*****************************************************
      * 교수 쪽지 목록 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/prof_msg_shrtnt_list"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/profMsgShrtntListView.do")
-    public String profMsgShrtntListView(ModelMap model, HttpServletRequest request) throws Exception {
-        if (!isProfessor(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+    public String profMsgShrtntListView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
-        model.addAttribute("orgId", StringUtil.nvl(SessionInfo.getOrgId(request)));
-        model.addAttribute("usernm", StringUtil.nvl(SessionInfo.getUserNm(request)));
-        model.addAttribute("pageSize", PAGE_SIZE);
+        vo = msgShrtntFacadeService.loadListViewInfo(vo, MsgAuthUtil.isAdmin(userCtx));
+
+        if (vo == null) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        vo.setListScale(PAGE_SIZE);
+        setEncParamsToVO(vo);
+
+        boolean isAdmin = MsgAuthUtil.isAdmin(userCtx);
+
+        EgovMap filterOptions = msgShrtntFacadeService.loadFilterOptions(vo, isAdmin);
+        if (!isAdmin) {
+            filterOptions.put("orgList", msgShrtntFacadeService.selectActiveOrgListByAuth(userCtx.getOrgId(), false));
+        }
+
+        model.addAttribute("filterOptions", filterOptions);
+        model.addAttribute("vo", vo);
+        model.addAttribute("isAdmin", isAdmin);
 
         return "msg2/prof_msg_shrtnt_list";
     }
 
     /*****************************************************
      * 관리자 쪽지 목록 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/mngr_msg_shrtnt_list"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/mngrMsgShrtntListView.do")
-    public String mngrMsgShrtntListView(ModelMap model, HttpServletRequest request) throws Exception {
-        if (!isAdmin(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+    public String mngrMsgShrtntListView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isAdmin(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
-        model.addAttribute("orgId", StringUtil.nvl(SessionInfo.getOrgId(request)));
-        model.addAttribute("usernm", StringUtil.nvl(SessionInfo.getUserNm(request)));
-        model.addAttribute("pageSize", PAGE_SIZE);
+        vo = msgShrtntFacadeService.loadListViewInfo(vo, true);
+
+        if (vo == null) {
+            throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        vo.setListScale(PAGE_SIZE);
+        setEncParamsToVO(vo);
+
+        EgovMap filterOptions = msgShrtntFacadeService.loadFilterOptions(vo, true);
+        model.addAttribute("filterOptions", filterOptions);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("isAdmin", true);
 
         return "msg2/mngr_msg_shrtnt_list";
     }
 
     /*****************************************************
      * 교수 쪽지 수신 상세 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/prof_msg_shrtnt_rcvn_detail"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/profMsgShrtntRcvnDetail.do")
-    public String profMsgShrtntRcvnDetail(ModelMap model, HttpServletRequest request) throws Exception {
-        if (!isProfessor(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+    @RequestMapping(value = "/profMsgShrtntRcvnDetailView.do")
+    public String profMsgShrtntRcvnDetailView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
-        String msgShrtntSndngId = request.getParameter("msgShrtntSndngId");
-        model.addAttribute("msgShrtntSndngId", msgShrtntSndngId);
+        addEncParam("msgShrtntSndngId", vo.getMsgShrtntSndngId());
+        model.addAttribute("msgShrtntSndngId", vo.getMsgShrtntSndngId());
+        model.addAttribute("vo", vo);
 
         return "msg2/prof_msg_shrtnt_rcvn_detail";
     }
 
     /*****************************************************
      * 관리자 쪽지 수신 상세 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/mngr_msg_shrtnt_rcvn_detail"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/mngrMsgShrtntRcvnDetail.do")
-    public String mngrMsgShrtntRcvnDetail(ModelMap model, HttpServletRequest request) throws Exception {
-        if (!isAdmin(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+    @RequestMapping(value = "/mngrMsgShrtntRcvnDetailView.do")
+    public String mngrMsgShrtntRcvnDetailView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isAdmin(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
-        String msgShrtntSndngId = request.getParameter("msgShrtntSndngId");
-        model.addAttribute("msgShrtntSndngId", msgShrtntSndngId);
+        addEncParam("msgShrtntSndngId", vo.getMsgShrtntSndngId());
+        model.addAttribute("msgShrtntSndngId", vo.getMsgShrtntSndngId());
+        model.addAttribute("vo", vo);
 
         return "msg2/mngr_msg_shrtnt_rcvn_detail";
     }
 
     /*****************************************************
      * 교수 쪽지 발신 상세 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/prof_msg_shrtnt_sndng_detail"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/profMsgShrtntSndngDetail.do")
-    public String profMsgShrtntSndngDetail(ModelMap model, HttpServletRequest request) throws Exception {
-        if (!isProfessor(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+    @RequestMapping(value = "/profMsgShrtntSndngDetailView.do")
+    public String profMsgShrtntSndngDetailView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
-        String msgId = request.getParameter("msgId");
-        model.addAttribute("msgId", msgId);
+        addEncParam("msgId", vo.getMsgId());
+        model.addAttribute("msgId", vo.getMsgId());
+        model.addAttribute("vo", vo);
 
         return "msg2/prof_msg_shrtnt_sndng_detail";
     }
 
     /*****************************************************
      * 관리자 쪽지 발신 상세 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/mngr_msg_shrtnt_sndng_detail"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/mngrMsgShrtntSndngDetail.do")
-    public String mngrMsgShrtntSndngDetail(ModelMap model, HttpServletRequest request) throws Exception {
-        if (!isAdmin(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+    @RequestMapping(value = "/mngrMsgShrtntSndngDetailView.do")
+    public String mngrMsgShrtntSndngDetailView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isAdmin(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
-        String msgId = request.getParameter("msgId");
-        model.addAttribute("msgId", msgId);
+        addEncParam("msgId", vo.getMsgId());
+        model.addAttribute("msgId", vo.getMsgId());
+        model.addAttribute("vo", vo);
 
         return "msg2/mngr_msg_shrtnt_sndng_detail";
     }
 
     /*****************************************************
      * 교수 쪽지 발신하기 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/prof_msg_shrtnt_sndng_regist"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/profMsgShrtntSndngRegistView.do")
-    public String profMsgShrtntSndngRegistView(ModelMap model, HttpServletRequest request) throws Exception {
-        return handleSndngRegistView(model, request, false, "msg2/prof_msg_shrtnt_sndng_regist");
+    public String profMsgShrtntSndngRegistView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        return handleSndngRegistView(vo, userCtx, model, request, false, "msg2/prof_msg_shrtnt_sndng_regist");
     }
 
     /*****************************************************
      * 관리자 쪽지 발신하기 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/mngr_msg_shrtnt_sndng_regist"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/mngrMsgShrtntSndngRegistView.do")
-    public String mngrMsgShrtntSndngRegistView(ModelMap model, HttpServletRequest request) throws Exception {
-        return handleSndngRegistView(model, request, true, "msg2/mngr_msg_shrtnt_sndng_regist");
+    public String mngrMsgShrtntSndngRegistView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        return handleSndngRegistView(vo, userCtx, model, request, true, "msg2/mngr_msg_shrtnt_sndng_regist");
     }
 
     /*****************************************************
      * 받는 사람 검색 팝업 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/msg_shrtnt_rcvr_popup"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRcvrPopupView.do")
-    public String msgShrtntRcvrPopupView(ModelMap model, HttpServletRequest request) throws Exception {
-        if (!isAdmin(request) && !isProfessor(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+    public String msgShrtntRcvrPopupView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
-        model.addAttribute("orgId", StringUtil.nvl(SessionInfo.getOrgId(request)));
+        model.addAttribute("orgId", userCtx.getOrgId());
+        model.addAttribute("vo", vo);
 
         return "msg2/msg_shrtnt_rcvr_popup";
     }
 
     /*****************************************************
      * 메시지 불러오기 팝업 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/msg_shrtnt_tmplt_popup"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntTmpltPopupView.do")
-    public String msgShrtntTmpltPopupView(ModelMap model, HttpServletRequest request) throws Exception {
-        if (!isAdmin(request) && !isProfessor(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+    public String msgShrtntTmpltPopupView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
+
+        model.addAttribute("vo", vo);
 
         return "msg2/msg_shrtnt_tmplt_popup";
     }
 
     /*****************************************************
      * 템플릿에 저장 팝업 화면
+     * @param vo
      * @param model
      * @param request
      * @return "msg2/msg_shrtnt_tmplt_save_popup"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntTmpltSavePopupView.do")
-    public String msgShrtntTmpltSavePopupView(ModelMap model, HttpServletRequest request) throws Exception {
-        if (!isAdmin(request) && !isProfessor(request)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+    public String msgShrtntTmpltSavePopupView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
+
+        model.addAttribute("vo", vo);
 
         return "msg2/msg_shrtnt_tmplt_save_popup";
     }
@@ -320,32 +327,26 @@ public class MsgShrtntController extends ControllerBase {
 
     /*****************************************************
      * 기관 목록 AJAX 조회
-     * @param request
+     * @param vo
      * @return ProcessResultVO<OrgInfoVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntOrgListAjax.do")
     @ResponseBody
-    public ProcessResultVO<OrgInfoVO> msgShrtntOrgListAjax(HttpServletRequest request) throws Exception {
+    public ProcessResultVO<OrgInfoVO> msgShrtntOrgListAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<OrgInfoVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            List<OrgInfoVO> list = msgShrtntFacadeService.selectActiveOrgList();
-
-            if (!isAdmin(request)) {
-                String sessionOrgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-                list = list.stream()
-                        .filter(o -> sessionOrgId.equals(o.getOrgId()))
-                        .collect(Collectors.toList());
-            }
-
+            List<OrgInfoVO> list = msgShrtntFacadeService.selectActiveOrgListByAuth(userCtx.getOrgId(), MsgAuthUtil.isAdmin(userCtx));
             resultVO.setReturnList(list);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -357,27 +358,28 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 수신 목록 AJAX 조회
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRcvnListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvnListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvnListAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkLoginAuth(resultVO, request)) {
+            if (StringUtil.isNull(userCtx.getUserId())) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
             vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
-            vo.setRcvrId(StringUtil.nvl(SessionInfo.getUserId(request)));
-            applySearchConstraints(vo, request);
+            vo.setRcvrId(userCtx.getUserId());
+            MsgAuthUtil.applyProfConstraints(vo, userCtx);
 
             resultVO = msgShrtntFacadeService.selectShrtntRcvnListPage(vo);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -389,27 +391,28 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 목록 AJAX 조회
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntSndngListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngListAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
             vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
-            applySearchConstraints(vo, request);
-            vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            MsgAuthUtil.applyProfConstraints(vo, userCtx);
+            vo.setSndngrId(userCtx.getUserId());
 
             resultVO = msgShrtntFacadeService.selectShrtntSndngListPage(vo);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -421,26 +424,27 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 수신 상세 AJAX 조회
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRcvnDetailAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvnDetailAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvnDetailAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkLoginAuth(resultVO, request)) {
+            if (StringUtil.isNull(userCtx.getUserId())) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            vo.setRcvrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            vo.setRcvrId(userCtx.getUserId());
 
             MsgShrtntVO detail = msgShrtntFacadeService.selectShrtntRcvnDetailWithFiles(vo);
             resultVO.setReturnVO(detail);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -452,28 +456,29 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 상세 AJAX 조회
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntSndngDetailAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngDetailAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngDetailAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            if (!isAdmin(request)) {
-                vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            if (!MsgAuthUtil.isAdmin(userCtx)) {
+                vo.setSndngrId(userCtx.getUserId());
             }
 
             MsgShrtntVO detail = msgShrtntFacadeService.selectShrtntSndngDetailWithFiles(vo);
             resultVO.setReturnVO(detail);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -485,29 +490,30 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 수신자 목록 AJAX 조회
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntSndngRcvrListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngRcvrListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngRcvrListAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            if (!isAdmin(request)) {
-                vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            if (!MsgAuthUtil.isAdmin(userCtx)) {
+                vo.setSndngrId(userCtx.getUserId());
             }
 
             vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
 
             resultVO = msgShrtntFacadeService.selectShrtntSndngRcvrListPage(vo);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -519,24 +525,25 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 읽음 처리 AJAX
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntReadAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntReadAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntReadAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkLoginAuth(resultVO, request)) {
+            if (StringUtil.isNull(userCtx.getUserId())) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            vo.setRcvrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            vo.setRcvrId(userCtx.getUserId());
             msgShrtntFacadeService.updateShrtntReadDttm(vo);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.update"));
@@ -548,22 +555,22 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 삭제 AJAX (수신/발신 구분)
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntDeleteAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntDeleteAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntDeleteAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkLoginAuth(resultVO, request)) {
+            if (StringUtil.isNull(userCtx.getUserId())) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+            String userId = userCtx.getUserId();
 
             if (LIST_TYPE_RCVN.equals(vo.getListType())) {
                 vo.setRcvrId(userId);
@@ -573,6 +580,7 @@ public class MsgShrtntController extends ControllerBase {
                 msgShrtntFacadeService.updateShrtntSndngrDelyn(vo);
             }
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.delete"));
@@ -584,26 +592,27 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 학사년도 목록 AJAX 조회
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntYrListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntYrListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntYrListAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            applySearchConstraints(vo, request);
+            MsgAuthUtil.applyProfConstraints(vo, userCtx);
 
             List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntYrList(vo);
             resultVO.setReturnList(list);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -615,26 +624,27 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 학기 목록 AJAX 조회
      * @param vo
-     * @param request
      * @return ProcessResultVO<EgovMap>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntSmstrListAjax.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> msgShrtntSmstrListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<EgovMap> msgShrtntSmstrListAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            applySearchConstraints(vo, request);
+            MsgAuthUtil.applyProfConstraints(vo, userCtx);
 
             List<EgovMap> list = msgShrtntFacadeService.selectShrtntSmstrList(vo);
             resultVO.setReturnList(list);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -646,32 +656,33 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 학과 목록 AJAX 조회
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntDeptListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntDeptListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntDeptListAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
             if ("POPUP".equals(vo.getGubun())) {
-                if (!isAdmin(request) || StringUtil.isNull(vo.getOrgId())) {
-                    vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
+                if (!MsgAuthUtil.isAdmin(userCtx) || StringUtil.isNull(vo.getOrgId())) {
+                    vo.setOrgId(userCtx.getOrgId());
                 }
             } else {
-                applySearchConstraints(vo, request);
+                MsgAuthUtil.applyProfConstraints(vo, userCtx);
             }
 
             List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntDeptList(vo);
             resultVO.setReturnList(list);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -683,32 +694,33 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 운영과목 목록 AJAX 조회
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntSbjctListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntSbjctListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSbjctListAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
             if ("POPUP".equals(vo.getGubun())) {
-                if (!isAdmin(request) || StringUtil.isNull(vo.getOrgId())) {
-                    vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
+                if (!MsgAuthUtil.isAdmin(userCtx) || StringUtil.isNull(vo.getOrgId())) {
+                    vo.setOrgId(userCtx.getOrgId());
                 }
             } else {
-                applySearchConstraints(vo, request);
+                MsgAuthUtil.applyProfConstraints(vo, userCtx);
             }
 
             List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntSbjctList(vo);
             resultVO.setReturnList(list);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -726,36 +738,39 @@ public class MsgShrtntController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/downExcelMsgShrtntRcvr.do")
-    public String downExcelMsgShrtntRcvr(MsgShrtntVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String downExcelMsgShrtntRcvr(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
 
-        String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        if (!authrtGrpcd.contains(AUTH_ADM) && !authrtGrpcd.contains(AUTH_PROF)) {
-            throw new BadRequestUrlException(getCommonNoAuthMessage());
+        if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
-        if (!isAdmin(request)) {
-            vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+        if (!MsgAuthUtil.isAdmin(userCtx)) {
+            vo.setSndngrId(userCtx.getUserId());
         }
 
-        List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntSndngRcvrExcelList(vo);
+        try {
+            List<MsgShrtntVO> list = msgShrtntFacadeService.selectShrtntSndngRcvrExcelList(vo);
 
-        String title = getMessage("msg.shrtnt.label.rcvrList");
-        Date today = new Date();
-        SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd");
+            String title = getMessage("msg.shrtnt.label.rcvrList");
+            Date today = new Date();
+            SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd");
 
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put("title", title);
-        map.put("sheetName", title);
-        map.put("excelGrid", vo.getExcelGrid());
-        map.put("list", list);
+            HashMap<String, Object> map = new HashMap<String, Object>();
+            map.put("title", title);
+            map.put("sheetName", title);
+            map.put("excelGrid", vo.getExcelGrid());
+            map.put("list", list);
 
-        HashMap<String, Object> modelMap = new HashMap<String, Object>();
-        modelMap.put("outFileName", title + "_" + date.format(today));
-        modelMap.put("sheetName", title);
+            HashMap<String, Object> modelMap = new HashMap<String, Object>();
+            modelMap.put("outFileName", title + "_" + date.format(today));
+            modelMap.put("sheetName", title);
 
-        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
-        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
-        model.addAllAttributes(modelMap);
+            ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+            modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+            model.addAllAttributes(modelMap);
+        } catch (Exception e) {
+            throw new Exception(getMessage("fail.common.select"));
+        }
 
         return "excelView";
     }
@@ -763,37 +778,30 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 등록 AJAX
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntSndngRegistAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngRegistAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngRegistAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
         String uploadFiles = vo.getUploadFiles();
         String uploadPath = vo.getUploadPath();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-            String userNm = StringUtil.nvl(SessionInfo.getUserNm(request));
-
-            vo.setRgtrId(userId);
-            vo.setSndngrId(userId);
-            if ("".equals(StringUtil.nvl(vo.getSndngnm()))) {
-                vo.setSndngnm(userNm);
-            }
-            vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
-            vo.setDgrsYr(vo.getSbjctYr());
-            vo.setSmstr(vo.getSbjctSmstr());
+            vo.setRgtrId(userCtx.getUserId());
+            vo.setSndngrId(userCtx.getUserId());
+            vo.setOrgId(userCtx.getOrgId());
 
             msgShrtntFacadeService.registShrtntSndngWithFiles(vo, uploadFiles, uploadPath);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.insert"));
@@ -808,36 +816,29 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 수정 AJAX
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntSndngModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngModifyAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngModifyAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
         String uploadFiles = vo.getUploadFiles();
         String uploadPath = vo.getUploadPath();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-            String userNm = StringUtil.nvl(SessionInfo.getUserNm(request));
-
-            vo.setMdfrId(userId);
-            vo.setSndngrId(userId);
-            if ("".equals(StringUtil.nvl(vo.getSndngnm()))) {
-                vo.setSndngnm(userNm);
-            }
-            vo.setDgrsYr(vo.getSbjctYr());
-            vo.setSmstr(vo.getSbjctSmstr());
+            vo.setMdfrId(userCtx.getUserId());
+            vo.setSndngrId(userCtx.getUserId());
 
             msgShrtntFacadeService.modifyShrtntSndngWithFiles(vo, uploadFiles, uploadPath, vo.getDelFileIds());
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.update"));
@@ -852,28 +853,29 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 예약 취소 AJAX
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRsrvCnclAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntRsrvCnclAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRsrvCnclAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+            String userId = userCtx.getUserId();
             vo.setMdfrId(userId);
-            if (!isAdmin(request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx)) {
                 vo.setSndngrId(userId);
             }
             msgShrtntFacadeService.updateMsgRsrvCncl(vo);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.update"));
@@ -885,36 +887,37 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 받는 사람 검색 AJAX
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRcvrSearchAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvrSearchAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvrSearchAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
             if ("POPUP".equals(vo.getGubun())) {
-                if (!isAdmin(request) || StringUtil.isNull(vo.getOrgId())) {
-                    vo.setOrgId(StringUtil.nvl(SessionInfo.getOrgId(request)));
+                if (!MsgAuthUtil.isAdmin(userCtx) || StringUtil.isNull(vo.getOrgId())) {
+                    vo.setOrgId(userCtx.getOrgId());
                 }
             } else {
-                applySearchConstraints(vo, request);
+                MsgAuthUtil.applyProfConstraints(vo, userCtx);
             }
-            if (isAdmin(request)) {
+            if (MsgAuthUtil.isAdmin(userCtx)) {
                 vo.setAdminYn("Y");
             }
-            vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            vo.setSndngrId(userCtx.getUserId());
             vo.setListScale(vo.getListScale() > 0 ? vo.getListScale() : PAGE_SIZE);
 
             resultVO = msgShrtntFacadeService.selectShrtntRcvrSearchListPage(vo);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -926,28 +929,29 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 수신 대상자 목록 AJAX 조회 (수정 폼용)
      * @param vo
-     * @param request
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRcvTrgtrListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvTrgtrListAjax(MsgShrtntVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvTrgtrListAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            if (!isAdmin(request)) {
-                vo.setSndngrId(StringUtil.nvl(SessionInfo.getUserId(request)));
+            if (!MsgAuthUtil.isAdmin(userCtx)) {
+                vo.setSndngrId(userCtx.getUserId());
             }
 
             List<MsgShrtntVO> list = msgShrtntFacadeService.selectMsgRcvTrgtrList(vo);
             resultVO.setReturnList(list);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -958,17 +962,17 @@ public class MsgShrtntController extends ControllerBase {
 
     /*****************************************************
      * 수신자 엑셀 업로드 양식 다운로드
+     * @param vo
      * @param model
      * @param request
      * @return "excelView"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/downExcelMsgShrtntRcvrTmplt.do")
-    public String downExcelMsgShrtntRcvrTmplt(ModelMap model, HttpServletRequest request) throws Exception {
+    public String downExcelMsgShrtntRcvrTmplt(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
 
-        String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        if (!authrtGrpcd.contains(AUTH_ADM) && !authrtGrpcd.contains(AUTH_PROF)) {
-            throw new BadRequestUrlException(getCommonNoAuthMessage());
+        if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -990,7 +994,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 수신자 엑셀 업로드 AJAX
      * @param excelFile
-     * @param request
+     * @param vo
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -998,16 +1002,18 @@ public class MsgShrtntController extends ControllerBase {
     @ResponseBody
     public ProcessResultVO<MsgShrtntVO> msgShrtntRcvrExcelUploadAjax(
             @RequestParam("excelFile") MultipartFile excelFile,
-            HttpServletRequest request) throws Exception {
+            MsgShrtntVO vo,
+            @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
-    
-            if (!checkAdmProfAuth(resultVO, request)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+            String orgId = userCtx.getOrgId();
             List<MsgShrtntVO> list = msgShrtntFacadeService.parseExcelAndSearchRcvr(excelFile.getInputStream(), orgId);
             if (list.isEmpty()) {
                 resultVO.setResult(ProcessResultVO.RESULT_FAIL);
@@ -1017,6 +1023,7 @@ public class MsgShrtntController extends ControllerBase {
 
             resultVO.setReturnList(list);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));

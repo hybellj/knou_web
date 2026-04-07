@@ -102,6 +102,7 @@ public class SessionInfo {
      * @param request
      * @param value
      */
+    @Deprecated
     public static final void setUserRprsId(HttpServletRequest request, String value) {
         SessionUtil.setSessionValue(request, CommConst.LOGIN_USERRPRSID, value);
     }
@@ -122,6 +123,7 @@ public class SessionInfo {
      * @param request
      * @param value
      */
+    @Deprecated
     public static final void setUserId(HttpServletRequest request, String value) {
         SessionUtil.setSessionValue(request, CommConst.LOGIN_USERID, value);
     }
@@ -200,6 +202,7 @@ public class SessionInfo {
      * @param request
      * @param value
      */
+    @Deprecated
     public static final void setAuthrtCd(HttpServletRequest request, String value) {
         SessionUtil.setSessionValue(request, CommConst.LOGIN_AUTHRTCD, value);
     }
@@ -305,7 +308,9 @@ public class SessionInfo {
      * @param request
      * @param value
      */
-    public static final void setAuthrtGrpcd(HttpServletRequest request, String value) {
+    public static final
+    @Deprecated
+    void setAuthrtGrpcd(HttpServletRequest request, String value) {
         SessionUtil.setSessionValue(request, CommConst.CUR_AUTHRT_CD, value);
     }
 
@@ -669,6 +674,7 @@ public class SessionInfo {
      * @param request
      * @param value
      */
+    @Deprecated
     public static final void setOrgId(HttpServletRequest request, String value) {
         SessionUtil.setSessionValue(request, CommConst.LOGIN_ORGID, value);
     }
