@@ -165,6 +165,7 @@ public class LessonHomeController extends ControllerBase {
         model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
         model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
         model.addAttribute("crsCreCd", SessionInfo.getCurCrsCreCd(request));
+        model.addAttribute("sbjctnm", "--");
 
         return "lesson/lect/prof_cntn_info_list_view";
     }

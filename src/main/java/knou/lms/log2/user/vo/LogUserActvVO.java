@@ -66,6 +66,54 @@ public class LogUserActvVO extends DefaultVO {
     /** 수정일시 (YYYYMMDDHH24MISS) */
     private String modDttm;
 
+    /** 활동일시 (DATE) */
+    private String actvDatetime;
+
+    /* ======================================================
+     * JOIN 결과 필드 (TB_LMS_USER / TB_LMS_SBJCT / TB_LMS_ORG)
+     * ====================================================== */
+    /** 사용자명 */
+    private String usernm;
+
+    /** 학번/교번 */
+    private String stdntNo;
+
+    /** 대표아이디 */
+    private String userRprsId;
+
+    /** 기관명 */
+    private String orgnm;
+
+    /** 과목명 */
+    private String sbjctnm;
+
+    /** 과목연도 */
+    private String sbjctYr;
+
+    /** 과목학기 */
+    private String sbjctSmstr;
+
+    /** 학과명 (DEPT_ID 기준) */
+    private String deptNm;
+
+    /** 분반번호 */
+    private String dvclasNo;
+
+    /* ======================================================
+     * 검색 파라미터
+     * ====================================================== */
+    /** 검색시작일시 (YYYYMMDDHH24MISS) */
+    private String searchSdttm;
+
+    /** 검색종료일시 (YYYYMMDDHH24MISS) */
+    private String searchEdttm;
+
+    /** 교수아이디 */
+    private String profId;
+
+    /** 검색어 (대표아이디/학번/이름) */
+    private String searchValue;
+
 	public String getUserActvId() {
 		return userActvId;
 	}
@@ -217,4 +265,46 @@ public class LogUserActvVO extends DefaultVO {
 	public void setModDttm(String modDttm) {
 		this.modDttm = modDttm;
 	}
+
+	public String getActvDatetime() { return actvDatetime; }
+	public void setActvDatetime(String actvDatetime) { this.actvDatetime = actvDatetime; }
+
+	public String getUsernm() { return usernm; }
+	public void setUsernm(String usernm) { this.usernm = usernm; }
+
+	public String getStdntNo() { return stdntNo; }
+	public void setStdntNo(String stdntNo) { this.stdntNo = stdntNo; }
+
+	public String getUserRprsId() { return userRprsId; }
+	public void setUserRprsId(String userRprsId) { this.userRprsId = userRprsId; }
+
+	public String getOrgnm() { return orgnm; }
+	public void setOrgnm(String orgnm) { this.orgnm = orgnm; }
+
+	public String getSbjctnm() { return sbjctnm; }
+	public void setSbjctnm(String sbjctnm) { this.sbjctnm = sbjctnm; }
+
+	public String getSbjctYr() { return sbjctYr; }
+	public void setSbjctYr(String sbjctYr) { this.sbjctYr = sbjctYr; }
+
+	public String getSbjctSmstr() { return sbjctSmstr; }
+	public void setSbjctSmstr(String sbjctSmstr) { this.sbjctSmstr = sbjctSmstr; }
+
+	public String getDeptNm() { return deptNm; }
+	public void setDeptNm(String deptNm) { this.deptNm = deptNm; }
+
+	public String getDvclasNo() { return dvclasNo; }
+	public void setDvclasNo(String dvclasNo) { this.dvclasNo = dvclasNo; }
+
+	public String getSearchSdttm() { return searchSdttm; }
+	public void setSearchSdttm(String searchSdttm) { this.searchSdttm = searchSdttm; }
+
+	public String getSearchEdttm() { return searchEdttm; }
+	public void setSearchEdttm(String searchEdttm) { this.searchEdttm = searchEdttm; }
+
+	public String getProfId() { return profId; }
+	public void setProfId(String profId) { this.profId = profId; }
+
+	public String getSearchValue() { return searchValue; }
+	public void setSearchValue(String searchValue) { this.searchValue = searchValue; }
 }

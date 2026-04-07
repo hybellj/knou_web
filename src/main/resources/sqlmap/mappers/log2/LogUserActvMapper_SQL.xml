@@ -2,41 +2,46 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.log2.user.dao.LogUserActvDAO">
 		
-	<!-- 강의실 활동 로그 조회 현황 목록(페이징) -->
+	<!--
+		강의실 활동 로그 조회 현황 목록(페이징)
+		- 대용량 로그 테이블 기준: sbjctId + ACTV_DTTM 범위 + userTycd 3개 필수 조건
+		- JOIN: TB_LMS_USER(사용자), TB_LMS_SBJCT(과목), TB_LMS_ORG(기관)
+	-->
 	<sql id="logUserActvQuery">
 		SELECT
 			  COUNT(1) OVER()                                                          AS TOTAL_CNT
 			, COUNT(1) OVER() - ROW_NUMBER() OVER(ORDER BY A.ACTV_DTTM DESC) + 1      AS LINE_NO
 			, A.USER_ACTV_ID
-			, A.USER_ID
-			, A.SBJCT_ID
-			, A.REQ_TYCD
-			, A.USER_REQ_URL
+			, A.ACTV_DTTM
+			, A.CNTN_IP
+			, A.USER_TYCD
 			, A.USER_REQ_MENU
 			, A.USER_REQ_CTS
-			, A.USER_TYCD
-			, A.CNTN_IP
-			, A.CNTN_DVC_TYCD
-			, A.CNTN_BRWSR
-			, A.ACTV_DTTM
-			, A.SESS_ID
-			, A.SESS_SDTTM
-			, A.SESS_EDTTM
-			, A.RGTR_ID
-			, A.REG_DTTM
+			, U.USER_ID
+			, U.USER_RPRS_ID
+			, U.USERNM
+			, U.STDNT_NO
+			, S.SBJCT_ID
+			, S.SBJCTNM
+			, S.SBJCT_YR
+			, S.SBJCT_SMSTR
+			, S.DVCLAS_NO
+			, S.DEPT_ID    AS DEPT_NM
+			, O.ORGNM
 		FROM TB_LMS_LOG_USER_ACTV A
-		WHERE 1=1
-		<if test='sbjctId != null and sbjctId != ""'>
-			AND A.SBJCT_ID = #{sbjctId}
-		</if>
-		<if test='userId != null and userId != ""'>
-			AND A.USER_ID = #{userId}
-		</if>
-		<if test='searchFrom != null and searchFrom != ""'>
-			AND <![CDATA[ A.ACTV_DTTM >= #{searchFrom} ]]>
-		</if>
-		<if test='searchTo != null and searchTo != ""'>
-			AND <![CDATA[ A.ACTV_DTTM <= #{searchTo} ]]>
+		INNER JOIN TB_LMS_USER  U ON U.USER_ID   = A.USER_ID
+		INNER JOIN TB_LMS_SBJCT S ON S.SBJCT_ID  = A.SBJCT_ID
+		INNER JOIN TB_LMS_ORG   O ON O.ORG_ID    = U.ORG_ID
+		WHERE A.SBJCT_ID  = #{sbjctId}
+		<![CDATA[
+		AND   A.ACTV_DTTM >= #{searchSdttm}
+		AND   A.ACTV_DTTM <= #{searchEdttm}
+		]]>
+		AND   A.USER_TYCD  = #{userTycd}
+		<if test='searchValue != null and searchValue != ""'>
+			AND (U.USERNM    LIKE '%' || #{searchValue} || '%'
+			  OR U.USER_ID   LIKE '%' || #{searchValue} || '%'
+			  OR U.STDNT_NO  LIKE '%' || #{searchValue} || '%')
 		</if>
 	</sql>
 
