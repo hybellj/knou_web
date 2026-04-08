@@ -259,7 +259,7 @@ public class DscsEzGraderLectController extends ControllerBase {
         uuiVO.setUserId(stdVO.getUserId());
         uuiVO.setOrgId(orgId);
         uuiVO.setCrsCreCd(vo.getSbjctId());
-        UsrUserInfoVO resultVO = usrUserInfoService.viewUser(uuiVO);
+        UsrUserInfoVO resultVO = usrUserInfoService.userSelect(uuiVO);
         resultVO.setHy(stdVO.getHy());
         request.setAttribute("userVO", resultVO);
         

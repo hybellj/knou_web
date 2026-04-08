@@ -3114,14 +3114,24 @@ public class BbsLectController extends ControllerBase {
     public String bbsAtclListView(BbsVO bbsVO, @CurrentUser UserContext userCtx,
     		ModelMap model, HttpServletRequest request) throws Exception {
 
-    	String orgId = bbsVO.getOrgId();
-    	String bbsTycd = request.getParameter("bbsTycd");
+    	String orgId = userCtx.getOrgId();
+    	String bbsId = request.getParameter("bbsId");
+		String bbsTycd = bbsVO.getBbsTycd();/* request.getParameter("bbsTycd"); */
+    	String bbsAddyn = request.getParameter("bbsAddyn") != null ? request.getParameter("bbsAddyn") : "N";
     	String sbjctId = bbsVO.getSbjctId();
     	String returnUrl = "";
 
+    	// 강의실 추가 게시판 게시판 유형코드 조회
+    	if("Y".equals(bbsAddyn)) {
+    		bbsTycd = bbsInfoService.getBbsTycd(bbsVO);
+    	} else {
+    		// 강의실 고정 게시판 ID 조회
+    		bbsId = bbsInfoService.getBbsId(bbsVO);
+    	}
+
     	boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
-		if(ValidationUtils.isEmpty(bbsVO.getBbsTycd())) {
+		if(ValidationUtils.isEmpty(bbsTycd)) {
 			throw new BadRequestUrlException(getMessage("common.system.error"));
 		}
 
@@ -3137,6 +3147,7 @@ public class BbsLectController extends ControllerBase {
 		bbsVO.setBbsIdList(excludeBbsIdList);
 
 		bbsVO.setOrgId(orgId);
+		bbsVO.setBbsId(bbsId);
 		bbsVO.setBbsTycd(bbsTycd);
 		bbsVO.setSbjctId(sbjctId);
 		bbsVO = bbsInfoService.isValidBbsLectInfo(bbsVO, isAdmin);
@@ -3203,13 +3214,13 @@ public class BbsLectController extends ControllerBase {
         // 게시판정보에 파라메터값 재설정 (게시판정보 조회에서 초기화돼서 재설정)
 		setEncParamsToVO(bbsVO);
 
-        String atclWriteAuth = "N"; // 글쓰기 권한
+        String atclWriteAuth = "Y"; // 글쓰기 권한
 
         //atclWriteAuth = BbsAuthUtil.getAtclWriteAuth(request, bbsVO);
 
         // 파라메터 설정
-        addEncParam("bbsId", bbsVO.getBbsId());
-        addEncParam("bbsTycd", bbsVO.getBbsTycd());
+        addEncParam("bbsId", bbsId);
+        addEncParam("bbsTycd", bbsTycd);
 
         // 조회필터옵션 세팅
     	EgovMap filterOptions = bbsFacadeService.loadFilterOptions(userCtx);
@@ -3225,8 +3236,8 @@ public class BbsLectController extends ControllerBase {
 			returnUrl = "bbs/lect/bbs_atcl_list_view";
 		}
 
-        model.addAttribute("atclWriteAuth", atclWriteAuth);
         model.addAttribute("bbsVO", bbsVO);
+        model.addAttribute("atclWriteAuth", atclWriteAuth);
         model.addAttribute("templateUrl", TEMPLATE_URL);
 
         return returnUrl;
@@ -3249,10 +3260,10 @@ public class BbsLectController extends ControllerBase {
         String userId = SessionInfo.getUserId(request);
         String langCd = SessionInfo.getLocaleKey(request);
 
-        String bbsId = request.getParameter("bbsId");
+        String bbsId = bbsAtclVO.getBbsId() != null ? bbsAtclVO.getBbsId() : request.getParameter("BbsId");
         String upAtclId = request.getParameter("upAtclId");
-
         String bbsTycd = request.getParameter("bbsTycd");
+
         if (ValidationUtils.isEmpty(bbsTycd)) {
             bbsTycd = bbsAtclVO.getBbsTycd();
         }
@@ -3993,12 +4004,13 @@ public class BbsLectController extends ControllerBase {
     }
 
     @RequestMapping(value = "/bbsMngListView.do")
-    public String bbsMngListView(BbsVO bbsVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String bbsMngListView(BbsVO bbsVO, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+
+    	// 파라메터 설정
+        addEncParam("orgId", userCtx.getOrgId());
+        addEncParam("sbjctId", bbsVO.getSbjctId() != null ? bbsVO.getSbjctId() : "SBJCT20260001");
 
         model.addAttribute("bbsVO", bbsVO);
-        model.addAttribute("orgId", SessionInfo.getOrgId(request));
-        model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
         model.addAttribute("templateUrl", TEMPLATE_URL);
 
         return "bbs/lect/bbs_mng_list_view";
@@ -4014,7 +4026,7 @@ public class BbsLectController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/bbsMngList.do")
     @ResponseBody
-    public ProcessResultVO<BbsVO> bbsMngListView2(BbsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<BbsVO> bbsMngList(BbsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<BbsVO> resultVO = new ProcessResultVO<>();
 
         String orgId = SessionInfo.getOrgId(request);
@@ -4049,12 +4061,20 @@ public class BbsLectController extends ControllerBase {
     public String bbsMngAdd(BbsVO bbsVO, @CurrentUser UserContext userCtx,
     		ModelMap model, HttpServletRequest request) throws Exception {
 
+    	String orgId = userCtx.getOrgId();
     	String userId = userCtx.getUserId();
+    	String bbsTycd = bbsVO.getBbsTycd();
+    	String bbsId = bbsVO.getBbsId();
+
     	bbsVO.setUserId(userId);
+    	if(bbsId == null) {
+    		bbsVO.setBbsId(orgId + "_" + bbsTycd);
+    	}
 
         boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
-        setEncParamsToVO(bbsVO);
+        bbsVO.setOrgId(orgId);
+		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
         String atclWriteAuth = "Y"; // 글쓰기 권한
 
@@ -4075,10 +4095,10 @@ public class BbsLectController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/bbsMngInfoRegist.do")
     @ResponseBody
-    public ProcessResultVO<BbsVO> bbsMngInfoRegist(BbsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<BbsVO> bbsMngInfoRegist(BbsVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<BbsVO> resultVO = new ProcessResultVO<>();
-        String orgId = SessionInfo.getOrgId(request);
-        String userId = SessionInfo.getUserId(request);
+        String orgId = userCtx.getOrgId();
+    	String userId = userCtx.getUserId();
 
         vo.setOrgId(orgId);
         vo.setRgtrId(userId);
@@ -4095,5 +4115,4 @@ public class BbsLectController extends ControllerBase {
         }
         return resultVO;
     }
-
 }

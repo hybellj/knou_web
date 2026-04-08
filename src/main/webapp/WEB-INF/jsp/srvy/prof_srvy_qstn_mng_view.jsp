@@ -293,8 +293,17 @@
 				lrnGrpId  	: "${vo.lrnGrpId}",
 				srvyId 		: "${vo.srvyId}"
 			};
+			UiComm.showLoading(true);
 
-			ajaxCall(url, data, function(data) {
+			$.ajax({
+		        url 	  : url,
+		        async	  : false,
+		        type 	  : "POST",
+		        dataType  : "json",
+		        data 	  : JSON.stringify(data),
+		        contentType: "application/json; charset=UTF-8",
+		    }).done(function(data) {
+		    	UiComm.showLoading(false);
 				if (data.result > 0) {
 					var returnList = data.returnList || [];
 					var html = "";
@@ -328,7 +337,10 @@
 
 	        		$("#srvySubAsmtTbody").append(html);
 				}
-			}, true);
+		    }).fail(function() {
+			   	UiComm.showLoading(false);
+			   	UiComm.showMessage("<spring:message code='exam.error.copy' />", "error");	/* 가져오기 중 에러가 발생하였습니다. */
+		    });
 		}
 
 		/**
@@ -1412,7 +1424,7 @@
 				        						<th><label>팀 설문</label></th>
 				        						<td class="t_left" colspan="3">
 				        							<c:choose>
-														<c:when test="${vo.examGbn eq 'SRVY_TEAM' }">
+														<c:when test="${vo.srvyGbn eq 'SRVY_TEAM' }">
 
 															<p>학습그룹 : ${vo.lrnGrpnm }</p>
 															<p>학습그룹별 부 과제 설정 : ${vo.byteamSubsrvyUseyn eq 'Y' ? '사용' : '미사용' }</p>

@@ -705,8 +705,13 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      ******************************************************/
     @Override
     public void bbsMngInfoRegist(BbsVO vo) throws Exception {
-        String bbsId = IdGenerator.getNewId("BBS");
+
+    	String bbsId = vo.getBbsId();
+    	if(bbsId == null) {
+    		bbsId = IdGenerator.getNewId("BBS");
+    	}
         vo.setBbsId(bbsId);
+
         bbsInfoDAO.bbsMngInfoRegist(vo);
 
         List<String> optnList = new ArrayList<>();
@@ -743,5 +748,15 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
 		 * BbsRltnVO(); bbsRltnVO.setBbsId(bbsId); bbsRltnVO.setRltnRefCd(crsCreCd);
 		 * bbsRltnVO.setRltnType("COURSE"); bbsRltnDAO.insertBbsRltn(bbsRltnVO); }
 		 */
+    }
+
+    @Override
+    public String getBbsTycd(BbsVO vo) throws Exception {
+    	return bbsInfoDAO.getBbsTycd(vo);
+    }
+
+    @Override
+    public String getBbsId(BbsVO vo) throws Exception {
+    	return bbsInfoDAO.getBbsId(vo);
     }
 }

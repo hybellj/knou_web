@@ -640,7 +640,7 @@ console.log("--- 스크립트 진입 성공 ---");
                     if (!sndngId) return;
 
                     if (sndngTycd === 'SHRTNT') {
-                        location.href = '/profMsgShrtntRcvnDetail.do?msgShrtntSndngId=' + encodeURIComponent(sndngId);
+                        location.href = '/profMsgShrtntRcvnSelectView.do?msgShrtntSndngId=' + encodeURIComponent(sndngId);
                     }
                 });
             </script>

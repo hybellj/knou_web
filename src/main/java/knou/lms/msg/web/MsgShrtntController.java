@@ -91,7 +91,7 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/prof_msg_shrtnt_list"
+     * @return "msg2/prof_msg_shrtnt_list_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/profMsgShrtntListView.do")
@@ -109,6 +109,10 @@ public class MsgShrtntController extends ControllerBase {
         vo.setListScale(PAGE_SIZE);
         setEncParamsToVO(vo);
 
+        delEncParam("msgId");
+        delEncParam("msgShrtntSndngId");
+        delEncParam("replyMsgShrtntSndngId");
+
         boolean isAdmin = MsgAuthUtil.isAdmin(userCtx);
 
         EgovMap filterOptions = msgShrtntFacadeService.loadFilterOptions(vo, isAdmin);
@@ -120,7 +124,7 @@ public class MsgShrtntController extends ControllerBase {
         model.addAttribute("vo", vo);
         model.addAttribute("isAdmin", isAdmin);
 
-        return "msg2/prof_msg_shrtnt_list";
+        return "msg2/prof_msg_shrtnt_list_view";
     }
 
     /*****************************************************
@@ -128,7 +132,7 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/mngr_msg_shrtnt_list"
+     * @return "msg2/mngr_msg_shrtnt_list_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/mngrMsgShrtntListView.do")
@@ -146,13 +150,17 @@ public class MsgShrtntController extends ControllerBase {
         vo.setListScale(PAGE_SIZE);
         setEncParamsToVO(vo);
 
+        delEncParam("msgId");
+        delEncParam("msgShrtntSndngId");
+        delEncParam("replyMsgShrtntSndngId");
+
         EgovMap filterOptions = msgShrtntFacadeService.loadFilterOptions(vo, true);
         model.addAttribute("filterOptions", filterOptions);
 
         model.addAttribute("vo", vo);
         model.addAttribute("isAdmin", true);
 
-        return "msg2/mngr_msg_shrtnt_list";
+        return "msg2/mngr_msg_shrtnt_list_view";
     }
 
     /*****************************************************
@@ -160,11 +168,11 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/prof_msg_shrtnt_rcvn_detail"
+     * @return "msg2/prof_msg_shrtnt_rcvn_select_view"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/profMsgShrtntRcvnDetailView.do")
-    public String profMsgShrtntRcvnDetailView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/profMsgShrtntRcvnSelectView.do")
+    public String profMsgShrtntRcvnSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
         if (!MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -173,7 +181,7 @@ public class MsgShrtntController extends ControllerBase {
         model.addAttribute("msgShrtntSndngId", vo.getMsgShrtntSndngId());
         model.addAttribute("vo", vo);
 
-        return "msg2/prof_msg_shrtnt_rcvn_detail";
+        return "msg2/prof_msg_shrtnt_rcvn_select_view";
     }
 
     /*****************************************************
@@ -181,11 +189,11 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/mngr_msg_shrtnt_rcvn_detail"
+     * @return "msg2/mngr_msg_shrtnt_rcvn_select_view"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/mngrMsgShrtntRcvnDetailView.do")
-    public String mngrMsgShrtntRcvnDetailView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/mngrMsgShrtntRcvnSelectView.do")
+    public String mngrMsgShrtntRcvnSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -194,7 +202,7 @@ public class MsgShrtntController extends ControllerBase {
         model.addAttribute("msgShrtntSndngId", vo.getMsgShrtntSndngId());
         model.addAttribute("vo", vo);
 
-        return "msg2/mngr_msg_shrtnt_rcvn_detail";
+        return "msg2/mngr_msg_shrtnt_rcvn_select_view";
     }
 
     /*****************************************************
@@ -202,11 +210,11 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/prof_msg_shrtnt_sndng_detail"
+     * @return "msg2/prof_msg_shrtnt_sndng_select_view"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/profMsgShrtntSndngDetailView.do")
-    public String profMsgShrtntSndngDetailView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/profMsgShrtntSndngSelectView.do")
+    public String profMsgShrtntSndngSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
         if (!MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -215,7 +223,7 @@ public class MsgShrtntController extends ControllerBase {
         model.addAttribute("msgId", vo.getMsgId());
         model.addAttribute("vo", vo);
 
-        return "msg2/prof_msg_shrtnt_sndng_detail";
+        return "msg2/prof_msg_shrtnt_sndng_select_view";
     }
 
     /*****************************************************
@@ -223,11 +231,11 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/mngr_msg_shrtnt_sndng_detail"
+     * @return "msg2/mngr_msg_shrtnt_sndng_select_view"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/mngrMsgShrtntSndngDetailView.do")
-    public String mngrMsgShrtntSndngDetailView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/mngrMsgShrtntSndngSelectView.do")
+    public String mngrMsgShrtntSndngSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -236,7 +244,7 @@ public class MsgShrtntController extends ControllerBase {
         model.addAttribute("msgId", vo.getMsgId());
         model.addAttribute("vo", vo);
 
-        return "msg2/mngr_msg_shrtnt_sndng_detail";
+        return "msg2/mngr_msg_shrtnt_sndng_select_view";
     }
 
     /*****************************************************
@@ -244,12 +252,12 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/prof_msg_shrtnt_sndng_regist"
+     * @return "msg2/prof_msg_shrtnt_sndng_regist_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/profMsgShrtntSndngRegistView.do")
     public String profMsgShrtntSndngRegistView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
-        return handleSndngRegistView(vo, userCtx, model, request, false, "msg2/prof_msg_shrtnt_sndng_regist");
+        return handleSndngRegistView(vo, userCtx, model, request, false, "msg2/prof_msg_shrtnt_sndng_regist_view");
     }
 
     /*****************************************************
@@ -257,12 +265,12 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/mngr_msg_shrtnt_sndng_regist"
+     * @return "msg2/mngr_msg_shrtnt_sndng_regist_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/mngrMsgShrtntSndngRegistView.do")
     public String mngrMsgShrtntSndngRegistView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
-        return handleSndngRegistView(vo, userCtx, model, request, true, "msg2/mngr_msg_shrtnt_sndng_regist");
+        return handleSndngRegistView(vo, userCtx, model, request, true, "msg2/mngr_msg_shrtnt_sndng_regist_view");
     }
 
     /*****************************************************
@@ -270,11 +278,11 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/msg_shrtnt_rcvr_popup"
+     * @return "msg2/msg_shrtnt_rcvr_popview"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/msgShrtntRcvrPopupView.do")
-    public String msgShrtntRcvrPopupView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/msgShrtntRcvrPopView.do")
+    public String msgShrtntRcvrPopView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -282,7 +290,7 @@ public class MsgShrtntController extends ControllerBase {
         model.addAttribute("orgId", userCtx.getOrgId());
         model.addAttribute("vo", vo);
 
-        return "msg2/msg_shrtnt_rcvr_popup";
+        return "msg2/msg_shrtnt_rcvr_popview";
     }
 
     /*****************************************************
@@ -290,18 +298,18 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/msg_shrtnt_tmplt_popup"
+     * @return "msg2/msg_shrtnt_tmplt_popview"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/msgShrtntTmpltPopupView.do")
-    public String msgShrtntTmpltPopupView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/msgShrtntTmpltPopView.do")
+    public String msgShrtntTmpltPopView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
         model.addAttribute("vo", vo);
 
-        return "msg2/msg_shrtnt_tmplt_popup";
+        return "msg2/msg_shrtnt_tmplt_popview";
     }
 
     /*****************************************************
@@ -309,18 +317,18 @@ public class MsgShrtntController extends ControllerBase {
      * @param vo
      * @param model
      * @param request
-     * @return "msg2/msg_shrtnt_tmplt_save_popup"
+     * @return "msg2/msg_shrtnt_tmplt_regist_popview"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/msgShrtntTmpltSavePopupView.do")
-    public String msgShrtntTmpltSavePopupView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/msgShrtntTmpltRegistPopView.do")
+    public String msgShrtntTmpltRegistPopView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
         model.addAttribute("vo", vo);
 
-        return "msg2/msg_shrtnt_tmplt_save_popup";
+        return "msg2/msg_shrtnt_tmplt_regist_popview";
     }
 
     // ========== AJAX 메서드 ==========
@@ -427,9 +435,9 @@ public class MsgShrtntController extends ControllerBase {
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/msgShrtntRcvnDetailAjax.do")
+    @RequestMapping(value = "/msgShrtntRcvnSelectAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvnDetailAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRcvnSelectAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
@@ -459,9 +467,9 @@ public class MsgShrtntController extends ControllerBase {
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/msgShrtntSndngDetailAjax.do")
+    @RequestMapping(value = "/msgShrtntSndngSelectAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngDetailAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntSndngSelectAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
@@ -528,9 +536,9 @@ public class MsgShrtntController extends ControllerBase {
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/msgShrtntReadAjax.do")
+    @RequestMapping(value = "/msgShrtntReadModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntReadAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntReadModifyAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
@@ -737,8 +745,8 @@ public class MsgShrtntController extends ControllerBase {
      * @return "excelView"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/downExcelMsgShrtntRcvr.do")
-    public String downExcelMsgShrtntRcvr(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/msgShrtntRcvrExcelList.do")
+    public String msgShrtntRcvrExcelList(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
 
         if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
@@ -856,9 +864,9 @@ public class MsgShrtntController extends ControllerBase {
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/msgShrtntRsrvCnclAjax.do")
+    @RequestMapping(value = "/msgShrtntRsrvCnclModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgShrtntVO> msgShrtntRsrvCnclAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
+    public ProcessResultVO<MsgShrtntVO> msgShrtntRsrvCnclModifyAjax(MsgShrtntVO vo, @CurrentUser UserContext userCtx) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {
@@ -968,8 +976,8 @@ public class MsgShrtntController extends ControllerBase {
      * @return "excelView"
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/downExcelMsgShrtntRcvrTmplt.do")
-    public String downExcelMsgShrtntRcvrTmplt(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    @RequestMapping(value = "/msgShrtntRcvrTmpltDown.do")
+    public String msgShrtntRcvrTmpltDown(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
 
         if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());

@@ -56,12 +56,5 @@ public interface LogUserLoginTryLogService {
 	 * @throws Exception
 	 */
 	public abstract void add(LogUserLoginTryLogVO vo) throws Exception;
-
-	/**
-     * 마지막 로그인 정보 조회
-     * @param vo
-     * @return
-     * @throws Exception
-     */
-    public LogUserLoginTryLogVO selectLastLogin(LogUserLoginTryLogVO vo) throws Exception;
+	
 }

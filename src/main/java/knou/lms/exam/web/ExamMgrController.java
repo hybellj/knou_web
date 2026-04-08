@@ -348,7 +348,7 @@ public class ExamMgrController extends ControllerBase {
         
         UsrUserInfoVO uuivo = new UsrUserInfoVO();
         uuivo.setUserId(vo.getUserId());
-        uuivo = usrUserInfoService.viewUser(uuivo);
+        uuivo = usrUserInfoService.userSelect(uuivo);
         request.setAttribute("uuivo", uuivo);
         
         return "exam/mgr/popup/exam_absent_apply_hsty_pop";
@@ -387,7 +387,7 @@ public class ExamMgrController extends ControllerBase {
             resultVO = examAbsentService.listCreCrsNotAbsent(vo);
             UsrUserInfoVO uuivo = new UsrUserInfoVO();
             uuivo.setUserId(vo.getUserId());
-            uuivo = usrUserInfoService.viewUser(uuivo);
+            uuivo = usrUserInfoService.userSelect(uuivo);
             resultVO.setReturnVO(uuivo);
             resultVO.setResult(1);
         } catch(Exception e) {

@@ -29,6 +29,7 @@ public class TeamVO extends DefaultVO {
 
     private String teamId;
     private String teamTycd;
+    private String teamnm;
 
     public String getTeamCd() {
         return teamCd;
@@ -180,5 +181,13 @@ public class TeamVO extends DefaultVO {
 
 	public void setTeamTycd(String teamTycd) {
 		this.teamTycd = teamTycd;
+	}
+
+	public String getTeamnm() {
+		return teamnm;
+	}
+
+	public void setTeamnm(String teamnm) {
+		this.teamnm = teamnm;
 	}
 }

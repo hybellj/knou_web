@@ -7,10 +7,6 @@ import java.util.List;
 
 public interface MsgTmpltService {
 
-    int selectTmpltCnt(MsgTmpltVO vo);
-
-    List<MsgTmpltVO> selectTmpltList(MsgTmpltVO vo);
-
     ProcessResultVO<MsgTmpltVO> selectTmpltListPage(MsgTmpltVO vo);
 
     MsgTmpltVO selectTmplt(MsgTmpltVO vo);

@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
  * @author shil
  */
 public class CommConst {
-	
+
 	public static final String USER_CONTEXT = "USER_CONTEXT";
 
     // framework.properties 로드
@@ -125,6 +125,13 @@ public class CommConst {
     public final static String MSG_SMS = framework.getString("framework.message.sms");
     public final static String MSG_EMAIL = framework.getString("framework.message.email");
     public final static String MSG_NOTE = framework.getString("framework.message.note");
+
+    // 대시보드 알림 메시지 채널 코드
+    public static final String MSG_CHNL_SHRTNT = "SHRTNT";
+    public static final String MSG_CHNL_PUSH = "PUSH";
+    public static final String MSG_CHNL_SMS = "SMS";
+    public static final String MSG_CHNL_ALIM_TALK = "ALIM_TALK";
+    public static final String[] MSG_VALID_CHNL_CDS = {MSG_CHNL_SHRTNT, MSG_CHNL_PUSH, MSG_CHNL_SMS, MSG_CHNL_ALIM_TALK};
 
     // 메시지 표시 관련 설정
     public final static String MSG_SMS_ADDR = framework.getString("framework.message.sms.addr");
@@ -711,7 +718,7 @@ public class CommConst {
 
     // 사용자 접속상태 체크값
     public static final String[][] CONN_CHECK_LIST = {
-    		{"/lctr/plandoc/profLctrPlandocView.do", CONN_LCTR_PLANDOC},    		
+    		{"/lctr/plandoc/profLctrPlandocView.do", CONN_LCTR_PLANDOC},
     		{"/userIndex.do", CONN_HOME},
     		{"/dashboard/dashboard.do", CONN_HOME},
     		{"/dashboard/main.do", CONN_HOME},
@@ -999,8 +1006,8 @@ public class CommConst {
             {"/teamMgr", CONN_ETC},
             {"/teamMgr", CONN_ETC}
     };
-    
-	
+
+
 
 
     private CommConst() {

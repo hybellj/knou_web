@@ -154,7 +154,7 @@ public class CrecrsMgrController extends ControllerBase {
             vo.setOrgId(orgId);
             UsrUserInfoVO uuiVO = new UsrUserInfoVO();
             uuiVO.setUserId(userId);
-            uuiVO = usrUserInfoService.viewUser(uuiVO);
+            uuiVO = usrUserInfoService.userSelect(uuiVO);
             String menuType = StringUtil.nvl(uuiVO.getAuthrtGrpcd());
 
             if(!menuType.contains("ADM")) {

@@ -3,7 +3,6 @@ package knou.lms.bbs.web;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -52,7 +51,6 @@ import knou.lms.common.service.SysFileService;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.crs.crecrs.service.CrecrsService;
 import knou.lms.crs.sbjct.service.SbjctService;
-import knou.lms.crs.sbjct.vo.SbjctVO;
 import knou.lms.crs.semester.service.SemesterService;
 import knou.lms.crs.semester.vo.SmstrChrtVO;
 import knou.lms.crs.term.service.TermService;
@@ -61,16 +59,14 @@ import knou.lms.log.lesson.service.LogLessonActnHstyService;
 import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.org.service.OrgInfoService;
-import knou.lms.org.vo.OrgInfoVO;
 import knou.lms.user.CurrentUser;
 import knou.lms.user.service.UsrDeptCdService;
-import knou.lms.user.vo.UsrDeptCdVO;
 
 @Controller
 @RequestMapping(value = "/bbs/bbsHome")
 public class BbsHomeController extends ControllerBase {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BbsHomeController.class);
+    private static final Logger log = LoggerFactory.getLogger(BbsHomeController.class);
     private static final String TEMPLATE_URL = "bbsHome";
 
     @Resource(name = "bbsInfoService")
@@ -326,7 +322,7 @@ public class BbsHomeController extends ControllerBase {
                     }
                 }
             } catch (Exception e) {
-                LOGGER.debug("e: ", e);
+                log.debug("e: ", e);
             }
         }
 
@@ -550,7 +546,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO = bbsAtclService.listBbsAtclPaging(vo);
             resultVO.setResult(1);
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -668,7 +664,7 @@ public class BbsHomeController extends ControllerBase {
                 FileUtil.delUploadFileList(uploadFiles, uploadPath);
             }
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
 
@@ -773,7 +769,7 @@ public class BbsHomeController extends ControllerBase {
                 FileUtil.delUploadFileList(uploadFiles, uploadPath);
             }
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
 
@@ -861,7 +857,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -950,7 +946,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(1);
             resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1042,7 +1038,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1143,7 +1139,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1235,7 +1231,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1333,7 +1329,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1436,7 +1432,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1529,7 +1525,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1563,7 +1559,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setReturnVO(bbsInfoVO);
             resultVO.setResult(1);
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1606,7 +1602,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setReturnVO(bbsAtclVO);
             resultVO.setResult(1);
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1643,7 +1639,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1672,21 +1668,34 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsAtclListView.do")
-    public String bbsAtclListView(BbsVO bbsVO, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String bbsAtclListView(BbsVO bbsVO, @CurrentUser UserContext userCtx,
+    		ModelMap model, HttpServletRequest request) throws Exception {
+
+
+    	/* TODO: * 요청사항 by jinkoon. 2026.04.08
+    	 * BbsId만 넘겨받아서 게시판 게시글 목록을 출력하는 프로그램이 필요합니다.
+    	 * 과목홈화면에서
+    	 *
+    	 * <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.ntcBbsId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
+	       <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.qnaBbsId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
+	       <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.oneOnOneBbsId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
+
+	       링크에서 BbsId로 보내기 때문입니다.
+    	 */
 
 		String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
         String bbsTycd = bbsVO.getBbsTycd();
 		String bbsId = "";
 
-    	boolean isAdmin = BbsAuthUtil.isAdmin(request);
+    	boolean isAdmin = BbsAuthUtil.isAdmin(request); // userCtx.isAdmin(); 사용가능
 
 		if(ValidationUtils.isEmpty(bbsVO.getBbsTycd())) {
-			throw new BadRequestUrlException(getMessage("common.system.error"));
+			throw new BadRequestUrlException(getMessage("common.system.error")); // bbsTycd가 필요한가? by jinkoon
 		}
 
         if(bbsVO.getBbsId() == null) {
-        	bbsVO.setBbsId(orgId + "_" + bbsTycd);
+        	bbsVO.setBbsId(orgId + "_" + bbsTycd); // bbsId가 없으면 예외를 발생 시켜야 하지않나? by jinkoon
         }
 
         bbsVO.setOrgId(orgId);
@@ -1742,6 +1751,7 @@ public class BbsHomeController extends ControllerBase {
 
         String bbsIds = request.getParameter("bbsIds"); // 게시판 id ',' 구분자
         String upAtclId = request.getParameter("upAtclId");
+        String bbsRefTycd = bbsAtclVO.getBbsRefTycd();
 
         try {
             bbsAtclVO.setOrgId(orgId);
@@ -1756,12 +1766,13 @@ public class BbsHomeController extends ControllerBase {
             bbsAtclVO.setVwerId(userId);
             bbsAtclVO.setUpAtclId(upAtclId);
             bbsAtclVO.setAtclLv(1);
+            bbsAtclVO.setBbsRefTycd(bbsRefTycd);
 
             resultVO = bbsAtclService.selectBbsAtclList(bbsAtclVO);
             resultVO.setResult(1);
             resultVO.setEncParams(getEncParams());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -1791,6 +1802,7 @@ public class BbsHomeController extends ControllerBase {
         String gubun = bbsAtclVO.getGubun();
         String atclId = bbsAtclVO.getAtclId();
         String bbsTycd = bbsAtclVO.getBbsTycd();
+        String bbsRefTycd = bbsAtclVO.getBbsRefTycd();
 
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
@@ -1828,6 +1840,7 @@ public class BbsHomeController extends ControllerBase {
 
         // 게시글 조회
         bbsAtclVO.setAtclId(atclId);
+        bbsAtclVO.setBbsRefTycd(bbsRefTycd);
         bbsAtclVO = bbsAtclService.selectBbsAtcl(bbsAtclVO);
 
         if(bbsAtclVO  == null) {
@@ -1932,12 +1945,14 @@ public class BbsHomeController extends ControllerBase {
         String atclId = bbsAtclVO.getAtclId();
         String bbsId = bbsAtclVO.getBbsId();
         String bbsTycd = bbsAtclVO.getBbsTycd();
+        String bbsRefTycd = bbsAtclVO.getBbsRefTycd();
 
         String uploadFiles = bbsAtclVO.getUploadFiles();
         String uploadPath = bbsAtclVO.getUploadPath();
 
         bbsAtclVO.setOrgId(orgId);
         bbsAtclVO.setAtclId(atclId);
+        bbsAtclVO.setBbsRefTycd(bbsRefTycd);
         bbsAtclVO.setUserId(userId);
         bbsAtclVO.setRgtrId(userId);
         bbsAtclVO.setMdfrId(userId);
@@ -1986,7 +2001,7 @@ public class BbsHomeController extends ControllerBase {
                 FileUtil.delUploadFileList(uploadFiles, uploadPath);
             }
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
 
@@ -2007,7 +2022,7 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsAtclEditWrite.do")
-    public String bbsAtclEditWrite(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx, 
+    public String bbsAtclEditWrite(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
     		ModelMap model, HttpServletRequest request) throws Exception {
 
     	boolean isAdmin = BbsAuthUtil.isAdmin(request);
@@ -2117,7 +2132,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(1);
             resultVO.setEncParams(getEncParams());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -2151,7 +2166,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO = bbsCmntService.selectBbsAtclCmntList(bbsCmntVO);
             resultVO.setResult(1);
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -2167,7 +2182,7 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsSbjctListView.do")
-    public String bbsSbjctListView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx, 
+    public String bbsSbjctListView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
     		ModelMap model, HttpServletRequest request) throws Exception {
 
         String orgId = userCtx.getOrgId();
@@ -2241,27 +2256,23 @@ public class BbsHomeController extends ControllerBase {
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
         String bbsTycd = bbsAtclVO.getBbsTycd();
-        String bbsId = "";
+        String bbsId = orgId +  "_" + bbsTycd;
 
         String atclEditAuth = "N";      // 글수정 권한
         String atclDeleteAuth  = "N";   // 글삭제 권한
         String answerWriteAuth = "N";   // 답글쓰기 권한
         String commentWriteAuth = "N";  // 댓글쓰기 권한
 
-        if(ValidationUtils.isEmpty(bbsId) || ValidationUtils.isEmpty(bbsAtclVO)) {
+        if(ValidationUtils.isEmpty(bbsAtclVO)) {
             throw new BadRequestUrlException(getMessage("common.system.error"));
-        }
-
-        if(bbsAtclVO.getBbsId() == null) {
-        	bbsId = orgId +  "_" + bbsTycd;
         }
 
         // 게시판 정보 조회
         BbsVO bbsVO = new BbsVO();
         bbsVO.setOrgId(orgId);
         bbsVO.setBbsId(bbsId);
-        bbsVO.setLangCd(langCd);
         bbsVO.setBbsTycd(bbsTycd);
+        bbsVO.setLangCd(langCd);
         bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
         if(bbsVO == null) {
@@ -2315,7 +2326,7 @@ public class BbsHomeController extends ControllerBase {
     @RequestMapping(value = "/bbsSbjctRegistView.do")
     public String bbsSbjctRegistView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
     		ModelMap model, HttpServletRequest request) throws Exception {
-    	
+
         boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
         String orgId = userCtx.getOrgId();
@@ -2323,6 +2334,7 @@ public class BbsHomeController extends ControllerBase {
         String langCd = userCtx.getLangCd();
 
         String bbsId = bbsAtclVO.getBbsId();
+        String bbsTycd = bbsAtclVO.getBbsTycd();
         String mode = request.getParameter("mode");
 
         String atclWriteAuth = "N"; // 글쓰기 권한
@@ -2335,6 +2347,7 @@ public class BbsHomeController extends ControllerBase {
         BbsVO bbsVO = new BbsVO();
         bbsVO.setOrgId(orgId);
         bbsVO.setBbsId(bbsId);
+        bbsVO.setBbsTycd(bbsTycd);
         bbsVO.setLangCd(langCd);
         bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
@@ -2383,13 +2396,8 @@ public class BbsHomeController extends ControllerBase {
         String langCd = userCtx.getLangCd();
 
         String bbsId = bbsAtclVO.getBbsId();
-		/*
-		 * String atclId = bbsAtclVO.getAtclId(); String atclOptnId =
-		 * bbsAtclVO.getAtclOptnId();
-		 *
-		 * bbsAtclVO.setAtclId(atclId); bbsAtclVO.setAtclOptnId(atclOptnId);
-		 * bbsAtclVO.setRgtrId(userId);
-		 */
+        String bbsTycd = bbsAtclVO.getBbsTycd();
+        String bbsRefTycd = bbsAtclVO.getBbsRefTycd();
 
         try {
             // 로그인 체크
@@ -2401,6 +2409,7 @@ public class BbsHomeController extends ControllerBase {
             BbsVO bbsVO = new BbsVO();
             bbsVO.setOrgId(orgId);
             bbsVO.setBbsId(bbsId);
+            bbsVO.setBbsTycd(bbsTycd);
             bbsVO.setLangCd(langCd);
             bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
@@ -2408,6 +2417,8 @@ public class BbsHomeController extends ControllerBase {
                 throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
             }
 
+            bbsAtclVO.setRgtrId(userId);
+            bbsAtclVO.setBbsRefTycd(bbsRefTycd);
             bbsAtclService.bbsAtclSbjctRegist(bbsAtclVO);
 
             resultVO.setResult(1);
@@ -2416,7 +2427,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -2454,9 +2465,8 @@ public class BbsHomeController extends ControllerBase {
         // 게시판 정보 조회
         bbsVO.setOrgId(orgId);
         bbsVO.setBbsId(bbsId);
-        bbsVO.setLangCd(langCd);
         bbsVO.setBbsTycd(bbsTycd);
-
+        bbsVO.setLangCd(langCd);
         bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
         if(bbsVO == null) {
@@ -2782,7 +2792,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -2880,7 +2890,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -2966,7 +2976,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(-1);
             resultVO.setMessage(e.getMessage());
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }
@@ -3007,7 +3017,7 @@ public class BbsHomeController extends ControllerBase {
             resultVO.setResult(1);
 
         } catch(Exception e) {
-            LOGGER.error("게시글 상세 조회 중 오류 발생: ", e);
+            log.error("게시글 상세 조회 중 오류 발생: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage());
         }
@@ -3037,7 +3047,7 @@ public class BbsHomeController extends ControllerBase {
 			resultVO = bbsAtclService.selectBbsAtclGrpNtcList(bbsAtclVO);
             resultVO.setResult(1);
         } catch(Exception e) {
-            LOGGER.debug("e: ", e);
+            log.debug("e: ", e);
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
         }

@@ -303,6 +303,8 @@
                         <div class="table-wrap">
                             <form id="bbsAtclSbjctWriteForm" name="bbsAtclSbjctWriteForm">
                                 <input type="hidden" name="bbsId" value="${bbsAtclVO.bbsId}">
+                                <input type="hidden" name="bbsTycd" value="${bbsAtclVO.bbsTycd}">
+                                <input type="hidden" name="bbsRefTycd" value="SBJCT">
                                 <input type="hidden" name="userId" value="${bbsAtclVO.userId}">
                                 <input type="hidden" name="atclId" value="${bbsAtclVO.atclId}">
                                 <input type="hidden" name="atclOptnId" value="${bbsAtclVO.atclOptnId}">

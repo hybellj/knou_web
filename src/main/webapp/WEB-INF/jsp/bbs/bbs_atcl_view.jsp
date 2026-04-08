@@ -35,17 +35,20 @@
         }
 
         function bbsAtclDelete(bbsId, atclId) {
-    		// 게시글 삭제 시 댓글도 모두 삭제됩니다. 정말 삭제 하시겠습니까?
-    		if(confirm('<spring:message code="bbs.confirm.delete_atcl" />')) {
-    			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
-    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?encParams=${encParams}";
-    			var data = {
-    				  atclId	: atclId
-    				, bbsId	    : bbsId
-    			};
+        	UiComm.showMessage("<spring:message code='bbs.confirm.delete_atcl' />", "confirm")
+    		.then(function(result) {
+    			if (result) {
+	    			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
+	    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?encParams=${encParams}";
+	    			var data = {
+	    				  atclId	: atclId
+	    				, bbsId	    : bbsId
+	    			};
 
-    			bbsCommon.delete(url, returnUrl, data);
-    		}
+	    			bbsCommon.delete(url, returnUrl, data);
+    			}
+    			else {}
+    		});
     	};
 	</script>
 </head>

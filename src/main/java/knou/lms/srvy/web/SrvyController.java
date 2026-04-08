@@ -104,6 +104,9 @@ public class SrvyController extends ControllerBase {
 
         SrvyMainView srvyMainView = srvyFacadeService.loadProfSrvyRegistView(vo);
         model.addAttribute("dvclasList", srvyMainView.getSbjctDcvlasList());
+        EgovMap map = new EgovMap();
+        map.put("uploadPath", RepoInfo.getAtflRepo(request, CommConst.REPO_SRVY));	// 첨부파일저장소 설정
+        model.addAttribute("vo", map);
 
         model.addAttribute("menuTycd", "PROF");
         model.addAttribute("sbjctId", vo.getSbjctId());    // 과목아이디

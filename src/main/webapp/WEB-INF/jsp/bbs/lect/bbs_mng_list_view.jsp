@@ -17,14 +17,11 @@
 	<jsp:include page="/WEB-INF/jsp/bbs/common/bbs_common_inc.jsp"/>
 
 	<script type="text/javascript">
-		var USER_ID 		= '<c:out value="${USER_ID}" />';
-		var BBS_CD 			= '<c:out value="${bbsVO.bbsTycd}" />';
-		var TEAM_CTGR_CD	= '<c:out value="${param.teamCtgrCd}" />';
-		var TEAM_CD			= '<c:out value="${param.teamCd}" />';
+		var ORG_ID 		    = '<c:out value="${bbsVO.orgId}" />';
+		var SBJCT_ID 		= '<c:out value="${bbsVO.sbjctId}" />';
 		var SEARCH_VALUE	= '<c:out value="${param.searchValue}" />';
 		var PAGE_INDEX		= '<c:out value="${bbsVO.pageIndex}" />';
 		var TAB 			= '<c:out value="${param.tab}" />';
-		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
 		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
 		var BBS_IDS;
 
@@ -44,15 +41,13 @@
 
 		// 게시글 조회
 		function listPaging(pageIndex) {
-			ORG_ID       = $("#orgId").val();
-			SEARCH_VALUE = $("#searchValue").val();
-			PAGE_INDEX = pageIndex;
 
 			var extData = {
-					pageIndex		: pageIndex
+					orgId           : ORG_ID
+					, sbjctId       : SBJCT_ID
+					, pageIndex		: PAGE_INDEX
 					, listScale		: LIST_SCALE
-					, orgId         : ORG_ID
-					, searchValue 	: $("#searchValue").val()
+					, searchValue 	: SEARCH_VALUE
 			};
 
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsMngList.do"
@@ -67,7 +62,7 @@
 				if (data.encParams != null && data.encParams != '') {
 					EPARAM = data.encParams;
 				}
-				console.log(data.returnList)
+
 				if (data.result > 0) {
 	        		let returnList = data.returnList || [];
 
@@ -76,21 +71,36 @@
 	        		atclListTable.clearData();
 	        		atclListTable.replaceData(dataList);
 	        		atclListTable.setPageInfo(data.pageInfo);
-
-
-	        		//let frameId = window.frameElement ? window.frameElement.id : "";
-	        		//parent.resizeIframe(frameId);
 	            } else {
-	             	showMessage(data.message, "error"); // 에러가 발생했습니다!
+	            	UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
 	            }
 			}, function(xhr, status, error) {
-				showMessage("<spring:message code='fail.common.msg'/>", "error"); // 에러가 발생했습니다!
+				UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
 			}, true);
 		}
 
-		// 글쓰기
+		// 게시판 추가
 		function moveWriteAtcl() {
 			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsMngAdd.do?encParams="+EPARAM;
+		}
+
+		// 게시글 보기
+		function viewAtcl(orgId, bbsId, bbsTycd) {
+			let extData = {
+				orgId	  : orgId
+				, bbsId   : bbsId
+				, bbsTycd : bbsTycd
+			};
+
+			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsMngAdd.do?encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);
+		}
+
+		function moveAtclBbs(bbsId, bbsTycd, bbsAddyn) {
+			if(bbsAddyn == 'Y') {
+				document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclListView.do?bbsId="+bbsId+"&bbsAddyn=Y";
+			} else {
+				document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclListView.do?bbsTycd="+bbsTycd;
+			}
 		}
 
 		// 게시글 리스트 생성
@@ -111,16 +121,28 @@
 		            	atflUseynHtml += '>';
 		            }
 
+		         	// 게시판 제목
+		            var bbsNm = v.bbsNm.replaceAll("<", "&lt").replaceAll(">", "&gt");
+		            var linkUrl = 'javascript:viewAtcl(\'' + v.orgId + '\', \'' + v.bbsId + '\', \'' + v.bbsTycd + '\')';
+			        var title = "";
+		            if(v.bbsAddyn == 'Y') {
+			            title += '<a href="' + linkUrl + '" title="' + bbsNm + '" class="header header-icon link">';
+			            title += bbsNm;
+			            title += '</a>';
+		            } else {
+		            	title = v.bbsNm;
+		            }
+
 					var mngHtml = "";
-		            mngHtml += "<a href=\"javascript:moveAtclBbs('" + v.lineNo + "')\" class=\"btn basic small\"><spring:message code='bbs.button.move_bbs'/></a>";
+		            mngHtml += "<a href=\"javascript:moveAtclBbs('" + v.bbsId + "', '" + v.bbsTycd + "', '" + v.bbsAddyn + "')\" class=\"btn basic small\"><spring:message code='bbs.button.move_bbs'/></a>";
 
 					dataList.push({
 						no: v.lineNo,
-						bbsNm: v.bbsNm,
+						bbsNm: title,
 						bbsGbn: v.bbsAddyn == 'Y' ? "추가" : "고정",
 						bbsOptnNm: v.bbsOptnNm,
-						fileCnt: v.fileCnt,
-						atflMaxSz: v.atflMaxSz,
+						atflMaxCnt: v.atflMaxCnt,
+						atflMaxsz: v.atflMaxsz,
 						atclCnt: v.atclCnt,
 						atflUseyn: v.atflUseyn == 'Y' ? "사용" : "미사용",
 						regDttm: v.regDttm,
@@ -131,16 +153,6 @@
 				return dataList;
 			}
 		}
-
-		// 게시글 보기
-		function viewAtcl(atclId) {
-			let extData = {
-				atclId	: atclId
-			};
-
-			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);
-		}
-
 
 		// list scale 변경
 		function changeListScale(scale) {
@@ -159,7 +171,6 @@
 
         <!-- classroom -->
         <main class="common">
-
 			<!-- gnb -->
 			<jsp:include page="/WEB-INF/jsp/common_new/class_gnb_prof.jsp"/>
 			<!-- //gnb -->
@@ -228,7 +239,7 @@
 								<div class="board_top">
 		                            <h3 class="board-title">게시판 관리</h3>
 		                            <div class="right-area">
-		                                <button type="button" class="btn type1" style="white-space: nowrap;" onclick="moveWriteAtcl()"><spring:message code="bbs.label.bbs_add" /></button><%-- 글쓰기 --%>
+		                                <button type="button" class="btn type1" style="white-space: nowrap;" onclick="moveWriteAtcl()"><spring:message code="bbs.label.bbs_add" /></button><%-- 게시판 추가 --%>
 
 										<%-- 리스트/카드 선택 버튼 --%>
 										<span class="list-card-button"></span>
@@ -279,8 +290,8 @@
 										{title:"<spring:message code='bbs.label.bbs_name'/>",   field:"bbsNm",	        headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:100, 	headerSort:true},	// 게시판명
 										{title:"<spring:message code='bbs.label.type'/>",       field:"bbsGbn",	        headerHozAlign:"center", hozAlign:"left",	width:120,	minWidth:60, 	headerSort:true},	// 구분
 										{title:"<spring:message code='bbs.label.option'/>",     field:"bbsOptnNm",	    headerHozAlign:"center", hozAlign:"left",	width:120,	minWidth:60, 	headerSort:true},	// 옵션
-										{title:"<spring:message code='bbs.label.file_num'/>",   field:"fileCnt",	    headerHozAlign:"center", hozAlign:"left",	width:120,	minWidth:60, 	headerSort:true},	// 파일수
-										{title:"<spring:message code='bbs.label.size_limit'/>", field:"atflMaxSz",	    headerHozAlign:"center", hozAlign:"left",	width:120,	minWidth:60, 	headerSort:true},	// 용량제한
+										{title:"<spring:message code='bbs.label.file_num'/>",   field:"atflMaxCnt",	    headerHozAlign:"center", hozAlign:"left",	width:120,	minWidth:60, 	headerSort:true},	// 파일수
+										{title:"<spring:message code='bbs.label.size_limit'/>", field:"atflMaxsz",	    headerHozAlign:"center", hozAlign:"left",	width:120,	minWidth:60, 	headerSort:true},	// 용량제한
 										{title:"<spring:message code='bbs.label.atcl_cnt'/>",   field:"atclCnt",	    headerHozAlign:"center", hozAlign:"left",	width:120,	minWidth:60, 	headerSort:true},	// 게시글수
 										{title:"<spring:message code='bbs.label.use_yn'/>",     field:"atflUseyn",	    headerHozAlign:"center", hozAlign:"left",	width:120,	minWidth:60, 	headerSort:true},	// 사용여부
 										{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDttm", 	    headerHozAlign:"center", hozAlign:"center", width:120, 	minWidth:100,	headerSort:true,	formatter:"date"},	// 등록일자

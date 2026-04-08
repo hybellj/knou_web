@@ -235,4 +235,20 @@ public interface BbsInfoService {
      * @throws Exception
      ******************************************************/
     public void bbsMngInfoRegist(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 정보 > 게시판 유형 조회
+     * @param vo
+     * @return String
+     * @throws Exception
+     ******************************************************/
+    public String getBbsTycd(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 정보 > 게시판 ID 조회
+     * @param vo
+     * @return String
+     * @throws Exception
+     ******************************************************/
+    public String getBbsId(BbsVO vo) throws Exception;
 }

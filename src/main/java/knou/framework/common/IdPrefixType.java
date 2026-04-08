@@ -33,8 +33,9 @@ public enum IdPrefixType {
 
     // 팀
     TE("TE", "팀"),
-    TEAM("TEAM", "팀"),
     TEMBR("TEMBR", "팀멤버"),
+    TEAM("TEAM", "팀"),
+    LRNGR("LRNGR", "학습그룹"),
 
     // 세미나
     SM("SM", "세미나"),
@@ -42,6 +43,14 @@ public enum IdPrefixType {
     SMATN("SMATN", "세미나참석"),
     SMPRE("SMPRE", "세미나사전등록"),
     SMZTK("SMZTK", "세미나줌토큰"),
+    SMTE("SMTE", "세미나팀"),
+    SMTGT("SMTGT", "세미나대상자"),
+
+    // 플랫폼
+    OPSTG("OPSTG", "온라인플랫폼설정"),
+    OPLAU("OPLAU", "온라인플랫폼권한"),
+    OPLUS("OPLUS", "온라인플랫폼사용자"),
+    OPLMT("OPLMT", "온라인회의실"),
 
     // 평가
     EV("EV", "평가"),

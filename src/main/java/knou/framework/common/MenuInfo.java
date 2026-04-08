@@ -466,7 +466,7 @@ public class MenuInfo {
 		        			CommonBeanUtils.copyProperties(bbsMenuVO,  menuVO);
 		        			bbsMenuVO.setMenuId(menuBbsVO.getBbsId());
 		        			bbsMenuVO.setMenunm(menuBbsVO.getBbsNm());
-		        			bbsMenuVO.setMenuUrl(BBS_SBJCT_MENU+"?bbsId="+menuBbsVO.getBbsId());
+		        			bbsMenuVO.setMenuUrl(BBS_SBJCT_MENU+"?bbsId="+menuBbsVO.getBbsId()+"&bbsAddyn="+menuBbsVO.getBbsAddyn());
 		        			menuList.add(bbsMenuVO);
 	        			}
         			}

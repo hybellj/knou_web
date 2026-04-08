@@ -140,6 +140,8 @@
         } else {
             if ($(obj).hasClass('readonly')) {
                 obj.checked = true;
+                $("#lrnGrpView" + obj.id.split("_")[1]).css("display", "flex");
+                $("#setForumDiv"+obj.id.split("_")[1]).show();
                 return;
             }
             $("#allDeclas").prop("checked", $("input[name=sbjctIds]").length == $("input[name=sbjctIds]:checked").length);
@@ -310,7 +312,8 @@
             listSize: 1,
             fileList: "",   // TODO : 26.4.3 수정시는 공통 모듈 작업 예정([{}, {}]
             finishFunc: onTeamUploadComplete,
-            allowedTypes: "*"
+            allowedTypes: "*",
+            uiMode: "simple"
         });
 
         // team upload 정보에 uid push

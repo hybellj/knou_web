@@ -18,13 +18,13 @@ import knou.lms.seminar.api.cloudrecording.vo.RecordingSettingsVO;
 import knou.lms.seminar.api.cloudrecording.vo.RecordingVO;
 import knou.lms.seminar.api.cloudrecording.vo.RecordingsVO;
 import knou.lms.seminar.api.common.ZoomApiUrl;
-import knou.lms.seminar.api.common.ZoomRestTemplateSupporter;
+import knou.lms.seminar.api.common.ZoomRestTemplateSupporter2;
 
 @Service("cloudRecordingService")
 public class CloudRecordingServiceImpl implements CloudRecordingService {
 
     @Autowired
-    private ZoomRestTemplateSupporter restTemplate;
+    private ZoomRestTemplateSupporter2 restTemplate;
 
     /*****************************************************
      * <p>

@@ -2,10 +2,9 @@ package knou.lms.log2.user.dao;
 
 import java.util.List;
 
-import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
-import knou.lms.log2.user.vo.LogUserActvVO;
+import knou.lms.log2.user.vo.LectCntnInfoVO;
 
 @Mapper("logUserActvDAO")
 public interface LogUserActvDAO {
@@ -17,12 +16,6 @@ public interface LogUserActvDAO {
 	 * @Param("timeRange") int timeRange) throws Exception;
 	 */
 
-    /*****************************************************
-     * 강의실 활동 로그 조회 현황 목록 페이징 (TB_LMS_LOG_USER_ACTV)
-     * @param LogUserActvVO
-     * @return List<LogUserActvVO>
-     * @throws Exception
-     ******************************************************/
-    public List<LogUserActvVO> selectLogUserActvList(LogUserActvVO vo) throws Exception;
+    public List<LectCntnInfoVO> selectProfSbjctStngCntnInfoList(LectCntnInfoVO vo) throws Exception;
 
 }

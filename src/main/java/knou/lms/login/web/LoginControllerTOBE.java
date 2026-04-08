@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.naru.provider.ServiceProvider;
 
 import knou.framework.common.CommConst;
 import knou.framework.common.SessionInfo;
@@ -47,36 +46,36 @@ import knou.lms.user.vo.UsrUserInfoVO;
 
 @Controller
 public class LoginControllerTOBE {
-	
+
     private static Logger log = Logger.getLogger(LoginControllerTOBE.class);
-    
+
     @Autowired
     private LoginService loginService;
-    
+
     @Autowired @Qualifier("orgCfgService")
     private OrgCfgService orgCfgService;
-    
+
     @Autowired @Qualifier("usrUserInfoService")
     private UsrUserInfoService usrUserInfoService;
-    
+
     @Autowired @Qualifier("usrLoginService")
     private UsrLoginService usrLoginService;
-    
+
     @Autowired @Qualifier("logUserLoginTryLogService")
     private LogUserLoginTryLogService logUserLoginTryLogService;
-    
+
     @Autowired @Qualifier("logAdminConnLogService")
     private LogAdminConnLogService logAdminConnLogService;
-    
+
     @Autowired @Qualifier("sysMenuMemService")
     private SysMenuMemService sysMenuMemService;
-    
+
     @Autowired @Qualifier("orgConnIpService")
     private OrgConnIpService orgConnIpService;
 
     @Autowired @Qualifier("userService")
     private UserService userService;
-    
+
 	/**
 	 * 로그인 처리
 	 * @param LoginParam
@@ -88,13 +87,13 @@ public class LoginControllerTOBE {
 	@SuppressWarnings("deprecation")
 	@RequestMapping(value="/loginProcTOBE.do")
     public String loginProcTOBE(LoginParam param, HttpServletRequest request, HttpServletResponse response) throws Exception {
-	    
+
 		log.info("loginProcTOBE.do 시작");
-	    
+
 	    try {
 	        // 1. login 처리
 	        UserContext userCtx = loginService.processLogin(param);
-	        
+
 	        // 2. 세션 변수 설정 --> 삭제예정
 	        UserVO selectedUser = userCtx.getSelectedUser();
 	        SessionInfo.setOrgId(request,       selectedUser.getOrgId());
@@ -102,14 +101,14 @@ public class LoginControllerTOBE {
 	        SessionInfo.setUserRprsId(request,  selectedUser.getUserRprsId());
 	        SessionInfo.setAuthrtCd(request,    selectedUser.getUserTycd());
 	        SessionInfo.setAuthrtGrpcd(request, selectedUser.getUserTycd());
-	        
+
 	        // 3. USER_CONTEXT 세션저장
-	        SessionInfo.setUserContext(request, userCtx); // USER_CONTEXT	        
+	        SessionInfo.setUserContext(request, userCtx); // USER_CONTEXT
 
 	        // 4. 화면 분기
 	        String initUrl = resolveDashboard(selectedUser.getUserTycd());
 	        log.info("initUrl=" + initUrl);
-	        
+
 	        return "redirect:/dashboard" + initUrl;
 
 	    } catch (LoginFailedException e) {
@@ -119,13 +118,13 @@ public class LoginControllerTOBE {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        return "/indexTOBE";
-	    }		
+	    }
     }
-	
+
  	private boolean isHackInput(String uri) {
-        if (uri == null) 
+        if (uri == null)
         	return false;
-        return uri.toUpperCase().contains(" OR ") || uri.toUpperCase().contains(" AND ") 
+        return uri.toUpperCase().contains(" OR ") || uri.toUpperCase().contains(" AND ")
         		|| uri.contains("'") || uri.contains("\"");
     }
 
@@ -185,7 +184,7 @@ public class LoginControllerTOBE {
         user.setUserRprsId(userAcntId);
         user.setUserId(userId);
 
-        UsrUserInfoVO info = usrUserInfoService.viewUser(user);
+        UsrUserInfoVO info = usrUserInfoService.userSelect(user);
 
         String conf = StringUtil.nvl(info.getUserConf(), "{}");
 
@@ -194,7 +193,7 @@ public class LoginControllerTOBE {
         json.put("lang", language);
 
         info.setUserConf(json.toJSONString());
-        usrUserInfoService.updateUserConf(info);
+        usrUserInfoService.userStngModify(info);
     }
 
     private void changeUserSession(HttpServletRequest request, String chgUserId) {
@@ -218,10 +217,10 @@ public class LoginControllerTOBE {
         //if ("2023201349".equals(userId)) return false;
         return !SessionInfo.isVirtualLogin(request) && "Y".equals(chk) && "0".equals(loginGbn);
     }
-	
+
 	/**
      * sso 임시 로그인
-     * 
+     *
      * @param request
      * @param response
      * @param modelMap
@@ -233,39 +232,39 @@ public class LoginControllerTOBE {
         if ("Y".equals(CommConst.WORK_PAGE_YN)) {
             response.sendRedirect("/");
         }
-        
+
         HttpSession ss = request.getSession();
-        
+
         Enumeration<?> em = ss.getAttributeNames();
         while (em.hasMoreElements()) {
             String skey = (String) em.nextElement();
             //System.out.println(">>>"+skey+" -- "+ss.getAttribute(skey));
             //System.out.println(ss.getAttribute(skey));
         }
-        
+
         String ssoUserId = (String) ss.getAttribute("SSO_ID");
-        String str = (String) ss.getAttribute(ServiceProvider.SESSION_TOKEN);
-        
+        String str = ""; // (String) ss.getAttribute(ServiceProvider.SESSION_TOKEN); -- SSO 세션 토큰
+
         String[] lines = str.split("\r?\n|\r");
-        
+
         int loginGnbIdx = -1;
         for(int i=0; i < lines.length; i++) {
             if(lines[i].indexOf("LOGINGBN") > -1) {
                 loginGnbIdx = i;
             }
         }
-        
+
         String loginGnb = lines[loginGnbIdx].substring(lines[loginGnbIdx].indexOf("=")+1);
-        
-        System.out.println(DateTimeUtil.getCurrentDateText() + " : SSO LOGIN ---> "+ssoUserId+", "+loginGnb);        
-        
+
+        System.out.println(DateTimeUtil.getCurrentDateText() + " : SSO LOGIN ---> "+ssoUserId+", "+loginGnb);
+
         UsrLoginVO vo = new UsrLoginVO();
-        
+
         vo.setOrgId("ORG0000001");
         vo.setOrgNm("KNOU");
         vo.setUserId(ssoUserId);
         vo.setUserIdEncpswd("SSO");
-        
+
         UsrUserInfoVO uuivo = new UsrUserInfoVO();
         String userId = "";
         String orgId = vo.getOrgId();
@@ -275,7 +274,7 @@ public class LoginControllerTOBE {
         String goUrl = vo.getGoUrl();
         Boolean isTmpLogin = false;
         List<UsrUserInfoVO> userRltnList = null;
-        
+
         /** 브라우저 , 호스트 변조 접근 방지 시작 2015.12.15 */
         boolean chkUserAgentHack = false;
         if(StringUtil.nvl(goMcd).indexOf("' AND ") !=-1) chkUserAgentHack = true;
@@ -295,26 +294,26 @@ public class LoginControllerTOBE {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "ERROR");
             return null;
         }
-        
+
         OrgCfgVO orgCfgVo = new OrgCfgVO();
         orgCfgVo.setOrgId(orgId);
         orgCfgVo.setCfgCtgrCd("LOGIN");
         orgCfgVo.setCfgCd("EXCEPTION");
-        
+
         String exceptionMcd = orgCfgService.getValue(orgCfgVo);
-        
+
         orgCfgVo.setCfgCtgrCd("LOGIN");
         orgCfgVo.setCfgCd("GAPTIME");
-        
+
         int faileSec = Integer.parseInt(orgCfgService.getValue(orgCfgVo))/60;
-        
+
         if(exceptionMcd.contains(goMcd)) {
             goMcd = mainMcd; //-- 예외 처리 메뉴 번호인 경우 홈페이지로 연결
         }
-        
+
         uuivo.setUserId(vo.getUserId());
         uuivo.setUserIdEncpswd(vo.getUserIdEncpswd());
-        
+
         LogUserLoginTryLogVO lultlvo = new LogUserLoginTryLogVO();
         lultlvo.setUserId(uuivo.getUserId());
         lultlvo.setBrowserInfo(request.getHeader("User-Agent"));
@@ -325,25 +324,25 @@ public class LoginControllerTOBE {
             if(orgId2.equals("")){
                 uuivo.setOrgId(orgId);
             }
-            
+
             uuivo = usrUserInfoService.viewForLogin(uuivo);
-            
+
             // 퇴사자 체크
             String status = uuivo.getStatus();
-            
+
             if("N".equals(StringUtil.nvl(status)) && !StringUtil.nvl(uuivo.getAuthrtGrpcd()).contains("USR")) {
                 lultlvo.setLoginSuccYn("N");
                 model.addAttribute("msg_code", "RETIRE");
                 return "common/error_login";
             }
-            
+
             // 미납자 체크
             if("UNPAID".equals(StringUtil.nvl(uuivo.getLoginAcptDivCd()))) {
                 lultlvo.setLoginSuccYn("N");
                 model.addAttribute("msg_code", "UNPAID");
                 return "common/error_login";
             }
-            
+
             String conf = StringUtil.nvl(uuivo.getUserConf());
             if (!"".equals(conf)) {
                 JSONParser parser = new JSONParser();
@@ -354,22 +353,23 @@ public class LoginControllerTOBE {
                     SessionInfo.setSysLocalkey(request, lang);
                 }
             }
-            
+
             // 마지막 로그인정보 조회
             if ("".equals(SessionInfo.getLastLogin(request))) {
                 LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
                 loginTryLogVO.setUserId(uuivo.getUserId());
-                System.out.println("66666666666666666666666666666666666666666");
-                loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
-                
-                if (loginTryLogVO != null) {
-                    SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
+
+                EgovMap loginUser = loginService.userLatestLoginHstrySelect(uuivo.getUserId());
+
+                if (loginUser != null) {
+                    SessionInfo.setLastLogin(request,
+                    		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
                 }
             }
-            
+
             // 외부기관 사용자 연결정보 조회
             userRltnList = usrUserInfoService.selectUserOrgRltnByKnouUser(uuivo);
-            
+
         } catch(Exception e) {
             uuivo = new UsrUserInfoVO();
             uuivo.setUserId(userId);
@@ -379,7 +379,7 @@ public class LoginControllerTOBE {
         } finally {
             logUserLoginTryLogService.add(lultlvo);
         }
-        
+
         // 로그인 처리
         // 세션 정보를 셋팅해 준다.
         usrLoginService.editLastLogin(uuivo);
@@ -387,12 +387,12 @@ public class LoginControllerTOBE {
         SessionInfo.setUserRprsId(request,uuivo.getUserRprsId());
         SessionInfo.setUserNm(request,uuivo.getUserNm());
         SessionInfo.setUserPhoto(request, uuivo.getPhotoFileId());
-        
+
         // 세션ID 저장(중복로그인 체크용)
         uuivo.setSessionId(request.getSession().getId());
         usrLoginService.insertSessionId(uuivo);
-        
-        //STUDENT:학생 / PROFESSOR:교수 / ADMIN:관리자   
+
+        //STUDENT:학생 / PROFESSOR:교수 / ADMIN:관리자
         SessionInfo.setAuthrtGrpcd(request,uuivo.getAuthrtGrpcd());
         SessionInfo.setAuthrtCd(request,uuivo.getWwwAuthrtCd());
         // ADMIN 권한이있으면 Y / 없으면 N
@@ -406,11 +406,11 @@ public class LoginControllerTOBE {
         SessionInfo.setUniCd(request, uuivo.getUniCd());
         SessionInfo.setUserTypeDetail(request, uuivo.getUserTypeDetail());
         SessionInfo.setUserTycd(request, uuivo.getAuthrtGrpcd());
-        
+
         if (userRltnList != null && userRltnList.size() > 1) {
         	SessionInfo.setUserRltnList(request, userRltnList);
         }
-        
+
         /*로그인 구분 값은 아래와 같습니다.
         0 : 일반 로그인 (ID/PW)
         1 : 공동인증서 로그인(PKI인증)
@@ -420,7 +420,7 @@ public class LoginControllerTOBE {
         5 : 간편번호 인증
         */
         SessionInfo.setLoginGbn(request,loginGnb);
-        
+
         // 파일함 접근 권한이 있는지 검사
         OrgCfgVO orgCfgVO = new OrgCfgVO();
         orgCfgVO.setOrgId(orgId);
@@ -437,26 +437,26 @@ public class LoginControllerTOBE {
                 break;
             }
         }
-        
+
         SessionInfo.setFileBoxUseAuthYn(request, fileBoxUseAuthYn);
-        
+
         // 임시 비밀번호 로그인일 경우 프로필 관리 페이지 이동
         if(isTmpLogin) {
             //return "redirect:"+ new URLBuilder("user", "/userHome/Form/editProfileForm", request).toString();
         }
-        
+
         request.getSession().setAttribute("SSO_STATUS", "login");
-        
+
         String url = "/dashboard/main.do";
         String moveUrl = (String)SessionUtil.getSessionValue(request, "MOVE_URL_NOLOGIN");
     	if (moveUrl != null && !"".equals(moveUrl)) {
     		url = moveUrl;
     	}
     	SessionUtil.removeSessionValue(request, "MOVE_URL_NOLOGIN");
-        
+
         return "redirect:"+url;
     }
-    
+
     public String getBrowserType(HttpServletRequest request)
     {
         String browser = "";
@@ -483,5 +483,5 @@ public class LoginControllerTOBE {
             browser = "NN";
         }
         return browser;
-    }    
+    }
 }

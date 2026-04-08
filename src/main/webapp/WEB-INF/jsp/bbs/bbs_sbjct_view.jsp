@@ -63,7 +63,7 @@
     				var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
         			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsSbjctListView.do?encParams=${encParams}";
         			var data = {
-    					bbsId: BBS_ID,
+    					bbsId   : BBS_ID,
     					atclId	: ATCL_ID
     				};
 

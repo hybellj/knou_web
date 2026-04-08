@@ -23,6 +23,7 @@ import knou.lms.log.logintry.service.LogUserLoginTryLogService;
 import knou.lms.log.logintry.vo.LogUserLoginTryLogVO;
 import knou.lms.log.privateinfo.service.PrivateInfoInqService;
 import knou.lms.log.privateinfo.vo.PrivateInfoInqVO;
+import knou.lms.login.service.LoginService;
 import knou.lms.menu.service.SysMenuMemService;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.std.service.StdService;
@@ -31,6 +32,7 @@ import knou.lms.user.facade.UserPrfilFacadeService;
 import knou.lms.user.service.*;
 import knou.lms.user.vo.*;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Controller;
@@ -104,7 +106,9 @@ public class UserHomeController extends ControllerBase {
 
     @Resource(name="userPrfilService")
     private UserPrfilService userPrfilService;
-
+    
+    @Resource(name="loginService")
+	private LoginService loginService;
 
     /*****************************************************
      * 사용자 모드 전환 로그인 ( 관리자, 교수자)
@@ -191,11 +195,12 @@ public class UserHomeController extends ControllerBase {
         // 마지막 로그인 정보 조회
         LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
         loginTryLogVO.setUserId(uuivo.getUserId());
-        System.out.println("888888888888888888888888888888888888888");
-        loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
-
-        if(loginTryLogVO != null) {
-            SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
+        
+        EgovMap loginUser = loginService.userLatestLoginHstrySelect(uuivo.getUserId());
+        
+        if (loginUser != null) {
+            SessionInfo.setLastLogin(request, 
+            		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
         }
 
         if(SessionInfo.getAuthrtGrpcd(request).contains("ADM")) {
@@ -382,11 +387,12 @@ public class UserHomeController extends ControllerBase {
         // 마지막 로그인 정보 조회
         LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
         loginTryLogVO.setUserId(uuivo.getUserId());
-        System.out.println("222222222222222222222222222222222");
-        loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
-
-        if(loginTryLogVO != null) {
-            SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
+        
+        EgovMap loginUser = loginService.userLatestLoginHstrySelect(uuivo.getUserId());
+        
+        if (loginUser != null) {
+            SessionInfo.setLastLogin(request, 
+            		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
         }
 
         if(SessionInfo.getAuthrtGrpcd(request).contains("ADM")) {
@@ -528,10 +534,10 @@ public class UserHomeController extends ControllerBase {
             // 마지막 로그인 정보 조회
             LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
             loginTryLogVO.setUserId(uuivo.getUserId());
-            /* loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO); */
+            /* loginTryLogVO = logUserLoginTryLogService.userLatestLoginHstrySelect(loginTryLogVO); */
 
             if(loginTryLogVO != null) {
-                SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
+                SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr()); // 에러날라나?
             }
 
             //수강생정보 삭제
@@ -693,7 +699,7 @@ public class UserHomeController extends ControllerBase {
 
         vo.setUserId(SessionInfo.getUserId(request));
 
-        vo = usrUserInfoService.viewUser(vo);
+        vo = usrUserInfoService.userSelect(vo);
 
         request.setAttribute("phtFile", vo.getPhotoFileId());
         request.setAttribute("vo", vo);
@@ -713,7 +719,7 @@ public class UserHomeController extends ControllerBase {
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
 
         vo.setUserId(SessionInfo.getUserId(request));
-        vo = usrUserInfoService.viewUser(vo);
+        vo = usrUserInfoService.userSelect(vo);
         FileVO fileVO = new FileVO();
         fileVO.setRepoCd("USER_PROFILE");
         fileVO.setFileBindDataSn(vo.getUserId());
@@ -943,35 +949,11 @@ public class UserHomeController extends ControllerBase {
     @RequestMapping(value="/setUserConf")
     @ResponseBody
     public ProcessResultVO<EgovMap> setUserConf(UsrUserInfoVO vo, ModelMap map, HttpServletRequest request) throws Exception {
+    	
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
         String confType = StringUtil.nvl(request.getParameter("confType"));
-        String confVal = StringUtil.nvl(request.getParameter("confVal"));
+        String confVal = StringUtil.nvl(request.getParameter("confVal"));        
         
-        /*
-        vo.setUserId(SessionInfo.getUserId(request));
-        UsrUserInfoVO infoVO = usrUserInfoService.viewUser(vo);
-        
-        if (!"".equals(confType) && !"".equals(confVal) && infoVO != null) {
-            String conf = StringUtil.nvl(infoVO.getUserConf());
-            
-            if (StringUtil.isNull(conf)) {
-                conf = "{}";
-            }
-    
-            JSONParser parser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) parser.parse(conf);
-            jsonObject.put(confType, confVal);
-            infoVO.setUserConf(jsonObject.toJSONString());
-    
-            usrUserInfoService.updateUserConf(infoVO);
-            
-            if ("theme".equals(confType)) {
-                SessionInfo.setThemeMode(request, confVal);
-            }
-            
-            resultVO.setResult(1);
-        }
-        */
 
         if("theme".equals(confType)) {
             SessionInfo.setThemeMode(request, confVal);

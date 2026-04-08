@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.smnr.dao.SmnrDAO">
+
+	<select id="profSmnrListPaging" parameterType="smnrVO" resultType="egovMap">
+		/*
+             SQL ID : SmnrDAO.profSmnrListPaging
+             설  명  : 교수세미나목록페이징
+         */
+        WITH SBJCT_USER AS (
+		    SELECT ATNDLC.USER_ID
+		    FROM TB_LMS_ATNDLC ATNDLC
+		    JOIN TB_LMS_SBJCT SBJCT ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+		    WHERE ATNDLC.AUDITYN = 'N'
+		      AND SBJCT.SBJCT_ID = #{sbjctId}
+		),
+		SUB_SMNR AS (
+		    SELECT SMNR_ID, UP_SMNR_ID
+		    FROM TB_LMS_SMNR
+		    WHERE DELYN = 'N'
+		      AND UP_SMNR_ID IS NOT NULL
+		),
+		SMNR_BASE AS (
+		    SELECT
+		          ROW_NUMBER() OVER (ORDER BY SMNR.SMNR_SDTTM DESC, SMNR.REG_DTTM ASC) AS LINE_NO
+		        , COUNT(SMNR.SMNR_ID) OVER () AS TOTAL_CNT
+		        , SMNR.SMNR_ID
+		        , SMNR.SBJCT_ID
+		        , CASE WHEN EXISTS (SELECT 1 FROM SUB_SMNR SS WHERE SS.UP_SMNR_ID = SMNR.SMNR_ID)
+		               THEN 'SMNR_TEAM' ELSE 'SMNR' END AS SMNR_GBN
+		        , SMNR.SMNRNM
+		        , SMNR.SMNR_SDTTM
+		        , SMNR.SMNR_EDTTM
+		        , SMNR.SMNR_MNTS
+		        , SMNR.MRK_RFLTYN
+		        , SMNR.MRK_RFLTRT
+		        , SMNR.MRK_OYN
+		        , SMNR.REG_DTTM
+		        , SMNR.SMNR_GBNCD
+		        , SMNR.ATND_RCD_PFLTYN
+		        , (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'SMNR_GBNCD' AND CD = SMNR.SMNR_GBNCD) AS SMNR_GBNNM
+		        , (SELECT COUNT(USER_ID) FROM SBJCT_USER) AS SMNR_TRGT_CNT
+		        , (
+				      SELECT COUNT(ATND.SMNR_ATND_ID)
+				      FROM TB_LMS_SMNR_ATND ATND
+				      WHERE ATND.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+				        AND ATND.SMNR_ID IN (
+				            SELECT SS.SMNR_ID
+				            FROM SUB_SMNR SS
+				            WHERE SS.UP_SMNR_ID = SMNR.SMNR_ID
+				            UNION ALL
+				            SELECT SMNR.SMNR_ID
+				            FROM DUAL
+				        )
+				  ) AS SMNR_ATND_CNT
+		        , (
+				      SELECT COUNT(ATND.SMNR_ATND_ID)
+				      FROM TB_LMS_SMNR_ATND ATND
+				      WHERE ATND.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+				        AND ATND.ATND_EVLYN = 'Y'
+				        AND ATND.SMNR_ID IN (
+				            SELECT SS.SMNR_ID
+				            FROM SUB_SMNR SS
+				            WHERE SS.UP_SMNR_ID = SMNR.SMNR_ID
+				            UNION ALL
+				            SELECT SMNR.SMNR_ID
+				            FROM DUAL
+				        )
+				  ) AS SMNR_EVLTEE_CNT
+				, CASE
+				        WHEN (TO_DATE(SMNR.SMNR_SDTTM, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400 <![CDATA[ <= ]]> 600 THEN 'Y'
+				        ELSE 'N'
+				    END AS SMNR_STARTYN
+			    , CASE
+				        WHEN TRUNC(TO_DATE(SMNR.SMNR_EDTTM, 'YYYYMMDDHH24MISS') + 1) - TRUNC(SYSDATE) <![CDATA[ <= ]]> 0 THEN 'Y'
+				        ELSE 'N'
+				    END AS SMNR_ENDYN
+				, SBJCT.PROF_ID
+		    FROM TB_LMS_SMNR SMNR
+		    JOIN TB_LMS_SBJCT SBJCT
+		      ON SMNR.SBJCT_ID = SBJCT.SBJCT_ID
+		    WHERE SMNR.SMNR_TYCD = 'EDU_SMNR'
+		      AND SBJCT.SBJCT_ID  = #{sbjctId}
+		      AND SMNR.DELYN      = 'N'
+		      AND SMNR.UP_SMNR_ID IS NULL
+		      <if test="searchValue != null and searchValue != ''">
+			  	AND LOWER(SMNR.SMNRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			  </if>
+		)
+		SELECT *
+		FROM SMNR_BASE
+		<where>
+			<if test="listScale != null and listScale > 0">
+			  AND LINE_NO BETWEEN #{firstIndex} +1 AND #{firstIndex} + #{listScale}
+			</if>
+		</where>
+	</select>
+
+	<insert id="smnrRegist" parameterType="smnrVO">
+		/*
+             SQL ID : SmnrDAO.smnrRegist
+             설  명 : 세미나등록
+         */
+        INSERT INTO TB_LMS_SMNR (
+        	  SMNR_ID
+			, LCTR_WKNO_SCHDL_ID
+			, SBJCT_ID
+			, SMNRNM
+			, SMNR_CTS
+			, SMNR_TYCD
+			, SMNR_SDTTM
+			, SMNR_EDTTM
+			, SMNR_MNTS
+			, SMNR_GBNCD
+			, AUTO_RCDYN
+			, UP_SMNR_ID
+			, EVL_SCR_TYCD
+			, MRK_RFLTYN
+			, MRK_RFLTRT
+			, MRK_OYN
+			, BYTEAM_SUBSMNR_USEYN
+			, RGTR_ID
+			, REG_DTTM
+        ) VALUES (
+        	  #{smnrId}
+			, #{lctrWknoSchdlId}
+			, #{sbjctId}
+			, #{smnrnm}
+			, #{smnrCts}
+			, #{smnrTycd}
+			, #{smnrSdttm}
+			, #{smnrEdttm}
+			, #{smnrMnts}
+			, #{smnrGbncd}
+			, #{autoRcdyn}
+			, #{upSmnrId}
+			, #{evlScrTycd}
+			, #{mrkRfltyn}
+			, #{mrkRfltrt}
+			, #{mrkOyn}
+			, #{byteamSubsmnrUseyn}
+			, #{rgtrId}
+			, FN_DTTM()
+        )
+	</insert>
+
+	<update id="smnrModify" parameterType="smnrVO">
+    	/*
+             SQL ID : SmnrDAO.smnrModify
+             설  명  : 세미나수정
+         */
+    	UPDATE TB_LMS_SMNR SET
+    		  MDFR_ID  = #{mdfrId}
+    		, MOD_DTTM = FN_DTTM()
+    		<if test="lctrWknoSchdlId != null and lctrWknoSchdlId != ''">
+    		, LCTR_WKNO_SCHDL_ID = #{lctrWknoSchdlId}
+    		</if>
+    		<if test="sbjctId != null and sbjctId != ''">
+			, SBJCT_ID = #{sbjctId}
+    		</if>
+    		<if test="smnrnm != null and smnrnm != ''">
+			, SMNRNM = #{smnrnm}
+    		</if>
+    		<if test="smnrCts != null and smnrCts != ''">
+			, SMNR_CTS = #{smnrCts}
+    		</if>
+    		<if test="smnrTycd != null and smnrTycd != ''">
+			, SMNR_TYCD = #{smnrTycd}
+    		</if>
+    		<if test="smnrSdttm != null and smnrSdttm != ''">
+			, SMNR_SDTTM = #{smnrSdttm}
+    		</if>
+    		<if test="smnrEdttm != null and smnrEdttm != ''">
+			, SMNR_EDTTM = #{smnrEdttm}
+    		</if>
+    		<if test="smnrMnts != null">
+			, SMNR_MNTS = #{smnrMnts}
+    		</if>
+    		<if test="smnrGbncd != null and smnrGbncd != ''">
+			, SMNR_GBNCD = #{smnrGbncd}
+    		</if>
+    		<if test="autoRcdyn != null and autoRcdyn != ''">
+			, AUTO_RCDYN = #{autoRcdyn}
+    		</if>
+    		<if test="upSmnrId != null and upSmnrId != ''">
+			, UP_SMNR_ID = #{upSmnrId}
+    		</if>
+    		<if test="evlScrTycd != null and evlScrTycd != ''">
+			, EVL_SCR_TYCD = #{evlScrTycd}
+    		</if>
+    		<if test="mrkRfltyn != null and mrkRfltyn != ''">
+			, MRK_RFLTYN = #{mrkRfltyn}
+    		</if>
+    		<if test="mrkRfltrt != null">
+			, MRK_RFLTRT = #{mrkRfltrt}
+    		</if>
+    		<if test="mrkOyn != null and mrkOyn != ''">
+			, MRK_OYN = #{mrkOyn}
+    		</if>
+    		<if test="byteamSubsmnrUseyn != null and byteamSubsmnrUseyn != ''">
+			, BYTEAM_SUBSMNR_USEYN = #{byteamSubsmnrUseyn}
+    		</if>
+    	WHERE SMNR_ID = #{smnrId}
+    </update>
+
+    <update id="smnrDelynModify" parameterType="smnrVO">
+    	/*
+             SQL ID : SmnrDAO.smnrDelynModify
+             설  명  : 세미나삭제여부수정
+        */
+       UPDATE TB_LMS_SMNR SET
+       		  MDFR_ID = #{mdfrId}
+       		, MOD_DTTM = FN_DTTM()
+       		, DELYN = 'Y'
+       	WHERE SMNR_ID = #{smnrId}
+       	   OR UP_SMNR_ID = #{smnrId}
+    </update>
+
+	<select id="mrkRfltSmnrList" parameterType="smnrVO" resultType="smnrVO">
+		/*
+             SQL ID : SmnrDAO.mrkRfltSmnrList
+             설  명  : 성적반영세미나목록
+        */
+        SELECT
+			SMNR_ID
+		  FROM TB_LMS_SMNR
+		 WHERE DELYN = 'N'
+		   AND MRK_RFLTYN = 'Y'
+		   AND SMNR_TYCD = 'EDU_SMNR'
+		   AND UP_SMNR_ID IS NULL
+		   AND SBJCT_ID = #{sbjctId}
+	</select>
+
+	<update id="smnrMrkRfltrtListModify" parameterType="java.util.List">
+		/*
+             SQL ID : SmnrDAO.smnrMrkRfltrtListModify
+             설  명 : 세미나성적반영비율목록수정
+         */
+         <foreach item="item" collection="list" separator=";" open="BEGIN" close="; END;">
+	         UPDATE TB_LMS_SMNR SET
+	         	  MDFR_ID = #{item.mdfrId}
+	         	, MOD_DTTM = FN_DTTM()
+	         	, MRK_RFLTRT = #{item.mrkRfltrt}
+	          WHERE SMNR_ID = #{item.smnrId}
+	            AND UP_SMNR_ID IS NULL
+         </foreach>
+	</update>
+
+	<insert id="smnrBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : SmnrDAO.smnrBulkRegist
+             설  명 : 세미나일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_SMNR (
+	         	  SMNR_ID
+				, LCTR_WKNO_SCHDL_ID
+				, SBJCT_ID
+				, SMNRNM
+				, SMNR_CTS
+				, SMNR_TYCD
+				, SMNR_SDTTM
+				, SMNR_EDTTM
+				, SMNR_MNTS
+				, SMNR_GBNCD
+				, AUTO_RCDYN
+				, UP_SMNR_ID
+				, EVL_SCR_TYCD
+				, MRK_RFLTYN
+				, MRK_RFLTRT
+				, MRK_OYN
+				, BYTEAM_SUBSMNR_USEYN
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.smnrId}
+				, #{item.lctrWknoSchdlId}
+				, #{item.sbjctId}
+				, #{item.smnrnm}
+				, #{item.smnrCts}
+				, #{item.smnrTycd}
+				, #{item.smnrSdttm}
+				, #{item.smnrEdttm}
+				, #{item.smnrMnts}
+				, #{item.smnrGbncd}
+				, #{item.autoRcdyn}
+				, #{item.upSmnrId}
+				, #{item.evlScrTycd}
+				, #{item.mrkRfltyn}
+				, #{item.mrkRfltrt}
+				, #{item.mrkOyn}
+				, #{item.byteamSubsmnrUseyn}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<select id="smnrTrgtAtndlcUserList" parameterType="smnrVO" resultType="egovMap">
+		/*
+             SQL ID : SmnrDAO.smnrTrgtAtndlcUserList
+             설  명 : 세미나대상수강생목록
+         */
+		SELECT
+			  ATNDLC.USER_ID
+			, USR.USERNM
+			, TEAM.TEAM_ID
+			, SMNR.SMNR_ID
+		  FROM TB_LMS_SMNR SMNR
+		  JOIN TB_LMS_ATNDLC ATNDLC
+		    ON SMNR.SBJCT_ID = ATNDLC.SBJCT_ID
+		   AND ATNDLC.AUDITYN = 'N'
+		  JOIN TB_LMS_USER USR
+    		ON ATNDLC.USER_ID = USR.USER_ID
+		  LEFT JOIN (
+    	  		SELECT
+    	  			  SMNR_TEAM.SMNR_ID
+    	  			, SMNR_TEAM.TEAM_ID
+    	  			, TEAM_MBR.USER_ID
+    	  		  FROM TB_LMS_SMNR_TEAM SMNR_TEAM
+    	  		  JOIN TB_LMS_TEAM_MBR TEAM_MBR
+    	  		    ON SMNR_TEAM.TEAM_ID = TEAM_MBR.TEAM_ID
+    	  ) TEAM
+    	    ON TEAM.SMNR_ID = SMNR.SMNR_ID
+    	   AND TEAM.USER_ID = USR.USER_ID
+		 WHERE SMNR.DELYN = 'N'
+		   AND (
+		   		   (SMNR.BYTEAM_SUBSMNR_USEYN = 'N' AND SMNR.SMNR_ID = #{smnrId} AND TEAM.TEAM_ID IS NULL)
+		   		OR (SMNR.BYTEAM_SUBSMNR_USEYN = 'Y' AND SMNR.UP_SMNR_ID = #{smnrId} AND TEAM.TEAM_ID IS NOT NULL)
+		   	)
+	</select>
+
+	<select id="smnrSelect" parameterType="smnrVO" resultType="egovMap">
+		/*
+             SQL ID : SmnrDAO.smnrSelect
+             설  명 : 세미나조회
+         */
+        WITH SBJCT_USER AS (
+			SELECT
+				ATNDLC.USER_ID
+			  FROM TB_LMS_ATNDLC ATNDLC
+			  JOIN TB_LMS_SBJCT SBJCT
+				ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+			  JOIN TB_LMS_SMNR SMNR
+			    ON SBJCT.SBJCT_ID = SMNR.SBJCT_ID
+			   AND SMNR.SMNR_ID = #{smnrId}
+			 WHERE ATNDLC.AUDITYN = 'N'
+		),
+		SUB_SMNR AS (
+		    SELECT SMNR_ID, UP_SMNR_ID
+		    FROM TB_LMS_SMNR
+		    WHERE DELYN = 'N'
+		      AND UP_SMNR_ID IS NOT NULL
+		)
+		SELECT
+			  SMNR.SMNR_ID
+			, SMNR.SMNRNM
+			, DBMS_LOB.SUBSTR(SMNR.SMNR_CTS, 4000, 1) AS SMNR_CTS
+			, SMNR.SMNR_TYCD
+			, SMNR.SMNR_SDTTM
+			, SMNR.SMNR_EDTTM
+			, SMNR.SMNR_MNTS
+			, SMNR.SMNR_GBNCD
+			, SMNR.AUTO_RCDYN
+			, SMNR.SBJCT_ID
+			, SMNR.UP_SMNR_ID
+			, SMNR.EVL_SCR_TYCD
+			, SMNR.MRK_RFLTYN
+			, SMNR.MRK_RFLTRT
+			, SMNR.MRK_OYN
+			, SMNR.BYTEAM_SUBSMNR_USEYN
+			, SMNR.ATND_RCD_PFLTYN
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = SMNR.RGTR_ID) AS RGTRNM
+			, (SELECT SBJCTNM FROM TB_LMS_SBJCT SBJCT WHERE SBJCT.SBJCT_ID = SMNR.SBJCT_ID) AS SBJCTNM
+			, CASE WHEN EXISTS (SELECT 1 FROM SUB_SMNR SS WHERE SS.UP_SMNR_ID = SMNR.SMNR_ID)
+				               THEN 'SMNR_TEAM' ELSE 'SMNR' END AS SMNR_GBN
+			, (SELECT DVCLAS_NO FROM TB_LMS_SBJCT SBJCT WHERE SBJCT.SBJCT_ID = SMNR.SBJCT_ID) AS DVCLAS_NO
+			, (SELECT COUNT(USER_ID) FROM SBJCT_USER) AS SMNR_TRGT_CNT
+			, (
+			      SELECT COUNT(ATND.SMNR_ATND_ID)
+			      FROM TB_LMS_SMNR_ATND ATND
+			      WHERE ATND.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+			        AND ATND.SMNR_ID IN (
+			            SELECT SS.SMNR_ID
+			            FROM SUB_SMNR SS
+			            WHERE SS.UP_SMNR_ID = SMNR.SMNR_ID
+			            UNION ALL
+			            SELECT SMNR.SMNR_ID
+			            FROM DUAL
+			        )
+			  ) AS SMNR_ATND_CNT
+			, (
+			      SELECT COUNT(ATND.SMNR_ATND_ID)
+			      FROM TB_LMS_SMNR_ATND ATND
+			      WHERE ATND.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+			        AND ATND.ATND_EVLYN = 'Y'
+			        AND ATND.SMNR_ID IN (
+			            SELECT SS.SMNR_ID
+			            FROM SUB_SMNR SS
+			            WHERE SS.UP_SMNR_ID = SMNR.SMNR_ID
+			            UNION ALL
+			            SELECT SMNR.SMNR_ID
+			            FROM DUAL
+			        )
+			  ) AS SMNR_EVLTEE_CNT
+			, (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_SMNR_TEAM WHERE SMNR_ID = (SELECT SMNR_ID FROM TB_LMS_SMNR WHERE UP_SMNR_ID = SMNR.SMNR_ID AND DELYN = 'N' AND ROWNUM = 1))) AS LRN_GRP_ID
+			, (SELECT LRN_GRPNM FROM TB_LMS_TEAM_GRP WHERE USEYN = 'Y' AND DELYN = 'N' AND SBJCT_ID = SMNR.SBJCT_ID AND LRN_GRP_ID = (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_SMNR_TEAM WHERE SMNR_ID = (SELECT SMNR_ID FROM TB_LMS_SMNR WHERE UP_SMNR_ID = SMNR.SMNR_ID AND DELYN = 'N' AND ROWNUM = 1)))) LRN_GRPNM
+			, NVL((SELECT SMNR_ID FROM SUB_SMNR WHERE UP_SMNR_ID = SMNR.SMNR_ID AND ROWNUM = 1), SMNR.SMNR_ID) AS SUB_SMNR_ID
+			, (SELECT MEETNGRM_ID FROM TB_LMS_ONLN_MEETNGRM WHERE SMNR_ID = SMNR.SMNR_ID) AS MEETNGRM_ID
+		  FROM TB_LMS_SMNR SMNR
+		 WHERE SMNR_ID = #{smnrId}
+	</select>
+
+	<select id="smnrLrnGrpSubSmnrList" parameterType="map" resultType="egovMap">
+    	/*
+             SQL ID : SmnrDAO.smnrLrnGrpSubSmnrList
+             설  명  : 세미나학습그룹부세미나목록조회
+         */
+    	SELECT
+			  TEAM.TEAM_ID
+			, TEAM.TEAMNM
+			, NVL((SELECT USR.USERNM FROM TB_LMS_USER USR JOIN TB_LMS_TEAM_MBR TEAM_MBR ON USR.USER_ID = TEAM_MBR.USER_ID WHERE TEAM_MBR.LDRYN = 'Y' AND TEAM_MBR.TEAM_ID = TEAM.TEAM_ID), '-') AS LEADERNM
+			, (SELECT COUNT(tlts.USER_ID) FROM TB_LMS_TEAM_MBR tlts WHERE tlts.TEAM_ID = TEAM.TEAM_ID) AS TEAM_MBR_CNT
+			, SUB_SMNR.SMNRNM
+			, DBMS_LOB.SUBSTR(SUB_SMNR.SMNR_CTS, 4000, 1) AS SMNR_CTS
+		  FROM TB_LMS_TEAM TEAM
+		  LEFT JOIN TB_LMS_SMNR_TEAM SMNR_TEAM
+		    ON TEAM.TEAM_ID = SMNR_TEAM.TEAM_ID
+		   AND SMNR_TEAM.SMNR_ID IN (SELECT SMNR_ID FROM TB_LMS_SMNR WHERE UP_SMNR_ID = #{smnrId})
+		  LEFT JOIN TB_LMS_SMNR SUB_SMNR
+		    ON SMNR_TEAM.SMNR_ID = SUB_SMNR.SMNR_ID
+		   AND SUB_SMNR.DELYN = 'N'
+		   AND SUB_SMNR.UP_SMNR_ID = #{smnrId}
+		 WHERE TEAM.LRN_GRP_ID = #{lrnGrpId}
+		 ORDER BY TEAM.TEAM_ID ASC
+    </select>
+
+    <delete id="subSmnrDelete" parameterType="String">
+		/*
+             SQL ID : SmnrDAO.subSmnrDelete
+             설  명  : 하위세미나삭제
+         */
+         DELETE FROM TB_LMS_SMNR
+          WHERE UP_SMNR_ID = #{smnrId}
+	</delete>
+
+</mapper>

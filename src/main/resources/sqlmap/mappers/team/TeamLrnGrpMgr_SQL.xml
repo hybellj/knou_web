@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.team.dao.TeamLrnGrpMgrDAO">
+
+    <sql id="listQueryForTeamLrnGrp">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY TO_DATE(GRP.REG_DTTM, 'YYYYMMDDHH24MISS') DESC) AS "LINE_NO"
+            , GRP.LRN_GRP_ID    AS "LRN_GRP_ID"
+            , GRP.LRN_GRPNM     AS "LRN_GRPNM"
+            , TM1.TEAM_TOT      AS "TEAM_TOT"
+--             , GRP.RGTR_ID       AS "RGTR_ID"
+            , USR.USERNM        AS "USERNM"
+            , GRP.REG_DTTM      AS "REG_DTTM"
+            , CASE
+                WHEN TM1.TEAM_TOT = TM2.Y_TOT THEN 'Y'   /* 구성완료 */
+                ELSE 'N'    /* 임시저장 */
+            END                 AS "LRN_GRP_CMPTNYN"
+        FROM
+            TB_LMS_TEAM_GRP GRP
+            /* 팀 전체 COUNT */
+            JOIN (SELECT
+                      GRPSUB1.LRN_GRP_ID
+                      , COUNT(1) AS "TEAM_TOT"
+                  FROM
+                      TB_LMS_TEAM_GRP GRPSUB1
+                      JOIN TB_LMS_TEAM TBSUB1
+                          ON GRPSUB1.LRN_GRP_ID = TBSUB1.LRN_GRP_ID
+                  GROUP BY
+                      GRPSUB1.LRN_GRP_ID) TM1
+                ON GRP.LRN_GRP_ID = TM1.LRN_GRP_ID
+            /* 팀 저장완료 COUNT */
+            JOIN (SELECT
+                      GRPSUB2.LRN_GRP_ID
+                       , COUNT(1) AS "Y_TOT"
+                  FROM
+                      TB_LMS_TEAM_GRP GRPSUB2
+                      JOIN TB_LMS_TEAM TBSUB2
+                          ON GRPSUB2.LRN_GRP_ID = TBSUB2.LRN_GRP_ID
+                          AND TBSUB2.TEAM_CPST_CMPTNYN = 'Y'
+                  GROUP BY
+                      GRPSUB2.LRN_GRP_ID) TM2
+                ON GRP.LRN_GRP_ID = TM2.LRN_GRP_ID
+            JOIN TB_LMS_USER USR
+                ON GRP.RGTR_ID = USR.USER_ID
+        WHERE
+            GRP.SBJCT_ID = #{sbjctId}
+        <if test="lrnGrpnm != null || lrnGrpnm != '' ">
+            AND GRP.LRN_GRPNM LIKE '%' || #{lrnGrpnm} || '%'
+        </if>
+    </sql>
+
+    <!-- 학습 그룹 목록 페이징  -->
+    <select id="listTeamLrnGrpPaging" parameterType="teamLrnGrpMgrVO" resultType="teamLrnGrpMgrVO">
+        /*
+            SQL ID : TeamLrnGrpMgrDAO.listTeamLrnGrpPaging
+            설명 : 학습 그룹 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForTeamLrnGrp"/>
+        <include refid="CommonSQL.pageSubfix" />
+    </select>
+
+    <!-- 학습 그룹 목록 카운트  -->
+    <select id="countAbsnceUserHstr" parameterType="teamLrnGrpMgrVO" resultType="Integer">
+        /*
+            SQL ID : TeamLrnGrpMgrDAO.countAbsnceUserHstr
+            설명 : 학습 그룹 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForTeamLrnGrp"/>) Z
+    </select>
+
+</mapper>

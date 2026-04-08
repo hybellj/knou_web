@@ -242,4 +242,20 @@ public interface BbsInfoDAO {
      * @throws Exception
      ******************************************************/
     public void bbsMngInfoOptnRegist(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 정보 > 게시판 유형 조회
+     * @param vo
+     * @return BbsVO
+     * @throws Exception
+     ******************************************************/
+    public String getBbsTycd(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 정보 > 게시판 ID 조회
+     * @param vo
+     * @return BbsVO
+     * @throws Exception
+     ******************************************************/
+    public String getBbsId(BbsVO vo) throws Exception;
 }

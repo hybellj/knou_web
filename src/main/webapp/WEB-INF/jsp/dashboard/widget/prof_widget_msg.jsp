@@ -144,7 +144,7 @@ $(document).on('click', '#msgListBox .item_txt[data-sndng-tycd]', function(e) {
 	if (!sndngId) return;
 
 	if (sndngTycd === 'SHRTNT') {
-		location.href = '/profMsgShrtntRcvnDetail.do?msgShrtntSndngId=' + encodeURIComponent(sndngId);
+		location.href = '/profMsgShrtntRcvnSelectView.do?msgShrtntSndngId=' + encodeURIComponent(sndngId);
 	}
 });
 

@@ -3,8 +3,15 @@
 
 <mapper namespace="knou.lms.user.dao.UserDAO">
 
+	<update id="userStngModify" parameterType="usrUserInfoVO">
+        /*	설	명 : 사용자설정수정,  ASIS - UsrUserInfoDAO.updateUserConf	*/
+        UPDATE 	TB_LMS_USR
+        SET 	USER_ENV_STNG_CTS = #{userEnvStngCts}
+        WHERE 	USER_ID = #{userId}
+    </update>
+
     <select id="userSelect" resultType="knou.lms.user.vo.UserVO">
-        /*	설 명 : 사용자조회	*/
+        /*	설	명 : 사용자조회, ASIS - UsrUserInfoDAO.viewUser		*/
         SELECT	*
         FROM 	TB_LMS_USER USR
         WHERE 	USER_ID = #{userId}

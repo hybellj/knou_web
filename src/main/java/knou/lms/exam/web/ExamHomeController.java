@@ -3087,7 +3087,7 @@ public class ExamHomeController extends ControllerBase {
 
         UsrUserInfoVO uuivo = new UsrUserInfoVO();
         uuivo.setUserId(userId);
-        uuivo = usrUserInfoService.viewUser(uuivo);
+        uuivo = usrUserInfoService.userSelect(uuivo);
         model.addAttribute("uuivo", uuivo);
 
         SysJobSchVO sysJobSchVO = new SysJobSchVO();

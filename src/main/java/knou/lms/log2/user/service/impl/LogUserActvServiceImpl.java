@@ -4,14 +4,14 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import knou.framework.common.PageInfo;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.ServiceBase;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.log2.user.dao.LogUserActvDAO;
 import knou.lms.log2.user.service.LogUserActvService;
-import knou.lms.log2.user.vo.LogUserActvVO;
+import knou.lms.log2.user.vo.LectCntnInfoVO;
 
 @Service("logUserActvService")
 public class LogUserActvServiceImpl extends ServiceBase implements LogUserActvService {
@@ -19,35 +19,23 @@ public class LogUserActvServiceImpl extends ServiceBase implements LogUserActvSe
     @Resource(name="logUserActvDAO")
     private LogUserActvDAO logUserActvDAO;
 
-	/*
-	 * @Override public Object userSbjctOfrngActvHstryList(String sbjctId, int
-	 * timeRange) throws Exception { return
-	 * logUserActvDAO.userSbjctOfrngActvHstryList(sbjctId, timeRange); }
-	 */
-
     /*****************************************************
-     * 강의실 활동 로그 조회 현황 목록 페이징 (TB_LMS_LOG_USER_ACTV)
-     * @param LogUserActvVO
-     * @return ProcessResultVO<LogUserActvVO>
+     * 교수강의실과목설정접속정보 목록 페이징
+     * @param lectCntnInfoVO
+     * @return ProcessResultVO<LectCntnInfoVO>
      * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<LogUserActvVO> selectLogUserActvList(LogUserActvVO vo) throws Exception {
-        PaginationInfo paginationInfo = new PaginationInfo();
-        paginationInfo.setCurrentPageNo(vo.getPageIndex());
-        paginationInfo.setRecordCountPerPage(vo.getListScale());
-        paginationInfo.setPageSize(vo.getPageScale());
+    public ProcessResultVO<LectCntnInfoVO> selectProfSbjctStngCntnInfoList(LectCntnInfoVO lectCntnInfoVO) throws Exception {
+        ProcessResultVO<LectCntnInfoVO> resultVO = new ProcessResultVO<>();
 
-        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
-        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+        PageInfo pageInfo = new PageInfo(lectCntnInfoVO);
+        List<LectCntnInfoVO> list = logUserActvDAO.selectProfSbjctStngCntnInfoList(lectCntnInfoVO);
+        pageInfo.setTotalRecord(list);
 
-        List<LogUserActvVO> list = logUserActvDAO.selectLogUserActvList(vo);
-
-        paginationInfo.setTotalRecordCount(list.size() > 0 ? list.get(0).getTotalCnt() : 0);
-
-        ProcessResultVO<LogUserActvVO> resultVO = new ProcessResultVO<LogUserActvVO>();
         resultVO.setReturnList(list);
-        resultVO.setPageInfo(paginationInfo);
+        resultVO.setPageInfo(pageInfo);
+        resultVO.setResultSuccess();
 
         return resultVO;
     }

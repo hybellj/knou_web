@@ -125,12 +125,12 @@ public interface UsrUserInfoDAO {
     public UsrUserInfoVO selectByTcId(UsrUserInfoVO vo) throws Exception;
     
     /**
-     * 사용자 환경설정 수정
+     * 사용자설정수정
      * @param  UsrUserInfoVO 
      * @return void
      * @throws Exception
      */
-    public void updateUserConf(UsrUserInfoVO vo) throws Exception;
+    public void userStngModify(UsrUserInfoVO vo) throws Exception;
     
     /**
      * 사용자 정보의 검색된 수를 카운트 한다. 

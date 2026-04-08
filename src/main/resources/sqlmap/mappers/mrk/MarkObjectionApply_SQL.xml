@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.mrk.dao.MarkObjectionApplyDAO">
+    <select id="mrkObjctAplySelect" parameterType="String" resultType="markObjectionApplyVO">
+        SELECT
+              OBJ.MRK_OBJCT_APLY_ID
+            , DEPT.DEPTNM
+            , USR.USER_ID
+            , USR.STDNT_NO
+            , USR.USERNM
+            , STD.SCYR
+            , OBJ.OBJCT_APLY_CTS
+            , OBJ.CHGBFR_SCR
+            , OBJ.CHGAFT_SCR
+            , OBJ.OBJCT_APLY_STSCD
+            , FN_REF_FILE_CNT(OBJ.MRK_OBJCT_APLY_ID) AS FILE_CNT
+        FROM TB_LMS_MRK_OBJCT_APLY OBJ
+        JOIN TB_LMS_SBJCT SBJ
+            ON OBJ.SBJCT_ID = SBJ.SBJCT_ID
+        JOIN TB_LMS_DEPT DEPT
+            ON SBJ.DEPT_ID = DEPT.DEPT_ID
+        JOIN TB_LMS_USER USR
+            ON OBJ.USER_ID = USR.USER_ID
+        JOIN TB_LMS_ATNDLC STD
+            ON SBJ.SBJCT_ID = STD.SBJCT_ID
+            AND USR.USER_ID = STD.USER_ID
+        WHERE 1=1
+            AND OBJ.MRK_OBJCT_APLY_ID = #{mrkObjctAplyId}
+    </select>
+
+    <select id="mrkObjctAplyList" parameterType="String" resultType="egovMap">
+        SELECT
+            ROW_NUMBER()OVER(ORDER BY OBJ.REG_DTTM ASC) AS NO
+            , OBJ.MRK_OBJCT_APLY_ID
+            , DEPT.DEPTNM
+            , USR.USER_ID
+            , USR.STDNT_NO
+            , USR.USERNM
+            , STD.SCYR
+            , OBJ.CHGBFR_SCR
+            , OBJ.CHGAFT_SCR
+            , OBJ.OBJCT_APLY_STSCD
+        FROM TB_LMS_MRK_OBJCT_APLY OBJ
+        JOIN TB_LMS_SBJCT SBJ
+            ON OBJ.SBJCT_ID = SBJ.SBJCT_ID
+        JOIN TB_LMS_DEPT DEPT
+            ON SBJ.DEPT_ID = DEPT.DEPT_ID
+        JOIN TB_LMS_USER USR
+            ON OBJ.USER_ID = USR.USER_ID
+        JOIN TB_LMS_ATNDLC STD
+            ON SBJ.SBJCT_ID = STD.SBJCT_ID
+            AND USR.USER_ID = STD.USER_ID
+        JOIN TB_LMS_CMMN_CD CD
+            ON CD.UP_CD = 'OBJCT_APLY_STSCD'
+            AND OBJ.OBJCT_APLY_STSCD = CD.CD
+        WHERE 1=1
+          AND OBJ.SBJCT_ID = #{sbjctId}
+        ORDER BY NO DESC
+    </select>
+</mapper>

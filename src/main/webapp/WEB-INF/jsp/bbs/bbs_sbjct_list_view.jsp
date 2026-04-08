@@ -48,11 +48,13 @@
 		// 게시글 목록 이동
         function bbsAtclListMove(mode) {
         	var addParams = UiComm.makeEncParams({
-				"bbsId": BBS_ID,
-				"mode": mode
+				bbsId        : BBS_ID
+				, bbsTycd    : "NTC"
+				, bbsRefTycd : "SBJCT"
+				, mode       : mode
 			});
 
-            document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsSbjctRegistView.do?encParams="+addParams+"&bbsId="+BBS_ID+"&mode="+mode;
+            document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsSbjctRegistView.do?encParams="+addParams;
         };
 
 		// 학기기수 세팅 변경
@@ -96,7 +98,6 @@
 			SBJCT_SMSTR  = $("#sbjctSmstr").val();
 			DEPT_ID		 = $("#deptId").val();
 			SBJCT_ID	 = $("#sbjctId").val();
-
 			PAGE_INDEX = pageIndex;
 
 			var extData = {
@@ -110,6 +111,7 @@
 					, atclLv	    : ATCL_LV
 					, sbjctId       : SBJCT_ID
 					, searchValue 	: SEARCH_VALUE
+					, bbsRefTycd    : "SBJCT"
 			};
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do";
 			var data = {

@@ -266,7 +266,7 @@ public class ForumEzGraderLectController extends ControllerBase {
         uuiVO.setUserId(stdVO.getUserId());
         uuiVO.setOrgId(orgId);
         uuiVO.setCrsCreCd(vo.getCrsCreCd());
-        UsrUserInfoVO resultVO = usrUserInfoService.viewUser(uuiVO);
+        UsrUserInfoVO resultVO = usrUserInfoService.userSelect(uuiVO);
         resultVO.setHy(stdVO.getHy());
         request.setAttribute("userVO", resultVO);
         

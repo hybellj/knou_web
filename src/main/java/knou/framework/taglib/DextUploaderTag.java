@@ -12,7 +12,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import knou.framework.common.CommConst;
-import knou.framework.common.Message;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.StringUtil;
 import knou.lms.file.vo.AtflVO;
@@ -22,29 +21,25 @@ import net.sf.json.JSONObject;
 /**
  * DEXT 파일 업로더
  *
- * @author shil
  */
 public class DextUploaderTag extends TagSupport {
 	private static final long serialVersionUID = 1L;
 	private static Log log = LogFactory.getLog(DextUploaderTag.class);
 
-	private String id				= "";	// 업로더ID
-	private String type				= "";	// 타입 (기본:"", 실습과제:PRACTICE)
-	private String url				= "";	// 서버 URL
-	private String path				= "";	// 서버 경로
-	private int limitCount			= 0;	// 업로드 가능 파일 수
-	private int limitSize			= 0;	// 업로드 가능 파일 사이즈 합계(MB)
-	private int oneLimitSize		= 1024;	// 파일 한개당 최대 크기 (MB, 기본값:1024)
-	private int listSize 			= 1;	// 파일목록 표시수 (창크기)
-	private String allowedTypes		= "*";	// 업로드 가능 타입 (확장명만 입력, 구분자[,], 전체:*)
-	private String notAllowedTypes	= "";	// 업로드 금지 타입 (생략시 기본값 설정, 확장명만 입력, 구분자[,])
-	private String finishFunc		= "finishUpload";	// 업로드 종료시 호출할 함수명
-	private boolean useFileBox		= false; // 파일함 사용여부
-	private boolean bigSize		= false; // 대용량 업로드
-	private String lang				= "";
-	private String style			= "list";	// list, single
-	private String uiMode			= "normal"; // normal, simple
-	private List<AtflVO> fileList  = null;
+	private String		id				= "";		// 업로더ID
+	private String		url				= "";		// 서버 URL
+	private String		path			= "";		// 서버 경로
+	private String		lang			= "";		// 언어 (생략시 세션 기본값 적용됨)
+	private int 		limitCount		= 1;		// 업로드 가능 파일 수
+	private int		limitSize		= 100;		// 업로드 가능 파일 사이즈 합계(MB, 기본값:100Mb)
+	private int		oneLimitSize	= 100;		// 파일 한개당 최대 크기 (MB, 기본값:100Mb)
+	private int		listSize 		= 1;		// 파일목록 표시수 (창크기)
+	private String		allowedTypes	= "*";		// 업로드 가능 타입 (확장명만 입력, 구분자[,], 전체:*)
+	private String		notAllowedTypes	= "";		// 업로드 금지 타입 (생략시 기본값 설정, 확장명만 입력, 구분자[,])
+	private String		finishFunc		= "";		// 업로드 종료시 호출할 함수명(()는 생략하고 함수명만 입력), finishUpload(id) 와 같이 id 전달
+	private boolean	bigSize			= false; 	// 대용량 업로드 ( 생략시 기본값 설정)
+	private String		uiMode			= "normal"; // UI 모드 (normal, simple, single)
+	private List<AtflVO> fileList  		= null;		// 기존 업로드된 파일 목록(수정화면에서 사용)
 
 
 	public int doEndTag() throws JspException {
@@ -52,7 +47,6 @@ public class DextUploaderTag extends TagSupport {
 			StringBuffer tag = new StringBuffer();
 			PageContext context = this.pageContext;
             HttpServletRequest req = (HttpServletRequest)context.getRequest();
-            Message message = new Message(req);
 
             JSONArray fileObjArray = new JSONArray();
             String oldFiles = "[]";
@@ -122,87 +116,26 @@ public class DextUploaderTag extends TagSupport {
 				noExtension = (Arrays.toString(CommConst.UPLOAD_NO_EXTS)).replace("[","").replace("]","").replace(" ","");
 			}
 
-			int height = 72 + (listSize * 36);
-			if ("single".equals(style)) {
-				height = 35;
-			}
-			if ("simple".equals(uiMode)) {
-				height = (listSize * 36);
-			}
-
-			String cssStyle = "width:100%;height:"+height+"px;";
-			String btnAareaStyle = "";
-			String btnClass = "dext5-btn-area";
-			String btnStyle = "";
-			String resetStyle = "display:none";
-
-			if ("simple".equals(uiMode)) {
-				cssStyle += "display:flex";
-				btnAareaStyle = "display:flex";
-				btnClass += " simple";
-				btnStyle = "height:"+height+"px;";
-			}
-
 			if (finishFunc.indexOf("()") > -1) {
 				finishFunc = finishFunc.replace("()", "");
 			}
-
-			/*
-			tag.append("<div id=\""+id+"-container\" class=\"dext5-container\" style=\""+cssStyle+"\"></div>\n");
-
-			if (!"single".equals(style)) {
-				if (fileList != null && fileList.size() > 0) {
-					resetStyle = "display:inline-block";
-				}
-
-				tag.append("<div id=\""+id+"-btn-area\" class=\""+btnClass+"\" style=\""+btnAareaStyle+"\">");
-
-				if ("simple".equals(uiMode)) {
-					tag.append("<button type=\"button\" id=\""+id+"_btn-add\" style=\""+btnStyle+"\" title=\""+message.getMessage("button.select.file")+"\"><i class='xi-file-add-o'></i></button>");
-
-					if (useFileBox) {
-						tag.append("<button type=\"button\" id=\""+id+"_btn-filebox\" style=\""+btnStyle+"\" title=\""+message.getMessage("button.from_filebox")+"\"><i class='xi-folder-o'></i></button>");
-					}
-					tag.append("<button type=\"button\" id=\""+id+"_btn-delete\" disabled='true' style=\""+btnStyle+"\" title=\""+message.getMessage("button.delete")+"\"><i class='xi-trash-o'></i></button>");
-					tag.append("<button type=\"button\" id=\""+id+"_btn-reset\" style=\""+btnStyle+resetStyle+"\" title=\""+message.getMessage("button.reset")+"\" onclick=\"resetDextFiles('"+id+"')\"><i class='xi-refresh'></i></button>");
-				}
-				else {
-					tag.append("<button type=\"button\" id=\""+id+"_btn-add\" style=\""+btnStyle+"\" title=\""+message.getMessage("button.select.file")+"\">"+ message.getMessage("button.select.file") +"</button>");
-					if (useFileBox) {
-						tag.append("<button type=\"button\" id=\""+id+"_btn-filebox\" style=\""+btnStyle+"\" title=\""+message.getMessage("button.from_filebox")+"\">"+ message.getMessage("button.from_filebox") +"</button>");
-					}
-					tag.append("<button type=\"button\" id=\""+id+"_btn-delete\" disabled='true' style=\""+btnStyle+"\" title=\""+message.getMessage("button.delete")+"\">"+ message.getMessage("button.delete") +"</button>");
-					tag.append("<button type=\"button\" id=\""+id+"_btn-reset\" style=\""+btnStyle+resetStyle+"\" title=\""+message.getMessage("button.reset")+"\" onclick=\"resetDextFiles('"+id+"')\"><i class='xi-refresh'></i></button>");
-				}
-
-				tag.append("</div>\n");
-			}
-			*/
 
 			tag.append("<div id=\""+id+"_box\"></div>\n");
 			tag.append("<script>\n");
 			tag.append("UiFileUploader({\n");
 			tag.append("id:\""+id+"\",\n");
 			tag.append("targetId:\""+id+"_box\",\n");
-			tag.append("parentId:\""+id+"-container\",\n");
-			tag.append("btnFile:\""+id+"_btn-add\",\n");
-			tag.append("btnDelete:\""+id+"_btn-delete\",\n");
 			tag.append("lang:\""+language+"\",\n");
-			tag.append("uploadMode:\""+uploadMode+"\",\n");
 			tag.append("listSize:"+listSize+",\n");
-			tag.append("maxTotalSize:"+limitSize+",\n");
-			tag.append("maxFileSize:"+oneLimitSize+",\n");
-			tag.append("extensionFilter:\""+extensionFilter+"\",\n");
+			tag.append("limitSize:"+limitSize+",\n");
+			tag.append("oneLimitSize:"+oneLimitSize+",\n");
+			tag.append("allowedTypes:\""+extensionFilter+"\",\n");
 			tag.append("noExtension:\""+noExtension+"\",\n");
 			tag.append("finishFunc:"+finishFunc+",\n");
 			tag.append("uploadUrl:\""+uploadUrl+"\",\n");
 			tag.append("path:\""+path+"\",\n");
-			if (!"single".equals(style)) {
-				tag.append("fileCount:"+limitCount+",\n");
-				tag.append("oldFiles:"+oldFiles+",\n");
-			}
-			tag.append("useFileBox:"+useFileBox+",\n");
-			tag.append("style:\""+style+"\",\n");
+			tag.append("limitCount:"+limitCount+",\n");
+			tag.append("fileList:"+oldFiles+",\n");
 			tag.append("uiMode:\""+uiMode+"\"\n");
 			tag.append("});\n");
 			tag.append("</script>");
@@ -261,24 +194,12 @@ public class DextUploaderTag extends TagSupport {
         this.fileList = fileList;
     }
 
-    public void setUseFileBox(boolean useFileBox) {
-        this.useFileBox = useFileBox;
-    }
-
 	public void setLang(String lang) {
 		this.lang = lang;
 	}
 
-	public void setType(String type) {
-		this.type = type;
-	}
-
 	public void setBigSize(boolean bigSize) {
 		this.bigSize = bigSize;
-	}
-
-	public void setStyle(String style) {
-		this.style = style;
 	}
 
 	public void setUiMode(String uiMode) {

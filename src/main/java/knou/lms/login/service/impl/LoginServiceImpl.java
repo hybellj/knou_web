@@ -94,4 +94,9 @@ public class LoginServiceImpl extends ServiceBase implements LoginService {
         // 여기서 userService를 호출하여 체크하고 실패 시 예외 발생
         // if (!userService.existUserId(param)) throw new LoginFailedException();
     }
+    
+    @Override
+	public EgovMap userLatestLoginHstrySelect(String userId) throws Exception {
+		return loginDAO.userLatestLoginHstrySelect(userId);
+	}
 }

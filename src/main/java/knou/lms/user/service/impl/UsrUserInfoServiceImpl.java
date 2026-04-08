@@ -217,7 +217,6 @@ public class UsrUserInfoServiceImpl extends ServiceBase implements UsrUserInfoSe
         
         vo.setAuthrtGrpcd(authrtGrpCd);
         vo.setAuthrtCd(authrtCd);
-//        vo.setWwwAuthrtCd(authrtCd);
     }
 
     /**
@@ -250,14 +249,13 @@ public class UsrUserInfoServiceImpl extends ServiceBase implements UsrUserInfoSe
     }
 
     /**
-     * 사용자 정보를 가져온다.
-     * 사용자 상태가 U인 사용자만 가져온다.
-     * 입력한 패스워드를 암호화 하여 리턴한다.
-     * @param UsrUserInfoVO vo
+     * 사용자조회 - 사용자 상태가 U인 사용자만 가져온다. 입력한 패스워드를 암호화 하여 리턴한다.
+     * @param 	UsrUserInfoVO vo
      * @return  UsrUserInfoVO
      */
     @Override
-    public UsrUserInfoVO viewUser(UsrUserInfoVO vo) throws Exception {
+    public UsrUserInfoVO userSelect(UsrUserInfoVO vo) throws Exception {
+    	
         UsrUserInfoVO uuivo  = usrUserInfoDAO.select(vo);
         if(ValidationUtils.isNotEmpty(uuivo)) {
             vo = uuivo;
@@ -872,12 +870,12 @@ public class UsrUserInfoServiceImpl extends ServiceBase implements UsrUserInfoSe
     }
 
     /**
-     * 사용자 환경설정 수정
+     * 사용자설정수정
      * @param vo
      * @throws Exception
      */
-    public void updateUserConf(UsrUserInfoVO vo) throws Exception {
-        usrUserInfoDAO.updateUserConf(vo);
+    public void userStngModify(UsrUserInfoVO vo) throws Exception {
+        usrUserInfoDAO.userStngModify(vo);
     }
     
     // 학과관리 사용여부

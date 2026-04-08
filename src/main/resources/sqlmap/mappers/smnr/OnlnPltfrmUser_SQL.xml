@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.smnr.pltfrm.dao.OnlnPltfrmUserDAO">
+
+	<delete id="onlnPltfrmUserBulkDelete" parameterType="map">
+		/*
+             SQL ID : OnlnPltfrmUserDAO.onlnPltfrmUserBulkDelete
+             설  명  : 온라인플랫폼사용자일괄삭제
+         */
+        DELETE FROM TB_LMS_ONLN_PLTFRM_USER
+         WHERE ONLN_PLTFRM_AUTHRT_ID = #{onlnPltfrmAuthrtId}
+           AND PLTFRM_USER_EML NOT IN
+           	<foreach collection="list" item="email" open="(" separator="," close=")">
+           		#{email}
+           	</foreach>
+	</delete>
+
+	<insert id="onlnPltfrmUserBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : OnlnPltfrmUserDAO.onlnPltfrmUserBulkRegist
+             설  명 : 온라인플랫폼사용자일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_ONLN_PLTFRM_USER (
+	         	  ONLN_PLTFRM_USER_ID
+				, ONLN_PLTFRM_AUTHRT_ID
+				, PLTFRM_USER_ID
+				, PLTFRM_USER_EML
+				, PLTFRM_USER_TYCD
+				, PLTFRM_USER_STSCD
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.onlnPltfrmUserId}
+				, #{item.onlnPltfrmAuthrtId}
+				, #{item.pltfrmUserId}
+				, #{item.pltfrmUserEml}
+				, #{item.pltfrmUserTycd}
+				, #{item.pltfrmUserStscd}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<select id="onlnPltfrmUserList" parameterType="String" resultType="onlnPltfrmUserVO">
+		/*
+             SQL ID : OnlnPltfrmUserDAO.onlnPltfrmUserList
+             설  명 : 온라인플랫폼사용자목록
+         */
+        SELECT
+			*
+		  FROM TB_LMS_ONLN_PLTFRM_USER
+		 WHERE ONLN_PLTFRM_AUTHRT_ID  = #{onlnPltfrmAuthrtId}
+	</select>
+
+	<select id="pendingOnlnPltfrmUserSelect" parameterType="String" resultType="onlnPltfrmUserVO">
+		/*
+             SQL ID : OnlnPltfrmUserDAO.pendingOnlnPltfrmUserSelect
+             설  명 : 대기중온라인플랫폼사용자조회
+         */
+		SELECT
+			USR.*
+		  FROM TB_LMS_ONLN_PLTFRM_AUTHRT AUTHRT
+		  JOIN TB_LMS_ONLN_PLTFRM_USER USR
+		    ON AUTHRT.ONLN_PLTFRM_AUTHRT_ID = USR.ONLN_PLTFRM_AUTHRT_ID
+		   AND USR.PLTFRM_USER_STSCD = 'active'
+		   AND USR.ONLN_PLTFRM_USER_ID NOT IN (
+		   		SELECT
+		   			ONLN_PLTFRM_USER_ID
+		   		  FROM TB_LMS_ONLN_MEETNGRM
+		   		 WHERE MEETNGRM_SDTTM BETWEEN #{meetngrmSdttm} AND #{meetngrmEdttm}
+		   		    OR MEETNGRM_EDTTM BETWEEN #{meetngrmSdttm} AND #{meetngrmEdttm}
+		   		 GROUP BY ONLN_PLTFRM_USER_ID
+				HAVING COUNT(*) <![CDATA[ >= ]]> 2
+		   )
+		 WHERE AUTHRT.ONLN_PLTFRM_STNG_ID = #{onlnPltfrmStngId}
+		   AND ROWNUM = 1
+	</select>
+
+	<select id="pendingOnlnPltfrmUserCntSelect" parameterType="java.util.List" resultType="int">
+		/*
+             SQL ID : OnlnPltfrmUserDAO.pendingOnlnPltfrmUserCntSelect
+             설  명 : 대기중온라인플랫폼사용자수조회
+         */
+        SELECT COUNT(*) AS CNT
+		  FROM (
+		   	<foreach collection="list" item="item" separator="UNION ALL">
+		        SELECT
+		            COUNT(USR.ONLN_PLTFRM_USER_ID) AS AVAILABLE_CNT
+		          FROM TB_LMS_ONLN_PLTFRM_STNG STNG
+		          JOIN TB_LMS_ONLN_PLTFRM_AUTHRT AUTHRT
+		            ON STNG.ONLN_PLTFRM_STNG_ID = AUTHRT.ONLN_PLTFRM_STNG_ID
+		          JOIN TB_LMS_ONLN_PLTFRM_USER USR
+		            ON AUTHRT.ONLN_PLTFRM_AUTHRT_ID = USR.ONLN_PLTFRM_AUTHRT_ID
+		           AND USR.PLTFRM_USER_STSCD = 'active'
+		           AND USR.ONLN_PLTFRM_USER_ID NOT IN (
+		                SELECT ONLN_PLTFRM_USER_ID
+		                  FROM TB_LMS_ONLN_MEETNGRM
+		                 WHERE MEETNGRM_SDTTM BETWEEN #{item.sdttm} AND #{item.edttm}
+		                    OR MEETNGRM_EDTTM BETWEEN #{item.sdttm} AND #{item.edttm}
+		                 GROUP BY ONLN_PLTFRM_USER_ID
+		                HAVING COUNT(*) >= 2
+		           )
+		         WHERE STNG.PLTFRM_GBNCD = #{item.gbn}
+		           AND STNG.ORG_ID = #{item.orgId}
+		  	</foreach>
+		  ) T
+		 WHERE T.AVAILABLE_CNT = 0
+	</select>
+
+</mapper>

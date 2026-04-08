@@ -1,5 +1,6 @@
 package knou.lms.seminar.api.common;
 
+@Deprecated
 public class CommonUtils {
     
     public static String getUUID() {

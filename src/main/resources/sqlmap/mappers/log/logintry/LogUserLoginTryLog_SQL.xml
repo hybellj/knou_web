@@ -82,31 +82,5 @@
 		     , #{browserInfo}
 		     -- , #{connIp}
 		)		
-	</insert>	
-
-	<select id="selectLastLogin" parameterType="logUserLoginTryLogVO" resultType="logUserLoginTryLogVO">
-		/*
-			SQL ID 	: selectLastLogin
-			설  명 	: 마지막 로그인 정보 조회
-		*/
-
-		SELECT 
-			USER_LGN_HSTRY_ID
-			, USER_ID
-			, USER_SNS_ID
-			, ACSR_TYCD
-			, LGN_IP
-			, LGN_DTTM
-			, LGT_DTTM
-			, LGN_SCSYN
-			, CNTN_DVC_TYCD
-			, LGN_CNTN_BRWSR
-			, SESS_ID
-			, RGTR_ID
-			, REG_DTTM
-			, MDFR_ID
-			, MOD_DTTM
-		  FROM TB_LMS_USER_LGN_HSTRY 
-		 WHERE USER_ID = #{userId}
-	</select>
+	</insert>		
 </mapper>

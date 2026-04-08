@@ -74,10 +74,14 @@ public class BbsVO extends DefaultVO {
     private String bbsNm;
     private String bbsOptnId;
     private String optnCd;
+    private String optnCdNtc;
+    private String optnCdRspns;
     private List<String> optnCdList;
     private String optnUseyn;
     private String bbsAddyn;
     private String bbsOptnNm;
+    private String bbsWriteUseyn;
+    private String bbsUseyn;
 
 	public String getBbsId() {
 		return bbsId;
@@ -402,5 +406,29 @@ public class BbsVO extends DefaultVO {
 	}
 	public void setBbsOptnNm(String bbsOptnNm) {
 		this.bbsOptnNm = bbsOptnNm;
+	}
+	public String getOptnCdNtc() {
+		return optnCdNtc;
+	}
+	public String getOptnCdRspns() {
+		return optnCdRspns;
+	}
+	public String getBbsWriteUseyn() {
+		return bbsWriteUseyn;
+	}
+	public String getBbsUseyn() {
+		return bbsUseyn;
+	}
+	public void setOptnCdNtc(String optnCdNtc) {
+		this.optnCdNtc = optnCdNtc;
+	}
+	public void setOptnCdRspns(String optnCdRspns) {
+		this.optnCdRspns = optnCdRspns;
+	}
+	public void setBbsWriteUseyn(String bbsWriteUseyn) {
+		this.bbsWriteUseyn = bbsWriteUseyn;
+	}
+	public void setBbsUseyn(String bbsUseyn) {
+		this.bbsUseyn = bbsUseyn;
 	}
 }

@@ -11,9 +11,11 @@ dex5Object.fileCount = 1;						// 업로드 파일수
 dex5Object.maxTotalSize = (100 * 1024 * 1024);	// 총 업로드 용량
 dex5Object.maxFileSize = (100 * 1024 * 1024);	// 1개 파일 제한 용량
 dex5Object.minFileSize = 0;						// 최소 파일 용량
+dex5Object.itemHeight = 30;						// 아이템 기본 높이
 dex5Object.extensionFilter = "*";				// 업로드 가능 파일 확장명
 dex5Object.noExtension = "exe,com,bat,cmd,jsp,msi,html,htm,js,scr,asp,aspx,php,php3,php4,ocx,jar,war,py"; // 업로드 불가능 파일 확장명
 dex5Object.fileUploadTotalCount = 0; 			// 파일 업로드 갯수
+dex5Object.lang = "ko";							// 언어
 dex5Object.fileUploadName = new Array();		// 파일명 목록
 dex5Object.fileUploadId = new Array();			// 파일ID 목록
 dex5Object.uploadUrl = "/dext/uploadFileDext.up";			// 업로드URL(일반)
@@ -25,12 +27,54 @@ let uplod_result = false;
 // 업로더 환경 변수
 let DX_ENV = new Object();
 
-// 파일업로더 생성 (Dextuploader)
+
+
+/**
+ * 파일업로더(Dextuploader)
+ *
+ * UiFileUploader({
+ * 		id: "uploaderId",			// 파일업로더 ID
+ * 		targetId: "targetId",		// 업로더를 넣을 대상객체 ID
+ * 		url: "URL",					// 업로드 처리 서버 URL (생략시 기본값)
+ * 		path: "/data/path",			// 업로드 경로
+ * 		lang: "ko",					// 언어 (생략시 시스템 기본값 적용됨)
+ * 		limitCount: 5,				// 업로드 가능 파일 수 (생략시 기본값: 1)
+ * 		limitSize: 100,				// 업로드 가능 파일 사이즈 합계(MB, 기본값:100Mb)
+ * 		oneLimitSize: 100,			// 파일 한개당 최대 크기 (MB, 기본값:100Mb)
+ * 		listSize: 3,				// 파일목록 표시수 (창크기)
+ * 		allowedTypes: "*",			// 업로드 가능 타입 (확장명만 입력, 구분자[,], 전체:*)
+ * 		notAllowedTypes: "",		// 업로드 금지 타입 (생략시 기본값 설정, 확장명만 입력, 구분자[,])
+ * 		finishFunc: finishUpload,	// 업로드 종료시 호출할 함수명(()는 생략하고 함수명만 입력), finishUpload(id) 와 같이 id 전달
+ * 		bigSize: false, 			// 대용량 업로드 (기본값 false)
+ * 		uiMode: "normal", 			// UI 모드 (normal, simple, single)
+ * 		fileList: null				// 기존 업로드된 파일 목록(수정화면에서 사용)
+ * });
+ *
+ * // 업로더 객체 가져오기
+ * let dx = dx5.get("uploaderId");
+ *
+ * // 업로드할 파일이 있는지 확인
+ * dx.availUpload()	// true/false 리턴
+ *
+ * // 업로드 시작
+ * dx.startUpload()
+ *
+ * // 업로드 완료된 파일 정보 가져오기
+ * dx.getUploadFiles()
+ *
+ * // 업로드 경로 가져오기
+ * dx.getUploadPath()
+ *
+ * // 삭제파일 ID 목록 가져오기
+ * dx.getDelFileIdStr()
+ *
+ */
 function UiFileUploader(opts) {
+	dex5Object.lang = (opts.lang == undefined ? "ko" : opts.lang);
+
 	let id = opts.id;
 	let targetId = opts.targetId;
 	let uploadMode = (opts.bigSize == undefined || !opts.bigSize) ? "ORAF" : "EXNJ";
-	let lang = (opts.lang == undefined ? "ko" : opts.lang);
 	let uploadUrl = opts.uploadUrl;
 
 	if (uploadUrl == undefined || uploadUrl == "") {
@@ -46,40 +90,36 @@ function UiFileUploader(opts) {
 	}
 
 	let uiMode = opts.uiMode == undefined ? "normal" : opts.uiMode;
-	let style = opts.style == undefined ? "list" : opts.style;
+	let style = uiMode == "single" ? uiMode : "list";
+	let fileCount = opts.limitCount == undefined ? dex5Object.fileCount : opts.limitCount;
 	let listSize = opts.listSize == undefined ? 1 : opts.listSize;
-	let height = style == "single" ? 35 : (72 + (listSize * 36));
-	let addBtnMsg = getMsg('select');
-	let delBtnMsg = getMsg('delete');
-	let btnAareaStyle = "";
-	let btnClass = "";
-	let cssStyle = "width:100%;height:"+height+"px;";
-		
-	if (uiMode == "simple") {
-		addBtnMsg = "<i class='xi-file-add-o'></i>";
-		delBtnMsg = "<i class='xi-trash-o'></i>";
-		
-		cssStyle += "display:flex";
-		btnAareaStyle = "display:flex";
-		btnClass += "simple";
-		//btnStyle = "height:"+height+"px;";
+	let addBtnTxt = getUploaderMsg('select');
+	let delBtnTxt = getUploaderMsg('delete');
+
+	if (listSize > fileCount) {
+		listSize = fileCount;
 	}
 
-/*
-	tag.append("<button type=\"button\" id=\""+id+"_btn-add\" style=\""+btnStyle+"\" title=\""+message.getMessage("button.select.file")+"\"><i class='xi-file-add-o'></i></button>");
-	tag.append("<button type=\"button\" id=\""+id+"_btn-delete\" disabled='true' style=\""+btnStyle+"\" title=\""+message.getMessage("button.delete")+"\"><i class='xi-trash-o'></i></button>");
-	tag.append("<button type=\"button\" id=\""+id+"_btn-reset\" style=\""+btnStyle+resetStyle+"\" title=\""+message.getMessage("button.reset")+"\" onclick=\"resetDextFiles('"+id+"')\"><i class='xi-refresh'></i></button>");	
-*/
+	let height = uiMode == "single" ? 35 : (listSize * dex5Object.itemHeight) + 72;
+	let containerClass = "dext5-container";
+	let containerCss = "height:"+height+"px;";
 
+	if (uiMode == "simple") {
+		height = listSize * dex5Object.itemHeight;
+		containerClass += " simple";
+		addBtnTxt = "<i class='xi-plus-circle-o'></i>";
+		delBtnTxt = "<i class='xi-minus-circle-o'></i>";
+	}
 
-	let container = `
-		<div id="${id}-container" class="dext5-container ${btnClass}" style="width:100%;height:${height}px;"></div>
-		<div id="${id}-btn-area" class="dext5-btn-area" style="${btnAareaStyle}">
-			<button type="button" id="${id}_btn-add" style="" title="${getMsg('select')}">${addBtnMsg}</button>
-			<button type="button" id="${id}_btn-delete" disabled='true' style="" title="${getMsg('delete')}">${delBtnMsg}</button>
-			<button type="button" id="${id}_btn-reset" style="display:none" title="${getMsg('reset')}" onclick="resetDextFiles('fileUploader')"><i class='xi-refresh'></i></button>
-		</div>
-	`;
+	let container = `<div id="${id}-container" class="${containerClass}" style="${containerCss}">`;
+	if (uiMode !== "single") {
+		container += `<div id="${id}-btn-area" class="dext5-btn-area">
+				<button type="button" id="${id}_btn-add" title="${getUploaderMsg('select')}">${addBtnTxt}</button>
+				<button type="button" id="${id}_btn-delete" disabled='true' title="${getUploaderMsg('delete')}">${delBtnTxt}</button>
+				<button type="button" id="${id}_btn-reset" style="display:none;" title="${getUploaderMsg('reset')}" onclick="resetDextFiles('${id}')"><i class='xi-refresh'></i></button>
+			</div>`;
+	}
+	container += `</div>`;
 
 	$("#"+opts.targetId).append(container);
 
@@ -89,7 +129,7 @@ function UiFileUploader(opts) {
 		fileUploadIds: new Array(),
 		blockSize: dex5Object.blockSize,
 		uploadMode: (opts.bigSize == undefined || !opts.bigSize) ? "ORAF" : "EXNJ",
-		fileCount: (opts.limitCount == undefined ? dex5Object.fileCount : opts.limitCount),
+		fileCount: fileCount,
 		maxTotalSize: (opts.limitSize == undefined ? dex5Object.maxTotalSize : (opts.limitSize * 1024 * 1024)),
 	    maxFileSize: (opts.oneLimitSize == undefined ? dex5Object.maxFileSize : (opts.oneLimitSize * 1024 * 1024)),
 		minFileSize: dex5Object.minFileSize,
@@ -103,8 +143,9 @@ function UiFileUploader(opts) {
 		btnFile: id+"_btn-add",
 		btnDelete: id+"_btn-delete",
 		lang: (opts.lang == undefined ? "ko" : opts.lang),
-		style: style,
-		uiMode: uiMode
+		style: uiMode == "single" ? uiMode : "list",
+		uiMode: uiMode,
+		listSize: listSize
 	};
 
 	dx5.create({
@@ -114,92 +155,35 @@ function UiFileUploader(opts) {
 	    btnFile: id+"_btn-add",
 	    btnDeleteSelected: id+"_btn-delete",
 	    lang: (opts.lang == undefined ? "ko" : opts.lang),
-		style: style,
-		statusBarVisible:true
+		style: style
 	});
 
-	// 메시지
-	function getMsg(key, ...args) {
-	    let msg = UiFileUploaderMsg[lang][key];
-	    msg = msg.replace(/\{(\d+)\}/g, (match, index) => {
-	        if (index < args.length && args[index] !== undefined && args[index] !== null) {
-	            return args[index];
-	        }
-	        return match;
-	    });
-
-	    return msg;
-	}
-}
-
-
-// 파일업로더 생성 (Dextuploader)
-function UiFileUploader_old(data) {
-	DX_ENV[data.id] = {
-		totalCount: 0,
-		fileUploadNames: new Array(),
-		fileUploadIds: new Array(),
-		blockSize: dex5Object.blockSize,
-		uploadMode: (data.uploadMode == undefined ? dex5Object.uploadMode : data.uploadMode),
-		fileCount: (data.fileCount == undefined ? dex5Object.fileCount : data.fileCount),
-		maxTotalSize: (data.maxTotalSize == undefined ? dex5Object.maxTotalSize : (data.maxTotalSize * 1024 * 1024)),
-	    maxFileSize: (data.maxFileSize == undefined ? dex5Object.maxFileSize : (data.maxFileSize * 1024 * 1024)),
-		minFileSize: (data.minFileSize == undefined ? dex5Object.minFileSize : data.minFileSize),
-		extensionFilter: (data.extensionFilter == undefined ? "*" : data.extensionFilter),
-		noExtension: (data.noExtension == undefined ? dex5Object.noExtension : data.noExtension),
-	    finishFunc: (data.finishFunc == undefined ? "" : data.finishFunc),
-	    uploadUrl: (data.uploadUrl == undefined ? "" : data.uploadUrl),
-	    path: (data.path == undefined ? "" : data.path),
-		oldFiles: (data.oldFiles == undefined ? "" : data.oldFiles),
-		useFileBox: (data.useFileBox == undefined ? false : data.useFileBox),
-		btnFile: data.btnFile,
-		btnDelete: data.btnDelete,
-		lang: (data.lang == undefined ? "ko" : data.lang),
-		style: (data.style == undefined ? "list" : data.style),
-		uiMode: (data.uiMode == undefined ? "normal" : data.uiMode)
-	};
-
-	dx5.create({
-        mode: (data.mode == undefined ? "multi" : data.mode),
-        id: data.id,
-        parentId: data.parentId,
-        btnFile: data.btnFile,
-        btnDeleteSelected: data.btnDelete,
-        lang: (data.lang == undefined ? "ko" : data.lang),
-		style: (data.style == undefined ? "list" : data.style),
-		statusBarVisible:true
-    });
 }
 
 
 // Dext uploader 생성후 callback 함수
 function onDX5Created(id) {
-	var dx = dx5.get(id);
-	var env = DX_ENV[id] == undefined ? new Object() : DX_ENV[id];
+	let dx = dx5.get(id);
+	let env = DX_ENV[id] == undefined ? new Object() : DX_ENV[id];
 	dx.env = env;
 
 	if(env.oldFiles != "" && env.oldFiles.length > 0) {
-		var virtualFileList = [];
-		for(var i = 0; i < env.oldFiles.length; i++) {
+		let virtualFileList = [];
+		for(let i = 0; i < env.oldFiles.length; i++) {
 			virtualFileList.push({vindex: env.oldFiles[i].fileId, name: env.oldFiles[i].fileNm, size: env.oldFiles[i].fileSize, saveNm: env.oldFiles[i].fileNm});
 		}
 		dx.addVirtualFileList(virtualFileList);
 	}
 
-	if (env.uiMode == "simple") {
-		dx.setUIStyle({
-			headerVisible:false, statusBarVisible:false
-		});
-	}
-
-	var uploadMode		= dex5Object.uploadMode;
-	var blockSize		= dex5Object.blockSize;
-	var fileCount 		= dex5Object.fileCount;
-	var maxTotalSize 	= dex5Object.maxTotalSize;
-	var maxFileSize 	= dex5Object.maxFileSize;
-	var minFileSize 	= dex5Object.minFileSize;
-	var extensionFilter = dex5Object.extensionFilter;
-	var uploadUrl		= "";
+	let uploadMode		= dex5Object.uploadMode;
+	let blockSize		= dex5Object.blockSize;
+	let fileCount 		= dex5Object.fileCount;
+	let maxTotalSize 	= dex5Object.maxTotalSize;
+	let maxFileSize 	= dex5Object.maxFileSize;
+	let minFileSize 	= dex5Object.minFileSize;
+	let extensionFilter = dex5Object.extensionFilter;
+	let itemHeight		= dex5Object.itemHeight;
+	let uploadUrl		= "";
 
 	if (extensionFilter == "") {
 		extensionFilter = "*";
@@ -234,50 +218,15 @@ function onDX5Created(id) {
 		dx.setMaxFileCount(fileCount); 			// 첨부하는 파일의 갯수
 	}
 
-	$("#"+id+"-btn-area").show();
-	$("#"+id+"-container").prepend($("#"+id+"-btn-area"));
-
-    // 파일함에서 가져오기 모달박스
-    if (env.useFileBox == true) {
-		var boxTitle = "파일함";
-		if (env.lang != "ko") {
-			boxTitle = "File Box";
-		}
-
-    	if ($("#fileBoxForm1").length == 0) {
-        	$("body").append($("<form id='fileBoxForm1' name='fileBoxForm1'><input type='hidden' name='menuType' value='dext'><input type='hidden' name='tabCd' value='"+id+"'></form>"));
-
-            var boxModal = ""
-            	   + " <div class='modal fade in' id='fileBoxModal1' tabindex='-1' role='dialog' aria-labelledby='Modal' aria-hidden='false' style='display: none; padding-right: 17px;'>"
-            	   + "     <div class='modal-dialog modal-lg' role='document'>"
-            	   + "         <div class='modal-content'>"
-            	   + "             <div class='modal-header'>"
-            	   + "                 <button type='button' class='close' data-dismiss='modal' aria-label='Close'>"
-            	   + "                     <span aria-hidden='true'>&times;</span>"
-            	   + "                 </button>"
-            	   + "                 <h4 class='modal-title'>"+boxTitle+"</h4>"
-            	   + "             </div>"
-            	   + "             <div class='modal-body'>"
-            	   + "                 <iframe src='' width='100%' id='fileBoxIfm1' name='fileBoxIfm1' title='fileBoxIfm1'></iframe>"
-            	   + "             </div>"
-            	   + "         </div>"
-            	   + "     </div>"
-            	   + " </div>";
-            $("#"+id+"-container").after($(boxModal));
-
-            $("#"+id+"_btn-filebox").bind('click', function() {
-        		$("#fileBoxForm1").attr("target", "fileBoxIfm1");
-                $("#fileBoxForm1").attr("action", "/file/fileHome/popup/fileBoxCopy.do");
-                $("#fileBoxForm1").submit();
-
-                $('#fileBoxModal1').modal('show');
-                $('#fileBoxIfm1').iFrameResize();
-                window.closeFileBox = function() {
-                    $('.modal').modal('hide');
-                };
-            });
-    	}
-    }
+	if (env.uiMode == "simple") {
+		dx.setUIStyle({headerVisible:false, statusBarVisible:false, itemHeight:itemHeight});
+		$("#"+id+"-container").css("height", (env.listSize * itemHeight)+"px");
+		$("#"+id+"-btn-area").css("display","flex");
+	}
+	else {
+		dx.setUIStyle({_headerHeight:itemHeight, footerHeight:itemHeight, itemHeight:itemHeight});
+		$("#"+id+"-btn-area").css("display","block");
+	}
 
 	$("#"+id+"_btn-delete").on('click',function() {
 		$(this).attr("disabled",true);
@@ -287,17 +236,17 @@ function onDX5Created(id) {
 	dx.startUpload = function() {
 		dx.resetUploadUrl();
 		dx.upload();
-	};
+	}
 
 	// 업로드 파일 정보
 	dx.getUploadFiles = function() {
-		var res = dx.getResponses();
-		var files = [];
+		let res = dx.getResponses();
+		let files = [];
 
 		try {
-			for (var i=0; i<res.length; i++) {
-				var upFiles = eval(res[i]);
-				for (var j=0; j<upFiles.length; j++) {
+			for (let i=0; i<res.length; i++) {
+				let upFiles = eval(res[i]);
+				for (let j=0; j<upFiles.length; j++) {
 					files.push(upFiles[j]);
 				}
 			}
@@ -307,25 +256,25 @@ function onDX5Created(id) {
 		catch(e) {
 			console.log("File upload error.....\n"+e+"\n\n"+res);
 		}
-	};
+	}
 
 	// 경로
 	dx.getUploadPath = function() {
 		return dx.env.path;
-	};
+	}
 
 	// 경로 설정
 	dx.setUploadPath = function(path) {
 		dx.env.path = path;
-	};
+	}
 
 	// 삭제파일 ID 목록 (배열)
 	dx.getDelFileIds = function() {
-		var delFiles = dx.getRemovedFiles();
-		var delIds = [];
+		let delFiles = dx.getRemovedFiles();
+		let delIds = [];
 
 		if (delFiles.length > 0) {
-			 for(var i=0; i<delFiles.length; i++) {
+			 for(let i=0; i<delFiles.length; i++) {
 				if (delFiles[i].vindex.indexOf("FILEBOX:") == -1) {
 					delIds.push(delFiles[i].vindex);
 				}
@@ -333,15 +282,15 @@ function onDX5Created(id) {
 		}
 
 		return delIds;
-	};
+	}
 
 	// 삭제파일 ID 목록 (문자열)
 	dx.getDelFileIdStr = function() {
-		var delFiles = dx.getRemovedFiles();
-		var delIdStr = "";
+		let delFiles = dx.getRemovedFiles();
+		let delIdStr = "";
 
 		if (delFiles.length > 0) {
-			 for(var i=0; i<delFiles.length; i++) {
+			 for(let i=0; i<delFiles.length; i++) {
 				if (delFiles[i].vindex.indexOf("FILEBOX:") == -1) {
 					if (i>0) delIdStr += ",";
 					delIdStr += delFiles[i].vindex;
@@ -350,70 +299,6 @@ function onDX5Created(id) {
 		}
 
 		return delIdStr;
-	};
-
-	// 파일함에서 가져온 파일 삭제
-	dx.deleteCopyFile = function(fileId) {
-		for (var i=0; i<dx.copyFiles.length; i++) {
-			let cpFile = dx.copyFiles[i];
-			if (cpFile.fileId == fileId) {
-				dx.copyFiles.splice(i,1);
-				break;
-			}
-		}
-	};
-
-	// 파일함에서 가져온 파일 정보
-	dx.getCopyFiles = function() {
-		var cpFiles = dx.copyFiles;
-		var fileArray = new Array();
-        var fileVO = null;
-		var delFiles = dx.getRemovedFiles();
-
-		for (var i=0; i < cpFiles.length; i++) {
-			var addCheck = true;
-
-			if (delFiles.length > 0) {
-				for (var j=0; j<delFiles.length; j++) {
-					if (delFiles[j].vindex.indexOf(cpFiles[i].fileId) > -1) {
-						addCheck = false;
-						break;
-					}
-				}
-			}
-
-			if (addCheck) {
-				fileVO = new Object();
-				fileVO.fileId		= cpFiles[i].fileId;
-				fileVO.fileNm 		= cpFiles[i].fileNm;
-				fileVO.fileSaveNm	= cpFiles[i].fileSaveNm;
-				fileVO.fileSize 	= cpFiles[i].fileSize;
-				fileVO.filePath 	= cpFiles[i].filePath.replace(/\\/g, "\/");
-				fileVO.encFileSn	= cpFiles[i].encFileSn;
-				fileArray.push(fileVO);
-			}
-		}
-
-		return JSON.stringify(fileArray).replace(/\"/gi, "\\\"");
-	};
-
-	// 파일함에서 파일 추가
-	dx.addCopyFiles = function(list) {
-		var count = 0;
-		for(let i=0; i<list.length; i++) {
-			count++;
-			let fileInfo = list[i];
-			fileInfo.fileId = getDextNewFileId();
-			dx.copyFiles.push(fileInfo);
-
-			dx.addVirtualFile({
-				vindex: "FILEBOX:"+fileInfo.fileId,
-				name: fileInfo.fileNm,
-				size: fileInfo.fileSize
-			});
-		}
-
-		onItemAddedFileBox(this.id, count);
 	}
 
 	// Old 파일목록 추가
@@ -438,7 +323,7 @@ function onDX5Created(id) {
 			uploadUrl += (uploadUrl.indexOf("?") == -1 ? "?" : "&") + "path=" + dx.env.path;
 
 	    	let fileIds = new Array();
-	        for(var i= 0; i<dx.getTotalItemCount(); i++) {
+	        for(let i= 0; i<dx.getTotalItemCount(); i++) {
 	            fileIds[i] = getDextNewFileId();
 	        }
 
@@ -465,19 +350,13 @@ function onDX5Created(id) {
 
 
 function onDX5Error(id, code, msg) {
-	var dx = dx5.get(id);
+	let dx = dx5.get(id);
 
 	if(code == "ESVG-00038" || code == "ESVG-00050" || code == "ESVG-00044") {
 		console.log(id + " => " +  code + "\n" + msg);
 	} else {
 		console.log(id + " => " +  code + "\n" + msg);
-
-		var errorMsg = "파일 업로드중 에러가 발생했습니다.";
-		if (dx.env.lang != "ko") {
-			errorMsg = "An error occurred while uploading the file.";
-		}
-
-		alert(errorMsg);
+		UiComm.showMessage(getUploaderMsg("err_upload"), "error"); // 파일 업로드중 에러가 발생했습니다.
 	}
 }
 
@@ -490,8 +369,8 @@ function onDX5ItemDoubleClick(id, itemIndex, itemId, itemType) {
 }
 
 function onDX5UploadCompleted(id) {
-	var dx = dx5.get(id);
-	var env = dx.env;
+	let dx = dx5.get(id);
+	let env = dx.env;
 
 	// 파일업로드 컴포넌트에서 설정한 함수호출
 	if (env.finishFunc && typeof env.finishFunc === "function") {
@@ -501,21 +380,17 @@ function onDX5UploadCompleted(id) {
 
 // 업로드 파일 수
 function getFileCount(id) {
-	var dx = dx5.get(id);
+	let dx = dx5.get(id);
 	return dx.getTotalLocalFileCount();
 }
 
 function onDX5ItemsAdded(id, count, arr) {
-	var dx = dx5.get(id);
-	var totCount = dx.getTotalItemCount();
+	let dx = dx5.get(id);
+	let totCount = dx.getTotalItemCount();
 	if (totCount > dx.env.fileCount) {
-		var errorMsg = "파일의 최대 개수("+dx.env.fileCount+")를 넘었습니다.";
-		if (dx.env.lang != "ko") {
-			errorMsg = "The maximum number of files ("+dx.env.fileCount+") has been exceeded.";
-		}
-		alert(errorMsg);
+		UiComm.showMessage(getUploaderMsg("err_file_count"), "warning"); // 파일의 최대 개수(0)를 넘었습니다.
 
-		for (var i=0; i<arr.length; i++) {
+		for (let i=0; i<arr.length; i++) {
 			dx.removeById(arr[i], true);
 		}
 	}
@@ -532,20 +407,20 @@ function onDX5UploadItemEnd(id, itemId) {
 function onDX5UploadItemStart(id, itemId) {
 	// alert("onDX5UploadItemStart");
 
-	var dx = dx5.get(id);
-	var uploadMode = dx.getUploadMode();
-	var uploadUrl = dx.getUploadURL();
+	let dx = dx5.get(id);
+	let uploadMode = dx.getUploadMode();
+	let uploadUrl = dx.getUploadURL();
 
 	// 대용량 업로드 블럭(청크) 단위로 업로드 요청
 	if(uploadMode == "EXNJ") {
-		var url = new URL(uploadUrl);
-		var urlParams = new URLSearchParams(url.search);
-		var paramsObj = Object.fromEntries(urlParams.entries());
+		let url = new URL(uploadUrl);
+		let urlParams = new URLSearchParams(url.search);
+		let paramsObj = Object.fromEntries(urlParams.entries());
 
 		paramsObj.itemIndex = dx.getItemIndex(itemId);
 
-		var queryStr = new URLSearchParams(paramsObj).toString();
-		var newUrl = url.origin + url.pathname + "?" + queryStr;
+		let queryStr = new URLSearchParams(paramsObj).toString();
+		let newUrl = url.origin + url.pathname + "?" + queryStr;
 
 		dx.setUploadURL(newUrl);
 	}
@@ -565,16 +440,16 @@ function onDX5ItemSelect(id, itemIndex, itemId, itemType) {
 
 // 파일 확장명 체크
 function onDX5ItemAdding(id, obj) {
-	var dx = dx5.get(id);
-	var noExtension = dx.env.noExtension;
+	let dx = dx5.get(id);
+	let noExtension = dx.env.noExtension;
 	var lastDot = obj.name.lastIndexOf('.');
-	var check = true;
+	let check = true;
 
 	if (lastDot > -1 && noExtension != "") {
-		var noExts = noExtension.split(",");
+		let noExts = noExtension.split(",");
 		var ext = obj.name.substring(lastDot+1, obj.name.length).toLowerCase();
 
-		for (var i=0; i<noExts.length; i++) {
+		for (let i=0; i<noExts.length; i++) {
 			if (ext == noExts[i]) {
 				check = false;
 				break;
@@ -583,21 +458,12 @@ function onDX5ItemAdding(id, obj) {
 	}
 
 	if (!check) {
-		var msg = "업로드할 수 없는 파일입니다.";
-		if (dx.env.lang != "ko") {
-			msg = "This file cannot be uploaded.";
-		}
-		alert("["+obj.name+"] "+msg);
+		UiComm.showMessage(getUploaderMsg("err_file_ext", obj.name), "warning"); // 업로드할 수 없는 파일입니다.
 	}
 
 	return check;
 }
 
-// 파일함에서 파일 추가
-function addDextFromFileBox(id, list) {
-	var dx = dx5.get(id);
-	dx.addCopyFiles(list);
-}
 
 function onItemAddedFileBox(id, count) {
 	//alert(id, count);
@@ -605,20 +471,20 @@ function onItemAddedFileBox(id, count) {
 
 // 삭제파일 초기화
 function resetDextFiles(id) {
-	var dx = dx5.get(id);
+	let dx = dx5.get(id);
 	dx.removeAll();
 	dx.revokeAllVirtualFiles();
 }
 
 // File ID 생성
 function getDextNewFileId() {
-	var digits = [
+	let digits = [
 		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-	var newId = "";
+	let newId = "";
 
-	for (var i = 0; i < 4; i++) {
+	for (let i = 0; i < 4; i++) {
 		newId += digits[Math.floor(Math.random() * 52)];
 	}
 
@@ -630,12 +496,25 @@ function getDextNewFileId() {
 	newId += digits[nowDate.getMinutes()];
 	newId += digits[nowDate.getSeconds()];
 
-	var randStr = 'xxxxxxxxxxxx'.replace(/[x]/g, function(c) {
-		var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 3 | 8);
+	let randStr = 'xxxxxxxxxxxx'.replace(/[x]/g, function(c) {
+		let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 3 | 8);
 	    return v.toString(16);
 	});
 
 	return newId + randStr;
+}
+
+// 메시지
+function getUploaderMsg(key, ...args) {
+    let msg = UiFileUploaderMsg[dex5Object.lang][key];
+    msg = msg.replace(/\{(\d+)\}/g, (match, index) => {
+        if (index < args.length && args[index] !== undefined && args[index] !== null) {
+            return args[index];
+        }
+        return match;
+    });
+
+    return msg;
 }
 
 
@@ -644,21 +523,33 @@ const UiFileUploaderMsg = {
     ko: {
         select: "파일선택",
         delete: "삭제",
-        reset: "초기화"
+        reset: "초기화",
+		err_upload: "파일 업로드중 에러가 발생했습니다.",
+		err_file_ext: "[{0}] 업로드할 수 없는 파일입니다.",
+		err_file_count: "파일의 최대 개수({0})를 넘었습니다."
     },
     en: {
 		select: "Select",
 		delete: "Delete",
-		reset: "Reset"
+		reset: "Reset",
+		err_upload: "An error occurred while uploading the file.",
+		err_file_ext: "[{0}] This file cannot be uploaded.",
+		err_file_count: "The maximum number of files ({0}) has been exceeded."
     },
     ja: {
 		select: "ファイル選択",
 		delete: "削除",
-		reset: "初期化"
+		reset: "初期化",
+		err_upload: "ファイルのアップロード中にエラーが発生しました。",
+		err_file_ext: "[{0}] アップロードできないファイルです。",
+		err_file_count: "ファイルの最大数（{0}）を超えました。"
     },
     zh: {
 		select: "选择文件",
 		delete: "删除",
-		reset: "重置"
+		reset: "重置",
+		err_upload: "上传文件时发生错误。",
+		err_file_ext: "[{0}] 文件无法上传。",
+		err_file_count: "文件数量已超过最大值 ({0})。"
     }
 };

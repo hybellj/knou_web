@@ -160,8 +160,9 @@
 												oneLimitSize="100"
 												listSize="3"
 												fileList="${bbsAtclVO.fileList}"
-												finishFunc="finishUpload()"
+												finishFunc="finishUpload"
 												allowedTypes="*"
+												uiMode="normal"
 											/>
 										</td>
 									</tr>

@@ -39,13 +39,12 @@ public class LogUserConnServiceImpl implements LogUserConnService {
     
     /**
      * 사용자접속이력갱신 - userCntnHstryUpdate
-     * TODO: 리팩터링 필요, 일단은 SKIP, 405군데 사용. - jinkoon 260122
-     * 
      * @param request
      * @param workLoc
      * @throws Exception
      */
     public void saveUserConnState(HttpServletRequest request, String workLoc) throws Exception {
+    	
     	String chkNo = (String)request.getSession().getAttribute("PREV_CONN_CHECK_NO");
         String chkLoc = request.getSession().getAttribute("PREV_CONN_CHECK_LOC") == null ? "" : (String)request.getSession().getAttribute("PREV_CONN_CHECK_LOC");
         long chkTime = request.getSession().getAttribute("PREV_CONN_CHECK_TIME") == null ? 0 : (long)request.getSession().getAttribute("PREV_CONN_CHECK_TIME");

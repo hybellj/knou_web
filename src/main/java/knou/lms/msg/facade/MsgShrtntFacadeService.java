@@ -11,8 +11,6 @@ import java.util.List;
 
 public interface MsgShrtntFacadeService {
 
-    List<OrgInfoVO> selectActiveOrgList() throws Exception;
-
     List<OrgInfoVO> selectActiveOrgListByAuth(String orgId, boolean isAdmin) throws Exception;
 
     List<AtflVO> selectAtflListByRefId(String refId) throws Exception;

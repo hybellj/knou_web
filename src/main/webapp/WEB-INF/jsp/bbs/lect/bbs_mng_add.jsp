@@ -29,9 +29,7 @@
 		var MODE         = '<c:out value="${bbsVO.gubun == 'edit' ? 'U' : 'C'}" />';
 
 		$(document).ready(function() {
-			if(MODE == 'U') {
-                bbsAtclModifyForm();
-            }
+            $('#atclWriteForm')[0].reset();
 		});
 
     	// 게시글 저장
@@ -48,90 +46,6 @@
     		document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsMngListView.do?encParams=${encParams}";
     	}
 
-    	function bbsAtclModifyForm() {
-            var url  = "/bbs/" + TEMPLATE_URL + "/bbsAtclDtlView.do";
-            var data = { bbsId : BBS_ID, atclId : ATCL_ID };
-
-            ajaxCall(url, data, function(data) {
-                if(data.result > 0 && data.returnVO) {
-                    var vo = data.returnVO;
-
-                    // 주요 옵션
-                    if(vo.optnCd === 'IMPT') {
-						$("#optnCdI").prop("checked", true);
-					} else if(vo.optnCd === 'FIX') {
-						$("#optnCdF").prop("checked", true);
-					} else {
-						$("#optnCdN").prop("checked", true);
-					}
-
-					// 주요 옵션 일자
-                    setSplitDateTime(vo.optnSdttm, 'optnStartDate', 'optnStartTime');
-                    setSplitDateTime(vo.optnEdttm, 'optnEndDate', 'optnEndTime');
-
-                    // 제목
-                    $("#atclTtl").val(vo.atclTtl);
-
-                    // 내용
-                    editor.openHTML(vo.atclCts);
-
-                    if(vo.fileList && vo.fileList.length > 0) {
-                        setTimeout(function(){
-                            var dx = dx5.get("fileUploader");
-                            dx.addCopyFiles(vo.fileList);
-                        }, 500);
-                    }
-
-					// 분반 일괄등록
-					var i = vo.dvclasNo;
-					$("#dvclasNo"+i).prop("checked", true);
-
-					// 부가옵션 - 댓글 사용
-                    if(vo.cmntPrmyn === "Y") {
-						$("#cmntPrmyn").prop("checked", true);
-                    }
-
-					// 등록 예약
-                    if(vo.rsrvyn === "Y") {
-					    $("#rsrvyn").prop("checked", true);
-					    $("#sw_rsrvyn").attr("aria-checked", "true").addClass("ui-switcher-on");
-					}
-
-					// 등록 예약 일자
-                    setSplitDateTime(vo.rsrvSdttm, 'rsrvStartDate', 'rsrvStartTime');
-                    setSplitDateTime(vo.rsrvEdttm, 'rsrvEndDate', 'rsrvEndTime');
-
-                    // 공개여부
-                    if(vo.oyn === "Y") {
-						$("#oyn").prop("checked", true);
-						$("#sw_oyn").attr("aria-checked", "true").trigger("change");
-					}
-
-                    // 공지사항 구분
-                    if(vo.ntcGbncd === "Y") {
-						$("#ntcGbncdY").prop("checked", true);
-                    } else {
-                    	$("#ntcGbncdN").prop("checked", true);
-                    }
-
-                    // 자동 알림 예약 등록
-                    if(vo.autoAlimyn === "Y") {
-						$("#autoAlimyn").prop("checked", true);
-						$("#sw_autoAlimyn").attr("aria-checked", "true").trigger("change");
-					}
-
-                    // 자동 알림 예약 등록 일자
-                    setSplitDateTime(vo.autoAlimSdttm, 'autoAlimStartDate', 'autoAlimStartTime');
-                    setSplitDateTime(vo.autoAlimEdttm, 'autoAlimEndDate', 'autoAlimEndTime');
-                }
-            });
-        }
-
-    	function setSplitDateTime(fullStr, dateInputId, timeInputId) {
-            if (!fullStr || fullStr.length !== 14) return;
-            if (dateInputId) document.getElementById(dateInputId).value = fullStr.substring(0, 8);
-            if (timeInputId) document.getElementById(timeInputId).value = fullStr.substring(8, 14);
-        }
 	</script>
 </head>
 
@@ -178,121 +92,118 @@
 				</div>
 
 				<div class="class_sub">
+	                <div class="dashboard_sub">
+	                    <div class="sub-content">
+	                        <div class="page-info">
+	                            <h4 class="sub-title">게시판 추가</h4>
+	                            <div class="navi_bar">
+	                                <ul>
+	                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
+	                                    <li>공통</li>
+	                                    <li><span class="current">레이아웃</span></li>
+	                                </ul>
+	                            </div>
+	                        </div>
 
-                <div class="dashboard_sub">
+	                        <!--table-type-->
+							<div class="table-wrap">
+								<form id="atclWriteForm" name="atclWriteForm" onsubmit="return false;">
+									<input type="hidden" name="encParams"    id="encParams"    value="${encParams}" />
+									<input type="hidden" name="userId"       id="userId"       value="${bbsVO.userId}" />
+								<table class="table-type5">
+									<colgroup>
+										<col class="width-15per" />
+										<col class="" />
+									</colgroup>
+									<tbody>
+										<tr>
+											<th><label for="bbsnm" class="req">게시판명</label></th>
+											<td>
+												<div class="form-row">
+													<input type="text" id="bbsnm" name="bbsnm" autocomplete="off" required="true" class="form-control width-100per" inputmask="byte" maxLen="200" value="${bbsVO.bbsNm}" />
+												</div>
+											</td>
+										</tr>
+										<tr>
+	                                        <th><label>게시판 종류</label></th>
+	                                        <td>
+	                                            <div class="form-inline">
+	                                                <span class="custom-input"><input type="radio" name="bbsTycd" id="bbsTycdA" value="FREE" ${bbsVO.bbsTycd eq 'FREE' ? 'checked' : '' }><label for="bbsTycdA">자유게시판</label></span>
+	                                                <span class="custom-input ml5"><input type="radio" name="bbsTycd" id="bbsTycdB" value="ALBUM" ${bbsVO.bbsTycd eq 'ALBUM' ? 'checked' : '' }><label for="bbsTycdB">이미지게시판</label></span>
+	                                            </div>
+	                                        </td>
+	                                    </tr>
+	                                    <tr>
+	                                        <th><label>게시판 유형</label></th>
+	                                        <td>
+	                                            <div class="checkbox_type">
+	                                                <span class="custom-input"><input type="checkbox" name="optnCd" id="optnCdA" value="NTC" required="true" ${bbsVO.optnCdNtc eq 'Y' ? 'checked' : ''}><label for="optnCdA">공지</label></span>
+	                                                <span class="custom-input"><input type="checkbox" name="optnCd" id="optnCdB" value="RSPNS" required="true" ${bbsVO.optnCdRspns eq 'Y' ? 'checked' : ''}><label for="optnCdB">답변</label></span>
+	                                            </div>
+	                                        </td>
+	                                    </tr>
+	                                    <tr>
+	                                        <th><label>첨부파일 사용</label></th>
+	                                        <td>
+	                                            <div class="form-inline">
+	                                                <span class="custom-input"><input type="radio" name="atflUseyn" id="atflUseynY" value="Y" ${bbsVO.atflUseyn eq 'Y' ? 'checked' : '' }><label for="atflUseynY">예</label></span>
+	                                                <span class="custom-input ml5"><input type="radio" name="atflUseyn" id="atflUseynN" value="N" ${bbsVO.atflUseyn eq 'N' ? 'checked' : '' }><label for="atflUseynN">아니오</label></span>
+	                                            </div>
+	                                        </td>
+	                                    </tr>
+	                                    <tr>
+											<th><label for="atflMaxCnt" class="req">첨부파일 개수</label></th>
+											<td>
+												<div class="form-row">
+													<select class="form-select" id="atflMaxCnt">
+		                                            	<option value="">0개</option>
+	        											<option value="1">1개</option>
+	        											<option value="2">2개</option>
+	        											<option value="3">3개</option>
+	        											<option value="4">4개</option>
+	        											<option value="5">5개</option>
+		                                            </select>
+												</div>
+											</td>
+										</tr>
+	                                    <tr>
+											<th><label for="atflMaxsz" class="req">첨부파일 용량</label></th>
+											<td>
+												<div class="form-row">
+													<input type="text" id="atflMaxsz" name="atflMaxsz" autocomplete="off" required="true" class="form-control width-100per" inputmask="byte" maxLen="200" value="${bbsVO.atflMaxsz}" />
+												</div>
+											</td>
+										</tr>
+										<tr>
+	                                        <th><label>글쓰기 사용여부</label></th>
+	                                        <td>
+	                                            <div class="form-inline">
+	                                                <span class="custom-input"><input type="radio" name="bbsWriteUseyn" id="bbsWriteUseynY" value="Y" ${bbsVO.bbsWriteUseyn eq 'Y' ? 'checked' : '' }><label for="bbsWriteUseynY">예</label></span>
+	                                                <span class="custom-input ml5"><input type="radio" name="bbsWriteUseyn" id="bbsWriteUseynN" value="N" ${bbsVO.bbsWriteUseyn eq 'N' ? 'checked' : '' }><label for="bbsWriteUseynN">아니오</label></span>
+	                                            </div>
+	                                        </td>
+	                                    </tr>
+	                                    <tr>
+	                                        <th><label>게시판 사용여부</label></th>
+	                                        <td>
+	                                            <div class="form-inline">
+	                                                <span class="custom-input"><input type="radio" name="bbsUseyn" id="bbsUseynY" value="Y" ${bbsVO.bbsUseyn eq 'Y' ? 'checked' : '' }><label for="bbsUseynY">예</label></span>
+	                                                <span class="custom-input ml5"><input type="radio" name="bbsUseyn" id="bbsUseynN" value="N" ${bbsVO.bbsUseyn eq 'N' ? 'checked' : '' }><label for="bbsUseynN">아니오</label></span>
+	                                            </div>
+	                                        </td>
+	                                    </tr>
+									</tbody>
+								</table>
+								</form>
+							</div>
 
-                    <div class="sub-content">
-                        <div class="page-info">
-                            <h4 class="sub-title">게시판 추가</h4>
-                            <div class="navi_bar">
-                                <ul>
-                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li>공통</li>
-                                    <li><span class="current">레이아웃</span></li>
-                                </ul>
-                            </div>
-                        </div>
+							<div class="btns">
+	                            <button type="button" class="btn type1" onclick="atclSave()"><spring:message code="common.button.save" /></button><%-- 저장 --%>
+	                            <button type="button" class="btn type2" onclick="moveListPage()"><spring:message code="common.button.cancel" /></button><%-- 취소 --%>
+	                        </div>
+	                    </div>
 
-                        <!--table-type-->
-						<div class="table-wrap">
-							<form id="atclWriteForm" name="atclWriteForm" onsubmit="return false;">
-								<input type="hidden" name="encParams"    id="encParams"    value="${encParams}" />
-								<input type="hidden" name="userId"       id="userId"       value="${bbsVO.userId}" />
-
-							<table class="table-type5">
-								<colgroup>
-									<col class="width-15per" />
-									<col class="" />
-								</colgroup>
-								<tbody>
-									<tr>
-										<th><label for="bbsnm" class="req">게시판명</label><%-- 제목 --%></th>
-										<td>
-											<div class="form-row">
-												<input type="text" id="bbsnm" name="bbsnm" autocomplete="off" required="true" class="form-control width-100per" inputmask="byte" maxLen="200" value="${bbsVO.bbsNm}" />
-											</div>
-										</td>
-									</tr>
-									<tr>
-                                        <th><label>게시판 종류</label></th>
-                                        <td>
-                                            <div class="form-inline">
-                                                <span class="custom-input"><input type="radio" name="bbsTycd" id="bbsTycdA" value="FREE" checked><label for="bbsTycdA">자유게시판</label></span>
-                                                <span class="custom-input ml5"><input type="radio" name="bbsTycd" id="bbsTycdB" value="ALBUM"><label for="bbsTycdB">이미지게시판</label></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><label>게시판 유형</label></th>
-                                        <td>
-                                            <div class="checkbox_type">
-                                                <span class="custom-input"><input type="checkbox" name="optnCd" id="optnCdA" value="NTC" required="true"><label for="optnCdA">공지</label></span>
-                                                <span class="custom-input"><input type="checkbox" name="optnCd" id="optnCdB" value="RSPNS" required="true"><label for="optnCdB">답변</label></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><label>첨부파일 사용</label></th>
-                                        <td>
-                                            <div class="form-inline">
-                                                <span class="custom-input"><input type="radio" name="atflUseyn" id="atflUseynY" value="Y" checked><label for="atflUseynY">예</label></span>
-                                                <span class="custom-input ml5"><input type="radio" name="atflUseyn" id="atflUseynN" value="N"><label for="atflUseynN">아니오</label></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-										<th><label for="atflCnt" class="req">첨부파일 개수</label></th>
-										<td>
-											<div class="form-row">
-												<select class="form-select" id="atflCnt">
-	                                            	<option value="">0개</option>
-        											<option value="1">1개</option>
-        											<option value="2">2개</option>
-        											<option value="3">3개</option>
-        											<option value="4">4개</option>
-        											<option value="5">5개</option>
-	                                            </select>
-											</div>
-										</td>
-									</tr>
-                                    <tr>
-										<th><label for="atflMaxsz" class="req">첨부파일 용량</label></th>
-										<td>
-											<div class="form-row">
-												<input type="text" id="atflMaxsz" name="atflMaxsz" autocomplete="off" required="true" class="form-control width-100per" inputmask="byte" maxLen="200" value="${bbsVO.atflMaxsz}" />
-											</div>
-										</td>
-									</tr>
-									<tr>
-                                        <th><label>글쓰기 사용여부</label></th>
-                                        <td>
-                                            <div class="form-inline">
-                                                <span class="custom-input"><input type="radio" name="writeUseyn" id="writeUseynY" value="Y" checked><label for="writeUseynY">예</label></span>
-                                                <span class="custom-input ml5"><input type="radio" name="writeUseyn" id="writeUseynN" value="N"><label for="writeUseynN">아니오</label></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><label>게시판 사용여부</label></th>
-                                        <td>
-                                            <div class="form-inline">
-                                                <span class="custom-input"><input type="radio" name="bbsUseyn" id="bbsUseynY" value="Y" checked><label for="bbsUseynY">예</label></span>
-                                                <span class="custom-input ml5"><input type="radio" name="bbsUseyn" id="bbsUseynN" value="N"><label for="bbsUseynN">아니오</label></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-								</tbody>
-							</table>
-							</form>
-						</div>
-
-						<div class="btns">
-                            <button type="button" class="btn type1" onclick="atclSave()"><spring:message code="common.button.save" /></button><%-- 저장 --%>
-                            <button type="button" class="btn type2" onclick="moveListPage()"><spring:message code="common.button.cancel" /></button><%-- 취소 --%>
-                        </div>
-                    </div>
-
-                </div>
+	                </div>
                 </div>
             </div>
             <!-- //content -->

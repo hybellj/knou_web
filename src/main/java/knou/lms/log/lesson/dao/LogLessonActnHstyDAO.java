@@ -31,5 +31,5 @@ public interface LogLessonActnHstyDAO {
      * @throws Exception
      ******************************************************/
     public void insertLessonActnHsty(LogLessonActnHstyVO vo) throws Exception;
-
+    
 }

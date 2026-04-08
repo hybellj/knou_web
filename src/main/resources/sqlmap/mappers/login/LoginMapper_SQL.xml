@@ -3,10 +3,20 @@
 <mapper namespace="knou.lms.login.dao.LoginDAO">
 
 	<select id="selectOrgList" resultType="loginVO">
-		SELECT ORG_ID
-		     , ORGNM
-		  FROM TB_LMS_ORG
-		 WHERE USEYN  = 'Y'
+		SELECT 	ORG_ID , ORGNM
+		  FROM 	TB_LMS_ORG
+		 WHERE 	USEYN  = 'Y'
+	</select>
+	
+	<select id="userLatestLoginHstrySelect" resultType="egovMap">
+		/*
+			SQL ID 	: userLatestLoginHstrySelect
+			설  명 	: 사용자최근로그인이력조회
+		*/
+		SELECT	*
+		FROM 	TB_LMS_USER_LGN_HSTRY 
+		WHERE 	1 = 1 AND ROWNUM = 1 AND USER_ID = #{userId}
+		ORDER 	BY	REG_DTTM DESC
 	</select>
 	
 </mapper>

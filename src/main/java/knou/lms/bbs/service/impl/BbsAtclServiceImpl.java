@@ -249,13 +249,15 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         		vo.setAtclId(atclId);
         	}
 
-			/*
+        	bbsAtclDAO.insertBbsAtcl(vo);
+
+        	/*
 			 * if (atclOptnId == null || atclOptnId.trim().isEmpty()) {
 			 * vo.setAtclOptnId(IdGenUtil.genNewId(IdPrefixType.BBOPT)); }
 			 */
 
             // TB_LMS_BBS_ATCL
-        	bbsAtclDAO.bbsAtclSbjctRegist(vo);
+			/* bbsAtclDAO.bbsAtclSbjctRegist(vo); */
 
         	// TB_LMS_BBS_ATCL_OPTN
 			/* bbsAtclDAO.bbsAtclOptnRegist(vo); */
@@ -616,7 +618,11 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
 	            break;
 
 	        case "NTC":
-	            atclList = bbsAtclDAO.selectBbsSbjctList(vo);
+	        	if("ORG".equals(vo.getBbsRefTycd())) {
+	        		atclList = bbsAtclDAO.selectBbsAtclList(vo);
+	        	} else {
+	        		atclList = bbsAtclDAO.selectBbsSbjctList(vo);
+	        	}
 	            break;
 
 	        default:

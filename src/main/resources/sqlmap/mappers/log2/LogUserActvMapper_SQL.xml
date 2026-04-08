@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.log2.user.dao.LogUserActvDAO">
-		
-	<!--
-		강의실 활동 로그 조회 현황 목록(페이징)
-		- 대용량 로그 테이블 기준: sbjctId + ACTV_DTTM 범위 + userTycd 3개 필수 조건
-		- JOIN: TB_LMS_USER(사용자), TB_LMS_SBJCT(과목), TB_LMS_ORG(기관)
-	-->
 	<sql id="logUserActvQuery">
 		SELECT
 			  COUNT(1) OVER()                                                          AS TOTAL_CNT
-			, COUNT(1) OVER() - ROW_NUMBER() OVER(ORDER BY A.ACTV_DTTM DESC) + 1      AS LINE_NO
+			, ROW_NUMBER() OVER (ORDER BY A.ACTV_DTTM DESC, A.USER_ACTV_ID DESC) LINE_NO
 			, A.USER_ACTV_ID
 			, A.ACTV_DTTM
 			, A.CNTN_IP
@@ -26,37 +20,49 @@
 			, S.SBJCT_YR
 			, S.SBJCT_SMSTR
 			, S.DVCLAS_NO
-			, S.DEPT_ID    AS DEPT_NM
+			, D.DEPTNM     AS DEPT_NM
 			, O.ORGNM
 		FROM TB_LMS_LOG_USER_ACTV A
 		INNER JOIN TB_LMS_USER  U ON U.USER_ID   = A.USER_ID
 		INNER JOIN TB_LMS_SBJCT S ON S.SBJCT_ID  = A.SBJCT_ID
+		LEFT  JOIN TB_LMS_DEPT  D ON D.DEPT_ID   = S.DEPT_ID
 		INNER JOIN TB_LMS_ORG   O ON O.ORG_ID    = U.ORG_ID
 		WHERE A.SBJCT_ID  = #{sbjctId}
 		<![CDATA[
-		AND   A.ACTV_DTTM >= #{searchSdttm}
-		AND   A.ACTV_DTTM <= #{searchEdttm}
+		AND   A.ACTV_DTTM >= #{searchFrom}
+		AND   A.ACTV_DTTM <= #{searchTo}
 		]]>
-		AND   A.USER_TYCD  = #{userTycd}
-		<if test='searchValue != null and searchValue != ""'>
-			AND (U.USERNM    LIKE '%' || #{searchValue} || '%'
-			  OR U.USER_ID   LIKE '%' || #{searchValue} || '%'
-			  OR U.STDNT_NO  LIKE '%' || #{searchValue} || '%')
+		<choose>
+			<when test='userTycd == "PROF"'>
+				AND A.USER_TYCD IN ('PROF', 'COPROF')
+			</when>
+			<otherwise>
+				AND A.USER_TYCD = #{userTycd}
+			</otherwise>
+		</choose>
+		<if test='searchText != null and searchText != ""'>
+			AND A.USER_ID IN (
+				SELECT USER_ID FROM TB_LMS_USER
+				WHERE  USER_RPRS_ID = #{searchText}
+				   OR  STDNT_NO     = #{searchText}
+				   OR  USERNM LIKE '%' || #{searchText} || '%'
+			)
 		</if>
+		ORDER BY A.ACTV_DTTM DESC, A.USER_ACTV_ID DESC
 	</sql>
 
-	<select id="selectLogUserActvList" parameterType="knou.lms.log2.user.vo.LogUserActvVO" resultType="knou.lms.log2.user.vo.LogUserActvVO">
+	<select id="selectProfSbjctStngCntnInfoList" parameterType="knou.lms.log2.user.vo.LectCntnInfoVO" resultType="knou.lms.log2.user.vo.LectCntnInfoVO">
 		/*
-			 SQL ID : LogUserActvDAO.selectLogUserActvList
-			 설  명 : 강의실 활동 로그 조회 현황(TB_LMS_LOG_USER_ACTV) 페이징
-	 	*/
-	 	<include refid="CommonSQL.pagePrefix" />
+			 SQL ID : LogUserActvDAO.selectProfSbjctStngCntnInfoList
+			 설  명 : 교수강의실과목설정접속정보
+		*/
+		<include refid="CommonSQL.pagePrefix" />
 		<include refid="logUserActvQuery" />
 		<include refid="CommonSQL.pageSubfix" />
 	</select>
 
 	<select id="stdntSubjectConnectList" parameterType="map" resultType="eGovMap">
-		/*	설명 : 사용자과목접속목록조회 - 현재시간보다 120분이전 접속기록조회*/		
+		/*	설명 : 사용자과목접속목록조회 - 현재시간보다 120분이전 접속기록조회*/
 		SELECT *
 		FROM (
 		    SELECT
@@ -65,7 +71,7 @@
 		        S.SBJCTNM,
 		        USR.USERNM,
 		        O.ORGNM,
-		        ROW_NUMBER() OVER ( PARTITION BY LUA.USER_ID ORDER BY LUA.ACTV_DATETIME DESC ) AS RN, 
+		        ROW_NUMBER() OVER ( PARTITION BY LUA.USER_ID ORDER BY LUA.ACTV_DATETIME DESC ) AS RN,
 		        NVL(USR.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL
 		    FROM TB_LMS_SBJCT_ADM ADM
 		    JOIN TB_LMS_LOG_USER_ACTV LUA ON LUA.SBJCT_ID = ADM.SBJCT_ID
@@ -78,5 +84,5 @@
 		WHERE RN = 1
 		ORDER BY USERNM
 	</select>
-		
+
 </mapper>

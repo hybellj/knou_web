@@ -10,7 +10,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import knou.lms.seminar.api.common.ZoomApiUrl;
-import knou.lms.seminar.api.common.ZoomRestTemplateSupporter;
+import knou.lms.seminar.api.common.ZoomRestTemplateSupporter2;
 import knou.lms.seminar.api.meetings.MeetingsUrl;
 import knou.lms.seminar.api.meetings.service.MeetingsService;
 import knou.lms.seminar.api.meetings.vo.MeetingVO;
@@ -21,7 +21,7 @@ import knou.lms.seminar.api.meetings.vo.RegistrantsVO;
 public class MeetingsServiceImpl implements MeetingsService {
 
     @Autowired
-    private ZoomRestTemplateSupporter restTemplate;
+    private ZoomRestTemplateSupporter2 restTemplate;
 
     /*****************************************************
      * <p>

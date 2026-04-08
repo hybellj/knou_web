@@ -134,5 +134,4 @@ public class LogLessonActnHstyServiceImpl extends ServiceBase implements LogLess
             e.printStackTrace();
         }
     }
-
 }

@@ -1,6 +1,7 @@
 package knou.lms.mrk.facade;
 
 import javax.annotation.Resource;
+import javax.security.auth.Subject;
 
 import knou.framework.common.IdPrefixType;
 import knou.framework.util.IdGenUtil;
@@ -11,7 +12,13 @@ import knou.lms.mrk.service.MarkSubjectService;
 import knou.lms.mrk.vo.MarkItemSettingVO;
 import knou.lms.mrk.vo.MarkSubjectDetailVO;
 import knou.lms.mrk.vo.MarkSubjectVO;
+import knou.lms.sch.service.SchCalendarService;
+import knou.lms.sch.service.impl.SchCalendarServiceImpl;
+import knou.lms.sch.vo.OrgTaskScheduleVO;
+import knou.lms.subject.service.SubjectService;
+import knou.lms.subject.vo.SubjectVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.ServiceBase;
@@ -24,6 +31,8 @@ import knou.lms.org.vo.OrgInfoVO;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.vo.UsrDeptCdVO;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +55,12 @@ public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeServ
 
     @Resource(name = "markSubjectService")
     private MarkSubjectService markSubjectService;
+
+    @Resource(name = "subjectService")
+    private SubjectService subjectService;
+
+    @Resource(name = "schCalendarService")
+    private SchCalendarService schCalendarServiceImpl;
 
 
     @Override
@@ -81,4 +96,17 @@ public class MarkFacadeServiceImpl extends ServiceBase implements MarkFacadeServ
 		
 		return filterOptions;
 	}
+
+    @Override
+    public Map<String, String> getMrkObjctAplyPrd(String orgId){
+
+        OrgTaskScheduleVO schdlVO = schCalendarServiceImpl.orgTaskSchdlSelect(orgId, "MRK_OBJCT_APLY_PRD");
+
+        Map<String, String> resultMap = new HashMap<>();
+
+        resultMap.put("taskSdttm", schdlVO == null ? "" : schdlVO.getTaskSdttm());
+        resultMap.put("taskEdttm", schdlVO == null ? "" : schdlVO.getTaskEdttm());
+
+        return resultMap;
+    }
 }

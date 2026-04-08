@@ -37,7 +37,7 @@
 	        			returnList.forEach(function(v, i) {
 	        				dataList.push({
 	    						no: 		v.lineNo,
-	    						teamNm: 	v.teamNm,
+	    						teamNm: 	v.teamnm,
 	    						leaderNm: 	v.leaderNm,
 	    						teamMbrCnt: v.teamMbrCnt + "명"
 	    					});

@@ -9,7 +9,7 @@ import knou.lms.user.vo.UserVO;
 
 public class UserContext {
 	
-	// 초기 UserContext와의 호환을 위해 유지 2026.04.02 by jinkoon
+	@Deprecated
 	public UserContext(String orgId, String userId, String authrtCd
 			, String authrtGrpcd, String userRprsId, String userLastLogin) {
 		this.orgId = orgId;
@@ -19,7 +19,8 @@ public class UserContext {
 		this.userRprsId = userRprsId;
 		this.userLastLogin = userLastLogin;
 	}
-	// 초기 UserContext와의 호환을 위해 유지 2026.04.02 by jinkoon
+	
+	@Deprecated
 	public UserContext(String orgId, String userId, String userTycd, String authrtCd
 			, String authrtGrpcd, String userRprsId, String userLastLogin) {
 		this.orgId = orgId;
@@ -36,14 +37,12 @@ public class UserContext {
 	public UserContext(UserVO user) {
 		this.loginUser = user;
 	}	
-	
 	public UserVO getLoginUser() {
 		return loginUser;
 	}
 	public void setLoginUser(UserVO loginUser) {
 		this.loginUser = loginUser;
 	}
-
 	public UserVO getSelectedUser() {
 		return selectedUser;
 	}
@@ -54,6 +53,7 @@ public class UserContext {
 	}
 
 	UserVO 	loginUser;
+	
 	UserVO	selectedUser;
 	
 	Map<String, UserVO> registeredUsers;
@@ -108,7 +108,7 @@ public class UserContext {
 		if ( "PROF".equals(userTycd)) {
 			setProfessor(true);
 		}		
-		if ( "ADMIN".equals(userTycd)) {
+		if ( "ADM".equals(userTycd)) {
 			setAdmin(true);
 		}
 	}

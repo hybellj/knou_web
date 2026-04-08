@@ -1,15 +1,15 @@
 package knou.lms.msg.web;
 
 import knou.framework.common.ControllerBase;
-import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
-import knou.framework.exception.BadRequestUrlException;
+import knou.framework.exception.AccessDeniedException;
 import knou.framework.util.ExcelUtilPoi;
+import knou.framework.util.StringUtil;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.service.MsgTmpltService;
 import knou.lms.msg.vo.MsgTmpltVO;
+import knou.lms.msg.web.util.MsgAuthUtil;
 import knou.lms.user.CurrentUser;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,145 +32,166 @@ public class MsgTmpltController extends ControllerBase {
     private static final String ORG_MSG = "ORG_MSG";
     private static final String INDV_MSG = "INDV_MSG";
 
-    private boolean isAdmin(UserContext userCtx) {
-        String authrtGrpcd = userCtx.getAuthrtGrpcd();
-        return authrtGrpcd != null && authrtGrpcd.contains("ADM");
-    }
-
     private void initSearchParam(MsgTmpltVO vo, UserContext userCtx) {
-        vo.setOrgId(userCtx.getOrgId());
-
         if (ORG_MSG.equals(vo.getMsgCtsGbncd())) {
             vo.setRgtrId(null);
         } else {
             vo.setMsgCtsGbncd(INDV_MSG);
-            vo.setRgtrId(userCtx.getUserId());
+            String userId = StringUtil.nvl(vo.getUserId());
+            if (userId.isEmpty()) {
+                userId = userCtx.getUserId();
+            }
+            vo.setRgtrId(userId);
         }
     }
 
-    /**
+    /*****************************************************
      * 교수 메시지 템플릿 목록 화면
      * @param vo
      * @param model
      * @param request
-     * @return
+     * @return "msg2/prof_msg_tmplt_list_view"
      * @throws Exception
-     */
+     ******************************************************/
     @RequestMapping(value = "/profMsgTmpltListView.do")
-    public String profMsgTmpltListView(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
-    		ModelMap model, HttpServletRequest request) throws Exception {
+    public String profMsgTmpltListView(MsgTmpltVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
+        }
 
-        model.addAttribute("userCtx", userCtx);
+        vo.setListScale(PAGE_SIZE);
+        setEncParamsToVO(vo);
+
         model.addAttribute("vo", vo);
-        model.addAttribute("pageSize", PAGE_SIZE);
-        model.addAttribute("isAdmin", isAdmin(userCtx));
+        model.addAttribute("isAdmin", MsgAuthUtil.isAdmin(userCtx));
 
         return "msg2/prof_msg_tmplt_list_view";
     }
 
-    /**
+    /*****************************************************
      * 관리자 메시지 템플릿 목록 화면
      * @param vo
      * @param model
      * @param request
-     * @return
+     * @return "msg2/mngr_msg_tmplt_list_view"
      * @throws Exception
-     */
+     ******************************************************/
     @RequestMapping(value = "/mngrMsgTmpltListView.do")
-    public String mngrMsgTmpltListView(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
-    		ModelMap model, HttpServletRequest request) throws Exception {
-
-        if (!isAdmin(userCtx)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
+    public String mngrMsgTmpltListView(MsgTmpltVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isAdmin(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
-        model.addAttribute("userCtx", userCtx);
+        vo.setListScale(PAGE_SIZE);
+        setEncParamsToVO(vo);
+
         model.addAttribute("vo", vo);
-        model.addAttribute("pageSize", PAGE_SIZE);
         model.addAttribute("isAdmin", true);
 
         return "msg2/mngr_msg_tmplt_list_view";
     }
 
-    /**
+    /*****************************************************
      * 메시지 템플릿 목록 조회 (AJAX 페이징)
      * @param vo
-     * @param request
-     * @return
+     * @param userCtx
+     * @return ProcessResultVO<MsgTmpltVO>
      * @throws Exception
-     */
+     ******************************************************/
     @RequestMapping(value = "/msgTmpltListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltListAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
-    		HttpServletRequest request) throws Exception {
-        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
+    public ProcessResultVO<MsgTmpltVO> msgTmpltListAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<>();
 
         try {
-
-            initSearchParam(vo, userCtx);
-
-            resultVO = msgTmpltService.selectTmpltListPage(vo);
-            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
-        } catch (Exception e) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getMessage("fail.common.select"));
-        }
-
-        return resultVO;
-    }
-
-    /**
-     * 메시지 템플릿 상세 조회
-     * @param vo
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/msgTmpltSelectAjax.do")
-    @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltSelectAjax(MsgTmpltVO vo, HttpServletRequest request) throws Exception {
-        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
-
-        try {
-            MsgTmpltVO result = msgTmpltService.selectTmplt(vo);
-            resultVO.setReturnVO(result);
-            resultVO.setResult(result != null ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
-        } catch (Exception e) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getMessage("fail.common.select"));
-        }
-
-        return resultVO;
-    }
-
-    /**
-     * 메시지 템플릿 등록
-     * @param vo
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/msgTmpltRegistAjax.do")
-    @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltRegistAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
-    		HttpServletRequest request) throws Exception {
-        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
-
-        try {
-
-            if (ORG_MSG.equals(vo.getMsgCtsGbncd()) && !isAdmin(userCtx)) {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
                 resultVO.setResult(ProcessResultVO.RESULT_FAIL);
                 resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
-            vo.setOrgId(userCtx.getOrgId());
+            initSearchParam(vo, userCtx);
+
+            resultVO = msgTmpltService.selectTmpltListPage(vo);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 메시지 템플릿 상세 조회
+     * @param vo
+     * @param userCtx
+     * @return ProcessResultVO<MsgTmpltVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgTmpltSelectAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgTmpltVO> msgTmpltSelectAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
+
+            MsgTmpltVO result = msgTmpltService.selectTmplt(vo);
+
+            if (result != null && !"Y".equals(MsgAuthUtil.getTmpltAccessAuth(userCtx, result.getRgtrId(), result.getMsgCtsGbncd(), result.getOrgId()))) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
+
+            resultVO.setReturnVO(result);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
+        } catch (Exception e) {
+            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+            resultVO.setMessage(getMessage("fail.common.select"));
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 메시지 템플릿 등록
+     * @param vo
+     * @param userCtx
+     * @return ProcessResultVO<MsgTmpltVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value = "/msgTmpltRegistAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgTmpltVO> msgTmpltRegistAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<>();
+
+        try {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
+
+            if (ORG_MSG.equals(vo.getMsgCtsGbncd()) && !MsgAuthUtil.isAdmin(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
+
             vo.setRgtrId(userCtx.getUserId());
 
-            int cnt = msgTmpltService.registTmplt(vo);
-            resultVO.setResult(cnt > 0 ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
+            msgTmpltService.registTmplt(vo);
             resultVO.setReturnVO(vo);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.insert"));
@@ -179,22 +200,24 @@ public class MsgTmpltController extends ControllerBase {
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 메시지 템플릿 수정
      * @param vo
-     * @param request
-     * @return
+     * @param userCtx
+     * @return ProcessResultVO<MsgTmpltVO>
      * @throws Exception
-     */
+     ******************************************************/
     @RequestMapping(value = "/msgTmpltModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltModifyAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
-    		HttpServletRequest request) throws Exception {
-        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
+    public ProcessResultVO<MsgTmpltVO> msgTmpltModifyAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<>();
 
         try {
-            String userId = userCtx.getUserId();
-            boolean admin = isAdmin(userCtx);
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
 
             MsgTmpltVO existVo = msgTmpltService.selectTmplt(vo);
             if (existVo == null) {
@@ -202,18 +225,18 @@ public class MsgTmpltController extends ControllerBase {
                 resultVO.setMessage(getMessage("common.content.not_found"));
                 return resultVO;
             }
-            boolean hasAuth = ORG_MSG.equals(existVo.getMsgCtsGbncd()) ? admin : userId.equals(existVo.getRgtrId());
-            if (!hasAuth) {
+            if (!"Y".equals(MsgAuthUtil.getTmpltEditAuth(userCtx, existVo.getRgtrId(), existVo.getMsgCtsGbncd()))) {
                 resultVO.setResult(ProcessResultVO.RESULT_FAIL);
                 resultVO.setMessage(getCommonNoAuthMessage());
                 return resultVO;
             }
 
             vo.setMsgCtsGbncd(null);
-            vo.setMdfrId(userId);
+            vo.setMdfrId(userCtx.getUserId());
 
-            int cnt = msgTmpltService.modifyTmplt(vo);
-            resultVO.setResult(cnt > 0 ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
+            msgTmpltService.modifyTmplt(vo);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.update"));
@@ -222,25 +245,31 @@ public class MsgTmpltController extends ControllerBase {
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 메시지 템플릿 삭제
      * @param vo
-     * @param request
-     * @return
+     * @param userCtx
+     * @return ProcessResultVO<MsgTmpltVO>
      * @throws Exception
-     */
+     ******************************************************/
     @RequestMapping(value = "/msgTmpltDeleteAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltDeleteAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
-    		HttpServletRequest request) throws Exception {
-        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
+    public ProcessResultVO<MsgTmpltVO> msgTmpltDeleteAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<>();
 
         try {
-            String userId = userCtx.getUserId();
-            boolean admin = isAdmin(userCtx);
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
 
-            int cnt = msgTmpltService.deleteTmplt(vo, userId, admin);
-            resultVO.setResult(cnt > 0 ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
+            String userId = userCtx.getUserId();
+            boolean admin = MsgAuthUtil.isAdmin(userCtx);
+
+            msgTmpltService.deleteTmplt(vo, userId, admin);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (IllegalAccessException e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getCommonNoAuthMessage());
@@ -252,25 +281,27 @@ public class MsgTmpltController extends ControllerBase {
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 메시지 템플릿 전체 삭제
      * @param vo
-     * @param request
-     * @return
+     * @param userCtx
+     * @return ProcessResultVO<MsgTmpltVO>
      * @throws Exception
-     */
+     ******************************************************/
     @RequestMapping(value = "/msgTmpltAllDeleteAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltAllDeleteAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
-    		HttpServletRequest request) throws Exception {
-        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
+    public ProcessResultVO<MsgTmpltVO> msgTmpltAllDeleteAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<>();
 
         try {
-
-            vo.setOrgId(userCtx.getOrgId());
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
 
             if (ORG_MSG.equals(vo.getMsgCtsGbncd())) {
-                if (!isAdmin(userCtx)) {
+                if (!MsgAuthUtil.isAdmin(userCtx)) {
                     resultVO.setResult(ProcessResultVO.RESULT_FAIL);
                     resultVO.setMessage(getCommonNoAuthMessage());
                     return resultVO;
@@ -281,8 +312,9 @@ public class MsgTmpltController extends ControllerBase {
                 vo.setRgtrId(userCtx.getUserId());
             }
 
-            int cnt = msgTmpltService.deleteAllTmplt(vo);
-            resultVO.setResult(cnt > 0 ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
+            msgTmpltService.deleteAllTmplt(vo);
+            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.delete"));
@@ -291,20 +323,24 @@ public class MsgTmpltController extends ControllerBase {
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 메시지 템플릿 엑셀 다운로드 목록 조회
      * @param vo
-     * @param request
-     * @return
+     * @param userCtx
+     * @return ProcessResultVO<MsgTmpltVO>
      * @throws Exception
-     */
+     ******************************************************/
     @RequestMapping(value = "/msgTmpltExcelListAjax.do")
     @ResponseBody
-    public ProcessResultVO<MsgTmpltVO> msgTmpltExcelListAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
-    		HttpServletRequest request) throws Exception {
-        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<MsgTmpltVO>();
+    public ProcessResultVO<MsgTmpltVO> msgTmpltExcelListAjax(MsgTmpltVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<>();
 
         try {
+            if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
+                resultVO.setMessage(getCommonNoAuthMessage());
+                return resultVO;
+            }
 
             initSearchParam(vo, userCtx);
 
@@ -312,6 +348,7 @@ public class MsgTmpltController extends ControllerBase {
 
             resultVO.setReturnList(list);
             resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+            resultVO.setEncParams(getEncParams());
         } catch (Exception e) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
             resultVO.setMessage(getMessage("fail.common.select"));
@@ -320,15 +357,18 @@ public class MsgTmpltController extends ControllerBase {
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 메시지 템플릿 엑셀 다운로드
-     */
+     * @param vo
+     * @param model
+     * @param request
+     * @return "excelView"
+     * @throws Exception
+     ******************************************************/
     @RequestMapping(value = "/msgTmpltExcelDown.do")
-    public String msgTmpltExcelDown(MsgTmpltVO vo, @CurrentUser UserContext userCtx,
-    		ModelMap model, HttpServletRequest request) throws Exception {
-        String authrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
-        if (authrtGrpcd == null || (!authrtGrpcd.contains("ADM") && !authrtGrpcd.contains("PROF"))) {
-            throw new BadRequestUrlException(getCommonNoAuthMessage());
+    public String msgTmpltExcelDown(MsgTmpltVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+        if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
+            throw new AccessDeniedException(getCommonNoAuthMessage());
         }
 
         initSearchParam(vo, userCtx);
@@ -339,13 +379,13 @@ public class MsgTmpltController extends ControllerBase {
         Date today = new Date();
         SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd");
 
-        HashMap<String, Object> map = new HashMap<String, Object>();
+        HashMap<String, Object> map = new HashMap<>();
         map.put("title", title);
         map.put("sheetName", title);
         map.put("excelGrid", vo.getExcelGrid());
         map.put("list", list);
 
-        HashMap<String, Object> modelMap = new HashMap<String, Object>();
+        HashMap<String, Object> modelMap = new HashMap<>();
         modelMap.put("outFileName", title + "_" + date.format(today));
         modelMap.put("sheetName", title);
 

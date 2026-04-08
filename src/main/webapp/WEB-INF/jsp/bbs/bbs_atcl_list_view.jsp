@@ -15,15 +15,12 @@
 	<jsp:include page="/WEB-INF/jsp/bbs/common/bbs_common_inc.jsp"/>
 
 	<script type="text/javascript">
-		var USER_ID 		= '<c:out value="${USER_ID}" />';
-		var BBS_CD 			= '<c:out value="${bbsVO.bbsTycd}" />';
-		var CRS_CRE_CD		= '<c:out value="${param.crsCreCd}" />';
-		var TEAM_CTGR_CD	= '<c:out value="${param.teamCtgrCd}" />';
-		var TEAM_CD			= '<c:out value="${param.teamCd}" />';
+		var ORG_ID 			= '<c:out value="${bbsVO.orgId}" />';
+		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
+		var BBS_TYCD		= '<c:out value="${bbsVO.bbsTycd}" />';
 		var SEARCH_VALUE	= '<c:out value="${param.searchValue}" />';
 		var PAGE_INDEX		= '<c:out value="${bbsVO.pageIndex}" />';
 		var TAB 			= '<c:out value="${param.tab}" />';
-		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
 		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
 		var BBS_IDS;
 
@@ -39,16 +36,16 @@
 			});
 
 			if(bbsCommon.isStudent()) {
-				if(BBS_CD == "TEAM") {
+				if(BBS_ID == "TEAM") {
 					// 팀 게시판 ID ',' 구분자
 					BBS_IDS = '<c:out value="${teamBbsIds}" />';
 				} else {
 					BBS_IDS = BBS_ID;
 				}
 			} else {
-				if(BBS_CD == "ALARM") {
+				if(BBS_ID == "ALARM") {
 					BBS_IDS = '<c:out value="${alarmBbsIds}" />';
-				} else if(BBS_CD == "TEAM") {
+				} else if(BBS_ID == "TEAM") {
 					// 팀 게시판 ID ',' 구분자
 					BBS_IDS = '<c:out value="${teamBbsIds}" />';
 				} else {
@@ -61,7 +58,6 @@
 			}
 
 			if(TEMPLATE_URL == "bbsHome") {
-				//changeBbsTerm(PAGE_INDEX);
 				listPaging(PAGE_INDEX);
 			} else {
 				listPaging(PAGE_INDEX);
@@ -138,22 +134,24 @@
 
 		// 게시글 조회
 		function listPaging(pageIndex) {
-			ORG_ID       = $("#orgId").val();
 			SEARCH_SDTTM = $("#searchSdttm").val();
 			SEARCH_EDTTM = $("#searchEdttm").val();
 			SEARCH_VALUE = $("#searchValue").val();
 
-			PAGE_INDEX = pageIndex;
-
+			var currentBbsTycd = '<c:out value="${param.bbsTycd}" />';
+		    if(!currentBbsTycd) currentBbsTycd = BBS_TYCD; // 파라미터 없으면 기본값 사용
 			var extData = {
-					pageIndex		: pageIndex
+					orgId           : ORG_ID
+					, bbsId         : BBS_ID
+					, bbsTycd       : currentBbsTycd
+					, pageIndex		: pageIndex
 					, listScale		: LIST_SCALE
-					, orgId         : ORG_ID
 					, searchSdttm   : SEARCH_SDTTM
 					, searchEdttm   : SEARCH_EDTTM
 					, searchValue 	: SEARCH_VALUE
-			};
+					, bbsRefTycd    : "ORG"
 
+			};
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do"
 			var param = {
 				  encParams		: EPARAM
@@ -175,6 +173,7 @@
 	        		atclListTable.clearData();
 	        		atclListTable.replaceData(dataList);
 	        		atclListTable.setPageInfo(data.pageInfo);
+
 	            } else {
 	            	UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
 	            }
@@ -279,7 +278,8 @@
 		// 게시글 보기
 		function viewAtcl(atclId) {
 			let extData = {
-				atclId	: atclId
+				atclId	   : atclId
+				, bbsRefTycd : "ORG"
 			};
 
 			document.location.href = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams="+EPARAM+"&addParams="+UiComm.makeEncParams(extData);

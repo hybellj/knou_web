@@ -474,7 +474,7 @@
 						        	</colgroup>
 						        	<tbody>
 						        		<tr>
-						        			<th><label for="examTtl" class="req">설문명</label></th>
+						        			<th><label for="srvyTtl" class="req">설문명</label></th>
 						        			<td>
 						        				<input type="text" name="srvyTtl" id="srvyTtl" inputmask="byte" maxLen="200" class="width-100per" required="true" value="${vo.srvyTtl }">
 						        			</td>

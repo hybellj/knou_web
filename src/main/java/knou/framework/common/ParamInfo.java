@@ -38,7 +38,7 @@ public class ParamInfo {
 			log.error(e.getMessage());
 		}
 		
-		log.info(">>>>>>>>>ParamInfo.value=" + value);
+		log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ParamInfo.value=" + value);
 
 		return value;
 	}

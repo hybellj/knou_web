@@ -108,29 +108,5 @@ public class LogUserLoginTryLogServiceImpl
 			vo.setLoginTrySn(IdGenerator.getNewId("ULOG"));
 		}
 		/* logUserLoginTryLogDAO.insert(vo); */
- 	}	 	
-	
-	/**
-     * 마지막 로그인 정보 조회
-     * @param vo
-     * @return
-     * @throws Exception
-     */
-    public LogUserLoginTryLogVO selectLastLogin(LogUserLoginTryLogVO vo) throws Exception {
-        List<LogUserLoginTryLogVO> list = logUserLoginTryLogDAO.selectLastLogin(vo);
-        if (list != null) {
-            if (list.size() == 2) {
-                vo = list.get(1);
-            }
-            else if (list.size() == 1) {
-                vo = list.get(0);
-            }
-        }
-        
-        if(vo != null) {
-            vo.setLoginTryDttmStr(DateTimeUtil.getDateType(8, vo.getLoginTryDttm(), ".")+" ("+vo.getConnIp()+")");
-        }
-        
-        return vo;
-    }
+	}
 }

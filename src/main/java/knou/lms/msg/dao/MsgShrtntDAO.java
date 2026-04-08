@@ -1,7 +1,6 @@
 package knou.lms.msg.dao;
 
 import knou.lms.msg.vo.MsgShrtntVO;
-import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 

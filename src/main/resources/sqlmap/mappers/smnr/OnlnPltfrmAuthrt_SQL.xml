@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.smnr.pltfrm.dao.OnlnPltfrmAuthrtDAO">
+
+	<select id="onlnPltfrmAuthrtSelect" parameterType="String" resultType="onlnPltfrmAuthrtVO">
+		/*
+             SQL ID : OnlnPltfrmAuthrtDAO.onlnPltfrmAuthrtSelect
+             설  명  : 온라인플랫폼권한조회
+         */
+		SELECT
+			*
+		  FROM TB_LMS_ONLN_PLTFRM_AUTHRT
+		 WHERE TKN_EXP_DTTM <![CDATA[ > ]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+		   AND ONLN_PLTFRM_STNG_ID = #{onlnPltfrmStngId}
+		   AND ROWNUM = 1
+	</select>
+
+	<select id="onlnPltfrmAuthrtIdSelect" parameterType="String" resultType="String">
+		/*
+             SQL ID : OnlnPltfrmAuthrtDAO.onlnPltfrmAuthrtIdSelect
+             설  명  : 온라인플랫폼권한아이디조회
+         */
+        SELECT
+			ONLN_PLTFRM_AUTHRT_ID
+		  FROM TB_LMS_ONLN_PLTFRM_AUTHRT
+		 WHERE ONLN_PLTFRM_STNG_ID = #{onlnPltfrmStngId}
+		   AND AUTHRT_EML = #{authrtEml}
+	</select>
+
+	<update id="onlnPltfrmAuthrtRegist" parameterType="onlnPltfrmAuthrtVO">
+		/*
+             SQL ID : OnlnPltfrmAuthrtDAO.onlnPltfrmAuthrtRegist
+             설  명  : 온라인플랫폼권한등록
+         */
+        MERGE INTO TB_LMS_ONLN_PLTFRM_AUTHRT AUTHRT
+	    USING (
+	        SELECT
+	        	  #{onlnPltfrmAuthrtId} AS ONLN_PLTFRM_AUTHRT_ID
+	        	, #{onlnPltfrmStngId} AS ONLN_PLTFRM_STNG_ID
+	        	, #{authrtTkn} AS AUTHRT_TKN
+	        	, #{tknExpDttm} AS TKN_EXP_DTTM
+	        	, #{authrtEml} AS AUTHRT_EML
+	        	, #{rgtrId} AS RGTR_ID
+	          FROM DUAL
+	    ) AUTH
+	    ON (
+	    		AUTHRT.ONLN_PLTFRM_STNG_ID = AUTH.ONLN_PLTFRM_STNG_ID
+	    	AND AUTHRT.AUTHRT_EML = AUTH.AUTHRT_EML
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  AUTHRT.AUTHRT_TKN 	= AUTH.AUTHRT_TKN
+	        	, AUTHRT.TKN_EXP_DTTM 	= AUTH.TKN_EXP_DTTM
+	        	, AUTHRT.MDFR_ID  		= AUTH.RGTR_ID
+				, AUTHRT.MOD_DTTM 		= FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  ONLN_PLTFRM_AUTHRT_ID
+				, ONLN_PLTFRM_STNG_ID
+				, AUTHRT_TKN
+				, TKN_EXP_DTTM
+				, AUTHRT_EML
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  AUTH.ONLN_PLTFRM_AUTHRT_ID
+				, AUTH.ONLN_PLTFRM_STNG_ID
+				, AUTH.AUTHRT_TKN
+				, AUTH.TKN_EXP_DTTM
+				, AUTH.AUTHRT_EML
+				, AUTH.RGTR_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+</mapper>

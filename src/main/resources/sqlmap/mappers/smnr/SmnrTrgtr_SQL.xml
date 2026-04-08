@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.smnr.dao.SmnrTrgtrDAO">
+
+	<insert id="smnrTrgtrBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : SmnrTrgtrDAO.smnrTrgtrBulkRegist
+             설  명 : 세미나대상자일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_SMNR_TRGTR (
+	         	  SMNR_TRGTR_ID
+				, SMNR_ID
+				, USER_ID
+				, ONLN_MEETNGRM_ID
+				, TRGTR_CNTN_URL
+				, PREREGYN
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.smnrTrgtrId}
+				, #{item.smnrId}
+				, #{item.userId}
+				, #{item.onlnMeetngrmId}
+				, #{item.trgtrCntnUrl}
+				, #{item.preregyn}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<delete id="smnrTrgtrBulkDelete" parameterType="String">
+		/*
+             SQL ID : SmnrTrgtrDAO.smnrTrgtrBulkDelete
+             설  명 : 세미나대상자일괄삭제
+         */
+        DELETE FROM TB_LMS_SMNR_TRGTR
+         WHERE SMNR_ID = #{smnrId}
+	</delete>
+
+</mapper>

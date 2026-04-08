@@ -7,6 +7,8 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
+import knou.framework.context2.UserContext;
+
 public class LocaleUtil {
 
     /**
@@ -30,10 +32,14 @@ public class LocaleUtil {
         return locale;
     }
     
+    public static void setLocale(HttpServletRequest request, UserContext userCtx) {
+    	setLocale(request, userCtx.getSelectedUser().getUserEnvStngCts());
+    }
+    
     public static void setLocale(HttpServletRequest request, String locale) {
         Locale lo = null;
         HttpSession session = request.getSession();
-        //step. 파라메터에 따라서 로케일 생성, 기본은 KOREAN
+        
         if (locale == null || locale.isEmpty()) {
             lo = Locale.KOREAN;
         } else if (locale.matches("en")) {
@@ -53,9 +59,6 @@ public class LocaleUtil {
         } else {
         	lo = Locale.KOREAN;
         }
-        // step. Locale을 새로 설정한다.
         session.setAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, lo);
-
-    }
-	
+    }	
 }

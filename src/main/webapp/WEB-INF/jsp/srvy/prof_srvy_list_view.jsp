@@ -284,7 +284,7 @@
 					var srvyDttm = UiComm.formatDate(v.srvySdttm, "datetime2") + " ~ " + UiComm.formatDate(v.srvyEdttm, "datetime2");
 					// 성적반영비율
 					var mrkRfltrt  = "<div class='mrkInputDiv ui input'>";
-						mrkRfltrt += "	<input type='text' class='mrkRfltrt w80' data-examGbn=\"" + v.srvyGbn + "\" data-srvyId=\"" + v.srvyId + "\" value=\"" + v.mrkRfltrt + "\" inputmask='numeric' inputmode='decimal' maxVal='100' />";
+						mrkRfltrt += "	<input type='text' class='mrkRfltrt w80' data-srvyId=\"" + v.srvyId + "\" value=\"" + v.mrkRfltrt + "\" inputmask='numeric' inputmode='decimal' maxVal='100' />";
 						mrkRfltrt += "</div>";
 						mrkRfltrt += "<div class='mrkRfltrtDiv'>" + v.mrkRfltrt + "%</div>";
 					if(v.mrkRfltyn == 'N') {

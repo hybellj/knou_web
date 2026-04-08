@@ -3,21 +3,25 @@
 /* 덱스트 업로더 */
 .dext5-container {
 	position: relative;
+	width:100%;
 }
-.dext5-btn-area {
+.dext5-container.simple {
+	display:flex;
+}
+.dext5-container .dext5-btn-area {
 	margin-top:-1px;
 	position: absolute;
   	top: 6px;
   	margin-left: 50px;
-  	display:none;
+  	display: none;
 }
-.dext5-btn-area.simple {
-	margin-top: auto;
+.dext5-container.simple .dext5-btn-area {
+	margin-top: 0;
+	margin-left:0;
 	position: relative;
   	top: auto;
-  	margin-left: 0;
 }
-.dext5-btn-area button {
+.dext5-container .dext5-btn-area button {
 	border: 1px solid #A7AEB3 !important;
     border-radius: 0 !important;
     line-height: 0.8em !important;
@@ -29,15 +33,16 @@
     height:2em;
     vertical-align:bottom !important;
 }
-.dext5-btn-area.simple button {
+.dext5-container.simple .dext5-btn-area button {
     margin-left:0 !important;
     margin-right:-1px !important;
-    font-size:1em !important;
-    padding: 0 0.3em !important;
+    font-size:18px !important;
+    padding: 0 .6rem !important;
+    height:100%;
 }
-.dext5-btn-area button:hover {
+.dext5-container .dext5-btn-area button:hover {
     background: #dfe1e2 !important;
 }
-.dext5-btn-area button:disabled {
+.dext5-container .dext5-btn-area button:disabled {
     opacity: 1 !important;
 }

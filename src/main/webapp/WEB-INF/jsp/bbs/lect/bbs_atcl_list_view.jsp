@@ -18,15 +18,12 @@
 	<jsp:include page="/WEB-INF/jsp/bbs/common/bbs_common_inc.jsp"/>
 
 	<script type="text/javascript">
-		var USER_ID 		= '<c:out value="${USER_ID}" />';
-		var BBS_CD 			= '<c:out value="${bbsVO.bbsTycd}" />';
-		var TEAM_CTGR_CD	= '<c:out value="${param.teamCtgrCd}" />';
-		var TEAM_CD			= '<c:out value="${param.teamCd}" />';
+		var ORG_ID 			= '<c:out value="${bbsVO.orgId}" />';
+		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
+		var BBS_TYCD		= '<c:out value="${bbsVO.bbsTycd}" />';
 		var SEARCH_VALUE	= '<c:out value="${param.searchValue}" />';
 		var PAGE_INDEX		= '<c:out value="${bbsVO.pageIndex}" />';
 		var TAB 			= '<c:out value="${param.tab}" />';
-		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
-		var BBS_TYCD		= '<c:out value="${bbsVO.bbsTycd}" />';
 		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
 		var BBS_IDS;
 
@@ -42,16 +39,16 @@
 			});
 
 			if(bbsCommon.isStudent()) {
-				if(BBS_CD == "TEAM") {
+				if(BBS_ID == "TEAM") {
 					// 팀 게시판 ID ',' 구분자
 					BBS_IDS = '<c:out value="${teamBbsIds}" />';
 				} else {
 					BBS_IDS = BBS_ID;
 				}
 			} else {
-				if(BBS_CD == "ALARM") {
+				if(BBS_ID == "ALARM") {
 					BBS_IDS = '<c:out value="${alarmBbsIds}" />';
-				} else if(BBS_CD == "TEAM") {
+				} else if(BBS_ID == "TEAM") {
 					// 팀 게시판 ID ',' 구분자
 					BBS_IDS = '<c:out value="${teamBbsIds}" />';
 				} else {
@@ -64,7 +61,6 @@
 			}
 
 			if(TEMPLATE_URL == "bbsHome") {
-				//changeBbsTerm(PAGE_INDEX);
 				listPaging(PAGE_INDEX);
 			} else {
 				listPaging(PAGE_INDEX);
@@ -140,26 +136,23 @@
 
 		// 게시글 조회
 		function listPaging(pageIndex) {
-			ORG_ID       = $("#orgId").val();
 			SEARCH_SDTTM = $("#searchSdttm").val();
 			SEARCH_EDTTM = $("#searchEdttm").val();
 			SEARCH_VALUE = $("#searchValue").val();
-			BBS_ID       =  BBS_ID;
-			PAGE_INDEX = pageIndex;
-
+			console.log("paging===>"+BBS_ID);
 			var currentBbsTycd = '<c:out value="${param.bbsTycd}" />';
 		    if(!currentBbsTycd) currentBbsTycd = BBS_TYCD; // 파라미터 없으면 기본값 사용
 			var extData = {
-					orgId         : ORG_ID
+					orgId           : ORG_ID
+					, bbsId         : BBS_ID
+					, bbsTycd       : currentBbsTycd
 					, pageIndex		: pageIndex
 					, listScale		: LIST_SCALE
 					, searchSdttm   : SEARCH_SDTTM
 					, searchEdttm   : SEARCH_EDTTM
 					, searchValue 	: SEARCH_VALUE
-					, bbsId         : BBS_ID
-					, bbsTycd       : currentBbsTycd
-			};
 
+			};
 			var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclListAjax.do"
 			var param = {
 				  encParams		: EPARAM
@@ -186,10 +179,10 @@
 	        		//let frameId = window.frameElement ? window.frameElement.id : "";
 	        		//parent.resizeIframe(frameId);
 	            } else {
-	             	showMessage(data.message, "error"); // 에러가 발생했습니다!
+	            	UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
 	            }
 			}, function(xhr, status, error) {
-				showMessage("<spring:message code='fail.common.msg'/>", "error"); // 에러가 발생했습니다!
+				UiComm.showMessage("<spring:message code='fail.common.msg'/>","error"); // 에러가 발생했습니다!
 			}, true);
 		}
 
@@ -410,7 +403,7 @@
 
 	                    <div class="sub-content">
 	                        <div class="page-info">
-	                            <h4 class="sub-title">공지사항</h4>
+	                            <h4 class="sub-title">${bbsVO.bbsNm}</h4>
 	                            <div class="navi_bar">
 	                                <ul>
 	                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
@@ -422,23 +415,6 @@
 
 	                        <!-- search typeA -->
 	                        <div class="search-typeA">
-
-	                        	<!-- <div class="item">
-	                        		<span class="item_tit"><label for="selectSdttm">조회기간</label></span>
-		                        	<input type="text" id="searchSdttm" name="searchSdttm" class="datepicker" toDate="searchEdttm">
-									<span class="txt-sort">~</span>
-									<input type="text" id="searchEdttm" name="searchEdttm" class="datepicker" fromDate="searchSdttm">
-								</div> -->
-	                        	<%-- <div class="item">
-	                        		<span class="item_tit"><label for="selectOrg">기관</label></span>
-		                        	<select class="ui dropdown" id="orgId">
-									   <option value=""><spring:message code="bbs.label.org" /></option>
-									   <c:forEach var="list" items="${filterOptions.orgList}">
-									       <option value="${list.orgId}">${list.orgnm}</option>
-									   </c:forEach>
-									</select>
-							    </div> --%>
-
 	                            <div class="item">
 	                                <span class="item_tit"><label for="searchValue"><spring:message code='common.search.keyword'/></label></span><%-- 검색어 --%>
 
@@ -453,11 +429,11 @@
 
 							<div id="atclListArea">
 								<div class="board_top">
-		                            <h3 class="board-title">공지사항</h3>
+		                            <h3 class="board-title">${bbsVO.bbsNm}</h3>
 		                            <div class="right-area">
-										<button type="button" class="btn type2" onclick="checkSelect()" style="white-space: nowrap;">선택데이터확인</button>
-		                                <button type="button" class="btn type1" style="white-space: nowrap;" onclick="moveWriteAtcl()"><spring:message code="bbs.button.write" /></button><%-- 글쓰기 --%>
-
+		                            	<c:if test="${atclWriteAuth eq 'Y'}">
+		                                	<button type="button" class="btn type1" style="white-space: nowrap;" onclick="moveWriteAtcl()"><spring:message code="bbs.button.write" /></button><%-- 글쓰기 --%>
+										</c:if>
 										<%-- 리스트/카드 선택 버튼 --%>
 										<span class="list-card-button"></span>
 

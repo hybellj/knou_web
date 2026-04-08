@@ -514,7 +514,7 @@ public class UserMgrController extends ControllerBase {
             throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
         }
         
-        UsrUserInfoVO userInfoVO = usrUserInfoService.viewUser(vo);
+        UsrUserInfoVO userInfoVO = usrUserInfoService.userSelect(vo);
         
         FileVO fileVO = new FileVO();
         fileVO.setRepoCd("USER_PROFILE");
@@ -672,7 +672,7 @@ public class UserMgrController extends ControllerBase {
        UsrUserInfoVO uuivo = new UsrUserInfoVO();
 //       uuivo.setUserId(vo.getUserIds());
        uuivo.setUserId(vo.getUserId());
-       uuivo = usrUserInfoService.viewUser(uuivo);
+       uuivo = usrUserInfoService.userSelect(uuivo);
        
        List<OrgCodeVO> userTypeSearchList = orgCodeService.selectOrgCodeList("USER_TYPE");
        List<OrgCodeVO> userTypeList = new ArrayList<>();
@@ -907,7 +907,7 @@ public class UserMgrController extends ControllerBase {
            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
        }
        
-       vo = usrUserInfoService.viewUser(vo);
+       vo = usrUserInfoService.userSelect(vo);
        
        if (!SessionInfo.isKnou(request)) {
     	   UsrUserInfoVO userOrg = usrUserInfoService.selectUserOrgRltn(vo);
@@ -1080,7 +1080,7 @@ public class UserMgrController extends ControllerBase {
            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
        }
        
-       UsrUserInfoVO userVO = usrUserInfoService.viewUser(vo);
+       UsrUserInfoVO userVO = usrUserInfoService.userSelect(vo);
        
        if (!SessionInfo.isKnou(request)) {
     	   UsrUserInfoVO userOrg = usrUserInfoService.selectUserOrgRltn(vo);
@@ -1385,7 +1385,7 @@ public class UserMgrController extends ControllerBase {
        String orgId    = StringUtil.nvl(SessionInfo.getOrgId(request));
        
        vo.setOrgId(orgId);
-       vo = usrUserInfoService.viewUser(vo);
+       vo = usrUserInfoService.userSelect(vo);
        model.addAttribute("phtFile", vo.getPhotoFileId());
        model.addAttribute("vo", vo);
        model.addAttribute("orgId", orgId);

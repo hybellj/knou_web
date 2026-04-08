@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.ServiceBase;
+import knou.framework.util.CommonUtil;
 import knou.framework.util.CryptoUtil;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.StringUtil;
@@ -31,7 +32,6 @@ import knou.lms.seminar.api.cloudrecording.service.CloudRecordingService;
 import knou.lms.seminar.api.cloudrecording.vo.RecordingFileVO;
 import knou.lms.seminar.api.cloudrecording.vo.RecordingVO;
 import knou.lms.seminar.api.cloudrecording.vo.RecordingsVO;
-import knou.lms.seminar.api.common.CommonUtils;
 import knou.lms.seminar.api.common.CustomKey;
 import knou.lms.seminar.api.common.CustomKeyLocationValue;
 import knou.lms.seminar.api.common.ZoomOAuthAppType;
@@ -457,7 +457,7 @@ public class ZoomApiServiceImpl extends ServiceBase implements ZoomApiService {
         MeetingVO meetingVo = meetingsService.getAMeeting(tokenVO.getAccessToken(), Long.parseLong(vo.getZoomId()));
 
         // ZOOM 회의 제목
-        String uuid = CommonUtils.getUUID();
+        String uuid = CommonUtil.getUUID();
         String topic = "[" + uuid + "] " + StringUtil.nvl(vo.getSeminarNm());
         if (topic.length() >= 120) {
             // 128자가 MAX이나 120으로 함

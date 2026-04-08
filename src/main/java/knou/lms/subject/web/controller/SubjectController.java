@@ -76,15 +76,17 @@ public class SubjectController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value={"/subject.do"})
-    public String subject(SubjectVO svo, @CurrentUser UserContext userCtx, 
+    public String subject(SubjectVO svo, @CurrentUser UserContext userCtx,
     		HttpServletRequest request, ModelMap model) throws Exception {
 
     	SubjectViewModel subjectVM = new SubjectViewModel();
     	String sbjctId = request.getParameter("sbjctId");
-    	   	
+
+    	// 암호화파라메터에 값 설정
+    	addEncParam("orgId", svo.getOrgId());
+    	addEncParam("sbjctId", sbjctId);
+
     	try {
-    		
-    	addEncParam("sbjctId", sbjctId);    	
 
     	if ( null == sbjctId || "".equals(sbjctId)) {
     		log.info("과목아이디가 없습니다.");
@@ -96,10 +98,6 @@ public class SubjectController extends ControllerBase {
     		log.info("권한이 없습니다");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
-
-    	// 암호화 파라메터 추가
-    	//addEncParam("sbjctId", sbjctId);
-    	//addEncParam("orgId", vo.getOrgId());
 
     	LectureWknoScheduleVO lctrWknoSchdlVO = subjectService.currLctrWknoSchdlSelect(sbjctId);
     	model.addAttribute("lctrWknoSchdlVO", lctrWknoSchdlVO);
@@ -127,12 +125,10 @@ public class SubjectController extends ControllerBase {
     	model.addAttribute("subjectVM", subjectVM);
 
     	model.addAttribute("contentPage", "/WEB-INF/jsp/subject/prof_classroom.jsp");
-    	
+
     	} catch ( Exception e ) {
     		e.printStackTrace();
     	}
-    	
-    	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + subjectVM.getViewName());
 
     	return subjectVM.getViewName();
     }
@@ -146,20 +142,20 @@ public class SubjectController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value={"/sbjctAdmList.do"})
-    public String sbjctAdmList(SubjectVO vo, @CurrentUser UserContext userCtx, 
+    public String sbjctAdmList(SubjectVO vo, @CurrentUser UserContext userCtx,
     		HttpServletRequest request, ModelMap model) throws Exception {
 
     	SubjectViewModel subjectVM = new SubjectViewModel();
     	String sbjctId = vo.getSbjctId();
 
     	if ( null == sbjctId || "".equals(sbjctId)) {
-    		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>과목아이디가 없습니다.");
+    		log.info(">>>>>>>>>>>>/sbjctAdmList.do>>>>>>>>>>>>>>>>>>>>>>>과목아이디가 없습니다.");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 
     	// 과목접근권한확인
     	if ( ! subjectService.hasSubjectAuthority( sbjctId, userCtx ) ) {
-    		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>권한이 없습니다");
+    		log.info(">>>>>>>>>>>>/sbjctAdmList.do>>>>>>>>>>>>>>>>>>>>>>>권한이 없습니다");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 
@@ -185,16 +181,16 @@ public class SubjectController extends ControllerBase {
      */
     @RequestMapping(value={"/sbjctClasSchdlList.do"})
     public String sbjctClasSchdlList(@CurrentUser UserContext userCtx, HttpServletRequest request, ModelMap model) throws Exception {
-    	
+
     	String sbjctId = request.getParameter("sbjctId");
-    	
+
     	if ( null == sbjctId || "".equals(sbjctId)) {
-    		log.info("과목아이디가 없습니다.");
+    		log.info(">>>>>>>>/sbjctClasSchdlList.do>>>>>>>>>>>>>>>>>>>>>>>>>>>과목아이디가 없습니다.");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
     	// 과목접근권한확인
     	if ( ! subjectService.hasSubjectAuthority( sbjctId, userCtx ) ) {
-    		log.info("권한이 없습니다");
+    		log.info(">>>>>>>>/sbjctClasSchdlList.do>>>>>>>>>>>>>>>>>>>>>>>>>>>권한이 없습니다");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 

@@ -45,7 +45,7 @@ public interface UsrUserInfoService {
      * @return UsrUserInfoVO
      * @throws Exception
      */
-    public UsrUserInfoVO viewUser(UsrUserInfoVO vo) throws Exception;
+    public UsrUserInfoVO userSelect(UsrUserInfoVO vo) throws Exception;
     
     /**
      * 사용자 엑셀업로드 할떄 등록가능한 권한 목록
@@ -120,11 +120,11 @@ public interface UsrUserInfoService {
     public ProcessResultVO<UsrUserInfoVO> listSearchByProfessor(UsrUserInfoVO vo) throws Exception;
 
     /**
-     * 사용자 환경설정 수정
+     * 사용자설정수정
      * @param vo
      * @throws Exception
      */
-    public void updateUserConf(UsrUserInfoVO vo) throws Exception;
+    public void userStngModify(UsrUserInfoVO vo) throws Exception;
     
     // 학과관리 사용여부
 	public int editUseYn(UsrDeptCdVO vo) throws Exception;

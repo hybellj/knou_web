@@ -11,11 +11,12 @@
 
 <script type="text/javascript">
     let currentPage = 1;
-    let listScale = ${pageSize};
+    let listScale = '<c:out value="${vo.listScale}" />';
     let totalCnt = 0;
     let selectedTmpltId = '';
     let currentTab = '${vo.msgCtsGbncd eq "ORG_MSG" ? "ORG_MSG" : "INDV_MSG"}';
     let isAdmin = ${isAdmin};
+    let EPARAM = '<c:out value="${encParams}" />';
 
     $(document).ready(function() {
         fn_loadList(1);
@@ -45,24 +46,29 @@
     function fn_loadList(pageIndex) {
         if (pageIndex) currentPage = pageIndex;
 
-        let param = {
+        let extData = {
             pageIndex: currentPage,
             listScale: listScale,
             msgCtsGbncd: currentTab,
             searchText: $('#inputSearch1').val()
         };
 
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(extData)
+        };
         ajaxCall('/msgTmpltListAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
                 fn_renderCards(res.returnList);
                 totalCnt = res.pageInfo ? res.pageInfo.totalRecordCount : 0;
                 $('#totalCnt').text(totalCnt);
                 fn_renderPaging(res.pageInfo);
             } else {
-                alert(res.message || '<spring:message code="fail.common.select"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>", "error");
             }
-        }, function() {
-            alert('<spring:message code="fail.common.select"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
     }
 
@@ -116,16 +122,21 @@
         $('.card_item').removeClass('active');
         $('.card_item[data-id="' + msgTmpltId + '"]').addClass('active');
 
-        ajaxCall('/msgTmpltSelectAjax.do', { msgTmpltId: msgTmpltId }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ msgTmpltId: msgTmpltId })
+        };
+        ajaxCall('/msgTmpltSelectAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result === 1 && res.returnVO) {
                 $('#formTmpltId').val(res.returnVO.msgTmpltId);
                 $('#formTmpltTtl').val(res.returnVO.msgTmpltTtl);
                 $('#formTmpltCts').val(res.returnVO.msgTmpltCts);
             } else {
-                alert(res.message || '<spring:message code="fail.common.select"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>", "error");
             }
-        }, function() {
-            alert('<spring:message code="fail.common.select"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
     }
 
@@ -199,25 +210,30 @@
         let tmpltId = $('#formTmpltId').val();
         let url = tmpltId ? '/msgTmpltModifyAjax.do' : '/msgTmpltRegistAjax.do';
 
-        let param = {
+        let extData = {
             msgTmpltTtl: ttl,
             msgTmpltCts: cts,
             msgCtsGbncd: currentTab
         };
 
         if (tmpltId) {
-            param.msgTmpltId = tmpltId;
+            extData.msgTmpltId = tmpltId;
         }
 
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams(extData)
+        };
         ajaxCall(url, param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result === 1) {
                 fn_resetForm();
                 fn_loadList(1);
             } else {
-                alert(res.message || '<spring:message code="fail.common.insert"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>", "error");
             }
-        }, function() {
-            alert('<spring:message code="fail.common.insert"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
     }
 
@@ -233,33 +249,43 @@
             return;
         }
 
-        if (!confirm('<spring:message code="common.confirm.remove"/>')) return;
+        if (!confirm('<spring:message code="msg.tmplt.msg.confirmDelete"/>')) return;
 
-        ajaxCall('/msgTmpltDeleteAjax.do', { msgTmpltIds: checkedIds }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ msgTmpltIds: checkedIds })
+        };
+        ajaxCall('/msgTmpltDeleteAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result === 1) {
                 fn_resetForm();
                 fn_loadList(currentPage);
             } else {
-                alert(res.message || '<spring:message code="fail.common.delete"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>", "error");
             }
-        }, function() {
-            alert('<spring:message code="fail.common.delete"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true, { traditional: true });
     }
 
     /* 전체 삭제 */
     function fn_deleteAll() {
-        if (!confirm('<spring:message code="common.confirm.remove"/>')) return;
+        if (!confirm('<spring:message code="msg.tmplt.msg.confirmDeleteAll"/>')) return;
 
-        ajaxCall('/msgTmpltAllDeleteAjax.do', { msgCtsGbncd: currentTab }, function(res) {
+        let param = {
+              encParams: EPARAM
+            , addParams: UiComm.makeEncParams({ msgCtsGbncd: currentTab })
+        };
+        ajaxCall('/msgTmpltAllDeleteAjax.do', param, function(res) {
+            if (res.encParams) EPARAM = res.encParams;
             if (res.result === 1) {
                 fn_resetForm();
                 fn_loadList(1);
             } else {
-                alert(res.message || '<spring:message code="fail.common.delete"/>');
+                UiComm.showMessage(res.message || "<spring:message code='fail.common.msg'/>", "error");
             }
-        }, function() {
-            alert('<spring:message code="fail.common.delete"/>');
+        }, function(xhr, status, error) {
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
     }
 

@@ -38,16 +38,6 @@ public class MsgShrtntFacadeServiceImpl extends ServiceBase implements MsgShrtnt
     private UserDAO userDAO;
 
     /*****************************************************
-     * 기관 목록 조회
-     * @return List<OrgInfoVO>
-     * @throws Exception
-     ******************************************************/
-    @Override
-    public List<OrgInfoVO> selectActiveOrgList() throws Exception {
-        return orgInfoService.listActiveOrg();
-    }
-
-    /*****************************************************
      * 기관 목록 조회 (권한 기반 필터링)
      * @param orgId
      * @param isAdmin
@@ -69,17 +59,6 @@ public class MsgShrtntFacadeServiceImpl extends ServiceBase implements MsgShrtnt
             }
         }
         return list;
-    }
-
-    /*****************************************************
-     * 사용자의 orgId 조회
-     * @param userId
-     * @return String
-     * @throws Exception
-     ******************************************************/
-    private String selectUserOrgId(String userId) throws Exception {
-        UserVO user = userDAO.userSelect(userId);
-        return user != null ? user.getOrgId() : null;
     }
 
     /*****************************************************

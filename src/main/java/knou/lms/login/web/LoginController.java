@@ -20,8 +20,6 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
-import com.naru.provider.ServiceProvider;
-
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.MainOrgInfo;
@@ -132,8 +130,8 @@ public class LoginController extends ControllerBase {
 		model.addAttribute("orgList", orgList);
 
 		return "login/login";
-	}	
-	
+	}
+
 	/**
 	 * 로그인 처리
 	 * @param LoginParam
@@ -144,13 +142,13 @@ public class LoginController extends ControllerBase {
 	 */
 	@RequestMapping(value="/loginProc.do")
     public String loginProcTOBE(LoginParam param, HttpServletRequest request, HttpServletResponse response) throws Exception {
-	    
+
 		log.info("loginProc.do 시작");
-	    
+
 	    try {
 	        // 1. login 처리
 	        UserContext userCtx = loginService.processLogin(param);
-	        
+
 	        // 2. 세션 변수 설정 --> 삭제예정
 	        UserVO selectedUser = userCtx.getSelectedUser();
 	        SessionInfo.setOrgId(request,       selectedUser.getOrgId());
@@ -158,14 +156,14 @@ public class LoginController extends ControllerBase {
 	        SessionInfo.setUserRprsId(request,  selectedUser.getUserRprsId());
 	        SessionInfo.setAuthrtCd(request,    selectedUser.getUserTycd());
 	        SessionInfo.setAuthrtGrpcd(request, selectedUser.getUserTycd());
-	        
+
 	        // 3. USER_CONTEXT 세션저장
 	        SessionInfo.setUserContext(request, userCtx); // USER_CONTEXT
-	        
+
 	        // 4. 화면 분기
 	        String initUrl = resolveDashboard(selectedUser.getUserTycd());
 	        log.info("initUrl=" + initUrl);
-	        
+
 	        return "redirect:/dashboard" + initUrl;
 
 	    } catch (LoginFailedException e) {
@@ -175,13 +173,13 @@ public class LoginController extends ControllerBase {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        return "/index";
-	    }		
+	    }
     }
-	
+
 	private boolean isHackInput(String uri) {
-        if (uri == null) 
+        if (uri == null)
         	return false;
-        return uri.toUpperCase().contains(" OR ") || uri.toUpperCase().contains(" AND ") 
+        return uri.toUpperCase().contains(" OR ") || uri.toUpperCase().contains(" AND ")
         		|| uri.contains("'") || uri.contains("\"");
     }
 
@@ -232,290 +230,10 @@ public class LoginController extends ControllerBase {
         }
     }
 
-	/**
-	 * 로그인 처리
-	 * 
-	 * @param vo
-	 * @param commandMap
-	 * @param model
-	 * @param request
-	 * @param response
-	 * @return
-	 * @throws Exception
-	 */
-	/*
-	 * @RequestMapping(value="/loginProc.do") public String loginProc(UsrLoginVO vo,
-	 * Map commandMap, ModelMap model, HttpServletRequest request,
-	 * HttpServletResponse response) throws Exception {
-	 * 
-	 * UsrUserInfoVO uuivo = new UsrUserInfoVO(); String orgId = vo.getOrgId();
-	 * String orgId = "ORG0000001"; String pswdChgReqYn = "N"; String mainMcd =
-	 * "MC00000000"; //메인 String goMcd = StringUtil.nvl(vo.getGoMcd(), mainMcd);
-	 * String goUrl = vo.getGoUrl(); Boolean isTmpLogin = false; String remoteIp =
-	 * HttpRequestUtil.getIpAddr(request); List<UsrUserInfoVO> userRltnList = null;
-	 * 
-	 *//** 브라우저 , 호스트 변조 접근 방지 시작 2015.12.15 *//*
-												 * boolean chkUserAgentHack = false;
-												 * if(StringUtil.nvl(goMcd).indexOf("' AND ") !=-1) chkUserAgentHack =
-												 * true; if(StringUtil.nvl(goMcd).indexOf("' OR ") !=-1)
-												 * chkUserAgentHack = true; if(StringUtil.nvl(goMcd).indexOf("\" AND ")
-												 * !=-1) chkUserAgentHack = true;
-												 * if(StringUtil.nvl(goMcd).indexOf("\" OR ") !=-1) chkUserAgentHack =
-												 * true; if(StringUtil.nvl(goMcd).indexOf(" AND ") !=-1)
-												 * chkUserAgentHack = true; if(StringUtil.nvl(goMcd).indexOf(" OR ")
-												 * !=-1) chkUserAgentHack = true;
-												 * if(StringUtil.nvl(goUrl).indexOf("' AND ") !=-1) chkUserAgentHack =
-												 * true; if(StringUtil.nvl(goUrl).indexOf("' OR ") !=-1)
-												 * chkUserAgentHack = true; if(StringUtil.nvl(goUrl).indexOf("\" AND ")
-												 * !=-1) chkUserAgentHack = true;
-												 * if(StringUtil.nvl(goUrl).indexOf("\" OR ") !=-1) chkUserAgentHack =
-												 * true; if(StringUtil.nvl(goUrl).indexOf(" AND ") !=-1)
-												 * chkUserAgentHack = true; if(StringUtil.nvl(goUrl).indexOf(" OR ")
-												 * !=-1) chkUserAgentHack = true; if (chkUserAgentHack) { //
-												 * log.error(message);
-												 * response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-												 * "ERROR"); return null; }
-												 * 
-												 * OrgCfgVO orgCfgVo = new OrgCfgVO(); orgCfgVo.setOrgId(orgId);
-												 * orgCfgVo.setCfgCtgrCd("LGN_RETRY_GAPTM");
-												 * 
-												 * //int faileSec =
-												 * Integer.parseInt(orgCfgService.getValue(orgCfgVo))/60;
-												 * 
-												 * if(exceptionMcd.contains(goMcd)) { goMcd = mainMcd; //-- 예외 처리 메뉴 번호인
-												 * 경우 홈페이지로 연결 }
-												 * 
-												 * 
-												 * uuivo.setUserId(vo.getUserId());
-												 * uuivo.setUserRprsId(vo.getUserRprsId());
-												 * uuivo.setUserIdEncpswd(vo.getUserIdEncpswd());
-												 * 
-												 * LogUserLoginTryLogVO lultlvo = new LogUserLoginTryLogVO();
-												 * lultlvo.setUserRprsId(uuivo.getUserRprsId());
-												 * lultlvo.setBrowserInfo(request.getHeader("User-Agent"));
-												 * lultlvo.setConnIp(CommonUtil.getIpAddress(request));
-												 * 
-												 * String reloginUrl = "redirect:/"; if
-												 * (!CommConst.KNOU_ORG_ID.equals(orgId)) { reloginUrl =
-												 * "redirect:/index.do?org="+MainOrgInfo.getOrgDomain(request, orgId); }
-												 * try { String orgId2 = StringUtil.nvl(uuivo.getOrgId(),"");
-												 * 
-												 * if(orgId.equals("")){ uuivo.setOrgId(orgId); }
-												 * 
-												 * boolean isValidUserId = true; try { uuivo =
-												 * usrUserInfoService.viewForLogin(uuivo); String conf =
-												 * StringUtil.nvl(uuivo.getUserConf()); if (!"".equals(conf)) {
-												 * JSONParser parser = new JSONParser(); JSONObject jsonObject =
-												 * (JSONObject) parser.parse(conf); String lang =
-												 * StringUtil.nvl((String)jsonObject.get("lang")); if (!"".equals(lang))
-												 * { LocaleUtil.setLocale(request, lang); } } else {
-												 * LocaleUtil.setLocale(request, MainOrgInfo.getOrgLang(request,
-												 * orgId)); } } catch(Exception e) { isValidUserId = false;
-												 * System.out.println(DateTimeUtil.getCurrentDateText() +
-												 * " : LOGIN fail ---> "+vo.getUserId()); } String hp =
-												 * StringUtil.nvl(uuivo.getMobileNo()).replace(" ", "").replace("-",
-												 * ""); String pw = vo.getUserIdEncpswd().replace(" ", "").replace("-",
-												 * ""); String loginUseYn = StringUtil.nvl(vo.getLoginUseYn()); boolean
-												 * chkPass = false; // 비밀번호 검증 if ("Y".equals(loginUseYn) &&
-												 * hp.equals(pw)) { chkPass = true; } else
-												 * if(uuivo.getUserPass().equals(uuivo.getEncUserPass())) { chkPass =
-												 * true; }
-												 * 
-												 * if (!chkPass) {
-												 * setAlertMessage(getMessage("user.message.login.failed"));
-												 * SessionUtil.setSessionValue(request, "loginOrgId", orgId);
-												 * 
-												 * return reloginUrl; }
-												 * 
-												 * // 임시 비밀번호로 로그인한 경우 (유저의 비밀번호와 임시 비밀번호가 같음)
-												 * if(uuivo.getEncUserPass().equals(uuivo.getTmpPswd())) { isTmpLogin =
-												 * true; }
-												 * 
-												 * // tmp 패스워드 초기화
-												 * 
-												 * uuivo.setTmpPass("");
-												 * uuivo.setMdfrId(SessionInfo.getUserId(request));
-												 * usrLoginService.editTmpPass(uuivo);
-												 * 
-												 * 
-												 * 
-												 * if(!orgId.equals(uuivo.getOrgId())){
-												 * setAlertMessage(getMessage("user.message.login.failed")); return
-												 * reloginUrl; }
-												 * 
-												 * 
-												 * if(StringUtil.isNull(uuivo.getAuthrtCd())) {
-												 * setAlertMessage(getMessage("user.message.login.failed")); return
-												 * reloginUrl; }
-												 * 
-												 * if("Y".equals(uuivo.getLoginUseYn())) { //-- 회원의 마지막 접속 정보 등록
-												 * //usrLoginService.editLastLogin(uuivo);
-												 * 
-												 * //--홈페이지 로그인 로그 기록 남김 pswdChgReqYn = uuivo.getPswdChgReqYn(); //--
-												 * 비밀번호 변경 요청 여부 셋팅. lultlvo.setUserId(uuivo.getUserId());
-												 * lultlvo.setLoginSuccYn("Y"); } else { String[] args = new String[1];
-												 * args[0] = Integer.toString(faileSec);
-												 * setAlertMessage(getMessage("user.message.login.failed")); return
-												 * reloginUrl; }
-												 * 
-												 * // 퇴사자 체크 String status = uuivo.getStatus();
-												 * 
-												 * if("N".equals(StringUtil.nvl(status))) { lultlvo.setLoginSuccYn("N");
-												 * // 퇴사자 계정으로 강의실 접속은 불가합니다.
-												 * setAlertMessage(getMessage("fail.common.login.retire")); return
-												 * reloginUrl; }
-												 * 
-												 * // 미납자 체크
-												 * if("UNPAID".equals(StringUtil.nvl(uuivo.getLoginAcptDivCd()))) {
-												 * lultlvo.setLoginSuccYn("N"); // 수강료 미납으로 강의실 접속은 불가합니다.
-												 * setAlertMessage(getMessage("fail.common.login.unpaid")); return
-												 * reloginUrl; }
-												 * 
-												 * System.out.println(DateTimeUtil.getCurrentDateText() +
-												 * " : LOGIN ---> "+vo.getUserId());
-												 * 
-												 * } catch(DataRetrievalFailureException e) { uuivo = new
-												 * UsrUserInfoVO(); uuivo.setUserId(vo.getUserId()); String errMsg =
-												 * getMessage("user.message.login.failed"); lultlvo.setLoginSuccYn("N");
-												 * 
-												 * 
-												 * System.out.println(
-												 * ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>22222222222222222222222" + uuivo);
-												 * uuivo = usrUserInfoService.viewForLoginCheck(uuivo);
-												 * 
-												 * 
-												 * System.out.println(">>>>>>>>>>>>>>>>>>>11111111111111111111111111111"
-												 * + uuivo);
-												 * 
-												 * orgCfgVo.setCfgCtgrCd("LOGIN"); orgCfgVo.setCfgCd("FAILCNT");
-												 * 
-												 * String loginFailCnt = orgCfgService.getValue(orgCfgVo);
-												 * 
-												 * 
-												 * System.out.println(DateTimeUtil.getCurrentDateText() +
-												 * " : LOGIN Fail ---> "+vo.getUserId());
-												 * 
-												 * try { if(StringUtil.nvl(uuivo.getLoginFailCnt(),0) <
-												 * Integer.parseInt(loginFailCnt) ||
-												 * DateTimeUtil.getIntervalSecond(uuivo.getLoginFailDttm()) > 1800) {
-												 * vo.setLoginFailDttm("Y"); } vo = usrLoginService.editFailLogin(vo); }
-												 * catch (Exception ex) { setAlertMessage(errMsg);
-												 * 
-												 * return reloginUrl; }
-												 * 
-												 * if("Y".equals(uuivo.getLoginUseYn())) { errMsg +=
-												 * getMessage("user.message.login.failed.cnt",
-												 * uuivo.getLoginFailCnt()+1, loginFailCnt); } else { errMsg +=
-												 * getMessage("user.message.login.failed.cntover", 30); }
-												 * setAlertMessage(errMsg); return reloginUrl; } finally {
-												 * logUserLoginTryLogService.add(lultlvo); }
-												 * 
-												 * System.out.println(
-												 * ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3333333333333333333333333333333" +
-												 * uuivo);
-												 * 
-												 * 
-												 * System.out.println(
-												 * ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" +
-												 * uuivo.getUserId());
-												 * 
-												 * usrLoginService.editLastLogin(uuivo);
-												 * 
-												 * // 로그인 처리 // 세션 정보를 셋팅해 준다. SessionInfo.setUserId(request,
-												 * uuivo.getUserId()); SessionInfo.setUserRprsId(request,
-												 * uuivo.getUserRprsId()); SessionInfo.setUserNm(request,
-												 * uuivo.getUserNm()); SessionInfo.setUserPhoto(request,
-												 * uuivo.getPhotoFileId());
-												 * SessionInfo.setUserDeptId(request,uuivo.getDeptId());
-												 * SessionInfo.setLoginGbn(request,"");
-												 * 
-												 * System.out.println(DateTimeUtil.getCurrentDateText() +
-												 * " : LOGIN USER AUTHRT_GRP_CD ---> "+uuivo.getAuthrtGrpcd());
-												 * 
-												 * if(uuivo.getAuthrtGrpcd().contains("ADM")) {
-												 * uuivo.setAuthrtGrpcd("ADM"); } else
-												 * if(uuivo.getAuthrtGrpcd().contains("PROF")) {
-												 * uuivo.setAuthrtGrpcd("PROF"); } else
-												 * if(uuivo.getAuthrtGrpcd().contains("COPROF")) {
-												 * uuivo.setAuthrtGrpcd("COPROF"); } else {
-												 * uuivo.setAuthrtGrpcd("STDNT"); }
-												 * 
-												 * SessionInfo.setAuthrtGrpcd(request, uuivo.getAuthrtGrpcd());
-												 * SessionInfo.setAuthrtCd(request,uuivo.getAuthrtCd());
-												 * SessionInfo.setAdmYn(request,uuivo.getAdminAuthYn()); // ADMIN 권한 여부
-												 * 
-												 * SessionInfo.setLoginIp(request,CommonUtil.getIpAddress(request));
-												 * SessionInfo.setOrgId(request,uuivo.getOrgId());
-												 * SessionInfo.setOrgNm(request,vo.getOrgNm());
-												 * SessionInfo.setDisablilityYn(request,uuivo.getDisablilityYn());
-												 * SessionInfo.setDisablilityExamYn(request,uuivo.getDisablilityExamYn()
-												 * ); SessionInfo.setUserDeptId(request,uuivo.getDeptId());
-												 * SessionInfo.setUserTypeDetail(request, uuivo.getUserTypeDetail());
-												 * SessionInfo.setUserTycd(request, uuivo.getAuthrtGrpcd());
-												 * 
-												 * if (userRltnList != null && userRltnList.size() > 1) {
-												 * SessionInfo.setUserRltnList(request, userRltnList); }
-												 * 
-												 * try { List<OrgInfoVO> orgList =
-												 * MainOrgInfo.getMainOrgList((HttpServletRequest)request); for
-												 * (OrgInfoVO orgInfoVO : orgList) { if
-												 * (orgId.equals(orgInfoVO.getOrgId())) {
-												 * SessionInfo.setOrgDomain(request, orgInfoVO.getDmnnm()); break; } } }
-												 * catch (Exception e) { }
-												 * 
-												 * 
-												 * if(SessionInfo.getUserType(request).contains("MANAGER")) {
-												 * LogAdminConnLogVO laclVO = new LogAdminConnLogVO();
-												 * laclVO.setConnLogSn(IdGenerator.getNewId("ACLOG"));
-												 * laclVO.setUserId(uuivo.getUserId());
-												 * laclVO.setUserNm(uuivo.getUserNm());
-												 * laclVO.setLoginIp(CommonUtil.getIpAddress(request));
-												 * logAdminConnLogService.addConnectLog(laclVO); }
-												 * 
-												 * 
-												 * // 파일함 접근 권한이 있는지 검사
-												 * 
-												 * OrgCfgVO orgCfgVO = new OrgCfgVO(); orgCfgVO.setOrgId(orgId);
-												 * orgCfgVO.setCfgCtgrCd("FILE_BOX"); orgCfgVO.setCfgCd("USER_AUTH");
-												 * String fleBoxAuthGrp = orgCfgService.getValue(orgCfgVO); String[]
-												 * arrFleBoxAuthGrp = fleBoxAuthGrp.split("\\,"); String userTypes =
-												 * SessionInfo.getUserType(request); String[] arrUserType =
-												 * userTypes.split("\\|"); String fileBoxUseAuthYn = "N"; for(String
-												 * userType : arrUserType) { if
-												 * (Arrays.stream(arrFleBoxAuthGrp).anyMatch(userType::equals)) {
-												 * fileBoxUseAuthYn = "Y"; break; } }
-												 * 
-												 * SessionInfo.setFileBoxUseAuthYn(request, fileBoxUseAuthYn);
-												 * 
-												 * SessionInfo.setFileBoxUseAuthYn(request, "Y");
-												 * 
-												 * // 세션ID 저장 uuivo.setSessionId(request.getSession().getId());
-												 * usrLoginService.insertSessionId(uuivo);
-												 * 
-												 * request.getSession().setAttribute("SSO_STATUS", "");
-												 * 
-												 * Session에 저장 start UserContext userCtx = new
-												 * UserContext(SessionInfo.getOrgId(request),
-												 * SessionInfo.getUserId(request), SessionInfo.getUserTycd(request),
-												 * SessionInfo.getAuthrtCd(request),
-												 * SessionInfo.getAuthrtGrpcd(request),
-												 * SessionInfo.getUserRprsId(request), SessionInfo.getLastLogin(request)
-												 * );
-												 * 
-												 * // 3. model에 추가하면 세션에도 자동 저장됨
-												 * //request.getSession().setAttribute("userCtx", userCtx);
-												 * request.getSession().setAttribute("USER_CONTEXT", userCtx); Session에
-												 * 저장 end
-												 * 
-												 * return "redirect:/dashboard/main.do"; //return
-												 * "redirect:/dashboard/dashboard.do"; }
-												 */
-	
-	
 
 	/**
 	 * sso 임시 로그인
-	 * 
+	 *
 	 * @param request
 	 * @param response
 	 * @param modelMap
@@ -539,7 +257,7 @@ public class LoginController extends ControllerBase {
 		}
 
 		String ssoUserId = (String) ss.getAttribute("SSO_ID");
-		String str = (String) ss.getAttribute(ServiceProvider.SESSION_TOKEN);
+		String str = ""; //(String) ss.getAttribute(ServiceProvider.SESSION_TOKEN); -- SSO 세션 토큰
 
 		String[] lines = str.split("\r?\n|\r");
 
@@ -666,12 +384,12 @@ public class LoginController extends ControllerBase {
 			if ("".equals(SessionInfo.getLastLogin(request))) {
 				LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
 				loginTryLogVO.setUserId(uuivo.getUserId());
-				System.out.println("66666666666666666666666666666666666666666");
-				loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
-
-				if (loginTryLogVO != null) {
-					SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
-				}
+				/*
+				 * loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
+				 *
+				 * if (loginTryLogVO != null) { SessionInfo.setLastLogin(request,
+				 * loginTryLogVO.getLoginTryDttmStr()); }
+				 */
 			}
 
 			// 외부기관 사용자 연결정보 조회
@@ -781,5 +499,4 @@ public class LoginController extends ControllerBase {
 		}
 		return browser;
 	}
-
 }

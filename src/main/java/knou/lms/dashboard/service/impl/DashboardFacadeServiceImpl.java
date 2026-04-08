@@ -78,7 +78,7 @@ public class DashboardFacadeServiceImpl implements DashboardFacadeService {
 	
 	//	화면이동설정
 	public DashboardViewModel getDashboardResponse(UserVO selectedUser, BaseParam param) throws Exception {
-		log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>selectedUser.getUserTycd()=" + selectedUser.getUserTycd());
+		
 		DashboardViewModel dsVM = new DashboardViewModel();
 	    if ("PROF".equals(selectedUser.getUserTycd())) {
 	    	dsVM = profDashboardViewModel(param);

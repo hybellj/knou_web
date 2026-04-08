@@ -75,10 +75,10 @@ import knou.lms.dashboard.web.view.DashboardViewModel;
 import knou.lms.erp.service.ErpService;
 import knou.lms.erp.util.ErpUtil;
 import knou.lms.log.lesson.service.LogLessonActnHstyService;
-import knou.lms.log.logintry.service.LogUserLoginTryLogService;
 import knou.lms.log.logintry.vo.LogUserLoginTryLogVO;
 import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.log.userconn.vo.LogUserConnStateVO;
+import knou.lms.login.service.LoginService;
 import knou.lms.menu.vo.MenuVO;
 import knou.lms.msg.service.MsgAlimService;
 import knou.lms.msg.vo.MsgAlimVO;
@@ -129,10 +129,7 @@ public class DashboardController extends ControllerBase {
 
     @Resource(name = "sysJobSchService")
     private SysJobSchService sysJobSchService;
-
-    @Resource(name = "logUserLoginTryLogService")
-    private LogUserLoginTryLogService logUserLoginTryLogService;
-
+    
     @Resource(name = "usrUserInfoService")
     private UsrUserInfoService usrUserInfoService;
 
@@ -154,16 +151,16 @@ public class DashboardController extends ControllerBase {
     @Resource(name = "erpService")
     private ErpService erpService;
 
-
-
-
     @Resource(name = "dashboardFacadeService")
     private DashboardFacadeService dashboardFacadeService;
-
+    
+    @Resource(name = "loginService")
+    private LoginService loginService;
 
     @SuppressWarnings("unchecked")
     @RequestMapping(value = "/main.do")
     public String main(HttpServletRequest request, HttpServletResponse response, ModelMap model, RedirectAttributes redirect) throws Exception {
+    	
         String userType = SessionInfo.getAuthrtCd(request);
         String userId = SessionInfo.getUserId(request);
         String userAcntId = SessionInfo.getUserRprsId(request);
@@ -181,7 +178,7 @@ public class DashboardController extends ControllerBase {
             UsrUserInfoVO userInfo = new UsrUserInfoVO();
             userInfo.setUserRprsId(userAcntId);
             userInfo.setUserId(userId);
-            UsrUserInfoVO infoVO = usrUserInfoService.viewUser(userInfo);
+            UsrUserInfoVO infoVO = usrUserInfoService.userSelect(userInfo); // ASIS viewUser
             String conf = StringUtil.nvl(infoVO.getUserConf());
 
             if (StringUtil.isNull(conf)) {
@@ -193,7 +190,7 @@ public class DashboardController extends ControllerBase {
             jsonObject.put("lang", language);
             infoVO.setUserConf(jsonObject.toJSONString());
 
-            usrUserInfoService.updateUserConf(infoVO);
+            usrUserInfoService.userStngModify(infoVO); // ASIS updateUserConf
         }
 
         String menuType = SessionInfo.getAuthrtGrpcd(request);
@@ -248,9 +245,6 @@ public class DashboardController extends ControllerBase {
             }
         }
 
-        System.out.println("returnUri>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>=" + returnUri);
-
-
         return "redirect:/dashboard" + returnUri;
     }
 
@@ -289,11 +283,11 @@ public class DashboardController extends ControllerBase {
             LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
             loginTryLogVO.setUserId(userId);
 
-            System.out.println("333333333333333333333333333333333333333");
-            loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
+            EgovMap loginUser = loginService.userLatestLoginHstrySelect(userId);
 
-            if (loginTryLogVO != null) {
-                SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
+            if (loginUser != null) {
+                SessionInfo.setLastLogin(request, 
+                		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
             }
         }
 
@@ -355,7 +349,6 @@ public class DashboardController extends ControllerBase {
         model.addAttribute("menuType", "ADM");
         model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
 
-//        return  "common/admin/admin_common_sample";
         return "common/admin/admin_common";
     }
 
@@ -403,11 +396,12 @@ public class DashboardController extends ControllerBase {
         if ("".equals(lastLogin)) {
             LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
             loginTryLogVO.setUserRprsId(userRprsId);
-            System.out.println("1111111111111111111111111111111111");
-            loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
+            
+            EgovMap loginUser = loginService.userLatestLoginHstrySelect(userRprsId);
 
-            if (loginTryLogVO != null) {
-                SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
+            if (loginUser != null) {
+                SessionInfo.setLastLogin(request, 
+                		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
             }
         }
 
@@ -507,71 +501,33 @@ public class DashboardController extends ControllerBase {
         return "dashboard/admin_dashboard";
     }
 
-
     /**
-     * ***************************************************
-     * 교수대시보드화면
-     * TODO: TOBE 개발완료시 삭제예정
-     */
-    @RequestMapping(value = "/profDashboardView.do")
-    public String profDashboardView(HttpServletRequest request, HttpServletResponse response, DashboardVO dashboardVO, ModelMap model) throws Exception {
-    	return "dashboard/prof_dashboard_view";
-    }
-
-    /**
-     * ***************************************************
      * 교수대시보드조회
-     * TODO: TOBE 개발완료시 삭제예정
      */
-    //////////////////////////////////////////////////////////////////////////////// 서비스하지 않는 Request입니다. 단 ASIS 소스 분석을 위해서 남겨둡니다.
-    //////////////////////////////////////////////////////////////////////////////// 대시보드개발이 완료되면 삭제, TOBE에서는 사용하지 않습니다. written by jinkoon 260313
     @RequestMapping(value = "/profDashboard.do")
-    public String profDashboard(HttpServletRequest request, HttpServletResponse response,
-    		DashboardVO dashboardVO, ModelMap model) throws Exception {
-
-    	//  TODO: 데이터정리
-        // 	UserContext 	- 기관아이디, 대표아이디, 사용자아이디, 사용자유형, 사용자접속장치, IP, 마지마로그인 일시, 접속위치?, 날짜, 언어코드;
-        //					- 이전접속위치, 이전접속일시, 이전접속체크번호
-        //	AcademyContext 	- 학기, 주차,
-        //	AuthrityContext - 권한타입
-        //	MenuContext 	- 메뉴타입
-        //	SubjectContext 	- 과목정보 저장;
-        //
-
-    	//	사용자세션에서 가져오는 UserContext
-    	UserContext userCtx = new UserContext( 	SessionInfo.getOrgId(request),
-    											SessionInfo.getUserId(request),
-    											SessionInfo.getAuthrtCd(request),
-    											SessionInfo.getAuthrtGrpcd(request),
-    											SessionInfo.getUserRprsId(request),
-    											SessionInfo.getLastLogin(request));
+    public String profDashboard(DashboardVO dashboardVO, @CurrentUser UserContext userCtx,
+    		HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
 
     	// 현재 홈정보 저장
         SessionInfo.setCurUserHome(request, "/dashboard/profDashboard.do");
 
-        // 과목세션정보 초기화
-        SessionInfo.removeCourseInfo(request);
+        // 	과목세션정보 초기화
+        // 	SessionInfo.removeCourseInfo(request);  > 왜 초기화 했을까?
 
-        //사용자 접속 장치 설정
-        SessionInfo.setDeviceType(request);
+        //	사용자접속장치정보저장
+        // 	SessionInfo.setDeviceType(request);
 
-        // 사용자 접속상태 저장
+        // 	사용자접속경로저장
         logUserConnService.saveUserConnState(request, CommConst.CONN_COR_HOME);
 
-        // 마지막 로그인정보 조회 // TODO: 공통모듈화
-        //
+        // 마지막 로그인정보 조회 > 왜 조회해서 다시 설정하는가?
         if ( ValidationUtils.isEmpty( userCtx.getUserLastLogin() ) ) {
-            //LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
-            //loginTryLogVO.setUserId(userInfo.getUserId());
-            //loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
-            //if (loginTryLogVO != null) {
-            //    SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
-            //} >>>>> warning db에 데이터가 없어서 null 이면 어케하나?
+        	EgovMap loginUser = loginService.userLatestLoginHstrySelect(userCtx.getUserId());
 
-        	LogUserLoginTryLogVO loginVO = logUserLoginTryLogService.selectLastLogin(new LogUserLoginTryLogVO(userCtx.getUserId()));
-
-        	if ( null != loginVO )
-        		SessionInfo.setLastLogin(request, loginVO.getLoginTryDttmStr());
+            if (loginUser != null) {
+                SessionInfo.setLastLogin(request, 
+                		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
+            }
         }
 
         ProcessResultVO<BbsAtclVO> resultNoticeListVO = new ProcessResultVO<>();
@@ -700,35 +656,6 @@ public class DashboardController extends ControllerBase {
             cosNoticeVO.setVwerId(userCtx.getUserRprsId()); // 본인이 읽은 게시글 체크
 
             List<EgovMap> cosNoticeList = null;
-			/*
-			 * if (crsListAll != null && crsListAll.size() > 0) { cosNoticeList =
-			 * bbsAtclService.listRecentBbsAtcl(cosNoticeVO);
-			 * model.addAttribute("cosNoticeList", cosNoticeList);
-			 *
-			 * // 강의 QNA cosNoticeVO.setBbsId("QNA"); List<EgovMap> cosQnaList =
-			 * bbsAtclService.listRecentBbsAtcl(cosNoticeVO);
-			 * model.addAttribute("cosQnaList", cosQnaList);
-			 *
-			 * // QNA 미답변수 조회 EgovMap qnaNoAnsInfo =
-			 * bbsAtclService.selectNoAnswerAtclStatus(cosNoticeVO);
-			 * model.addAttribute("qnaNoAnsInfo", qnaNoAnsInfo);
-			 *
-			 * // 1:1 상담 cosNoticeVO.setBbsId("SECRET"); List<EgovMap> cosSecretList =
-			 * bbsAtclService.listRecentBbsAtcl(cosNoticeVO);
-			 * model.addAttribute("cosSecretList", cosSecretList);
-			 *
-			 * // 1:1상담 미답변수 조회 EgovMap secretNoAnsInfo =
-			 * bbsAtclService.selectNoAnswerAtclStatus(cosNoticeVO);
-			 * model.addAttribute("secretNoAnsInfo", secretNoAnsInfo);
-			 *
-			 * // 대시보드 현황 (교수) DefaultVO dashboardStatVO = new DefaultVO();
-			 * dashboardStatVO.setUserId(userCtx.getUserRprsId());
-			 * dashboardStatVO.setOrgId(userCtx.getOrgId());
-			 * dashboardStatVO.setSqlForeach(crsListAll.toArray(new
-			 * String[crsListAll.size()])); EgovMap dashboardStat =
-			 * dashboardService.dashboardStatProf(dashboardStatVO);
-			 * model.addAttribute("dashboardStat", dashboardStat); }
-			 */
 
             // 전체공지리스트(전체공지+강의공지)
             List<EgovMap> allNoticeList = Stream.concat(
@@ -984,15 +911,17 @@ public class DashboardController extends ControllerBase {
         // 강의실 활동 로그 등록
         logLessonActnHstyService.saveLessonActnHsty(request, null, CommConst.ACTN_HSTY_COURSE_HOME, "강의실홈 입장");
 
-        // 마지막 로그인정보 조회
-        String lastLogin = SessionInfo.getLastLogin(request);
+        // 마지막 로그인정보 조회 >>>>> 조회 해서 무엇을 하는가?
+        String lastLogin = SessionInfo.getLastLogin(request); 
         if ("".equals(lastLogin)) {
             LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
             loginTryLogVO.setUserId(userInfo.getUserId());
-            loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
+            
+            EgovMap loginUser = loginService.userLatestLoginHstrySelect(userInfo.getUserId());
 
-            if (loginTryLogVO != null) {
-                SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
+            if (loginUser != null) {
+                SessionInfo.setLastLogin(request, 
+                		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
             }
         }
 
@@ -1135,7 +1064,7 @@ public class DashboardController extends ControllerBase {
             allNoticeVO.setHaksaTerm(tvo.getHaksaTerm());
             UsrUserInfoVO uvo = new UsrUserInfoVO();
             uvo.setUserId(userInfo.getUserId());
-            uvo = usrUserInfoService.viewUser(uvo);
+            uvo = usrUserInfoService.userSelect(uvo);
 
             List<String> univGbnList = new ArrayList<>();
             univGbnList.add("ALL");
@@ -1344,7 +1273,7 @@ public class DashboardController extends ControllerBase {
             // 장애 여부
             UsrUserInfoVO uuivo = new UsrUserInfoVO();
             uuivo.setUserId(userInfo.getUserId());
-            uuivo = usrUserInfoService.viewUser(uuivo);
+            uuivo = usrUserInfoService.userSelect(uuivo);
 
             // 대시보드 팝업 조회
             PopupNoticeVO popupNoticeVO = new PopupNoticeVO();
@@ -1955,7 +1884,7 @@ public class DashboardController extends ControllerBase {
         // 1. 사용자 조회
         UsrUserInfoVO userInfoVO = new UsrUserInfoVO();
         userInfoVO.setUserId(vo.getUserId());
-        userInfoVO = usrUserInfoService.viewUser(userInfoVO);
+        userInfoVO = usrUserInfoService.userSelect(userInfoVO);
 
         // 2. 학생별 학습현황 목록 조회
         vo.setOrgId(orgId);
@@ -2173,10 +2102,9 @@ public class DashboardController extends ControllerBase {
             LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
             loginTryLogVO.setUserId(uuivo.getUserId());
 
-            System.out.println("5555555555555555555555555555555555555555555");
-            loginTryLogVO = logUserLoginTryLogService.selectLastLogin(loginTryLogVO);
+            EgovMap loginUser = loginService.userLatestLoginHstrySelect(uuivo.getUserId());
 
-            if (loginTryLogVO != null) {
+            if (loginUser != null) {
                 SessionInfo.setLastLogin(request, loginTryLogVO.getLoginTryDttmStr());
             }
 
@@ -2405,34 +2333,14 @@ public class DashboardController extends ControllerBase {
      * @throws Exception *********************************
      */
     @RequestMapping(value = "/dashboard.do")
-    public String dashboard(@CurrentUser UserContext userCtx, HttpServletRequest request, ModelMap model) throws Exception {   
-    //public String dashboard(HttpServletRequest request, ModelMap model) throws Exception {   
-    
-    	DashboardViewModel dashVM = new DashboardViewModel();
-    	try {
-    	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>/dashboard/dashboard.do진입");
-    	//UserContext 	userCtx = (UserContext) SessionInfo.getUserContext(request);
+    public String dashboard(@CurrentUser UserContext userCtx, HttpServletRequest request, ModelMap model) throws Exception { 
     	
-    	//log.info(SessionInfo.getUserContext(request).toString());
-    	
-    	//log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>" + (SessionInfo.getUserContext(request) == null) );
-    	
-    	//if ( null == userCtx ) {
-    	//	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>userCtx is null");
-    	//    return "redirect:/";
-    	//}
-
     	BaseParam param = new DashboardParam(userCtx.getSelectedUser(), 3);
-
-    	dashVM = dashboardFacadeService.getDashboardResponse(userCtx.getSelectedUser(), param);
+    	
+    	DashboardViewModel dashVM = dashboardFacadeService.getDashboardResponse(userCtx.getSelectedUser(), param);
     	
     	model.addAttribute("dashVM", dashVM);
     	
-    	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>dashVM.getViewName()=" + dashVM.getViewName());
-    	
-    	} catch ( Exception e ) {
-    		e.printStackTrace();
-    	}
     	return dashVM.getViewName();
     }
 
@@ -2579,9 +2487,7 @@ public class DashboardController extends ControllerBase {
      */
     @RequestMapping(value = "/profWidgetSubject.do")
     public String profWidgetSubject(DashboardVO vo, HttpServletRequest request, ModelMap model) throws Exception {
-
     	// TODO 처리 로직 추가
-
     	return "dashboard/widget/prof_widget_subject";
     }
 
@@ -2594,16 +2500,9 @@ public class DashboardController extends ControllerBase {
      * 작업 완료후 새 버전에 맞게 명칭, 메쏘드 등 변경
      */
     @RequestMapping(value = "/stuDashboard.do")
-    public String stuDashboard(HttpServletRequest request, HttpServletResponse response, DashboardVO dashboardVO, ModelMap model) throws Exception {
-
-    	// TODO 학생 대시보드 로직 추가해야....
-    	//    	사용자세션에서 가져오는 UserContext
-    	UserContext userCtx = new UserContext( 	SessionInfo.getOrgId(request),
-    											SessionInfo.getUserId(request),
-    											SessionInfo.getAuthrtCd(request),
-    											SessionInfo.getAuthrtGrpcd(request),
-    											SessionInfo.getUserRprsId(request),
-    											SessionInfo.getLastLogin(request));
+    public String stuDashboard(DashboardVO dashboardVO, @CurrentUser UserContext userCtx,  
+    		HttpServletRequest request, HttpServletResponse response,  ModelMap model) throws Exception {
+    	
     	model.addAttribute("orgId", 		userCtx.getOrgId());
         model.addAttribute("authrtGrpcd", 	userCtx.getAuthrtGrpcd());
         model.addAttribute("userId", 		SessionInfo.getUserId(request));

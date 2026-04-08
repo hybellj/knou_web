@@ -326,11 +326,11 @@
 
     <select id="select" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
         /*
-        SQL ID : UsrUserInfoDAO.select
-        설 명 : 사용자의 정보 조회
+        SQL ID	: UsrUserInfoDAO.select
+        설 	명	: 사용자의 정보 조회
         */
         SELECT	A.*
-        		, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
+        		, ( SELECT  ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
         		, (	SELECT 	MAX(AUTHRT_ID)
         			FROM 	TB_LMS_USER_AUTHRT
         			WHERE 	USER_ID = A.USER_ID) AS ADMIN_AUTH_GRP_CD        			
@@ -341,7 +341,7 @@
 		FROM 	TB_LMS_USER A
         WHERE 	1 = 1
        			AND 	A.USER_ID = #{userId}
-        <!--	SELECT	*
+        <!-- 	SELECT	*
         		, NVL(A.PRFIL_PHOTO_FILE_ID, 0) AS PRFIL_PHOTO_FILE_ID		        
 		        , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM		        
 		        , CASE 	WHEN REGEXP_LIKE(A.USER_GRADE, '[^0-9]')
@@ -679,17 +679,7 @@
              , TKN_EML
         FROM TB_LMS_USR
         WHERE TC_ID = #{tcId} LIMIT 1
-    </select>
-
-    <update id="updateUserConf" parameterType="usrUserInfoVO">
-        /*
-             SQL ID : UsrUserInfoDAO.updateUserConf
-             설  명 : 사용자 환경설정 변경
-         */
-        UPDATE TB_LMS_USR
-        SET USER_STNG = #{userConf}
-        WHERE USER_ID = #{userId}
-    </update>
+    </select>    
 
     <select id="selectUserByDisabilityCancelGbn" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
         /*
@@ -1344,7 +1334,7 @@
     <update id="updateUserOrgRltn" parameterType="usrUserInfoVO">
         /*
              SQL ID : UsrUserInfoDAO.updateUserOrgRltn
-             설  명 : 기관사용자 한사대 사용자 연결 수정
+             설  명 : 기관사용자 사용자 연결 수정
          */
         UPDATE TB_HOME_USER_ORG_RLTN
         SET KNOU_USER_ID = #{knouUserId}
@@ -1357,7 +1347,7 @@
     <select id="selectUserOrgRltnByKnouUser" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
         /*
              SQL ID : UsrUserInfoDAO.selectUserOrgRltnByKnouUser
-             설  명 : 기관사용자 한사대 사용자 연결 조회 (by 한사대계정)
+             설  명 :  기관사용자 사용자 연결 조회
          */
         SELECT A.USER_ID
              , B.USERNM

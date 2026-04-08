@@ -690,7 +690,9 @@
 			<if test="orgId != null and orgId != ''">
 				AND B.ORG_ID = #{orgId}
 			</if>
-
+			<if test="bbsRefTycd != null and bbsRefTycd != ''">
+				AND A.NTC_GBNCD = #{bbsRefTycd}
+			</if>
 			<!-- 여러 게시판ID 목록에서 검색하는 경우 -->
 			<if test="bbsIdList != null">
 				AND A.BBS_ID IN (
@@ -826,7 +828,7 @@
 			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
 			, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = A.DEPT_ID) AS DEPTNM
 			, (SELECT SBJCTNM FROM TB_LMS_SBJCT WHERE SBJCT_ID = A.SBJCT_ID) AS SBJCTNM
-			, C.DVCLAS_NO
+			, (SELECT DVCLAS_NO FROM TB_LMS_SBJCT WHERE SBJCT_ID = A.SBJCT_ID) AS DVCLAS_NO
 			, A.USER_ID
 			, A.UP_ATCL_ID
 			, A.DVCLAS_REG_ATCL_ID
@@ -864,13 +866,12 @@
 			, FN_REF_FILE_CNT(A.ATCL_ID) AS FILE_CNT <!-- 첨부파일수 -->
 		FROM TB_LMS_BBS_ATCL A
 		   JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
-		   JOIN TB_LMS_SBJCT C ON C.SBJCT_ID = B.SBJCT_ID
+		LEFT JOIN TB_LMS_BBS_ATCL_OPTN C ON A.ATCL_ID = D.ATCL_ID
 		LEFT JOIN TB_LMS_BBS_ATCL_OPTN D ON A.ATCL_ID = D.ATCL_ID
 		WHERE 1=1
 			AND A.BBS_ID = #{bbsId}
 			AND A.ATCL_LV = #{atclLv}
 			AND A.DELYN = 'N'
-
 			<if test="sbjctYr != null and sbjctYr != ''">
 				AND	C.SBJCT_YR = #{sbjctYr}
 			</if>
@@ -879,6 +880,9 @@
 			</if>
 			<if test="orgId != null and orgId != ''">
 				AND	B.ORG_ID = #{orgId}
+			</if>
+			<if test="bbsRefTycd != null and bbsRefTycd != ''">
+				AND	A.NTC_GBNCD = #{bbsRefTycd}
 			</if>
 			<if test="deptId != null and deptId != ''">
 				AND	C.DEPT_ID = #{deptId}
@@ -1178,7 +1182,6 @@
 			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTRNM
 		FROM TB_LMS_BBS_ATCL A
 		JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
-		JOIN TB_LMS_SBJCT C ON C.SBJCT_ID = B.SBJCT_ID
 		LEFT JOIN TB_LMS_BBS_ATCL_OPTN D ON A.ATCL_ID = D.ATCL_ID
 		WHERE 1=1
 			AND A.ATCL_ID = #{atclId}
@@ -1230,7 +1233,7 @@
 		        , ATCL_TTL, ATCL_CTS, ATCL_HASH_TAG_CTS, ATCL_LV, ATCL_SEQNO
 		        , FVRT_CNT, INQ_CNT, REF_CMNT_ID, THMB_FILE_ID, PROC_STSCD
 		        , HDR_TYCD, ATHR_ID, DSCSN_PROF_ID, RGTR_ID, REG_DTTM
-		        , MDFR_ID, MOD_DTTM, DELYN, RGTRNM
+		        , MDFR_ID, MOD_DTTM, DELYN, RGTRNM, NTC_GBNCD
 		    ) VALUES (
 		          #{atclId}
 		        , #{bbsId}
@@ -1240,7 +1243,7 @@
 		        , #{atclTtl}
 		        , #{atclCts}
 		        , #{atclHashTagCts}
-		        , NVL((SELECT MAX(NVL(B.ATCL_LV, 0)) + 1 FROM TB_LMS_BBS_ATCL B WHERE B.ATCL_ID = #{upAtclId}), 0)
+		        , 1
 		        , NVL((SELECT MAX(NVL(B.ATCL_SEQNO, 0)) + 1 FROM TB_LMS_BBS_ATCL B WHERE B.BBS_ID = #{bbsId}), 1)
 		        , 0
 		        , 0
@@ -1256,6 +1259,7 @@
 		        , FN_DTTM()
 		        , 'N'
 		        , #{rgtrnm}
+		        , #{bbsRefTycd}
 		    )
 	</insert>
 
@@ -1489,7 +1493,7 @@
 		        , A.RGTRNM      = #{rgtrnm}
 		        , A.DVCLAS_NO   = #{dvclasNo}
 		        , A.OYN         = #{oyn}
-		        , A.NTC_GBNCD   = #{ntcGbncd}
+		        , A.NTC_GBNCD   = #{bbsRefTycd}
 		        , A.RSRVYN      = #{rsrvyn}
 		        , A.RSRV_SDTTM  = #{rsrvSdttm}
 		        , A.RSRV_EDTTM  = #{rsrvEdttm}
@@ -1548,7 +1552,7 @@
 		        , #{rsrvSdttm}
 		        , #{rsrvEdttm}
 		        , #{oyn}
-		        , #{ntcGbncd}
+		        , #{bbsRefTycd}
 		        , #{autoAlimyn}
 		        , #{autoAlimSdttm}
 		        , #{autoAlimEdttm}

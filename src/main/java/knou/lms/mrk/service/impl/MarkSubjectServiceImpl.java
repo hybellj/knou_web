@@ -246,10 +246,10 @@ public class MarkSubjectServiceImpl extends ServiceBase implements MarkSubjectSe
             // 최종점수 계산
             mrkSbjctVO.setLstScr(totScore + adtnScore);
 
-            // 성적과목(상세) Insert
-            markSubjectDAO.mrkSbjctBatchInsert(mrkSbjctList);
-            markSubjectDAO.mrkSbjctDtlBatchInsert(allDetails);
         }
+        // 성적과목(상세) Insert
+        markSubjectDAO.mrkSbjctBatchInsert(mrkSbjctList);
+        markSubjectDAO.mrkSbjctDtlBatchInsert(allDetails);
 
     }
 
@@ -268,7 +268,7 @@ public class MarkSubjectServiceImpl extends ServiceBase implements MarkSubjectSe
         for (EgovMap attdSummaryMap : attdSummaryMapList) {
 
             EgovMap stdAttdScrMap = new EgovMap();
-            stdAttdScrMap.put("rgtrId", attdSummaryMap.get("rgtrId"));
+            stdAttdScrMap.put("userId", attdSummaryMap.get("userId"));
 
             double score = 0; // 출석점수
 
@@ -564,9 +564,9 @@ public class MarkSubjectServiceImpl extends ServiceBase implements MarkSubjectSe
 
         for (EgovMap scoreInfo : scoreList) {
             MarkSubjectDetailVO mrkDtlVO = new MarkSubjectDetailVO();
-            mrkDtlVO.setMrkSbjctId(stdToMrkSbjctIdMap.get((String) scoreInfo.get("rgtrId")));
+            mrkDtlVO.setMrkSbjctId(stdToMrkSbjctIdMap.get((String) scoreInfo.get("userId")));
             mrkDtlVO.setMrkSbjctDtlId(IdGenUtil.genNewId(IdPrefixType.MRSBD));
-            mrkDtlVO.setUserId((String) scoreInfo.get("rgtrId"));
+            mrkDtlVO.setUserId((String) scoreInfo.get("userId"));
             mrkDtlVO.setMrkItmTycd(mrkItmTycd);
             mrkDtlVO.setScr(((Number) scoreInfo.get("finalScore")).doubleValue());
             mrkDtlVO.setRgtrId(rgtrId);
@@ -580,7 +580,7 @@ public class MarkSubjectServiceImpl extends ServiceBase implements MarkSubjectSe
 
     /**
      * 가산점 리스트를 맵형태로 변환한다.
-     * List<EgovMap> -> Map<String, Double> (key:rgtrId, value:adtnScr)
+     * List<EgovMap> -> Map<String, Double> (key:userId, value:adtnScr)
      * @param adtnScoreList
      * @return
      */
@@ -590,7 +590,7 @@ public class MarkSubjectServiceImpl extends ServiceBase implements MarkSubjectSe
         if (adtnScoreList.isEmpty()) return resultMap;
 
         for (EgovMap stdAdtnScr : adtnScoreList) {
-            String userId = (String) stdAdtnScr.get("rgtrId");
+            String userId = (String) stdAdtnScr.get("userId");
             double adtnScr = ((Number) stdAdtnScr.get("objctAplyScr")).doubleValue();
             resultMap.put(userId, adtnScr);
         }

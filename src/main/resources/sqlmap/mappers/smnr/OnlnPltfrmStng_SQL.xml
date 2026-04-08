@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.smnr.pltfrm.dao.OnlnPltfrmStngDAO">
+
+	<insert id="onlnPltfrmStngRegist" parameterType="onlnPltfrmStngVO">
+		/*
+             SQL ID : OnlnPltfrmStngDAO.onlnPltfrmStngRegist
+             설  명 : 온라인플랫폼설정등록
+         */
+         INSERT INTO TB_LMS_ONLN_PLTFRM_STNG (
+	     	  ONLN_PLTFRM_STNG_ID
+			, PLTFRM_GBNCD
+			, ORG_ID
+			, PLTFRM_CNTN_ID
+			, PLTFRM_CNTN_CLIENT_ID
+			, PLTFRM_CNTN_CLIENT_PSWD
+			, RGTR_ID
+			, REG_DTTM
+	     ) VALUES (
+	     	  #{onlnPltfrmStngId}
+			, #{pltfrmGbncd}
+			, #{orgId}
+			, #{pltfrmCntnId}
+			, #{pltfrmCntnClientId}
+			, #{pltfrmCntnClientPswd}
+			, #{rgtrId}
+			, FN_DTTM()
+	     )
+	</insert>
+
+	<update id="onlnPltfrmStngModify" parameterType="onlnPltfrmStngVO">
+		/*
+             SQL ID : OnlnPltfrmStngDAO.onlnPltfrmStngModify
+             설  명 : 온라인플랫폼설정수정
+         */
+        UPDATE TB_LMS_ONLN_PLTFRM_STGN SET
+        	  MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+			, PLTFRM_CNTN_ID = #{pltfrmCntnId}
+			, PLTFRM_CNTN_CLIENT_ID = #{pltfrmCntnClientId}
+			, PLTFRM_CNTN_CLIENT_PSWD = #{pltfrmCntnClientPswd}
+		 WHERE ONLN_PLTFRM_STNG_ID = #{onlnPltfrmStngId}
+		   AND PLTFRM_GBNCD = #{pltfrmGbncd}
+		   AND ORG_ID = #{orgId}
+	</update>
+
+	<delete id="onlnPltfrmStngDelete" parameterType="onlnPltfrmStngVO">
+		/*
+             SQL ID : OnlnPltfrmStngDAO.onlnPltfrmStngDelete
+             설  명 : 온라인플랫폼설정삭제
+         */
+        DELETE FROM TB_LMS_ONLN_PLTFRM_STNG
+         WHERE ONLN_PLTFRM_STNG_ID = #{onlnPltfrmStngId}
+           AND PLTFRM_GBNCD = #{pltfrmGbncd}
+           AND ORG_ID = #{orgId}
+	</delete>
+
+	<select id="onlnPltfrmStngSelect" parameterType="String" resultType="onlnPltfrmStngVO">
+		/*
+             SQL ID : OnlnPltfrmStngDAO.onlnPltfrmStngSelect
+             설  명 : 온라인플랫폼설정조회
+         */
+        SELECT
+        	*
+          FROM TB_LMS_ONLN_PLTFRM_STNG
+         WHERE PLTFRM_GBNCD = #{pltfrmGbncd}
+           AND ORG_ID = #{orgId}
+	</select>
+
+</mapper>

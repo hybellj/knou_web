@@ -16,7 +16,7 @@
         text-align: center !important;
     }
 </style>
-<body class="home colorA "  style=""><!-- 컬러선택시 클래스변경 -->
+<body class="home colorA  ${bodyClass}"  style=""><!-- 컬러선택시 클래스변경 -->
     <script type="text/javascript">
         let SEARCH_OBJ;
         let ratioArr = [];
@@ -284,7 +284,7 @@
                 type: "POST",
                 success: function (data) {
                     if (data.result > 0) {
-                        listStdMrk({"sbjctId": param});
+                        listStdMrk(param);
                     }else {
                         UiComm.showMessage(data.message, "error");
                         setAutoSave("OFF");
@@ -337,12 +337,12 @@
     </script>
 
     <div id="wrap" class="main">
-
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
         <!-- //common header -->
 
         <main class="common">
+
             <!-- gnb -->
             <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
             <!-- //gnb -->
@@ -351,21 +351,17 @@
             <div id="content" class="content-wrap common">
                 <div class="dashboard_sub">
 
-                    <!-- page_tab -->
-                    <jsp:include page="/WEB-INF/jsp/common_new/home_page_tab.jsp"/>
-                    <!-- //page_tab -->
                     <div class="sub-content">
-
                         <div class="page-info">
                             <%--타이틀--%>
                             <h2 class="page-title">성적관리</h2><!-- 종합성적 -->
-                            <%--네비게이션바--%>
-                            <div class="navi_bar">
+                            <uiex:navibar type="main"/> <%-- 네비게이션바 --%>
+                            <%--<div class="navi_bar">
                                 <ul>
                                     <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
                                     <li><span class="current">성적관리</span></li>
                                 </ul>
-                            </div>
+                            </div>--%>
                         </div>
 
                         <div class="board_top">
