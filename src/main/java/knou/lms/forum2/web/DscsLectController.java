@@ -1224,7 +1224,7 @@ public class DscsLectController extends ControllerBase {
         int fdbkSize = dscsFdbkList.size();
 
         request.setAttribute("fdbkSize", fdbkSize);
-        request.setAttribute("forumFdbkList", dscsFdbkList);
+        request.setAttribute("dscsFdbkList", dscsFdbkList);
         request.setAttribute("dscsVO", dscsVO);
 
         return "forum2/lect/forum_score_eval_feedBack";
@@ -1685,7 +1685,7 @@ public class DscsLectController extends ControllerBase {
         dscsJoinUserVO.setListScale(1000);
         dscsJoinUserVO.setDscsUnitTycd(dscsVO.getDscsUnitTycd());
         ProcessResultVO<DscsJoinUserVO> resultList = dscsJoinUserService.listPaging(dscsJoinUserVO, dscsVO.getByteamDscsUseyn());
-        request.setAttribute("forumJoinUserList", resultList.getReturnList());
+        request.setAttribute("dscsJoinUserList", resultList.getReturnList());
         request.setAttribute("pageInfo", resultList.getPageInfo());
 
         HashMap<String, Object> map = new HashMap<String, Object>();
@@ -1723,7 +1723,7 @@ public class DscsLectController extends ControllerBase {
         dscsJoinUserVO.setRgtrId(userId);
         dscsJoinUserVO.setMdfrId(userId);
 
-        String forumCtgrCd = StringUtil.nvl(request.getParameter("dscsUnitTycd"), request.getParameter("forumCtgrCd"));
+        String dscsUnitTycd = StringUtil.nvl(request.getParameter("dscsUnitTycd"), request.getParameter("forumCtgrCd"));
 
         ProcessResultVO<DscsJoinUserVO> resultVO = new ProcessResultVO<>();
         try {
@@ -1765,7 +1765,7 @@ public class DscsLectController extends ControllerBase {
             ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
             List<?> list = excelUtilPoi.simpleReadGrid(map);
 
-            dscsJoinUserService.updateExampleExcelScore(dscsJoinUserVO, list, forumCtgrCd);
+            dscsJoinUserService.updateExampleExcelScore(dscsJoinUserVO, list, dscsUnitTycd);
 
             resultVO.setResult(1);
         } catch (MediopiaDefineException e) {
@@ -1802,7 +1802,7 @@ public class DscsLectController extends ControllerBase {
         dscsJoinUserVO.setListScale(1000);
 
         ProcessResultVO<DscsJoinUserVO> resultList = dscsJoinUserService.listPaging(dscsJoinUserVO, dscsVO.getByteamDscsUseyn());
-        request.setAttribute("forumJoinUserList", resultList.getReturnList());
+        request.setAttribute("dscsJoinUserList", resultList.getReturnList());
         request.setAttribute("pageInfo", resultList.getPageInfo());
 
         HashMap<String, Object> map = new HashMap<String, Object>();

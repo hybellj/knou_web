@@ -302,14 +302,14 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
 
     // 엑셀 성적등록 엑셀 업로드
     @Override
-    public void updateExampleExcelScore(DscsJoinUserVO vo, List<?> stdNoList, String forumCtgrCd) throws Exception {
+    public void updateExampleExcelScore(DscsJoinUserVO vo, List<?> stdNoList, String dscsUnitTycd) throws Exception {
         if(stdNoList != null) {
             for (int i = 0; i < stdNoList.size(); i++) {
                 Map<String, Object> stdNoMap = (Map<String, Object>)stdNoList.get(i);
                 
                 String userId = "";
                 double score;
-                if("TEAM".equals(forumCtgrCd)) {
+                if("TEAM".equals(dscsUnitTycd)) {
                     userId = StringUtil.nvl((String) stdNoMap.get("C"));
                     score = Math.round(Math.floor(Double.parseDouble(StringUtil.nvl((String) stdNoMap.get("F"),"0"))));
                 } else {
