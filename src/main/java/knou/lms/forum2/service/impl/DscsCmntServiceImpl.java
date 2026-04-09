@@ -16,7 +16,7 @@ import knou.lms.forum2.vo.DscsCmntVO;
 public class DscsCmntServiceImpl extends ServiceBase implements DscsCmntService {
 
     @Resource(name="dscsCmntDAO")
-    private DscsCmntDAO         forumCmntDAO;
+    private DscsCmntDAO         dscsCmntDAO;
 
     // 토론 댓글 등록
     @Override
@@ -24,7 +24,7 @@ public class DscsCmntServiceImpl extends ServiceBase implements DscsCmntService 
         // 내용길이 저장
         vo.setCmntCtsLen(StringUtil.getContentLenth(vo.getCmntCts()));
     	
-    	forumCmntDAO.insertCmnt(vo);
+    	dscsCmntDAO.insertCmnt(vo);
     }
 
     // 토론방 댓글 수정
@@ -33,25 +33,25 @@ public class DscsCmntServiceImpl extends ServiceBase implements DscsCmntService 
         // 내용길이 저장
         vo.setCmntCtsLen(StringUtil.getContentLenth(vo.getCmntCts()));
         
-        forumCmntDAO.updateCmnt(vo);
+        dscsCmntDAO.updateCmnt(vo);
     }
 
     // 토론방 댓글 삭제
     @Override
     public void deleteCmnt(DscsCmntVO vo) throws Exception {
-        forumCmntDAO.deleteCmnt(vo);
+        dscsCmntDAO.deleteCmnt(vo);
     }
 
     // 토론방 댓글 숨김
     @Override
     public void hideCmnt(DscsCmntVO vo) throws Exception {
-        forumCmntDAO.hideCmnt(vo);
+        dscsCmntDAO.hideCmnt(vo);
     }
 
     // 토론 댓글 조회
     @Override
-    public DscsCmntVO forumCmntSelect(DscsCmntVO vo) throws Exception {
-        return forumCmntDAO.forumCmntSelect(vo);
+    public DscsCmntVO selectCmnt(DscsCmntVO vo) throws Exception {
+        return dscsCmntDAO.selectCmnt(vo);
     }
 
 }

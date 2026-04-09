@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.forum2.dao.DscsAtclDAO">
 
-    <select id="forumAtclCount" parameterType="knou.lms.forum2.vo.DscsAtclVO" resultType="Integer">
+    <select id="countAtcl" parameterType="knou.lms.forum2.vo.DscsAtclVO" resultType="Integer">
         SELECT COUNT(*)
         FROM TB_LMS_DSCS_ATCL
         WHERE DSCS_ID = #{dscsId}
@@ -230,7 +230,7 @@
           AND DSCS_ID = #{dscsId}
     </update>
 
-    <select id="forumAtclList" parameterType="knou.lms.forum2.vo.DscsAtclVO" resultType="knou.lms.forum2.vo.DscsAtclVO">
+    <select id="listAtcl" parameterType="knou.lms.forum2.vo.DscsAtclVO" resultType="knou.lms.forum2.vo.DscsAtclVO">
         SELECT
               DSCS_ATCL_ID
             , DSCS_ID
@@ -263,7 +263,7 @@
         ORDER BY A.ATCL_SEQNO ASC, A.REG_DTTM DESC
     </select>
 
-    <select id="forumAtclExcalList" parameterType="knou.lms.forum2.vo.DscsAtclVO" resultType="knou.lms.forum2.vo.DscsAtclVO">
+    <select id="listAtclExcel" parameterType="knou.lms.forum2.vo.DscsAtclVO" resultType="knou.lms.forum2.vo.DscsAtclVO">
         SELECT
             ROW_NUMBER() OVER (ORDER BY B.REG_DTTM DESC) AS LINE_NO,
             A.DSCS_ID,

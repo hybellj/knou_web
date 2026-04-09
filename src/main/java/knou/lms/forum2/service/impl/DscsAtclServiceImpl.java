@@ -34,10 +34,10 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
     private static final Logger LOGGER = LoggerFactory.getLogger(DscsAtclServiceImpl.class);
 
     @Resource(name = "dscsAtclDAO")
-    private DscsAtclDAO forumAtclDAO;
+    private DscsAtclDAO dscsAtclDAO;
 
     @Resource(name = "dscsCmntDAO")
-    private DscsCmntDAO forumCmntDAO;
+    private DscsCmntDAO dscsCmntDAO;
 
     @Resource(name = "dscsJoinUserDAO")
     private DscsJoinUserDAO dscsJoinUserDAO;
@@ -47,8 +47,8 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
 
     // 토론 게시글 수 카운팅
     @Override
-    public int forumAtclCount(DscsAtclVO vo) throws Exception {
-        return forumAtclDAO.forumAtclCount(vo);
+    public int countAtcl(DscsAtclVO vo) throws Exception {
+        return dscsAtclDAO.countAtcl(vo);
     }
 
     // 토론 게시글 페이징 목록 조회
@@ -72,24 +72,24 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
                 }
                 vo.setSqlForeach(stdArray);
             }
-            int totalCount = forumAtclDAO.count(vo);
+            int totalCount = dscsAtclDAO.count(vo);
             paginationInfo.setTotalRecordCount(totalCount);
 
-            List<DscsAtclVO> forumAtclList = forumAtclDAO.listPageing(vo);
-            if (forumAtclList != null) {
-                for (DscsAtclVO row : forumAtclList) {
+            List<DscsAtclVO> dscsAtclList = dscsAtclDAO.listPageing(vo);
+            if (dscsAtclList != null) {
+                for (DscsAtclVO row : dscsAtclList) {
                     AtflVO atflParam = new AtflVO();
                     atflParam.setAtflRepoId(CommConst.REPO_DSCS);
                     atflParam.setRefId(row.getAtclSn());
                     row.setFileList(attachFileService.selectAtflListByRefId(atflParam));
                     row.setViewAll(vo.isViewAll());
-                    List<DscsCmntVO> cmntList = forumCmntDAO.cmntList(row);
+                    List<DscsCmntVO> cmntList = dscsCmntDAO.cmntList(row);
                     row.setCmntList(cmntList);
                 }
             }
 
             resultList.setResult(1);
-            resultList.setReturnList(forumAtclList);
+            resultList.setReturnList(dscsAtclList);
             resultList.setPageInfo(paginationInfo);
         } catch (Exception e) {
             resultList.setResult(-1);
@@ -104,7 +104,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
         // 내용길이 저장
         vo.setCtsLen(StringUtil.getContentLenth(vo.getCts()));
 
-        forumAtclDAO.insertAtcl(vo);
+        dscsAtclDAO.insertAtcl(vo);
 
         // 토론참여자 테이블 등록 (게시글 작성 시 단건)
         // DscsJoinUserVO.stdId = TB_LMS_DSCS_PTCP.USER_ID = 로그인 userId (listStdScore SQL: A.USER_ID AS stdId)
@@ -139,7 +139,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
     // 토론 게시글 조회
     @Override
     public DscsAtclVO selectAtcl(DscsAtclVO vo) throws Exception {
-        return forumAtclDAO.selectAtcl(vo);
+        return dscsAtclDAO.selectAtcl(vo);
     }
 
     // 토론 게시글 수정
@@ -148,7 +148,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
         // 내용길이 저장
         vo.setCtsLen(StringUtil.getContentLenth(vo.getCts()));
 
-        forumAtclDAO.updateAtcl(vo);
+        dscsAtclDAO.updateAtcl(vo);
 
 	// TODO : 26.3.10(AS-IS Ref)
 	/*
@@ -178,39 +178,39 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
     // 토론 게시글 삭제
     @Override
     public void deleteAtcl(DscsAtclVO vo) throws Exception {
-        forumAtclDAO.deleteAtcl(vo);
+        dscsAtclDAO.deleteAtcl(vo);
 
 	// TODO : 26.3.10(AS-IS Ref)
 	/*
         // 파일 처리 로직 수정. 다중파일을 위한 List 처리
 //      this.saveFiles(vo);
         
-        DscsVO forumVO = new DscsVO();
-        forumVO.setDscsId(vo.getDscsId());
-        forumVO = forumDAO.selectDscs(forumVO);
-        if("R".equals(StringUtil.nvl(forumVO.getEvalCtgr()))) {
-            DscsAtclVO forumAtclVO = forumAtclDAO.selectAtcl(vo);
+        DscsVO dscsVO = new DscsVO();
+        dscsVO.setDscsId(vo.getDscsId());
+        dscsVO = dscsDAO.selectDscs(dscsVO);
+        if("R".equals(StringUtil.nvl(dscsVO.getEvalCtgr()))) {
+            DscsAtclVO dscsAtclVO = dscsAtclDAO.selectAtcl(vo);
             
-            String rgtrId = forumAtclVO.getRgtrId();
+            String rgtrId = dscsAtclVO.getRgtrId();
             
             StdVO svo = new StdVO();
             svo.setUserId(rgtrId);
-            svo.setCrsCreCd(forumVO.getSbjctId());
+            svo.setCrsCreCd(dscsVO.getSbjctId());
             svo = stdDAO.selectStd(svo);
             
             if(svo != null) {
-                forumAtclVO = new DscsAtclVO();
-                forumAtclVO.setSbjctId(svo.getCrsCreCd());
-                forumAtclVO.setDscsId(vo.getDscsId());
-                forumAtclVO.setUserId(rgtrId);
-                int atclCnt = forumAtclDAO.myAtclCnt(forumAtclVO);
+                dscsAtclVO = new DscsAtclVO();
+                dscsAtclVO.setSbjctId(svo.getCrsCreCd());
+                dscsAtclVO.setDscsId(vo.getDscsId());
+                dscsAtclVO.setUserId(rgtrId);
+                int atclCnt = dscsAtclDAO.myAtclCnt(dscsAtclVO);
                 
                 if(atclCnt == 0) {
-                    DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-                    forumJoinUserVO.setDscsId(vo.getDscsId());
-                    forumJoinUserVO.setStdId(svo.getStdId());
-                    forumJoinUserVO.setMdfrId(vo.getMdfrId());
-                    dscsJoinUserDAO.updateJoinUserEvalN(forumJoinUserVO);
+                    DscsJoinUserVO dscsJoinUserVO = new DscsJoinUserVO();
+                    dscsJoinUserVO.setDscsId(vo.getDscsId());
+                    dscsJoinUserVO.setStdId(svo.getStdId());
+                    dscsJoinUserVO.setMdfrId(vo.getMdfrId());
+                    dscsJoinUserDAO.updateJoinUserEvalN(dscsJoinUserVO);
                 }
             }
         }
@@ -220,37 +220,37 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
     // 토론 게시글 숨김
     @Override
     public void hideAtcl(DscsAtclVO vo) throws Exception {
-        forumAtclDAO.hideAtcl(vo);
+        dscsAtclDAO.hideAtcl(vo);
     }
 
     // 나의 상호평가 결과
   /*  @Override
     public DscsAtclVO selectMutResult(DscsAtclVO vo) throws Exception {
-        return forumAtclDAO.selectMutResult(vo);
+        return dscsAtclDAO.selectMutResult(vo);
     }*/
 
     // 특정 수강생의 토론 게시글 조회
 /*    @Override
     public List<DscsAtclVO> selectAtclUserList(DscsMutVO vo) throws Exception {
-        return forumAtclDAO.selectAtclUserList(vo);
+        return dscsAtclDAO.selectAtclUserList(vo);
     }*/
 
     // 토론 게시글 조회
     @Override
-    public List<DscsAtclVO> forumAtclList(DscsAtclVO vo) throws Exception {
-        return forumAtclDAO.forumAtclList(vo);
+    public List<DscsAtclVO> listAtcl(DscsAtclVO vo) throws Exception {
+        return dscsAtclDAO.listAtcl(vo);
     }
 
     // 본인의 토론글 등록 갯수
     @Override
     public int myAtclCnt(DscsAtclVO vo) throws Exception {
-        return forumAtclDAO.myAtclCnt(vo);
+        return dscsAtclDAO.myAtclCnt(vo);
     }
 
     // 토론 게시글 엑셀목록 조회
     @Override
-    public List<DscsAtclVO> forumAtclExcalList(DscsAtclVO vo) throws Exception {
-        return forumAtclDAO.forumAtclExcalList(vo);
+    public List<DscsAtclVO> listAtclExcel(DscsAtclVO vo) throws Exception {
+        return dscsAtclDAO.listAtclExcel(vo);
     }
 
 	// TODO : 26.3.10(AS-IS Ref)

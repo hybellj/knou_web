@@ -466,17 +466,17 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
         vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
         vo.setLastIndex(paginationInfo.getLastRecordIndex());
 
-        List<DscsVO> forumList = dscsDAO.selectProfSbjctDscsList(vo);
+        List<DscsVO> dscsList = dscsDAO.selectProfSbjctDscsList(vo);
 
-        if(forumList.size() > 0) {
-            paginationInfo.setTotalRecordCount(forumList.get(0).getTotalCnt());
+        if(dscsList.size() > 0) {
+            paginationInfo.setTotalRecordCount(dscsList.get(0).getTotalCnt());
         } else {
             paginationInfo.setTotalRecordCount(0);
         }
 
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
-        resultVO.setReturnList(forumList);
+        resultVO.setReturnList(dscsList);
         resultVO.setPageInfo(paginationInfo);
 
         return resultVO;
@@ -578,8 +578,8 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
 
     // 성적반영비율 초기화
     @Override
-    public void setScoreRatio(DscsVO vo) throws Exception {
-        List<DscsVO> scoreAplyList = dscsDAO.getScoreRatio(vo);
+    public void setScoreRatio(DscsVO dscsVO) throws Exception {
+        List<DscsVO> scoreAplyList = dscsDAO.getScoreRatio(dscsVO);
 
         if( scoreAplyList != null && !scoreAplyList.isEmpty() && scoreAplyList.size() > 0) {
             int scoreAplyCnt = scoreAplyList.size();
@@ -587,15 +587,15 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
             int rest = 100 % scoreAplyCnt;
             int cnt = 0;
             Integer scoreRatio = 0;
-            for(DscsVO forumVO : scoreAplyList) {
+            for(DscsVO dscsScoreVO : scoreAplyList) {
                 if(cnt == 0) {
                     scoreRatio = share + rest;
                 } else {
                     scoreRatio = share;
                 }
-                vo.setMrkRfltrt(scoreRatio);
-                vo.setDscsId(forumVO.getDscsId());
-                dscsDAO.setScoreRatio(vo);
+                dscsVO.setMrkRfltrt(scoreRatio);
+                dscsVO.setDscsId(dscsScoreVO.getDscsId());
+                dscsDAO.setScoreRatio(dscsVO);
                 cnt++;
             }
         }

@@ -10,7 +10,7 @@ import knou.lms.forum2.vo.DscsMutVO;
 @Mapper("dscsAtclDAO")
 public interface DscsAtclDAO {
 
-    public int forumAtclCount(DscsAtclVO vo) throws Exception;
+    public int countAtcl(DscsAtclVO vo) throws Exception;
     public int count(DscsAtclVO vo) throws Exception;
     public List<DscsAtclVO> listPageing(DscsAtclVO vo) throws Exception;
     public void insertAtcl(DscsAtclVO vo) throws Exception;
@@ -21,8 +21,8 @@ public interface DscsAtclDAO {
 //    public DscsAtclVO selectMutResult(DscsAtclVO vo) throws Exception;
 /*
     public List<DscsAtclVO> selectAtclUserList(DscsMutVO vo) throws Exception;*/
-    public List<DscsAtclVO> forumAtclList(DscsAtclVO vo) throws Exception;
+    public List<DscsAtclVO> listAtcl(DscsAtclVO vo) throws Exception;
 	public int myAtclCnt(DscsAtclVO vo) throws Exception;
-    public List<DscsAtclVO> forumAtclExcalList(DscsAtclVO vo) throws Exception;
+    public List<DscsAtclVO> listAtclExcel(DscsAtclVO vo) throws Exception;
 
 }

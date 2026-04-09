@@ -549,7 +549,7 @@ public class DscsLectController extends ControllerBase {
         model.addAttribute("fileList", fileList.getReturnList());
         model.addAttribute("atclSn", atclSn);
         model.addAttribute("dscsVO", dscsVO);
-        model.addAttribute("forumAtclVO", dscsAtclVO);
+        model.addAttribute("dscsAtclVO", dscsAtclVO);
         model.addAttribute("userId", StringUtil.nvl(SessionInfo.getUserId(request)));
         model.addAttribute("userName", StringUtil.nvl(SessionInfo.getUserNm(request)));
         return "forum2/lect/forum_bbs_view_write";
@@ -1185,7 +1185,7 @@ public class DscsLectController extends ControllerBase {
 
         ProcessResultVO<DscsAtclVO> resultList = dscsAtclService.listPageing(dscsAtclVO);
 
-        request.setAttribute("forumAtclList", resultList.getReturnList());
+        request.setAttribute("dscsAtclList", resultList.getReturnList());
         request.setAttribute("pageInfo", resultList.getPageInfo());
         request.setAttribute("dscsVO", dscsVO);
         request.setAttribute("konanCopyScoreUrl", CommConst.KONAN_COPY_SCORE_URL);

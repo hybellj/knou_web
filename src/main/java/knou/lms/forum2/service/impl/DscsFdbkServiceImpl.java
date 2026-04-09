@@ -23,10 +23,10 @@ import java.util.List;
 public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService {
 
     @Resource(name="dscsFdbkDAO")
-    private DscsFdbkDAO forumFdbkDAO;
+    private DscsFdbkDAO dscsFdbkDAO;
 
     @Resource(name="dscsJoinUserDAO")
-    private DscsJoinUserDAO forumJoinUserDAO;
+    private DscsJoinUserDAO dscsJoinUserDAO;
 
     @Resource(name="attachFileService")
     private AttachFileService attachFileService;
@@ -43,7 +43,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
      ******************************************************/
     @Override
     public List<EgovMap> dscsFdbkList(DscsFdbkVO vo) throws Exception {
-        return forumFdbkDAO.dscsFdbkList(vo);
+        return dscsFdbkDAO.dscsFdbkList(vo);
     }
 
     /*****************************************************
@@ -58,7 +58,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
      ******************************************************/
     @Override
     public void insertDscsFdbk(DscsFdbkVO vo) throws Exception {
-        forumFdbkDAO.insertDscsFdbk(vo);
+        dscsFdbkDAO.insertDscsFdbk(vo);
     }
 
     /*****************************************************
@@ -73,7 +73,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
      ******************************************************/
     @Override
     public void updateDscsFdbk(DscsFdbkVO vo) throws Exception {
-        forumFdbkDAO.updateDscsFdbk(vo);
+        dscsFdbkDAO.updateDscsFdbk(vo);
     }
 
     /*****************************************************
@@ -88,13 +88,13 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
      ******************************************************/
     @Override
     public void deleteDscsFdbk(DscsFdbkVO vo) throws Exception {
-        forumFdbkDAO.deleteDscsFdbk(vo);
+        dscsFdbkDAO.deleteDscsFdbk(vo);
     }
 
     // 일괄 피드백 등록
     @Override
     public void insertDscsAllFdbk(DscsFdbkVO vo) throws Exception {
-        forumFdbkDAO.insertDscsAllFdbk(vo);
+        dscsFdbkDAO.insertDscsAllFdbk(vo);
     }
 
     // 피드백 저장
@@ -112,18 +112,18 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
 
                     /*
                     // 토론 참여자(tb_lms_forum_join_user) 테이블에 등록
-                    DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-                    forumJoinUserVO.setScore(null);
-                    forumJoinUserVO.setDscsId(vo.getDscsId());
-                    forumJoinUserVO.setTeamId(vo.getTeamId());
-                    forumJoinUserVO.setStdId(stdArr[i]);
-                    forumJoinUserVO.setRgtrId(vo.getUserId());
-                    forumJoinUserVO.setMdfrId(vo.getUserId());
-                    forumJoinUserDAO.insertStdScore(forumJoinUserVO);
+                    DscsJoinUserVO dscsJoinUserVO = new DscsJoinUserVO();
+                    dscsJoinUserVO.setScore(null);
+                    dscsJoinUserVO.setDscsId(vo.getDscsId());
+                    dscsJoinUserVO.setTeamId(vo.getTeamId());
+                    dscsJoinUserVO.setStdId(stdArr[i]);
+                    dscsJoinUserVO.setRgtrId(vo.getUserId());
+                    dscsJoinUserVO.setMdfrId(vo.getUserId());
+                    dscsJoinUserDAO.insertStdScore(dscsJoinUserVO);
                     */
 
                     // 토론 피드백(tb_lms_forum_fdbk) 테이블에 등록
-                    forumFdbkDAO.insertFdbk(vo);
+                    dscsFdbkDAO.insertFdbk(vo);
 
                     // 파일 저장
                     List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
@@ -150,10 +150,10 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
     // 피드백 조회
     @Override
     public List<DscsFdbkVO> selectFdbk(DscsFdbkVO vo) throws Exception {
-        List<DscsFdbkVO> forumFdbkList = forumFdbkDAO.selectFdbk(vo);
+        List<DscsFdbkVO> dscsFdbkList = dscsFdbkDAO.selectFdbk(vo);
 
-        if(forumFdbkList != null) {
-            for(DscsFdbkVO vo1 : forumFdbkList) {
+        if(dscsFdbkList != null) {
+            for(DscsFdbkVO vo1 : dscsFdbkList) {
                 AtflVO atflParam = new AtflVO();
                 atflParam.setAtflRepoId(CommConst.REPO_DSCS);
                 atflParam.setRefId(vo1.getDscsFdbkId());
@@ -162,7 +162,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
             }
         }
 
-        return forumFdbkList;
+        return dscsFdbkList;
     }
 
     // 피드백 수정
@@ -171,7 +171,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
         ProcessResultVO<DscsFdbkVO> resultVO = new ProcessResultVO<DscsFdbkVO>();
 
         try {
-            forumFdbkDAO.updateFdbk(vo);
+            dscsFdbkDAO.updateFdbk(vo);
 
             // 파일 저장
             List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
@@ -200,7 +200,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
         ProcessResultVO<DscsFdbkVO> resultVO = new ProcessResultVO<DscsFdbkVO>();
 
         try {
-            forumFdbkDAO.deleteFdbk(vo);
+            dscsFdbkDAO.deleteFdbk(vo);
 
             resultVO.setResult(1);
         } catch (Exception e) {
@@ -214,7 +214,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
     // 피드백 갯수
     @Override
     public int cntFdbk(DscsFdbkVO vo) throws Exception {
-        return forumFdbkDAO.cntFdbk(vo);
+        return dscsFdbkDAO.cntFdbk(vo);
     }
 
 }

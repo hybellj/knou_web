@@ -20,7 +20,7 @@ public interface DscsService {
     ProcessResultVO<DscsVO> copyDscs(DscsVO vo) throws Exception;
     ProcessResultVO<DscsTeamDscsVO> modifyTeamDscsOyn(DscsTeamDscsVO vo) throws Exception;
     ProcessResultVO<DscsTeamDscsVO> selectDscsLrnGrpTeamList(DscsTeamDscsVO vo) throws Exception;
-    void setScoreRatio(DscsVO forumVO) throws Exception;
+    void setScoreRatio(DscsVO dscsVO) throws Exception;
     EgovMap viewScoreChart(DscsVO vo) throws Exception;
     List<EgovMap> selectProfSmstrChrtList(DscsVO vo) throws Exception;
     List<EgovMap> selectProfSmstrChrtSbjctList(DscsVO vo) throws Exception;

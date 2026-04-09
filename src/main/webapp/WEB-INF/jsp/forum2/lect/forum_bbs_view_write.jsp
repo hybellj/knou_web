@@ -132,7 +132,7 @@ function addActl(){
 				<input type="hidden" name="uploadFiles" id="uploadFiles" value="">
 				<input type="hidden" name="delFileIdStr" id="delFileIdStr" value="">
 				<input type="hidden" name="oknokGbncd" id = "oknokGbncd" value="F"/>
-				<input type="hidden" name="atclStatus" id = "atclStatus" value="${empty forumAtclVO.dscsAtclId ? 'A' : 'E'}"/>
+				<input type="hidden" name="atclStatus" id = "atclStatus" value="${empty dscsAtclVO.dscsAtclId ? 'A' : 'E'}"/>
 				<input type="hidden" name="dscsAtclId" id = "dscsAtclId" value="${atclSn}"/>
 	
 					<div class="ui segment">
@@ -141,7 +141,7 @@ function addActl(){
 								<li>
 									<dl><dd style="height:300px">
 									<div style="height:100%">
-										<textarea name="atclCts" id="cts">${forumAtclVO.atclCts}</textarea>
+										<textarea name="atclCts" id="cts">${dscsAtclVO.atclCts}</textarea>
 										<script>
 											// html ������ ����
 											var editor = HtmlEditor('cts', THEME_MODE, '${path}');

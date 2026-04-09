@@ -38,7 +38,7 @@ $(document).ready(function() {
 	</div>
 </div> --%>
 <c:choose>
-	<c:when test="${empty forumAtclList }">
+	<c:when test="${empty dscsAtclList }">
 		<div class="flex-container m-hAuto">
 			<div class="no_content">
 				<i class="icon-cont-none ico f170" aria-hidden="true"></i> 
@@ -47,24 +47,24 @@ $(document).ready(function() {
 		</div>
 	</c:when>
 	<c:otherwise>
-		<c:forEach var="forumAtclVO" items="${forumAtclList}" varStatus="status">
+		<c:forEach var="dscsAtclVO" items="${dscsAtclList}" varStatus="status">
 		<div class="ui attached message element">
 			<div class="ui attached message">
 				<div class="header small card-item-center">
 					<ul class="viewInfo">
-						<li><span><spring:message code="forum.label.reg.user"/></span>${forumAtclVO.regNm}(${forumAtclVO.userId})</li>  <!-- 작성자 -->
+						<li><span><spring:message code="forum.label.reg.user"/></span>${dscsAtclVO.regNm}(${dscsAtclVO.userId})</li>  <!-- 작성자 -->
 						<c:choose>
-							<c:when test="${forumAtclVO.atclTypeCd eq 'GNRL_N' || forumAtclVO.atclTypeCd eq 'TEAM_N'}">
-							<c:if test="${forumAtclVO.prosConsTypeCd eq 'F'}">
+							<c:when test="${dscsAtclVO.atclTypeCd eq 'GNRL_N' || dscsAtclVO.atclTypeCd eq 'TEAM_N'}">
+							<c:if test="${dscsAtclVO.prosConsTypeCd eq 'F'}">
 							<!-- <li><strong class="fcOlive">FeedBack</strong></li> -->
 							</c:if>
 							</c:when>
 							<c:otherwise>
 								<c:choose>
-									<c:when test="${forumAtclVO.prosConsTypeCd eq 'P'}">
+									<c:when test="${dscsAtclVO.prosConsTypeCd eq 'P'}">
 										<li><span><spring:message code="forum.label.pros.cons.type"/></span><strong class="fcBlue"><spring:message code="forum.label.pros"/></strong></li> <!--찬반 구분  --> <!-- 찬성 -->
 									</c:when>
-									<c:when test="${forumAtclVO.prosConsTypeCd eq 'C'}">
+									<c:when test="${dscsAtclVO.prosConsTypeCd eq 'C'}">
 										<li><span><spring:message code="forum.label.pros.cons.type"/></span><strong class="fcRed"><spring:message code="forum.label.cons"/></strong></li> <!--찬반 구분  --> <!-- 반대 -->
 									</c:when>
 									<c:otherwise>
@@ -73,12 +73,12 @@ $(document).ready(function() {
 								</c:choose>
 							</c:otherwise>
 						</c:choose>
-						<fmt:parseDate var="regDttmFmt" pattern="yyyyMMddHHmmss" value="${forumAtclVO.regDttm }" />
+						<fmt:parseDate var="regDttmFmt" pattern="yyyyMMddHHmmss" value="${dscsAtclVO.regDttm }" />
 						<fmt:formatDate var="regDttm" pattern="yyyy.MM.dd(HH:mm)" value="${regDttmFmt }" />
 						<li><span><spring:message code="forum.label.reg.dttm"/></span>${regDttm }</li> <!-- 작성일시 -->
 						<li>
 							<span><spring:message code="forum.label.attachFile"/></span> <!-- 첨부파일 --> 
-							<c:forEach var="attachFiles" items="${forumAtclVO.fileList}" varStatus="status1">
+							<c:forEach var="attachFiles" items="${dscsAtclVO.fileList}" varStatus="status1">
 								<c:if test="${status1.index ne 0}">,</c:if>
 								<a href="javascript:fileDown('${attachFiles.fileSn}', '${attachFiles.repoCd }');" class="link">${attachFiles.fileNm}</a>
 							</c:forEach>
@@ -88,8 +88,8 @@ $(document).ready(function() {
 					<div class="mla f120">
 						<spring:message code="common.label.same.rate"/><!-- 유사율 --> 
 						<c:choose>
-							<c:when test="${not empty forumAtclVO.konanMaxCopyRate}">
-								<a class="fcBlue" href="${konanCopyScoreUrl}?domain=e_forum&docId=${forumAtclVO.atclSn}" target="_blank">${forumAtclVO.konanMaxCopyRate}%</a>
+							<c:when test="${not empty dscsAtclVO.konanMaxCopyRate}">
+								<a class="fcBlue" href="${konanCopyScoreUrl}?domain=e_forum&docId=${dscsAtclVO.atclSn}" target="_blank">${dscsAtclVO.konanMaxCopyRate}%</a>
 							</c:when>
 							<c:otherwise>
 								<span class="mr20"> - </span>
@@ -97,25 +97,25 @@ $(document).ready(function() {
 						</c:choose>
 					</div>
 					 --%>
-				<button type='button' class='btn basic small mla'>${forumAtclVO.myCmntCount}</button>
+				<button type='button' class='btn basic small mla'>${dscsAtclVO.myCmntCount}</button>
 				</div>
 				<div class="ui segment ml10 mr10 mt10 mb10">
 				<c:choose>
-					<c:when test="${forumAtclVO.delYn eq 'Y' }">
+					<c:when test="${dscsAtclVO.delYn eq 'Y' }">
 						<spring:message code="forum.label.del.forum.atcl"/> <!-- 삭제된 토론 글 입니다. -->
 					</c:when>
 					<c:otherwise>
-						<pre id="cts_${forumAtclVO.atclSn }">${forumAtclVO.cts }</pre>
+						<pre id="cts_${dscsAtclVO.atclSn }">${dscsAtclVO.cts }</pre>
 					</c:otherwise>
 				</c:choose>
 				</div>
 				<div class="comment border0 mt10">
 					<div class="ui box flex-item">
 						<div class="flex-item mra">
-							<c:if test="${forumAtclVO.cmntCount > 0}">
-								<button type="button" class="toggle_commentlist flex-item" id="cmntOpen${status.index }" onclick="cmntView('<c:out value="${forumAtclVO.atclSn}"/>','${status.index }');">
+							<c:if test="${dscsAtclVO.cmntCount > 0}">
+								<button type="button" class="toggle_commentlist flex-item" id="cmntOpen${status.index }" onclick="cmntView('<c:out value="${dscsAtclVO.atclSn}"/>','${status.index }');">
 									<i class="xi-message-o f120 mr5" aria-hidden="true"></i>
-									${forumAtclVO.cmntCount}<span class="desktop_elem"><spring:message code="forum.label.cnt.forum.cmnt"/><!-- 개의 댓글이 있습니다. --></span>
+									${dscsAtclVO.cmntCount}<span class="desktop_elem"><spring:message code="forum.label.cnt.forum.cmnt"/><!-- 개의 댓글이 있습니다. --></span>
 									<i class="xi-angle-down-min" aria-hidden="true"></i>
 								</button>
 							</c:if>
@@ -127,8 +127,8 @@ $(document).ready(function() {
 					 --%>
 					<!-- cmntList -->
 						<div class="article p10 commentlist ui segment border0 on" id="article${status.index}">
-						<c:forEach var="item" items="${forumAtclVO.cmntList}" varStatus="cmnt">
-							<c:if test="${item.atclSn eq forumAtclVO.atclSn}">
+						<c:forEach var="item" items="${dscsAtclVO.cmntList}" varStatus="cmnt">
+							<c:if test="${item.atclSn eq dscsAtclVO.atclSn}">
 							<fmt:parseDate var="regDateFmt" pattern="yyyyMMddHHmmss" value="${item.modDttm}" />
 							<fmt:formatDate var="regDate" pattern="yyyy.MM.dd(HH:mm)" value="${regDateFmt}" />
 								<c:choose>

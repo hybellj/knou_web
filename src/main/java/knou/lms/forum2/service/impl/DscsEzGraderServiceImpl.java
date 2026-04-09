@@ -22,7 +22,7 @@ import java.util.List;
 public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements DscsEzGraderService {
 
     @Resource(name = "dscsEzGraderDAO")
-    private DscsEzGraderDAO forumEzGraderDAO;
+    private DscsEzGraderDAO dscsEzGraderDAO;
 
     @Resource(name = "dscsDAO")
     private DscsDAO dscsDAO;
@@ -30,7 +30,7 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
     // 토론 참여 대상 리스트 조회
     @Override
     public List<DscsJoinUserVO> listDscsJoinUser(DscsJoinUserVO vo) throws Exception {
-        return forumEzGraderDAO.listDscsJoinUser(vo);
+        return dscsEzGraderDAO.listDscsJoinUser(vo);
     }
 
     // 토론 참여 대상 TEAM 조회
@@ -39,7 +39,7 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
         List<DscsEzGraderTeamVO> memberList;
 
         if ("Y".equals(byteamDscsUseyn)) {
-            // 팀별부토론: 부모 forumCd로 자식 토론 목록 조회 후 자식 DSCS_ID별로 팀원 조회
+            // 팀별부토론: 부모 dscsId로 자식 토론 목록 조회 후 자식 DSCS_ID별로 팀원 조회
             List<DscsTeamDscsVO> childList = dscsDAO.selectTeamDscsList(vo.getDscsId());
             memberList = new ArrayList<>();
             if (childList != null) {
@@ -49,12 +49,12 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
                     childVo.setSbjctId(vo.getSbjctId());
                     childVo.setSearchKey(vo.getSearchKey());
                     childVo.setSearchSort(vo.getSearchSort());
-                    List<DscsEzGraderTeamVO> partial = forumEzGraderDAO.listDscsJoinTeam(childVo);
+                    List<DscsEzGraderTeamVO> partial = dscsEzGraderDAO.listDscsJoinTeam(childVo);
                     if (partial != null) memberList.addAll(partial);
                 }
             }
         } else {
-            memberList = forumEzGraderDAO.listDscsJoinTeam(vo);
+            memberList = dscsEzGraderDAO.listDscsJoinTeam(vo);
         }
 
         if (memberList != null && !memberList.isEmpty()) {
@@ -98,11 +98,11 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
             String newDscsSendCd = IdGenerator.getNewId("SEND");
             vo.setDscsSendCd(newDscsSendCd);
             vo.setEvalYn("Y");
-            forumEzGraderDAO.updateJoinUserScore(vo);
+            dscsEzGraderDAO.updateJoinUserScore(vo);
         } else {
             // 팀: 팀원 전체에 동일 점수 부여
-            forumEzGraderDAO.deleteTeamStdScore(vo);
-            forumEzGraderDAO.insertStdScoreToAllTeamMember(vo);
+            dscsEzGraderDAO.deleteTeamStdScore(vo);
+            dscsEzGraderDAO.insertStdScoreToAllTeamMember(vo);
         }
 
         resultVo.setReturnVO(vo);
@@ -113,7 +113,7 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
     // 평가 결과 조회 (TB_LMS_DSCS_PTCP)
     @Override
     public DscsEzGraderRsltVO selectEzgEvalRslt(DscsEzGraderRsltVO vo) throws Exception {
-        return forumEzGraderDAO.selectEzgEvalRslt(vo);
+        return dscsEzGraderDAO.selectEzgEvalRslt(vo);
     }
 
     // 평가점수 삭제 처리 (점수를 0으로 초기화)
@@ -126,11 +126,11 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
             vo.setEvalYn("N");
             vo.setEvalScore(0);
             vo.setDscsSendCd("");
-            forumEzGraderDAO.updateJoinUserScore(vo);
+            dscsEzGraderDAO.updateJoinUserScore(vo);
         } else {
             // 팀: 팀원 전체 점수 0으로 초기화
             vo.setEvalScore(0);
-            forumEzGraderDAO.initStdScoreToAllTeamMember(vo);
+            dscsEzGraderDAO.initStdScoreToAllTeamMember(vo);
         }
 
         resultVo.setReturnVO(vo);
@@ -147,10 +147,10 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
             String newDscsSendCd = IdGenerator.getNewId("SEND");
             vo.setDscsSendCd(newDscsSendCd);
             vo.setEvalYn("Y");
-            forumEzGraderDAO.updateJoinUserScore(vo);
+            dscsEzGraderDAO.updateJoinUserScore(vo);
         } else {
-//            forumEzGraderDAO.deleteTeamStdScore(vo);
-            forumEzGraderDAO.insertStdScoreToAllTeamMember(vo);
+//            dscsEzGraderDAO.deleteTeamStdScore(vo);
+            dscsEzGraderDAO.insertStdScoreToAllTeamMember(vo);
         }
 
         resultVo.setReturnVO(vo);
@@ -166,7 +166,7 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
         if (vo.getRltnTeamCd() == null || "".equals(vo.getRltnTeamCd())) {
             // 평가완료되었는지 조회
             vo.setEvalUserId(vo.getRgtrId());
-            DscsEzGraderRsltVO rsltVo = forumEzGraderDAO.selectEzgEvalRslt(vo);
+            DscsEzGraderRsltVO rsltVo = dscsEzGraderDAO.selectEzgEvalRslt(vo);
             if (rsltVo == null) {
                 resultVo.setReturnVO(vo);
                 resultVo.setResult(1);
@@ -177,11 +177,11 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
             vo.setEvalYn("N");
             vo.setEvalScore(0);
             vo.setDscsSendCd("");
-            forumEzGraderDAO.updateJoinUserScore(vo);
+            dscsEzGraderDAO.updateJoinUserScore(vo);
         } else {
             // 팀: 팀원 전체 점수 0으로 초기화
             vo.setEvalScore(0);
-            forumEzGraderDAO.initStdScoreToAllTeamMember(vo);
+            dscsEzGraderDAO.initStdScoreToAllTeamMember(vo);
         }
 
         resultVo.setReturnVO(vo);

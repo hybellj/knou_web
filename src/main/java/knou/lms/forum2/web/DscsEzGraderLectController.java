@@ -87,11 +87,11 @@ public class DscsEzGraderLectController extends ControllerBase {
         vo.setEvlScrTycd(vo.getEvlScrTycd());
         
         // 모든 토론 참여자를 토론 참여자 테이블에 삽입
-        DscsVO forumVO = new DscsVO();
-        forumVO.setRgtrId(userId);
-        forumVO.setSbjctId(sbjctId);
-        forumVO.setDscsId(vo.getDscsId());
-        dscsJoinUserService.insertJoinUser(forumVO);
+        DscsVO dscsVO = new DscsVO();
+        dscsVO.setRgtrId(userId);
+        dscsVO.setSbjctId(sbjctId);
+        dscsVO.setDscsId(vo.getDscsId());
+        dscsJoinUserService.insertJoinUser(dscsVO);
 
         request.setAttribute("vo", vo);
         
@@ -113,13 +113,13 @@ public class DscsEzGraderLectController extends ControllerBase {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<DscsVO>();
         try {
             // TODO : 26.3.20 : to-be vo 변경에 따른 처리.
-           /* DscsVO forumVO = dscsService.selectDscs(vo);*/
+           /* DscsVO dscsVO = dscsService.selectDscs(vo);*/
             DscsVO param = new DscsVO();
             param.setDscsId(vo.getDscsId());
             DscsVO loadedDscsVO = dscsService.selectDscs(param);
-            DscsVO forumVO = loadedDscsVO;
+            DscsVO dscsVO = loadedDscsVO;
 
-            resultVO.setReturnVO(forumVO);
+            resultVO.setReturnVO(dscsVO);
             resultVO.setResult(1);
         } catch (Exception e) {
             e.printStackTrace();
@@ -210,12 +210,12 @@ public class DscsEzGraderLectController extends ControllerBase {
         vo.setMdfrId(userId);
         vo.setOrgId(orgId);
         if(vo.getStdId() != null) { 
-            DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-            forumJoinUserVO.setDscsId(vo.getDscsId());
-            forumJoinUserVO.setStdId(vo.getStdId());
+            DscsJoinUserVO dscsJoinUserVO = new DscsJoinUserVO();
+            dscsJoinUserVO.setDscsId(vo.getDscsId());
+            dscsJoinUserVO.setStdId(vo.getStdId());
         
-            forumJoinUserVO = dscsJoinUserService.selectDscsJoinUser(forumJoinUserVO);
-            request.setAttribute("dscsJoinUserVO",forumJoinUserVO);
+            dscsJoinUserVO = dscsJoinUserService.selectDscsJoinUser(dscsJoinUserVO);
+            request.setAttribute("dscsJoinUserVO",dscsJoinUserVO);
         }
 
         request.setAttribute("vo", vo);
@@ -233,11 +233,11 @@ public class DscsEzGraderLectController extends ControllerBase {
         vo.setOrgId(orgId);
 
         if (vo.getStdId() != null) {
-            DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-            forumJoinUserVO.setDscsId(vo.getDscsId());
-            forumJoinUserVO.setStdId(vo.getStdId());
-            forumJoinUserVO = dscsJoinUserService.selectDscsJoinUser(forumJoinUserVO);
-            request.setAttribute("dscsJoinUserVO", forumJoinUserVO);
+            DscsJoinUserVO dscsJoinUserVO = new DscsJoinUserVO();
+            dscsJoinUserVO.setDscsId(vo.getDscsId());
+            dscsJoinUserVO.setStdId(vo.getStdId());
+            dscsJoinUserVO = dscsJoinUserService.selectDscsJoinUser(dscsJoinUserVO);
+            request.setAttribute("dscsJoinUserVO", dscsJoinUserVO);
         }
 
         request.setAttribute("vo", vo);
@@ -333,36 +333,36 @@ public class DscsEzGraderLectController extends ControllerBase {
 
     // 토론 성적평가 > 피드백
     @RequestMapping(value = "/forumScoreEvalFeedBack.do")
-    public String forumScoreEvalFeedBack(DscsVO forumVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public String forumScoreEvalFeedBack(DscsVO dscsVO, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_FORUM);
 
         /*참여자 정보*/
-        if(!"EZG".equals(forumVO.getSearchMenu())) {
-            DscsJoinUserVO forumJoinUserVO = new DscsJoinUserVO();
-            forumJoinUserVO.setDscsId(forumVO.getDscsId());
-            forumJoinUserVO.setStdId(forumVO.getStdId());
+        if(!"EZG".equals(dscsVO.getSearchMenu())) {
+            DscsJoinUserVO dscsJoinUserVO = new DscsJoinUserVO();
+            dscsJoinUserVO.setDscsId(dscsVO.getDscsId());
+            dscsJoinUserVO.setStdId(dscsVO.getStdId());
         
-            forumJoinUserVO = dscsJoinUserService.selectDscsJoinUser(forumJoinUserVO);
-            request.setAttribute("dscsJoinUserVO",forumJoinUserVO);
+            dscsJoinUserVO = dscsJoinUserService.selectDscsJoinUser(dscsJoinUserVO);
+            request.setAttribute("dscsJoinUserVO",dscsJoinUserVO);
         }
 
-        DscsFdbkVO forumFdbkVO = new DscsFdbkVO();
-        forumFdbkVO.setDscsId(forumVO.getDscsId());
-        forumFdbkVO.setStdId(forumVO.getStdId());
+        DscsFdbkVO dscsFdbkVO = new DscsFdbkVO();
+        dscsFdbkVO.setDscsId(dscsVO.getDscsId());
+        dscsFdbkVO.setStdId(dscsVO.getStdId());
         
-        if(forumVO.getTeamId() != null || forumVO.getTeamId() != "") {
-            forumFdbkVO.setTeamId(forumVO.getTeamId());
+        if(dscsVO.getTeamId() != null || dscsVO.getTeamId() != "") {
+            dscsFdbkVO.setTeamId(dscsVO.getTeamId());
         }
         
         // 피드백 갯수
-        int cntFdbk = dscsFdbkService.cntFdbk(forumFdbkVO);
+        int cntFdbk = dscsFdbkService.cntFdbk(dscsFdbkVO);
         
         // 메모
-        DscsJoinUserVO mVO = dscsJoinUserService.getMemo(forumVO);
+        DscsJoinUserVO mVO = dscsJoinUserService.getMemo(dscsVO);
         
         request.setAttribute("cntFdbk", cntFdbk);
-        request.setAttribute("dscsVO", forumVO);
+        request.setAttribute("dscsVO", dscsVO);
         request.setAttribute("mVO", mVO);
         
         return "forum2/ezgPop/ezg_score_eval_feedback";

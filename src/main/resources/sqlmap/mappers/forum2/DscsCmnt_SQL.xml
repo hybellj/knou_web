@@ -151,7 +151,7 @@
         ORDER BY A.RN, A.PATH
     </select>
 
-    <select id="forumCmntSelect" parameterType="knou.lms.forum2.vo.DscsCmntVO" resultType="knou.lms.forum2.vo.DscsCmntVO">
+    <select id="selectCmnt" parameterType="knou.lms.forum2.vo.DscsCmntVO" resultType="knou.lms.forum2.vo.DscsCmntVO">
         SELECT
             DSCS_CMNT_ID
           , DSCS_ATCL_ID

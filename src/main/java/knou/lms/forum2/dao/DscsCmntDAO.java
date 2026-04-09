@@ -14,5 +14,5 @@ public interface DscsCmntDAO {
     public void deleteCmnt(DscsCmntVO vo) throws Exception;
     public void hideCmnt(DscsCmntVO vo) throws Exception;
 	public List<DscsCmntVO> cmntList(DscsAtclVO vo) throws Exception;
-	public DscsCmntVO forumCmntSelect(DscsCmntVO vo) throws Exception;
+	public DscsCmntVO selectCmnt(DscsCmntVO vo) throws Exception;
 }

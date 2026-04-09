@@ -72,7 +72,7 @@
 		</if>
 	</select>
 
-	<resultMap id="forumJoinTeamMap" type="knou.lms.forum2.vo.DscsEzGraderTeamVO">
+	<resultMap id="dscsJoinTeamMap" type="knou.lms.forum2.vo.DscsEzGraderTeamVO">
 		<result property="teamTycd" column="TEAM_TYCD" />
 		<result property="teamId" column="TEAM_ID" />
 		<result property="teamNm" column="TEAMNM" />
@@ -93,7 +93,7 @@
 		<result property="joinStatus" column="JOIN_STATUS" />
 	</resultMap>
 
-	<select id="listDscsJoinTeam" parameterType="dscsJoinUserVO" resultMap="forumJoinTeamMap">
+	<select id="listDscsJoinTeam" parameterType="dscsJoinUserVO" resultMap="dscsJoinTeamMap">
 		/*
 			토론 참여 대상 team2
 			DscsEzGraderDAO.listDscsJoinTeam
