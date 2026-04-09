@@ -819,11 +819,11 @@
 		<include refid="CommonSQL.pagePrefix" />
 		SELECT
 			  A.ATCL_ID
-			, D.ATCL_OPTN_ID
-			, D.OPTN_CD
-			, D.OPTN_USEYN
-			, D.OPTN_SDTTM
-			, D.OPTN_EDTTM
+			, C.ATCL_OPTN_ID
+			, C.OPTN_CD
+			, C.OPTN_USEYN
+			, C.OPTN_SDTTM
+			, C.OPTN_EDTTM
 			, A.BBS_ID
 			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
 			, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = A.DEPT_ID) AS DEPTNM
@@ -866,29 +866,16 @@
 			, FN_REF_FILE_CNT(A.ATCL_ID) AS FILE_CNT <!-- 첨부파일수 -->
 		FROM TB_LMS_BBS_ATCL A
 		   JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
-		LEFT JOIN TB_LMS_BBS_ATCL_OPTN C ON A.ATCL_ID = D.ATCL_ID
-		LEFT JOIN TB_LMS_BBS_ATCL_OPTN D ON A.ATCL_ID = D.ATCL_ID
+		LEFT JOIN TB_LMS_BBS_ATCL_OPTN C ON A.ATCL_ID = C.ATCL_ID
 		WHERE 1=1
 			AND A.BBS_ID = #{bbsId}
 			AND A.ATCL_LV = #{atclLv}
 			AND A.DELYN = 'N'
-			<if test="sbjctYr != null and sbjctYr != ''">
-				AND	C.SBJCT_YR = #{sbjctYr}
-			</if>
-			<if test="sbjctSmstr != null and sbjctSmstr != ''">
-				AND C.SBJCT_SMSTR = #{sbjctSmstr}
-			</if>
 			<if test="orgId != null and orgId != ''">
 				AND	B.ORG_ID = #{orgId}
 			</if>
 			<if test="bbsRefTycd != null and bbsRefTycd != ''">
 				AND	A.NTC_GBNCD = #{bbsRefTycd}
-			</if>
-			<if test="deptId != null and deptId != ''">
-				AND	C.DEPT_ID = #{deptId}
-			</if>
-			<if test="sbjctId != null and sbjctId != ''">
-				AND	C.SBJCT_ID = #{sbjctId}
 			</if>
 			<if test="searchValue != null and searchValue != ''">
 			AND (

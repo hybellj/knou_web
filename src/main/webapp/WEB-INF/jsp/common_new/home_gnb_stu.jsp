@@ -92,6 +92,10 @@ pageContext.setAttribute("auditYn", SessionInfo.getAuditYn(request)); // 청강�
 			</nav>
 			<!-- //gnb menu -->
 
+			<script type="text/javascript">
+				// 메뉴 스크롤
+				scrollGnbMenu("${curUpMenuId}", "${curMenuId}");
+			</script>
 		</div>
 
 	</aside>

@@ -5,7 +5,26 @@
             <PatternLayout pattern="%d %5p [%c] %m%n"/>
         </Console>
     </Appenders>
+    <!-- TOBE -->
     <Loggers>
+	    <Logger name="jdbc.sqlonly" 	level="ON" additivity="true" />
+	    <Logger name="jdbc.audit" 		level="OFF" additivity="false" />
+	    <Logger name="jdbc.sqltiming" 	level="ON" additivity="true" /> 
+	    <Logger name="jdbc.resultset" 	level="OFF" additivity="false" />
+	    <Logger name="jdbc.connection" 	level="OFF" additivity="false" />
+	
+	    <Logger name="knou.framework.base.ExcepHandler" level="ERROR" additivity="false">
+	        <AppenderRef ref="console" />
+	    </Logger>
+	
+	    <Logger name="org.egovframe.rte.fdl.cmmn.aspect.ExceptionTransfer" level="OFF" additivity="false" />
+	    
+	    <Root level="INFO">
+	        <AppenderRef ref="console" />
+	    </Root>
+    </Loggers>
+    <!--  ASIS -->
+    <!--<Loggers>
         <Logger name="egovframework" level="INFO" additivity="false">
             <AppenderRef ref="console"/>
         </Logger>
@@ -44,4 +63,5 @@
             <AppenderRef ref="console"/>
         </Root>
     </Loggers>
+    -->
 </Configuration>

@@ -9,5 +9,5 @@ public interface MarkObjectionApplyService {
 
     List<EgovMap> mrkObjctAplyList(String sbjctId);
 
-    MarkObjectionApplyVO mrkObjctAplySelect(String mrkObjctAplyId) throws Exception;
+    MarkObjectionApplyVO mrkObjctAplySelect(String sbjctId, String userId) throws Exception;
 }

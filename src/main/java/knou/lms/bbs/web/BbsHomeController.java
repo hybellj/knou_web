@@ -39,6 +39,7 @@ import knou.lms.bbs.service.BbsAtclService;
 import knou.lms.bbs.service.BbsCmntService;
 import knou.lms.bbs.service.BbsInfoLangService;
 import knou.lms.bbs.service.BbsInfoService;
+import knou.lms.bbs.service.BbsService;
 import knou.lms.bbs.service.BbsViewService;
 import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.bbs.vo.BbsCmntVO;
@@ -119,6 +120,9 @@ public class BbsHomeController extends ControllerBase {
 
 	@Resource(name="bbsFacadeService")
 	private BbsFacadeService bbsFacadeService;
+	
+	@Resource(name="bbsService")
+	private BbsService bbsService;
 
     /** 게시판 START **/
 
@@ -1654,11 +1658,6 @@ public class BbsHomeController extends ControllerBase {
     TODO 새로 생성되거나 명칭 변경해서 작업하는 메쏘드는 여기 아래에......
     */
 
-
-
-
-
-
     /*****************************************************
      * 게시판 게시글 목록 조회 화면
      * @param vo
@@ -1668,67 +1667,20 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsAtclListView.do")
-    public String bbsAtclListView(BbsVO bbsVO, @CurrentUser UserContext userCtx,
+    public String bbsAtclListView(BbsVO bbsVO, @CurrentUser UserContext userCtx, 
     		ModelMap model, HttpServletRequest request) throws Exception {
-
-
-    	/* TODO: * 요청사항 by jinkoon. 2026.04.08
-    	 * BbsId만 넘겨받아서 게시판 게시글 목록을 출력하는 프로그램이 필요합니다.
-    	 * 과목홈화면에서
-    	 *
-    	 * <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.ntcBbsId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
-	       <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.qnaBbsId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
-	       <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.oneOnOneBbsId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
-
-	       링크에서 BbsId로 보내기 때문입니다.
-    	 */
-
-		String orgId = userCtx.getOrgId();
-        String langCd = userCtx.getLangCd();
-        String bbsTycd = bbsVO.getBbsTycd();
-		String bbsId = "";
-
-    	boolean isAdmin = BbsAuthUtil.isAdmin(request); // userCtx.isAdmin(); 사용가능
-
-		if(ValidationUtils.isEmpty(bbsVO.getBbsTycd())) {
-			throw new BadRequestUrlException(getMessage("common.system.error")); // bbsTycd가 필요한가? by jinkoon
-		}
-
-        if(bbsVO.getBbsId() == null) {
-        	bbsVO.setBbsId(orgId + "_" + bbsTycd); // bbsId가 없으면 예외를 발생 시켜야 하지않나? by jinkoon
-        }
-
-        bbsVO.setOrgId(orgId);
-		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
-
-		if(bbsVO == null) { // 게시판 정보를 찾을 수 없습니다.
-			throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
-		}
-
-		if(BbsAuthUtil.isStudent(request)) {
-            logLessonActnHstyService.saveLessonActnHsty(request, "", CommConst.CONN_BBS, bbsVO.getBbsnm() + " 내용확인");
-        }
-
-        // 게시판정보에 파라메터값 재설정 (게시판정보 조회에서 초기화돼서 재설정)
-        setEncParamsToVO(bbsVO);
-
-        String atclWriteAuth = "N"; // 글쓰기 권한
-
-        //atclWriteAuth = BbsAuthUtil.getAtclWriteAuth(request, bbsVO);
-
-        // 파라메터 설정
-        addEncParam("bbsId", bbsVO.getBbsId());
-        addEncParam("bbsTycd", bbsVO.getBbsTycd());
-
-        // 조회필터옵션 세팅
-    	EgovMap filterOptions = bbsFacadeService.loadFilterOptions(userCtx);
-    	model.addAttribute("filterOptions", filterOptions);
-
-		model.addAttribute("atclWriteAuth", atclWriteAuth);
-        model.addAttribute("bbsVO", bbsVO);
-        model.addAttribute("templateUrl", TEMPLATE_URL);
+    	
+    	validateBbsAccess(bbsVO.getBbsId(), userCtx);
+    	
+    	model.addAttribute("bbsVO", bbsVO);
+    	model.addAttribute("bbsAtclList", bbsService.bbsAtclSelect(bbsVO.getBbsId()));
 
         return "bbs/bbs_atcl_list_view";
+    }
+    
+    // 컨트롤러 내부에서 새로운 이름으로 정의된 private 메서드
+    private void validateBbsAccess(String bbsId, UserContext userCtx) throws Exception {
+        bbsService.checkBbsAccessWithAuth(bbsId, userCtx);
     }
 
 
@@ -1742,7 +1694,8 @@ public class BbsHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value = "/bbsAtclListAjax.do")
     @ResponseBody
-    public ProcessResultVO<BbsAtclVO> bbsAtclListAjax(BbsAtclVO bbsAtclVO, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<BbsAtclVO> bbsAtclListAjax(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx, 
+    		ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<BbsAtclVO> resultVO = new ProcessResultVO<>();
 
         String orgId = SessionInfo.getOrgId(request);
@@ -1751,7 +1704,6 @@ public class BbsHomeController extends ControllerBase {
 
         String bbsIds = request.getParameter("bbsIds"); // 게시판 id ',' 구분자
         String upAtclId = request.getParameter("upAtclId");
-        String bbsRefTycd = bbsAtclVO.getBbsRefTycd();
 
         try {
             bbsAtclVO.setOrgId(orgId);
@@ -1766,7 +1718,6 @@ public class BbsHomeController extends ControllerBase {
             bbsAtclVO.setVwerId(userId);
             bbsAtclVO.setUpAtclId(upAtclId);
             bbsAtclVO.setAtclLv(1);
-            bbsAtclVO.setBbsRefTycd(bbsRefTycd);
 
             resultVO = bbsAtclService.selectBbsAtclList(bbsAtclVO);
             resultVO.setResult(1);
@@ -1802,7 +1753,6 @@ public class BbsHomeController extends ControllerBase {
         String gubun = bbsAtclVO.getGubun();
         String atclId = bbsAtclVO.getAtclId();
         String bbsTycd = bbsAtclVO.getBbsTycd();
-        String bbsRefTycd = bbsAtclVO.getBbsRefTycd();
 
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
@@ -1840,7 +1790,6 @@ public class BbsHomeController extends ControllerBase {
 
         // 게시글 조회
         bbsAtclVO.setAtclId(atclId);
-        bbsAtclVO.setBbsRefTycd(bbsRefTycd);
         bbsAtclVO = bbsAtclService.selectBbsAtcl(bbsAtclVO);
 
         if(bbsAtclVO  == null) {
@@ -1945,14 +1894,12 @@ public class BbsHomeController extends ControllerBase {
         String atclId = bbsAtclVO.getAtclId();
         String bbsId = bbsAtclVO.getBbsId();
         String bbsTycd = bbsAtclVO.getBbsTycd();
-        String bbsRefTycd = bbsAtclVO.getBbsRefTycd();
 
         String uploadFiles = bbsAtclVO.getUploadFiles();
         String uploadPath = bbsAtclVO.getUploadPath();
 
         bbsAtclVO.setOrgId(orgId);
         bbsAtclVO.setAtclId(atclId);
-        bbsAtclVO.setBbsRefTycd(bbsRefTycd);
         bbsAtclVO.setUserId(userId);
         bbsAtclVO.setRgtrId(userId);
         bbsAtclVO.setMdfrId(userId);
@@ -2022,7 +1969,7 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsAtclEditWrite.do")
-    public String bbsAtclEditWrite(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    public String bbsAtclEditWrite(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx, 
     		ModelMap model, HttpServletRequest request) throws Exception {
 
     	boolean isAdmin = BbsAuthUtil.isAdmin(request);
@@ -2182,7 +2129,7 @@ public class BbsHomeController extends ControllerBase {
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/bbsSbjctListView.do")
-    public String bbsSbjctListView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
+    public String bbsSbjctListView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx, 
     		ModelMap model, HttpServletRequest request) throws Exception {
 
         String orgId = userCtx.getOrgId();
@@ -2256,23 +2203,27 @@ public class BbsHomeController extends ControllerBase {
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
         String bbsTycd = bbsAtclVO.getBbsTycd();
-        String bbsId = orgId +  "_" + bbsTycd;
+        String bbsId = "";
 
         String atclEditAuth = "N";      // 글수정 권한
         String atclDeleteAuth  = "N";   // 글삭제 권한
         String answerWriteAuth = "N";   // 답글쓰기 권한
         String commentWriteAuth = "N";  // 댓글쓰기 권한
 
-        if(ValidationUtils.isEmpty(bbsAtclVO)) {
+        if(ValidationUtils.isEmpty(bbsId) || ValidationUtils.isEmpty(bbsAtclVO)) {
             throw new BadRequestUrlException(getMessage("common.system.error"));
+        }
+
+        if(bbsAtclVO.getBbsId() == null) {
+        	bbsId = orgId +  "_" + bbsTycd;
         }
 
         // 게시판 정보 조회
         BbsVO bbsVO = new BbsVO();
         bbsVO.setOrgId(orgId);
         bbsVO.setBbsId(bbsId);
-        bbsVO.setBbsTycd(bbsTycd);
         bbsVO.setLangCd(langCd);
+        bbsVO.setBbsTycd(bbsTycd);
         bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
         if(bbsVO == null) {
@@ -2326,7 +2277,7 @@ public class BbsHomeController extends ControllerBase {
     @RequestMapping(value = "/bbsSbjctRegistView.do")
     public String bbsSbjctRegistView(BbsAtclVO bbsAtclVO, @CurrentUser UserContext userCtx,
     		ModelMap model, HttpServletRequest request) throws Exception {
-
+    	
         boolean isAdmin = BbsAuthUtil.isAdmin(request);
 
         String orgId = userCtx.getOrgId();
@@ -2334,7 +2285,6 @@ public class BbsHomeController extends ControllerBase {
         String langCd = userCtx.getLangCd();
 
         String bbsId = bbsAtclVO.getBbsId();
-        String bbsTycd = bbsAtclVO.getBbsTycd();
         String mode = request.getParameter("mode");
 
         String atclWriteAuth = "N"; // 글쓰기 권한
@@ -2347,7 +2297,6 @@ public class BbsHomeController extends ControllerBase {
         BbsVO bbsVO = new BbsVO();
         bbsVO.setOrgId(orgId);
         bbsVO.setBbsId(bbsId);
-        bbsVO.setBbsTycd(bbsTycd);
         bbsVO.setLangCd(langCd);
         bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
@@ -2396,8 +2345,13 @@ public class BbsHomeController extends ControllerBase {
         String langCd = userCtx.getLangCd();
 
         String bbsId = bbsAtclVO.getBbsId();
-        String bbsTycd = bbsAtclVO.getBbsTycd();
-        String bbsRefTycd = bbsAtclVO.getBbsRefTycd();
+		/*
+		 * String atclId = bbsAtclVO.getAtclId(); String atclOptnId =
+		 * bbsAtclVO.getAtclOptnId();
+		 *
+		 * bbsAtclVO.setAtclId(atclId); bbsAtclVO.setAtclOptnId(atclOptnId);
+		 * bbsAtclVO.setRgtrId(userId);
+		 */
 
         try {
             // 로그인 체크
@@ -2409,7 +2363,6 @@ public class BbsHomeController extends ControllerBase {
             BbsVO bbsVO = new BbsVO();
             bbsVO.setOrgId(orgId);
             bbsVO.setBbsId(bbsId);
-            bbsVO.setBbsTycd(bbsTycd);
             bbsVO.setLangCd(langCd);
             bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
@@ -2417,8 +2370,6 @@ public class BbsHomeController extends ControllerBase {
                 throw new BadRequestUrlException(getMessage("bbs.error.not_exists_bbs"));
             }
 
-            bbsAtclVO.setRgtrId(userId);
-            bbsAtclVO.setBbsRefTycd(bbsRefTycd);
             bbsAtclService.bbsAtclSbjctRegist(bbsAtclVO);
 
             resultVO.setResult(1);
@@ -2465,8 +2416,9 @@ public class BbsHomeController extends ControllerBase {
         // 게시판 정보 조회
         bbsVO.setOrgId(orgId);
         bbsVO.setBbsId(bbsId);
-        bbsVO.setBbsTycd(bbsTycd);
         bbsVO.setLangCd(langCd);
+        bbsVO.setBbsTycd(bbsTycd);
+
         bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
         if(bbsVO == null) {

@@ -60,7 +60,7 @@ pageContext.setAttribute("menuList", menuList);
 
 			            <%-- 서브 메뉴 --%>
 			            <c:if test="${not empty menu.subMenuList}">
-			                <ul id="SUB_${menu.menuId}">
+			                <ul id="SUB_${menu.menuId}" style="<c:if test='${menu.menuId == curUpMenuId}'>display:block</c:if>">
 			                    <c:forEach items="${menu.subMenuList}" var="sub">
 			                        <li id="${sub.menuId}">
 			                            <a id="SUBMENU_${sub.menuId}" href="#0"
@@ -78,6 +78,10 @@ pageContext.setAttribute("menuList", menuList);
             </nav>
             <!-- //gnb menu -->
 
+			<script type="text/javascript">
+				// 메뉴 스크롤
+				scrollGnbMenu("${curUpMenuId}", "${curMenuId}");
+			</script>
 		</div>
 
 	</aside>

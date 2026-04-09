@@ -90,6 +90,16 @@ $(function () {
 			// 현재 메뉴 열기/닫기
 			$parent.toggleClass("open");
 			$submenu.stop(true, true).slideToggle(300);
+
+			// 서브메뉴 보이도록 스크롤
+			$scrollarea = $parent.parent().parent();
+			if ($scrollarea.hasClass("scrollarea")) {
+				setTimeout(function(){
+					if (($parent.position().top + $parent.height())  > $scrollarea.height()) {
+						$scrollarea.animate({ scrollTop: $scrollarea.scrollTop() + $submenu.height() }, 200);
+					}
+				},400);
+			}
 		} else {
 			// 하위 메뉴 없는 메뉴 클릭 시 모든 하위 메뉴 닫기
 			$(".gnb .gnb-item").removeClass("open").children("ul").slideUp(300);
@@ -216,6 +226,17 @@ $(function () {
 			// 현재 메뉴 열기/닫기
 			$parent.toggleClass("open");
 			$submenu.stop(true, true).slideToggle(300);
+
+			// 서브메뉴 보이도록 스크롤
+			$scrollarea = $parent.parent().parent();
+			if ($scrollarea.hasClass("scrollarea")) {
+				setTimeout(function(){
+					if (($parent.position().top + $parent.height())  > $scrollarea.height()) {
+						$scrollarea.animate({ scrollTop: $scrollarea.scrollTop() + $submenu.height() }, 200);
+					}
+				},400);
+			}
+
 		} else {
 			// 하위 메뉴 없는 메뉴 클릭 시 모든 하위 메뉴 닫기
 			$(".gnb_class .gnb-item").removeClass("open").children("ul").slideUp(300);
@@ -558,5 +579,23 @@ function moveMenu(obj, menuUrl, upMenuId, menuId, menunm, linkTargetTycd){
 	else {
 		$("#moveForm").attr("action", menuUrl);
 		$("#moveForm").submit();
+	}
+}
+
+// 메뉴 스크롤
+function scrollGnbMenu(upMenuId, menuId) {
+	if (upMenuId != "" && menuId != "") {
+		let item = null;
+
+		if ("ROOT" == upMenuId) {
+			item = document.getElementById('MENU_'+menuId);
+		}
+		else {
+			item = document.getElementById('SUB_'+upMenuId);
+		}
+
+		if (item != null) {
+			item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		}
 	}
 }

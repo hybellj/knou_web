@@ -3,6 +3,12 @@
 
 <mapper namespace="knou.lms.user.dao.UserDAO">
 
+	<select id="existUserIdWithPswd" resultType="egovMap">
+		SELECT	CASE	WHEN NOT EXISTS ( SELECT 1 FROM TB_LMS_USER 	WHERE USER_ID = #{userId} ) THEN 'USERID_NOT_EXIST'
+		        		WHEN 	 EXISTS ( SELECT 1 FROM TB_LMS_USER 	WHERE USER_ID = #{userId} AND USER_ID_ENCPSWD = #{userIdEncpswd} ) THEN 'CORRECT_PSWD' ELSE 'WRONG_PSWD' END AS LOGIN_RESULT
+		FROM 	DUAL
+	</select>
+
 	<update id="userStngModify" parameterType="usrUserInfoVO">
         /*	설	명 : 사용자설정수정,  ASIS - UsrUserInfoDAO.updateUserConf	*/
         UPDATE 	TB_LMS_USR

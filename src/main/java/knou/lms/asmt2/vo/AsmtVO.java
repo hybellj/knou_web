@@ -2,6 +2,8 @@ package knou.lms.asmt2.vo;
 
 import knou.lms.common.vo.DefaultVO;
 
+import java.util.List;
+
 public class AsmtVO extends DefaultVO {
 
     private String grpcd; //그룹코드
@@ -11,6 +13,7 @@ public class AsmtVO extends DefaultVO {
     private String upAsmtId;    // 상위과제아이디
     private String asmtGbncd; //과제구분코드
     private String asmtGbnnm;   //과제구분명
+    private String dvclasNo;    // 분반번호
     private String asmtTtl; //과제제목
     private String asmtCts; //과제내용
     private String sbasmtTycd; //제출과제유형코드
@@ -32,7 +35,7 @@ public class AsmtVO extends DefaultVO {
     private String lrnGrpNm;               //학습그룹명
     private String asmtGrpId;              //과제그룹아이디
     private String asmtGrpnm;              //과제그룹명
-    private String tmbrSbmsnPrmyn;          //팀원제출허용여부
+    private String tmbrIndivSbmsnPrmyn;          //팀원제출허용여부
     private String mrkRfltyn;              //성적반영여부
     private String mrkRfltrt;             //성적반영비율
     private String mrkOyn;                 //성적공개여부
@@ -55,6 +58,20 @@ public class AsmtVO extends DefaultVO {
     private String exlnAsmtDwldyn; //우수과제다운로드여부
     private String[] asmtArray;         // 과제목록
     private String[] mrkRfltrtArray;    // 성적반영비율목록
+    private String dvclasCncrntRegyn;    // 분반동시등록여부
+    private String byteamAsmtUseyn;     // 팀별과제사용여부
+
+
+    /*
+     * 내부 로직 용
+     */
+    private String indvAsmtList;    // 개별과제 목록
+    private String[] dvclasListArr; // 분반선택목록
+    private String[] lrnGrpIds; // 학습그룹ID 목록
+    private String[] byteamAsmtUseyns;     // 팀별과제사용여부 목록
+    private List<AsmtVO> dvclasInfoList;   // 분반정보목록
+
+    private List<AsmtSubDtlVO> subAsmtDtlList; // 팀별 부과제 상세목록
 
     public String getGrpcd() {
         return grpcd;
@@ -274,12 +291,12 @@ public class AsmtVO extends DefaultVO {
         this.asmtGrpnm = asmtGrpnm;
     }
 
-    public String getTmbrSbmsnPrmyn() {
-        return tmbrSbmsnPrmyn;
+    public String getTmbrIndivSbmsnPrmyn() {
+        return tmbrIndivSbmsnPrmyn;
     }
 
-    public void setTmbrSbmsnPrmyn(String tmbrSbmsnPrmyn) {
-        this.tmbrSbmsnPrmyn = tmbrSbmsnPrmyn;
+    public void setTmbrIndivSbmsnPrmyn(String tmbrIndivSbmsnPrmyn) {
+        this.tmbrIndivSbmsnPrmyn = tmbrIndivSbmsnPrmyn;
     }
 
     public String getMrkRfltyn() {
@@ -464,5 +481,77 @@ public class AsmtVO extends DefaultVO {
 
     public void setAsmtArray(String[] asmtArray) {
         this.asmtArray = asmtArray;
+    }
+
+    public String getDvclasCncrntRegyn() {
+        return dvclasCncrntRegyn;
+    }
+
+    public void setDvclasCncrntRegyn(String dvclasCncrntRegyn) {
+        this.dvclasCncrntRegyn = dvclasCncrntRegyn;
+    }
+
+    public String getIndvAsmtList() {
+        return indvAsmtList;
+    }
+
+    public void setIndvAsmtList(String indvAsmtList) {
+        this.indvAsmtList = indvAsmtList;
+    }
+
+    public List<AsmtSubDtlVO> getSubAsmtDtlList() {
+        return subAsmtDtlList;
+    }
+
+    public void setSubAsmtDtlList(List<AsmtSubDtlVO> subAsmtDtlList) {
+        this.subAsmtDtlList = subAsmtDtlList;
+    }
+
+    public String[] getDvclasListArr() {
+        return dvclasListArr;
+    }
+
+    public void setDvclasListArr(String[] dvclasListArr) {
+        this.dvclasListArr = dvclasListArr;
+    }
+
+    public String[] getLrnGrpIds() {
+        return lrnGrpIds;
+    }
+
+    public void setLrnGrpIds(String[] lrnGrpIds) {
+        this.lrnGrpIds = lrnGrpIds;
+    }
+
+    public String getDvclasNo() {
+        return dvclasNo;
+    }
+
+    public void setDvclasNo(String dvclasNo) {
+        this.dvclasNo = dvclasNo;
+    }
+
+    public String getByteamAsmtUseyn() {
+        return byteamAsmtUseyn;
+    }
+
+    public void setByteamAsmtUseyn(String byteamAsmtUseyn) {
+        this.byteamAsmtUseyn = byteamAsmtUseyn;
+    }
+
+    public String[] getByteamAsmtUseyns() {
+        return byteamAsmtUseyns;
+    }
+
+    public void setByteamAsmtUseyns(String[] byteamAsmtUseyns) {
+        this.byteamAsmtUseyns = byteamAsmtUseyns;
+    }
+
+    public List<AsmtVO> getDvclasInfoList() {
+        return dvclasInfoList;
+    }
+
+    public void setDvclasInfoList(List<AsmtVO> dvclasInfoList) {
+        this.dvclasInfoList = dvclasInfoList;
     }
 }

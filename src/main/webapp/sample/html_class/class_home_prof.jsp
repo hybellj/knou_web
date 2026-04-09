@@ -24,33 +24,9 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-                <div class="class_sub_top">
-                    <div class="navi_bar">
-                        <ul>
-                            <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                            <li>강의실</li>
-                            <li><span class="current">내강의실</span></li>
-                        </ul>
-                    </div>
-                    <div class="btn-wrap">
-                        <div class="first">
-                            <select class="form-select">
-                                <option value="2025년 2학기">2025년 2학기</option>
-                                <option value="2025년 1학기">2025년 1학기</option>
-                            </select>
-                            <select class="form-select wide">
-                                <option value="">강의실 바로가기</option>
-                                <option value="2025년 2학기">2025년 2학기</option>
-                                <option value="2025년 1학기">2025년 1학기</option>
-                            </select>
-                        </div>
-                        <div class="sec">
-                            <button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-                            <button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-                            <button type="button" class="btn type2"><i class="xi-log-out"></i>강의실나가기</button>
-                        </div>
-                    </div>
-                </div>
+                <!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
                 <div class="class_sub">
                     <!-- 강의실 상단 -->
@@ -162,7 +138,7 @@
                                                             <img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진">
                                                         </div>
                                                         <div class="user-desc">
-                                                            <p class="name">나방송</p>                                                           
+                                                            <p class="name">나방송</p>
                                                         </div>
                                                         <div class="btn_wrap">
                                                             <button type="button"><i class="xi-info-o"></i></button>
@@ -176,7 +152,7 @@
                                                             <img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진">
                                                         </div>
                                                         <div class="user-desc">
-                                                            <p class="name">최남단</p>                                                            
+                                                            <p class="name">최남단</p>
                                                         </div>
                                                         <div class="btn_wrap">
                                                             <button type="button"><i class="xi-info-o"></i></button>
@@ -190,7 +166,7 @@
                                                             <img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진">
                                                         </div>
                                                         <div class="user-desc">
-                                                            <p class="name">나방송</p>                                                            
+                                                            <p class="name">나방송</p>
                                                         </div>
                                                         <div class="btn_wrap">
                                                             <button type="button"><i class="xi-info-o"></i></button>
@@ -204,7 +180,7 @@
                                                             <img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진">
                                                         </div>
                                                         <div class="user-desc">
-                                                            <p class="name">최남단</p>                                                            
+                                                            <p class="name">최남단</p>
                                                         </div>
                                                         <div class="btn_wrap">
                                                             <button type="button"><i class="xi-info-o"></i></button>
@@ -218,7 +194,7 @@
                                                             <img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진">
                                                         </div>
                                                         <div class="user-desc">
-                                                            <p class="name">최남단</p>                                                            
+                                                            <p class="name">최남단</p>
                                                         </div>
                                                         <div class="btn_wrap">
                                                             <button type="button"><i class="xi-info-o"></i></button>
@@ -1226,17 +1202,17 @@
 
                     <!-- modal popup 보여주기 버튼(개발시 삭제) -->
                     <div class="modal-btn-box">
-                        <button type="button" class="btn modal__btn" data-modal-open="modal0">주차 수정</button> 
-                        <button type="button" class="btn modal__btn" data-modal-open="modal1">학습진도관리</button> 
-                        <button type="button" class="btn modal__btn" data-modal-open="modal2">평가비중</button> 
-                        <button type="button" class="btn modal__btn" data-modal-open="modal3">평가방법 : 루브릭</button>  
-                        <button type="button" class="btn modal__btn" data-modal-open="modal4">학습자료 수정</button>    
-                        <button type="button" class="btn modal__btn" data-modal-open="modal5">결시신청 현황</button>  
-                        <button type="button" class="btn modal__btn" data-modal-open="modal6">출결관리</button>              
+                        <button type="button" class="btn modal__btn" data-modal-open="modal0">주차 수정</button>
+                        <button type="button" class="btn modal__btn" data-modal-open="modal1">학습진도관리</button>
+                        <button type="button" class="btn modal__btn" data-modal-open="modal2">평가비중</button>
+                        <button type="button" class="btn modal__btn" data-modal-open="modal3">평가방법 : 루브릭</button>
+                        <button type="button" class="btn modal__btn" data-modal-open="modal4">학습자료 수정</button>
+                        <button type="button" class="btn modal__btn" data-modal-open="modal5">결시신청 현황</button>
+                        <button type="button" class="btn modal__btn" data-modal-open="modal6">출결관리</button>
                     </div>
                     <!--// modal popup 보여주기 버튼(개발시 삭제) -->
 
-                </div>               
+                </div>
             </div>
             <!-- //content -->
 
@@ -1248,11 +1224,11 @@
         <div class="modal-overlay" id="modal0" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
             <div class="modal-content modal-lg" tabindex="-1">
                 <div class="modal-header">
-                    <h2 id="modal1Title">1주차 수정</h2> 
+                    <h2 id="modal1Title">1주차 수정</h2>
                     <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
                 </div>
-                <div class="modal-body"> 
-                    
+                <div class="modal-body">
+
                     <!--table-type5-->
                     <div class="table-wrap">
                         <table class="table-type5">
@@ -1265,7 +1241,7 @@
                                     <th><label for="noticeLabel" class="req">주차 기간</label></th>
                                     <td>
                                         <div class="form-inline">
-                                            
+
                                             <div class="date_area">
                                                 <input type="text" placeholder="시작일" id="datetimepicker1" class="datepicker" toDate="datetimepicker2" required="true">
                                                 <span class="txt-sort">~</span>
@@ -1286,11 +1262,11 @@
                                             <input type="text" placeholder="종료시간" id="timepicker4" class="timepicker" dateId="datepicker4">
                                         </div>
                                     </td>
-                                </tr>                                
+                                </tr>
                             </tbody>
                         </table>
                     </div>
-                                    
+
                     <div class="modal_btns">
                         <button type="button" class="btn type1">저장</button>
                         <button type="button" class="btn type2">닫기</button>
@@ -1303,10 +1279,10 @@
         <div class="modal-overlay" id="modal1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
             <div class="modal-content modal-lg" tabindex="-1">
                 <div class="modal-header">
-                    <h2 id="modal1Title">학습진도관리</h2> 
+                    <h2 id="modal1Title">학습진도관리</h2>
                     <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
                 </div>
-                <div class="modal-body"> 
+                <div class="modal-body">
                     <div class="msg-box info">
                         <p class="txt">운영과목과 수강생의 학습현황을 조회할 수 있습니다. <strong>학습 부진자 관리</strong>에 활용하시기 바랍니다.</p>
                     </div>
@@ -1318,7 +1294,7 @@
                         </ul>
                     </div>
 
-                    <div class="search-typeA">                        
+                    <div class="search-typeA">
                         <div class="item">
                             <div class="itemList">
                                 <span class="custom-input">
@@ -1342,7 +1318,7 @@
                         </div>
                     </div>
 
-                    <div class="lecture_status_box full">                            
+                    <div class="lecture_status_box full">
                         <div class="box_item">
                             <div class="title">운영과목<i class="xi-angle-right-min"></i></div>
                             <div class="item_txt">
@@ -1376,10 +1352,10 @@
                         <table class="table-type2">
                             <colgroup>
                                 <col style="width:5%">
-                                <col style="width:6%">                                                                
+                                <col style="width:6%">
                                 <col style="width:11%">
                                 <col style="">
-                                <col style="width:15%">                                                                
+                                <col style="width:15%">
                                 <col style="width:7%">
                                 <col style="width:8%">
                                 <col style="width:10%">
@@ -1392,7 +1368,7 @@
                                         <span class="custom-input onlychk"><input type="checkbox" id="chkall"><label for="chkall"></label></span>
                                     </th>
                                     <th>번호</th>
-                                    <th>이름</th>                                  
+                                    <th>이름</th>
                                     <th>아이디</th>
                                     <th>학번</th>
                                     <th>학년</th>
@@ -1415,7 +1391,7 @@
                                     </td>
                                     <td data-th="번호">90</td>
                                     <td data-th="이름">학습자4</td>
-                                    <td data-th="아이디">Test01</td>                                                                        
+                                    <td data-th="아이디">Test01</td>
                                     <td data-th="학번">K202612547</td>
                                     <td data-th="학년">2</td>
                                     <td data-th="수강과목수">5</td>
@@ -1429,7 +1405,7 @@
                                     </td>
                                     <td data-th="번호">90</td>
                                     <td data-th="이름">학습자4</td>
-                                    <td data-th="아이디">Test01</td>                                                                        
+                                    <td data-th="아이디">Test01</td>
                                     <td data-th="학번">K202612547</td>
                                     <td data-th="학년">2</td>
                                     <td data-th="수강과목수">5</td>
@@ -1443,7 +1419,7 @@
                                     </td>
                                     <td data-th="번호">90</td>
                                     <td data-th="이름">학습자4</td>
-                                    <td data-th="아이디">Test01</td>                                                                        
+                                    <td data-th="아이디">Test01</td>
                                     <td data-th="학번">K202612547</td>
                                     <td data-th="학년">2</td>
                                     <td data-th="수강과목수">5</td>
@@ -1483,7 +1459,7 @@
                         </div>
                     </div>
 
-                                    
+
                     <div class="modal_btns">
                         <button type="button" class="btn type2">닫기</button>
                     </div>
@@ -1495,13 +1471,13 @@
         <div class="modal-overlay" id="modal2" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
             <div class="modal-content modal-xl" tabindex="-1">
                 <div class="modal-header">
-                    <h2 id="modal1Title">평가비중</h2> 
+                    <h2 id="modal1Title">평가비중</h2>
                     <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
                 </div>
                 <div class="modal-body">
                     <div class="board_top">
-                        <h3 class="board-title">평가비중 (강의계획서)</h3>                       
-                    </div> 
+                        <h3 class="board-title">평가비중 (강의계획서)</h3>
+                    </div>
                     <div class="table-wrap">
                         <table class="table-type1">
                             <colgroup>
@@ -1525,7 +1501,7 @@
                                     <th>과제</th>
                                     <th>토론</th>
                                     <th>퀴즈</th>
-                                    <th>설문</th>                                    
+                                    <th>설문</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1545,7 +1521,7 @@
                     </div>
 
                     <div class="board_top">
-                        <h4 class="sub-title">성적 반영비율 관리</h4>    
+                        <h4 class="sub-title">성적 반영비율 관리</h4>
                         <div class="right-area">
                             <!-- Tab btn -->
                             <div class="tab_btn">
@@ -1565,25 +1541,25 @@
                             <colgroup>
                                 <col style="width:4%">
                                 <col style="width:10%">
-                                <col style="">                                
+                                <col style="">
                                 <col style="width:14%">
                                 <col style="width:14%">
                                 <col style="width:8%">
-                                <col style="width:9%">                                    
+                                <col style="width:9%">
                                 <col style="width:8%">
-                                <col style="width:8%">                                                                                                        
+                                <col style="width:8%">
                             </colgroup>
                             <thead>
                                 <tr>
                                     <th>번호</th>
                                     <th>구분</th>
                                     <th>과제명</th>
-                                    <th>제출기간</th> 
-                                    <th>연장제출마감</th>  
-                                    <th>평가방법</th>                                       
+                                    <th>제출기간</th>
+                                    <th>연장제출마감</th>
+                                    <th>평가방법</th>
                                     <th>성적반영비율</th>
                                     <th>성적공개</th>
-                                    <th>진행상태</th>                                    
+                                    <th>진행상태</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1591,48 +1567,48 @@
                                     <td data-th="번호">1</td>
                                     <td data-th="구분">일반과제</td>
                                     <td data-th="과제명" class="t_left">과제과제과제 과제명 입니다.</td>
-                                    <td data-th="제출기간">2026.06.13 18:00 ~ 2026.06.17 22:00</td>    
-                                    <td data-th="연장제출마감">2026.06.22 22:00</td>    
-                                    <td data-th="평가방법">점수형</td>                                 
+                                    <td data-th="제출기간">2026.06.13 18:00 ~ 2026.06.17 22:00</td>
+                                    <td data-th="연장제출마감">2026.06.22 22:00</td>
+                                    <td data-th="평가방법">점수형</td>
                                     <td data-th="성적반영비율">25%</td>
                                     <td data-th="성적공개">
                                         <input type="checkbox" value="Y" class="switch small" checked="checked">
                                     </td>
                                     <td data-th="진행상태">진행</td>
-                                </tr>   
+                                </tr>
                                 <tr>
                                     <td data-th="번호">2</td>
                                     <td data-th="구분">팀과제</td>
                                     <td data-th="과제명" class="t_left">과제과제과제 과제명 입니다.</td>
-                                    <td data-th="제출기간">2026.06.13 18:00 ~ 2026.06.17 22:00</td>    
-                                    <td data-th="연장제출마감">2026.06.22 22:00</td>    
+                                    <td data-th="제출기간">2026.06.13 18:00 ~ 2026.06.17 22:00</td>
+                                    <td data-th="연장제출마감">2026.06.22 22:00</td>
                                     <td data-th="평가방법">
                                         <a href="#0" class="title link">루브릭</a>
-                                    </td>                                 
+                                    </td>
                                     <td data-th="성적반영비율">25%</td>
                                     <td data-th="성적공개">
                                         <input type="checkbox" value="N" class="switch small">
                                     </td>
                                     <td data-th="진행상태">대기</td>
-                                </tr> 
+                                </tr>
                                 <tr>
                                     <td data-th="번호">3</td>
                                     <td data-th="구분">일반과제</td>
                                     <td data-th="과제명" class="t_left">과제과제과제 과제명 입니다.</td>
-                                    <td data-th="제출기간">2026.06.13 18:00 ~ 2026.06.17 22:00</td>    
-                                    <td data-th="연장제출마감">2026.06.22 22:00</td>    
-                                    <td data-th="평가방법">점수형</td>                                 
+                                    <td data-th="제출기간">2026.06.13 18:00 ~ 2026.06.17 22:00</td>
+                                    <td data-th="연장제출마감">2026.06.22 22:00</td>
+                                    <td data-th="평가방법">점수형</td>
                                     <td data-th="성적반영비율">25%</td>
                                     <td data-th="성적공개">
                                         <input type="checkbox" value="Y" class="switch small" checked="checked">
                                     </td>
                                     <td data-th="진행상태">완료</td>
-                                </tr>                                                                       
+                                </tr>
                             </tbody>
                         </table>
                     </div>
-                    <!--//table-type-->                          
-                                    
+                    <!--//table-type-->
+
                     <div class="modal_btns">
                         <button type="button" class="btn type2">닫기</button>
                     </div>
@@ -1644,7 +1620,7 @@
         <div class="modal-overlay" id="modal3" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
             <div class="modal-content modal-lg" tabindex="-1">
                 <div class="modal-header">
-                    <h2 id="modal1Title">평가방법 : 루브릭</h2> 
+                    <h2 id="modal1Title">평가방법 : 루브릭</h2>
                     <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
                 </div>
                 <div class="modal-body">
@@ -1655,9 +1631,9 @@
                         </p>
                     </div>
                     <div class="board_top">
-                        <h3 class="board-title">루브릭 평가</h3>                       
-                    </div> 
-                    
+                        <h3 class="board-title">루브릭 평가</h3>
+                    </div>
+
                     <div class="rubrics_wrap">
                         <div class="rub_write">
                             <div class="top"><input class="form-control width-100per" type="text" name="name" id="readonly_label" value="과제 루브릭 평가 제목입니다." readonly="" autocomplete="off"></div>
@@ -1682,9 +1658,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="sub-box rub_grade">                        
+                        <div class="sub-box rub_grade">
                             <div class="board_top">
-                                <h3 class="board-title">평가 등급</h3>   
+                                <h3 class="board-title">평가 등급</h3>
                                 <div class="form-inline">
                                     <span class="custom-input">
                                         <input type="radio" name="evalType1" id="evalType1" value="5" checked="">
@@ -1698,43 +1674,43 @@
                                         <input type="radio" name="evalType1" id="evalType3" value="10">
                                         <label for="evalType3">자유척도</label>
                                     </span>
-                                </div>                    
+                                </div>
                             </div>
                             <div class="grade_item">
                                 <div class="item">
                                     <div class="input_btn">
                                         <input class="form-control sm" id="gradeInput" type="text" value="5" autocomplete="off"><label>점</label>
-                                    </div>                                        
-                                    <input class="form-control wide" type="text" value="매우 잘 했어요">                                       
+                                    </div>
+                                    <input class="form-control wide" type="text" value="매우 잘 했어요">
                                 </div>
                                 <div class="item">
                                     <div class="input_btn">
                                         <input class="form-control sm" id="gradeInput" type="text" value="4" autocomplete="off"><label>점</label>
-                                    </div>                                        
-                                    <input class="form-control wide" type="text" value="잘 했어요">                                       
+                                    </div>
+                                    <input class="form-control wide" type="text" value="잘 했어요">
                                 </div>
                                 <div class="item">
                                     <div class="input_btn">
                                         <input class="form-control sm" id="gradeInput" type="text" value="3" autocomplete="off"><label>점</label>
-                                    </div>                                        
-                                    <input class="form-control wide" type="text" value="보통입니다">                                       
+                                    </div>
+                                    <input class="form-control wide" type="text" value="보통입니다">
                                 </div>
                                 <div class="item">
                                     <div class="input_btn">
                                         <input class="form-control sm" id="gradeInput" type="text" value="2" autocomplete="off"><label>점</label>
-                                    </div>                                        
-                                    <input class="form-control wide" type="text" value="노력하세요">                                       
+                                    </div>
+                                    <input class="form-control wide" type="text" value="노력하세요">
                                 </div>
                                 <div class="item">
                                     <div class="input_btn">
                                         <input class="form-control sm" id="gradeInput" type="text" value="1" autocomplete="off"><label>점</label>
-                                    </div>                                        
-                                    <input class="form-control wide" type="text" value="더 노력하세요">                                       
+                                    </div>
+                                    <input class="form-control wide" type="text" value="더 노력하세요">
                                 </div>
-                            </div>                                                            
+                            </div>
                         </div>
-                    </div>                                       
-                                    
+                    </div>
+
                     <div class="modal_btns">
                         <button type="button" class="btn type2">닫기</button>
                     </div>
@@ -1746,10 +1722,10 @@
         <div class="modal-overlay" id="modal4" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
             <div class="modal-content modal-lg" tabindex="-1">
                 <div class="modal-header">
-                    <h2 id="modal1Title">학습자료 수정</h2> 
+                    <h2 id="modal1Title">학습자료 수정</h2>
                     <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
                 </div>
-                <div class="modal-body">                    
+                <div class="modal-body">
 
                     <div class="board_top">
                         <h3 class="board-title">1주차</h3>
@@ -1765,7 +1741,7 @@
                                 <col class="width-15per" />
                                 <col class="" />
                             </colgroup>
-                            <tbody>                                
+                            <tbody>
                                 <tr>
                                     <th><label for="select_fullLabel">제목</label></th>
                                     <td>
@@ -1780,7 +1756,7 @@
                                         <span class="custom-input">
                                             <input type="checkbox" name="sendUserCk" id="sendUserCk" checked>
                                             <label for="sendUserCk">출결체크 대상에 포함</label>
-                                        </span>		
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1811,7 +1787,7 @@
                                                 <i class="icon-svg-type-square" aria-hidden="true"></i>
                                                 <span>텍스트</span>
                                             </a>
-                                        </div>	
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1856,7 +1832,7 @@
                                                 <small class="note">* Youtube, TED, Vimeo의 동영상 주소를 입력하여 등록할 수 있습니다.</small>
                                                 <div class="form-row">
                                                     <input class="form-control width-100per" type="text" name="name" id="url_label" value="" placeholder="소셜미디어 URL 주소를 붙여 넣으세요">
-                                                </div>                                                
+                                                </div>
                                             </div>
                                             <div id="tab02" class="tab-content" style="display:none;">
                                                 <small class="note">* Iframe 형식 HTML 코드를 등록합니다.</small>
@@ -1868,7 +1844,7 @@
                                                 <div class="msg-txt mt10">
                                                     <p class="txt">* 소셜 미디어에서 제공하는 공유 코드를 복사하여 붙여 넣습니다.</p>
                                                     <button type="button" class="btn gray1">저장</button>
-                                                </div>                                               
+                                                </div>
                                             </div>
                                         </div>
 
@@ -1878,8 +1854,8 @@
                                     <th><label for="playerArea">강의보기</label></th>
                                     <td>
                                         <div class="video-container">
-                                            <iframe src="https://www.youtube.com/embed/zyAeJbVqYSI?si=pSQ65VLxrJ0NkfaV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>                                        
-                                        </div>                                        
+                                            <iframe src="https://www.youtube.com/embed/zyAeJbVqYSI?si=pSQ65VLxrJ0NkfaV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1891,7 +1867,7 @@
                             </tbody>
                         </table>
                     </div>
-                                    
+
                     <div class="modal_btns">
                         <button type="button" class="btn type1">저장</button>
                         <button type="button" class="btn type1">삭제</button>
@@ -1905,11 +1881,11 @@
         <div class="modal-overlay" id="modal5" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
             <div class="modal-content modal-xl" tabindex="-1">
                 <div class="modal-header">
-                    <h2 id="modal1Title">결시신청 현황</h2> 
+                    <h2 id="modal1Title">결시신청 현황</h2>
                     <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
                 </div>
-                <div class="modal-body"> 
-                    <div class="tit_divider">결시신청 신청기간</div>                   
+                <div class="modal-body">
+                    <div class="tit_divider">결시신청 신청기간</div>
 
                     <div class="msg-box warning mt20">
                         <div class="txt_group">
@@ -1919,14 +1895,14 @@
                     </div>
 
                     <div class="board_top">
-                        <h3 class="board-title">수강생</h3>  
+                        <h3 class="board-title">수강생</h3>
                         <div class="right-area">
                              <span class="total_txt">[ 전체 <b class="fcBlue">3</b>건 ]</span>
-                        </div>                          
+                        </div>
                     </div>
                     <div class="board_top in_table">
                         <select class="form-select" id="selectDate1">
-                            <option value="2026">2026</option>                                
+                            <option value="2026">2026</option>
                         </select>
                         <select class="form-select" id="selectDate2">
                             <option value="2학기">2학기</option>
@@ -1938,16 +1914,16 @@
                             <option value="기말고사">기말고사</option>
                         </select>
                         <select class="form-select" id="selectDate4">
-                            <option value="승인여부">승인여부</option>                                
+                            <option value="승인여부">승인여부</option>
                         </select>
                         <!-- search small -->
                         <div class="search-typeC">
                             <input class="form-control" type="text" name="" id="inputSearch1" value="" placeholder="학번/이름 입력">
                             <button type="button" class="btn basic icon search" aria-label="검색"><i class="icon-svg-search"></i></button>
                         </div>
-                        <div class="right-area">                            
-                            <button type="button" class="btn basic">메시지 보내기</button>   
-                            <button type="button" class="btn type2">엑셀 다운로드</button>                             
+                        <div class="right-area">
+                            <button type="button" class="btn basic">메시지 보내기</button>
+                            <button type="button" class="btn type2">엑셀 다운로드</button>
                         </div>
                     </div>
 
@@ -1956,7 +1932,7 @@
                         <table class="table-type2">
                             <colgroup>
                                 <col style="width:3%">
-                               
+
                                 <col style="width:4%">
                                 <col style="width:11%">
                                 <col style="width:10%">
@@ -1968,7 +1944,7 @@
                                 <col style="width:5%">
                                 <col style="width:5%">
                                 <col style="width:9%">
-                                <col style="width:6%">                                
+                                <col style="width:6%">
                             </colgroup>
                             <thead>
                                 <tr>
@@ -1979,9 +1955,9 @@
                                     <th>학과</th>
                                     <th>아이디</th>
                                     <th>학번</th>
-                                    <th>이름</th>                                 
+                                    <th>이름</th>
                                     <th>과목명</th>
-                                    <th>분반</th>                                                                                                            
+                                    <th>분반</th>
                                     <th>시험구분</th>
                                     <th>시험응시</th>
                                     <th>처리상태</th>
@@ -1995,12 +1971,12 @@
                                         <span class="custom-input onlychk"><input type="checkbox" id="chk1"><label for="chk1"></label></span>
                                     </td>
                                     <td data-th="번호">1</td>
-                                    <td data-th="학과">문예창작콘텐츠</td>                                    
+                                    <td data-th="학과">문예창작콘텐츠</td>
                                     <td data-th="아이디">Test01</td>
                                     <td data-th="학번">K202612547</td>
                                     <td data-th="이름"><span class="fcBlue">학습자4</span></td>
                                     <td data-th="과목명">고전문학심화</td>
-                                    <td data-th="분반">01</td>                                    
+                                    <td data-th="분반">01</td>
                                     <td data-th="시험구분">중간고사</td>
                                     <td data-th="시험응시">N</td>
                                     <td data-th="처리상태"><span class="fcBlue">반려</span></td>
@@ -2012,12 +1988,12 @@
                                         <span class="custom-input onlychk"><input type="checkbox" id="chk1"><label for="chk1"></label></span>
                                     </td>
                                     <td data-th="번호">1</td>
-                                    <td data-th="학과">문예창작콘텐츠</td>                                    
+                                    <td data-th="학과">문예창작콘텐츠</td>
                                     <td data-th="아이디">Test01</td>
                                     <td data-th="학번">K202612547</td>
                                     <td data-th="이름"><span class="fcBlue">학습자4</span></td>
                                     <td data-th="과목명">고전문학심화</td>
-                                    <td data-th="분반">01</td>                                    
+                                    <td data-th="분반">01</td>
                                     <td data-th="시험구분">중간고사</td>
                                     <td data-th="시험응시">N</td>
                                     <td data-th="처리상태"><span class="fcBlue">반려</span></td>
@@ -2028,9 +2004,9 @@
 
                         </table>
                     </div>
-                    <!--//table-type2-->                                       
-                                    
-                    <div class="modal_btns">                      
+                    <!--//table-type2-->
+
+                    <div class="modal_btns">
                         <button type="button" class="btn type2">닫기</button>
                     </div>
                 </div>
@@ -2041,11 +2017,11 @@
         <div class="modal-overlay" id="modal6" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
             <div class="modal-content modal-lg" tabindex="-1">
                 <div class="modal-header">
-                    <h2 id="modal1Title">출결관리</h2> 
+                    <h2 id="modal1Title">출결관리</h2>
                     <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
                 </div>
-                <div class="modal-body"> 
-                   
+                <div class="modal-body">
+
                     <div class="course_history">
                         <div class="h_top">
                             <div class="h_left">
@@ -2058,15 +2034,15 @@
                                     <span>지각<strong>3</strong></span>
                                     <span>결석<strong>2</strong></span>
                                 </p>
-                            </div>                            
+                            </div>
                         </div>
                         <div class="h_content">
                             <ul class="accordion course_week">
                                 <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap">                                        
-                                        <a class="title" href="#">                                                
+                                    <div class="title-wrap">
+                                        <a class="title" href="#">
                                             <div class="lecture_box type2">
-                                                <div class="lecture_tit">                                                  
+                                                <div class="lecture_tit">
                                                     <p class="labels">
                                                         <label class="label s_chasi">1차시</label>
                                                         <label class="label s_basic">동영상</label>
@@ -2074,23 +2050,23 @@
                                                     <strong>우리 생활 주변의 데이터베이스</strong>
                                                 </div>
                                                 <div class="btn_right">
-                                                    <span>출석율 <strong class="fcBlue">52%</strong></span>                                                   
+                                                    <span>출석율 <strong class="fcBlue">52%</strong></span>
                                                 </div>
                                                 <i class="arrow xi-angle-down"></i>
                                             </div>
-                                        </a>                                            
+                                        </a>
                                     </div>
                                     <div class="cont">
                                         <div class="video-wrap">
                                             <video controls playsinline>
                                                 <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
                                             </video>
-                                        </div>                                       
+                                        </div>
                                     </div>
-                                </li>                               
+                                </li>
                                 <li class=""><!-- 클릭시 active 추가 -->
                                     <div class="title-wrap">
-                                        <a class="title" href="#">                                            
+                                        <a class="title" href="#">
                                             <div class="lecture_box type2">
                                                 <div class="lecture_tit">
                                                     <p class="labels">
@@ -2100,11 +2076,11 @@
                                                     <strong>데이터베이스 관리 시스템</strong>
                                                 </div>
                                                 <div class="btn_right">
-                                                    <span>출석율 <strong class="fcBlue">63%</strong></span>                                                   
+                                                    <span>출석율 <strong class="fcBlue">63%</strong></span>
                                                 </div>
                                                 <i class="arrow xi-angle-down"></i>
                                             </div>
-                                        </a>                                            
+                                        </a>
                                     </div>
                                     <div class="cont">
                                         <div class="video-wrap">
@@ -2124,8 +2100,8 @@
                         <div class="search-typeC">
                             <input class="form-control" type="text" name="" id="inputSearch1" value="" placeholder="이름/학번/학과 입력">
                             <button type="button" class="btn basic icon search" aria-label="검색"><i class="icon-svg-search"></i></button>
-                        </div>                        
-                        <div class="right-area">                            
+                        </div>
+                        <div class="right-area">
                             <button type="button" class="btn basic">메시지 보내기</button>
                             <button type="button" class="btn type2">일괄 출석 관리</button>
                             <button type="button" class="btn type2">엑셀 다운로드</button>
@@ -2152,12 +2128,12 @@
                                     <th>번호</th>
                                     <th>학과</th>
                                     <th>학번</th>
-                                    <th>이름</th>                                      
-                                    <th>출결</th>                                 
+                                    <th>이름</th>
+                                    <th>출결</th>
                                     <th>상세보기</th>
                                 </tr>
                             </thead>
-                            <tbody>                                    
+                            <tbody>
                                 <tr>
                                     <td data-th="선택">
                                         <span class="custom-input onlychk"><input type="checkbox" id="chk21"><label for="chk21"></label></span>
@@ -2167,11 +2143,11 @@
                                     <td data-th="학번">2021215478</td>
                                     <td data-th="이름">학습자</td>
                                     <td data-th="출결">
-                                        <span class="state_ok" aria-label="출석">출석</span>                                            
+                                        <span class="state_ok" aria-label="출석">출석</span>
                                     </td>
                                     <td data-th="상세보기">
                                         <button class="btn basic small">출석관리</button>
-                                    </td>                                                                              
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td data-th="선택">
@@ -2186,7 +2162,7 @@
                                     </td>
                                     <td data-th="상세보기">
                                         <button class="btn basic small">출석관리</button>
-                                    </td>                                                                              
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td data-th="선택">
@@ -2201,14 +2177,14 @@
                                     </td>
                                     <td data-th="상세보기">
                                         <button class="btn basic small">출석관리</button>
-                                    </td>                                                                              
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                     <!--//table-type-->
-                                                                                           
-                    <div class="modal_btns">                      
+
+                    <div class="modal_btns">
                         <button type="button" class="btn type2">닫기</button>
                     </div>
                 </div>

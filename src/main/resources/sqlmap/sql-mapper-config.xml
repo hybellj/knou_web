@@ -23,7 +23,8 @@
 		<package name="knou.lms.cmmn.vo" />
 
 		<!-- 과제 -->
-		<package name="knou.lms.asmt.vo" />
+		<!--<package name="knou.lms.asmt.vo" />-->
+		<package name="knou.lms.asmt2.vo" />
 
 		<!-- 게시판 -->
 		<package name="knou.lms.bbs.vo" />

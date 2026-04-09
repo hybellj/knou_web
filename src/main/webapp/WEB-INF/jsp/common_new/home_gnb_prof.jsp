@@ -88,6 +88,11 @@ pageContext.setAttribute("menuList", menuList);
 			    </c:forEach>
 			</nav>
 			<!-- //gnb menu -->
+
+			<script type="text/javascript">
+				// 메뉴 스크롤
+				scrollGnbMenu("${curUpMenuId}", "${curMenuId}");
+			</script>
 		</div>
 	</aside>
 

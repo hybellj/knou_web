@@ -118,7 +118,7 @@
 				if(v.scoreNull === "-") {
 					scoreHtml += "		- "; // 점
 				} else {
-					scoreHtml += "		"+ v.score +" <spring:message code='forum.label.point' />"; // 점
+					scoreHtml += "<a href='#0' class='link'>"+ v.score +"</a>";
 				}
 				scoreHtml += "		</div>";
 				scoreHtml += "		<div id=\"scoreInputDiv"+ i +"\" name=\"scoreInputDiv\" style=\"display:none;\">";
@@ -127,17 +127,17 @@
 				scoreHtml += "		</div>";
 				<%--scoreHtml += "		<div class=\"ui basic label\"><spring:message code='forum.label.point' /></div>"; // 점--%>
 
-				var fdkHtml = "<i class=\"xi-comment-o \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('"+ v.dscsId +"', '"+ v.userId +"', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
+				var fdkHtml = "<i class=\"xi-comment-o icon \${v.fdbkCts == null || v.fdbkCts == '' ? '' : 'on'}\" onclick=\"fdbkList('"+ v.dscsId +"', '"+ v.userId +"', this)\" style=\"cursor:pointer\" title=\"<spring:message code='forum.label.feedback'/>\"></i>"; // 피드백
 				var oknokHtml = "-";
 				if(v.oknokGbnCd === "OK") {
-					oknokHtml = "<spring:message code='forum.label.oknok.ok' />";        // 찬성
+					oknokHtml = "<span class='fcPro'><spring:message code='forum.label.oknok.ok' /></span>";        // 찬성
 				} else if(v.oknokGbnCd === "NOTOK") {
-					oknokHtml = "<spring:message code='forum.label.oknok.notok' />";     // 반대
+					oknokHtml = "<span class='fcCon'><spring:message code='forum.label.oknok.notok' /></span>";     // 반대
 				}
 				var joinStatusHtml = "";
 				var joinDtdmHtml = "";
 				if(v.joinStatus == "미참여") {
-					joinStatusHtml += "<span class='fcRed'>"+ v.joinStatus +"</span>";
+					joinStatusHtml += "<span class='fcNot'>"+ v.joinStatus +"</span>";
 					joinDtdmHtml = "-";
 				} else {
 					joinStatusHtml += v.joinStatus;
@@ -145,8 +145,8 @@
 				}
 
 				var mngHtml = "";
-				mngHtml += "		<a href=\"javascript:ezGraderPop('"+ v.dscsId +"', '"+ v.userId +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></a>"; // 참여글보기
-				mngHtml += "		<a href=\"javascript:stdMemoForm('"+ v.dscsId +"', '"+ v.userId +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></a>"; // 메모
+				mngHtml += "		<button onclick=\"javascript:ezGraderPop('"+ v.dscsId +"', '"+ v.userId +"')\" class=\"btn basic small\"> <spring:message code='forum.label.forum.joinCnt.view' /></button>"; // 참여글보기
+				mngHtml += "		<button onclick=\"javascript:stdMemoForm('"+ v.dscsId +"', '"+ v.userId +"', this)\" class=\"btn basic small\"> <spring:message code='forum.label.memo' /></button>"; // 메모
 
 				dataList.push({
 					no: 				v.lineNo,
@@ -925,13 +925,6 @@
 			<!-- content -->
 			<div id="content" class="content-wrap common">
 				<div class="class_sub_top">
-					<div class="navi_bar">
-						<ul>
-							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>
-						</ul>
-					</div>
 					<div class="btn-wrap">
 						<div class="first">
 							<select class="form-select">
@@ -947,23 +940,37 @@
 						<div class="sec">
 							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
 							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
+							<button type="button" class="btn type2"><i class="xi-log-out"></i>강의실나가기</button>
 						</div>
 					</div>
 				</div>
+
 				<div class="class_sub">
+					<!-- 강의실 상단 -->
+					<div class="segment class-area sub">
+						<div class="class_info">
+							<div class="class_tit">
+								<p class="labels">
+									<label class="label uniA">대학원</label>
+								</p>
+								<h2>데이터베이스의 이해와 활용 1반</h2>
+							</div>
+							<div class="navi_bar">
+								<ul>
+									<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
+									<li>강의실</li>
+									<li><span class="current">토론</span></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<!-- //강의실 상단 -->
+
 					<div class="sub-content">
 						<div class="page-info">
 							<h2 class="page-title">
 								<spring:message code="forum.label.forum" /><!-- 토론 -->
 							</h2>
-						</div>
-
-						<div class="board_top">
-							<div class="right-area">
-								<a href="javascript:void(0)" class="btn type2" onclick="editDscs('${dscsVO.dscsId}','${dscsVO.dscsSdttm}')"><spring:message code='forum.button.mod'/><!-- 수정 --></a>
-								<a href="javascript:void(0)" class="btn type2" onclick="deleteDscs('${dscsVO.dscsId}');"><spring:message code='forum.button.del'/><!-- 삭제 --></a>
-								<a href="javascript:void(0)" class="btn type2" onclick="viewDscsList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
-							</div>
 						</div>
 
 						<div class="listTab">
@@ -973,53 +980,64 @@
 							</ul>
 						</div>
 
+						<div class="board_top">
+							<h3 class="board-title">토론정보 및 토론평가</h3>
+							<div class="right-area">
+								<a href="javascript:void(0)" class="btn type1 big" onclick="editDscs('${dscsVO.dscsId}','${dscsVO.dscsSdttm}')"><spring:message code='forum.button.mod'/><!-- 수정 --></a>
+								<a href="javascript:void(0)" class="btn type2 big" onclick="deleteDscs('${dscsVO.dscsId}');"><spring:message code='forum.button.del'/><!-- 삭제 --></a>
+								<a href="javascript:void(0)" class="btn type2 big" onclick="viewDscsList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
+							</div>
+						</div>
+
 						<!-- 토론정보 시작 -->
 						<jsp:include page="/WEB-INF/jsp/forum2/common/forum_info_inc.jsp" />
 						<!-- 토론정보 끝 -->
 
-						<div class="board_top margin-top-4 padding-2 bcLgrey4">
-							<h4>토론평가</h4>
+						<div class="board_top mb0">
+							<h4 class="sub-title">토론평가</h4>
 							<div class="right-area">
 								<%-- <c:if test="${!fn:contains(authGrpCd, 'TUT') }"> --%>
-								<a href="javascript:ezGraderPop('${dscsVO.dscsId}')" class="btn basic small">EZ-Grader</a>
+								<a href="javascript:ezGraderPop('${dscsVO.dscsId}')" class="btn type2">EZ-Grader</a>
 								<%-- </c:if> --%>
 								<%-- <a href="javascript:allFeedback()" class="ui button"><spring:message code="forum.button.all.feedback" /></a><!-- 일괄 피드백 --> --%>
-								<a href="javascript:callScoreExcelUpload()" class="btn basic small"><spring:message code="forum.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
+								<a href="javascript:callScoreExcelUpload()" class="btn type2"><spring:message code="forum.button.reg.excel.score" /></a><!-- 엑셀 성적등록 -->
 
 								<%--<uiex:msgSendBtn func="sendMsg()" styleClass="ui basic small button"/><!-- 메시지 -->--%>
-								<a href="javascript:sendMsg()" class="btn basic small">보내기</a>
+								<a href="javascript:sendMsg()" class="btn basic"><spring:message code="common.button.message.send" /><%--메시지 보내기--%></a>
 							</div>
 						</div>
 
 						<!-- 토론평가 검색:시작 -->
-						<div class="search-typeA margin-bottom-4">
-							<div class="text-center">
-								<select class="ui compact dropdown mr10" id="searchKey" onchange="listForumUser(1)">
-									<option value="all"><spring:message code='forum.common.search.all'/><!-- 전체 --></option>
-									<option value="joinY"><spring:message code='forum.label.join'/><!-- 참여 --></option>
-									<%--<option value="after"><spring:message code='forum.label.after.join'/><!-- 지각참여 --></option>--%>
-									<option value="joinN"><spring:message code='forum.label.not.join'/><!-- 미참여 --></option>
-									<c:if test="${dscsVO.dscsUnitTycd eq 'TEAM'}">
-										<option value="leader"><spring:message code='forum.label.team.leader'/><!-- 팀장 --></option>
-										<option value="member"><spring:message code='forum.label.team.member'/><!-- 팀원 --></option>
-									</c:if>
-								</select>
-								<select class="ui compact dropdown mr10" id="searchSort" onchange="listForumUser(1)">
-									<option value="all"><spring:message code='forum.common.search.all'/><!-- 전체 --></option>
-									<option value="evalY"><spring:message code='forum.label.eval'/><!-- 평가 --></option>
-									<option value="evalN"><spring:message code='forum.label.not.eval'/><!-- 미평가 --></option>
-								</select>
-								<input type="text" placeholder="<spring:message code='forum.label.dept.nm' />, <spring:message code='forum.label.user.no' />, <spring:message code='forum.label.user_nm' /> <spring:message code='forum.label.input' />" class="w250" id="searchValue"><!-- 학과, 학번, 이름 입력 -->
-								<button type="button" class="btn type1" onclick="listForumUser(1)"><spring:message code='common.button.search'/><!--검색--></button>
-								<button type="button" class="btn type1" onclick="searchAll()"><spring:message code='forum.button.std.all.search'/><!--수강생 전체--></button>
+						<div class="board_top in_table">
+							<select class="form-select" id="searchKey" onchange="listForumUser(1)">
+								<option value="all"><spring:message code='forum.common.search.all'/><!-- 전체 --></option>
+								<option value="joinY"><spring:message code='forum.label.join'/><!-- 참여 --></option>
+								<%--<option value="after"><spring:message code='forum.label.after.join'/><!-- 지각참여 --></option>--%>
+								<option value="joinN"><spring:message code='forum.label.not.join'/><!-- 미참여 --></option>
+								<c:if test="${dscsVO.dscsUnitTycd eq 'TEAM'}">
+									<option value="leader"><spring:message code='forum.label.team.leader'/><!-- 팀장 --></option>
+									<option value="member"><spring:message code='forum.label.team.member'/><!-- 팀원 --></option>
+								</c:if>
+							</select>
+							<select class="form-select" id="searchSort" onchange="listForumUser(1)">
+								<option value="all"><spring:message code='forum.common.search.all'/><!-- 전체 --></option>
+								<option value="evalY"><spring:message code='forum.label.eval'/><!-- 평가 --></option>
+								<option value="evalN"><spring:message code='forum.label.not.eval'/><!-- 미평가 --></option>
+							</select>
+							<!-- search small -->
+							<div class="search-typeC">
+								<input class="form-control" id="searchValue" type="text" placeholder="<spring:message code='forum.label.dept.nm' />, <spring:message code='forum.label.user.no' />, <spring:message code='forum.label.user_nm' /> <spring:message code='forum.label.input' />" ><!-- 학과, 학번, 이름 입력 -->
+								<button type="button" class="btn basic icon search" onclick="listForumUser(1)"><i class="icon-svg-search"></i></button>
 							</div>
+							<button type="button" class="btn search" onclick="searchAll()"><spring:message code='forum.button.std.all.search'/><!--수강생 전체--></button>
 						</div>
 						<!-- 토론평가 검색:끝 -->
 
 						<!-- 토론평가 점수처리 영역:시작 -->
-						<table class="table-type1 fs-14px">
+						<div class="table-wrap">
+							<table class="table-type5">
 							<colgroup>
-								<col class="width-20per" />
+								<col class="width-15per" />
 								<col class="" />
 							</colgroup>
 							<tbody>
@@ -1027,38 +1045,46 @@
 								<tr>
 									<th><spring:message code="common.label.batch.score.process" /><!-- 일괄 점수처리 --></th>
 									<td>
-										<div class="text-left">
+										<div class="form-inline">
 											<span class="custom-input">
 												<input type="radio" name="scoreType" id="scoreBatch" onchange="plusMinusIconControl(this.value)" value="batch" checked />
 												<label for="scoreBatch"><spring:message code="forum.label.reg.scoring" /><!-- 점수 등록 --></label>
 											</span>
-											<span class="custom-input">
+											<span class="custom-input ml5">
 												<input type="radio" name="scoreType" id="scoreAddition" onchange="plusMinusIconControl(this.value)" value="addition" />
 												<label for="scoreAddition"><spring:message code="forum.label.plus.minus.scoring" /><!-- 점수 가감 --></label>
 											</span>
-											<spring:message code="forum.label.score" /><!-- 점수 -->
-											<button class='btn small basic icon' id="scr-toggle-icon"><i class='xi-plus'></i></button>
-											<input type="text" id="scoreValue" class="w100" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');" maxlength="3" />
-											<spring:message code="forum.label.point" /><!-- 점 -->
-											<a href="javascript:submitScore()" class="btn type7"><spring:message code="common.label.batch.score.save" /><!-- 일괄 점수저장 --></a>
+											<div class="custom-txt">
+												<span class="tit"><spring:message code="forum.label.score" /><!-- 점수 -->:</span>
+												<button class='btn small basic icon' id="scr-toggle-icon"><i class='xi-plus'></i></button>
+												<div class="input_btn">
+													<input type="text" id="scoreValue" class="form-control sm" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');" maxlength="3" />
+													<label for="scoreValue"><spring:message code="forum.label.point" /><!-- 점 --></label>
+												</div>
+											</div>
+											<button type="button" class="btn type1" onclick="javascript:submitScore()"><spring:message code="common.button.save" /><!-- 저장 --></button>
 										</div>
 									</td>
 								</tr>
 								<tr>
 									<th><spring:message code='forum.button.length.score'/><!-- 글자수로 점수 주기 --></th>
 									<td>
-										<div class="text-left">
-											<div class="form-inline">
+										<div class="form-inline">
+											<div class="input_btn">
 												<input type="text" name="ctsLen" id="ctsLen" placeholder="<spring:message code='forum.alert.len.input'/>" class="w100" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');"><!-- 글자수 입력 -->
-												<spring:message code='forum.label.lt'/><!-- 이상 -->
-												<div class="custom-input ml10">
-													<input type="checkbox" name="chkCmnt" id="chkCmnt" value="Y">
-													<label for="chkCmnt"><spring:message code='forum.label.comment.include'/><!-- 댓글포함 --></label>
-												</div>
-												<input type="text" name="lenScore" id="lenScore" placeholder="<spring:message code='forum.label.score'/>" class="w100" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');"><!-- 점수 -->
-												<spring:message code='forum.label.point'/><!-- 점 -->
-												<a href="javascript:lenScore()" class="btn type7 ml10"><spring:message code='forum.button.all.score'/><!-- 일괄 점수 주기 --></a>
+												<label for="ctsLen"><spring:message code='forum.label.lt'/><!-- 이상 --></label>
 											</div>
+											<span class="custom-input">
+												<input type="checkbox" name="chkCmnt" id="chkCmnt" value="Y">
+												<label for="chkCmnt"><spring:message code='forum.label.comment.include'/><!-- 댓글포함 --></label>
+											</span>
+											<div class="custom-txt">
+												<div class="input_btn">
+													<input type="text" name="lenScore" id="lenScore" placeholder="<spring:message code='forum.label.score'/>" class="form-control sm" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');"><!-- 점수 -->
+													<label for="lenScore"><spring:message code='forum.label.point'/><!-- 점 --></label>
+												</div>
+											</div>
+											<button type="button" class="btn type1" onclick="javascript:lenScore()"><spring:message code='common.button.save'/><!-- 일괄 점수 주기 --></button>
 										</div>
 										<script>
 											function lenScore() {
@@ -1160,9 +1186,7 @@
 								<tr>
 									<th><spring:message code="forum.label.evalctgr.participate.all" /><!-- 참여형 일괄평가 --></th>
 									<td>
-										<div class="text-left">
-											<a href="javascript:partiScore()" class="btn type7"><spring:message code="forum.label.evalctgr.participate.all" /><!-- 참여형 일괄평가 --></a>
-										</div>
+										<button type="button" class="btn type1" onclick="javascript:partiScore()" class="btn type7"><spring:message code="forum.label.evalctgr.participate.all" /><!-- 참여형 일괄평가 --></button>
 										<script>
 											function partiScore() {
 												if(window.confirm(`<spring:message code="forum.confirm.parti.score" />`)) {/* 기존 점수는 초기화되고\r\n토론 참여글 등록 수강생은 100점,\r\n미등록 수강생과 댓글만 작성한 수강생은 0점 처리됩니다.\r\n처리하시겠습니까? */
@@ -1194,11 +1218,11 @@
 										<div class="text-left">
 											<div>
 												<div>
-													<div class="form-row">
-														<input class="form-control width-80per" type="text" id="fdbkValue" maxlength="3000" placeholder="<spring:message code='forum.label.feedback.input'/>"><!-- 피드백 입력 -->
-														<a href="javascript:valFdbk()" class="btn type7 ml10"><spring:message code='common.label.batch.feedback.save'/><!-- 일괄 피드백 저장 --></a>
-													</div>
-													<div id="uploaderBox" class="mt10 width-80per">
+													<textarea id="fdbkValue" class="form-control width-100per"
+															  rows="2" maxlength="3000"
+															  maxLenCheck="byte,2000,true,true"
+															  placeholder="<spring:message code='forum.label.feedback.input'/>"><%--피드백 입력--%></textarea>
+													<div id="uploaderBox" class="mt10 width-100per">
 														<!-- TODO : 피드백 File Uplaod -->
 														<uiex:dextuploader
 																id="fileUploader"
@@ -1206,12 +1230,13 @@
 																limitCount="3"
 																limitSize="100"
 																oneLimitSize="100"
-																listSize="1"
+																listSize="2"
 																fileList=""
 																finishFunc="finishUpload()"
 																allowedTypes="*"
 														/>
 													</div>
+													<button type="button" class="btn type1 mt10" onclick="javascript:valFdbk()"><spring:message code='common.button.save'/><!-- 저장 --></button>
 												</div>
 											</div>
 										</div>
@@ -1219,14 +1244,15 @@
 								</tr>
 							</tbody>
 						</table>
+						</div>
 						<!-- 토론평가 점수처리 영역:끝 -->
 
 						<!-- 검색결과 영역-버튼들:시작 -->
 						<div class="board_top margin-top-4">
 							<div class="right-area">
 								<%-- <div class="sec_head mra"><spring:message code="forum.label.submit.status" /><!-- 토론현황 --></div> --%>
-								<a href="javascript:dscsChartView()" class="btn type1"><spring:message code="forum.label.submit.status" /></a><!-- 토론현황 -->
-								<a href="javascript:dscsExcelDown()" class="btn type1"><spring:message code="forum.label.excel.download" /></a><!-- 엑셀다운로드 -->
+									<a href="javascript:dscsExcelDown()" class="btn basic"><spring:message code="forum.label.excel.download" /></a><!-- 엑셀로 다운로드 -->
+								<a href="javascript:dscsChartView()" class="btn type1"><spring:message code="forum.label.submit.status.graph" /></a><!-- 토론현황 그래프-->
 							</div>
 						</div>
 						<!-- 검색결과 영역-버튼들:끝 -->

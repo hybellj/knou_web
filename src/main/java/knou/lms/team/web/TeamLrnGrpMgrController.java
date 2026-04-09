@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 @Controller
 @RequestMapping(value="/team")
@@ -77,6 +78,50 @@ public class TeamLrnGrpMgrController extends ControllerBase {
         model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
 
         return "team/lrnGrpMgr/lrn_grp_list_view";
+    }
+
+    /*****************************************************
+     * 학습그룹 [등록|수정] 페이지
+     * @param vo
+     * @param model
+     * @param request
+     * @return view
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping(value="/lrnGrpMngWriteView.do")
+    public String lrnGrpMngWriteView(TeamLrnGrpMgrVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String isModify;
+        Integer userTot = teamLrnGrpMgrService.countAtndlcUser(vo);
+        List<EgovMap> atndlcUserList = teamLrnGrpMgrService.listAtndlcUser(vo);
+
+        TeamLrnGrpMgrVO lrnGrpVO = null;
+
+        if (!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage()); // 페이지 접근 권한이 없습니다.
+        }
+
+        if (vo.getLrnGrpId() == null || vo.getLrnGrpId().isEmpty()) {
+            isModify = "N"; // 등록
+        } else {
+            isModify = "Y"; // 수정
+        }
+
+        LocalDateTime today = LocalDateTime.now();
+        model.addAttribute("vo", vo);
+        model.addAttribute("lrnGrpVO", lrnGrpVO);
+        model.addAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("isModify", isModify);
+        model.addAttribute("userTot", userTot);
+        model.addAttribute("atndlcUserList", atndlcUserList);
+
+        return "team/lrnGrpMgr/lrn_grp_write";
     }
 
     /*****************************************************

@@ -23,50 +23,17 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-                <div class="class_sub_top">                    
-                    <div class="btn-wrap">
-                        <div class="first">
-                            <select class="form-select">
-                                <option value="2025년 2학기">2025년 2학기</option>
-                                <option value="2025년 1학기">2025년 1학기</option>
-                            </select>
-                            <select class="form-select wide">
-                                <option value="">강의실 바로가기</option>
-                                <option value="2025년 2학기">2025년 2학기</option>
-                                <option value="2025년 1학기">2025년 1학기</option>
-                            </select>
-                        </div>
-                        <div class="sec">
-                            <button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-                            <button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-                            <button type="button" class="btn type2"><i class="xi-log-out"></i>강의실나가기</button>
-                        </div>
-                    </div>
-                </div>
-                
+                <!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
+
                 <div class="class_sub">
-                    <!-- 강의실 상단 -->
-                    <div class="segment class-area sub">
-                        <div class="class_info">
-                            <div class="class_tit">
-                                <p class="labels">
-                                    <label class="label uniA">대학원</label>
-                                </p>
-                                <h2>데이터베이스의 이해와 활용 1반</h2>
-                            </div>
-                            <div class="navi_bar">
-                                <ul>
-                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li>강의실</li>
-                                    <li><span class="current">과제</span></li>
-                                </ul>
-                            </div>                            
-                        </div>                        
-                    </div>
-                    <!-- //강의실 상단 -->
+                    <!-- class_info -->
+					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+                    <!-- //class_info -->
 
                     <div class="sub-content">
-                        
+
                         <div class="page-info">
                             <h2 class="page-title">과제</h2>
                         </div>
@@ -78,7 +45,7 @@
                                 <div class="search-typeC">
                                     <input class="form-control" type="text" name="" id="inputSearch1" value="" placeholder="과제명 입력">
                                     <button type="button" class="btn basic icon search" aria-label="검색"><i class="icon-svg-search"></i></button>
-                                </div> 
+                                </div>
                                 <button type="button" class="btn basic">성적반영비율조정</button>
                                 <button type="button" class="btn type2">과제 등록</button>
                                 <a href="#0" class="btn_list_type on" aria-label="리스트형 보기"><i class="icon-svg-list" aria-hidden="true"></i></a>
@@ -96,12 +63,12 @@
 
                             <div class="board_card_list class">
                                 <div class="card_item">
-                                    <div class="card_header">                                        
+                                    <div class="card_header">
                                         <div class="board_tit">
                                             <p class="labels">
-                                                <label class="label s_work">과제</label> 
+                                                <label class="label s_work">과제</label>
                                             </p>
-                                            <a href="#0" class="link">게시판 제목입니다.</a>                                          
+                                            <a href="#0" class="link">게시판 제목입니다.</a>
                                         </div>
                                         <div class="btn_right">
                                             <div class="dropdown">
@@ -120,7 +87,7 @@
                                         <ul class="process-bar">
                                             <li class="bar-blue" style="width:20%;">10명</li>
                                             <li class="bar-grey" style="width:80%;">40명</li>
-                                        </ul>     
+                                        </ul>
                                         <div class="desc">
                                             <p><label class="label-title">제출기간</label><strong>2026.06.13 18:00 ~ 2026.06.17 22:00</strong></p>
                                             <p><label class="label-title">연장제출마감</label><strong>2026.06.22 22:00</strong></p>
@@ -130,18 +97,18 @@
                                             <p><label class="label-title">성적공개</label>
                                                 <input type="checkbox" value="Y" class="switch small" checked="checked">
                                             </p>
-                                        </div>                                       
-                                    </div>                                    
+                                        </div>
+                                    </div>
                                 </div>
-                               
+
                                 <div class="card_item">
-                                    <div class="card_header">                                        
+                                    <div class="card_header">
                                         <div class="board_tit">
                                             <p class="labels">
-                                                <label class="label s_work">과제</label> 
+                                                <label class="label s_work">과제</label>
                                                 <label class="label s_work">팀</label>
                                             </p>
-                                            <a href="#0" class="link">게시판 제목입니다.</a>                                          
+                                            <a href="#0" class="link">게시판 제목입니다.</a>
                                         </div>
                                         <div class="btn_right">
                                             <div class="dropdown">
@@ -160,28 +127,32 @@
                                         <ul class="process-bar">
                                             <li class="bar-blue" style="width:80%;">38명</li>
                                             <li class="bar-grey" style="width:20%;">12명</li>
-                                        </ul>  
+                                        </ul>
                                         <div class="desc">
                                             <p><label class="label-title">제출기간</label><strong>2026.06.13 18:00 ~ 2026.06.17 22:00</strong></p>
                                             <p><label class="label-title">연장제출마감</label><strong>2026.06.22 22:00</strong></p>
-                                            <p><label class="label-title">성적 반영비율 </label><strong>30%</strong></p>
+                                            <p><label class="label-title">성적 반영비율 </label>
+                                                <span class="input_btn">
+                                                    <input class="form-control sm" id="percentInput" type="text" maxlength="2" autocomplete="off" value="30"><label>%</label>
+                                                </span>
+                                            </p>
                                             <p><label class="label-title">제출현황</label><strong>38/50</strong></p>
                                             <p><label class="label-title">평가현황</label><strong>38/50</strong></p>
                                             <p><label class="label-title">성적공개</label>
                                                 <input type="checkbox" value="N" class="switch small">
                                             </p>
-                                        </div>                                         
-                                    </div>  
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="card_item">
-                                    <div class="card_header">                                        
+                                    <div class="card_header">
                                         <div class="board_tit">
                                             <p class="labels">
-                                                <label class="label s_work">실기과제</label> 
+                                                <label class="label s_work">실기과제</label>
                                                 <label class="label s_work">팀</label>
                                             </p>
-                                            <a href="#0" class="link">게시판 제목입니다.</a>                                          
+                                            <a href="#0" class="link">게시판 제목입니다.</a>
                                         </div>
                                         <div class="btn_right">
                                             <div class="dropdown">
@@ -200,27 +171,31 @@
                                         <ul class="process-bar">
                                             <li class="bar-blue" style="width:80%;">38명</li>
                                             <li class="bar-grey" style="width:20%;">12명</li>
-                                        </ul>  
+                                        </ul>
                                         <div class="desc">
                                             <p><label class="label-title">제출기간</label><strong>2026.06.13 18:00 ~ 2026.06.17 22:00</strong></p>
                                             <p><label class="label-title">연장제출마감</label><strong>2026.06.22 22:00</strong></p>
-                                            <p><label class="label-title">성적 반영비율 </label><strong>30%</strong></p>
+                                            <p><label class="label-title">성적 반영비율 </label>
+                                                <span class="input_btn">
+                                                    <input class="form-control sm" id="percentInput" type="text" maxlength="2" autocomplete="off" value="20"><label>%</label>
+                                                </span>
+                                            </p>
                                             <p><label class="label-title">제출현황</label><strong>38/50</strong></p>
                                             <p><label class="label-title">평가현황</label><strong>38/50</strong></p>
                                             <p><label class="label-title">성적공개</label>
                                                 <input type="checkbox" value="N" class="switch small">
                                             </p>
-                                        </div>                                         
-                                    </div>  
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="card_item">
-                                    <div class="card_header">                                        
+                                    <div class="card_header">
                                         <div class="board_tit">
                                             <p class="labels">
-                                                <label class="label s_work">중간고사 대체</label> 
+                                                <label class="label s_work">중간고사 대체</label>
                                             </p>
-                                            <a href="#0" class="link">중간고사 대체 과제 제목입니다.</a>                                          
+                                            <a href="#0" class="link">중간고사 대체 과제 제목입니다.</a>
                                         </div>
                                         <div class="btn_right">
                                             <div class="dropdown">
@@ -239,7 +214,7 @@
                                         <ul class="process-bar">
                                             <li class="bar-blue" style="width:80%;">38명</li>
                                             <li class="bar-grey" style="width:20%;">12명</li>
-                                        </ul>  
+                                        </ul>
                                         <div class="desc">
                                             <p><label class="label-title">제출기간</label><strong>2026.06.13 18:00 ~ 2026.06.17 22:00</strong></p>
                                             <p><label class="label-title">연장제출마감</label><strong>-</strong></p>
@@ -249,17 +224,17 @@
                                             <p><label class="label-title">성적공개</label>
                                                 <strong>-</strong>
                                             </p>
-                                        </div>                                         
-                                    </div>  
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="card_item">
-                                    <div class="card_header">                                        
+                                    <div class="card_header">
                                         <div class="board_tit">
                                             <p class="labels">
-                                                <label class="label s_work">기말고사 대체</label> 
+                                                <label class="label s_work">기말고사 대체</label>
                                             </p>
-                                            <a href="#0" class="link">기말고사 대체 과제 제목입니다.</a>                                          
+                                            <a href="#0" class="link">기말고사 대체 과제 제목입니다.</a>
                                         </div>
                                         <div class="btn_right">
                                             <div class="dropdown">
@@ -278,7 +253,7 @@
                                         <ul class="process-bar">
                                             <li class="bar-blue" style="width:80%;">38명</li>
                                             <li class="bar-grey" style="width:20%;">12명</li>
-                                        </ul>  
+                                        </ul>
                                         <div class="desc">
                                             <p><label class="label-title">제출기간</label><strong>2026.06.13 18:00 ~ 2026.06.17 22:00</strong></p>
                                             <p><label class="label-title">연장제출마감</label><strong>-</strong></p>
@@ -288,10 +263,10 @@
                                             <p><label class="label-title">성적공개</label>
                                                 <strong>-</strong>
                                             </p>
-                                        </div>                                         
-                                    </div>  
+                                        </div>
+                                    </div>
                                 </div>
-                                                        
+
                             </div>
 
 	                        <%-- 테이블의 페이징 정보 생성할때 아래 내용 참조하여 작업하고 아래와 같은 HTML 코드를 직접 만들지 않는다.

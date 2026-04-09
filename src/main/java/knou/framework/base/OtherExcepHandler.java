@@ -7,7 +7,7 @@ import org.egovframe.rte.fdl.cmmn.exception.handler.ExceptionHandler;
 
 public class OtherExcepHandler implements ExceptionHandler {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(OtherExcepHandler.class);
+	private static final Logger log = LoggerFactory.getLogger(OtherExcepHandler.class);
 	
 	/**
 	* @param ex
@@ -15,6 +15,6 @@ public class OtherExcepHandler implements ExceptionHandler {
 	*/
 	@Override
 	public void occur(Exception ex, String packageName) {
-		LOGGER.debug(packageName + " --> "+ex.toString());
+		//log.error("[ERROR] 위치: {} | 내용: {}", packageName, ex.getMessage());
 	}
 }

@@ -81,7 +81,7 @@
                                 <div id="mrkObjctAplyList"></div>
                                 <script>
                                     let cols = [
-                                        {title:"No", file: "no", headerHozAlign:"center", hozAlign:"center", width: 50, minWidth: 50},
+                                        {title: "번호", field: "no", headerHozAlign:"center", hozAlign:"center", width: 50, minWidth: 50},
                                         {title: "학과",  field: "deptnm", headerHozAlign: "center", hozAlign: "center", width: 120, minWidth: 120},
                                         {title: "대표아이디",field: "userId",headerHozAlign: "center", hozAlign: "center", width: 130, minWidth: 130},
                                         {title: "학번",  field: "stdntNo", headerHozAlign: "center", hozAlign: "center", width: 120, minWidth: 120},
@@ -91,7 +91,7 @@
                                         {title: "변경 전 점수",  field: "chgbfrScr", headerHozAlign: "center", hozAlign: "center", width: 100, minWidth: 100},
                                         {title: "변경 후 점수",  field: "chgaftScr", headerHozAlign: "center", hozAlign: "center", width: 100, minWidth: 100},
                                         {title: "성적이의</br>신청결과",  field: "result", headerHozAlign: "center", hozAlign: "center", width: 100, minWidth: 100},
-                                        {title: "처리상태",  field: "objctAplyStscd", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 100}
+                                        {title: "처리상태",  field: "objctAplyStscd", headerHozAlign: "center", hozAlign: "left", width: 0, minWidth: 100}
 
                                     ];
 
@@ -164,18 +164,20 @@
         function createObjctAplyListHTML(list) {
             let dataList = [];
 
-            list.forEach(item => {
+            list.forEach(function(item, i) {
+                const lineNo = list.length - i;
+
                 dataList.push({
-                    no:  item.no,
+                    no: lineNo,
                     deptnm: item.deptnm,
                     userId: item.userId,
                     stdntNo: item.stdntNo,
                     usernm: item.usernm,
                     scYr: item.scYr,
-                    objctAplyCts: `<button class="btn s_basic" data-objctid="\${item.mrkObjctAplyId}" onclick="openObjctCtsPop(this)">사유</button>`,
+                    objctAplyCts: `<button class="btn s_basic" data-userid="\${item.userId}" onclick="openObjctCtsPop(this)">사유</button>`,
                     chgbfrScr: item.chgbfrScr,
                     chgaftScr: item.chgaftScr,
-                    result: `<button class="btn s_basic" data-userid="\${item.userId}">신청결과</button>`,
+                    result: `<button class="btn s_basic" data-userid="\${item.userId}" onclick="openObjctAplyListPop(this)">신청결과</button>`,
                     objctAplyStscd: item.cdnm
                 })
             });
@@ -187,8 +189,8 @@
          * 성적 이의신청 사유 확인 팝업 open
          */
         function openObjctCtsPop(element) {
-            const mrkObjctAplyId = element.dataset.objctid;
-            const params = "mrkObjctAplyId=" + mrkObjctAplyId + "&encParams="+EPARAM;
+            const userId = element.dataset.userid;
+            const params = "userId=" + userId + "&encParams="+EPARAM;
 
             dialog = UiDialog("aplyCtsDialog", {
                 title: "<spring:message code="score.appeal.label"/><spring:message code="score.label.reason"/>", /*성적이의신청사유*/
@@ -197,8 +199,32 @@
                 url: "/mrk/mrkObjctAplyCtsSelectPop.do?" + params,
                 autoresize: true
             });
+        }
 
+        /**
+         * 성적이의신청 목록 조회 팝업 open
+         * @param element
+         */
+        function openObjctAplyListPop(element) {
+            const userId = element.dataset.userid;
+            const params = "userId=" + userId + "&encParams="+EPARAM;
 
+            dialog = UiDialog("aplyListDialog", {
+                title: "<spring:message code="score.label.objt.list"/>", /*성적이의 신청결과*/
+                width: 900,
+                height: 300,
+                url: "/mrk/mrkObjctAplyListViewPop.do?" + params,
+                autoresize: false
+            });
+
+        }
+
+        // 부모 창에 정의
+        function resizeAplyDialog(height) {
+            const $dialog = $("#UI_DIALOG_aplyListDialog");
+            if ($dialog.hasClass("ui-dialog-content")) { // 초기화 여부 확인
+                $dialog.dialog("option", "height", height);
+            }
         }
     </script>
 

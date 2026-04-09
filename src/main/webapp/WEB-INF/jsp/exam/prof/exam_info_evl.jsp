@@ -534,6 +534,7 @@
             kvArr.push({'key' : 'byteamSubrexamUseyn','val' : '${vo.byteamSubrexamUseyn}'});
             kvArr.push({'key' : 'tabType',            'val' : tab});
             kvArr.push({'key' : 'isModify',           'val' : 'Y'});
+            kvArr.push({'key' : 'sbjctId',            'val' : '${sbjctId}'});
             submitForm(urlMap[tab], "", "", kvArr);
         }
 
@@ -555,7 +556,7 @@
                                 if (data.result > 0) {
                                     UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")
                                         .then(function() {
-                                            location.href = "/exam/profExamListView.do";
+                                            location.href = "/exam/profExamListView.do?sbjctId=${sbjctId}";
                                         });
                                 } else {
                                     UiComm.showMessage(data.message, "error");
@@ -573,7 +574,7 @@
                                 if (data.result > 0) {
                                     UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")
                                         .then(function() {
-                                            location.href = "/exam/profExamListView.do";
+                                            location.href = "/exam/profExamListView.do?sbjctId=${sbjctId}";
                                         });
                                 } else {
                                     UiComm.showMessage(data.message, "error");

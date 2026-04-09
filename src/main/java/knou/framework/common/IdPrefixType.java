@@ -100,6 +100,7 @@ public enum IdPrefixType {
     LODLA("LODLA", "로그학사시스템학기자료연계"),
     LOPRV("LOPRV", "로그인개인정보조회"),
     LOACT("LOACT", "로그사용자활동"),
+    LOHST("LOHST", "로그인이력"),
 
     // 사용자
     US("US", "사용자"),

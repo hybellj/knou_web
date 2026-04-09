@@ -257,6 +257,7 @@ a.link { display: inline-block; position: relative; z-index: 0; -webkit-transiti
 .req:after { margin: -2px 0 0 2px; content: '*'; color: #f44336; display: inline-block; vertical-align: middle; top: 0%; left: 100%; }
 .note { color: #2466EB; }
 .note2 { color: var(--danger); }
+.note3 {  width: 100%; color: var(--danger); }
 .check_yet {background-color: #FEFAF1;}
 .form-row .note,
 .form-row .note2,
@@ -288,9 +289,10 @@ a.link { display: inline-block; position: relative; z-index: 0; -webkit-transiti
 .table-type5 .comment + a{ max-width: 80%; }
 .table-type5 .comment{ color: var(--text-dark-2);}
 .table-type5 [data-ui-action="collapse"]{ display: none;}
-.table-type5:not(:has(thead)){ /* border-top: 2px solid #0055a2; */}
 .table-type5 tr .desktop-elem{ display: table-cell !important; }
-.table-type5 .custom-txt {margin-left: .5rem; margin-right: 1rem;}
+.table-type5 .custom-txt {gap: .4rem; margin-left: .5rem; margin-right: 1rem;}
+.table-type5 .btn {padding: .7rem 1.5rem;}
+
 
 @media(max-width: 1024px){
 	.table-type5 {font-size: 1.6rem;}
@@ -303,7 +305,9 @@ a.link { display: inline-block; position: relative; z-index: 0; -webkit-transiti
 	.table-type5 tbody{ display: block; width: 100%; max-width: 100%; }
 	.table-type5{ border-top: 1px solid var(--table-top-line-color) }
 	.table-type5 tr { position: relative; display: block; }
-	.table-type5 tr > *{ display: block;  }
+	/* .table-type5 tr > *{ display: block; } */
+	.table-type5 tbody tr th, 
+	.table-type5 tr > td { display: block; }
 	.table-type5 tbody tr + tr th { border-top: 0; 	}
 	.table-type5 tbody tr th {font-size: 1.5rem; border-bottom:none; background-color: transparent; padding: 10px 8px 0px 8px;}
 	.table-type5 tbody tr td { padding: 5px 8px 15px 8px;}

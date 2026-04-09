@@ -17,6 +17,7 @@ menuVO.setAuthrtGrpcd(authrtGrpcd);
 menuVO.setMenuGbncd(CommConst.MENU_GBN_LECT);
 menuVO.setOrgId(orgId);
 menuVO.setSbjctId(sbjctId);
+
 List<MenuVO> menuList = MenuInfo.getLectMenuInfo(request, menuVO);
 pageContext.setAttribute("menuList", menuList);
 %>
@@ -45,7 +46,7 @@ pageContext.setAttribute("menuList", menuList);
 
 		<div class="scrollarea">
             <!-- gnb menu -->
-            <nav class="gnb_class">
+            <nav class="gnb_class mb10">
 			    <c:forEach items="${menuList}" var="menu" varStatus="status">
 			        <div class="gnb-item">
 			            <%-- 상위 메뉴 --%>
@@ -59,7 +60,7 @@ pageContext.setAttribute("menuList", menuList);
 
 			            <%-- 서브 메뉴 --%>
 			            <c:if test="${not empty menu.subMenuList}">
-			                <ul id="SUB_${menu.menuId}">
+			                <ul id="SUB_${menu.menuId}" style="<c:if test='${menu.menuId == curUpMenuId}'>display:block</c:if>">
 			                    <c:forEach items="${menu.subMenuList}" var="sub">
 			                        <li id="${sub.menuId}">
 			                            <a id="SUBMENU_${sub.menuId}" href="#0"
@@ -77,6 +78,10 @@ pageContext.setAttribute("menuList", menuList);
             </nav>
             <!-- //gnb menu -->
 
+			<script type="text/javascript">
+				// 메뉴 스크롤
+				scrollGnbMenu("${curUpMenuId}", "${curMenuId}");
+			</script>
 		</div>
 
 	</aside>

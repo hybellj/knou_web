@@ -15,6 +15,7 @@
                 WHEN TM1.TEAM_TOT = TM2.Y_TOT THEN 'Y'   /* 구성완료 */
                 ELSE 'N'    /* 임시저장 */
             END                 AS "LRN_GRP_CMPTNYN"
+            , GRP.SBJCT_ID      AS "SBJCT_ID"
         FROM
             TB_LMS_TEAM_GRP GRP
             /* 팀 전체 COUNT */
@@ -44,12 +45,27 @@
                 ON GRP.RGTR_ID = USR.USER_ID
         WHERE
             GRP.SBJCT_ID = #{sbjctId}
-        <if test="lrnGrpnm != null || lrnGrpnm != '' ">
+        <if test="lrnGrpnm != null and lrnGrpnm != '' ">
             AND GRP.LRN_GRPNM LIKE '%' || #{lrnGrpnm} || '%'
         </if>
     </sql>
 
-    <!-- 학습 그룹 목록 페이징  -->
+    <sql id="listQueryForAtndlcUser">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY USR.USERNM ASC)  AS "LINE_NO"
+            , USR.USER_ID                               AS "USER_ID"
+            , USR.USERNM                                AS "USERNM"
+        FROM
+            TB_LMS_USER USR
+            JOIN TB_LMS_ATNDLC ATND
+                ON USR.USER_ID = ATND.USER_ID
+                AND ATND.SBJCT_ID = #{sbjctId}
+                AND ATND.ATNDLC_STSCD = 'ATNDLC'    /* 수강 */
+        WHERE
+            USR.USER_ID_STSCD = 'APRV_CMPTN'        /* 상태코드 */
+    </sql>
+
+    <!-- 학습 그룹 목록 페이징 -->
     <select id="listTeamLrnGrpPaging" parameterType="teamLrnGrpMgrVO" resultType="teamLrnGrpMgrVO">
         /*
             SQL ID : TeamLrnGrpMgrDAO.listTeamLrnGrpPaging
@@ -60,7 +76,7 @@
         <include refid="CommonSQL.pageSubfix" />
     </select>
 
-    <!-- 학습 그룹 목록 카운트  -->
+    <!-- 학습 그룹 목록 카운트 -->
     <select id="countAbsnceUserHstr" parameterType="teamLrnGrpMgrVO" resultType="Integer">
         /*
             SQL ID : TeamLrnGrpMgrDAO.countAbsnceUserHstr
@@ -70,6 +86,28 @@
             COUNT(1)
         FROM
             (<include refid="listQueryForTeamLrnGrp"/>) Z
+    </select>
+
+
+    <!-- 수강생 목록 조회 -->
+    <select id="listAtndlcUser" parameterType="teamLrnGrpMgrVO" resultType="egovMap">
+        /*
+            SQL ID : TeamLrnGrpMgrDAO.listAtndlcUser
+            설명 : 수강생 목록 조회
+        */
+        <include refid="listQueryForAtndlcUser"/>
+    </select>
+
+    <!-- 수강생 목록 카운트 -->
+    <select id="countAtndlcUser" parameterType="teamLrnGrpMgrVO" resultType="Integer">
+        /*
+            SQL ID : TeamLrnGrpMgrDAO.countAtndlcUser
+            설명 : 수강생 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForAtndlcUser"/>) Z
     </select>
 
 </mapper>

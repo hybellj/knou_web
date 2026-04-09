@@ -334,6 +334,7 @@
             kvArr.push({'key' : 'byteamSubrexamUseyn','val' : '${vo.byteamSubrexamUseyn}'});
             kvArr.push({'key' : 'tabType',            'val' : tab});
             kvArr.push({'key' : 'isModify',           'val' : 'Y'});
+            kvArr.push({'key' : 'sbjctId',            'val' : '${sbjctId}'});
             submitForm(urlMap[tab], "", "", kvArr);
         }
 

@@ -89,13 +89,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 교수 쪽지 목록 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "msg2/prof_msg_shrtnt_list_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/profMsgShrtntListView.do")
-    public String profMsgShrtntListView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String profMsgShrtntListView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
         if (!MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -130,13 +130,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 관리자 쪽지 목록 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "msg2/mngr_msg_shrtnt_list_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/mngrMsgShrtntListView.do")
-    public String mngrMsgShrtntListView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String mngrMsgShrtntListView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -166,13 +166,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 교수 쪽지 수신 상세 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "msg2/prof_msg_shrtnt_rcvn_select_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/profMsgShrtntRcvnSelectView.do")
-    public String profMsgShrtntRcvnSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String profMsgShrtntRcvnSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
         if (!MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -187,13 +187,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 관리자 쪽지 수신 상세 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "msg2/mngr_msg_shrtnt_rcvn_select_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/mngrMsgShrtntRcvnSelectView.do")
-    public String mngrMsgShrtntRcvnSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String mngrMsgShrtntRcvnSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -208,13 +208,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 교수 쪽지 발신 상세 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "msg2/prof_msg_shrtnt_sndng_select_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/profMsgShrtntSndngSelectView.do")
-    public String profMsgShrtntSndngSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String profMsgShrtntSndngSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
         if (!MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -229,13 +229,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 관리자 쪽지 발신 상세 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "msg2/mngr_msg_shrtnt_sndng_select_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/mngrMsgShrtntSndngSelectView.do")
-    public String mngrMsgShrtntSndngSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String mngrMsgShrtntSndngSelectView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -250,6 +250,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 교수 쪽지 발신하기 화면
      * @param vo
+     * @param userCtx
      * @param model
      * @param request
      * @return "msg2/prof_msg_shrtnt_sndng_regist_view"
@@ -263,6 +264,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 관리자 쪽지 발신하기 화면
      * @param vo
+     * @param userCtx
      * @param model
      * @param request
      * @return "msg2/mngr_msg_shrtnt_sndng_regist_view"
@@ -276,13 +278,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 받는 사람 검색 팝업 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "msg2/msg_shrtnt_rcvr_popview"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRcvrPopView.do")
-    public String msgShrtntRcvrPopView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String msgShrtntRcvrPopView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -296,13 +298,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 메시지 불러오기 팝업 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "msg2/msg_shrtnt_tmplt_popview"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntTmpltPopView.do")
-    public String msgShrtntTmpltPopView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String msgShrtntTmpltPopView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -315,13 +317,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 템플릿에 저장 팝업 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "msg2/msg_shrtnt_tmplt_regist_popview"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntTmpltRegistPopView.do")
-    public String msgShrtntTmpltRegistPopView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String msgShrtntTmpltRegistPopView(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
         if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
         }
@@ -336,6 +338,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 기관 목록 AJAX 조회
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<OrgInfoVO>
      * @throws Exception
      ******************************************************/
@@ -366,6 +369,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 수신 목록 AJAX 조회
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -399,6 +403,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 목록 AJAX 조회
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -432,6 +437,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 수신 상세 AJAX 조회
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -464,6 +470,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 상세 AJAX 조회
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -498,6 +505,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 수신자 목록 AJAX 조회
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -533,6 +541,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 읽음 처리 AJAX
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -563,6 +572,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 삭제 AJAX (수신/발신 구분)
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -600,6 +610,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 학사년도 목록 AJAX 조회
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -632,6 +643,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 학기 목록 AJAX 조회
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<EgovMap>
      * @throws Exception
      ******************************************************/
@@ -664,6 +676,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 학과 목록 AJAX 조회
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -702,6 +715,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 운영과목 목록 AJAX 조회
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -740,13 +754,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 수신자 엑셀 다운로드
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "excelView"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRcvrExcelList.do")
-    public String msgShrtntRcvrExcelList(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String msgShrtntRcvrExcelList(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
 
         if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
@@ -786,6 +800,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 등록 AJAX
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -824,6 +839,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 발신 수정 AJAX
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -861,6 +877,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 쪽지 예약 취소 AJAX
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -895,6 +912,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 받는 사람 검색 AJAX
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -937,6 +955,7 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 수신 대상자 목록 AJAX 조회 (수정 폼용)
      * @param vo
+     * @param userCtx
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
@@ -971,13 +990,13 @@ public class MsgShrtntController extends ControllerBase {
     /*****************************************************
      * 수신자 엑셀 업로드 양식 다운로드
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
      * @return "excelView"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRcvrTmpltDown.do")
-    public String msgShrtntRcvrTmpltDown(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) throws Exception {
+    public String msgShrtntRcvrTmpltDown(MsgShrtntVO vo, @CurrentUser UserContext userCtx, ModelMap model) throws Exception {
 
         if (!MsgAuthUtil.isAdmin(userCtx) && !MsgAuthUtil.isProfessor(userCtx)) {
             throw new AccessDeniedException(getCommonNoAuthMessage());
@@ -1001,17 +1020,18 @@ public class MsgShrtntController extends ControllerBase {
 
     /*****************************************************
      * 수신자 엑셀 업로드 AJAX
-     * @param excelFile
      * @param vo
+     * @param userCtx
+     * @param excelFile
      * @return ProcessResultVO<MsgShrtntVO>
      * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/msgShrtntRcvrExcelUploadAjax.do")
     @ResponseBody
     public ProcessResultVO<MsgShrtntVO> msgShrtntRcvrExcelUploadAjax(
-            @RequestParam("excelFile") MultipartFile excelFile,
             MsgShrtntVO vo,
-            @CurrentUser UserContext userCtx) throws Exception {
+            @CurrentUser UserContext userCtx,
+            @RequestParam("excelFile") MultipartFile excelFile) throws Exception {
         ProcessResultVO<MsgShrtntVO> resultVO = new ProcessResultVO<>();
 
         try {

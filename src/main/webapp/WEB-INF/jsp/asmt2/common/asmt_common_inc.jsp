@@ -2,6 +2,137 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
 <script type="text/javascript">
+
+    // 다이얼로그 닫기
+    function closeDialog() {
+        if (dialog) {
+            dialog.close();
+        }
+    }
+
+    const asmtDateUtil = {
+        /**
+         * datepicker + timepicker 값을 YYYYMMDDHHmm 형식으로 반환
+
+         * 예:
+         *  date = "2026-02-17"
+         *  time = "13:30"
+         *  → "202602171330"
+         */
+        getDateTimeVal(dateId, timeId) {
+            let value = "";
+
+            if (dateId) {
+                const dateVal = ($("#" + dateId).val() || "").trim();
+                value = dateVal.replace(/[-.]/g, "");
+            }
+
+            if (timeId) {
+                const timeVal = ($("#" + timeId).val() || "").trim();
+                value += timeVal.replace(/:/g, "");
+            }
+
+            return value;
+        },
+
+        /**
+         * DB에서 조회한 날짜값을 datepicker / timepicker에 세팅
+         *
+         * - 입력값은 다양한 형태 가능
+         *   예:
+         *     "20260217000000"
+         *     "2026-02-17 00:00"
+         *     "202602170000"
+         *
+         * - 숫자만 추출해서 처리
+         * - date → YYYY-MM-DD
+         * - time → HH:mm
+         */
+        setDateTimeVal(dateId, timeId, ymdhm) {
+            const value = (ymdhm || "").replace(/[^0-9]/g, "");
+
+            if (dateId) {
+                if (value.length >= 8) {
+                    $("#" + dateId).val(
+                        value.substring(0, 4)
+                        + "-"
+                        + value.substring(4, 6)
+                        + "-"
+                        + value.substring(6, 8)
+                    );
+                } else {
+                    $("#" + dateId).val("");
+                }
+            }
+
+            if (timeId) {
+                if (value.length >= 12) {
+                    $("#" + timeId).val(
+                        value.substring(8, 10)
+                        + ":"
+                        + value.substring(10, 12)
+                    );
+                } else {
+                    $("#" + timeId).val("");
+                }
+            }
+        },
+
+        /**
+         * date + time 값이 비어있는지 체크
+         *
+         * - 둘 중 하나라도 없으면 "" 반환 → true
+         * - 값이 존재하면 false
+         */
+        isEmptyDateTime(dateId, timeId) {
+            return !this.getDateTimeVal(dateId, timeId);
+        },
+
+        /**
+         * 날짜/시간 값을 그대로 복사
+         *
+         * - from → to 그대로 복사
+         * - 문자열 가공 없이 UI 값 그대로 이동
+         */
+        copyDateTimeVal(fromDateId, fromTimeId, toDateId, toTimeId) {
+            $("#" + toDateId).val($("#" + fromDateId).val() || "");
+            $("#" + toTimeId).val($("#" + fromTimeId).val() || "");
+        },
+
+        /**
+         * 날짜 비교
+         * - start, end 둘 중 하나라도 없으면 null
+         * - start > end 이면 1
+         * - start <= end 이면 0
+         */
+        compareDateTime(startDateId, startTimeId, endDateId, endTimeId) {
+            const start = this.getDateTimeVal(startDateId, startTimeId);
+            const end = this.getDateTimeVal(endDateId, endTimeId);
+
+            if (!start || !end) {
+                return null;
+            }
+
+            return start > end ? 1 : 0;
+        },
+
+        /**
+         * 시작일시가 종료일시보다 큰지 여부 반환
+         *
+         * - 내부적으로 compareDateTime() 결과 사용
+         * - compareDateTime 결과:
+         *     1  : 시작 > 종료
+         *     0  : 시작 <= 종료
+         *     null : 둘 중 하나라도 값 없음
+         *
+         * @return true  : 시작일이 종료일보다 이후일 경우 (잘못된 범위)
+         * @return false : 정상 범위 또는 비교 불가(null 포함)
+         */
+        isGreaterDateTime(startDateId, startTimeId, endDateId, endTimeId) {
+            return this.compareDateTime(startDateId, startTimeId, endDateId, endTimeId) === 1;
+        }
+    };
+
     // 모달 닫기
     window.closeModal = function () {
         $('.modal').modal('hide');
@@ -76,7 +207,7 @@
 
         form.appendTo("body");
         form.submit();
-    };
+    }
 
     // 파일 다운로드
     function fileDown(fileSn, repoCd) {
@@ -144,75 +275,6 @@
             return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + " " + s[e];
         }
     }
-
-
-    const asmtDateUtil = {
-        getDateTimeVal(dateId, timeId) {
-            let value = "";
-
-            if (dateId) {
-                const dateVal = ($("#" + dateId).val() || "").trim();
-                value = dateVal.replace(/[-.]/g, "");
-            }
-
-            if (timeId) {
-                const timeVal = ($("#" + timeId).val() || "").trim();
-                value += timeVal.replace(/:/g, "");
-            }
-
-            return value;
-        },
-
-        setDateTimeVal(dateId, timeId, ymdhm) {
-            const value = (ymdhm || "").replace(/[^0-9]/g, "");
-
-            if (dateId) {
-                if (value.length >= 8) {
-                    $("#" + dateId).val(
-                        value.substring(0, 4) +
-                        "-" +
-                        value.substring(4, 6) +
-                        "-" +
-                        value.substring(6, 8)
-                    );
-                } else {
-                    $("#" + dateId).val("");
-                }
-            }
-
-            if (timeId) {
-                if (value.length >= 12) {
-                    $("#" + timeId).val(
-                        value.substring(8, 10) +
-                        ":" +
-                        value.substring(10, 12)
-                    );
-                } else {
-                    $("#" + timeId).val("");
-                }
-            }
-        },
-
-        copyDateTimeVal(fromDateId, fromTimeId, toDateId, toTimeId) {
-            $("#" + toDateId).val($("#" + fromDateId).val() || "");
-            $("#" + toTimeId).val($("#" + fromTimeId).val() || "");
-        },
-
-        compareDateTime(startDateId, startTimeId, endDateId, endTimeId) {
-            const start = this.getDateTimeVal(startDateId, startTimeId);
-            const end = this.getDateTimeVal(endDateId, endTimeId);
-
-            if (!start || !end) {
-                return null;
-            }
-
-            if (start > end) {
-                return 1;
-            }
-
-            return 0;
-        }
-    };
 
 
     // 날짜 형식 변경(YYYY.MM.DD HH24:MI)

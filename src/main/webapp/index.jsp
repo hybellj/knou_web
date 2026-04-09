@@ -46,7 +46,7 @@
         }
     }
 
-// 시스템점검중 페이지
+	// 시스템점검중 페이지
     if ("Y".equals(CommConst.WORK_PAGE_YN)) {
         homeUrl = "working.jsp";
     }
@@ -57,7 +57,7 @@
         homeUrl = "";
     }
 
-// 로그인오류 메시지
+	// 로그인오류 메시지
     String alertMessage = StringUtil.nvl((String) session.getServletContext().getAttribute("ALERT_MESSAGE"));
     session.getServletContext().setAttribute("ALERT_MESSAGE", "");
 
@@ -195,60 +195,10 @@
 </script>
 <%
 } else {
-    if ("".equals(homeUrl)) {
+	
+    if ("".equals(homeUrl)) {    	
         List<OrgInfoVO> orgList = MainOrgInfo.getMainOrgList(request);
 %>
-<%-- <div id="wrap" class="main">
-    <div id="container" class="ui form">
-        <!-- 본문 content 부분 -->
-        <form class="ui form lmsLogin" id="loginForm" method="POST" action="/loginProc.do" autocomplete="off">
-            <div class="loginHedaer">
-                <img src="/webdoc/img/login_logo.png" alt="LOGO">
-
-                <h1 class="title">
-                    <span><spring:message code="common.label.classroom_login"/><!-- 강의실로그인 --></span>
-                </h1>
-            </div>
-
-            <%
-            if (!"".equals(alertMessage)) {
-                %>
-                <div class="ui small error message">
-                    <i class="info circle icon"></i>
-                    <%=alertMessage%>
-                    <!-- 아이디 또는 비밀번호가 올바르지 않습니다. -->
-                </div>
-                <%
-            }
-            %>
-
-            <div>
-                <input type="hidden" id="orgNm" name="orgNm">
-                <select id="orgId" name="orgId" onchange="changeOrg()">
-                    <%
-                    for (OrgInfoVO vo : orgList) {
-                        %>
-                        <option value="<%=vo.getOrgId()%>" <%=(vo.getOrgnm().equals(orgDomainNm) ? "selected='selected'" : "")%>><%=vo.getOrgnm()%></option>
-                        <%
-                    }
-                    %>
-                </select>
-            </div>
-            <label>
-                <span class="title"><spring:message code="common.id"/><!-- 아이디 --></span>
-                <input id="inputId" type="text" name="userAcntId" placeholder="<spring:message code="common.id"/>" onkeypress="if(event.keyCode==13){doLogin();return false}" autocomplete="new-password">
-            </label>
-            <label>
-                <span class="title"><spring:message code="common.label.password"/><!-- 비밀번호 --></span>
-                <input id="inputPwd" type="password" name="userIdEncpswd" placeholder="<spring:message code="common.label.password"/>" onkeypress="if(event.keyCode==13){doLogin();return false}" autocomplete="new-password">
-            </label>
-            <div class="button-area">
-                <button type="button" title="Login" class="ui fluid large button login-btn" id="btnLogin" onclick="doLogin();"><spring:message code="button.login"/><!-- 로그인 --></button>
-                <a id="ssoLoginBtn" href="#" title="<spring:message code="common.label.sso_login"/>" class="ui fluid large button mt10 sso " ><spring:message code="common.label.sso_login"/><!-- SSO 로그인 이동 --></a>
-            </div>
-        </form>
-    </div>
-</div> --%>
 <div id="login_wrap">
     <div class="login_box">
         <div class="box_wrap">

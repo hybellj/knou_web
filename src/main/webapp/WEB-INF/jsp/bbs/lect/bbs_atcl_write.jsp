@@ -244,174 +244,7 @@
 					</div>
 				</div>
 
-				<div class="class_sub">
-
 					<!-- 강의실 상단 -->
-					<div class="segment class-area">
-
-						<!-- info-left -->
-						<div class="info-left">
-							<div class="class_info">
-                                <h2>${subjectVM.subjectVO.sbjctnm}</h2>
-                                <div class="classSection">
-                                    <div class="cls_btn">
-                                        <a href="javascript:void(0); onclick=loadLctrPlandocPopView('${subjectVM.subjectVO.sbjctId}');" class="btn">강의 계획서</a>
-                                        <a href="javascript:void(0); onclick=loadLessonProgressManage('${subjectVM.subjectVO.sbjctId}');" class="btn" class="btn">학습진도관리</a>
-                                        <a href="#0" class="btn">평가 기준</a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="info-cnt">
-                                <div class="info_iconSet">
-                                	<c:forEach var="item" items="${subjectVM.subjectLearingActvList}">
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>공지</span><div class="num_txt">${item.ntcCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>Q&A</span><div class="num_txt point">${item.qnaCnt}</div></a>
-	                                    <a href="/bbs/bbsHome/bbsAtclListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>1:1</span><div class="num_txt point">${item.oneononeCnt}</div></a>
-	                                    <a href="/asmt2/profAsmtListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>과제</span><div class="num_txt">${item.asmtCnt}</div></a>
-	                                    <a href="/forum2/forumLect/profForumListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>토론</span><div class="num_txt">${item.dscsCnt}</div></a>
-	                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>세미나</span><div class="num_txt">${item.smnrCnt}</div></a>
-	                                    <a href="/quiz/profQuizListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>퀴즈</span><div class="num_txt">${item.quizCnt}</div></a>
-	                                    <a href="/srvy/profSrvyListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>설문</span><div class="num_txt">${item.srvyCnt}</div></a>
-	                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>
-                                    </c:forEach>
-                                </div>
-                                <div class="info-set">
-                                    <div class="info">
-                                        <p class="point">
-                                            <span class="tit">중간고사:</span>
-                                            <span><uiex:formatDate value="${subjectVM.middleLastExam.midExamSdttm}" type="date"/></span>
-                                        </p>
-                                        <p class="desc">
-                                            <span class="tit">시간:</span>
-                                            <span>${subjectVM.middleLastExam.midExamMnts}분</span>
-                                        </p>
-                                    </div>
-                                    <div class="info">
-                                        <p class="point">
-                                            <span class="tit">기말고사:</span>
-                                            <span><uiex:formatDate value="${subjectVM.middleLastExam.lstExamSdttm}" type="date"/></span>
-                                        </p>
-                                        <p class="desc">
-                                            <span class="tit">시간:</span>
-                                            <span>${subjectVM.middleLastExam.lstExamMnts}분</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-						</div>
-						<!--//info-left -->
-
-						<!-- info-right-->
-						<div class="info-right">
-
-							<!-- flex -->
-							<div class="flex">
-
-								<!-- item user-->
-								<div class="item user">
-                                    <div class="item_icon"><i class="icon-svg-group" aria-hidden="true"></i></div>
-
-                                    <!-- item_tit -->
-                                    <div class="item_tit">
-	                                    <a href="#0" class="btn ">접속현황<i class="xi-angle-down-min"></i></a><!-- 접속현황 -->
-
-	                                    <!-- 접속현황레이어팝업-->
-	                                    <div class="user-option-wrap">
-	                                        <div class="option_head">
-	                                            <div class="sort_btn">
-	                                                <button type="button">이름<i class="sort xi-long-arrow-up" aria-hidden="true"></i></button><!-- 이름(학생명) -->
-	                                                <button type="button">이름<i class="sort xi-long-arrow-down" aria-hidden="true"></i></button><!-- 이름(학생명) -->
-	                                            </div>
-	                                            <p class="user_num">접속: 37</p><!-- 접속 -->
-	                                            <button type="button" class="btn-close" aria-label="접속현황 닫기"><!-- 접속현황닫기 -->
-	                                                <i class="icon-svg-close"></i>
-	                                            </button>
-	                                        </div>
-                                            <ul class="user_area"><!-- 현재접속자목록 li loop-->
-                                                <li>
-                                                    <div class="user-info">
-                                                        <div class="user-photo">
-                                                            <img src="/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진"> <!-- 사진 -->
-                                                        </div>
-                                                        <div class="user-desc">
-                                                            <p class="name">나방송</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>정보와기술</p> <!-- 대학원 --> <!-- 과목명 -->
-                                                        </div>
-                                                        <div class="btn_wrap">
-                                                            <button type="button"><i class="xi-info-o"></i></button><!-- 정보 -->
-                                                            <button type="button"><i class="xi-bell-o"></i></button><!-- 알림 -->
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="user-info">
-                                                        <div class="user-photo">
-                                                            <img src="/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진">
-                                                        </div>
-                                                        <div class="user-desc">
-                                                            <p class="name">최남단</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>데이터베이스의 이해와 활용</p>
-                                                        </div>
-                                                        <div class="btn_wrap">
-                                                            <button type="button"><i class="xi-info-o"></i></button>
-                                                            <button type="button"><i class="xi-bell-o"></i></button>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="user-info">
-                                                        <div class="user-photo">
-                                                            <img src="/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진">
-                                                        </div>
-                                                        <div class="user-desc">
-                                                            <p class="name">최남단</p>
-                                                            <p class="subject"><span class="major">[대학원]</span>데이터베이스의 이해와 활용</p>
-                                                        </div>
-                                                        <div class="btn_wrap">
-                                                            <button type="button"><i class="xi-info-o"></i></button>
-                                                            <button type="button"><i class="xi-bell-o"></i></button>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-
-                                        </div>
-                                        <!-- //접속현황레이어팝업-->
-                                    </div>
-                                    <!-- //item_tit -->
-
-                                    <div class="item_info">
-                                        <span class="big">37</span><!-- 현재접속자수 -->
-                                        <span class="small">250</span><!-- 전체접속자수 -->
-                                    </div>
-                                </div>
-                                <!-- //item user-->
-
-								<div class="item attend">
-                                    <div class="item_icon"><i class="icon-svg-pie-chart-01" aria-hidden="true"></i></div>
-                                    <div class="item_tit">7주차 출석 40 / 50</div>
-                                    <div class="item_info">
-                                        <span class="big">80</span>
-                                        <span class="small">%</span>
-                                    </div>
-                                </div>
-
-								<div class="item week">
-                                       <div class="item_icon"><i class="icon-svg-calendar-check-02" aria-hidden="true"></i></div>
-                                       <div class="item_tit">2025.04.14 ~ 04.20</div><!-- 주차기간 -->
-                                       <div class="item_info">
-                                           <span class="big">7</span><!-- 현재주차 -->
-                                           <span class="small">주차</span><!-- 주차 -->
-                                       </div>
-                                </div>
-							</div>
-							<!-- //flex -->
-
-						</div>
-						<!-- info-right-->
-
-					</div>
-
                 <div class="dashboard_sub">
 
                     <div class="sub-content">
@@ -429,6 +262,7 @@
                         <!--table-type-->
 						<div class="table-wrap">
 							<form id="atclWriteForm" name="atclWriteForm" onsubmit="return false;">
+								<input type="hidden" name="bbsTycd"      id="bbsTycd"    value="NTC" /> <!-- 임시 -->
 								<input type="hidden" name="encParams"    id="encParams"    value="${encParams}" />
 								<input type="hidden" name="gubun"        id="gubun"        value="${bbsAtclVO.gubun}" />
 								<input type="hidden" name="uploadFiles"  id="uploadFiles"  value="" />
@@ -582,7 +416,6 @@
                         </div>
                     </div>
 
-                </div>
                 </div>
             </div>
             <!-- //content -->

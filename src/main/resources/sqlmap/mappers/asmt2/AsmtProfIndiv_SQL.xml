@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="knou.lms.asmt2.dao.AsmtProfIndivDAO">
+    <select id="indivStdList" resultType="egovMap" parameterType="asmtVO">
+        /*
+            SQL ID : AsmtProfIndivDAO.indivStdList
+            설  명 : 개별 수강생 목록
+        */
+        SELECT
+        	  USR.USER_ID
+        	, USR.USERNM
+            , USR.STDNT_NO
+        	, DEPT.DEPTNM
+        FROM TB_LMS_ATNDLC ATNDLC
+        JOIN TB_LMS_USER USR
+        	ON USR.USER_ID = ATNDLC.USER_ID
+        LEFT JOIN TB_LMS_DEPT DEPT
+        	ON DEPT.DEPT_ID = USR.DEPT_ID
+        WHERE ATNDLC.SBJCT_ID = #{sbjctId}
+        	AND ATNDLC.AUDITYN = 'N'
+        	AND ATNDLC.ATNDLC_STSCD = 'ATNDLC'
+        	AND USR.USER_STSCD = 'ACTV'
+        <!-- 제출 안 한 사람만 조회 -->
+        <if test='searchKey != null and searchKey != "" and searchKey == "NOSUBMIT"'>
+            AND NOT EXISTS (
+            SELECT 1
+            FROM TB_LMS_ASMT_SBMSN SBMSN
+            WHERE SBMSN.ASMT_ID = #{asmtId}
+                AND SBMSN.USER_ID = ATNDLC.USER_ID
+                AND SBMSN.DELYN = 'N'
+            )
+        </if>
+        ORDER BY USR.USERNM
+    </select>
+    <select id="indivSbmsnTrgtList" resultType="egovMap">
+        /*
+            SQL ID : AsmtProfIndivDAO.indivSbmsnTrgtList
+            설  명 : 개별 과제 제출 대상 목록
+        */
+        SELECT
+              TRGT.ASMT_ID
+            , TRGT.USER_ID
+            , USR.USERNM
+            , USR.STDNT_NO
+            , DEPT.DEPTNM
+        FROM TB_LMS_ASMT_SBMSN_TRGT TRGT
+        JOIN TB_LMS_USER USR
+            ON USR.USER_ID = TRGT.USER_ID
+           AND USR.USER_STSCD = 'ACTV'
+        LEFT JOIN TB_LMS_DEPT DEPT
+            ON DEPT.DEPT_ID = USR.DEPT_ID
+        WHERE TRGT.ASMT_ID = #{asmtId}
+            AND TRGT.USER_ID IS NOT NULL
+            AND TRGT.TEAM_ID IS NULL
+        ORDER BY USR.USERNM
+    </select>
+</mapper>

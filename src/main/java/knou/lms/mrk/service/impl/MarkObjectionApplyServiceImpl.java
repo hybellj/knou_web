@@ -37,9 +37,10 @@ public class MarkObjectionApplyServiceImpl implements MarkObjectionApplyService 
     }
 
     @Override
-    public MarkObjectionApplyVO mrkObjctAplySelect(String mrkObjctAplyId) throws Exception {
+    public MarkObjectionApplyVO mrkObjctAplySelect(String sbjctId, String userId) throws Exception {
 
-        MarkObjectionApplyVO vo = markObjectionApplyDAO.mrkObjctAplySelect(mrkObjctAplyId);
+        MarkObjectionApplyVO vo = markObjectionApplyDAO.mrkObjctAplySelect(sbjctId, userId);
+
 
         if (vo.getFileCnt() > 0) {
             AtflVO atflVO = new AtflVO();

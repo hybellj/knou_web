@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="knou.lms.login.dao.LoginDAO">
 
+	<!-- Deprecated TOBE: orgService.orgListSelect -->
 	<select id="selectOrgList" resultType="loginVO">
 		SELECT 	ORG_ID , ORGNM
 		  FROM 	TB_LMS_ORG
@@ -9,14 +10,43 @@
 	</select>
 	
 	<select id="userLatestLoginHstrySelect" resultType="egovMap">
-		/*
-			SQL ID 	: userLatestLoginHstrySelect
-			설  명 	: 사용자최근로그인이력조회
-		*/
+		/*	설  명 	: 사용자최근로그인이력조회 */
 		SELECT	*
 		FROM 	TB_LMS_USER_LGN_HSTRY 
 		WHERE 	1 = 1 AND ROWNUM = 1 AND USER_ID = #{userId}
 		ORDER 	BY	REG_DTTM DESC
 	</select>
+	
+	<insert id="userLatestLoginHstryInsert" parameterType="knou.lms.login.vo.UserLgnHstryVO">
+		/*	설  명 	: 사용자최근로그인이력저장 */
+		INSERT INTO TB_LMS_USER_LGN_HSTRY
+	    (
+	        USER_LGN_HSTRY_ID,
+	        USER_ID,
+	        ACSR_TYCD,
+	        LGN_IP,
+	        LGN_DTTM,
+	        LGN_SCSYN,
+	        CNTN_DVC_TYCD,
+	        LGN_CNTN_BRWSR,
+	        SESS_ID,
+	        RGTR_ID,
+	        REG_DTTM
+	    )
+	    VALUES
+	    (
+	        #{userLgnHstryId},
+	        #{userId},
+	        #{acsrTycd},
+	        #{lgnIp},
+	        TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'),
+	        #{lgnScsyn},
+	        #{cntnDvcTycd},
+	        #{lgnCntnBrwsr},
+	        #{sessId},
+	        #{userId},
+	        TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+	    )
+	</insert>
 	
 </mapper>

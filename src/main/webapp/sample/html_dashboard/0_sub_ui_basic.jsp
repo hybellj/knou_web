@@ -35,7 +35,7 @@
                                     <li><span class="current">현재페이지</span></li>
                                 </ul>
                             </div>
-                        </div>
+                        </div>                    
 
 
                         <h4 class="sub-title">검색박스</h4>
@@ -132,6 +132,15 @@
                         <div class="msg-box">
                             <p class="txt"><strong>안내 : </strong>메시지 안내 스타일입니다.</p>
                         </div>
+                        <div class="msg-box">
+                            <p class="txt"><strong>주의사항</strong></p>
+                            <ul class="list-dot">
+                                <li>엑셀 파일만 업로드 해야 하며, 지정된 형식을 맞춰야 합니다. 지정된 형식은 샘플 다운로드 받으시면 자세히 보실 수 있습니다.</li>
+                                <li>잘못된 형식으로 파일을 등록하면, 정보가 제대로 적용되지 않을 수 있습니다.</li>
+                                <li>샘플 파일의 명시사항을 절대 수정하지 마시고, 입력란에 데이터를 입력, 저장 후 등록해 주세요.</li>
+                                <li>자료를 작성하실 때 항목은 빈 란으로 두지 마세요.</li>
+                            </ul>
+                        </div>
 
                         <h4 class="sub-title">메시지 스타일 _ 정보</h4>
                         <div class="msg-box info">
@@ -144,6 +153,10 @@
                         </div>
 
                         <h4 class="sub-title">메시지 스타일 _ 경고</h4>
+                        <div class="msg-box warning mt20">
+                            <p class="txt ct"><strong>성적처리기간 : </strong>2026.07.25 09:00 ~ 2026.09.25 23:59</p>
+                        </div>
+
                         <div class="msg-box warning">
                             <p class="txt"><strong>오류 위치 : </strong>교수 > 대시보드 > 강의실 > 과제 등록</p>
                         </div>
@@ -155,6 +168,7 @@
                             <p class="txt"><i class="icon-svg-warning" aria-hidden="true"></i>예상 발신 비용 금액입니다. 참고하세요</p>
                         </div>
 
+                        
                         <br><br><br>
 
                         <h4 class="sub-title">상세페이지</h4>
@@ -177,6 +191,29 @@
                                     204호에서 201로 변경되오니 확인 후 참석해주세요.<br><br>
                                     변경날짜: 11월 4일(월) ~ 강의 종료까지 <br><br>
                                     감사합니다.
+                                </li>
+                            </ul>
+                            <ul class="list">
+                                <li class="head"><label>파일 첨부</label></li>
+                                <li>
+                                    <div class="add_file_list">                              
+                                        <ul class="add_file">
+                                            <li>                    
+                                                <a href="#" class="file_down">
+                                                    <i class="icon-svg-paperclip" aria-hidden="true"></i>
+                                                    <span class="text">첨부파일명마우스오버 시.doc</span>
+                                                    <span class="fileSize">(6KB)</span>
+                                                </a>                                                            
+                                            </li>
+                                            <li>
+                                                <a href="#" class="file_down">
+                                                    <i class="icon-svg-paperclip" aria-hidden="true"></i>
+                                                    <span class="text">154873973477000.jpg</span>
+                                                    <span class="fileSize">(6KB)</span>
+                                                </a>                                        
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </li>
                             </ul>
                         </div>
@@ -260,7 +297,30 @@
 
                         <br><br><br>
 
-                        <h4 class="sub-title">리스트 스타일 _ 테이블 버튼</h4>
+                        <!-- <h4 class="sub-title">리스트 스타일 _ 테이블 버튼</h4> -->
+                        <div class="board_top t_line">
+                            <h4 class="sub-title">리스트 스타일 _ 테이블 버튼</h4>    
+                            <span class="info_inline"><small class="note2">성적처리 중 10분마다 자동 저장됩니다.</small></span>                     
+                            <div class="right-area">
+                                <button type="button" class="btn basic">메시지 보내기</button>                                                             
+                                <button type="button" class="btn type8">평가점수 가져오기</button> 
+                                <button type="button" class="btn type2">엑셀 다운로드</button>                             
+                            </div>                         
+                        </div>
+
+                        <div class="board_top in_table">
+                            <!-- search small -->
+                            <div class="search-typeC">
+                                <input class="form-control" type="text" name="" id="inputSearch1" value="" placeholder="학과/학번/이름 입력">
+                                <button type="button" class="btn basic icon search" aria-label="검색"><i class="icon-svg-search"></i></button>
+                            </div> 
+                            <button type="button" class="btn basic"><i class="icon-svg-search"></i>중간 결시신청 [ 제출 : 2명, 승인 : 2명 ]</button>
+                            <button type="button" class="btn basic"><i class="icon-svg-search"></i>기말 결시신청 [ 제출 : 2명, 승인 : 3명 ]</button>
+                            <button type="button" class="btn basic"><i class="icon-svg-search"></i>미평가 [ 4명 ]</button>   
+                            <div class="right-area">
+                                <span class="total_txt">[ 대상인원 <b>50</b>명 ]</span>
+                            </div>
+                        </div>
                         <!--table-type-->
                         <div class="table-wrap">
                             <table class="table-type2">

@@ -60,20 +60,20 @@
                 $row.find("input[name=finalScr][data-mrkitmtycd='" + mrkItmTycd + "']").val(calScore); // 산출 총점 재계산을 위해 선반영
 
                 // 2. 산출 총점 재계산
-                let lstScr = 0;
+                let totScr = 0;
                 $row.find("input[name*=finalScr]").each(function () { //성적항목별 최종점수 합치기
                     let finalScore = $(this).val() == "-" ? 0 : parseFloat($(this).val());
-                    lstScr += finalScore;
+                    totScr += finalScore;
                 });
-                lstScr = Number(lstScr.toFixed(2));
+                totScr = Number(totScr.toFixed(2));
 
                 // 3. 총점 재계산
-                let totScr = 0;
+                let lstCcr = 0;
                 let adtnScr = Number($row.find("input[name=adtnScr]").val());
                 let etcScr = Number($row.find("input[name=etcScr]").val());
-                totScr = lstScr + adtnScr + etcScr;
+                lstScr = totScr + adtnScr + etcScr;
 
-                if (totScr > 100) {
+                if (lstCcr > 100) {
                     // 기존 점수로 복구
                     $(this).val(prevRawScr);
                     $row.find("input[name=finalScr][data-mrkitmtycd='" + mrkItmTycd + "']").val(prevFinalScr);
@@ -88,11 +88,11 @@
                 $row.find("span[name=finalScrTxt][data-mrkitmtycd='" + mrkItmTycd + "']").text(calScore); // 성적항목 최종점수 input
 
                 // 산출 총점 반영
-                $row.find("input[name=lstScr]").val(lstScr);
-                $row.find("span[name=lstScrTxt]").text(lstScr);
+                $row.find("input[name=totScr]").val(totScr);
+                $row.find("span[name=totScrTxt]").text(totScr);
 
                 // 총점 반영
-                $row.find("input[name=totScr]").val(totScr);
+                $row.find("input[name=lstScr]").val(lstScr);
             });
         }
 
@@ -331,7 +331,7 @@
             } else if(status == "ON") {
                 autoSaveInterval = setInterval(function () {
                     onSave("Y");
-                }, 0.5 * 60 * 1000);
+                }, 10 * 60 * 1000);
             }
         }
     </script>
@@ -537,10 +537,10 @@
                                         });
 
                                         dynamicHeader.push(
-                                            {title: "산출</br>총점",    field: "lstScr",    headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
+                                            {title: "산출</br>총점",    field: "totScr",    headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
                                             {title: "가산</br>점수",    field: "adtnScr",   headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
                                             {title: "기타</br>점수",    field: "etcScr",     headerHozAlign: "center", hozAlign: "center", width: 70, minWidth: 70},
-                                            {title: "최종</br>점수",    field: "totScr",   headerHozAlign: "center", hozAlign: "center", width: 70, minWidth: 70},
+                                            {title: "최종</br>점수",    field: "lstScr",   headerHozAlign: "center", hozAlign: "center", width: 70, minWidth: 70},
                                             {title: "상세정보",         field: "details",   headerHozAlign: "center", hozAlign: "center", width: 80, minWidth: 80, headerSort: false}
                                         );
 
@@ -821,10 +821,10 @@
                     userId: std.userId,
                     stdntNo: std.stdntNo,
                     usernm: std.usernm,
-                    lstScr: `<input type="hidden" name="lstScr" value="\${std.lstScr}" inputmask="numeric" mask="999.99" maxVal="100"><span name="lstScrTxt">\${std.lstScr || 0}</span>`,
+                    totScr: `<input type="hidden" name="totScr" value="\${std.totScr}" inputmask="numeric" mask="999.99" maxVal="100"><span name="totScrTxt">\${std.lstScr || 0}</span>`,
                     adtnScr: `<input type="hidden" name="adtnScr" value="\${std.adtnScr}" inputmask="numeric" mask="999.99" maxVal="100"><span>\${std.adtnScr || 0}</span>`,
                     etcScr: `<input type="text" class="inputScore" name="etcScr"  data-prevscr="\${std.etcScr || 0}" value="\${std.etcScr || 0}" inputmask="numeric" mask="999.99" maxVal="100">`,
-                    totScr: `<input type="text" class="totScore" name="totScr" value="\${std.totScr || 0}" inputmask="numeric" mask="999.99" maxVal="100">`,
+                    lstScr: `<input type="text" class="lstScr" name="lstScr" value="\${std.lstScr || 0}" inputmask="numeric" mask="999.99" maxVal="100">`,
                 //     ------------ 상세정보 버튼 클릭 시 넘길 데이터
                     details: `<button type="button" class="btn basic small" onclick='goDetailStd("\${std.userId}", "\${std.sbjctId}")'>상세보기</button>`
                 };

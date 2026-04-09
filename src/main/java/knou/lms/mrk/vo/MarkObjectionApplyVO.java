@@ -10,6 +10,7 @@ public class MarkObjectionApplyVO extends DefaultVO {
     private String objctAplyDttm;   // 이의신청 일시
     private String objctAplyScr;    // 이의신청 점수
     private String objctAplyStscd;  // 이의신청 상태코드
+    private String objctAplySts;    // 이의신청 상태
 
     private String chgbfrScr;       // 변경 전 점수
     private String chgbfrMrkGrdcd;  // 변경 전 성적등급코드
@@ -126,5 +127,37 @@ public class MarkObjectionApplyVO extends DefaultVO {
 
     public void setChgDttm(String chgDttm) {
         this.chgDttm = chgDttm;
+    }
+
+    public String getObjctAplySts() {
+        return objctAplySts;
+    }
+
+    public void setObjctAplySts(String objctAplySts) {
+        this.objctAplySts = objctAplySts;
+    }
+
+    public String getDeptnm() {
+        return deptnm;
+    }
+
+    public void setDeptnm(String deptnm) {
+        this.deptnm = deptnm;
+    }
+
+    public String getStdntNo() {
+        return stdntNo;
+    }
+
+    public void setStdntNo(String stdntNo) {
+        this.stdntNo = stdntNo;
+    }
+
+    public String getScyr() {
+        return scyr;
+    }
+
+    public void setScyr(String scyr) {
+        this.scyr = scyr;
     }
 }

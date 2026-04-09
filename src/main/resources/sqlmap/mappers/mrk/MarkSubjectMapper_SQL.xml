@@ -342,7 +342,7 @@
         */
         SELECT B.*
         FROM TB_LMS_ATNDLC A
-        LEFT JOIN TB_LMS_MRK_SBJCT B ON A.SBJCT_ID = B.SBJCT_ID
+        LEFT JOIN TB_LMS_MRK_SBJCT B ON A.SBJCT_ID = B.SBJCT_ID AND A.USER_ID = B.USER_ID
         WHERE A.SBJCT_ID = #{sbjctId}
     </select>
 
@@ -575,9 +575,9 @@
             설  명 : 해당 과목의 모든 학생 성적 상세 데이터를 삭제한다.
         */
         DELETE FROM TB_LMS_MRK_SBJCT_DTL DTL
-        WHERE DTL.MRK_ITM_TYCD IN (
-            SELECT X.MRK_ITM_TYCD
-            FROM TB_LMS_MRK_ITM_STNG X
+        WHERE DTL.MRK_SBJCT_ID IN (
+            SELECT X.MRK_SBJCT_ID
+            FROM TB_LMS_MRK_SBJCT X
             WHERE X.SBJCT_ID = #{sbjctId}
         )
     </delete>
@@ -678,16 +678,16 @@
             /*-- 최종 원점수(일반/재시험 점수 OR 결시 대체 점수)*/
             , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 OR MIN(NVL(C.SUB_SCORE, 0)) = -1
                 THEN -1
-                ELSE SUM(COALESCE(B.SCORE * B.PENALTY, C.SUB_SCORE * C.ABS_PENALTY, 0))
+                ELSE SUM(COALESCE(B.SCORE * NVL(B.PENALTY, 1), C.SUB_SCORE * NVL(C.ABS_PENALTY, 1), 0))
             END AS RAW_SCORE
             /*-- 성적 반영 비율 계산 최종점수 (최종 원점수 * 반영비율)*/
             , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 OR MIN(NVL(C.SUB_SCORE, 0)) = -1
                 THEN -1
-                ELSE SUM(COALESCE(B.SCORE * B.PENALTY, C.SUB_SCORE * C.ABS_PENALTY, 0 ) * (A.MRK_RFLTRT / 100))
+                ELSE SUM(COALESCE(B.SCORE * NVL(B.PENALTY, 1), C.SUB_SCORE * NVL(C.ABS_PENALTY, 1), 0 ) * (A.MRK_RFLTRT / 100))
             END AS FINAL_SCORE
         FROM BASE_INFO_LIST A
         /*-- 일반/재시험 점수 매칭*/
-        JOIN NORMAL_SCORE B
+        LEFT JOIN NORMAL_SCORE B
             ON A.USER_ID = B.USER_ID
             AND A.EXAM_BSC_ID = B.EXAM_BSC_ID
         /*-- 결시 대체 점수 매칭*/
@@ -781,16 +781,17 @@
             , STD.USER_ID
             , 100 AS RAW_SCORE /* 세미나 작업 전이라 임시로 100점 넣어둠 */
             , 100 AS FINAL_SCORE
-        FROM TB_LMS_SMNR SMNR
+        /*FROM TB_LMS_SMNR SMNR*/
+        FROM TB_LMS_ATNDLC SMNR
         JOIN TB_LMS_SBJCT SBJ
             ON SMNR.SBJCT_ID = SBJ.SBJCT_ID
             AND SBJ.SBJCT_ID = #{sbjctId}
         JOIN TB_LMS_ATNDLC STD
             ON SBJ.SBJCT_ID = STD.SBJCT_ID
         WHERE 1=1
-            AND SMNR.DELYN = 'N'
+/*            AND SMNR.DELYN = 'N'
             AND SMNR.MRK_RFLTYN = 'Y'
-            AND SMNR.MRK_RFLTRT > 0
+            AND SMNR.MRK_RFLTRT > 0*/
         GROUP BY SBJ.SBJCT_ID, STD.USER_ID
         ORDER BY SBJ.SBJCT_ID, STD.USER_ID
     </select>
@@ -858,15 +859,15 @@
             /*-- 하나라도 미채점(-1)이 있으면 전체 -1, 아니면 합산*/
             , CASE WHEN MIN(NVL(B.SCORE,0)) = -1
                 THEN -1
-                ELSE SUM(NVL(B.SCORE, 0) * B.PENALTY)
+                ELSE SUM(NVL(B.SCORE, 0) * NVL(B.PENALTY, 1))
             END AS RAW_SCORE
             /* 반영비율이 계산된 최종 점수*/
             , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1
                 THEN -1
-                ELSE SUM(NVL(B.SCORE, 0) * B.PENALTY * (A.MRK_RFLTRT / 100))
+                ELSE SUM(NVL(B.SCORE, 0) * NVL(B.PENALTY, 1) * (A.MRK_RFLTRT / 100))
             END AS FINAL_SCORE
         FROM BASE_INFO_LIST A
-        JOIN ASMT_SCORE B
+        LEFT JOIN ASMT_SCORE B
             ON A.USER_ID = B.USER_ID
             AND A.BASE_ASMT_ID = B.BASE_ASMT_ID
         GROUP BY A.SBJCT_ID, A.USER_ID
@@ -913,7 +914,7 @@
                 , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE, 0)) END AS RAW_SCORE
                 , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE, 0) * A.MRK_RFLTRT / 100) END AS FINAL_SCORE
             FROM BASE_INFO_LIST A
-            JOIN DSCS_SCORE B
+            LEFT JOIN DSCS_SCORE B
                 ON A.USER_ID = B.USER_ID
                 AND A.BASE_DSCS_ID = B.BASE_DSCS_ID
             GROUP BY A.SBJCT_ID, A.USER_ID
@@ -963,11 +964,11 @@
               A.SBJCT_ID
             , A.USER_ID
             /*최종 원점수(일반/재시험 점수)*/
-            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE,0) * B.PENALTY) END AS RAW_SCORE
+            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE,0) * NVL(B.PENALTY, 1)) END AS RAW_SCORE
             /* 성적반영비율 계산 최종점수 */
-            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE,0) * B.PENALTY  * (A.MRK_RFLTRT / 100)) END AS FINAL_SCORE
+            , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE,0) * NVL(B.PENALTY, 1)  * (A.MRK_RFLTRT / 100)) END AS FINAL_SCORE
         FROM BASE_INFO_LIST A
-        JOIN QUIZ_SCORE B
+        LEFT JOIN QUIZ_SCORE B
             ON A.USER_ID = B.USER_ID
             AND A.EXAM_BSC_ID = B.EXAM_BSC_ID
         GROUP BY A.SBJCT_ID, A.USER_ID
@@ -1015,7 +1016,7 @@
             , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE, 0)) END AS RAW_SCORE
             , CASE WHEN MIN(NVL(B.SCORE, 0)) = -1 THEN -1 ELSE SUM(NVL(B.SCORE, 0) * A.MRK_RFLTRT / 100) END AS FINAL_SCORE
         FROM BASE_INFO_LIST A
-        JOIN SRVY_SCORE B
+        LEFT JOIN SRVY_SCORE B
             ON A.USER_ID = B.USER_ID
             AND A.BASE_SRVY_ID = B.BASE_SRVY_ID
         GROUP BY A.SBJCT_ID, A.USER_ID

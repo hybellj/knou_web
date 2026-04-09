@@ -14,7 +14,6 @@ public class ExcepHandler implements ExceptionHandler  {
 	*/
 	@Override
 	public void occur(Exception ex, String packageName) {
-		log.error(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>에러", ex);
-		log.error(packageName + " --> "+ex.toString());
+		//log.error("[ERROR] 위치: {} | 내용: {}", packageName, ex.getMessage());
 	}
 }

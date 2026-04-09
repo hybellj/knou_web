@@ -66,7 +66,7 @@
                         lrnGrpCmptnyn = "<a class='fcRed'>임시저장</a>"
                     }
                     // 관리
-                    var _p  = "\"" + v.lrnGrpId + "\"";
+                    var _p  = "\"" + v.lrnGrpId + "\",\"" + v.sbjctId + "\"";
                     var manage = "<a href='javascript:lrnGrpMgrViewMv(" + _p + ")' class='btn basic small'>수정</a>"
                                 + "<a href='javascript:lrnGrpMgrViewMv(" + _p + ")' class='btn basic small'>삭제</a>";
 
@@ -79,6 +79,7 @@
                         , lrnGrpCmptnyn:lrnGrpCmptnyn
                         , manage:       manage
                         , lrnGrpId:     v.lrnGrpId
+                        , sbjctId:      v.sbjctId
                     });
                 });
             }
@@ -120,48 +121,20 @@
         }
 
         /**
-         * 시험 화면 이동
-         * - 인자 1개 (tab)          : exam 컨텍스트 없이 이동 (예: 시험 등록) → isModify=N
-         * - 인자 4개 (examBscId, tkexamMthdCd, byteamSubrexamUseyn, tab) : 특정 시험 컨텍스트로 이동 → isModify=Y
+         * 학습그룹 지정 [등록|수정] 페이지 이동
+         * @param lrnGrpId  학습그룹 ID
+         * @param sbjctId   과목 ID
          */
-        /**
-         * Todo : 해당 로직 수정.
-         * 1. lrnGrpId, tab 으로 인자 받도록
-         * 2. lrnGrpId == null ? -> tab = 2 -> 등록
-         * 3. lrnGrpId != null && tab = ?  3 -> 수정 / 4 -> 삭제
-         * tab = 1 상세
-         * tab = 2 등록
-         * tab = 3 수정
-         * tab = 4 삭제
-         */
-        function lrnGrpMgrViewMv(examBscId, tkexamMthdCd, byteamSubrexamUseyn, tab) {
-            var urlMap = {
-                "1" : "/exam/profExamInfoEvlView.do",   // 학습그룹 상세
-                "2" : "/exam/profExamSbstView.do",      // 학습그룹 등록
-                "3" : "/exam/profExamAbsnceView.do",    // 학습그룹 수정
-                "4" : "/exam/profExamDsblView.do",      // 학습그룹 삭제
-                "9" : "/exam/profExamWriteView.do"      // 학습그룹 메인 페이지
-            };
+        function lrnGrpMgrViewMv(lrnGrpId, sbjctId) {
+            var url = "/team/lrnGrpMngWriteView.do";
 
             var kvArr = [];
-
-            if (arguments.length === 1) {
-                // tab 번호만 전달된 경우 (시험 등록)
-                tab = examBscId;
-                kvArr.push({'key' : 'isModify', 'val' : 'N'});
-            } else {
-                // 시험 컨텍스트와 함께 전달된 경우 (시험 수정)
-                kvArr.push({'key' : 'examBscId',          'val' : examBscId});
-                kvArr.push({'key' : 'tkexamMthdCd',       'val' : tkexamMthdCd});
-                kvArr.push({'key' : 'byteamSubrexamUseyn','val' : byteamSubrexamUseyn});
-                kvArr.push({'key' : 'isModify',           'val' : 'Y'});
-            }
-
-            submitForm(urlMap[tab], "", "", kvArr);
+            kvArr.push({'key' : 'lrnGrpId', 'val' : lrnGrpId});
+            kvArr.push({'key' : 'sbjctId',  'val' : sbjctId});
+            submitForm(url, "", "", kvArr);
         }
 
         $(document).ready(function() {
-            /* 초기 시험 목록 가져오기 */
             loadLrnGrpInfoList();
 
             /* 검색 영역 엔터키 입력 */
@@ -290,7 +263,7 @@
                             <i class="icon-svg-openbook"></i>
                             <h3 class="board-title">학습그룹지정</h3>
                             <div class="right-area">
-                                <button type="button" class="btn type2" onclick = "lrnGrpMgrViewMv(9)">등록</button>
+                                <button type="button" class="btn type2" onclick = "lrnGrpMgrViewMv('', curSbjctId)">등록</button>
                                 <!-- 목록 스케일 선택 -->
                                 <uiex:listScale func="changeListScale" value="10" />
                             </div>

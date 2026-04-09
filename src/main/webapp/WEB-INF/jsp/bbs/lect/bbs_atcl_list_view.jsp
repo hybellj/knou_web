@@ -139,9 +139,9 @@
 			SEARCH_SDTTM = $("#searchSdttm").val();
 			SEARCH_EDTTM = $("#searchEdttm").val();
 			SEARCH_VALUE = $("#searchValue").val();
-			console.log("paging===>"+BBS_ID);
+
 			var currentBbsTycd = '<c:out value="${param.bbsTycd}" />';
-		    if(!currentBbsTycd) currentBbsTycd = BBS_TYCD; // 파라미터 없으면 기본값 사용
+			if(!currentBbsTycd) currentBbsTycd = BBS_TYCD; // 파라미터 없으면 기본값 사용
 			var extData = {
 					orgId           : ORG_ID
 					, bbsId         : BBS_ID
@@ -363,160 +363,130 @@
 
         <!-- classroom -->
         <main class="common">
-
 			<!-- gnb -->
 			<jsp:include page="/WEB-INF/jsp/common_new/class_gnb_prof.jsp"/>
 			<!-- //gnb -->
 
 			<!-- content -->
 			<div id="content" class="content-wrap common">
-				<div class="class_sub_top">
-					<div class="navi_bar">
-						<ul>
-							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>
-						</ul>
-					</div>
-					<div class="btn-wrap">
-						<div class="first">
-							<select class="form-select">
-								<option value="2026년 1학기">2026년 1학기</option>
-								<option value="2026년 2학기">2026년 2학기</option>
-							</select>
-							<select class="form-select wide">
-								<option value="">강의실 바로가기</option>
-								<option value="2026년 1학기">2026년 1학기</option>
-								<option value="2026년 2학기">2026년 2학기</option>
-							</select>
-						</div>
-						<div class="sec">
-							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>
-					</div>
-				</div>
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
 				<!-- class_sub -->
 				<div class="class_sub">
-					<div class="dashboard_sub">
+                    <!-- class_info -->
+					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+                    <!-- //class_info -->
 
-	                    <div class="sub-content">
-	                        <div class="page-info">
-	                            <h4 class="sub-title">${bbsVO.bbsNm}</h4>
-	                            <div class="navi_bar">
-	                                <ul>
-	                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-	                                    <li>공통</li>
-	                                    <li><span class="current">레이아웃</span></li>
-	                                </ul>
+                    <div class="sub-content">
+                        <div class="page-info">
+                            <h4 class="sub-title">${bbsVO.bbsNm}</h4>
+                        </div>
+
+                        <!-- search typeA -->
+                        <div class="search-typeA">
+                            <div class="item">
+                                <span class="item_tit"><label for="searchValue"><spring:message code='common.search.keyword'/></label></span><%-- 검색어 --%>
+
+                                <div class="itemList">
+                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${param.searchValue}" placeholder="<spring:message code='bbs.common.placeholder'/>"><%-- 작성자/제목/키워드 --%>
+                                </div>
+                            </div>
+                            <div class="button-area">
+                                <button type="button" class="btn search" onclick="listPaging(1)"><spring:message code='button.search'/></button><%-- 검색 --%>
+                            </div>
+                        </div>
+
+						<div id="atclListArea">
+							<div class="board_top">
+	                            <h3 class="board-title">${bbsVO.bbsNm}</h3>
+	                            <div class="right-area">
+	                            	<c:if test="${atclWriteAuth eq 'Y'}">
+	                                	<button type="button" class="btn type1" style="white-space: nowrap;" onclick="moveWriteAtcl()"><spring:message code="bbs.button.write" /></button><%-- 글쓰기 --%>
+									</c:if>
+									<%-- 리스트/카드 선택 버튼 --%>
+									<span class="list-card-button"></span>
+
+									<%-- 목록 스케일 선택 --%>
+									<uiex:listScale func="changeListScale" value="${bbsVO.listScale}" />
 	                            </div>
 	                        </div>
 
-	                        <!-- search typeA -->
-	                        <div class="search-typeA">
-	                            <div class="item">
-	                                <span class="item_tit"><label for="searchValue"><spring:message code='common.search.keyword'/></label></span><%-- 검색어 --%>
+							<%-- 게시글 리스트 --%>
+							<div id="atclList"></div>
 
-	                                <div class="itemList">
-	                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${param.searchValue}" placeholder="<spring:message code='bbs.common.placeholder'/>"><%-- 작성자/제목/키워드 --%>
-	                                </div>
-	                            </div>
-	                            <div class="button-area">
-	                                <button type="button" class="btn search" onclick="listPaging(1)"><spring:message code='button.search'/></button><%-- 검색 --%>
-	                            </div>
-	                        </div>
-
-							<div id="atclListArea">
-								<div class="board_top">
-		                            <h3 class="board-title">${bbsVO.bbsNm}</h3>
-		                            <div class="right-area">
-		                            	<c:if test="${atclWriteAuth eq 'Y'}">
-		                                	<button type="button" class="btn type1" style="white-space: nowrap;" onclick="moveWriteAtcl()"><spring:message code="bbs.button.write" /></button><%-- 글쓰기 --%>
-										</c:if>
-										<%-- 리스트/카드 선택 버튼 --%>
-										<span class="list-card-button"></span>
-
-										<%-- 목록 스케일 선택 --%>
-										<uiex:listScale func="changeListScale" value="${bbsVO.listScale}" />
-		                            </div>
-		                        </div>
-
-								<%-- 게시글 리스트 --%>
-								<div id="atclList"></div>
-
-								<%-- 게시글 리스트 카드 폼 --%>
-								<div id="atclList_cardForm" style="display:none">
-									<div class="card-header">
-										#[label]
-										<div class="card-title">
-											#[atclTtl]
-										</div>
+							<%-- 게시글 리스트 카드 폼 --%>
+							<div id="atclList_cardForm" style="display:none">
+								<div class="card-header">
+									#[label]
+									<div class="card-title">
+										#[atclTtl]
 									</div>
-
-									<div class="card-body">
-										<div class="desc">
-											<p><label class="label-title"><spring:message code='bbs.label.reg_date'/></label><strong>#[regDttm]</strong></p>
-											<p><label class="label-title"><spring:message code='bbs.label.reg_user'/></label><strong>#[rgtrnm]</strong></p>
-										</div>
-										<div class="etc">
-											<p><label class="label-title"><spring:message code='bbs.label.attach'/></label><strong>#[attach]</strong></p>
-											<p><label class="label-title"><spring:message code='bbs.label.view'/></label><strong>#[inqCnt]</strong></p>
-											<p><label class="label-title"><spring:message code='bbs.label.comment'/></label><strong>#[cmntCnt]</strong></p>
-										</div>
-									</div>
-
-									<!-- <div class="bottom_button">
-										<button class="btn basic small">상세</button>
-									</div> -->
 								</div>
 
-								<script>
-								// 게시글 리스트 테이블
-								let atclListTable = UiTable("atclList", {
-									lang: "ko",
-									//tableMode: "list",
-									//rowHeight: 30,
-									//height: 400,
-									//selectRow: "checkbox",
-									//selectRow: "1",
-									//selectRowFunc: checkRowSelect,
-									sortFunc: atclListTableSort,
-									initialSort: [{column:"regDate", dir:"desc"}],
-									pageFunc: listPaging,
-									columns: [
-										{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// No
-										{title:"<spring:message code='bbs.label.form_title'/>", field:"atclTtl",	headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200, 	headerSort:true},	// 제목
-										{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDttm", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	headerSort:true,	formatter:"date"},	// 등록일자
-										{title:"<spring:message code='bbs.label.reg_user'/>", 	field:"rgtrnm", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 작성자
-										{title:"<spring:message code='bbs.label.attach'/>", 	field:"attach", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 첨부
-										{title:"<spring:message code='bbs.label.view'/>", 		field:"inqCnt", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 조회
-										{title:"<spring:message code='bbs.label.comment'/>", 	field:"cmntCnt", 	headerHozAlign:"center", hozAlign:"center",	width:60,	minWidth:60},	// 댓글
-									]
-								});
+								<div class="card-body">
+									<div class="desc">
+										<p><label class="label-title"><spring:message code='bbs.label.reg_date'/></label><strong>#[regDttm]</strong></p>
+										<p><label class="label-title"><spring:message code='bbs.label.reg_user'/></label><strong>#[rgtrnm]</strong></p>
+									</div>
+									<div class="etc">
+										<p><label class="label-title"><spring:message code='bbs.label.attach'/></label><strong>#[attach]</strong></p>
+										<p><label class="label-title"><spring:message code='bbs.label.view'/></label><strong>#[inqCnt]</strong></p>
+										<p><label class="label-title"><spring:message code='bbs.label.comment'/></label><strong>#[cmntCnt]</strong></p>
+									</div>
+								</div>
 
-
-								function atclListTableSort(sortInfo) {
-									console.log("field="+sortInfo.field+", dir="+sortInfo.dir);
-
-									listPaging(1);
-								}
-
-								function checkSelect() {
-									// 선택된값 array로 가져온다.
-									let data = atclListTable.getSelectedData("valAtclId"); // "valAtclId" 키로 설정된 값
-									alert(data);
-								}
-
-								function checkRowSelect(data) {
-									let value = data["valAtclId"]; // "valAtclId" 키로 설정된 값
-									alert(value);
-								}
-
-								</script>
+								<!-- <div class="bottom_button">
+									<button class="btn basic small">상세</button>
+								</div> -->
 							</div>
-	                    </div>
-                	</div>
+
+							<script>
+							// 게시글 리스트 테이블
+							let atclListTable = UiTable("atclList", {
+								lang: "ko",
+								//tableMode: "list",
+								//rowHeight: 30,
+								//height: 400,
+								//selectRow: "checkbox",
+								//selectRow: "1",
+								//selectRowFunc: checkRowSelect,
+								sortFunc: atclListTableSort,
+								initialSort: [{column:"regDate", dir:"desc"}],
+								pageFunc: listPaging,
+								columns: [
+									{title:"No", 											field:"no",			headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// No
+									{title:"<spring:message code='bbs.label.form_title'/>", field:"atclTtl",	headerHozAlign:"center", hozAlign:"left",	width:0,	minWidth:200, 	headerSort:true},	// 제목
+									{title:"<spring:message code='bbs.label.reg_date'/>", 	field:"regDttm", 	headerHozAlign:"center", hozAlign:"center", width:100, 	minWidth:100,	headerSort:true,	formatter:"date"},	// 등록일자
+									{title:"<spring:message code='bbs.label.reg_user'/>", 	field:"rgtrnm", 	headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},	// 작성자
+									{title:"<spring:message code='bbs.label.attach'/>", 	field:"attach", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 첨부
+									{title:"<spring:message code='bbs.label.view'/>", 		field:"inqCnt", 	headerHozAlign:"center", hozAlign:"center", width:60,	minWidth:60},	// 조회
+									{title:"<spring:message code='bbs.label.comment'/>", 	field:"cmntCnt", 	headerHozAlign:"center", hozAlign:"center",	width:60,	minWidth:60},	// 댓글
+								]
+							});
+
+
+							function atclListTableSort(sortInfo) {
+								console.log("field="+sortInfo.field+", dir="+sortInfo.dir);
+
+								listPaging(1);
+							}
+
+							function checkSelect() {
+								// 선택된값 array로 가져온다.
+								let data = atclListTable.getSelectedData("valAtclId"); // "valAtclId" 키로 설정된 값
+								alert(data);
+							}
+
+							function checkRowSelect(data) {
+								let value = data["valAtclId"]; // "valAtclId" 키로 설정된 값
+								alert(value);
+							}
+
+							</script>
+						</div>
+                    </div>
 				</div>
 				<!-- //class_sub -->
 

@@ -37,8 +37,6 @@ public class ExamVO extends DefaultVO {
     private Integer maxTkexamCnt;       // 최대응시 횟수
 
     private String  mrkOyn;             // 성적공개
-    private String  sbjctId;            // 과목 ID
-    private String  sbjctnm;            // 과목명
     private String  dvclasNcknm;        // 분반명
     private String  smstrChrtId;        // 학수번호
 
@@ -276,18 +274,6 @@ public class ExamVO extends DefaultVO {
     }
     public void setMrkOyn(String mrkOyn) {
         this.mrkOyn = mrkOyn;
-    }
-    public String getSbjctId() {
-        return sbjctId;
-    }
-    public void setSbjctId(String sbjctId) {
-        this.sbjctId = sbjctId;
-    }
-    public String getSbjctnm() {
-        return sbjctnm;
-    }
-    public void setSbjctnm(String sbjctnm) {
-        this.sbjctnm = sbjctnm;
     }
     public String getDvclasNcknm() {
         return dvclasNcknm;

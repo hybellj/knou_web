@@ -14,4 +14,10 @@ public interface TeamLrnGrpMgrDAO {
 
     // 학습 그룹 목록 카운트
     public int countAbsnceUserHstr(TeamLrnGrpMgrVO vo) throws Exception;
+
+    // 수강생 목록 조회
+    public List<EgovMap> listAtndlcUser(TeamLrnGrpMgrVO vo) throws Exception;
+
+    // 수강생 목록 카운트
+    public int countAtndlcUser(TeamLrnGrpMgrVO vo) throws Exception;
 }

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.bbs.dao.BbsDAO">
+
+	<select id="atclSelect" resultType="knou.lms.bbs2.vo.Bbs2AtclVO">
+		/*	설  명 : 게시글 조회   */
+		SELECT	*
+		FROM	TB_LMS_BBS_ATCL
+		WHERE	1 = 1
+				AND	BBS_ID = #{bbsId} 
+				AND DELYN = 'N'
+	</select>
+	
+	<select id="bbsIdWithBbsAuthrtSelect" resultType="egovMap">
+		/*	설  명 : 게시판아이디및게시판권한조회   */
+		SELECT CASE	WHEN NOT EXISTS (
+				        SELECT 1 
+				        FROM TB_LMS_BBS 
+				        WHERE BBS_ID = #{bbsId}
+				    ) THEN 'BBSID_NOT_EXIST'
+				
+				    WHEN EXISTS (
+				        SELECT 1
+				        FROM TB_LMS_BBS B
+				        JOIN (
+				            SELECT SBJCT_ID FROM TB_LMS_ATNDLC WHERE USER_ID = #{userId}
+				            UNION
+				            SELECT SBJCT_ID FROM TB_LMS_SBJCT_ADM WHERE USER_ID = #{userId}
+				        ) A
+				        ON B.SBJCT_ID = A.SBJCT_ID
+				        WHERE B.BBS_ID = #{bbsId}
+				    ) THEN 'EXIST_BBS_AUTHRT'				
+				    ELSE 'NOT_EXIST_BBS_AUTHRT'
+				END AS RESULT
+		FROM DUAL
+	</select>
+
+</mapper>

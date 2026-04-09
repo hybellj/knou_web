@@ -56,7 +56,6 @@
             , ASMT.UP_ASMT_ID
             , ASMT.TEAM_ASMT_OYN
         FROM TB_LMS_ASMT ASMT
-        WHERE ASMT.SBJCT_ID = #{sbjctId}
     </sql>
     <update id="mrkRfltrtModify" parameterType="asmtVO">
         /*
@@ -88,8 +87,8 @@
             설  명 : 과제 목록 페이징
         */
         <include refid="CommonSQL.pagePrefix"/>
-        SELECT A.*
-            , ROW_NUMBER() OVER(ORDER BY A.ASMT_SBMSN_SDTTM) AS LINE_NO
+        SELECT MAIN.*
+            , ROW_NUMBER() OVER(ORDER BY MAIN.ASMT_SBMSN_SDTTM) AS LINE_NO
             , COUNT(*) OVER() AS TOTAL_CNT
             , (
                 SELECT COUNT(T1.ASMT_SBMSN_TRGT_ID)
@@ -97,7 +96,7 @@
                 JOIN TB_LMS_ATNDLC T2
                 ON T2.USER_ID = T1.USER_ID
                     AND T2.SBJCT_ID = #{sbjctId}
-                WHERE T1.ASMT_ID = A.ASMT_ID
+                WHERE T1.ASMT_ID = MAIN.ASMT_ID
                     AND T2.AUDITYN = 'N'
                     AND T2.ATNDLC_STSCD = 'S'
             ) AS TRGT_CNT /* 과제 대상자 수*/
@@ -107,13 +106,13 @@
             JOIN TB_LMS_ATNDLC T2
             ON T2.USER_ID = T1.USER_ID
                 AND T2.SBJCT_ID = #{sbjctId}
-            WHERE T1.ASMT_ID = A.ASMT_ID
+            WHERE T1.ASMT_ID = MAIN.ASMT_ID
                 AND T2.AUDITYN = 'N'
                 AND T2.ATNDLC_STSCD = 'S'
                 AND EXISTS (
                     SELECT 1
                     FROM TB_LMS_ASMT_SBMSN TT1
-                    WHERE TT1.ASMT_ID = A.ASMT_ID
+                    WHERE TT1.ASMT_ID = MAIN.ASMT_ID
                         AND TT1.USER_ID = T1.USER_ID
                         AND TT1.SBMSN_STSCD IN (
                             'SBMSN_CMPTN'
@@ -129,7 +128,7 @@
             FROM TB_LMS_ASMT_SBMSN T1
             JOIN TB_LMS_ASMT_EVL T2
             ON T2.ASMT_SBMSN_ID = T1.ASMT_SBMSN_ID
-            WHERE T1.ASMT_ID = A.ASMT_ID
+            WHERE T1.ASMT_ID = MAIN.ASMT_ID
             AND T1.SBMSN_STSCD IN (
                 'SBMSN_CMPTN'
                 , 'SBMSN_RE_CMPTN'
@@ -142,18 +141,18 @@
         , (
             SELECT COUNT(DISTINCT T1.USER_ID)
             FROM TB_LMS_ASMT_SBMSN T1
-            WHERE T1.ASMT_ID = A.ASMT_ID
+            WHERE T1.ASMT_ID = MAIN.ASMT_ID
             AND T1.RESBMSNYN = 'Y'
             AND T1.DELYN = 'N'
         ) AS RESBMSN_CNT /* 재제출 수 */
         FROM (
             <include refid="asmtQuery"/>
-        ) A
-        WHERE 1=1
+        ) MAIN
+        WHERE MAIN.SBJCT_ID = #{sbjctId}
             AND UP_ASMT_ID IS NULL
         <if test="searchValue != null and searchValue != ''">
             AND (
-                LOWER(A.ASMT_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                LOWER(MAIN.ASMT_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
             )
         </if>
         <include refid="CommonSQL.pageSubfix"/>
@@ -163,10 +162,339 @@
             SQL ID : AsmtDAO.asmtSelect
             설  명 : 과제 조회
         */
-        SELECT A.*
+        SELECT MAIN.*
         FROM (
             <include refid="asmtQuery"/>
-        ) A
-        WHERE A.ASMT_ID = #{asmtId}
+        ) MAIN
+        WHERE MAIN.ASMT_ID = #{asmtId}
     </select>
+    <select id="dvclasList" parameterType="asmtVO" resultType="egovMap">
+        /*
+            SQL ID : AsmtDAO.dvclasList
+            설  명 : 분반 목록
+        */
+        WITH BASE AS (
+            SELECT
+                SBJCT_ID
+                , PROF_ID
+                , SMSTR_CHRT_ID
+            FROM TB_LMS_SBJCT
+            WHERE SBJCT_ID = #{sbjctId}
+                AND DELYN = 'N'
+                AND USEYN = 'Y'
+        )
+        SELECT
+            SBJCT.SBJCT_ID
+            , SBJCT.DVCLAS_NO
+            , SBJCT.PROF_ID
+        FROM TB_LMS_SBJCT SBJCT
+        JOIN BASE ON SBJCT.SMSTR_CHRT_ID = BASE.SMSTR_CHRT_ID
+            AND SBJCT.PROF_ID = BASE.PROF_ID
+        WHERE SBJCT.DELYN = 'N'
+            AND SBJCT.USEYN = 'Y'
+        ORDER BY SBJCT.DVCLAS_NO
+    </select>
+
+    <select id="lrnGrpTeamList" resultType="egovMap" parameterType="asmtVO">
+        /*
+        	SQL ID : AsmtDAO.lrnGrpTeamList
+        	설  명 : 학습그룹별 팀 목록 + 부과제 조회
+        */
+        SELECT
+        	  TEAM.TEAM_ID
+        	, TEAM.TEAMNM
+        	, TEAM.LRN_GRP_ID
+        	, LEADER.USERNM AS LEADERNM
+        	, NVL(TEAM_MBR_CNT.TEAM_MBR_CNT, 0) AS TEAM_MBR_CNT
+        	, SUB_ASMT.ASMT_ID
+        	, SUB_ASMT.ASMT_TTL
+        	, SUB_ASMT.ASMT_CTS
+        FROM TB_LMS_TEAM TEAM
+        LEFT JOIN (
+        	SELECT
+        		  TEAM_MBR.TEAM_ID
+        		, COUNT(*) AS TEAM_MBR_CNT
+        	FROM TB_LMS_TEAM_MBR TEAM_MBR
+        	GROUP BY TEAM_MBR.TEAM_ID
+        ) TEAM_MBR_CNT
+        	ON TEAM_MBR_CNT.TEAM_ID = TEAM.TEAM_ID
+        LEFT JOIN TB_LMS_TEAM_MBR LEADER_MBR
+        	ON LEADER_MBR.TEAM_ID = TEAM.TEAM_ID
+        	AND LEADER_MBR.LDRYN = 'Y'
+        LEFT JOIN TB_LMS_USER LEADER
+        	ON LEADER.USER_ID = LEADER_MBR.USER_ID
+        LEFT JOIN (
+        	SELECT
+        		  TRGT.TEAM_ID
+        		, ASMT.ASMT_ID
+        		, ASMT.ASMT_TTL
+        		, ASMT.ASMT_CTS
+        	FROM TB_LMS_ASMT ASMT
+        	JOIN TB_LMS_ASMT_SBMSN_TRGT TRGT
+        		ON TRGT.ASMT_ID = ASMT.ASMT_ID
+        	WHERE ASMT.UP_ASMT_ID = #{upAsmtId}
+        		AND ASMT.DELYN = 'N'
+        ) SUB_ASMT
+        	ON SUB_ASMT.TEAM_ID = TEAM.TEAM_ID
+        WHERE TEAM.LRN_GRP_ID = #{lrnGrpId}
+        	AND TEAM.TEAM_CPST_CMPTNYN = 'Y'
+        ORDER BY TEAM.TEAMNM
+    </select>
+    
+    <insert id="asmtGrpRegist" parameterType="asmtVO">
+        /*
+            SQL ID : AsmtDAO.asmtGrpRegist
+            설  명 : 과제그룹 등록
+        */
+        INSERT INTO TB_LMS_ASMT_GRP
+        (
+              ASMT_GRP_ID
+            , ASMT_GRPNM
+            , RGTR_ID
+            , REG_DTTM
+        )
+        VALUES
+        (
+              #{asmtGrpId}
+            , #{asmtGrpId}
+            , #{rgtrId}
+            , FN_DTTM()
+        )
+    </insert>
+
+    <insert id="asmtRegist" parameterType="asmtVO">
+        /*
+            SQL ID : AsmtDAO.asmtRegist
+            설  명 : 과제 등록
+        */
+        INSERT INTO TB_LMS_ASMT
+        (
+              ASMT_ID
+            , SBJCT_ID
+            , UP_ASMT_ID
+            , ASMT_GRP_ID
+            , ASMT_TTL
+            , ASMT_CTS
+            , ASMT_GBNCD
+            , DVCLAS_NO
+            , LRN_GRP_ID
+            , SBASMT_TYCD
+            , EVL_SCR_TYCD
+            , RUBLIC_ID
+            , DELYN
+            , SBMSN_FILE_MIME_TYCD
+            , ASMT_PRCTCYN
+            , DVCLAS_CNCRNT_REGYN
+            , INDV_ASMTYN
+            , TEAM_ASMT_STNGYN
+            , TMBR_INDIV_SBMSN_PRMYN
+            , MRK_RFLTYN
+            , MRK_RFLTRT
+            , MRK_OYN
+            , MRK_INQ_SDTTM
+            , MRK_INQ_EDTTM
+            , SBASMT_OSTD_OYN
+            , SBASMT_OSTD_OPEN_SDTTM
+            , SBASMT_OSTD_OPEN_EDTTM
+            , RESBMSN_SDTTM
+            , RESBMSN_EDTTM
+            , RESBMSN_MRK_RFLTRT
+            , ASMT_SBMSN_SDTTM
+            , ASMT_SBMSN_EDTTM
+            , EXTD_SBMSN_PRMYN
+            , EXTD_SBMSN_SDTTM
+            , EXTD_SBMSN_EDTTM
+            , EXLN_ASMT_DWLDYN
+            , BYTEAM_ASMT_USEYN
+            , RGTR_ID
+            , REG_DTTM
+        )
+        VALUES
+        (
+              #{asmtId}
+            , #{sbjctId}
+            , #{upAsmtId}
+            , #{asmtGrpId}
+            , #{asmtTtl}
+            , #{asmtCts}
+            , #{asmtGbncd}
+            , #{dvclasNo}
+            , #{lrnGrpId}
+            , #{sbasmtTycd}
+            , #{evlScrTycd}
+            , #{rublicId}
+            , 'N'
+            , #{sbmsnFileMimeTycd}
+            , NVL(#{asmtPrctcyn}, 'N')
+            , NVL(#{dvclasCncrntRegyn}, 'N')
+            , NVL(#{indvAsmtyn}, 'N')
+            , NVL(#{teamAsmtStngyn}, 'N')
+            , NVL(#{tmbrIndivSbmsnPrmyn}, 'N')
+            , NVL(#{mrkRfltyn}, 'N')
+            , 0
+            , NVL(#{mrkOyn}, 'N')
+            , FN_DTTM_FORMAT(#{mrkInqSdttm})
+            , FN_DTTM_FORMAT(#{mrkInqEdttm})
+            , NVL(#{sbasmtOstdOyn}, 'N')
+            , FN_DTTM_FORMAT(#{sbasmtOstdOpenSdttm})
+            , FN_DTTM_FORMAT(#{sbasmtOstdOpenEdttm})
+            , FN_DTTM_FORMAT(#{resbmsnSdttm})
+            , FN_DTTM_FORMAT(#{resbmsnEdttm})
+            , NVL(#{resbmsnMrkRfltrt}, 0)
+            , FN_DTTM_FORMAT(#{asmtSbmsnSdttm})
+            , FN_DTTM_FORMAT(#{asmtSbmsnEdttm})
+            , NVL(#{extdSbmsnPrmyn}, 'N')
+            , FN_DTTM_FORMAT(#{extdSbmsnSdttm})
+            , FN_DTTM_FORMAT(#{extdSbmsnEdttm})
+            , NVL(#{exlnAsmtDwldyn}, 'N')
+            , NVL(#{byteamAsmtUseyn}, 'N')
+            , #{rgtrId}
+            , FN_DTTM()
+        )
+    </insert>
+
+    <insert id="asmtTrgtListRegist">
+        /*
+            SQL ID : AsmtDAO.asmtTrgtListRegist
+            설  명 : 과제 대상 목록 등록
+        */
+        INSERT ALL
+        <foreach collection="list" item="item">
+            INTO TB_LMS_ASMT_SBMSN_TRGT
+            (
+                  ASMT_SBMSN_TRGT_ID
+                , ASMT_ID
+                , USER_ID
+                , TEAM_ID
+                , RGTR_ID
+                , REG_DTTM
+            )
+            VALUES
+            (
+                  #{item.asmtSbmsnTrgtId}
+                , #{item.asmtId}
+                , #{item.userId}
+                , #{item.teamId}
+                , #{item.rgtrId}
+                , FN_DTTM()
+            )
+        </foreach>
+        SELECT 1 FROM DUAL
+    </insert>
+
+    <select id="teamTrgtList" resultType="asmtTrgtVO" parameterType="asmtVO">
+        /*
+            SQL ID : AsmtDAO.teamTrgtList
+            설  명 : 팀 대상 목록 조회
+        */
+        SELECT
+              TEAM.TEAM_ID
+        FROM TB_LMS_TEAM TEAM
+        WHERE TEAM.LRN_GRP_ID = #{lrnGrpId}
+            AND TEAM.TEAM_CPST_CMPTNYN = 'Y'
+        ORDER BY TEAM.TEAMNM
+        </select>
+
+    <select id="allStdTrgtList" resultType="asmtTrgtVO" parameterType="asmtVO">
+        /*
+            SQL ID : AsmtDAO.allStdTrgtList
+            설  명 : 전체 수강 대상 조회
+        */
+        SELECT
+        	  USR.USER_ID
+        FROM TB_LMS_ATNDLC ATNDLC
+        JOIN TB_LMS_USER USR
+        	ON USR.USER_ID = ATNDLC.USER_ID
+        WHERE ATNDLC.SBJCT_ID = #{sbjctId}
+        	AND ATNDLC.AUDITYN = 'N'
+        	AND ATNDLC.ATNDLC_STSCD = 'ATNDLC'
+        	AND USR.USER_STSCD = 'ACTV'
+    </select>
+
+    <insert id="subAsmtByCopyRegist" parameterType="asmtVO">
+        /*
+            SQL ID : AsmtDAO.subAsmtByCopyRegist
+            설  명 : 부과제 복사 등록
+        */
+        	INSERT INTO TB_LMS_ASMT
+        	(
+        		  ASMT_ID
+        		, UP_ASMT_ID
+        		, SBJCT_ID
+                , DVCLAS_NO
+        		, ASMT_GBNCD
+        		, ASMT_TTL
+        		, ASMT_CTS
+        		, ASMT_SBMSN_SDTTM
+        		, ASMT_SBMSN_EDTTM
+        		, EXTD_SBMSN_PRMYN
+        		, EXTD_SBMSN_SDTTM
+        		, EXTD_SBMSN_EDTTM
+        		, MRK_RFLTYN
+        		, MRK_OYN
+        		, EVL_SCR_TYCD
+        		, SBASMT_TYCD
+        		, SBMSN_FILE_MIME_TYCD
+        		, ASMT_PRCTCYN
+        		, EXLN_ASMT_DWLDYN
+        		, TEAM_ASMT_STNGYN
+        		, INDV_ASMTYN
+        		, SBASMT_OSTD_OYN
+        		, SBASMT_OSTD_OPEN_SDTTM
+        		, SBASMT_OSTD_OPEN_EDTTM
+                , ASMT_GRP_ID
+                , LRN_GRP_ID
+                , RUBLIC_ID
+                , DVCLAS_CNCRNT_REGYN
+                , TMBR_INDIV_SBMSN_PRMYN
+                , MRK_INQ_SDTTM
+                , MRK_INQ_EDTTM
+                , RESBMSN_SDTTM
+                , RESBMSN_EDTTM
+                , RESBMSN_MRK_RFLTRT
+                , BYTEAM_ASMT_USEYN
+                , RGTR_ID
+          		, REG_DTTM
+        	)
+        	SELECT
+        		  #{asmtId}
+        		, #{upAsmtId}
+        		, #{sbjctId}
+                , #{dvclasNo}
+        		, ASMT.ASMT_GBNCD
+        		, #{asmtTtl}
+        		, #{asmtCts}
+        		, ASMT.ASMT_SBMSN_SDTTM
+        		, ASMT.ASMT_SBMSN_EDTTM
+        		, ASMT.EXTD_SBMSN_PRMYN
+        		, ASMT.EXTD_SBMSN_SDTTM
+        		, ASMT.EXTD_SBMSN_EDTTM
+        		, ASMT.MRK_RFLTYN
+        		, ASMT.MRK_OYN
+        		, ASMT.EVL_SCR_TYCD
+        		, ASMT.SBASMT_TYCD
+        		, ASMT.SBMSN_FILE_MIME_TYCD
+        		, ASMT.ASMT_PRCTCYN
+        		, ASMT.EXLN_ASMT_DWLDYN
+                , ASMT.TEAM_ASMT_STNGYN
+                , ASMT.INDV_ASMTYN
+        		, ASMT.SBASMT_OSTD_OYN
+        		, ASMT.SBASMT_OSTD_OPEN_SDTTM
+        		, ASMT.SBASMT_OSTD_OPEN_EDTTM
+                , ASMT.ASMT_GRP_ID
+                , ASMT.LRN_GRP_ID
+                , ASMT.RUBLIC_ID
+                , ASMT.DVCLAS_CNCRNT_REGYN
+                , ASMT.TMBR_INDIV_SBMSN_PRMYN
+                , ASMT.MRK_INQ_SDTTM
+                , ASMT.MRK_INQ_EDTTM
+                , ASMT.RESBMSN_SDTTM
+                , ASMT.RESBMSN_EDTTM
+                , ASMT.RESBMSN_MRK_RFLTRT
+                , ASMT.BYTEAM_ASMT_USEYN
+                , #{rgtrId}
+                , FN_DTTM()
+        	FROM TB_LMS_ASMT ASMT
+        	WHERE ASMT.ASMT_ID = #{upAsmtId}
+    </insert>
 </mapper>

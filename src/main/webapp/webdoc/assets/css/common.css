@@ -778,24 +778,44 @@ common - sub 컴포넌트 - 필요한 부분
 .video-wrap { max-width: 800px; margin: 0 auto; }
 .video-wrap video { width: 100%; height: auto; border-radius: 8px; }
 
-
-.tit_divider { font-size: 1.8rem; font-weight: 700; display: table; white-space: nowrap; height: auto; margin: ''; line-height: 1; text-align: center; }
-.tit_divider:before, .tit_divider:after {
-	content: '';
-    display: table-cell;
-    position: relative;
-    top: 50%;
-    width: 50%;
-    background-repeat: no-repeat;
-    background-image: url(../img/common/line_divider.png);
+/* 업로드 */
+.upload-file {display: flex; gap: .5rem;}
+.upload-file .btn.type1 {margin-left: auto;}
+.upload-file .file-info { display: flex; flex: 1; gap: 1.2rem; border: 1px solid var(--dark-200); border-radius: var(--border-radius-5); padding: .5rem 1rem; }
+.upload-file .file-info span { display: inline-flex; gap: 4px; align-items: center; margin-left: auto; cursor: pointer; flex: none; }
+.upload-file .file-info p small { color: var(--text-dark-2); padding: 0 8px; }
+.upload-file .file-info p {font-size: 1.5rem;}
+.upload-file .file-info span::before{
+	content: "\e921";
+	display: inline-block;
+	font-family: xeicon !important;
+	font-style: normal;
+	font-weight: 400 !important;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+	vertical-align: -.125em;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
-.tit_divider:before { background-position: right 1em top 50%; }
-.tit_divider:after { background-position: left 1em top 50%; }
+@media (max-width:768px) {
+	.upload-file {flex-wrap: wrap;}
+	.upload-file .file-info {flex: none;}
 
+}
+@media (max-width:480px) {
+	.upload-file .btn.type1 {flex: 1 1 auto;}
+}
+
+/* 차트 */
+.chart-container { display: flex; justify-content: center; width: 100%; margin: 0 auto; }
+
+
+/* datepicker */
 .date_area .datepicker-label:first-of-type { margin-bottom: .3rem;}
 
 
-/* 타이틀, navi_bar */
+/* navi_bar */
 .page-info { display: flex; justify-content: space-between;}
 .navi_bar { display: flex; margin-left: auto; align-items: center; font-size: 1.4rem;}
 .navi_bar li { display: inline-block; color: #666;}
@@ -809,6 +829,7 @@ body.home .navi_bar .current { color: #3A3E40; font-weight: 500; }
 	.navi_bar {display: none;}
 }
 
+/* 타이틀 */
 h2.page-title { font-size: 2.4rem; font-weight: 700; line-height: 1.2; color: var(--txt_01); margin: 0; }
 h2.page-title span {color: var(--txt_02_80); position: relative;}
 h2.page-title span::after {
@@ -837,7 +858,20 @@ h4.sub-title::before {
     border-radius: 100%;
     background: #fff0;
 }
-
+h5.sub-title-sm { font-size: 1.7rem; font-weight: 600; letter-spacing: -0.03em;}
+h5.sub-title-sm i {margin-right: .5rem;}
+.tit_divider { font-size: 1.8rem; font-weight: 700; display: table; white-space: nowrap; height: auto; margin: ''; line-height: 1; text-align: center; }
+.tit_divider:before, .tit_divider:after {
+	content: '';
+    display: table-cell;
+    position: relative;
+    top: 50%;
+    width: 50%;
+    background-repeat: no-repeat;
+    background-image: url(../img/common/line_divider.png);
+}
+.tit_divider:before { background-position: right 1em top 50%; }
+.tit_divider:after { background-position: left 1em top 50%; }
 @media(max-width:1280px) {
     h3.board-title {font-size: 1.8rem;}
 }
@@ -1239,7 +1273,7 @@ h4.sub-title::before {
 .board_top { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; width: 100%; margin-bottom: 1rem; }
 .board_top.t_line { margin-top: 5.5rem; padding-top: 1rem; border-top: 2px solid #F0F2F6; }
 .board_top.t_line:has(.in_table) {}
-.board_top.in_table {border: 1px solid #D4D6D6; padding: 1.2rem; margin-top: 1rem !important; margin-bottom: 0;}
+.board_top.in_table {border: 1px solid #D4D6D6; padding: 1.2rem; border-radius: 8px 8px 0 0; margin-top: 1rem !important; margin-bottom: 0;}
 .board_top h4.sub-title {margin-bottom: 0;}
 .board_top i + .board-title {margin-left: .4rem;}
 .board_top .info_inline {position: relative; margin-left: 1.7rem;}
@@ -1247,7 +1281,6 @@ h4.sub-title::before {
 .board_top .total_num::before { content: ''; display: block; background-color: #ddd; width: 1px; height: 1.4rem; position: absolute; transform: translate(0, -50%); left: -1rem; top: 50%; }
 .board_top .right-area {margin-left: auto; display: flex; gap: .6rem; align-items: center; flex-wrap: wrap;}
 .board_top .total_txt {}
-/* .board_top .form-select { padding: 0.8rem 1.2rem;} */
 .btn.basic.icon.search { background: #282E3E; color: #fff; border-color: #282E3E; }
 .btn.basic.icon.search i {width: 20px; height: 20px;}
 .btn.basic.icon.search:hover {background: #161925; color: #72c4ff; border-color: #161925;}
@@ -1255,11 +1288,23 @@ h4.sub-title::before {
 .board_top .board-title + .form-inline { margin-left: 1.7rem; }
 .board_top:has(+ h4.sub-title) {margin-bottom: 2rem;}
 .btns + .board_top {margin-top: 4.5rem; padding-top: 1rem; border-top: 2px solid #F0F2F6;}
-/* .board_top.class { padding: 2rem 2.5rem 2rem 2.5rem; border-radius: 10px; box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.1); } */
 .board_top.class { padding: 2rem 2.5rem 2rem 2.5rem; margin-bottom: 3rem; border-radius: 10px; background-color: #F9F9F9; border: 1px solid #E9E9E9; }
 .board_top.class h3.board-title { font-size: 2.2rem; font-weight: 600; letter-spacing: -0.03em; color: var(--txt_03);}
 .board_top.class + .sub-box {margin-top: 1rem;}
-
+.board_top .feedback-info { display: flex; align-items: center; margin-left: 1.5rem; }
+.board_top .feedback-info .desc {color: #0055A2;}
+.board_top .feedback-info .desc span.score { font-size: 2.6rem;}
+.board_top .feedback-info .desc span.score::after {display: none; }
+.board_top .feedback-info .desc span::after {
+    float: none;
+    content: '';
+    display: inline-block;
+    width: 1px;
+    height: calc(1em - 4px);
+    background-color: var(--dark-300);
+    margin: 0 4px 0 8px;
+    padding: 0;
+}
 @media (max-width:768px) {
 	.board_top .form-select { flex: 1; }
 	.board_top .form-control { flex: 1 1 auto; }
@@ -1512,6 +1557,8 @@ error style
 .modal-body .table-type5 tbody tr th {}
 .modal-body .board_top {margin-bottom: .5rem;}
 .modal-body h3.board-title { font-size: 1.8rem;}
+.modal-body h4.sub-title { font-size: 1.7rem;}
+.modal-body h5.sub-title-sm { font-size: 1.6rem; }
 .modal-body .msg-box.basic {font-size: 1.4rem;}
 .modal-body .list-asterisk {font-size: 1.4rem;}
 .modal-body .list-bullet {font-size: 1.4rem;}

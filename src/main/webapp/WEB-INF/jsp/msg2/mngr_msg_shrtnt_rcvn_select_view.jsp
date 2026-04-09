@@ -52,7 +52,7 @@
         /* 기본 필드 */
         $('#sndngTtl').text(v.sndngTtl || '');
         $('#sndngCts').html(UiComm.escapeHtml(v.sndngCts || '').replace(/\n/g, '<br>'));
-        $('#sndngDttm').text(UiComm.formatDate(v.sndngDttm, 'datetime'));
+        $('#sndngDttm').text(UiComm.formatDate(v.sndngDttm, 'datetime2'));
         $('#sndngnm').text(v.sndngnm || '');
 
         /* 발신자 정보 */

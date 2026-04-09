@@ -41,7 +41,7 @@
     }
 
     function bindEvents() {
-        $('#dscsUnitTycd').on('change', function () {
+        $("input[name='dscsUnitTycd']").on('change', function () {
             toggleTeamArea();
         });
 
@@ -78,6 +78,16 @@
         }
     }
 
+    function setSwitcherValue(switchId, value) {
+        var yn = (value === 'Y') ? 'Y' : 'N';
+        if (yn === 'Y') {
+            UiSwitcherOn(switchId);
+        } else {
+            UiSwitcherOff(switchId);
+        }
+        syncSwitchHiddenById(switchId);
+    }
+
     // Switch 버튼들 값 설정
     function initSwitchYnFields() {
         syncAllSwitchHidden();
@@ -106,7 +116,8 @@
     }
 
     function toggleTeamArea() {
-        if ($('#dscsUnitTycd').val() === 'TEAM') {
+        var dscsUnitTycd = $("input[name='dscsUnitTycd']:checked").val();
+        if (dscsUnitTycd === 'Y') {
             $('#teamArea').show();
         } else {
             $('#teamArea').hide();
@@ -116,6 +127,8 @@
                 $('#lrnGrpId').val('');
                 $('#dvclsNo').val('');
             }
+            teamUploaderIds = [];
+            teamUploadResults = {};
         }
     }
 
@@ -128,18 +141,21 @@
             $("input[name=sbjctIds]").not(".readonly").prop("checked", obj.checked);
 
             if(obj.checked) {
+                $("div[id^='teamForumBlock']").show();
                 $("div[id^='lrnGrpView']").css("display", "flex");
                 $("input[name='lrnGrpSubForumSettingyns']:checked").each(function(i, e) {
                     $("#setForumDiv"+e.id.split("_")[1]).show();
                 });
             } else {
                 var fixDvclas = $("input[name=sbjctIds]").filter(".readonly")[0].id.split("_")[1];
+                $("div[id^='teamForumBlock']").not("#teamForumBlock"+fixDvclas).hide();
                 $("div[id^='lrnGrpView']").not("#lrnGrpView"+fixDvclas).hide();
                 $("div[id^='setForumDiv']").not("#setForumDiv"+fixDvclas).hide();
             }
         } else {
             if ($(obj).hasClass('readonly')) {
                 obj.checked = true;
+                $("#teamForumBlock" + obj.id.split("_")[1]).show();
                 $("#lrnGrpView" + obj.id.split("_")[1]).css("display", "flex");
                 $("#setForumDiv"+obj.id.split("_")[1]).show();
                 return;
@@ -147,9 +163,11 @@
             $("#allDeclas").prop("checked", $("input[name=sbjctIds]").length == $("input[name=sbjctIds]:checked").length);
 
             if(obj.checked) {
+                $("#teamForumBlock" + obj.id.split("_")[1]).show();
                 $("#lrnGrpView" + obj.id.split("_")[1]).css("display", "flex");
                 $("#setForumDiv"+obj.id.split("_")[1]).show();
             } else {
+                $("#teamForumBlock" + obj.id.split("_")[1]).hide();
                 $("#lrnGrpView" + obj.id.split("_")[1]).hide();
                 $("#setForumDiv"+obj.id.split("_")[1]).hide();
             }
@@ -173,6 +191,15 @@
         if(value == "Y") {
             $("input[name='dscsUnitTycd'][value='N']").prop('checked', true);
             teamynChange('N');
+        }
+        toggleProsConsOptionArea(value);
+    }
+
+    function toggleProsConsOptionArea(value) {
+        if (value === 'Y') {
+            $('#oknok_option_area').show();
+        } else {
+            $('#oknok_option_area').hide();
         }
     }
 
@@ -219,11 +246,11 @@
                 var returnList = resp.returnList || [];
                 var html = buildForumTeamListHtml(returnList);
                 $("#subInfoDiv" + dvclasNo).empty().html(html);
+                teamUploaderIds = teamUploaderIds.filter(function(uid) {
+                    return uid.indexOf('teamFileUploader_') !== 0;
+                });
+                teamUploadResults = {};
                 if (returnList.length > 0) {
-                    // 재로드 시 업로더 목록 초기화 (중복 방지)
-                    teamUploaderIds   = [];
-                    teamUploadResults = {};
-
                     returnList.forEach(function(v, i) {
                         editors[v.teamId + '_editor' + i] = UiEditor({
                             targetId  : v.teamId + '_contentTextArea_' + i,
@@ -245,54 +272,36 @@
         if (!list || list.length === 0) {
             return '<p class="p_gray"></p>'; // 팀 정보가 없는 경우.
         }
-        var html = "<table class='table-type2'>";
-        html += "    <colgroup>";
-        html += "        <col class='width-10per' />";
-        html += "        <col class='' />";
-        html += "        <col class='width-10per' />";
-        html += "    </colgroup>";
-        html += "    <tbody>";
-        html += "        <tr>";
-        html += "            <th><spring:message code='forum.label.team'/></th>"; // 팀
-        html += "            <th><spring:message code='forum.label.team.ttl'/></th>"; // 부주제
-        html += "            <th><spring:message code='forum.label.lrngrp.mebers'/></th>"; // 학습그룹 구성원
-        html += "        </tr>";
+        var html = "<div class='table-wrap mb30'>";
+        html += "    <table class='table-type5 in_table'>";
+        html += "        <colgroup>";
+        html += "            <col class='width-5per' />";
+        html += "            <col class='width-15per' />";
+        html += "            <col />";
+        html += "        </colgroup>";
         list.forEach(function(v, i) {
-            html += "    <tr class='subForumTr' data-team-id='" + escHtml(v.teamId || '') + "' data-team-nm='" + escHtml(v.teamnm || '') + "' data-dscs-id='" + escHtml(v.dscsId || '') + "'>";
-            html += "        <th><label>" + escHtml(v.teamnm || '') + "</label></th>";
-            html += "        <td>";
-            html += "            <table class='table-type5'>";
-            html += "                <colgroup>";
-            html += "                    <col class='width-10per' />";
-            html += "                    <col class='' />";
-            html += "                </colgroup>";
-            html += "                <tbody>";
-            html += "                    <tr>";
-            html += "                        <th><label for='" + v.teamId + "_dtlSubjTtl_" + i + "'><spring:message code='forum.label.team.ttl'/></label></th>"; // <!--부주제-->
-            html += "                        <td><input type='text' id='" + v.teamId + "_dtlSubjTtl_" + i + "' name='teamTtl' value='" + escHtml(v.dscsTtl || '') + "' inputmask='byte' maxLen='200' class='width-100per' /></td>";
-            html += "                    </tr>";
-            html += "                    <tr>";
-            html += "                        <th><label for='" + v.teamId + "_contentTextArea_" + i + "'><spring:message code='common.label.contents'/></label></th>"; // 내용
-            html += "                        <td>";
-            html += "                            <div class='editor-box'>";
-            html += "                                <textarea name='" + v.teamId + "_contentTextArea_" + i + "' id='" + v.teamId + "_contentTextArea_" + i + "'>" + escHtml(v.dscsCts || '') + "</textarea>";
-            html += "                            </div>";
-            html += "                        </td>";
-            html += "                    </tr>";
-            html += "                    <tr>";
-            html += "                        <th><label><spring:message code='forum.label.attachFile'/></label></th>"; // 첨부파일
-            html += "                        <td>";
-            html += "                            <div id='teamUploaderWrap_" + v.teamId + "_" + i + "'></div>";
-            html += "                        </td>";
-            html += "                    </tr>";
-            html += "                </tbody>";
-            html += "            </table>";
-            html += "        </td>";
-            html += "        <th>" + escHtml(v.leaderNm || '-') + " 외 " + Math.max(0, (v.teamMbrCnt || 1) - 1) + "</th>";
-            html += "    </tr>";
+            html += "        <tbody class='subForumTr team-subforum-item' data-team-id='" + escHtml(v.teamId || '') + "' data-team-nm='" + escHtml(v.teamnm || '') + "' data-dscs-id='" + escHtml(v.dscsId || '') + "'>";
+            html += "            <tr>";
+            html += "                <th rowspan='4' class='group-header'><label class='teamNm' data-role='team-name'>" + escHtml(v.teamnm || ('팀 ' + (i + 1))) + "</label></th>";
+            html += "                <th><label><spring:message code='forum.label.lrngrp.mebers'/></label></th>";
+            html += "                <td>" + escHtml(v.leaderNm || '-') + " 외 " + Math.max(0, (v.teamMbrCnt || 1) - 1) + "</td>";
+            html += "            </tr>";
+            html += "            <tr>";
+            html += "                <th><label for='" + v.teamId + "_dtlSubjTtl_" + i + "'><spring:message code='forum.label.team.ttl'/></label></th>";
+            html += "                <td><div class='form-row'><input class='form-control width-100per' type='text' id='" + v.teamId + "_dtlSubjTtl_" + i + "' name='teamTtl' value='" + escHtml(v.dscsTtl || '') + "' inputmask='byte' maxLen='200' data-role='team-title' placeholder='주제 입력' /></div></td>";
+            html += "            </tr>";
+            html += "            <tr>";
+            html += "                <th><label for='" + v.teamId + "_contentTextArea_" + i + "'><spring:message code='common.label.contents'/></label></th>";
+            html += "                <td><div class='editor-box'><textarea name='" + v.teamId + "_contentTextArea_" + i + "' id='" + v.teamId + "_contentTextArea_" + i + "' data-role='team-contents'>" + escHtml(v.dscsCts || '') + "</textarea></div></td>";
+            html += "            </tr>";
+            html += "            <tr>";
+            html += "                <th><label><spring:message code='forum.label.attachFile'/></label></th>";
+            html += "                <td><div id='teamUploaderWrap_" + v.teamId + "_" + i + "'></div></td>";
+            html += "            </tr>";
+            html += "        </tbody>";
         });
-        html += "    </tbody>";
-        html += "</table>";
+        html += "    </table>";
+        html += "</div>";
         return html;
     }
 
@@ -349,6 +358,8 @@
             $("#subInfoDiv" + obj.id.split("_")[1]).show();
         } else {
             $("#subInfoDiv" + obj.id.split("_")[1]).hide();
+            teamUploaderIds = [];
+            teamUploadResults = {};
         }
     }
 
@@ -483,7 +494,7 @@
                 return;
             }
 
-            var $teamRows = $subInfoDiv.find('[data-team-id], tr.subForumTr');
+            var $teamRows = $subInfoDiv.find('[data-team-id], tr.subForumTr, .team-subforum-item');
             if ($teamRows.length === 0) {
                 $teamRows = $subInfoDiv.children();
             }
@@ -499,6 +510,7 @@
                     "input[name='teamNm']",
                     "input[name='teamnm']",
                     "input[name='team_name']",
+                    "[data-role='team-name']",
                     ".teamNm",
                     ".teamnm"
                 ]));
@@ -506,13 +518,15 @@
                     "input[name='teamTtl']",
                     "input[name='teamSubject']",
                     "input[name='subForumTtl']",
-                    "input[name='subExamTtl']"
+                    "input[name='subExamTtl']",
+                    "[data-role='team-title']"
                 ]);
                 var teamCts = pickFieldValue($row, [
                     "textarea[name='teamCts']",
                     "textarea[name='teamDiscussion']",
                     "textarea[name='subForumCts']",
-                    "textarea[id*='contentTextArea']"
+                    "textarea[id*='contentTextArea']",
+                    "[data-role='team-contents']"
                 ]);
                 // 팀ID/팀명은 필수로 보고, 둘 다 비어있으면 빈 row로 간주한다.
                 if (!teamId && !teamNm) {
@@ -543,6 +557,10 @@
 
     /** STEP 1: 메인 업로더(fileUploader) 처리 시작 */
     function startUploadChain() {
+        if (!$("input[name='dscsUnitTycd']:checked").length || $("input[name='dscsUnitTycd']:checked").val() !== 'Y') {
+            teamUploaderIds = [];
+            teamUploadResults = {};
+        }
         var dx = dx5.get("fileUploader");
         if (dx && dx.availUpload()) {
             dx.startUpload(); // 완료 → finishUpload() 콜백
@@ -739,12 +757,15 @@
                 }*/
 
                 // 팀 영역 초기화 (selectTeam 이전 상태로 리셋)
+                teamUploaderIds = [];
+                teamUploadResults = {};
                 $("div[id^='lrnGrpView']").each(function() {
                     var dvclasNo = this.id.replace('lrnGrpView', '');
                     $('#lrnGrpId'  + dvclasNo).val('');
                     $('#lrnGrpnm'  + dvclasNo).val('');
                     $('#subInfoDiv' + dvclasNo).empty();
                     $('#lrnGrpSubForumSettingyn_' + dvclasNo).prop('checked', false);
+                    $('#teamForumBlock' + dvclasNo).hide();
                     $('#lrnGrpView'  + dvclasNo).hide();
                     $('#setForumDiv' + dvclasNo).hide();
                 });
@@ -761,6 +782,7 @@
                     var $chk = $('#lrnGrpSubForumSettingyn_' + dvclasNo);
                     if ($chk.length) {
                         var sbjctId = $chk.val().split(':')[1];                    // "Y:sbjctId" → sbjctId
+                        $('#teamForumBlock' + dvclasNo).show();
                         $('#lrnGrpView'   + dvclasNo).css("display", "flex");      // 분반 행 노출
                         $('#lrnGrpId'     + dvclasNo).val(v.lrnGrpId + ':' + sbjctId);
                         $('#lrnGrpnm'     + dvclasNo).val(v.dscsGrpnm || '');
@@ -784,27 +806,25 @@
                 $("input[name='cmntRspnsReqyn'][value='" + (v.cmntRspnsReqyn || 'Y') + "']").prop('checked', true);
 
                 // 찬반 토론 설정
-                $("input[name='oknokStngyn'][value='" + (v.oknokStngyn || 'N') + "']").prop('checked', true);
+                var oknokStngyn = v.oknokStngyn || 'N';
+                $("input[name='oknokStngyn'][value='" + oknokStngyn + "']").prop('checked', true);
+                toggleProsConsOptionArea(oknokStngyn);
 
                 // 찬반 비율 공개
                 var oknokrtOyn = v.oknokrtOyn || 'N';
-                $('#oknokrtOyn').prop('checked', oknokrtOyn === 'Y');
-                $('#oknokrtOynHidden').val(oknokrtOyn);
+                setSwitcherValue('oknokrtOyn', oknokrtOyn);
 
                 // 작성자 공개
                 var oknokRgtrOyn = v.oknokRgtrOyn || 'N';
-                $('#oknokRgtrOyn').prop('checked', oknokRgtrOyn === 'Y');
-                $('#oknokRgtrOynHidden').val(oknokRgtrOyn);
+                setSwitcherValue('oknokRgtrOyn', oknokRgtrOyn);
 
                 // 의견 글 복수 등록
                 var mltOpnnRegyn = v.mltOpnnRegyn || 'N';
-                $('#mltOpnnRegyn').prop('checked', mltOpnnRegyn === 'Y');
-                $('#mltOpnnRegynHidden').val(mltOpnnRegyn);
+                setSwitcherValue('mltOpnnRegyn', mltOpnnRegyn);
 
                 // 찬반 의견 변경가능
                 var oknokModyn = v.oknokModyn || 'N';
-                $('#oknokModyn').prop('checked', oknokModyn === 'Y');
-                $('#oknokModynHidden').val(oknokModyn);
+                setSwitcherValue('oknokModyn', oknokModyn);
 
                 closeDialog();
             } else {
@@ -998,11 +1018,11 @@
                                         <td>
                                             <span class="custom-input">
                                                 <input type="radio" name="evlScrTycd" id="evlScrTycd1" value="SCR" ${dscsVO.evlScrTycd eq 'SCR' || empty dscsVO.evlScrTycd ? 'checked' : '' }>
-                                                <label for="evlScrTycd1">점수형</label>
+                                                <label for="evlScrTycd1"><spring:message code='forum.label.evalctgr.score'/><%--점수형--%></label>
                                             </span>
                                             <span class="custom-input ml5">
                                                 <input type="radio" name="evlScrTycd" id="evlScrTycd2" value="PTCP_FULL_SCR" ${dscsVO.evlScrTycd eq 'PTCP_FULL_SCR' ? 'checked' : '' }>
-                                                <label for="evlScrTycd2">참여형</label>
+                                                <label for="evlScrTycd2"><spring:message code='forum.label.evalctgr.participate'/><%--참여형--%><span class="fcBlue"><spring:message code='forum.label.evalctgr.participate.desc'/></span><!-- ( 토론 참여 : 100점, 미참여 : 0점 자동배점 ) --></label>
                                             </span>
                                         </td>
                                     </tr>
@@ -1033,27 +1053,31 @@
                                                 <input type="radio" name="dscsUnitTycd" id="dscsUnitTycdY" value="Y" onchange="teamynChange(this.value)" ${dscsVO.dscsUnitTycd eq 'TEAM' ? 'checked' : ''}>
                                                 <label for="dscsUnitTycdY">예</label>
                                             </span>
-                                            <div id="teamForumDiv" ${empty dscsVO.dscsId || dscsVO.dscsUnitTycd ne 'TEAM' ? 'style="display:none"' : '' }>
+                                            <div id="teamForumDiv" class="team_item_wrap" ${empty dscsVO.dscsId || dscsVO.dscsUnitTycd ne 'TEAM' ? 'style="display:none"' : '' }>
                                                 <c:forEach var="list" items="${dvclasList }" varStatus="i">
-                                                    <div class="form-row" id='lrnGrpView${list.dvclasNo}' ${not empty dscsVO.dscsId && list.dvclasNo eq dscsVO.dvclsNo ? '' : 'style="display:none;"'}>
-                                                        <div class="input_btn width-100per">
-                                                            <label>${list.dvclasNo }반</label>
-                                                            <input type='hidden' id='lrnGrpId${list.dvclasNo}' name='lrnGrpIds' value="${empty dscsVO.dscsId ? '' : (list.dvclasNo eq dscsVO.dvclsNo ? dscsVO.lrnGrpId : list.lrnGrpId)}:${list.sbjctId}">
-                                                            <input class="form-control width-60per" type="text" name="name" id="lrnGrpnm${list.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty dscsVO.dscsId ? '' : (list.dvclasNo eq dscsVO.dvclsNo ? dscsVO.dscsGrpnm : '')}" readonly="" autocomplete="off">
-                                                            <a class="btn type1 small" onclick="teamCtgrSelectPop('${list.dvclasNo}','${list.sbjctId }')">학습그룹지정</a>
+                                                    <div class="team_item" id="teamForumBlock${list.dvclasNo}" ${not empty dscsVO.dscsId && list.dvclasNo eq dscsVO.dvclsNo ? '' : 'style="display:none;"'}>
+                                                        <div class="form-row" id='lrnGrpView${list.dvclasNo}'>
+                                                            <div class="item team_item_selector width-100per">
+                                                                <label class="label_num">${list.dvclasNo }반</label>
+                                                                <input type='hidden' id='lrnGrpId${list.dvclasNo}' name='lrnGrpIds' value="${empty dscsVO.dscsId ? '' : (list.dvclasNo eq dscsVO.dvclsNo ? dscsVO.lrnGrpId : list.lrnGrpId)}:${list.sbjctId}">
+                                                                <input class="form-control wide" type="text" name="name" id="lrnGrpnm${list.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty dscsVO.dscsId ? '' : (list.dvclasNo eq dscsVO.dvclsNo ? dscsVO.dscsGrpnm : '')}" readonly="" autocomplete="off">
+                                                                <a class="btn basic" onclick="teamCtgrSelectPop('${list.dvclasNo}','${list.sbjctId }')">학습그룹지정</a>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <c:if test="${i.count eq 1 }">
-                                                    <div class="form-inline">
-                                                        <small class="note2">! 구성된 팀이 없는 경우 메뉴 “과목설정 > 학습그룹지정”에서 팀을 생성해 주세요</small>
-                                                    </div>
-                                                    </c:if>
-                                                    <div class="ui segment" id="setForumDiv${list.dvclasNo}" ${not empty dscsVO.dscsId && list.dvclasNo eq dscsVO.dvclsNo && not empty dscsVO.lrnGrpId ? '' : 'style="display:none;"'}>
-                                                        <span class="custom-input">
-                                                            <input type="checkbox" name="lrnGrpSubForumSettingyns" id="lrnGrpSubForumSettingyn_${list.dvclasNo}" value="Y:${list.sbjctId}" onchange="lrnGrpSubForumSettingynChange(this)" ${not empty dscsVO.dscsId && list.dvclasNo eq dscsVO.dvclsNo && dscsVO.byteamDscsUseyn eq 'Y' ? 'checked' : ''}>
-                                                            <label for="lrnGrpSubForumSettingyn_${list.dvclasNo}">학습그룹별 부 주제 설정</label>
-                                                        </span>
-                                                        <div id="subInfoDiv${list.dvclasNo}" ${not empty dscsVO.dscsId && list.dvclasNo eq dscsVO.dvclsNo && dscsVO.byteamDscsUseyn eq 'Y' ? '' : 'style="display: none;"'}></div>
+                                                        <c:if test="${i.count eq 1 }">
+                                                        <div class="team_item_note">
+                                                            <small class="note2">! 구성된 팀이 없는 경우 메뉴 “과목설정 > 학습그룹지정”에서 팀을 생성해 주세요</small>
+                                                        </div>
+                                                        </c:if>
+                                                        <div class="item_setting" id="setForumDiv${list.dvclasNo}" ${not empty dscsVO.dscsId && list.dvclasNo eq dscsVO.dvclsNo && not empty dscsVO.lrnGrpId ? '' : 'style="display:none;"'}>
+                                                            <div class="checkbox_type">
+                                                                <span class="custom-input">
+                                                                    <input type="checkbox" name="lrnGrpSubForumSettingyns" id="lrnGrpSubForumSettingyn_${list.dvclasNo}" value="Y:${list.sbjctId}" onchange="lrnGrpSubForumSettingynChange(this)" ${not empty dscsVO.dscsId && list.dvclasNo eq dscsVO.dvclsNo && dscsVO.byteamDscsUseyn eq 'Y' ? 'checked' : ''}>
+                                                                    <label for="lrnGrpSubForumSettingyn_${list.dvclasNo}">학습그룹별 토론 설정</label>
+                                                                </span>
+                                                            </div>
+                                                            <div id="subInfoDiv${list.dvclasNo}" ${not empty dscsVO.dscsId && list.dvclasNo eq dscsVO.dvclsNo && dscsVO.byteamDscsUseyn eq 'Y' ? '' : 'style="display: none;"'}></div>
+                                                        </div>
                                                     </div>
                                                 </c:forEach>
                                             </div>
@@ -1061,8 +1085,8 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <div class="course_list">
-                                <ul class="accordion course_week">
+                            <div class="options_wrap">
+                                <ul class="accordion">
                                     <li>
                                         <div class="title-wrap">
                                             <a class="title" href="#">
@@ -1074,97 +1098,94 @@
                                         </div>
 
                                         <div class="cont">
-                                            <table class="table-type5" >
-                                                <colgroup>
-                                                    <col class="width-20per"/>
-                                                    <col/>
-                                                </colgroup>
-                                                <tbody>
-                                                    <tr>
-                                                        <th><label for="contLabel" class="req">참여글 보기 옵션</label></th>
-                                                        <td>
-                                                            <span class="custom-input">
-                                                                <input type="hidden" name="oatclInqyn" id="oatclInqynHidden" value="<c:out value='${empty dscsVO.oatclInqyn ? \"N\" : dscsVO.oatclInqyn}'/>"/>
-                                                                <input type="checkbox" id="oatclInqyn" ${dscsVO.oatclInqyn eq 'Y' ? 'checked' : '' }>
-                                                                <label for="oatclInqyn"><spring:message code="forum.label.otherViewYn"/></label><!-- 참여글 보기 옵션
- -->
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <!-- 댓글 답변 요청 -->
-                                                        <th><label for="contLabel" class="req"><spring:message code="forum.label.aplyAsnYn"/></label></th>
-                                                        <td>
-                                                            <span class="custom-input">
-                                                                <input type="radio" name="cmntRspnsReqyn" id="cmntRspnsReqynY" value="Y" ${dscsVO.cmntRspnsReqyn eq 'Y' || empty dscsVO.cmntRspnsReqyn ? 'checked' : '' }>
-                                                                <label for="cmntRspnsReqynY">예</label>
-                                                            </span>
-                                                            <span class="custom-input ml5">
-                                                                <input type="radio" name="cmntRspnsReqyn" id="cmntRspnsReqynN" value="N" ${dscsVO.cmntRspnsReqyn eq 'N' ? 'checked' : '' }>
-                                                                <label for="cmntRspnsReqynN">아니오</label>
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <!-- 찬반 토론으로 설정 -->
-                                                        <th><label><spring:message code="forum.label.prosCons"/></label></th>
-                                                        <td>
-                                                            <span class="custom-input">
-                                                                <input type="radio" name="oknokStngyn" id="oknokStngynN" value="N" onchange="oknokStngynChange(this.value)" ${dscsVO.oknokStngyn eq 'N' || empty dscsVO.oknokStngyn ? 'checked' : '' }>
-                                                                <label for="oknokStngynN">아니오</label>
+                                            <div class="table-wrap">
+                                                <table class="table-type5" >
+                                                    <colgroup>
+                                                        <col class="width-20per"/>
+                                                        <col/>
+                                                    </colgroup>
+                                                    <tbody>
+                                                        <tr>
+                                                            <th><label for="contLabel" class="req"><spring:message code="forum.label.otherViewYn"/></label></th><!-- 참여글 보기 옵션 -->
+                                                            <td>
+                                                                <span class="custom-input">
+                                                                    <input type="hidden" name="oatclInqyn" id="oatclInqynHidden" value="<c:out value='${empty dscsVO.oatclInqyn ? \"N\" : dscsVO.oatclInqyn}'/>"/>
+                                                                    <input type="checkbox" id="oatclInqyn" ${dscsVO.oatclInqyn eq 'Y' ? 'checked' : '' }>
+                                                                    <label for="oatclInqyn">본인의 토론글 등록 후 다른 참여글 보기 가능</label>
                                                                 </span>
-                                                            <span class="custom-input ml10">
-                                                                <input type="radio" name="oknokStngyn" id="oknokStngynY" value="Y" onchange="oknokStngynChange(this.value)" ${dscsVO.oknokStngyn eq 'Y'  ? 'checked' : '' }>
-                                                                <label for="oknokStngynY">예</label>
-                                                            </span>
-
-                                                            <div id="oknok_option_area" class="mt10 ml10">
-                                                                <!-- 1) 찬반 비율 공개 -->
-                                                                <div class="form-row">
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <!-- 댓글 답변 요청 -->
+                                                            <th><label for="contLabel" class="req"><spring:message code="forum.label.aplyAsnYn"/></label></th>
+                                                            <td>
+                                                                <span class="custom-input">
+                                                                    <input type="radio" name="cmntRspnsReqyn" id="cmntRspnsReqynN" value="N" ${dscsVO.cmntRspnsReqyn eq 'N' ? 'checked' : '' }>
+                                                                    <label for="cmntRspnsReqynN"><spring:message code='forum.common.no' /></label><%--아니오--%>
+                                                                </span>
+                                                                <span class="custom-input ml5">
+                                                                    <input type="radio" name="cmntRspnsReqyn" id="cmntRspnsReqynY" value="Y" ${dscsVO.cmntRspnsReqyn eq 'Y' || empty dscsVO.cmntRspnsReqyn ? 'checked' : '' }>
+                                                                    <label for="cmntRspnsReqynY"><spring:message code='forum.common.yes' /></label><%--예--%>
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <!-- 찬반 토론으로 설정 -->
+                                                            <th><label><spring:message code="forum.label.prosCons"/></label></th>
+                                                            <td>
+                                                                <div class="form-inline mb10">
+                                                                    <span class="custom-input">
+                                                                        <input type="radio" name="oknokStngyn" id="oknokStngynN" value="N" onchange="oknokStngynChange(this.value)" ${dscsVO.oknokStngyn eq 'N' || empty dscsVO.oknokStngyn ? 'checked' : '' }>
+                                                                        <label for="oknokStngynN"><spring:message code='forum.common.no' /></label><%--아니오--%>
+                                                                        </span>
                                                                     <span class="custom-input ml5">
-                                                                        <label for="oknokrtOyn">찬반 비율 공개</label>
-                                                                        <input type="hidden" name="oknokrtOyn" id="oknokrtOynHidden" value="<c:out value='${empty dscsVO.oknokrtOyn ? \"N\" : dscsVO.oknokrtOyn}'/>"/>
-                                                                        <input type="checkbox" class="switch small" id="oknokrtOyn"
-                                                                               <c:if test="${dscsVO.oknokrtOyn eq 'Y'}">checked</c:if> />
+                                                                        <input type="radio" name="oknokStngyn" id="oknokStngynY" value="Y" onchange="oknokStngynChange(this.value)" ${dscsVO.oknokStngyn eq 'Y'  ? 'checked' : '' }>
+                                                                        <label for="oknokStngynY"><spring:message code='forum.common.yes' /></label><%--예--%>
                                                                     </span>
                                                                 </div>
 
-                                                                <!-- 2) 작성자 공개 -->
-                                                                <div class="form-row">
-                                                                    <span class="custom-input ml5">
-                                                                        <label for="oknokRgtrOyn">작성자 공개</label>
-                                                                        <input type="hidden" name="oknokRgtrOyn" id="oknokRgtrOynHidden"
-                                                                               value="<c:out value='${empty dscsVO.oknokRgtrOyn ? \"N\" : dscsVO.oknokRgtrOyn}'/>"/>
-                                                                        <input type="checkbox" class="switch small" id="oknokRgtrOyn"
-                                                                               <c:if test="${dscsVO.oknokRgtrOyn eq 'Y'}">checked</c:if> />
-                                                                    </span>
-                                                                </div>
+                                                                <!-- 찬반 옵션 -->
+                                                                <div id="oknok_option_area" class="form-row option_list" ${dscsVO.oknokStngyn eq 'Y' ? '' : 'style="display:none;"'}>
+                                                                    <!-- 1) 찬반 비율 공개 -->
+                                                                    <div class="form-inline">
+                                                                            <label for="oknokrtOyn"><spring:message code='forum.label.prosConsRate'/></label><!-- 찬반 비율 공개 -->
+                                                                            <input type="hidden" name="oknokrtOyn" id="oknokrtOynHidden"
+                                                                                   value="<c:out value='${empty dscsVO.oknokrtOyn ? \"N\" : dscsVO.oknokrtOyn}'/>"/>
+                                                                            <input type="checkbox" class="switch small" id="oknokrtOyn"
+                                                                                   <c:if test="${dscsVO.oknokrtOyn eq 'Y'}">checked</c:if> />
+                                                                    </div>
 
-                                                                <!-- 3) 의견 글 복수 등록 -->
-                                                                <div class="form-row">
-                                                                    <span class="custom-input ml5">
-                                                                        <label for="mltOpnnRegyn">의견 글 복수 등록</label>
-                                                                        <input type="hidden" name="mltOpnnRegyn" id="mltOpnnRegynHidden"
-                                                                               value="<c:out value='${empty dscsVO.mltOpnnRegyn ? \"N\" : dscsVO.mltOpnnRegyn}'/>"/>
-                                                                        <input type="checkbox" class="switch small" id="mltOpnnRegyn"
-                                                                               <c:if test="${dscsVO.mltOpnnRegyn eq 'Y'}">checked</c:if> />
-                                                                    </span>
-                                                                </div>
+                                                                    <!-- 2) 작성자 공개 -->
+                                                                    <div class="form-inline">
+                                                                            <label for="oknokRgtrOyn">작성자 공개</label>
+                                                                            <input type="hidden" name="oknokRgtrOyn" id="oknokRgtrOynHidden"
+                                                                                   value="<c:out value='${empty dscsVO.oknokRgtrOyn ? \"N\" : dscsVO.oknokRgtrOyn}'/>"/>
+                                                                            <input type="checkbox" class="switch small" id="oknokRgtrOyn"
+                                                                                   <c:if test="${dscsVO.oknokRgtrOyn eq 'Y'}">checked</c:if> />
+                                                                    </div>
 
-                                                                <!-- 4) 찬반 의견 변경가능 (기존 oknokModyn 사용) -->
-                                                                <div class="form-row">
-                                                                    <span class="custom-input ml5">
-                                                                        <label for="oknokModyn">찬반 의견 변경가능</label>
-                                                                        <input type="hidden" name="oknokModyn" id="oknokModynHidden" value="<c:out value='${empty dscsVO.oknokModyn ? \"N\" : dscsVO.oknokModyn}'/>"/>
-                                                                        <input type="checkbox" class="switch small" id="oknokModyn"
-                                                                               <c:if test="${dscsVO.oknokModyn eq 'Y'}">checked</c:if> />
-                                                                    </span>
+                                                                    <!-- 3) 의견 글 복수 등록 -->
+                                                                    <div class="form-inline">
+                                                                            <label for="mltOpnnRegyn">의견 글 복수 등록</label>
+                                                                            <input type="hidden" name="mltOpnnRegyn" id="mltOpnnRegynHidden"
+                                                                                   value="<c:out value='${empty dscsVO.mltOpnnRegyn ? \"N\" : dscsVO.mltOpnnRegyn}'/>"/>
+                                                                            <input type="checkbox" class="switch small" id="mltOpnnRegyn"
+                                                                                   <c:if test="${dscsVO.mltOpnnRegyn eq 'Y'}">checked</c:if> />
+                                                                    </div>
+
+                                                                    <!-- 4) 찬반 의견 변경가능 (기존 oknokModyn 사용) -->
+                                                                    <div class="form-inline">
+                                                                            <label for="oknokModyn">찬반 의견 변경가능</label>
+                                                                            <input type="hidden" name="oknokModyn" id="oknokModynHidden" value="<c:out value='${empty dscsVO.oknokModyn ? \"N\" : dscsVO.oknokModyn}'/>"/>
+                                                                            <input type="checkbox" class="switch small" id="oknokModyn"
+                                                                                   <c:if test="${dscsVO.oknokModyn eq 'Y'}">checked</c:if> />
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </li>
                                 </ul>

@@ -813,12 +813,12 @@
                             <colgroup>
                                 <col style="width:40px">
                                 <col style="width:50px">
-                                <col style="width:80px">
-                                <col style="width:90px">
-                                <col style="width:90px">
-                                <col style="width:120px">
+                                <col style="width:110px">
+                                <col style="width:150px">
+                                <col style="width:130px">
+                                <col style="width:170px">
                                 <col>
-                                <col style="width:60px">
+                                <col style="width:70px">
                                 <col style="width:100px">
                             </colgroup>
                             <thead>
@@ -857,7 +857,7 @@
             <button class="modal-close" aria-label="<spring:message code='msg.shrtnt.label.closeBtn' text='닫기'/>" onclick="fn_closeModal('rcvrModal')"><i class="icon-svg-close"></i></button>
         </div>
         <div class="modal-body">
-            <iframe src="about:blank" style="width:100%; height:500px; border:none;"></iframe>
+            <iframe src="about:blank" style="width:100%; height:660px; border:none;"></iframe>
         </div>
     </div>
 </div>
@@ -942,7 +942,7 @@
             <button class="modal-close" aria-label="<spring:message code='msg.shrtnt.label.closeBtn' text='닫기'/>" onclick="fn_closeModal('tmpltSaveModal')"><i class="icon-svg-close"></i></button>
         </div>
         <div class="modal-body">
-            <iframe src="about:blank" style="width:100%; height:500px; border:none;"></iframe>
+            <iframe src="about:blank" style="width:100%; height:730px; border:none;"></iframe>
         </div>
     </div>
 </div>

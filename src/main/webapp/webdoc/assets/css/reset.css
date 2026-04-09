@@ -198,7 +198,7 @@ textarea.form-control { height: auto; resize: none; }
 .custom__select__list li p { color: #333}
 .custom__select__list li:hover { color: #111; background-color: #F5F5F5; }
 .custom__select__list li:hover p { color: #111; font-weight: 500; }
-.custom-txt {display: flex; align-items: center;}
+.custom-txt {display: flex; align-items: center; flex-wrap: wrap;}
 .custom-txt .tit {margin-right: .5rem;}
 
 input.t_num3 {width: 4rem;}
@@ -291,36 +291,6 @@ td > input.t_num5 {padding: 0.3rem .7rem; font-size: 1.5rem;}
 /* ===========================================================================================
 Colors
 =========================================================================================== */
-/* .fcRed { color: #db2828 !important; }
-.fcOrange { color: #f2711c !important; }
-.fcYellow { color: #fbbd08 !important; }
-.fcOlive { color: #b5cc18 !important; }
-.fcGreen { color: #21ba45 !important; }
-.fcTeal { color: #00b5ad !important; }
-.fcBlue { color: #2185d0 !important; }
-.fcNavy { color: #0d47a1 !important; }
-.fcPurple { color: #a333c8 !important; }
-.fcViolet { color: #6435c9 !important; }
-.fcPink { color: #e03997 !important; }
-.fcBrown { color: #a5673f !important; }
-.fcGrey { color: #767676 !important; }
-.fcBlack { color: #000 !important; }
-.fcWhite { color: #fff !important; } */
-/* .bcRed { background: #db2828 !important; }
-.bcOrange { background: #f2711c !important; }
-.bcYellow { background: #fbbd08 !important; }
-.bcOlive { background: #b5cc18 !important; }
-.bcGreen { background: #21ba45 !important; }
-.bcTeal { background: #00b5ad !important; }
-.bcBlue { background: #2185d0 !important; }
-.bcPurple { background: #a333c8 !important; }
-.bcViolet { background: #6435c9 !important; }
-.bcPink { background: #e03997 !important; }
-.bcBrown { background: #a5673f !important; }
-.bcGrey { background: #767676 !important; }
-.bcBlack { background: #000 !important; }
-.bcWhite { background: #fff !important; } */
-
 
 /*** background color ***/
 .bcRed    { --bcColor:#f03e3e; --bcRed:#f03e3e;    background: #f03e3e !important;  }
@@ -353,6 +323,10 @@ Colors
 .fcGray { --fcColor: var(--text-dark-3); color: var(--fcColor); }
 .fcOrange { --fcColor: var(--orange-600); color: var(--fcColor); }
 .fcBlue { --fcColor: var(--blue-600); color: var(--fcColor); }
+.fcPro {color: #089675;}
+.fcCon {color: #dc2e2e;}
+.fcNot {color: #f57c00; }
+  
 .bcBlack { background-color: var(--dark-900) !important; --bcColor: var(--dark-900) }
 .bcTransparent { background-color: transparent !important ; --bcColor: transparent; }
 .bcDark2 { background-color: var(--text-dark-2) !important; --bcColor: var(--text-dark-2); }

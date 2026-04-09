@@ -835,7 +835,6 @@ function closeFileSelect() {
 									allowedTypes="*"
 									bigSize="false"
 									uiMode="simple"
-									style="single"
 								/>
 								<div class="flex1" style="display:inline-block;vertical-align:top">
 									<button onclick="closeFileSelect()" class="ui grey small button" style="margin-left:-4px;"><span aria-hidden="true">&times;</span></button>

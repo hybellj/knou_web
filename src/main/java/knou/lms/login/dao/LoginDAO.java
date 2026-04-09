@@ -6,17 +6,15 @@ import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.lms.login.vo.LoginVO;
+import knou.lms.login.vo.UserLgnHstryVO;
 
 @Mapper("loginDAO")
-public interface LoginDAO {
+public interface LoginDAO {    
     
-    /*****************************************************
-     * TODO 기관 리스트 조회
-     * @param 
-     * @return List<LoginVO>
-     * @throws Exception
-     ******************************************************/
-    public List<LoginVO> selectOrgList() throws Exception;
+	@Deprecated
+    public 	List<LoginVO> selectOrgList() throws Exception;
     
     public  EgovMap userLatestLoginHstrySelect(String userId) throws Exception;
+
+	public int userLatestLoginHstryInsert(UserLgnHstryVO userLgnHstryVO) throws Exception;
 }

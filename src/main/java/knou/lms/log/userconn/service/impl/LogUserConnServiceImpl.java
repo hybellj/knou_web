@@ -22,8 +22,7 @@ public class LogUserConnServiceImpl implements LogUserConnService {
 	
     /** dao */
     @Resource(name="logUserConnDAO")
-    private LogUserConnDAO logUserConnDAO;
-    
+    private LogUserConnDAO logUserConnDAO;    
 
     /**
      * 사용자 접속 상태 저장
@@ -151,7 +150,7 @@ public class LogUserConnServiceImpl implements LogUserConnService {
                 return CommConst.CONN_CHECK_LIST[i][1];
             }
         }
-        System.out.println(">>>>>>>>>>>>>uri=" + uri + " 는 접속상태를 기록하지 않습니다.");
+        //System.out.println(">>>>>>>>>>>>>uri=" + uri + " 는 접속상태를 기록하지 않습니다.");
         return null;
     }
 

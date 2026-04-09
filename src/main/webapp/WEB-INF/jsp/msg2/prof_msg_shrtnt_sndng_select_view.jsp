@@ -14,7 +14,6 @@
     let EPARAM = '<c:out value="${encParams}" />';
     let rcvrCurrentPage = 1;
     let rcvrListScale = 10;
-    let rcvrTable;
     let rsrvCnclDlg;
     let detailData = null;
 
@@ -75,9 +74,9 @@
         }
 
         /* 발신일시 */
-        let sndngDttmText = UiComm.formatDate(v.efctvSndngDttm, 'datetime');
+        let sndngDttmText = UiComm.formatDate(v.efctvSndngDttm, 'datetime2');
         if (v.rsrvYn === 'Y') {
-            sndngDttmText = UiComm.formatDate(v.rsrvSndngSdttm, 'datetime') + ' / <spring:message code="msg.shrtnt.label.rsrv" text="예약발신"/>';
+            sndngDttmText = UiComm.formatDate(v.rsrvSndngSdttm, 'datetime2') + ' / <spring:message code="msg.shrtnt.label.rsrv" text="예약발신"/>';
         }
         $('#sndngDttm').html(sndngDttmText);
 
@@ -112,12 +111,11 @@
         ajaxCall('/msgShrtntSndngRcvrListAjax.do', param, function(res) {
             if (res.encParams) EPARAM = res.encParams;
             if (res.result > 0) {
-                let dataList = fn_createRcvrListData(res.returnList, res.pageInfo);
-                rcvrTable.clearData();
-                rcvrTable.replaceData(dataList);
-                rcvrTable.setPageInfo(res.pageInfo);
+                let html = fn_createRcvrListData(res.returnList, res.pageInfo);
+                $('#rcvrListBody').html(html);
                 let total = res.pageInfo ? res.pageInfo.totalRecordCount : 0;
                 $('#rcvrTotalCnt').text(total);
+                UiComm.showPaging('rcvrPaging', { pageInfo: res.pageInfo, pageFunc: fn_loadRcvrList });
             }
         }, function(xhr, status, error) {
             UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
@@ -126,10 +124,12 @@
 
     /* 수신자 목록 데이터 생성 */
     function fn_createRcvrListData(list, pageInfo) {
-        let dataList = [];
-        if (!list || list.length === 0) return dataList;
+        if (!list || list.length === 0) {
+            return '<tr><td colspan="5" data-th=""><spring:message code="common.content.not_found" text="등록된 내용이 없습니다."/></td></tr>';
+        }
 
         let total = pageInfo ? pageInfo.totalRecordCount : 0;
+        let html = '';
 
         list.forEach(function(v, i) {
             let rnum = total - ((rcvrCurrentPage - 1) * rcvrListScale) - i;
@@ -137,15 +137,15 @@
                 ? 'Y'
                 : '<span class="txt-red">N</span>';
 
-            dataList.push({
-                no: rnum,
-                rcvrnm: UiComm.escapeHtml(v.rcvrnm || ''),
-                stdntNo: v.stdntNo || '',
-                userRprsId2: v.userRprsId2 || '',
-                sndngYn: sndngYnHtml
-            });
+            html += '<tr>';
+            html += '<td data-th="<spring:message code="msg.shrtnt.col.no" text="번호"/>">' + rnum + '</td>';
+            html += '<td data-th="<spring:message code="msg.shrtnt.col.rcvrnm" text="수신자"/>">' + UiComm.escapeHtml(v.rcvrnm || '') + '</td>';
+            html += '<td data-th="<spring:message code="msg.shrtnt.col.stdntNo" text="학번"/>">' + (v.stdntNo || '') + '</td>';
+            html += '<td data-th="<spring:message code="msg.shrtnt.col.rprsId" text="대표 ID"/>">' + (v.userRprsId2 || '') + '</td>';
+            html += '<td data-th="<spring:message code="msg.shrtnt.col.sndngYn" text="발송"/>">' + sndngYnHtml + '</td>';
+            html += '</tr>';
         });
-        return dataList;
+        return html;
     }
 
     /* 수정 */
@@ -181,33 +181,36 @@
         let nowStr = now.getFullYear() + '.' + String(now.getMonth()+1).padStart(2,'0') + '.' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
         let rcvrCntVal = $('#rcvrTotalCnt').text() || '0';
 
-        let html = '<div style="padding:15px;">';
-        html += '<div style="margin-bottom:15px; color:#c00;">';
-        html += '<i class="xi-warning" style="font-size:18px; margin-right:5px;"></i>';
-        html += '<spring:message code="msg.shrtnt.msg.rsrvCnclWarn"/>';
+        let html = '<div class="msg-box">';
+        html += '<p class="txt">';
+        html += '<i class="icon-svg-warning" aria-hidden="true"></i>';
+        html += '<span>';
+        html += '<spring:message code="msg.shrtnt.msg.rsrvCnclConfirm" text="쪽지 발송 예약을 취소하시겠습니까?"/><br>';
+        html += '<strong class="fcRed"><spring:message code="msg.shrtnt.msg.rsrvCnclNote" text="※ 취소한 내역은 복구할 수 없습니다."/></strong>';
+        html += '</span>';
+        html += '</p>';
         html += '</div>';
         html += '<div class="table_list">';
         html += '<ul class="list"><li class="head"><label><spring:message code="msg.shrtnt.label.ttl" text="제목"/></label></li>';
         html += '<li>' + UiComm.escapeHtml(detailData.ttl || '') + '</li></ul>';
-        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvSndngDttm" text="발신예약일시"/></label></li>';
-        html += '<li>' + UiComm.formatDate(detailData.rsrvSndngSdttm, 'datetime') + '</li></ul>';
-        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rcvrnm" text="수신자"/></label></li>';
+        html += '<ul class="list"><li class="head"><label><spring:message code="msg.shrtnt.label.rsrvSndngDttm" text="발신예약일시"/></label></li>';
+        html += '<li>' + UiComm.formatDate(detailData.rsrvSndngSdttm, 'datetime2') + '</li></ul>';
+        html += '<ul class="list"><li class="head"><label><spring:message code="msg.shrtnt.label.rcvrnm" text="수신자"/></label></li>';
         html += '<li>' + rcvrCntVal + '</li></ul>';
-        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvCnclUser" text="예약취소자"/></label></li>';
+        html += '<ul class="list"><li class="head"><label><spring:message code="msg.shrtnt.label.rsrvCnclUser" text="예약취소자"/></label></li>';
         html += '<li>' + UiComm.escapeHtml(detailData.sndngnm || '') + '</li></ul>';
-        html += '<ul class="list"><li class="head"><label class="req"><spring:message code="msg.shrtnt.label.rsrvCnclDttm" text="예약취소일시"/></label></li>';
+        html += '<ul class="list"><li class="head"><label><spring:message code="msg.shrtnt.label.rsrvCnclDttm" text="예약취소일시"/></label></li>';
         html += '<li>' + nowStr + '</li></ul>';
         html += '</div>';
-        html += '<div class="btns" style="margin-top:15px;">';
+        html += '<div class="modal_btns">';
         html += '<button type="button" class="btn type1" onclick="fn_rsrvCnclSubmit()"><spring:message code="msg.shrtnt.label.rsrvCnclBtn" text="취소하기"/></button>';
         html += '<button type="button" class="btn type2" onclick="rsrvCnclDlg.close()"><spring:message code="msg.shrtnt.label.closeBtn" text="닫기"/></button>';
-        html += '</div>';
         html += '</div>';
 
         rsrvCnclDlg = UiDialog('rsrvCnclPopup', {
             title: '<spring:message code="msg.shrtnt.label.rsrvCnclTitle" text="발신 예약 취소"/>',
-            width: 550,
-            height: 420,
+            width: 700,
+            height: 520,
             html: html
         });
     }
@@ -308,21 +311,29 @@
                         </div>
                     </div>
 
-                    <div id="rcvrList"></div>
-
-                    <script>
-                        rcvrTable = UiTable("rcvrList", {
-                            lang: "ko",
-                            pageFunc: fn_loadRcvrList,
-                            columns: [
-                                {title:"<spring:message code='msg.shrtnt.col.no' text='번호'/>",           field:"no",          headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:40},
-                                {title:"<spring:message code='msg.shrtnt.col.rcvrnm' text='수신자'/>",     field:"rcvrnm",      headerHozAlign:"center", hozAlign:"center", width:100, minWidth:80},
-                                {title:"<spring:message code='msg.shrtnt.col.stdntNo' text='학번'/>",      field:"stdntNo",     headerHozAlign:"center", hozAlign:"center", width:100, minWidth:80},
-                                {title:"<spring:message code='msg.shrtnt.col.rprsId' text='대표 ID'/>",    field:"userRprsId2", headerHozAlign:"center", hozAlign:"center", width:100, minWidth:80},
-                                {title:"<spring:message code='msg.shrtnt.col.sndngYn' text='발송'/>",      field:"sndngYn",     headerHozAlign:"center", hozAlign:"center", width:60,  minWidth:50, formatter:"html"}
-                            ]
-                        });
-                    </script>
+                    <div class="table-wrap">
+                        <table class="table-type2">
+                            <colgroup>
+                                <col style="width:10%">
+                                <col style="width:25%">
+                                <col style="width:25%">
+                                <col style="width:auto;">
+                                <col style="width:15%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th><spring:message code="msg.shrtnt.col.no" text="번호"/></th>
+                                    <th><spring:message code="msg.shrtnt.col.rcvrnm" text="수신자"/></th>
+                                    <th><spring:message code="msg.shrtnt.col.stdntNo" text="학번"/></th>
+                                    <th><spring:message code="msg.shrtnt.col.rprsId" text="대표 ID"/></th>
+                                    <th><spring:message code="msg.shrtnt.col.sndngYn" text="발송"/></th>
+                                </tr>
+                            </thead>
+                            <tbody id="rcvrListBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="rcvrPaging"></div>
 
                 </div>
 

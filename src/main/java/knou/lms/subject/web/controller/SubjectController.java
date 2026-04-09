@@ -76,60 +76,51 @@ public class SubjectController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value={"/subject.do"})
-    public String subject(SubjectVO svo, @CurrentUser UserContext userCtx,
+    public String subject(SubjectVO svo, @CurrentUser UserContext userCtx, 
     		HttpServletRequest request, ModelMap model) throws Exception {
 
     	SubjectViewModel subjectVM = new SubjectViewModel();
-    	String sbjctId = request.getParameter("sbjctId");
+    	   		
+    	addEncParam("sbjctId", svo.getSbjctId());
 
-    	// 암호화파라메터에 값 설정
-    	addEncParam("orgId", svo.getOrgId());
-    	addEncParam("sbjctId", sbjctId);
-
-    	try {
-
-    	if ( null == sbjctId || "".equals(sbjctId)) {
+    	if ( null == svo.getSbjctId() || "".equals(svo.getSbjctId())) {
     		log.info("과목아이디가 없습니다.");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 
     	// 과목접근권한확인
-    	if ( ! subjectService.hasSubjectAuthority( sbjctId, userCtx ) ) {
+    	if ( ! subjectService.hasSubjectAuthority( svo.getSbjctId(), userCtx ) ) {
     		log.info("권한이 없습니다");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();
     	}
 
-    	LectureWknoScheduleVO lctrWknoSchdlVO = subjectService.currLctrWknoSchdlSelect(sbjctId);
+    	LectureWknoScheduleVO lctrWknoSchdlVO = subjectService.currLctrWknoSchdlSelect(svo.getSbjctId());
     	model.addAttribute("lctrWknoSchdlVO", lctrWknoSchdlVO);
 
     	int connectStdCnt = subjectService.connectStdCntSelect(userCtx.getUserId());
     	model.addAttribute("connectStdCnt", connectStdCnt);
 
-    	int sbjctConnectStdCnt = subjectService.subjectConnectStdCntSelect(sbjctId);
+    	int sbjctConnectStdCnt = subjectService.subjectConnectStdCntSelect(svo.getSbjctId());
     	model.addAttribute("sbjctConnectStdCnt", sbjctConnectStdCnt);
 
     	int	totalStdCnt = subjectService.totalStdCntSelect(userCtx.getUserId());
     	model.addAttribute("totalStdCnt", totalStdCnt);
 
-    	int	sbjctTotalStdCnt = subjectService.subjectTotalStdCntSelect(sbjctId);
+    	int	sbjctTotalStdCnt = subjectService.subjectTotalStdCntSelect(svo.getSbjctId());
     	model.addAttribute("sbjctTotalStdCnt", sbjctTotalStdCnt);
 
-    	List<EgovMap> stdntSubjectConnectList = subjectService.stdntSubjectConnectList(sbjctId);
+    	List<EgovMap> stdntSubjectConnectList = subjectService.stdntSubjectConnectList(svo.getSbjctId());
     	model.addAttribute("stdntSubjectConnectList", stdntSubjectConnectList);
 
-    	BaseParam param = new SubjectParam(sbjctId, userCtx, 3);
+    	BaseParam param = new SubjectParam(svo.getSbjctId(), userCtx, 3);
 
     	subjectVM = subjectFacadeService.getSubjectViewModel(userCtx, param);
 
     	model.addAttribute("userCtx", userCtx);
     	model.addAttribute("subjectVM", subjectVM);
 
-    	model.addAttribute("contentPage", "/WEB-INF/jsp/subject/prof_classroom.jsp");
-
-    	} catch ( Exception e ) {
-    		e.printStackTrace();
-    	}
-
+    	model.addAttribute("contentPage", "/WEB-INF/jsp/subject/prof_classroom.jsp");    	
+    	
     	return subjectVM.getViewName();
     }
 
@@ -142,7 +133,7 @@ public class SubjectController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value={"/sbjctAdmList.do"})
-    public String sbjctAdmList(SubjectVO vo, @CurrentUser UserContext userCtx,
+    public String sbjctAdmList(SubjectVO vo, @CurrentUser UserContext userCtx, 
     		HttpServletRequest request, ModelMap model) throws Exception {
 
     	SubjectViewModel subjectVM = new SubjectViewModel();
@@ -181,9 +172,9 @@ public class SubjectController extends ControllerBase {
      */
     @RequestMapping(value={"/sbjctClasSchdlList.do"})
     public String sbjctClasSchdlList(@CurrentUser UserContext userCtx, HttpServletRequest request, ModelMap model) throws Exception {
-
+    	
     	String sbjctId = request.getParameter("sbjctId");
-
+    	
     	if ( null == sbjctId || "".equals(sbjctId)) {
     		log.info(">>>>>>>>/sbjctClasSchdlList.do>>>>>>>>>>>>>>>>>>>>>>>>>>>과목아이디가 없습니다.");
     		return "redirect:" + new URLBuilder("", "/dashboard/dashboard.do",request).toString();

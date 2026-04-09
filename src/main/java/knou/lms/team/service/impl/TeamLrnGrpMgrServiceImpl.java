@@ -52,4 +52,24 @@ public class TeamLrnGrpMgrServiceImpl extends ServiceBase implements TeamLrnGrpM
 
         return processResultVO;
     }
+
+    /*****************************************************
+     * 수강생 목록 페이징
+     * @param vo
+     * @return List<EgovMap>
+     * @throws Exception
+     ******************************************************/
+    public List<EgovMap> listAtndlcUser(TeamLrnGrpMgrVO vo) throws Exception{
+        return teamLrnGrpMgrDAO.listAtndlcUser(vo);
+    }
+
+    /*****************************************************
+     * 수강생 목록 카운트
+     * @param vo
+     * @return int
+     * @throws Exception
+     ******************************************************/
+    public int countAtndlcUser(TeamLrnGrpMgrVO vo) throws Exception{
+        return teamLrnGrpMgrDAO.countAtndlcUser(vo);
+    }
 }

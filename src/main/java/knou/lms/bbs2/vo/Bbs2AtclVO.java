@@ -30,6 +30,8 @@ public class Bbs2AtclVO {
     private String delyn;                // DELYN
     private String rgtrnm;               // RGTRNM
     
+    public Bbs2AtclVO() {}
+    
 	public String getAtclId() {
 		return atclId;
 	}

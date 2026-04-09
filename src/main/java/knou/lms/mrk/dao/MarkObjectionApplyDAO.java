@@ -10,7 +10,7 @@ import java.util.List;
 @Mapper("markObjectionApplyDAO")
 public interface MarkObjectionApplyDAO {
 
-    MarkObjectionApplyVO mrkObjctAplySelect(@Param("mrkObjctAplyId")String mrkObjctAplyId);
+    MarkObjectionApplyVO mrkObjctAplySelect(@Param("sbjctId")String sbjctid, @Param("userId")String userId);
 
     List<EgovMap> mrkObjctAplyList(String sbjctId);
 }

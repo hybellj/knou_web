@@ -1,6 +1,4 @@
-﻿<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="uiex" uri="http://uiextension/tags" %>
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+﻿<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%@ include file="/WEB-INF/jsp/forum2/common/forum_common_inc.jsp" %>
 <!DOCTYPE html>
@@ -12,24 +10,6 @@
     </jsp:include>
 
     <style>
-        /* 1. 아이콘을 오른쪽으로 배치 */
-        .ui-accordion .ui-accordion-header {
-            padding-left: 1em; /* 왼쪽 패딩 복구 */
-            padding-right: 2.5em; /* 아이콘이 들어갈 오른쪽 공간 확보 */
-        }
-
-        .ui-accordion .ui-accordion-header-icon {
-            left: auto !important; /* 기본 왼쪽 고정 해제 */
-            right: 0.5em !important; /* 오른쪽 끝에서 약간 띄움 */
-        }
-
-        /* 필요시 아이콘 자체의 여백 조정 */
-        .ui-accordion-header-icon.ui-icon {
-            position: absolute;
-            top: 50%;
-            margin-top: -8px; /* 세로 중앙 정렬 */
-        }
-
         /* title_area 우측 date+dropdown 그룹 */
         .answer .title_area .right-area { display: flex; align-items: center; gap: 8px; }
 
@@ -1338,13 +1318,6 @@
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <div class="class_sub_top">
-                    <div class="navi_bar">
-                        <ul>
-                            <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                            <li>강의실</li>
-                            <li><span class="current">내강의실</span></li>
-                        </ul>
-                    </div>
                     <div class="btn-wrap">
                         <div class="first">
                             <select class="form-select">
@@ -1360,24 +1333,37 @@
                         <div class="sec">
                             <button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
                             <button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
+                            <button type="button" class="btn type2"><i class="xi-log-out"></i>강의실나가기</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="class_sub">
+                    <!-- 강의실 상단 -->
+                    <div class="segment class-area sub">
+                        <div class="class_info">
+                            <div class="class_tit">
+                                <p class="labels">
+                                    <label class="label uniA">대학원</label>
+                                </p>
+                                <h2>데이터베이스의 이해와 활용 1반</h2>
+                            </div>
+                            <div class="navi_bar">
+                                <ul>
+                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
+                                    <li>강의실</li>
+                                    <li><span class="current">토론</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- //강의실 상단 -->
+
                     <div class="sub-content">
                         <div class="page-info">
                             <h2 class="page-title">
                                 <spring:message code="forum.label.forum" /><!-- 토론 -->
                             </h2>
-                        </div>
-
-                        <div class="board_top">
-                            <div class="right-area">
-                                <%--<a href="javascript:void(0)" class="btn type2" onclick="editDscs('${dscsForumVO.dscsId}','${dscsForumVO.dscsSdttm}')"><spring:message code='forum.button.mod'/><!-- 수정 --></a>
-                                <a href="javascript:void(0)" class="btn type2" onclick="deleteDscs('${dscsForumVO.dscsId}');"><spring:message code='forum.button.del'/><!-- 삭제 --></a>--%>
-                                <a href="javascript:void(0)" class="btn type2" onclick="viewDscsList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
-                            </div>
                         </div>
 
                         <div class="listTab">
@@ -1386,8 +1372,19 @@
                                 <li class="mw120 select"><a  href="javascript:void(0)" onclick="dscsViewTab(1)"><spring:message code='forum.label.forum.bbs'/><!-- 토론방 --></a></li>
                             </ul>
                         </div>
+
+                        <div class="board_top">
+                            <h3 class="board-title">토론방</h3>
+                            <div class="right-area">
+                                <%--<a href="javascript:void(0)" class="btn type2" onclick="editDscs('${dscsForumVO.dscsId}','${dscsForumVO.dscsSdttm}')"><spring:message code='forum.button.mod'/><!-- 수정 --></a>
+                                <a href="javascript:void(0)" class="btn type2" onclick="deleteDscs('${dscsForumVO.dscsId}');"><spring:message code='forum.button.del'/><!-- 삭제 --></a>--%>
+                                <a href="javascript:void(0)" class="btn type2" onclick="viewDscsList()"><spring:message code='forum.label.list'/><!-- 목록 --></a>
+                            </div>
+                        </div>
+
                         <!-- 토론정보 시작 -->
                         <jsp:include page="/WEB-INF/jsp/forum2/common/forum_info_inc.jsp" />
+                        <!-- 토론정보 끝 -->
 
                         <c:if test="${dscsVO.dscsUnitTycd eq 'TEAM'}">
                             <div class="option-content mt20" id="parentDiv">

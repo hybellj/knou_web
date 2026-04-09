@@ -43,13 +43,7 @@ public class NavibarTag extends TagSupport {
             String menuId		= ParamInfo.getParamValue(req, "menuId");
             String sbjctId		= ParamInfo.getParamValue(req, "sbjctId");
 
-            //TODO 강의실 표시를 위한 임시...
-            String style = "";
-            if ("lect".equals(type)) {
-            	style = "background:#8b8b8b";
-            }
-
-            tag.append("<div class='navi_bar' style='"+style+"'>");
+            tag.append("<div class='navi_bar'>");
             tag.append("<ul>");
             tag.append("<li><i class='xi-home-o' aria-hidden='true'></i><span class='sr-only'>Home</span></li>");
 

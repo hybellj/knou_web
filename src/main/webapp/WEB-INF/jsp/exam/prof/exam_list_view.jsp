@@ -24,6 +24,7 @@
 			var data = {
 				"pageIndex"     : page,
 				"listScale"     : $('[id^="listScale"]').eq(0).val(),
+                "sbjctId"       : "${sbjctId}",
                 "examTtl"       : $("#examTtl").val()
 			};
 

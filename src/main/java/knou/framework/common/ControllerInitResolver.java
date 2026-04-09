@@ -11,6 +11,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import knou.framework.exception.SessionTimeoutException;
 import knou.lms.user.CurrentUser;
 
 /**
@@ -38,11 +39,21 @@ public class ControllerInitResolver implements HandlerMethodArgumentResolver {
     	
     	HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
 
-        // [CASE 1] @CurrentUser UserContext 처리
+    	// [CASE 1] @CurrentUser UserContext 처리
         if (parameter.hasParameterAnnotation(CurrentUser.class)) {
             HttpSession session = request.getSession(false);
-            return (session != null) ? session.getAttribute("USER_CONTEXT") : null;
+            Object userContext = (session != null) ? session.getAttribute("USER_CONTEXT") : null;
+
+            // 세션이 없거나 유저 정보가 없으면 여기서 즉시 예외 발생
+            if (userContext == null) {
+                // 사용자 정의 예외를 던집니다 (예: SessionTimeoutException)
+                // 이 예외는 ExcepHandler로 넘어가서 딱 한 번의 로그를 남깁니다.
+                throw new SessionTimeoutException("세션이 만료되었거나 로그인 정보가 없습니다.");
+            }
+            
+            return userContext;
         }
+        
 
         // [CASE 2] 기존 VO 처리 및 ControllerBase.init 호출
         Object paramVO = parameter.getParameterType().getDeclaredConstructor().newInstance();
@@ -56,27 +67,5 @@ public class ControllerInitResolver implements HandlerMethodArgumentResolver {
         }
 
         return paramVO;
-
-		/*
-		 * System.out.println(">>> [DEBUG] RresolveArgument 진입" +
-		 * parameter.getParameterName());
-		 * 
-		 * Object paramVO =
-		 * parameter.getParameterType().getDeclaredConstructor().newInstance();
-		 * WebDataBinder binder = binderFactory.createBinder(webRequest, paramVO,
-		 * parameter.getParameterName()); ServletRequest request =
-		 * webRequest.getNativeRequest(ServletRequest.class); binder.bind(new
-		 * ServletRequestParameterPropertyValues(request));
-		 * 
-		 * HttpServletRequest httpRequest =
-		 * webRequest.getNativeRequest(HttpServletRequest.class); Object controller =
-		 * httpRequest.getAttribute("CURRENT_CONTROLLER");
-		 * 
-		 * if (controller instanceof ControllerBase) { // ConrollerBase의 init 호출
-		 * ((ControllerBase) controller).init(httpRequest, mavContainer.getModel(),
-		 * paramVO); }
-		 * 
-		 * return paramVO;
-		 */
     }
 }

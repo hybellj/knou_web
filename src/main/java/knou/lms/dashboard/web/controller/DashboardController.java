@@ -279,15 +279,18 @@ public class DashboardController extends ControllerBase {
 
         // 마지막 로그인정보 조회
         String lastLogin = SessionInfo.getLastLogin(request);
+        
         if ("".equals(lastLogin)) {
+        	
             LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
+            
             loginTryLogVO.setUserId(userId);
 
             EgovMap loginUser = loginService.userLatestLoginHstrySelect(userId);
 
             if (loginUser != null) {
                 SessionInfo.setLastLogin(request, 
-                		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
+                		DateTimeUtil.getDateType(8, loginUser.get("lgnDttm") + ".") + " (" + loginUser.get("lgnIp")+")");
             }
         }
 
@@ -521,7 +524,8 @@ public class DashboardController extends ControllerBase {
         logUserConnService.saveUserConnState(request, CommConst.CONN_COR_HOME);
 
         // 마지막 로그인정보 조회 > 왜 조회해서 다시 설정하는가?
-        if ( ValidationUtils.isEmpty( userCtx.getUserLastLogin() ) ) {
+        if ( ValidationUtils.isEmpty( userCtx.getLoginUser() ) ) {
+        	
         	EgovMap loginUser = loginService.userLatestLoginHstrySelect(userCtx.getUserId());
 
             if (loginUser != null) {
@@ -529,9 +533,6 @@ public class DashboardController extends ControllerBase {
                 		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
             }
         }
-
-        ProcessResultVO<BbsAtclVO> resultNoticeListVO = new ProcessResultVO<>();
-
 
         // 교수학기목록조회 // TODO: refactoring profSmstrList
         TermVO termVO = new TermVO(userCtx);

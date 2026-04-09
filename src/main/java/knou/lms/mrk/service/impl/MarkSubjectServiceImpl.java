@@ -365,13 +365,14 @@ public class MarkSubjectServiceImpl extends ServiceBase implements MarkSubjectSe
             for (MarkSubjectDetailVO dtlVO : stdMrkDtlVOList) {
                 //  etcScr 제외 총점 가산
                 totScr += dtlVO.getScr() * mrkItmStngMap.get(dtlVO.getMrkItmTycd()) / 100;
+
             }
             double lstScr = totScr + etcScr + adtnScr;
 
+            mrkVO.setLstScr(lstScr);
             mrkVO.setEtcScr(etcScr);
             mrkVO.setAdtnScr(adtnScr);
             mrkVO.setTotScr(totScr);
-            mrkVO.setLstScr(lstScr);
             mrkVO.setMdfrId(mdfrId);
         };
 

@@ -63,7 +63,7 @@ public class ControllerBase {
 	 * @param paramVO
 	 */
 	public void init(HttpServletRequest request, ModelMap modelMap, Object paramVO) throws Exception {
-		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase.init 진입");
+		log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase.init 진입");
 		try {
 			this.request 		= request;
 			this.session 		= request.getSession();
@@ -76,8 +76,8 @@ public class ControllerBase {
 			String type 		= "";
 			boolean isMain		= false;
 
-			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase.init start");
-			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase uri=" + uri);
+			log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase.init start");
+			log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase uri=" + uri);
 
 
 			// 암호화 파라메터가 있는 경우 값을 VO에 세팅
@@ -134,7 +134,7 @@ public class ControllerBase {
 			SessionUtil.setSessionValue(request, "PAGE_TYPE", type);
 			SessionUtil.setSessionValue(request, "BODY_CLASS", bodyClass);
 
-			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase.init end");
+			log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ControllerBase.init end");
 
 
 		} catch (Exception e) {

@@ -3115,8 +3115,10 @@ public class BbsLectController extends ControllerBase {
     		ModelMap model, HttpServletRequest request) throws Exception {
 
     	String orgId = userCtx.getOrgId();
-    	String bbsId = request.getParameter("bbsId");
-		String bbsTycd = bbsVO.getBbsTycd();/* request.getParameter("bbsTycd"); */
+    	String bbsTycd = request.getParameter("bbsTycd") != null ? request.getParameter("bbsTycd") : bbsVO.getBbsTycd();
+    	bbsVO.setBbsTycd(bbsTycd);
+
+    	String bbsId = bbsInfoService.getBbsId(bbsVO);
     	String bbsAddyn = request.getParameter("bbsAddyn") != null ? request.getParameter("bbsAddyn") : "N";
     	String sbjctId = bbsVO.getSbjctId();
     	String returnUrl = "";
@@ -3124,9 +3126,6 @@ public class BbsLectController extends ControllerBase {
     	// 강의실 추가 게시판 게시판 유형코드 조회
     	if("Y".equals(bbsAddyn)) {
     		bbsTycd = bbsInfoService.getBbsTycd(bbsVO);
-    	} else {
-    		// 강의실 고정 게시판 ID 조회
-    		bbsId = bbsInfoService.getBbsId(bbsVO);
     	}
 
     	boolean isAdmin = BbsAuthUtil.isAdmin(request);
@@ -3150,6 +3149,7 @@ public class BbsLectController extends ControllerBase {
 		bbsVO.setBbsId(bbsId);
 		bbsVO.setBbsTycd(bbsTycd);
 		bbsVO.setSbjctId(sbjctId);
+
 		bbsVO = bbsInfoService.isValidBbsLectInfo(bbsVO, isAdmin);
 
 		if(bbsVO == null) { // 게시판 정보를 찾을 수 없습니다.
@@ -3196,6 +3196,16 @@ public class BbsLectController extends ControllerBase {
 				optnCdList.add("RSPNS");
 				optnCdList.add("CMNT");
 				bbsVO.setOptnCdList(optnCdList);
+			} else if("TEAM".equals(bbsTycd)) {
+				bbsVO.setBbsNm("팀 게시판");
+				bbsVO.setBbsEnnm("Notice");
+				bbsVO.setBbsExpln("과목 팀 게시판");
+				bbsVO.setBbsTycd("TEAM");
+
+				List<String> optnCdList = new ArrayList<>(); // 공지, 첨부, 댓글
+				optnCdList.add("RSPNS");
+				optnCdList.add("CMNT");
+				bbsVO.setOptnCdList(optnCdList);
 			}
 
 			bbsVO.setLangCd("ko");
@@ -3212,7 +3222,7 @@ public class BbsLectController extends ControllerBase {
         }
 
         // 게시판정보에 파라메터값 재설정 (게시판정보 조회에서 초기화돼서 재설정)
-		setEncParamsToVO(bbsVO);
+		/* setEncParamsToVO(bbsVO); */
 
         String atclWriteAuth = "Y"; // 글쓰기 권한
 
@@ -3231,7 +3241,9 @@ public class BbsLectController extends ControllerBase {
 		} else if("QNA".equals(bbsTycd)) {
 			returnUrl = "bbs/lect/bbs_lctr_qna_list_view";
 		} else if("1ON1".equals(bbsTycd)) {
-			returnUrl = "bbs/lect/bbs_dscsn_list_view";
+			returnUrl = "bbs/lect/bbs_lctr_dscsn_list_view";
+		} else if("TEAM".equals(bbsTycd)) {
+			returnUrl = "bbs/lect/bbs_lctr_team_list_view";
 		} else {
 			returnUrl = "bbs/lect/bbs_atcl_list_view";
 		}
@@ -3320,6 +3332,11 @@ public class BbsLectController extends ControllerBase {
     	    bbsId = bbsAtclVO.getBbsId();
     	}
 
+        String bbsTycd = request.getParameter("bbsTycd");
+        if (bbsTycd == null || bbsTycd.trim().isEmpty()) {
+        	bbsTycd = bbsAtclVO.getBbsTycd();
+    	}
+
         String sbjctId = bbsAtclVO.getSbjctId();
         String gubun = bbsAtclVO.getGubun();
         String atclId = bbsAtclVO.getAtclId();
@@ -3334,6 +3351,7 @@ public class BbsLectController extends ControllerBase {
         // 게시판 정보 조회
         BbsVO bbsVO = new BbsVO();
         bbsVO.setBbsId(bbsId);
+        bbsVO.setBbsTycd(bbsTycd);
         bbsVO.setOrgId(orgId);
 		bbsVO.setLangCd(langCd);
 		bbsVO.setSbjctId(sbjctId);
@@ -3414,6 +3432,7 @@ public class BbsLectController extends ControllerBase {
         String orgId = userCtx.getOrgId();
         String langCd = userCtx.getLangCd();
         String bbsId = bbsAtclVO.getBbsId();
+        String bbsTycd = bbsAtclVO.getBbsTycd();
         String sbjctId = bbsAtclVO.getSbjctId();
         String atclWriteAuth = "Y"; // 글쓰기 권한
 
@@ -3421,6 +3440,7 @@ public class BbsLectController extends ControllerBase {
         BbsVO bbsVO = new BbsVO();
         bbsVO.setOrgId(orgId);
         bbsVO.setBbsId(bbsId);
+        bbsVO.setBbsTycd(bbsTycd);
         bbsVO.setSbjctId(sbjctId);
 		bbsVO.setLangCd(langCd);
 		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
@@ -3472,6 +3492,7 @@ public class BbsLectController extends ControllerBase {
         String sbjctId = bbsAtclVO.getSbjctId();
 
         String bbsId = bbsAtclVO.getBbsId();
+        String bbsTycd = bbsAtclVO.getBbsTycd();
 
         String uploadFiles = bbsAtclVO.getUploadFiles();
         String uploadPath = bbsAtclVO.getUploadPath();
@@ -3496,6 +3517,7 @@ public class BbsLectController extends ControllerBase {
             BbsVO bbsVO = new BbsVO();
             bbsVO.setOrgId(orgId);
             bbsVO.setBbsId(bbsId);
+            bbsVO.setBbsTycd(bbsTycd);
             bbsVO.setSbjctId(sbjctId);
             bbsVO.setLangCd(langCd);
             bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
@@ -4072,9 +4094,6 @@ public class BbsLectController extends ControllerBase {
     	}
 
         boolean isAdmin = BbsAuthUtil.isAdmin(request);
-
-        bbsVO.setOrgId(orgId);
-		bbsVO = bbsInfoService.isValidBbsInfo(bbsVO, isAdmin);
 
         String atclWriteAuth = "Y"; // 글쓰기 권한
 

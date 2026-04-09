@@ -26,6 +26,7 @@ import knou.framework.exception.AccessDeniedException;
 import knou.lms.mrk.facade.MarkFacadeService;
 import knou.lms.score.web.ScoreOverallController;
 
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -257,9 +258,53 @@ public class MarkController extends ControllerBase {
     @GetMapping("/mrkObjctAplyCtsSelectPop.do")
     public String mrkObjctAplyCtsSelectPop (MarkObjectionApplyVO vo, Model model) throws Exception {
 
-        model.addAttribute("mrkObjctAplyVO",  markObjectApplyService.mrkObjctAplySelect(vo.getMrkObjctAplyId()));
+
+        model.addAttribute("mrkObjctAplyVO",  markObjectApplyService.mrkObjctAplySelect(vo.getSbjctId(), vo.getUserId()));
 
         return "mrk/prof/popup/mrk_objct_aply_cts_pop";
+    }
+
+    /**
+     * 성적이의신청 조회
+     * @param vo
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/mrkObjctAplyctsSelectAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MarkObjectionApplyVO> mrkObjctAplyctsSelectAjax(MarkObjectionApplyVO vo) throws Exception {
+        ProcessResultVO<MarkObjectionApplyVO> resultVO = new ProcessResultVO<>();
+
+        resultVO.setReturnVO(markObjectApplyService.mrkObjctAplySelect(vo.getSbjctId(), vo.getUserId()));
+
+        return resultVO;
+    }
+
+    /**
+     * [교수] 강의실 > 성적관리 > 성적이의신청 탭 > 신청결과 팝업
+     * @param vo
+     * @param model
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/mrkObjctAplyListViewPop.do")
+    public String mrkObjctAplyListViewPop(MarkObjectionApplyVO vo, Model model) throws Exception {
+
+        // 성적이의신청 목록조회
+        List<EgovMap> aplyList = markObjectApplyService.mrkObjctAplyList(vo.getSbjctId());
+
+        ObjectMapper mapper = new ObjectMapper();
+        String aplyListJson = mapper.writeValueAsString(aplyList);
+
+        model.addAttribute("aplyList", aplyListJson);
+
+        // 조회대상
+        String targetId = vo.getUserId();
+        model.addAttribute("targetId", targetId);
+
+        model.addAttribute("encParams", getEncParams());
+
+        return "mrk/prof/popup/mrk_objct_aply_list_pop";
     }
 
 }

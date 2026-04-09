@@ -8,6 +8,7 @@ import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.ServiceBase;
+import knou.lms.login.param.LoginParam;
 import knou.lms.user.dao.UserDAO;
 import knou.lms.user.service.UserService;
 import knou.lms.user.vo.UserIdsDTO;
@@ -32,5 +33,10 @@ public class UserServiceImpl  extends ServiceBase implements UserService{
 	@Override
 	public UserIdsDTO userIdsSelect(String userRprsId) throws Exception {
 		return userDAO.userIdsSelect(userRprsId);
+	}
+
+	@Override
+	public EgovMap existUserIdWithPswd(LoginParam param) throws Exception {
+		return userDAO.existUserIdWithPswd(param);
 	}
 }

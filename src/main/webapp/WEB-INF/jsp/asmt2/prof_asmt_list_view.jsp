@@ -70,10 +70,13 @@
                         <%-- 과제 카드 폼 --%>
                         <div id="asmtList_cardForm" style="display:none">
                             <div class="card-header">
-                                <label class="label s_c02">#[asmtGbnnm]</label>
-                                <div class="card-title">
+                                <div class="board_tit">
+                                    <p class="labels">
+                                        <label class="label s_work">#[asmtGbnnm]</label>
+                                    </p>
                                     #[asmtTtl]
                                 </div>
+
                                 <div class="btn_right">
                                     <div class="dropdown">
                                         <button type="button" class="btn basic icon set settingBtn" aria-label="과제 관리" onclick="this.nextElementSibling.classList.toggle('show')">
@@ -89,24 +92,29 @@
                             </div>
 
                             <div class="card-body">
-                                <div class="desc">
-                                    <%-- TODO: 제출/미제출로 표시, 진행바방식으로 변경 --%>
-                                    <p><label>제출현황</label><strong>#[sbmsnStts]</strong></p>
-                                    <p><label>연장제출마감</label><strong>#[extdSbmsnEdttm]</strong></p>
-                                    <p><label>성적반영비율</label><strong>#[mrkRfltrt]</strong></p>
-                                    <p><label>제출현황</label><strong>#[sbmsnStts]</strong></p>
-                                    <p><label>평가현황</label><strong>#[evlStts]</strong></p>
-                                    <p><label>성적공개</label><strong>#[mrkOyn]</strong></p>
+                                <div class="extra">
+                                    <ul class="process-bar">
+                                        <li class="bar-blue" style="width:20%;">#[sbmsnCntBar]</li>
+                                        <li class="bar-grey" style="width:80%;">#[nonSbmsnCntBar]</li>
+                                    </ul>
+                                    <div class="desc">
+                                        <p><label>제출기간</label><strong>#[sbmsnPeriod]</strong></p>
+                                        <p><label>연장제출마감</label><strong>#[extdSbmsnEdttm]</strong></p>
+                                        <p><label>성적반영비율</label><strong>#[mrkRfltrt]</strong></p>
+                                        <p><label>제출현황</label><strong>#[sbmsnStts]</strong></p>
+                                        <p><label>평가현황</label><strong>#[evlStts]</strong></p>
+                                        <p><label>성적공개</label><strong>#[mrkOyn]</strong></p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <!--//table-type2-->
-                </div>
-            </div>
 
-        </div>
-        <!-- //content -->
+                        <!--//table-type2-->
+                    </div>
+                </div>
+
+            </div>
+            <!-- //content -->
 
     </main>
     <!-- //classroom-->
@@ -200,7 +208,6 @@
 
             // 성적공개여부
             const mrkOynHtml = '<input type="checkbox" value="Y" id="mrkOyn_' + asmtId + '" class="switch small" onchange="modifyMrkOyn(this, \'' + asmtId + '\')"' + (v.mrkOyn === "Y" ? ' checked="checked">' : '>');
-
             dataList.push({
                 no: lineNo
                 , asmtGbnnm: v.asmtGbnnm
@@ -212,6 +219,8 @@
                 , evlStts: (v.evlCnt || 0) + "/" + (v.sbmsnCnt || 0)
                 , mrkOyn: mrkOynHtml
                 , resbmsn: (v.resbmsnCnt || 0) + "명"
+                , sbmsnCntBar: (v.sbmsnCnt || 0) + "명"
+                , nonSbmsnCntBar: (v.trgtCnt || 0 - v.sbmsnCnt || 0) + "명"
                 , valAsmtId: v.valAsmtId
             });
         });

@@ -29,7 +29,6 @@
 		var MODE         = '<c:out value="${bbsVO.gubun == 'edit' ? 'U' : 'C'}" />';
 
 		$(document).ready(function() {
-            $('#atclWriteForm')[0].reset();
 		});
 
     	// 게시글 저장

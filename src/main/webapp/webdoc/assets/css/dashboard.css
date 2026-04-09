@@ -759,12 +759,7 @@ dashboard - sub
 
 
 
-
-
-
-
 /* 성적관리 - 차트 */
-.chart-container { display: flex; justify-content: center; width: 100%; margin: 0 auto; }
 .scoreChart_wrap {display: flex; justify-content: space-between;}
 .scoreChart_wrap .left_chart {width: 42%;}
 .scoreChart_wrap .right_chart {width: 52%; display: flex; align-items: center; justify-content: space-between;}

@@ -53,8 +53,8 @@ let DX_ENV = new Object();
  * // 업로더 객체 가져오기
  * let dx = dx5.get("uploaderId");
  *
- * // 업로드할 파일이 있는지 확인
- * dx.availUpload()	// true/false 리턴
+ * // 업로드할 파일이 있는지 확인(true/false 리턴)
+ * dx.availUpload()
  *
  * // 업로드 시작
  * dx.startUpload()
@@ -447,7 +447,7 @@ function onDX5ItemAdding(id, obj) {
 
 	if (lastDot > -1 && noExtension != "") {
 		let noExts = noExtension.split(",");
-		var ext = obj.name.substring(lastDot+1, obj.name.length).toLowerCase();
+		let ext = obj.name.substring(lastDot+1, obj.name.length).toLowerCase();
 
 		for (let i=0; i<noExts.length; i++) {
 			if (ext == noExts[i]) {
@@ -488,7 +488,7 @@ function getDextNewFileId() {
 		newId += digits[Math.floor(Math.random() * 52)];
 	}
 
-	var	nowDate	= new Date();
+	let	nowDate	= new Date();
 	newId += digits[(nowDate.getYear() % 100)-1];
 	newId += digits[nowDate.getMonth()];
 	newId += digits[nowDate.getDate()];

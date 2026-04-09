@@ -11,10 +11,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
 
+import knou.framework.common.IdPrefixType;
+import knou.lms.user.param.UserMetaParam;
+
 /**
  * 공통 유틸리티
  */
 public class CommonUtil {
+	
 	// MIME type map
 	private static MimetypesFileTypeMap MIME_TYPES_MAP = null;
 	
@@ -24,7 +28,7 @@ public class CommonUtil {
 	 * @return IP Address
 	 */
 	public static String getIpAddress(HttpServletRequest request) {
-		String ip = request.getHeader("X-FORWARDED-FOR"); 
+		String ip = request.getHeader("X-FORWARDED-FOR");
         	
         // proxy
         if (ip == null || ip.length() == 0) {
@@ -277,4 +281,29 @@ public class CommonUtil {
      
         return new String(buf, charPos, (64 - charPos));
     }
+    
+    public static UserMetaParam createUserMetaParam(HttpServletRequest request) {
+    	
+        UserMetaParam userMetaParam = new UserMetaParam();        
+
+        // 1. IP 주소 (기존 getIpAddress 활용)
+        userMetaParam.setIp(getIpAddress(request));
+
+        // 2. User-Agent
+        userMetaParam.setUserAgent(request.getHeader("User-Agent"));
+
+        // 3. 디바이스 타입 (기존 getDeviceType 활용: PC/mobile)
+        userMetaParam.setDeviceType(getDeviceType(request));
+
+        // 4. 세션 ID
+        userMetaParam.setSessionId(request.getSession().getId());
+
+        // 5. 브라우저 정보 (기존 getBrowser 활용)
+        userMetaParam.setBrowser(getBrowser(request));
+        
+        // 6. OS 정보 (기존 getClientOS 활용)
+        userMetaParam.setOs(getClientOS(request));
+
+        return userMetaParam;
+    }    
 }

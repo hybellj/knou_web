@@ -81,7 +81,7 @@
                             if (data.result > 0) {
                                 UiComm.showMessage("저장되었습니다.", "info")
                                 .then(function() {
-                                    location.href = "/exam/profExamListView.do";
+                                    location.href = "/exam/profExamListView.do?sbjctId=${sbjctId}";
                                 });
                             } else {
                                 UiComm.showMessage(data.message, "error");
@@ -417,7 +417,7 @@
                 UiComm.showMessage("목록으로 돌아가시겠습니까?", "confirm")
                     .then(function(result) {
                         if (result) {
-                            location.href = "/exam/profExamListView.do";
+                            location.href = "/exam/profExamListView.do?sbjctId=${sbjctId}";
                         }
                     });
             });
