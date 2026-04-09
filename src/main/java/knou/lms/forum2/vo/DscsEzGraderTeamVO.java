@@ -7,7 +7,7 @@ import java.util.List;
 
 public class DscsEzGraderTeamVO extends DefaultVO {
 
-    private String formCd;
+    private String dscsId;
     private String orgId;           // 기관 코드
     private String sbjctId;
 
@@ -27,12 +27,12 @@ public class DscsEzGraderTeamVO extends DefaultVO {
     // 파일 업로드
 //    private List<SysFileVO> attachFiles; // 관련서류첨부 파일목록
 
-    public String getFormCd() {
-        return formCd;
+    public String getDscsId() {
+        return dscsId;
     }
 
-    public void setFormCd(String formCd) {
-        this.formCd = formCd;
+    public void setDscsId(String dscsId) {
+        this.dscsId = dscsId;
     }
 
     public String getOrgId() {

@@ -280,7 +280,7 @@
             (
               SELECT LISTAGG(F.FILENM, CHR(10)) WITHIN GROUP (ORDER BY F.FILENM)
               FROM TB_LMS_ATFL F
-              WHERE F.ATFL_REPO_ID = 'FORUM'
+              WHERE F.ATFL_REPO_ID = 'DSCS'
                 AND F.ATCL_ID = B.DSCS_ATCL_ID
             ) AS filenm
         FROM TB_LMS_DSCS A

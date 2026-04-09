@@ -76,8 +76,8 @@
 		<result property="teamTycd" column="TEAM_TYCD" />
 		<result property="teamId" column="TEAM_ID" />
 		<result property="teamNm" column="TEAMNM" />
-		<result property="formCd" column="FORUM_CD" />
-		<result property="sbjctId" column="CRS_CRE_CD" />
+		<result property="dscsId" column="DSCS_ID" />
+		<result property="sbjctId" column="SBJCT_ID" />
 		<collection property="teamMembers" resultMap="teamMemberMap" />
 	</resultMap>
 
@@ -101,8 +101,8 @@
 		SELECT A.TEAM_TYCD
 			, A.TEAM_ID
 			, A.TEAMNM
-			, A.DSCS_ID AS FORUM_CD
-			, #{sbjctId} AS CRS_CRE_CD
+			, A.DSCS_ID AS DSCS_ID
+			, #{sbjctId} AS SBJCT_ID
 			, A.USER_ID AS STD_ID
 			, A.LDRYN
 			, A.SCR AS score
