@@ -11,7 +11,7 @@ public class DscsVO extends DefaultVO {
 
     private String dscsId; // 토론아이디
     private String dscsGrpId; // 토론그룹아이디
-    private String dscsGrpnm; // dscs group name
+    private String dscsGrpnm; // 토론 그룹명
     private String dscsGbncd; // 토론구분코드
     private String dscsUnitTycd; // 토론단위유형코드
     private String evlScrTycd; // 평가점수유형코드
@@ -42,33 +42,24 @@ public class DscsVO extends DefaultVO {
     private String upDscsId; // 상위토론ID (자식 토론 INSERT용)
     private String teamId;   // 팀ID (자식 토론 INSERT용)
 
-    private String sourceDscssId; // 복사용: 원본 토론ID
-    private String targetCrsId; // 복사용: 대상 과목ID
-    private String targetdvclsNo; // 복사용: 대상 분반ID
-    private String targetLrnGrpId; // 복사용: 대상 학습그룹ID
-    private String targetDscsGrpId; // 복사용: 대상 토론그룹ID
-
-    private String[] dvclsNoList; // 분반별 저장 대상 DVCLS_NO 목록
-    private String[] lrnGrpIdList; // 분반별 학습그룹 ID 목록
     private List<DscsDvclasSelVO> dvclasSelList; // 분반선택 목록(sbjctIds)
     private List<DscsLrnGrpVO> lrnGrpInfoList; // 학습그룹선택 목록(teamForumDiv)
-    private List<DscsTeamDscsVO> teamDscsList;     // 팀토론 상세목록 (SELECT용)
+    private List<DscsTeamDscsVO> teamDscsList; // 팀토론 상세목록 (SELECT용)
     private List<DscsTeamDscsVO> teamDscsDtlList; // 팀별 부주제 입력 목록 (INSERT용, JSP 바인딩)
 
-    /*DB와 관계없는 파라미터*/
-    private Integer dscsAtclCnt;                // 게시글 갯수
-    private Integer dscsCmntCnt;                // 댓글 갯수
-    private Integer dscsMyAtclCnt;              // 내가 쓴 게시글 갯수
-    private Integer dscsMyCmntCnt;              // 내가 쓴 댓글 갯수
-    private Integer dscsAtclPorsCnt;            // 찬성 게시글 갯수
-    private Integer dscsAtclConsCnt;            // 반대 게시글 갯수
-    private Integer dscsUserTotalCnt;           // 총 인원 수
-    private Integer dscsJoinUserCnt;            // 참여자 수
-    private Integer dscsMyScore;                // 내 평가 점수
-    private Integer dscsMyFdbk;                 // 피드백
-    private Integer dscsEvalCnt;                // 평가한 인원수
-
-    private String smstrChrtId;                 // 학기기수아이디
+    /* DB와 관계없는 파라미터 */
+    private Integer dscsAtclCnt; // 게시글 갯수
+    private Integer dscsCmntCnt; // 댓글 갯수
+    private Integer dscsMyAtclCnt; // 내가 쓴 게시글 갯수
+    private Integer dscsMyCmntCnt; // 내가 쓴 댓글 갯수
+    private Integer dscsAtclPorsCnt; // 찬성 게시글 갯수
+    private Integer dscsAtclConsCnt; // 반대 게시글 갯수
+    private Integer dscsUserTotalCnt; // 총 인원 수
+    private Integer dscsJoinUserCnt; // 참여자 수
+    private Integer dscsMyScore; // 내 평가 점수
+    private Integer dscsMyFdbk; // 내 피드백 수
+    private Integer dscsEvalCnt; // 평가한 인원수
+    private String smstrChrtId; // 학기기수아이디
     private String dscsOpenYn;
     private String teamAtclOpenYn;
     private Integer evalLimitCnt;
@@ -364,62 +355,6 @@ public class DscsVO extends DefaultVO {
         this.teamId = teamId;
     }
 
-    public String getSourceDscssId() {
-        return sourceDscssId;
-    }
-
-    public void setSourceDscssId(String sourceDscssId) {
-        this.sourceDscssId = sourceDscssId;
-    }
-
-    public String getTargetCrsId() {
-        return targetCrsId;
-    }
-
-    public void setTargetCrsId(String targetCrsId) {
-        this.targetCrsId = targetCrsId;
-    }
-
-    public String getTargetdvclsNo() {
-        return targetdvclsNo;
-    }
-
-    public void setTargetdvclsNo(String targetdvclsNo) {
-        this.targetdvclsNo = targetdvclsNo;
-    }
-
-    public String getTargetLrnGrpId() {
-        return targetLrnGrpId;
-    }
-
-    public void setTargetLrnGrpId(String targetLrnGrpId) {
-        this.targetLrnGrpId = targetLrnGrpId;
-    }
-
-    public String getTargetDscsGrpId() {
-        return targetDscsGrpId;
-    }
-
-    public void setTargetDscsGrpId(String targetDscsGrpId) {
-        this.targetDscsGrpId = targetDscsGrpId;
-    }
-
-    public String[] getDvclsNoList() {
-        return dvclsNoList;
-    }
-
-    public void setDvclsNoList(String[] dvclsNoList) {
-        this.dvclsNoList = dvclsNoList;
-    }
-
-    public String[] getLrnGrpIdList() {
-        return lrnGrpIdList;
-    }
-
-    public void setLrnGrpIdList(String[] lrnGrpIdList) {
-        this.lrnGrpIdList = lrnGrpIdList;
-    }
-
     public List<DscsDvclasSelVO> getDvclasSelList() {
         return dvclasSelList;
     }
@@ -615,9 +550,3 @@ public class DscsVO extends DefaultVO {
     public String getTeamTycd() { return teamTycd; }
     public void setTeamTycd(String teamTycd) { this.teamTycd = teamTycd; }
 }
-
-
-
-
-
-
