@@ -188,12 +188,12 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
                 String stdNo = StringUtil.nvl(scoreStdArr[0]);
                 double score = Double.parseDouble(StringUtil.nvl(scoreStdArr[1],"0.0"));
                 String fdbkCts = "";
-                String forumFdbkCd = "";
+                String dscsFdbkId = "";
                 if(scoreStdArr.length >= 3) {
                     fdbkCts = StringUtil.nvl(scoreStdArr[2]);
                 }
                 if(scoreStdArr.length == 4) {
-                    forumFdbkCd = StringUtil.nvl(scoreStdArr[3]);
+                    dscsFdbkId = StringUtil.nvl(scoreStdArr[3]);
                 }
                 
                 forumJoinUserVO.setStdId(stdNo);
@@ -211,8 +211,8 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
                 forumFdbkVO.setStdId(stdNo);
                 forumFdbkVO.setRgtrId(vo.getRgtrId());
                 forumFdbkVO.setMdfrId(vo.getMdfrId());
-                if(!"".equals(forumFdbkCd)) {
-                    forumFdbkVO.setForumFdbkCd(forumFdbkCd);
+                if(!"".equals(dscsFdbkId)) {
+                    forumFdbkVO.setDscsFdbkId(dscsFdbkId);
                     // 피드백 수정
                     if(!"".equals(fdbkCts)) {
                         forumFdbkVO.setFdbkCts(fdbkCts);
@@ -224,8 +224,8 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
                 } else {
                     // 피드백 등록
                     if(!"".equals(fdbkCts)) {
-                        forumFdbkCd = IdGenerator.getNewId(IdPrefixType.DSFDK.getCode());
-                        forumFdbkVO.setForumFdbkCd(forumFdbkCd);
+                        dscsFdbkId = IdGenerator.getNewId(IdPrefixType.DSFDK.getCode());
+                        forumFdbkVO.setDscsFdbkId(dscsFdbkId);
                         forumFdbkVO.setFdbkCts(fdbkCts);
                         forumFdbkVO.setDelYn("N");
                         forumFdbkDAO.insertDscsFdbk(forumFdbkVO);

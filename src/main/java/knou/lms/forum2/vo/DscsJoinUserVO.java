@@ -38,10 +38,11 @@ public class DscsJoinUserVO extends DefaultVO {
     private String  evalStartDttm;	// 평가시작일시
     private String  evalEndDttm;	// 평가종료일시
     
-    private Integer forumAtclCnt;   //게시글 갯수
-    private Integer forumCmntCnt;   //댓글 갯수
-    private Integer forumMyAtclCnt; //내가 쓴 게시글 갯수
-    private Integer forumMyCmntCnt; //내가 쓴 댓글 갯수
+    private String  dscsFdbkId;     // 피드백 ID
+    private Integer dscsAtclCnt;    //게시글 갯수
+    private Integer dscsCmntCnt;    //댓글 갯수
+    private Integer dscsMyAtclCnt;  //내가 쓴 게시글 갯수
+    private Integer dscsMyCmntCnt;  //내가 쓴 댓글 갯수
     
     private String	scoreArr;
     private String	scoreList;
@@ -287,29 +288,35 @@ public class DscsJoinUserVO extends DefaultVO {
     public void setChkCmnt(String chkCmnt) {
         this.chkCmnt = chkCmnt;
     }
-	public Integer getForumAtclCnt() {
-		return forumAtclCnt;
+	public String getDscsFdbkId() {
+		return dscsFdbkId;
 	}
-	public void setForumAtclCnt(Integer forumAtclCnt) {
-		this.forumAtclCnt = forumAtclCnt;
+	public void setDscsFdbkId(String dscsFdbkId) {
+		this.dscsFdbkId = dscsFdbkId;
 	}
-	public Integer getForumCmntCnt() {
-		return forumCmntCnt;
+	public Integer getDscsAtclCnt() {
+		return dscsAtclCnt;
 	}
-	public void setForumCmntCnt(Integer forumCmntCnt) {
-		this.forumCmntCnt = forumCmntCnt;
+	public void setDscsAtclCnt(Integer dscsAtclCnt) {
+		this.dscsAtclCnt = dscsAtclCnt;
 	}
-	public Integer getForumMyAtclCnt() {
-		return forumMyAtclCnt;
+	public Integer getDscsCmntCnt() {
+		return dscsCmntCnt;
 	}
-	public void setForumMyAtclCnt(Integer forumMyAtclCnt) {
-		this.forumMyAtclCnt = forumMyAtclCnt;
+	public void setDscsCmntCnt(Integer dscsCmntCnt) {
+		this.dscsCmntCnt = dscsCmntCnt;
 	}
-	public Integer getForumMyCmntCnt() {
-		return forumMyCmntCnt;
+	public Integer getDscsMyAtclCnt() {
+		return dscsMyAtclCnt;
 	}
-	public void setForumMyCmntCnt(Integer forumMyCmntCnt) {
-		this.forumMyCmntCnt = forumMyCmntCnt;
+	public void setDscsMyAtclCnt(Integer dscsMyAtclCnt) {
+		this.dscsMyAtclCnt = dscsMyAtclCnt;
+	}
+	public Integer getDscsMyCmntCnt() {
+		return dscsMyCmntCnt;
+	}
+	public void setDscsMyCmntCnt(Integer dscsMyCmntCnt) {
+		this.dscsMyCmntCnt = dscsMyCmntCnt;
 	}
 	public String getMutEvalYn() {
 		return mutEvalYn;

@@ -451,7 +451,7 @@
     function appendTeamForumDetailParam(index, fieldName, value) {
         $('<input>', {
             type: 'hidden',
-            name: 'teamForumDtlList[' + index + '].' + fieldName,
+            name: 'teamDscsDtlList[' + index + '].' + fieldName,
             value: value || '',
             'class': '__teamForumDtlParam'
         }).appendTo('#forumWriteForm');

@@ -234,10 +234,10 @@
                 }
 
                 // 참여현황
-                var joinUserStatusHtml = "<a href='javascript:goDscsScore(\"" + v.dscsId + "\", 3)' class='fcBlue'>" + v.forumJoinUserCnt + "/" + v.forumUserTotalCnt + "</a>";
+                var joinUserStatusHtml = "<a href='javascript:goDscsScore(\"" + v.dscsId + "\", 3)' class='fcBlue'>" + v.dscsJoinUserCnt + "/" + v.dscsUserTotalCnt + "</a>";
 
                 // 평가현황
-                var mrkStatusHtml = "<a href='javascript:goDscsScore(\"" + v.dscsId + "\", 3)' class='fcBlue'>" + v.forumEvalCnt + "/" + v.forumJoinUserCnt + "</a>";
+                var mrkStatusHtml = "<a href='javascript:goDscsScore(\"" + v.dscsId + "\", 3)' class='fcBlue'>" + v.dscsEvalCnt + "/" + v.dscsJoinUserCnt + "</a>";
 
                 // 관리메뉴 추가
                 var mngHtml = "";
@@ -251,14 +251,14 @@
                     dscsUnitTycd: formatDscsUnitTycd(v.dscsUnitTycd),
                     dscsTtl: title,
                     dscsSdttmEdtm: UiComm.formatDate(v.dscsSdttm, 'datetime') + ' ~ ' + UiComm.formatDate(v.dscsEdttm, 'datetime'),
-                    dscsAtclCnt: v.forumAtclCnt,
-                    dscsCmntCnt: v.forumCmntCnt,
+                    dscsAtclCnt: v.dscsAtclCnt,
+                    dscsCmntCnt: v.dscsCmntCnt,
                     scoreRate: mrkRfltrt,
                     joinCnt: joinUserStatusHtml,
                     mrkStatus: mrkStatusHtml,
                     mrkOyn: mrkOynHtml,
-                    forumJoinUserCnt: v.forumJoinUserCnt,
-                    forumUserTotalCnt: v.forumUserTotalCnt,
+                    dscsJoinUserCnt: v.dscsJoinUserCnt,
+                    dscsUserTotalCnt: v.dscsUserTotalCnt,
                     mng: mngHtml,
                     valDscsId: v.dscsId,
                     label: colLabel
@@ -470,7 +470,7 @@
 
                                 <div class="card-body">
                                     <div class="desc">
-                                        <p><label class="label-title"><spring:message code='forum.label.status.join'/></label><strong>#[forumJoinUserCnt]/#[forumUserTotalCnt]</strong></p>
+                                        <p><label class="label-title"><spring:message code='forum.label.status.join'/></label><strong>#[dscsJoinUserCnt]/#[dscsUserTotalCnt]</strong></p>
                                         <p><label class="label-title"><spring:message code='forum.label.forum.date'/></label><strong>#[dscsSdttmEdtm]</strong></p>
                                         <p><label class="label-title"><spring:message code='forum.label.score.ratio'/></label>#[scoreRate]</p>
                                         <p><label class="label-title"><spring:message code='forum.label.eval.status'/></label><strong>#[mrkStatus]</strong></p>

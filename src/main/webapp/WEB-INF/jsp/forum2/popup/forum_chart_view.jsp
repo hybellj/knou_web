@@ -276,7 +276,7 @@
 													'#ff9f40'
 												],
 												borderWidth:1,
-												data: ["${dscsVO.forumAtclPorsCnt}", "${dscsVO.forumAtclConsCnt}"]
+												data: ["${dscsVO.dscsAtclPorsCnt}", "${dscsVO.dscsAtclConsCnt}"]
 											}]
 										},
 										options: {

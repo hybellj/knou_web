@@ -108,7 +108,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
             if(stdArr.length > 0) {
                 for(int i = 0; i < stdArr.length; i++) {
                     vo.setStdId(stdArr[i]);
-                    vo.setForumFdbkCd(IdGenerator.getNewId(IdPrefixType.DSFDK.getCode()));
+                    vo.setDscsFdbkId(IdGenerator.getNewId(IdPrefixType.DSFDK.getCode()));
 
                     /*
                     // 토론 참여자(tb_lms_forum_join_user) 테이블에 등록
@@ -129,7 +129,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
                     List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
                     for (AtflVO atflVO : uploadFileList) {
                         atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
-                        atflVO.setRefId(vo.getForumFdbkCd());
+                        atflVO.setRefId(vo.getDscsFdbkId());
                         atflVO.setRgtrId(vo.getUserId());
                         atflVO.setMdfrId(vo.getUserId());
                         atflVO.setAtflRepoId(CommConst.REPO_DSCS);
@@ -156,7 +156,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
             for(DscsFdbkVO vo1 : forumFdbkList) {
                 AtflVO atflParam = new AtflVO();
                 atflParam.setAtflRepoId(CommConst.REPO_DSCS);
-                atflParam.setRefId(vo1.getForumFdbkCd());
+                atflParam.setRefId(vo1.getDscsFdbkId());
                 List<AtflVO> fileList = attachFileService.selectAtflListByRefId(atflParam);
                 vo1.setFileList(fileList);
             }
@@ -177,7 +177,7 @@ public class DscsFdbkServiceImpl extends ServiceBase implements DscsFdbkService 
             List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
             for (AtflVO atflVO : uploadFileList) {
                 atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
-                atflVO.setRefId(vo.getForumFdbkCd());
+                atflVO.setRefId(vo.getDscsFdbkId());
                 atflVO.setRgtrId(vo.getUserId());
                 atflVO.setMdfrId(vo.getUserId());
                 atflVO.setAtflRepoId(CommConst.REPO_DSCS);

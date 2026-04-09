@@ -6,21 +6,21 @@ public class DscsFdbkVO extends DefaultVO {
     
 	private static final long serialVersionUID = -934507734627621118L;
 	
-	private String  forumFdbkCd;            // 토론 피드백 코드
+	private String  dscsFdbkId;             // 토론 피드백 ID
     private String  dscsId;                 // 토론 코드
     private String  stdId;                  // 수강생 번호
-    private String  parForumFdbkCd;         // 상위 토론 피드백 코드
+    private String  upDscsFdbkId;           // 상위 토론 피드백 ID
     private String  teamId;                 // 팀 ID
     private String  fdbkCts;                // 피드백 내용
     private String  delYn;                  // 삭제 여부
     
     private String selectType;              // 조회유형 (OBJECT, LIST, PAGING)
     
-    public String getForumFdbkCd() {
-        return forumFdbkCd;
+    public String getDscsFdbkId() {
+        return dscsFdbkId;
     }
-    public void setForumFdbkCd(String forumFdbkCd) {
-        this.forumFdbkCd = forumFdbkCd;
+    public void setDscsFdbkId(String dscsFdbkId) {
+        this.dscsFdbkId = dscsFdbkId;
     }
     public String getDscsId() {
         return dscsId;
@@ -34,11 +34,11 @@ public class DscsFdbkVO extends DefaultVO {
     public void setStdId(String stdId) {
         this.stdId = stdId;
     }
-    public String getParForumFdbkCd() {
-        return parForumFdbkCd;
+    public String getUpDscsFdbkId() {
+        return upDscsFdbkId;
     }
-    public void setParForumFdbkCd(String parForumFdbkCd) {
-        this.parForumFdbkCd = parForumFdbkCd;
+    public void setUpDscsFdbkId(String upDscsFdbkId) {
+        this.upDscsFdbkId = upDscsFdbkId;
     }
     public String getTeamId() {
         return teamId;

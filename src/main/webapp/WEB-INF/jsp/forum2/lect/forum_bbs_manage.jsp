@@ -1403,13 +1403,13 @@
                             </div>
                             <div class="flex center-text">
                                 <span><spring:message code='forum.label.pros.status' /></span>
-                                <span>${(dscsVO.forumAtclPorsCnt / dscsVO.forumAtclCnt)*100}%</span>
+                                <span>${(dscsVO.dscsAtclPorsCnt / dscsVO.dscsAtclCnt)*100}%</span>
                                 <!-- 찬성 현황 -->
                                 <div id="pros_progressbar" style="height: 30px; width: 90%; "></div>
                             </div>
                             <div class="flex center-text">
                                 <span><spring:message code='forum.label.cons.status' /></span>
-                                <span> ${(dscsVO.forumAtclConsCnt / dscsVO.forumAtclCnt)*100}%</span>
+                                <span> ${(dscsVO.dscsAtclConsCnt / dscsVO.dscsAtclCnt)*100}%</span>
                                 <!-- 반대 현황 -->
                                 <div id="cons_progressbar" style="height: 30px; width: 90%; "></div>
                             </div>
@@ -1417,13 +1417,13 @@
                                 $(document).ready(function() {
                                     // 찬성 현황 계산
                                     const pros_progressbar = jQuery("#pros_progressbar");
-                                    var value1 = '<c:out value="${(dscsVO.forumAtclPorsCnt / dscsVO.forumAtclCnt)*100}" />';
+                                    var value1 = '<c:out value="${(dscsVO.dscsAtclPorsCnt / dscsVO.dscsAtclCnt)*100}" />';
                                     pros_progressbar.progressbar({value:Number(value1)});
                                     pros_progressbar.find(".ui-progressbar-value").css({"background":"#CC66CC"});
 
                                     // 반대 현황 계산
                                     const cons_progressbar = jQuery("#cons_progressbar");
-                                    var value2 = '<c:out value="${(dscsVO.forumAtclConsCnt / dscsVO.forumAtclCnt)*100}" />';
+                                    var value2 = '<c:out value="${(dscsVO.dscsAtclConsCnt / dscsVO.dscsAtclCnt)*100}" />';
                                     cons_progressbar.progressbar({value:Number(value2)});
                                     cons_progressbar.find(".ui-progressbar-value").css({"background":"#CC66CC"});
                                 });

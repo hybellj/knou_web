@@ -296,7 +296,7 @@ function reloadFeedbackView() {
 }
 
 // 피드백 작성/ 수정하기 
-function addFdbkCts(forumFdbkCd, parForumFdbkCd){
+function addFdbkCts(dscsFdbkId, upDscsFdbkId){
 	var fdbkCts = $("#fdbkCts").val();
 
 	if(fdbkCts == null || fdbkCts == "") {
@@ -304,10 +304,10 @@ function addFdbkCts(forumFdbkCd, parForumFdbkCd){
 		$("#toggleBox"+index ).addClass("off").removeClass("on");
 	} else {
 		$("#fdbkCts").val('');
-		if(forumFdbkCd == "" ||forumFdbkCd == null ) {
+		if(dscsFdbkId == "" || dscsFdbkId == null ) {
 			$.getJSON("/forum2/forumLect/addFdbkCts.do", {
 				"fdbkCts" : fdbkCts,
-				"parForumFdbkCd" : parForumFdbkCd,
+				"upDscsFdbkId" : upDscsFdbkId,
 				"dscsId" : $("#ezgDscsId").val(),
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
@@ -325,7 +325,7 @@ function addFdbkCts(forumFdbkCd, parForumFdbkCd){
 		} else {
 			$.getJSON("/forum2/forumLect/editFdbkCts.do", {
 				"fdbkCts" : fdbkCts,
-				"forumFdbkCd" : forumFdbkCd,
+				"dscsFdbkId" : dscsFdbkId,
 				"dscsId" : $("#ezgDscsId").val(),
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
@@ -357,13 +357,13 @@ function btnAddFdbk() {
 }
 
 // 피드백 수정버튼 클릭
-function btnEditFdbk(index, forumFdbkCd){
+function btnEditFdbk(index, dscsFdbkId){
 	var fdbkCts = $("#cts"+index).text().trim();
 
 	if(!$("#toggle").hasClass("on")) {
 		var btn = "";
 		btn += "<li id=\"editBtn\">";
-		btn += "<a class=\"ui basic grey small button\" onclick=\"addFdbkCts('"+forumFdbkCd+"');\" ><spring:message code="forum.button.mod" /></a>"; // 수정
+		btn += "<a class=\"ui basic grey small button\" onclick=\"addFdbkCts('"+dscsFdbkId+"');\" ><spring:message code="forum.button.mod" /></a>"; // 수정
 		btn += "</li>";
 		$("#addBtn").after(btn);
 		$("#addBtn").remove();
@@ -383,10 +383,10 @@ function btnEditFdbk(index, forumFdbkCd){
 }
 
 // 피드백 댓글 버튼
-function btnAddFCmnt(index,forumFdbkCd) {
+function btnAddFCmnt(index, dscsFdbkId) {
 	var btn = "";
 	btn += "<li id=\"addBtnFCmnt\">";
-	btn += "<a class=\"ui basic grey small button\" onclick=\"addFCmntCts('"+index+"','','"+forumFdbkCd+"');\" ><spring:message code="forum.button.write" /></a>"; // 등록
+	btn += "<a class=\"ui basic grey small button\" onclick=\"addFCmntCts('"+index+"','','"+dscsFdbkId+"');\" ><spring:message code="forum.button.write" /></a>"; // 등록
 	btn += "</li>";
 
 	$("#toggle"+index).children().find('li#editBtnFCmnt').after(btn);
@@ -395,13 +395,13 @@ function btnAddFCmnt(index,forumFdbkCd) {
 }
 
 // 피드백 댓글 수정 버튼
-function btnEditFCmnt(index,forumFdbkCd){
+function btnEditFCmnt(index, dscsFdbkId){
 	var fdbkCts = $("#cts"+index).text().trim();
 	
 	if(!$("#toggle"+index).hasClass("on")){
 		var btn = "";
 		btn += "<li id=\"editBtnFCmnt\">";
-		btn += "<a class=\"ui basic grey small button\" onclick=\"addFCmntCts('"+index+"','"+forumFdbkCd+"');\" ><spring:message code="forum.button.mod" /></a>"; // 수정
+		btn += "<a class=\"ui basic grey small button\" onclick=\"addFCmntCts('"+index+"','"+dscsFdbkId+"');\" ><spring:message code="forum.button.mod" /></a>"; // 수정
 		btn += "</li>";
 		
 		$("#toggle"+index).children().find('li#addBtnFCmnt').after(btn);
@@ -412,7 +412,7 @@ function btnEditFCmnt(index,forumFdbkCd){
 	} else {
 		var btn = "";
 		btn += "<li id=\"addBtnFCmnt\">";
-		btn += "<a class=\"ui basic grey small button\" onclick=\"addFCmntCts('"+index+"','','"+forumFdbkCd+"');\" ><spring:message code="forum.button.write" /></a>"; // 등록
+		btn += "<a class=\"ui basic grey small button\" onclick=\"addFCmntCts('"+index+"','','"+dscsFdbkId+"');\" ><spring:message code="forum.button.write" /></a>"; // 등록
 		btn += "</li>";
 		
 		$("#toggle"+index).children().find('li#editBtnFCmnt').after(btn);
@@ -423,7 +423,7 @@ function btnEditFCmnt(index,forumFdbkCd){
 }
 
 // 피드백  댓글 작성/ 수정하기 
-function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
+function addFCmntCts(index, dscsFdbkId, upDscsFdbkId) {
 	var fCmnt = $("#toggle"+index).children().find('textarea#fdbkCmnt'+index).val();
 	
 	if(fCmnt == null || fCmnt == "") {
@@ -431,10 +431,10 @@ function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
 		$("#toggle"+index ).addClass("off").removeClass("on");
 	} else {
 		$("#toggle"+index).children().find('textarea#fdbkCmnt'+index).val('');
-		if(forumFdbkCd == "" ||forumFdbkCd == null ) {
+		if(dscsFdbkId == "" || dscsFdbkId == null ) {
 			$.getJSON("/forum2/forumLect/addFdbkCts.do", {
 				"fdbkCts" : fCmnt,
-				"parForumFdbkCd" : parForumFdbkCd,
+				"upDscsFdbkId" : upDscsFdbkId,
 				"dscsId" : $("#ezgDscsId").val(),
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
@@ -452,7 +452,7 @@ function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
 		} else {
 			$.getJSON("/forum2/forumLect/editFdbkCts.do", {
 				"fdbkCts" : fCmnt,
-				"forumFdbkCd" : forumFdbkCd,
+				"dscsFdbkId" : dscsFdbkId,
 				"dscsId" : $("#ezgDscsId").val(),
 				"stdId" : $("#selectedStdId").val(),
 				"userId" : $("#selectedUserId").val(),
@@ -472,11 +472,11 @@ function addFCmntCts(index,forumFdbkCd,parForumFdbkCd) {
 }
 
 // 피드백 삭제
-function delFdbk(forumFdbkCd) {
+function delFdbk(dscsFdbkId) {
 	alert("<spring:message code='forum.alert.edit.feedback.del.confirm'/>"); // 피드백을 삭제하시겠습니까?
 	$("#alertOk").on('click', function(e) {
 		$.getJSON("/forum2/forumLect/delFdbkCts.do", {
-			"forumFdbkCd" : forumFdbkCd,
+			"dscsFdbkId" : dscsFdbkId,
 			"stdId" : $("#selectedStdId").val(),
 			"dscsId" : $("#ezgDscsId").val(),
 			"userId" : $("#selectedUserId").val(),

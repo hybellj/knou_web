@@ -30,9 +30,9 @@ public class DscsAtclVO extends DefaultVO {
     private String recomStatus;
     private List<?> cmntList;
 
-    private int forumAtclCnt;
-    private int forumAtclPorsCnt;
-    private int forumAtclConsCnt;
+    private int dscsAtclCnt;
+    private int dscsAtclPorsCnt;
+    private int dscsAtclConsCnt;
     private int cmntCount;
     private int myCmntCount;
     private int maxOdr;
@@ -216,28 +216,28 @@ public class DscsAtclVO extends DefaultVO {
         this.cmntList = cmntList;
     }
 
-    public int getForumAtclCnt() {
-        return forumAtclCnt;
+    public int getDscsAtclCnt() {
+        return dscsAtclCnt;
     }
 
-    public void setForumAtclCnt(int forumAtclCnt) {
-        this.forumAtclCnt = forumAtclCnt;
+    public void setDscsAtclCnt(int dscsAtclCnt) {
+        this.dscsAtclCnt = dscsAtclCnt;
     }
 
-    public int getForumAtclPorsCnt() {
-        return forumAtclPorsCnt;
+    public int getDscsAtclPorsCnt() {
+        return dscsAtclPorsCnt;
     }
 
-    public void setForumAtclPorsCnt(int forumAtclPorsCnt) {
-        this.forumAtclPorsCnt = forumAtclPorsCnt;
+    public void setDscsAtclPorsCnt(int dscsAtclPorsCnt) {
+        this.dscsAtclPorsCnt = dscsAtclPorsCnt;
     }
 
-    public int getForumAtclConsCnt() {
-        return forumAtclConsCnt;
+    public int getDscsAtclConsCnt() {
+        return dscsAtclConsCnt;
     }
 
-    public void setForumAtclConsCnt(int forumAtclConsCnt) {
-        this.forumAtclConsCnt = forumAtclConsCnt;
+    public void setDscsAtclConsCnt(int dscsAtclConsCnt) {
+        this.dscsAtclConsCnt = dscsAtclConsCnt;
     }
 
     public int getCmntCount() {

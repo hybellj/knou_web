@@ -39,15 +39,15 @@ public class DscsListVO extends DefaultVO {
 
     /*DB와 관계없는 파라미터*/
     private boolean viewAll; // 전체조회여부 (교수: 삭제여부 관계없이 조회)
-    private Integer forumAtclCnt; // 목록표시: 게시글 개수
-    private Integer forumCmntCnt; // 목록표시: 댓글 개수
-    private Integer forumUserTotalCnt; // 목록표시: 총 인원 수
-    private Integer forumJoinUserCnt; // 목록표시: 참여자 수
-    private Integer forumEvalCnt;  // 목록표시: 평가한 인원수
-    private Integer forumMyAtclCnt; // 목록표시: 나의 게시글 개수
-    private Integer forumMyCmntCnt; // 목록표시: 나의 댓글 개수
-    private Integer forumMyScore; // 목록표시: 나의 점수
-    private Integer forumMyFdbk; // 목록표시: 나의 피드백 여부
+    private Integer dscsAtclCnt; // 목록표시: 게시글 개수
+    private Integer dscsCmntCnt; // 목록표시: 댓글 개수
+    private Integer dscsUserTotalCnt; // 목록표시: 총 인원 수
+    private Integer dscsJoinUserCnt; // 목록표시: 참여자 수
+    private Integer dscsEvalCnt;  // 목록표시: 평가한 인원수
+    private Integer dscsMyAtclCnt; // 목록표시: 나의 게시글 개수
+    private Integer dscsMyCmntCnt; // 목록표시: 나의 댓글 개수
+    private Integer dscsMyScore; // 목록표시: 나의 점수
+    private Integer dscsMyFdbk; // 목록표시: 나의 피드백 여부
 
     public String getSbjctId() {
         return sbjctId;
@@ -289,75 +289,75 @@ public class DscsListVO extends DefaultVO {
         this.viewAll = viewAll;
     }
 
-    public Integer getForumAtclCnt() {
-        return forumAtclCnt;
+    public Integer getDscsAtclCnt() {
+        return dscsAtclCnt;
     }
 
-    public void setForumAtclCnt(Integer forumAtclCnt) {
-        this.forumAtclCnt = forumAtclCnt;
+    public void setDscsAtclCnt(Integer dscsAtclCnt) {
+        this.dscsAtclCnt = dscsAtclCnt;
     }
 
-    public Integer getForumCmntCnt() {
-        return forumCmntCnt;
+    public Integer getDscsCmntCnt() {
+        return dscsCmntCnt;
     }
 
-    public void setForumCmntCnt(Integer forumCmntCnt) {
-        this.forumCmntCnt = forumCmntCnt;
+    public void setDscsCmntCnt(Integer dscsCmntCnt) {
+        this.dscsCmntCnt = dscsCmntCnt;
     }
 
-    public Integer getForumUserTotalCnt() {
-        return forumUserTotalCnt;
+    public Integer getDscsUserTotalCnt() {
+        return dscsUserTotalCnt;
     }
 
-    public void setForumUserTotalCnt(Integer forumUserTotalCnt) {
-        this.forumUserTotalCnt = forumUserTotalCnt;
+    public void setDscsUserTotalCnt(Integer dscsUserTotalCnt) {
+        this.dscsUserTotalCnt = dscsUserTotalCnt;
     }
 
-    public Integer getForumJoinUserCnt() {
-        return forumJoinUserCnt;
+    public Integer getDscsJoinUserCnt() {
+        return dscsJoinUserCnt;
     }
 
-    public void setForumJoinUserCnt(Integer forumJoinUserCnt) {
-        this.forumJoinUserCnt = forumJoinUserCnt;
+    public void setDscsJoinUserCnt(Integer dscsJoinUserCnt) {
+        this.dscsJoinUserCnt = dscsJoinUserCnt;
     }
 
-    public Integer getForumEvalCnt() {
-        return forumEvalCnt;
+    public Integer getDscsEvalCnt() {
+        return dscsEvalCnt;
     }
 
-    public void setForumEvalCnt(Integer forumEvalCnt) {
-        this.forumEvalCnt = forumEvalCnt;
+    public void setDscsEvalCnt(Integer dscsEvalCnt) {
+        this.dscsEvalCnt = dscsEvalCnt;
     }
 
-    public Integer getForumMyAtclCnt() {
-        return forumMyAtclCnt;
+    public Integer getDscsMyAtclCnt() {
+        return dscsMyAtclCnt;
     }
 
-    public void setForumMyAtclCnt(Integer forumMyAtclCnt) {
-        this.forumMyAtclCnt = forumMyAtclCnt;
+    public void setDscsMyAtclCnt(Integer dscsMyAtclCnt) {
+        this.dscsMyAtclCnt = dscsMyAtclCnt;
     }
 
-    public Integer getForumMyCmntCnt() {
-        return forumMyCmntCnt;
+    public Integer getDscsMyCmntCnt() {
+        return dscsMyCmntCnt;
     }
 
-    public void setForumMyCmntCnt(Integer forumMyCmntCnt) {
-        this.forumMyCmntCnt = forumMyCmntCnt;
+    public void setDscsMyCmntCnt(Integer dscsMyCmntCnt) {
+        this.dscsMyCmntCnt = dscsMyCmntCnt;
     }
 
-    public Integer getForumMyScore() {
-        return forumMyScore;
+    public Integer getDscsMyScore() {
+        return dscsMyScore;
     }
 
-    public void setForumMyScore(Integer forumMyScore) {
-        this.forumMyScore = forumMyScore;
+    public void setDscsMyScore(Integer dscsMyScore) {
+        this.dscsMyScore = dscsMyScore;
     }
 
-    public Integer getForumMyFdbk() {
-        return forumMyFdbk;
+    public Integer getDscsMyFdbk() {
+        return dscsMyFdbk;
     }
 
-    public void setForumMyFdbk(Integer forumMyFdbk) {
-        this.forumMyFdbk = forumMyFdbk;
+    public void setDscsMyFdbk(Integer dscsMyFdbk) {
+        this.dscsMyFdbk = dscsMyFdbk;
     }
 }

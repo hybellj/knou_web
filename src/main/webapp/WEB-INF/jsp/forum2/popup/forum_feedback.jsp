@@ -215,7 +215,7 @@
 
 	 		var url = "/forum2/forumLect/edtFdbk.do";
 			var data = {
-				"forumFdbkCd" : $("#fdbk"+edtNo).data("fdbkCd"),
+				"dscsFdbkId" : $("#fdbk"+edtNo).data("dscsFdbkId"),
 				"fdbkCts"     : $("#fdbkValue"+edtNo).val(),
 				"uploadFiles" : fileUploaderNewFeedback != null ? fileUploaderNewFeedback.getUploadFiles() : "",
 				"uploadPath"  : fileUploaderNewFeedback != null ? fileUploaderNewFeedback.getUploadPath() : "",
@@ -242,7 +242,7 @@
 			if(window.confirm("<spring:message code='forum.button.confirm.del'/>")) { // 정말 삭제하시겠습니까?
 				var url  = "/forum2/forumLect/delFdbk.do";
 				var data = {
-					"forumFdbkCd" : $("#fdbk"+i).data("fdbkCd")
+					"dscsFdbkId" : $("#fdbk"+i).data("dscsFdbkId")
 				};
 
 				ajaxCall(url, data, function(data) {
@@ -277,7 +277,7 @@
 					}
 				}
 
-				html += "<div class='ui segment' id='fdbk"+(i+1)+"' data-FDBK-CD='"+o.forumFdbkCd+"'>";
+				html += "<div class='ui segment' id='fdbk"+(i+1)+"' data-DSCS-FDBK-ID='"+o.dscsFdbkId+"'>";
                 html += "	<div class='option-content mb10'>";
 	            html += "		<p class='mra'>"+dateFormat(o.regDttm)+"</p>";
 	            if("${menuType}" != 'STUDENT'){}

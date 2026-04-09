@@ -229,9 +229,9 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
 
             // 팀별 부주제 설정 시: 팀수만큼 자식 토론 생성
             if ("Y".equalsIgnoreCase(byteamDscsUseyn)) {
-                List<DscsTeamDscsVO> teamForumDtlList = vo.getTeamForumDtlList();
-                if (teamForumDtlList != null) {
-                    for (DscsTeamDscsVO teamDtl : teamForumDtlList) {
+                List<DscsTeamDscsVO> teamDscsDtlList = vo.getTeamDscsDtlList();
+                if (teamDscsDtlList != null) {
+                    for (DscsTeamDscsVO teamDtl : teamDscsDtlList) {
                         if (teamDtl == null || !dvclasNo.equals(teamDtl.getDvclasNo())) {
                             continue;
                         }
@@ -335,9 +335,9 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
 
         // 2-4: TEAM 유지 + byteamDscsUseyn Y → Y 시 자식 토론 제목/내용 UPDATE
         if (wasTeam && isTeamDiscussion && "Y".equals(newByteam)) {
-            List<DscsTeamDscsVO> teamForumDtlList = vo.getTeamForumDtlList();
-            if (teamForumDtlList != null) {
-                for (DscsTeamDscsVO teamDtl : teamForumDtlList) {
+            List<DscsTeamDscsVO> teamDscsDtlList = vo.getTeamDscsDtlList();
+            if (teamDscsDtlList != null) {
+                for (DscsTeamDscsVO teamDtl : teamDscsDtlList) {
                     if (teamDtl == null || StringUtil.isNull(teamDtl.getTeamId())) continue;
                     teamDtl.setUpDscsId(vo.getDscsId());
                     teamDtl.setMdfrId(vo.getMdfrId());
@@ -385,12 +385,12 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
 
             // byteamDscsUseyn='Y' 이면 팀별 자식 토론 생성
             if ("Y".equals(newByteam)) {
-                List<DscsTeamDscsVO> teamForumDtlList = vo.getTeamForumDtlList();
-                if (teamForumDtlList != null) {
+                List<DscsTeamDscsVO> teamDscsDtlList = vo.getTeamDscsDtlList();
+                if (teamDscsDtlList != null) {
                     String parentDscsId = vo.getDscsId();
                     String origDscsTtl  = vo.getDscsTtl();
                     String origDscsCts  = vo.getDscsCts();
-                    for (DscsTeamDscsVO teamDtl : teamForumDtlList) {
+                    for (DscsTeamDscsVO teamDtl : teamDscsDtlList) {
                         if (teamDtl == null) continue;
                         vo.setDscsId(IdGenerator.getNewId(IdPrefixType.DSCS.getCode()));
                         vo.setUpDscsId(parentDscsId);
@@ -563,8 +563,8 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
         copyFileVO = new FileVO();
         copyFileVO.setOrgId(orgId);
         copyFileVO.setRepoCd("FORUM");
-        copyFileVO.setFileBindDataSn(forumCd);
-        copyFileVO.setCopyFileBindDataSn(copyForumCd);
+        copyFileVO.setFileBindDataSn(dscsId);
+        copyFileVO.setCopyFileBindDataSn(copyDscsId);
         copyFileVO.setRgtrId(rgtrId);
 
         sysFileService.copyFileInfoFromOrigin(copyFileVO);

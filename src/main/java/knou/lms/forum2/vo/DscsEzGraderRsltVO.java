@@ -10,7 +10,7 @@ public class DscsEzGraderRsltVO extends DefaultVO {
 
     private String dscsId;
     private String evalCd;
-    private String forumSendCd;
+    private String dscsSendCd;
     private String mutEvalCd;
     private String rltnTeamCd;
     private String evalUserId;
@@ -44,11 +44,11 @@ public class DscsEzGraderRsltVO extends DefaultVO {
     public void setEvalCd(String evalCd) {
         this.evalCd = evalCd;
     }
-    public String getForumSendCd() {
-        return forumSendCd;
+    public String getDscsSendCd() {
+        return dscsSendCd;
     }
-    public void setForumSendCd(String forumSendCd) {
-        this.forumSendCd = forumSendCd;
+    public void setDscsSendCd(String dscsSendCd) {
+        this.dscsSendCd = dscsSendCd;
     }
     public String getMutEvalCd() {
         return mutEvalCd;

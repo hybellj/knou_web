@@ -133,10 +133,10 @@
 			, MDFR_ID
 			, MOD_DTTM
 		) VALUES (
-			#{forumFdbkCd}
+			#{dscsFdbkId}
 			, #{dscsId}
 			, #{stdId}
-			, #{parForumFdbkCd}
+			, #{upDscsFdbkId}
 			, #{teamId}
 			, #{fdbkCts}
 			, 'N'
@@ -155,8 +155,8 @@
 		UPDATE TB_LMS_DSCS_FDBK SET
 			  MDFR_ID = #{mdfrId}
 			, MOD_DTTM = FN_DTTM()
-			<if test="parForumFdbkCd != null and parForumFdbkCd != ''">
-			, UP_DSCS_FDBK_ID = #{parForumFdbkCd}
+			<if test="upDscsFdbkId != null and upDscsFdbkId != ''">
+			, UP_DSCS_FDBK_ID = #{upDscsFdbkId}
 			</if>
 			<if test="teamId != null and teamId != ''">
 			, TEAM_ID = #{teamId}
@@ -167,7 +167,7 @@
 			<if test="delYn != null and delYn != ''">
 			, DELYN = #{delYn}
 			</if>
-		WHERE DSCS_FDBK_ID = #{forumFdbkCd}
+		WHERE DSCS_FDBK_ID = #{dscsFdbkId}
 			AND DSCS_ID = #{dscsId}
 			<if test="stdId != null and stdId != ''">
 			AND USER_ID = #{stdId}
@@ -183,7 +183,7 @@
 			  MDFR_ID = #{mdfrId}
 			, MOD_DTTM = FN_DTTM()
 			, DELYN = 'Y'
-		WHERE DSCS_FDBK_ID = #{forumFdbkCd}
+		WHERE DSCS_FDBK_ID = #{dscsFdbkId}
 			AND DSCS_ID = #{dscsId}
 			<if test="stdId != null and stdId != ''">
 			AND USER_ID = #{stdId}
@@ -241,10 +241,10 @@
 			, MOD_DTTM
 		)
 		VALUES (
-			#{forumFdbkCd}
+			#{dscsFdbkId}
 			, #{dscsId}
 			, #{stdId}
-			, #{parForumFdbkCd}
+			, #{upDscsFdbkId}
 			, #{teamId}
 			, #{fdbkCts}
 			, 'N'
@@ -263,8 +263,8 @@
 		SELECT
 			ROW_NUMBER() OVER(ORDER BY REG_DTTM) AS LINE_NO
 			, COUNT(DSCS_FDBK_ID) OVER() AS TOTAL_CNT
-			, DSCS_FDBK_ID AS forumFdbkCd
-			, UP_DSCS_FDBK_ID AS parForumFdbkCd
+			, DSCS_FDBK_ID AS dscsFdbkId
+			, UP_DSCS_FDBK_ID AS upDscsFdbkId
 			, DSCS_ID AS dscsId
 			, USER_ID AS stdId
 			, TEAM_ID AS teamId
@@ -291,7 +291,7 @@
 		   SET MDFR_ID = #{userId}
 			   , MOD_DTTM = FN_DTTM()
 			   , FDBK_CTS = #{fdbkCts}
-		 WHERE DSCS_FDBK_ID = #{forumFdbkCd}
+		 WHERE DSCS_FDBK_ID = #{dscsFdbkId}
 	</update>
 
 	<update id="deleteFdbk" parameterType="dscsFdbkVO">
@@ -303,7 +303,7 @@
 		   SET MDFR_ID = #{userId}
 			   , MOD_DTTM = FN_DTTM()
 			   , DELYN = 'Y'
-		 WHERE DSCS_FDBK_ID = #{forumFdbkCd}
+		 WHERE DSCS_FDBK_ID = #{dscsFdbkId}
 	</update>
 
 	<select id="cntFdbk" resultType="int">

@@ -53,23 +53,23 @@ public class DscsVO extends DefaultVO {
     private List<DscsDvclasSelVO> dvclasSelList; // 분반선택 목록(sbjctIds)
     private List<DscsLrnGrpVO> lrnGrpInfoList; // 학습그룹선택 목록(teamForumDiv)
     private List<DscsTeamDscsVO> teamDscsList;     // 팀토론 상세목록 (SELECT용)
-    private List<DscsTeamDscsVO> teamForumDtlList; // 팀별 부주제 입력 목록 (INSERT용, JSP 바인딩)
+    private List<DscsTeamDscsVO> teamDscsDtlList; // 팀별 부주제 입력 목록 (INSERT용, JSP 바인딩)
 
     /*DB와 관계없는 파라미터*/
-    private Integer forumAtclCnt;               // 게시글 갯수
-    private Integer forumCmntCnt;               // 댓글 갯수
-    private Integer forumMyAtclCnt;             // 내가 쓴 게시글 갯수
-    private Integer forumMyCmntCnt;             // 내가 쓴 댓글 갯수
-    private Integer forumAtclPorsCnt;           // 찬성 게시글 갯수
-    private Integer forumAtclConsCnt;           // 반대 게시글 갯수
-    private Integer forumUserTotalCnt;          // 총 인원 수
-    private Integer forumJoinUserCnt;           // 참여자 수
-    private Integer forumMyScore;               // 내 평가 점수
-    private Integer forumMyFdbk;                // 패드백
-    private Integer forumEvalCnt;               // 평가한 인원수
+    private Integer dscsAtclCnt;                // 게시글 갯수
+    private Integer dscsCmntCnt;                // 댓글 갯수
+    private Integer dscsMyAtclCnt;              // 내가 쓴 게시글 갯수
+    private Integer dscsMyCmntCnt;              // 내가 쓴 댓글 갯수
+    private Integer dscsAtclPorsCnt;            // 찬성 게시글 갯수
+    private Integer dscsAtclConsCnt;            // 반대 게시글 갯수
+    private Integer dscsUserTotalCnt;           // 총 인원 수
+    private Integer dscsJoinUserCnt;            // 참여자 수
+    private Integer dscsMyScore;                // 내 평가 점수
+    private Integer dscsMyFdbk;                 // 피드백
+    private Integer dscsEvalCnt;                // 평가한 인원수
 
     private String smstrChrtId;                 // 학기기수아이디
-    private String forumOpenYn;
+    private String dscsOpenYn;
     private String teamAtclOpenYn;
     private Integer evalLimitCnt;
     private String evalRsltOpenYn;
@@ -80,20 +80,20 @@ public class DscsVO extends DefaultVO {
     private String mutEvalYn;
     private String aplyAsnYn;
     private String otherViewYn;
-    private String teamForumCfgYn;
+    private String teamDscsCfgYn;
     private String otherTeamViewYn;
     private String otherTeamAplyYn;
-    private String forumStatus;
+    private String dscsStatus;
     private String teamTycd;
     private String teamCtgrCd;
     private String teamCtgrNm;
     private String teamNm;
     private String stdId;
     private String stdList;
-    private String copyForumCd;
+    private String copyDscsId;
     private String lessonScheduleId;
     private String lessonScheduleNm;
-    private String forumCtgrNm;
+    private String dscsCtgrNm;
     private int likes;
     private String recomStatus;
     private String[] deleteFileId;
@@ -444,107 +444,107 @@ public class DscsVO extends DefaultVO {
         this.teamDscsList = teamDscsList;
     }
 
-    public List<DscsTeamDscsVO> getTeamForumDtlList() {
-        return teamForumDtlList;
+    public List<DscsTeamDscsVO> getTeamDscsDtlList() {
+        return teamDscsDtlList;
     }
 
-    public void setTeamForumDtlList(List<DscsTeamDscsVO> teamForumDtlList) {
-        this.teamForumDtlList = teamForumDtlList;
+    public void setTeamDscsDtlList(List<DscsTeamDscsVO> teamDscsDtlList) {
+        this.teamDscsDtlList = teamDscsDtlList;
     }
 
-    public Integer getForumAtclCnt() {
-        return forumAtclCnt;
+    public Integer getDscsAtclCnt() {
+        return dscsAtclCnt;
     }
 
-    public void setForumAtclCnt(Integer forumAtclCnt) {
-        this.forumAtclCnt = forumAtclCnt;
+    public void setDscsAtclCnt(Integer dscsAtclCnt) {
+        this.dscsAtclCnt = dscsAtclCnt;
     }
 
-    public Integer getForumCmntCnt() {
-        return forumCmntCnt;
+    public Integer getDscsCmntCnt() {
+        return dscsCmntCnt;
     }
 
-    public void setForumCmntCnt(Integer forumCmntCnt) {
-        this.forumCmntCnt = forumCmntCnt;
+    public void setDscsCmntCnt(Integer dscsCmntCnt) {
+        this.dscsCmntCnt = dscsCmntCnt;
     }
 
-    public Integer getForumMyAtclCnt() {
-        return forumMyAtclCnt;
+    public Integer getDscsMyAtclCnt() {
+        return dscsMyAtclCnt;
     }
 
-    public void setForumMyAtclCnt(Integer forumMyAtclCnt) {
-        this.forumMyAtclCnt = forumMyAtclCnt;
+    public void setDscsMyAtclCnt(Integer dscsMyAtclCnt) {
+        this.dscsMyAtclCnt = dscsMyAtclCnt;
     }
 
-    public Integer getForumMyCmntCnt() {
-        return forumMyCmntCnt;
+    public Integer getDscsMyCmntCnt() {
+        return dscsMyCmntCnt;
     }
 
-    public void setForumMyCmntCnt(Integer forumMyCmntCnt) {
-        this.forumMyCmntCnt = forumMyCmntCnt;
+    public void setDscsMyCmntCnt(Integer dscsMyCmntCnt) {
+        this.dscsMyCmntCnt = dscsMyCmntCnt;
     }
 
-    public Integer getForumAtclPorsCnt() {
-        return forumAtclPorsCnt;
+    public Integer getDscsAtclPorsCnt() {
+        return dscsAtclPorsCnt;
     }
 
-    public void setForumAtclPorsCnt(Integer forumAtclPorsCnt) {
-        this.forumAtclPorsCnt = forumAtclPorsCnt;
+    public void setDscsAtclPorsCnt(Integer dscsAtclPorsCnt) {
+        this.dscsAtclPorsCnt = dscsAtclPorsCnt;
     }
 
-    public Integer getForumAtclConsCnt() {
-        return forumAtclConsCnt;
+    public Integer getDscsAtclConsCnt() {
+        return dscsAtclConsCnt;
     }
 
-    public void setForumAtclConsCnt(Integer forumAtclConsCnt) {
-        this.forumAtclConsCnt = forumAtclConsCnt;
+    public void setDscsAtclConsCnt(Integer dscsAtclConsCnt) {
+        this.dscsAtclConsCnt = dscsAtclConsCnt;
     }
 
-    public Integer getForumUserTotalCnt() {
-        return forumUserTotalCnt;
+    public Integer getDscsUserTotalCnt() {
+        return dscsUserTotalCnt;
     }
 
-    public void setForumUserTotalCnt(Integer forumUserTotalCnt) {
-        this.forumUserTotalCnt = forumUserTotalCnt;
+    public void setDscsUserTotalCnt(Integer dscsUserTotalCnt) {
+        this.dscsUserTotalCnt = dscsUserTotalCnt;
     }
 
-    public Integer getForumJoinUserCnt() {
-        return forumJoinUserCnt;
+    public Integer getDscsJoinUserCnt() {
+        return dscsJoinUserCnt;
     }
 
-    public void setForumJoinUserCnt(Integer forumJoinUserCnt) {
-        this.forumJoinUserCnt = forumJoinUserCnt;
+    public void setDscsJoinUserCnt(Integer dscsJoinUserCnt) {
+        this.dscsJoinUserCnt = dscsJoinUserCnt;
     }
 
-    public Integer getForumMyScore() {
-        return forumMyScore;
+    public Integer getDscsMyScore() {
+        return dscsMyScore;
     }
 
-    public void setForumMyScore(Integer forumMyScore) {
-        this.forumMyScore = forumMyScore;
+    public void setDscsMyScore(Integer dscsMyScore) {
+        this.dscsMyScore = dscsMyScore;
     }
 
-    public Integer getForumMyFdbk() {
-        return forumMyFdbk;
+    public Integer getDscsMyFdbk() {
+        return dscsMyFdbk;
     }
 
-    public void setForumMyFdbk(Integer forumMyFdbk) {
-        this.forumMyFdbk = forumMyFdbk;
+    public void setDscsMyFdbk(Integer dscsMyFdbk) {
+        this.dscsMyFdbk = dscsMyFdbk;
     }
 
-    public Integer getForumEvalCnt() {
-        return forumEvalCnt;
+    public Integer getDscsEvalCnt() {
+        return dscsEvalCnt;
     }
 
-    public void setForumEvalCnt(Integer forumEvalCnt) {
-        this.forumEvalCnt = forumEvalCnt;
+    public void setDscsEvalCnt(Integer dscsEvalCnt) {
+        this.dscsEvalCnt = dscsEvalCnt;
     }
 
     public String getSmstrChrtId() { return smstrChrtId; }
     public void setSmstrChrtId(String smstrChrtId) { this.smstrChrtId = smstrChrtId; }
 
-    public String getForumOpenYn() { return forumOpenYn; }
-    public void setForumOpenYn(String forumOpenYn) { this.forumOpenYn = forumOpenYn; }
+    public String getDscsOpenYn() { return dscsOpenYn; }
+    public void setDscsOpenYn(String dscsOpenYn) { this.dscsOpenYn = dscsOpenYn; }
     public String getTeamAtclOpenYn() { return teamAtclOpenYn; }
     public void setTeamAtclOpenYn(String teamAtclOpenYn) { this.teamAtclOpenYn = teamAtclOpenYn; }
     public Integer getEvalLimitCnt() { return evalLimitCnt; }
@@ -565,14 +565,14 @@ public class DscsVO extends DefaultVO {
     public void setAplyAsnYn(String aplyAsnYn) { this.aplyAsnYn = aplyAsnYn; }
     public String getOtherViewYn() { return otherViewYn; }
     public void setOtherViewYn(String otherViewYn) { this.otherViewYn = otherViewYn; }
-    public String getTeamForumCfgYn() { return teamForumCfgYn; }
-    public void setTeamForumCfgYn(String teamForumCfgYn) { this.teamForumCfgYn = teamForumCfgYn; }
+    public String getTeamDscsCfgYn() { return teamDscsCfgYn; }
+    public void setTeamDscsCfgYn(String teamDscsCfgYn) { this.teamDscsCfgYn = teamDscsCfgYn; }
     public String getOtherTeamViewYn() { return otherTeamViewYn; }
     public void setOtherTeamViewYn(String otherTeamViewYn) { this.otherTeamViewYn = otherTeamViewYn; }
     public String getOtherTeamAplyYn() { return otherTeamAplyYn; }
     public void setOtherTeamAplyYn(String otherTeamAplyYn) { this.otherTeamAplyYn = otherTeamAplyYn; }
-    public String getForumStatus() { return forumStatus; }
-    public void setForumStatus(String forumStatus) { this.forumStatus = forumStatus; }
+    public String getDscsStatus() { return dscsStatus; }
+    public void setDscsStatus(String dscsStatus) { this.dscsStatus = dscsStatus; }
     public String getTeamCtgrCd() { return teamCtgrCd; }
     public void setTeamCtgrCd(String teamCtgrCd) { this.teamCtgrCd = teamCtgrCd; }
     public String getTeamCtgrNm() { return teamCtgrNm; }
@@ -583,14 +583,14 @@ public class DscsVO extends DefaultVO {
     public void setStdId(String stdId) { this.stdId = stdId; }
     public String getStdList() { return stdList; }
     public void setStdList(String stdList) { this.stdList = stdList; }
-    public String getCopyForumCd() { return copyForumCd; }
-    public void setCopyForumCd(String copyForumCd) { this.copyForumCd = copyForumCd; }
+    public String getCopyDscsId() { return copyDscsId; }
+    public void setCopyDscsId(String copyDscsId) { this.copyDscsId = copyDscsId; }
     public String getLessonScheduleId() { return lessonScheduleId; }
     public void setLessonScheduleId(String lessonScheduleId) { this.lessonScheduleId = lessonScheduleId; }
     public String getLessonScheduleNm() { return lessonScheduleNm; }
     public void setLessonScheduleNm(String lessonScheduleNm) { this.lessonScheduleNm = lessonScheduleNm; }
-    public String getForumCtgrNm() { return forumCtgrNm; }
-    public void setForumCtgrNm(String forumCtgrNm) { this.forumCtgrNm = forumCtgrNm; }
+    public String getDscsCtgrNm() { return dscsCtgrNm; }
+    public void setDscsCtgrNm(String dscsCtgrNm) { this.dscsCtgrNm = dscsCtgrNm; }
     public int getLikes() { return likes; }
     public void setLikes(int likes) { this.likes = likes; }
     public String getRecomStatus() { return recomStatus; }

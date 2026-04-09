@@ -95,8 +95,8 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
         // 점수 저장
         if (vo.getRltnTeamCd() == null || "".equals(vo.getRltnTeamCd())) {
             // 개인: TB_LMS_DSCS_PTCP MERGE
-            String newForumSendCd = IdGenerator.getNewId("SEND");
-            vo.setForumSendCd(newForumSendCd);
+            String newDscsSendCd = IdGenerator.getNewId("SEND");
+            vo.setDscsSendCd(newDscsSendCd);
             vo.setEvalYn("Y");
             forumEzGraderDAO.updateJoinUserScore(vo);
         } else {
@@ -125,7 +125,7 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
             // 개인: 점수 0, evalYn=N으로 초기화
             vo.setEvalYn("N");
             vo.setEvalScore(0);
-            vo.setForumSendCd("");
+            vo.setDscsSendCd("");
             forumEzGraderDAO.updateJoinUserScore(vo);
         } else {
             // 팀: 팀원 전체 점수 0으로 초기화
@@ -144,8 +144,8 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
         ProcessResultVO<DefaultVO> resultVo = new ProcessResultVO<DefaultVO>();
 
         if (vo.getRltnTeamCd() == null || "".equals(vo.getRltnTeamCd())) {
-            String newForumSendCd = IdGenerator.getNewId("SEND");
-            vo.setForumSendCd(newForumSendCd);
+            String newDscsSendCd = IdGenerator.getNewId("SEND");
+            vo.setDscsSendCd(newDscsSendCd);
             vo.setEvalYn("Y");
             forumEzGraderDAO.updateJoinUserScore(vo);
         } else {
@@ -176,7 +176,7 @@ public class DscsEzGraderServiceImpl extends EgovAbstractServiceImpl implements 
             // 평가점수를 0으로 업데이트. evalYn = N으로 업데이트
             vo.setEvalYn("N");
             vo.setEvalScore(0);
-            vo.setForumSendCd("");
+            vo.setDscsSendCd("");
             forumEzGraderDAO.updateJoinUserScore(vo);
         } else {
             // 팀: 팀원 전체 점수 0으로 초기화
