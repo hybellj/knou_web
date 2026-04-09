@@ -39,7 +39,6 @@ public class DscsAtclVO extends DefaultVO {
     private int afterAtclCnt;
     private String userId;
     private String stdId;
-    private String crsCreCd;
     private String stdList;
 
     private boolean viewAll;
@@ -287,14 +286,6 @@ public class DscsAtclVO extends DefaultVO {
 
     public void setStdId(String stdId) {
         this.stdId = stdId;
-    }
-
-    public String getCrsCreCd() {
-        return crsCreCd;
-    }
-
-    public void setCrsCreCd(String crsCreCd) {
-        this.crsCreCd = crsCreCd;
     }
 
     public String getStdList() {

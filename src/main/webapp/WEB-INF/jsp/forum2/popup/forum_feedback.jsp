@@ -412,7 +412,7 @@
 					"stdId" : "${stdId}",
 					"userId" : "${userId}",
 					"userName" : "${userName}",
-					"teamId" : $("#teamCd").val(),
+					"teamId" : "${dscsVO.teamId}",
 					"fdbkCts" : $("#fdbkValue").val(),
 					"uploadFiles" : fileUploaderNewFeedback != null ? fileUploaderNewFeedback.getUploadFiles() : "",
 					"uploadPath"  : fileUploaderNewFeedback != null ? fileUploaderNewFeedback.getUploadPath() : "",

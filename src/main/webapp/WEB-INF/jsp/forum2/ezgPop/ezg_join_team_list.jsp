@@ -44,10 +44,10 @@ function selectTeam(obj) {
 	$("#selectedUserId").val('');
 	$("#selectedUserNm").val('');
 	$("#selectedStdId").val('');
-	$("#selectedTeamCd").val($(obj).attr("data-team-id"));
+	$("#selectedTeamId").val($(obj).attr("data-team-id"));
 	getDscsContsView(null, "ALL", $(obj).attr("data-team-id"), $(obj).attr("data-teamStdIds"));
 	getTargetUserInfoAndScore(obj);
-	$("#forumFeedbackBlock").empty();
+	$("#dscsFeedbackBlock").empty();
 }
 
 // 팀원 선택 반전
@@ -70,7 +70,7 @@ function selectUser(obj) {
 	$("#selectedUserId").val($(obj).attr("data-userId"));
 	$("#selectedUserNm").val($(obj).attr("data-userNm"));
 	$("#selectedStdId").val($(obj).attr("data-StdId"));
-	$("#selectedTeamCd").val($(obj).attr("data-team-id"));
+	$("#selectedTeamId").val($(obj).attr("data-team-id"));
 	getDscsContsView($(obj).attr("data-userId"), $(obj).attr("data-StdId"), $(obj).attr("data-team-id"), $(obj).attr("data-teamStdIds"));
 	getTargetUserInfoAndScore(obj)
 }
@@ -85,7 +85,7 @@ function getTargetUserInfoAndScore(obj) {
 <input type="hidden" id="selectedUserId" value="" />
 <input type="hidden" id="selectedUserNm" value="" />
 <input type="hidden" id="selectedStdId" value="" />
-<input type="hidden" id="selectedTeamCd" value="" />
+<input type="hidden" id="selectedTeamId" value="" />
 <input type="hidden" id="ezgDscsUnitTycd" value="${dscsVO.dscsUnitTycd}" />
 <c:if test="${not empty resultList}">
 	<c:forEach items="${resultList }" var="item" varStatus="status">

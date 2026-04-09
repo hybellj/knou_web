@@ -287,7 +287,7 @@ public class DscsLectController extends ControllerBase {
         // 강의실 대표교수 정보 조회
         // TODO : 26.3.26 임시 막음 처리.
        /* CreCrsVO creCrsVO = new CreCrsVO();
-        creCrsVO.setCrsCreCd(crsCreCd);
+        creCrsVO.setCrsCreCd(sbjctId);
         creCrsVO = crecrsService.selectTchCreCrs(creCrsVO);
 
         String repUserId = creCrsVO.getUserId();*/
@@ -507,7 +507,7 @@ public class DscsLectController extends ControllerBase {
         forumAtclVO.setSearchValue(dscsVO.getSearchValue());
         forumAtclVO.setPageIndex(dscsVO.getPageIndex());
         forumAtclVO.setListScale(dscsVO.getListScale());
-        forumAtclVO.setCrsCreCd(dscsVO.getSbjctId());
+        forumAtclVO.setSbjctId(dscsVO.getSbjctId());
 
         forumAtclVO.setViewAll(true);// 교수 화면은 삭제여부 관계없이 조회되도록함.
         ProcessResultVO<DscsAtclVO> resultVO = new ProcessResultVO<>();
@@ -578,7 +578,7 @@ public class DscsLectController extends ControllerBase {
             forumAtclVO.setDscsAtclTycd(StringUtil.nvl(request.getParameter("dscsAtclTycd"), request.getParameter("atclTypeCd")));
             forumAtclVO.setAtclCts(StringUtil.nvl(request.getParameter("atclCts"), request.getParameter("cts")));
             forumAtclVO.setAtclTtl(StringUtil.nvl(request.getParameter("atclTtl"), ""));
-            forumAtclVO.setCrsCreCd(vo.getSbjctId());
+            forumAtclVO.setSbjctId(vo.getSbjctId());
             forumAtclVO.setRgtrId(userId);
             forumAtclVO.setMdfrId(userId);
             forumAtclVO.setUserId(userId);
@@ -1075,12 +1075,12 @@ public class DscsLectController extends ControllerBase {
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-        String teamCtgrCd = request.getParameter("teamCtgrCd");
+        String teamId = StringUtil.nvl(request.getParameter("teamId"));
 
         try {
             dscsJoinUserVO.setRgtrId(userId);
             dscsJoinUserVO.setMdfrId(userId);
-            dscsJoinUserVO.setTeamId(teamCtgrCd);
+            dscsJoinUserVO.setTeamId(teamId);
 
             dscsJoinUserService.updateDscsJoinUserScore(dscsJoinUserVO);
             resultVO.setResult(1);
@@ -1103,12 +1103,12 @@ public class DscsLectController extends ControllerBase {
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-        String teamCtgrCd = request.getParameter("teamCtgrCd");
+        String teamId = StringUtil.nvl(request.getParameter("teamId"));
 
         try {
             dscsJoinUserVO.setRgtrId(userId);
             dscsJoinUserVO.setMdfrId(userId);
-            dscsJoinUserVO.setTeamId(teamCtgrCd);
+            dscsJoinUserVO.setTeamId(teamId);
 
             dscsJoinUserService.updateDscsJoinUserLenScore(dscsJoinUserVO);
             resultVO.setResult(1);
@@ -1161,8 +1161,6 @@ public class DscsLectController extends ControllerBase {
 
         request.setAttribute("tab", request.getParameter("tab"));
 
-        String crsCreCd = dscsVO.getSbjctId();
-
         String stdList = dscsVO.getStdList();
 
         /*토론 게시글*/
@@ -1182,7 +1180,7 @@ public class DscsLectController extends ControllerBase {
         //int listScale = 2; //forumAtclVO.getListScale()
         forumAtclVO.setListScale(dscsVO.getListScale());
         forumAtclVO.setStdList(stdList);
-        forumAtclVO.setCrsCreCd(crsCreCd);
+        forumAtclVO.setSbjctId(dscsVO.getSbjctId());
         forumAtclVO.setViewAll(true);// 교수 화면은 삭제여부 관계없이 조회되도록함.
 
         ProcessResultVO<DscsAtclVO> resultList = dscsAtclService.listPageing(forumAtclVO);
@@ -1860,12 +1858,12 @@ public class DscsLectController extends ControllerBase {
         ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<>();
 
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-        String teamCtgrCd = request.getParameter("teamCtgrCd");
+        String teamId = StringUtil.nvl(request.getParameter("teamId"));
 
         try {
             vo.setRgtrId(userId);
             vo.setMdfrId(userId);
-            vo.setTeamId(teamCtgrCd);
+            vo.setTeamId(teamId);
             vo.setUserId(userId);
 
             dscsJoinUserService.setScoreRatio(vo);

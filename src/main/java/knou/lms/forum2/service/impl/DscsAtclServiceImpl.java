@@ -100,7 +100,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
 
     // 토론 게시글 등록
     @Override
-    public void insertAtcl(DscsAtclVO vo, String teamCd) throws Exception {
+    public void insertAtcl(DscsAtclVO vo, String teamId) throws Exception {
         // 내용길이 저장
         vo.setCtsLen(StringUtil.getContentLenth(vo.getCts()));
 
@@ -111,7 +111,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
         DscsJoinUserVO joinVO = new DscsJoinUserVO();
         joinVO.setDscsId(vo.getDscsId());
         joinVO.setStdId(vo.getUserId());
-        joinVO.setTeamId(StringUtil.nvl(teamCd));
+        joinVO.setTeamId(StringUtil.nvl(teamId));
         joinVO.setRgtrId(vo.getRgtrId());
         joinVO.setMdfrId(vo.getMdfrId());
         joinVO.setDscsPtcpId(IdGenerator.getNewId(IdPrefixType.DSPTC.getCode()));
@@ -200,7 +200,7 @@ public class DscsAtclServiceImpl extends ServiceBase implements DscsAtclService 
             
             if(svo != null) {
                 forumAtclVO = new DscsAtclVO();
-                forumAtclVO.setCrsCreCd(svo.getCrsCreCd());
+                forumAtclVO.setSbjctId(svo.getCrsCreCd());
                 forumAtclVO.setDscsId(vo.getDscsId());
                 forumAtclVO.setUserId(rgtrId);
                 int atclCnt = forumAtclDAO.myAtclCnt(forumAtclVO);

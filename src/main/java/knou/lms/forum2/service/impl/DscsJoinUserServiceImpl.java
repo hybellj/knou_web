@@ -164,7 +164,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
             for (int i = 0; i < joinUserList.size(); i++) {
                 DscsJoinUserVO joinUserVO = joinUserList.get(i);
                 String stdNo = StringUtil.nvl(joinUserVO.getStdId());
-//                String teamCd = StringUtil.nvl(joinUserVO.getTeamCd());
+//                String teamId = StringUtil.nvl(joinUserVO.getTeamId());
 //                int preScore = Integer.parseInt(StringUtil.nvl(joinUserVO.getScore()));
                 int preScore = (int) Double.parseDouble(StringUtil.nvl(joinUserVO.getScore(), "0"));
                 //점수계산
@@ -177,7 +177,7 @@ public class DscsJoinUserServiceImpl extends ServiceBase implements DscsJoinUser
                     forumJoinUserVO.setScore(0.0);
                 }
                 forumJoinUserVO.setStdId(stdNo);
-//                forumJoinUserVO.setTeamCd(teamCd);
+//                forumJoinUserVO.setTeamId(teamId);
                 forumJoinUserDAO.insertStdScore(forumJoinUserVO);
             }
          // 개별 점수 등록

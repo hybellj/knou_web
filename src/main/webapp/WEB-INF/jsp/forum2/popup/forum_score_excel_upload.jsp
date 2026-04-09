@@ -39,7 +39,7 @@
 		};	
 		
 		// 등록
-		function uploadExcelForum(fileObj, copyFile) {
+		function uploadDscsScoreExcel(fileObj, copyFile) {
 			var excelGrid = "";
 			if("${dscsVO.dscsUnitTycd}" == "TEAM") {
 				excelGrid = JSON.stringify(teamExcelGrid);
@@ -79,9 +79,9 @@
 			} else {
 				$("#excelGrid").val(JSON.stringify(nomalExcelGrid));
 			}
-			$("#forumUploadForm").attr("target", "forumpleExcelDownloadIfm");
-			$("#forumUploadForm").attr("action", "/forum2/forumLect/forumScoreSampleDownload.do");
-			$("#forumUploadForm").submit();
+			$("#dscsScoreUploadForm").attr("target", "dscsSampleExcelDownloadIfm");
+			$("#dscsScoreUploadForm").attr("action", "/forum2/forumLect/forumScoreSampleDownload.do");
+			$("#dscsScoreUploadForm").submit();
 		}
 		
 		// 저장 확인
@@ -91,7 +91,7 @@
 			if (fileUploader.getFileCount() > 0) {
 				fileUploader.startUpload();
 			}*/
-			UiValidator("forumUploadForm")
+			UiValidator("dscsScoreUploadForm")
 			.then(function(result) {
 				if (result) {
 					let dx = dx5.get("fileUploader");
@@ -122,7 +122,7 @@
 	    			var fileObj = fileUploader.getUploadFiles();
 	    			var copyFile = fileUploader.getCopyFiles();
 
-	    			uploadExcelForum(fileObj, copyFile);
+	    			uploadDscsScoreExcel(fileObj, copyFile);
 	    		} else {
 	    			alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
 	    		}
@@ -141,7 +141,7 @@
 					// $("#uploadFiles").val(dx.getUploadFiles());
 					var fileObj = dx.getUploadFiles();
 
-					uploadExcelForum(fileObj);
+					uploadDscsScoreExcel(fileObj);
 				} else {
 					alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
 				}
@@ -151,7 +151,7 @@
 		}
 	</script>
 	
-	<form id="forumUploadForm" name="forumUploadForm" method="POST">
+	<form id="dscsScoreUploadForm" name="dscsScoreUploadForm" method="POST">
         <input type="hidden" name="dscsId" value="${dscsVO.dscsId}" />
         <input type="hidden" name="sbjctId" value="${dscsVO.sbjctId}"/>
         <input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}"/>
@@ -200,5 +200,5 @@
 	</body>
 	
 	<!-- 엑셀 샘플 -->
-    <iframe  width="100%" scrolling="no" id="forumpleExcelDownloadIfm" name="forumpleExcelDownloadIfm" style="display: none;"></iframe>
+    <iframe  width="100%" scrolling="no" id="dscsSampleExcelDownloadIfm" name="dscsSampleExcelDownloadIfm" style="display: none;"></iframe>
 </html>

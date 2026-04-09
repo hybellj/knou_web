@@ -78,7 +78,7 @@
 			var data = {
 				"dscsId" 	  : "${dscsVO.dscsId}",
 				"sbjctId"	  : "${dscsVO.sbjctId}",
-				"teamId"	  : $("#teamCd").val(),
+				"teamId"	  : "${dscsVO.teamId}",
 				"dscsUnitTycd"      : "${dscsVO.dscsUnitTycd}",
 				"byteamDscsUseyn"  : "${dscsVO.byteamDscsUseyn}",
 				"pageIndex"   : page,
@@ -122,7 +122,7 @@
 				}
 				scoreHtml += "		</div>";
 				scoreHtml += "		<div id=\"scoreInputDiv"+ i +"\" name=\"scoreInputDiv\" style=\"display:none;\">";
-				scoreHtml += "			<input type=\"number\" min=\"0\" id=\"score"+ i +"\" name=\"score\" data-stdid=\""+ v.userId +"\" class=\"w50 board-title\" maxlength=\"3\" value=\""+ v.score +"\" maxlength=\"3\" onkeyup=\"this.value=this.value.replace(/[^0-9]/g,'');\" onblur=\"setScoreRatio("+ i +", '"+ v.score +"')\" onfocus=\"this.select()\">";
+				scoreHtml += "			<input type=\"number\" min=\"0\" id=\"score"+ i +"\" name=\"score\" data-stdid=\""+ v.userId +"\" data-teamid=\""+ (v.teamId || "") +"\" class=\"w50 board-title\" maxlength=\"3\" value=\""+ v.score +"\" maxlength=\"3\" onkeyup=\"this.value=this.value.replace(/[^0-9]/g,'');\" onblur=\"setScoreRatio("+ i +", '"+ v.score +"')\" onfocus=\"this.select()\">";
 				scoreHtml += "			<input type=\"hidden\" name=\"score\" value=\""+ v.score +"\">";
 				scoreHtml += "		</div>";
 				<%--scoreHtml += "		<div class=\"ui basic label\"><spring:message code='forum.label.point' /></div>"; // 점--%>
@@ -163,6 +163,7 @@
 					mng: 				mngHtml,
 					// 팀관련:항목
 					teamnm:				v.teamNm,
+					teamId:				v.teamId,
 					ldryn:				v.memberRole,
 					userId:				v.userId,
 					dscsId:			v.dscsId		// BYTEAM='Y'이면 자식 DSCS_ID
@@ -196,10 +197,16 @@
 			var groups = {};
 			var uids = userListTable.getSelectedData("userId");
 			var fcds = userListTable.getSelectedData("dscsId");
+			var tids = userListTable.getSelectedData("teamId");
 			for (var i = 0; i < uids.length; i++) {
 				var fcd = fcds[i] || "${dscsVO.dscsId}";
-				if (!groups[fcd]) groups[fcd] = [];
-				groups[fcd].push(uids[i]);
+				if (!groups[fcd]) {
+					groups[fcd] = {
+						stdIds: [],
+						teamId: tids[i] || ""
+					};
+				}
+				groups[fcd].stdIds.push(uids[i]);
 			}
 			return groups;
 		}
@@ -255,8 +262,8 @@
 					var data = {
 						"dscsId"    : fcd,
 						"sbjctId"   : "${dscsVO.sbjctId}",
-						"teamCtgrCd" : "${dscsVO.teamTycd}",
-						"stdIds"     : groups[fcd].join(","),
+						"teamId"    : groups[fcd].teamId,
+						"stdIds"    : groups[fcd].stdIds.join(","),
 						"score"      : score,
 						"scoreType"  : $("input[name='scoreType']:checked").val()
 					};
@@ -279,7 +286,7 @@
 			var data = {
 				"dscsId" : "${dscsVO.dscsId}",
 				"sbjctId" : "${dscsVO.sbjctId}",
-				"teamCtgrCd" : "${dscsVO.teamTycd}",
+				"teamId" : "",
 				"stdIds" : stdIds,
 				"score" : score,
 				"scoreType" : $("input[name='scoreType']:checked").val()
@@ -385,17 +392,17 @@
 
 			var dscsId = "${dscsForumVO.dscsId}";
 			forumCommon.initModal("profMemo");
-			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
-			$("form[name='forumCreCrsStdForm'] input[name='stdNo']").val(stdNo);
-			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/dscsProfMemoPop.do");
-			$("#forumCreCrsStdForm").submit();
+			$("form[name='dscsCreCrsStdForm'] input[name='dscsId']").val(dscsId);
+			$("form[name='dscsCreCrsStdForm'] input[name='stdNo']").val(stdNo);
+			$("#dscsCreCrsStdForm").attr("target", "forumPopIfm");
+			$("#dscsCreCrsStdForm").attr("action", "/forum2/forumLect/dscsProfMemoPop.do");
+			$("#dscsCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
 
-			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
-			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
+			$("form[name='dscsCreCrsStdForm'] input[name='dscsId']").val(dscsId);
+			$("form[name='dscsCreCrsStdForm'] input[name='stdId']").val(stdId);
 
-			var queryString = $("#forumCreCrsStdForm").serialize();
+			var queryString = $("#dscsCreCrsStdForm").serialize();
 			dialog = UiDialog("dialog1", {
 				title: "메모",
 				width: 600,
@@ -415,17 +422,17 @@
 
 			/*var dscsId = "${dscsForumVO.dscsId}";
 			forumCommon.initModal("feedback");
-			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
-			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
-			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/dscsFdbkPop.do");
-			$("#forumCreCrsStdForm").submit();
+			$("form[name='dscsCreCrsStdForm'] input[name='dscsId']").val(dscsId);
+			$("form[name='dscsCreCrsStdForm'] input[name='stdId']").val(stdId);
+			$("#dscsCreCrsStdForm").attr("target", "forumPopIfm");
+			$("#dscsCreCrsStdForm").attr("action", "/forum2/forumLect/dscsFdbkPop.do");
+			$("#dscsCreCrsStdForm").submit();
 			$("#forumPop").modal("show");*/
 
-			$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
-			$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
+			$("form[name='dscsCreCrsStdForm'] input[name='dscsId']").val(dscsId);
+			$("form[name='dscsCreCrsStdForm'] input[name='stdId']").val(stdId);
 
-			var queryString = $("#forumCreCrsStdForm").serialize();
+			var queryString = $("#dscsCreCrsStdForm").serialize();
 			dialog = UiDialog("dialog1", {
 				title: "피드백",
 				width: 600,
@@ -438,11 +445,11 @@
 		// 엑셀 성적 등록
 		function callScoreExcelUpload() {
 			/*forumCommon.initModal("scoreExcel");
-			$("#forumCreCrsStdForm").attr("target", "forumPopIfm");
-			$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/forumScoreExcelUploadPop.do");
-			$("#forumCreCrsStdForm").submit();
+			$("#dscsCreCrsStdForm").attr("target", "forumPopIfm");
+			$("#dscsCreCrsStdForm").attr("action", "/forum2/forumLect/forumScoreExcelUploadPop.do");
+			$("#dscsCreCrsStdForm").submit();
 			$('#forumPop').modal('show');*/
-			var queryString = $("#forumCreCrsStdForm").serialize();
+			var queryString = $("#dscsCreCrsStdForm").serialize();
 			dialog = UiDialog("dialog1", {
 				// title: "엑셀 성적 등록",
 				width: 600,
@@ -765,6 +772,7 @@
 			var score = $("#score"+i).val();
 			//	var stdNo = $("#score"+i).attr("data-stdno");
 			var stdId = $("#score"+i).data("stdid");
+			var teamId = $("#score"+i).data("teamid") || "";
 
 			if(score === "" || score === undefined) {
 				alert("<spring:message code='forum.alert.input.score' />");/* 점수를 입력하세요. */
@@ -787,7 +795,7 @@
 				var data = {
 					"dscsId" : "${dscsVO.dscsId}",
 					"sbjctId" : "${dscsVO.sbjctId}",
-					"teamCtgrCd" : "${dscsVO.teamTycd}",
+					"teamId" : teamId,
 					"stdId" : stdId,
 					"score" : score,
 				};
@@ -869,12 +877,12 @@
 		// 토론현황보기
 		function dscsChartView() {
 			/*forumCommon.initModal("chartView");
-			$("#forumChartViewForm").attr("target", "forumPopIfm");
-			$("#forumChartViewForm").attr("action", "/forum2/forumLect/forumChartViewPop.do");
-			$("#forumChartViewForm").submit();
+			$("#dscsChartViewForm").attr("target", "forumPopIfm");
+			$("#dscsChartViewForm").attr("action", "/forum2/forumLect/forumChartViewPop.do");
+			$("#dscsChartViewForm").submit();
 			$('#forumPop').modal('show');*/
 
-			var queryString = $("#forumChartViewForm").serialize();
+			var queryString = $("#dscsChartViewForm").serialize();
 			dialog = UiDialog("dialog1", {
 				title: "토론현황 그래프",
 				width: 600,
@@ -889,7 +897,7 @@
 	<form id="teamMemberForm" name="teamMemberForm" action="" method="POST">
 		<input type="hidden" name="teamCtgrCd" id="teamCtgrCd">
 	</form>
-	<form name="forumCreCrsStdForm" id="forumCreCrsStdForm" method="POST">
+	<form name="dscsCreCrsStdForm" id="dscsCreCrsStdForm" method="POST">
 		<input type="hidden" name="dscsId" value="${dscsVO.dscsId }">
 		<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}">
 		<input type="hidden" name="teamCtgrCd" value="${dscsVO.teamTycd}">
@@ -904,10 +912,11 @@
 		<input type="hidden" name="evlScrTycd" value="${dscsVO.evlScrTycd}" >
 		<input type="hidden" name="stdId" value="">
 	</form>
-	<form name="forumChartViewForm" id="forumChartViewForm" method="POST">
+	<form name="dscsChartViewForm" id="dscsChartViewForm" method="POST">
 		<input type="hidden" name="dscsId" value="${dscsVO.dscsId }">
 		<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}">
 		<input type="hidden" name="teamCtgrCd" value="${dscsVO.teamTycd}">
+		<input type="hidden" name="teamId" value="${dscsVO.teamId}">
 		<input type="hidden" name="stdId" value="">
 		<input type="hidden" name="sbjctId" value="${dscsVO.sbjctId}">
 	</form>
@@ -1132,8 +1141,8 @@
 														var data = {
 															"dscsId"    : fcd,
 															"sbjctId"   : "${dscsVO.sbjctId}",
-															"teamCtgrCd" : "${dscsVO.teamTycd}",
-															"stdIds"     : groups[fcd].join(","),
+															"teamId"    : groups[fcd].teamId,
+															"stdIds"    : groups[fcd].stdIds.join(","),
 															"score"      : $("#lenScore").val(),
 															"ctsLen"     : $("#ctsLen").val(),
 															"chkCmnt"    : chkCmnt
@@ -1157,7 +1166,7 @@
 												var data = {
 													"dscsId" : "${dscsVO.dscsId}",
 													"sbjctId" : "${dscsVO.sbjctId}",
-													"teamCtgrCd" : "${dscsVO.teamTycd}",
+													"teamId" : "",
 													"stdIds" : stdIds,
 													"score" : $("#lenScore").val(),
 													"ctsLen" : $("#ctsLen").val(),

@@ -2,9 +2,9 @@
 <%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 
 <fmt:parseDate var="startDateFmt" pattern="yyyyMMddHHmm" value="${dscsVO.dscsSdttm}" />
-<fmt:formatDate var="forumStartDttm" pattern="yyyy.MM.dd(HH:mm)" value="${startDateFmt}" />
+<fmt:formatDate var="dscsStartDttm" pattern="yyyy.MM.dd(HH:mm)" value="${startDateFmt}" />
 <fmt:parseDate var="endDateFmt" pattern="yyyyMMddHHmm" value="${dscsVO.dscsEdttm}" />
-<fmt:formatDate var="forumEndDttm" pattern="yyyy.MM.dd(HH:mm)" value="${endDateFmt}" />
+<fmt:formatDate var="dscsEndDttm" pattern="yyyy.MM.dd(HH:mm)" value="${endDateFmt}" />
 
 <div class="elements_wrap forum_info_wrap">
 	<ul class="accordion">
@@ -14,7 +14,7 @@
 					<div class="lecture_tit">
 						<strong>${dscsVO.dscsTtl}</strong>
 						<p class="desc">
-							<span><spring:message code='forum.label.forum.date' /><!-- 토론기간 --> : <strong>${forumStartDttm} ~ ${forumEndDttm}</strong></span>
+							<span><spring:message code='forum.label.forum.date' /><!-- 토론기간 --> : <strong>${dscsStartDttm} ~ ${dscsEndDttm}</strong></span>
 							<span><spring:message code='forum.label.scoreAply' /><!-- 성적반영 --> :
 								<strong>
 									<c:choose>
@@ -57,7 +57,7 @@
 
 					<ul class="list">
 						<li class="head"><label><spring:message code='forum.label.forum.date'/><!-- 토론기간 --></label></li>
-						<li>${forumStartDttm} ~ ${forumEndDttm}</li>
+						<li>${dscsStartDttm} ~ ${dscsEndDttm}</li>
 					</ul>
 
 					<ul class="list">

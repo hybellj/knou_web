@@ -14,7 +14,7 @@ public class DscsJoinUserVO extends DefaultVO {
     private List<String> stdIdList;
     
     private String  dscsId;         // 토론 코드
-    private String  teamId;         // 팀 코드
+    private String  teamId;         // 팀 ID
     private Double  score;          // 점수
     private String  scoreNull;
     private String  leaderYn;       // 팀장 여부

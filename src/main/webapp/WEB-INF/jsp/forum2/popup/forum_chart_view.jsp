@@ -27,7 +27,7 @@
 		var data = {
 			"dscsId" 	  : "${dscsVO.dscsId}",
 			"sbjctId"	  : "${dscsVO.sbjctId}",
-			"teamId"	  : $("#teamCd").val(),
+			"teamId"	  : $("[name='teamId']").val(),
 			"dscsUnitTycd"     : "${dscsVO.dscsUnitTycd}",
 			"byteamDscsUseyn" : "${dscsVO.byteamDscsUseyn}",
 			"pageIndex"   : page,
@@ -247,7 +247,7 @@
 	}
 	</script>
 
-	<form id="forumUploadForm" name="forumUploadForm" method="POST">
+	<form id="dscsChartForm" name="dscsChartForm" method="POST">
         <input type="hidden" name="dscsId" value="${vo.dscsId}" />
         <input type="hidden" name="sbjctId" value="${vo.sbjctId}"/>
         <input type="hidden" name="dscsUnitTycd" value="${vo.dscsUnitTycd}"/>
@@ -354,5 +354,5 @@
 	</body>
 	
 	<!-- 엑셀 샘플 -->
-    <%--<iframe width="100%" scrolling="no" id="forumpleExcelDownloadIfm" name="forumpleExcelDownloadIfm" style="display: none;"></iframe>--%>
+    <%--<iframe width="100%" scrolling="no" id="dscsSampleExcelDownloadIfm" name="dscsSampleExcelDownloadIfm" style="display: none;"></iframe>--%>
 </html>

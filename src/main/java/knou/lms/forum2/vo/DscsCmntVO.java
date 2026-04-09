@@ -20,7 +20,6 @@ public class DscsCmntVO extends DefaultVO {
     private int cmntCtsLen;
     private String usernm;
     private String stdId;
-    private String crsCreCd;
     private int lvl;
     private String mdfrId;
     private String modDttm;
@@ -150,14 +149,6 @@ public class DscsCmntVO extends DefaultVO {
 
     public void setStdId(String stdId) {
         this.stdId = stdId;
-    }
-
-    public String getCrsCreCd() {
-        return crsCreCd;
-    }
-
-    public void setCrsCreCd(String crsCreCd) {
-        this.crsCreCd = crsCreCd;
     }
 
     public int getLvl() {

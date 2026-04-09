@@ -370,7 +370,7 @@
             "                <div class='right-area'>",
             "                    <button type='button' class='btn type2 atcl_edit_save'",
             "                        data-atcl-sn='"+ v.dscsAtclId +"'",
-            "                        data-forum-cd='"+ v.dscsId +"'",
+            "                        data-dscs-id='"+ v.dscsId +"'",
             "                        data-pros-cons-type-cd='"+ (v.oknokGbncd||'') +"'",
             "                        data-post-idx='"+ i +"'><spring:message code='forum.button.mod'/></button>",
             "                    <button type='button' class='btn basic atcl_edit_cancel'",
@@ -383,7 +383,7 @@
         ].join('');
     }
 
-    // 댓글 영역 -> .Comment (top_area + comment_list 상단 작성폼, 닫는 div 2개는 createForumListHTML에서 추가)
+    // 댓글 영역 -> .Comment (top_area + comment_list 상단 작성폼, 닫는 div 2개는 createDscsListHTML에서 추가)
     function tmpl_cmntWriteForm(atclSn, i, cmntCount) {
         return [
             "<div class='Comment'>",
@@ -580,9 +580,9 @@
 
     // 게시글(참여글) 등록 버튼
     function addAtclBtn(atclSn, atclStatus){
-        /*$("#forumListForm").attr("target", "forumAtclIfm");
-        $("#forumListForm").attr("action", "/forum2/forumLect/Form/addDscsBbs.do");
-        $("#forumListForm").submit();
+        /*$("#dscsListForm").attr("target", "dscsAtclIfm");
+        $("#dscsListForm").attr("action", "/forum2/forumLect/Form/addDscsBbs.do");
+        $("#dscsListForm").submit();
         $('#forumAtclPop').modal('show');*/
 
         // 입력필드 검증
@@ -1014,7 +1014,7 @@
     }
 
     //토론 수정
-    function editDscs(dscsId,forumStartDttm) {
+    function editDscs(dscsId, dscsStartDttm) {
         location.href = '<c:url value="/forum2/forumLect/profDscsEditView.do" />?dscsId=' + encodeURIComponent(dscsId);
     }
 
@@ -1140,7 +1140,7 @@
         var atclSaveBtn = e.target.closest('.atcl_edit_save');
         if(atclSaveBtn) {
             var atclSn         = atclSaveBtn.getAttribute('data-atcl-sn');
-            var dscsId         = atclSaveBtn.getAttribute('data-forum-cd');
+            var dscsId         = atclSaveBtn.getAttribute('data-dscs-id');
             var prosConsTypeCd = atclSaveBtn.getAttribute('data-pros-cons-type-cd');
             var postIdx        = atclSaveBtn.getAttribute('data-post-idx');
             var cts            = (document.getElementById('atclEditCts' + postIdx) || {}).value || '';

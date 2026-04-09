@@ -687,7 +687,7 @@
     // 이전 토론 가져오기
     function forumCopy() {
         /*
-        $("#forumCopyForm > input[name='crsCreCd']").val("${dscsForumVO.crsCreCd}");
+        $("#forumCopyForm > input[name='sbjctId']").val("${dscsVO.sbjctId}");
         $("#forumCopyForm").attr("target", "forumCopyIfm");
         $("#forumCopyForm").attr("action", "/forum/forumLect/Form/forumCopyPop.do");
         $("#forumCopyForm").submit();

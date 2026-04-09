@@ -46,16 +46,16 @@ function fdbkList(stdId) {
 	}
 
 	var dscsId = "${dscsVO.dscsId}";
-	$("form[name='forumCreCrsStdForm'] input[name='dscsId']").val(dscsId);
-	$("form[name='forumCreCrsStdForm'] input[name='stdId']").val(stdId);
-	$("#forumCreCrsStdForm").attr("target", "fdbkListIfm");
-	$("#forumCreCrsStdForm").attr("action", "/forum2/forumLect/dscsFdbkPop.do");
-	$("#forumCreCrsStdForm").submit();
+	$("form[name='dscsCreCrsStdForm'] input[name='dscsId']").val(dscsId);
+	$("form[name='dscsCreCrsStdForm'] input[name='stdId']").val(stdId);
+	$("#dscsCreCrsStdForm").attr("target", "fdbkListIfm");
+	$("#dscsCreCrsStdForm").attr("action", "/forum2/forumLect/dscsFdbkPop.do");
+	$("#dscsCreCrsStdForm").submit();
 	$('#fdbkListPop').modal('show');
 }
 
 </script>
-<form name="forumCreCrsStdForm" id="forumCreCrsStdForm" method="POST">
+<form name="dscsCreCrsStdForm" id="dscsCreCrsStdForm" method="POST">
 	<input type="hidden" name="dscsId" value="${dscsVO.dscsId }">
 	<input type="hidden" name="dscsUnitTycd" value="${dscsVO.dscsUnitTycd}">
 	<input type="hidden" name="teamTycd" value="${dscsVO.teamTycd}">
