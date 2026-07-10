@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.crs.sbjct.dao.SbjctTmpltDAO">
+     <sql id="listQuery">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
+         ,  COUNT(*) OVER() AS TOTAL_CNT
+         ,  A.SBJCT_TMPLT_ID
+         ,  A.SBJCTNM
+         ,  A.CRCLMN_NO AS SBJCT_CD
+         ,  A.SBJCT_YR
+         ,  A.SBJCT_SMSTR
+         ,  A.SBJCT_GBNCD
+         ,  A.SBJCT_TYCD
+         ,  A.LCTR_GBNCD
+         ,  ORG.ORGNM
+         ,  SBJCT_TYCD_CD.CDNM AS SBJCT_TYCDNM
+         ,  LCTR_GBNCD_CD.CDNM AS LCTR_GBNCDNM
+         ,  A.USEYN
+         ,  A.DELYN
+         ,  B.SMSTR_CHRT_ID
+         ,  B.ORG_ID
+         ,  B.DGRS_YR
+         ,  B.DGRS_SMSTR_CHRT
+        FROM TB_LMS_SBJCT_TMPLT A
+            INNER JOIN TB_LMS_SMSTR_CHRT B
+            ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+            LEFT JOIN TB_LMS_ORG ORG
+            ON ORG.ORG_ID = B.ORG_ID
+            LEFT JOIN TB_LMS_CMMN_CD SBJCT_TYCD_CD
+            ON SBJCT_TYCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND SBJCT_TYCD_CD.UP_CD = 'SBJCT_TYCD'
+            AND SBJCT_TYCD_CD.CD = A.SBJCT_TYCD
+            LEFT JOIN TB_LMS_CMMN_CD LCTR_GBNCD_CD
+            ON LCTR_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND LCTR_GBNCD_CD.UP_CD = 'LCTR_GBNCD'
+            AND LCTR_GBNCD_CD.CD = A.LCTR_GBNCD
+        WHERE 1 = 1
+            AND A.DELYN = 'N'
+            AND B.ORG_ID = #{orgId}
+            <choose>
+                <when test="smstrChrtId != null and smstrChrtId != ''">
+                AND A.SMSTR_CHRT_ID = #{smstrChrtId}
+                </when>
+                <otherwise>
+            <!-- 년도 -->
+            <if test="sbjctYr != null and sbjctYr != ''">
+                AND A.SBJCT_YR = #{sbjctYr}
+            </if>
+            <!-- 과목학기 -->
+            <if test="sbjctSmstr != null and sbjctSmstr != ''">
+                AND TRIM(A.SBJCT_SMSTR) = #{sbjctSmstr}
+            </if>
+                </otherwise>
+            </choose>
+            <!-- 과목분류 -->
+            <if test="sbjctTycd != null and sbjctTycd != ''">
+                AND A.SBJCT_TYCD = #{sbjctTycd}
+            </if>
+            <!-- 검색어 -->
+            <if test="searchValue != null and searchValue != ''">
+                AND A.SBJCTNM LIKE FN_LIKE_VAL(#{searchValue})
+            </if>
+         ORDER BY A.REG_DTTM DESC
+    </sql>
+
+    <select id="selectSbjctTmpltList" parameterType="sbjctTmpltPageInfo" resultType="SbjctTmpltListVO">
+        /*
+            SQL ID : SbjctTmpltDAO.selectSbjctTmpltList
+            설  명 : 과목목록조회(페이징)
+        */
+        <include refid="CommonSQL.pagePrefix2" />
+        <include refid="listQuery" />
+        <include refid="CommonSQL.pageSuffix2" />
+    </select>
+
+    <select id="selectSbjctTmpltListExcelDown" parameterType="sbjctTmpltPageInfo" resultType="SbjctTmpltListVO">
+        /*
+            SQL ID : SbjctTmpltDAO.selectSbjctTmpltListExcelDown
+            설  명 : 과목목록 엑셀 다운로드
+        */
+        <include refid="listQuery" />
+    </select>
+
+    <select id="selectSbjctTmpltOfringList" parameterType="SbjctTmpltListVO" resultType="SbjctTmpltListVO">
+        /*
+            SQL ID : SbjctTmpltDAO.selectSbjctTmpltOfringList
+            설  명 : 과목개설 등록용 과목목록 조회
+        */
+        SELECT
+            A.SBJCT_TMPLT_ID
+          , A.SBJCTNM
+          , A.CRCLMN_NO AS SBJCT_CD
+          , A.SMSTR_CHRT_ID
+          , A.LCTR_GBNCD
+        FROM TB_LMS_SBJCT_TMPLT A
+            INNER JOIN TB_LMS_SMSTR_CHRT B
+            ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+        WHERE A.DELYN = 'N'
+          AND A.USEYN = 'Y'
+          AND B.ORG_ID = #{orgId}
+          AND A.SMSTR_CHRT_ID = #{smstrChrtId}
+        ORDER BY A.SBJCTNM ASC
+    </select>
+
+    <update id="updateSbjctTmpltUseyn" parameterType="SbjctTmpltListVO">
+        /*
+            SQL ID : SbjctTmpltDAO.updateSbjctTmpltUseyn
+            설  명 : 과목사용여부 수정
+        */
+
+        UPDATE TB_LMS_SBJCT_TMPLT
+           SET USEYN    = #{useyn},
+               MDFR_ID  = #{mdfrId},
+               MOD_DTTM = FN_DTTM()
+         WHERE SBJCT_TMPLT_ID = #{sbjctTmpltId}
+           AND DELYN = 'N'
+    </update>
+
+    <update id="deleteSbjctTmplt" parameterType="SbjctTmpltListVO">
+        /*
+            SQL ID : SbjctTmpltDAO.deleteSbjctTmplt
+            설  명 : 과목삭제(논리삭제)
+        */
+
+        UPDATE TB_LMS_SBJCT_TMPLT
+           SET DELYN    = 'Y',
+               MDFR_ID  = #{mdfrId},
+               MOD_DTTM = FN_DTTM()
+         WHERE SBJCT_TMPLT_ID = #{sbjctTmpltId}
+           AND DELYN = 'N'
+    </update>
+
+    <select id="selectSbjctTmpltDupCnt" parameterType="SbjctTmpltVO" resultType="int">
+        /*
+            SQL ID : SbjctTmpltDAO.selectSbjctTmpltDupCnt
+            설  명 : 과목명/과목코드 중복 체크
+        */
+        SELECT COUNT(1)
+          FROM TB_LMS_SBJCT_TMPLT A
+          JOIN TB_LMS_SMSTR_CHRT B
+            ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+         WHERE A.DELYN = 'N'
+           AND B.ORG_ID = #{orgId}
+           AND B.SMSTR_CHRT_ID = #{smstrChrtId}
+        <!-- 수정 시 현재 과목 템플릿은 중복 대상에서 제외한다. 신규 등록은 sbjctTmpltId가 없으므로 조건을 적용하지 않는다. -->
+        <if test="sbjctTmpltId != null and sbjctTmpltId != ''">
+           AND A.SBJCT_TMPLT_ID != #{sbjctTmpltId}
+        </if>
+        <choose>
+            <when test='checkType == "NAME"'>
+           AND LOWER(TRIM(A.SBJCTNM)) = LOWER(TRIM(#{sbjctnm}))
+            </when>
+            <when test='checkType == "CODE"'>
+           AND LOWER(TRIM(A.CRCLMN_NO)) = LOWER(TRIM(#{sbjctCd}))
+            </when>
+            <otherwise>
+           AND 1 = 0
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectSbjctTmpltSmstrChrtCnt" parameterType="SbjctTmpltVO" resultType="int">
+        /*
+            SQL ID : SbjctTmpltDAO.selectSbjctTmpltSmstrChrtCnt
+            설  명 : 과목 학기/기수 유효성 체크
+        */
+        SELECT COUNT(1)
+          FROM TB_LMS_SMSTR_CHRT
+         WHERE SMSTR_CHRT_ID = #{smstrChrtId}
+           AND ORG_ID = #{orgId}
+    </select>
+
+    <select id="selectSbjctTmplt" parameterType="SbjctTmpltVO" resultType="SbjctTmpltVO">
+        /*
+            SQL ID : SbjctTmpltDAO.selectSbjctTmplt
+            설  명 : 과목 상세 조회
+        */
+        SELECT
+            A.SBJCT_TMPLT_ID
+          , A.SBJCT_REF_TYCD
+          , A.RGLRYN
+          , A.CRS_MSTR_ID
+          , A.SMSTR_CHRT_ID
+          , A.SBJCT_GBNCD
+          , A.CRCLMN_NO
+          , A.SBJCTNM
+          , A.SBJCT_EXPLN
+          , A.SBJCT_ENNM
+          , A.SBJCT_YR
+          , A.SBJCT_SMSTR
+          , A.SBJCT_TYCD
+          , A.EDU_MTHD_TYCD
+          , A.CRDTS
+          , A.RVW_PSBL_GBNCD
+          , A.RVW_SDTTM
+          , A.RVW_EDTTM
+          , A.DVCLAS_NO
+          , A.WHOL_WK_CNT
+          , A.CMCRS_GBNCD
+          , A.CMCRS_GBNNM
+          , A.LRN_CNTRL_GBNCD
+          , A.FNSH_PROC_MTHD_CD
+          , A.FNSH_SCR
+          , A.FNSH_SCR_DELRT
+          , A.ETC_DELRT
+          , A.ATNDC_DELRT
+          , A.ASMT_DELRT
+          , A.DSCS_DELRT
+          , A.EXAM_DELRT
+          , A.TEAM_ACTV_DELRT
+          , A.LCTR_SDTTM
+          , A.LCTR_EDTTM
+          , A.ATNDLC_CERT_PROC_MTHD_CD
+          , A.ATNDLC_QUOTA
+          , A.ATNDLC_CERT_STSCD
+          , A.ATNDLC_APLY_SDTTM
+          , A.ATNDLC_APLY_EDTTM
+          , A.ATNDLC_SDTTM
+          , A.ATNDLC_EDTTM
+          , A.AUDIT_SDTTM
+          , A.AUDIT_EDTTM
+          , A.MRK_PROC_SDTTM
+          , A.MRK_PROC_EDTTM
+          , A.MRK_EVL_GBNCD
+          , A.MRK_INQ_SRVY_ID
+          , A.USEYN
+          , A.DELYN
+          , A.UNIV_TYCD
+          , A.UNIV_ID
+          , A.SCR_EVL_GBNCD
+          , A.KYWD
+          , A.LCTR_FRMT_GBNCD
+          , A.RGTR_ID
+          , A.REG_DTTM
+          , A.MDFR_ID
+          , A.MOD_DTTM
+          , A.LCTR_GBNCD
+          , A.CRCLMN_NO AS SBJCT_CD
+          , B.ORG_ID
+          , B.DGRS_YR
+          , B.DGRS_SMSTR_CHRT
+          , B.SMSTR_CHRTNM
+        FROM TB_LMS_SBJCT_TMPLT A
+            INNER JOIN TB_LMS_SMSTR_CHRT B
+            ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+        WHERE A.SBJCT_TMPLT_ID = #{sbjctTmpltId}
+          AND A.DELYN = 'N'
+    </select>
+
+    <insert id="insertSbjctTmplt" parameterType="SbjctTmpltVO">
+        /*
+            SQL ID : SbjctTmpltDAO.insertSbjctTmplt
+            설  명 : 과목 등록
+        */
+        INSERT INTO TB_LMS_SBJCT_TMPLT (
+            SBJCT_TMPLT_ID
+          , SBJCT_REF_TYCD
+          , SMSTR_CHRT_ID
+          , SBJCTNM
+          , SBJCT_EXPLN
+          , SBJCT_YR
+          , SBJCT_SMSTR
+          , SBJCT_TYCD
+          , USEYN
+          , DELYN
+          , RGTR_ID
+          , REG_DTTM
+          , MDFR_ID
+          , MOD_DTTM
+          , LCTR_GBNCD
+          , CRCLMN_NO
+        ) VALUES (
+            #{sbjctTmpltId}
+          , #{sbjctRefTycd}
+          , #{smstrChrtId}
+          , #{sbjctnm}
+          , #{sbjctExpln}
+          , #{sbjctYr}
+          , #{sbjctSmstr}
+          , #{sbjctTycd}
+          , #{useyn}
+          , #{delyn}
+          , #{rgtrId}
+          , FN_DTTM()
+          , #{mdfrId}
+          , FN_DTTM()
+          , #{lctrGbncd}
+          , #{sbjctCd}
+        )
+    </insert>
+
+    <insert id="insertSbjctTmpltList" parameterType="java.util.List">
+        /*
+            SQL ID : SbjctTmpltDAO.insertSbjctTmpltList
+            설  명 : 과목 엑셀 업로드 검증이 완료된 목록을 벌크 등록한다.
+        */
+        INSERT ALL
+        <foreach collection="list" item="item">
+            INTO TB_LMS_SBJCT_TMPLT (
+                SBJCT_TMPLT_ID
+              , SBJCT_REF_TYCD
+              , SMSTR_CHRT_ID
+              , SBJCTNM
+              , SBJCT_EXPLN
+              , SBJCT_YR
+              , SBJCT_SMSTR
+              , SBJCT_TYCD
+              , USEYN
+              , DELYN
+              , RGTR_ID
+              , REG_DTTM
+              , MDFR_ID
+              , MOD_DTTM
+              , LCTR_GBNCD
+              , CRCLMN_NO
+            ) VALUES (
+                #{item.sbjctTmpltId}
+              , #{item.sbjctRefTycd}
+              , #{item.smstrChrtId}
+              , #{item.sbjctnm}
+              , #{item.sbjctExpln}
+              , #{item.sbjctYr}
+              , #{item.sbjctSmstr}
+              , #{item.sbjctTycd}
+              , #{item.useyn}
+              , #{item.delyn}
+              , #{item.rgtrId}
+              , FN_DTTM()
+              , #{item.mdfrId}
+              , FN_DTTM()
+              , #{item.lctrGbncd}
+              , #{item.sbjctCd}
+            )
+        </foreach>
+        SELECT 1 FROM DUAL
+    </insert>
+
+    <update id="updateSbjctTmplt" parameterType="SbjctTmpltVO">
+        /*
+            SQL ID : SbjctTmpltDAO.updateSbjctTmplt
+            설  명 : 과목 수정
+        */
+        UPDATE TB_LMS_SBJCT_TMPLT
+           SET SBJCT_REF_TYCD = #{sbjctRefTycd}
+             , SMSTR_CHRT_ID  = #{smstrChrtId}
+             , SBJCTNM        = #{sbjctnm}
+             , SBJCT_EXPLN    = #{sbjctExpln}
+             , SBJCT_YR       = #{sbjctYr}
+             , SBJCT_SMSTR    = #{sbjctSmstr}
+             , SBJCT_TYCD     = #{sbjctTycd}
+             , USEYN          = #{useyn}
+             , MDFR_ID        = #{mdfrId}
+             , MOD_DTTM       = FN_DTTM()
+             , LCTR_GBNCD     = #{lctrGbncd}
+             , CRCLMN_NO      = #{sbjctCd}
+         WHERE SBJCT_TMPLT_ID = #{sbjctTmpltId}
+           AND DELYN = 'N'
+    </update>
+
+</mapper>
